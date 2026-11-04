@@ -137,6 +137,8 @@ export const REDIRECTS = {
   'components-topbar--pieces': 'react-topbar--full',
   'components-topbar--signed-out': 'react-topbar--signed-out',
   'foundations-signal-contrast--diagnosis': 'foundations-colors--semantic',
+  // #768 moved the Hover readouts rules to Charts.
+  'guidelines-hover-readouts--hover-readouts': 'guidelines-charts--charts',
   // #768 removed the Text length page. Its introductions rule went to The page.
   'guidelines-text-length--text-length': 'guidelines-the-page--the-page',
   'react-breadcrumbs--trail': 'react-backlink--short',
@@ -210,7 +212,6 @@ export const KEPT = [
   'guidelines-empty-states--empty-states',
   'guidelines-file-drop--file-drop',
   'guidelines-going-back--going-back',
-  'guidelines-hover-readouts--hover-readouts',
   'guidelines-iconography--iconography',
   'guidelines-labels-and-titles--labels-and-titles',
   'guidelines-layout-and-density--layout-and-density',

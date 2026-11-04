@@ -21,7 +21,7 @@ import * as drawerContent from './_drawer.js';
 import * as fileDropContent from './_file-drop.js';
 import * as motionContent from './_motion.js';
 import * as paletteContent from './_command-palette.js';
-import * as hoverContent from './_hover-readouts.js';
+import * as chartsContent from './_charts.js';
 import * as backContent from './_going-back.js';
 import * as pageContent from './_the-page.js';
 import * as accountContent from './_account-and-settings.js';
@@ -60,7 +60,7 @@ const ENTRIES = [
   [fileDropContent, 'Guidelines/File drop', 'FileDrop', 'Panels', 'The upload row, its states and its errors'],
   [motionContent, 'Guidelines/Motion', 'Motion', 'Look and access', 'Timing, easing and reduced motion'],
   [paletteContent, 'Guidelines/The command palette', 'CommandPalette', 'Panels', 'What the palette holds, ranks and answers'],
-  [hoverContent, 'Guidelines/Hover readouts', 'HoverReadouts', 'Data', 'Values beside chart marks, by pointer or touch'],
+  [chartsContent, 'Guidelines/Charts', 'Charts', 'Data', 'Lines, their names and their values by pointer, touch or table'],
   [backContent, 'Guidelines/Going back', 'GoingBack', 'Pages', 'When to show a back link and where it goes'],
   [accountContent, 'Guidelines/Account and settings', 'AccountAndSettings', 'Panels', 'The account window and the account menu'],
 ];

@@ -34,12 +34,12 @@ test('the walk reads the story files Storybook indexes', () => {
 });
 
 test('every id the one Storybook keeps is still published', () => {
-  assert.equal(KEPT.length, 78, 'foundations 20, guidelines 26, showcases 31 and the feature grid');
+  assert.equal(KEPT.length, 77, 'foundations 20, guidelines 25, showcases 31 and the feature grid');
   assert.deepEqual(KEPT.filter(id => !published.has(id)), []);
 });
 
 test('every old component link lands on a story that exists', () => {
-  assert.equal(Object.keys(REDIRECTS).length, 133, 'the 130 vanilla component ids, less the feature grid that is kept, the 2 removed React Breadcrumbs ids and the removed Signal contrast and Text length pages');
+  assert.equal(Object.keys(REDIRECTS).length, 134, 'the 130 vanilla component ids, less the feature grid that is kept, the 2 removed React Breadcrumbs ids and the removed Signal contrast, Text length and Hover readouts pages');
   assert.deepEqual(['react-breadcrumbs--trail', 'react-breadcrumbs--with-icon'].map(id => REDIRECTS[id]),
     ['react-backlink--short', 'react-backlink--short'], 'the React Breadcrumbs stories went with the component (#736)');
   assert.deepEqual(missingTargets(REDIRECTS, published), []);

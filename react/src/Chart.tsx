@@ -997,7 +997,7 @@ export function Chart(props: ChartProps) {
                 // behind it is let through to the page but may not pick the
                 // column. The tap that closes one is a second, deliberate press
                 // and keeps the action.
-                // why: guidelines/hover-readouts.md#tap-to-open-or-close
+                // why: guidelines/charts.md#tap-to-open-or-close
                 if (id && id === openId) { opening.current = false; setOpenId(null); }
                 else { opening.current = Boolean(id) && dismissed.current !== id; show(id); }
               }}

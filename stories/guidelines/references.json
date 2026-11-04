@@ -367,7 +367,7 @@
    }
   ]
  },
- "_hover-readouts.js": {
+ "_charts.js": {
   "overlay": [
    {
     "ref": "src/styles/tooltip.css:18",

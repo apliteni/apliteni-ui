@@ -605,7 +605,7 @@ the readout and describes the mark through `aria-describedby`. **Escape dismisse
 the kit is showing**. **Under a coarse pointer the tap is the switch**, and the opening tap is
 captured. This means a chart that drills down on a bar does not drill down on the tap that asked
 what the bar says. No value may be reachable only by hovering. See
-[Hover readouts](../guidelines/hover-readouts.md).
+[Charts](../guidelines/charts.md).
 
 ### The React tooltip
 

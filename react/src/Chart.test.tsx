@@ -831,7 +831,7 @@ it('an opening tap still lets its click through to the page', () => {
   tap('income-1');
   // The guideline blocks the MARK's click action on the opening tap, not the
   // event: a host that wires its own handler around the chart still hears it.
-  // why: guidelines/hover-readouts.md#tap-to-open-or-close
+  // why: guidelines/charts.md#tap-to-open-or-close
   expect(onPageClick).toHaveBeenCalledTimes(1);
 });
 

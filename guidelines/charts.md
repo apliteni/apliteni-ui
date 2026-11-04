@@ -1,4 +1,40 @@
-# Hover readouts
+# Charts
+
+## Draw at most two lines on a chart
+
+<!-- rule: two-lines-at-most -->
+
+**Rule:** Draw one line on a chart, or two when the reader compares them.
+
+**Why:** Past two lines, the colours are hard to tell apart and the crossings hide the shape of each line.
+
+**Except:** Three smooth areas compared by shape.
+
+**Do:** Spend against Estimated, then revenue against expenses on a second chart.
+
+**Don't:** All four lines on one chart.
+
+## Name the lines by their values or a key
+
+<!-- rule: value-not-legend -->
+
+**Rule:** On a chart of one or two lines, write the last values when the latest value matters. Draw a key for more lines, or when no one value matters.
+
+**Why:** A key sends the eye from a line to the key and back, and gives no amount. A tap shows the readout with the values at that point.
+
+**Do:** Spend with a key and last values, and seasonal spend with a key.
+
+## Leave the range out of a chart card
+
+<!-- rule: no-range-on-chart -->
+
+**Rule:** Title a chart card by what it measures, and leave out the range of its data.
+
+**Why:** The page or the filter around the chart already holds the range.
+
+**Do:** Spend against estimate, with no subtitle.
+
+**Don't:** The same card with the first quarter of 2026 under its title.
 
 ## Keep readouts off the layout
 
@@ -45,6 +81,16 @@
 **Do:** Tap another mark to move the readout. Tap the same mark or elsewhere to close it.
 
 **Except:** The opening tap blocks the mark's click but still reaches page listeners. The closing tap can also drill down.
+
+## Switch a chart to its table
+
+<!-- rule: chart-table-switch -->
+
+**Rule:** Give a chart's block a Chart and Table switch that opens on Chart.
+
+**Why:** The chart shows the shape of a change, and the table the amounts it is read for.
+
+**Do:** Net settled by month as bars, with a switch to its rows.
 
 ## Provide another access method
 

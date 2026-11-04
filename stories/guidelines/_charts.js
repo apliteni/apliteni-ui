@@ -1,11 +1,11 @@
 import { loadGuideline } from './_markdown.js';
-const content = await loadGuideline('hover-readouts.md', new URL('../../guidelines/hover-readouts.md', import.meta.url));
+const content = await loadGuideline('charts.md', new URL('../../guidelines/charts.md', import.meta.url));
 export const TITLE = content.title;
 export const BLURB = content.blurb;
 export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 
-// The charts are the kit Chart, which brings its own readout and sheet.
+// The charts are the kit Chart, which brings its own readout, key and sheet.
 export const SPEC_CSS = `
   <style>
     .gh-stack { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -20,3 +20,7 @@ export const SPEC_CSS = `
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-2) var(--space-3); }
   </style>`;
+
+// Made-up monthly spend for a made-up portal, in thousands of euros.
+export const SPEND = [18.2, 19.4, 21.1];
+export const ESTIMATED = [17.5, 17.8, 18.1];

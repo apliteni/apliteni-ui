@@ -61,6 +61,7 @@ export const WORDS_PER_RULE = 60;
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
   'accessibility-floor.md': 437,
+  'charts.md': 547,
   'account-and-settings.md': 336,
   'command-palette.md': 305,
   'component-choice.md': 495,
@@ -68,10 +69,7 @@ export const RECORDED = {
   'drawer.md': 311,
   'empty-states.md': 90,
   'file-drop.md': 488,
-  'going-back.md': 363,
-  'hover-readouts.md': 304,
   'iconography.md': 159,
-  'layout-and-density.md': 317,
   'state-set.md': 177,
   'stat-bands.md': 224,
 };

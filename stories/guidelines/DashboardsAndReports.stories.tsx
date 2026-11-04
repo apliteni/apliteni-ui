@@ -9,11 +9,10 @@ import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
 import { Segmented } from '../../react/src/Segmented';
 import { RestingFilters } from '../_table-filters';
-import { Chart, type ChartLookSeries } from '../../react/src/Chart';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { ESTIMATED, LEDGER, SPEC_CSS, SPEND } from './_dashboards-and-reports.js';
+import { LEDGER, SPEC_CSS } from './_dashboards-and-reports.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { payoutHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -65,42 +64,6 @@ const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters
 const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
   chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
 
-const MONTHS = ['Jan', 'Feb', 'Mar'];
-const NET_BY_MONTH = [412, 455, 430];
-const MONTH_PERIODS = MONTHS.map(label => ({ label }));
-const MONTH_TITLE = 'Net settled by month, first quarter of the year, thousands of euros';
-const MONTH_SERIES = [{ id: 'net', name: 'Net settled', values: NET_BY_MONTH }];
-const thousands = (n: number) => `${n}k €`;
-// The kit's month chart. In a titled card its Chart and Table switch joins the
-// card's title row.
-const MonthBlock = () => <Card title="Net settled by month">
-  <Chart title={MONTH_TITLE} periods={MONTH_PERIODS} series={MONTH_SERIES} format={thousands} />
-</Card>;
-
-// The kit's line chart. `legend` draws the key that names the lines. The labels
-// look adds each line's last value at its end, and the thin look writes no value.
-const SPEND_SERIES: ChartLookSeries[] = [
-  { id: 'spend', name: 'Spend', tone: 'accent', values: SPEND }, { id: 'estimated', name: 'Estimated', tone: 'accent-soft', values: ESTIMATED }];
-const INCOME_SERIES: ChartLookSeries[] = [
-  { id: 'revenue', name: 'Revenue', tone: 'accent', values: [46.2, 45.1, 47.9] },
-  { id: 'expenses', name: 'Expenses', tone: 'accent-soft', values: [32.9, 33.4, 32.8] },
-];
-const ALL_SERIES: ChartLookSeries[] = [...SPEND_SERIES, { ...INCOME_SERIES[0], tone: 'warn' }, { ...INCOME_SERIES[1], tone: 'info' }];
-const PERIODS = MONTHS.map(month => ({ label: `${month} 2026`, short: month }));
-const kEur = (n: number) => `${n.toFixed(1)}k €`;
-// Two past years over one quarter: the shape is the point, and no one value is.
-const SEASON_SERIES: ChartLookSeries[] = [
-  { id: 'y2024', name: '2024', tone: 'accent-soft', values: [15.1, 15.8, 17.2] },
-  { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8] },
-];
-const QUARTER = MONTHS.map(month => ({ label: month, short: month }));
-const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first quarter of 2026', periods = PERIODS }:
-  { title: string; sub?: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS }) =>
-  <Card title={title} sub={sub}>
-    <Chart variant="line" look={look} legend={legend} title={`${title}, ${span}, thousands of euros`}
-      periods={periods} series={series} format={kEur} />
-  </Card>;
-
 // Offered, not applied: the rows below are every payout, so no chip may read as
 // a value a reader would then look for in the table.
 const FILTERS = [
@@ -138,19 +101,6 @@ const specimens = [
       <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Download PDF</Button>
     </div></Stage> },
-  { id: 'chart-table-switch',
-    do: () => <Stage><MonthBlock /></Stage> },
-  // The chart's own title still names the span: it is read aloud, never drawn.
-  { id: 'no-range-on-chart',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage>,
-    dont: () => <Stage><LineCard title="Spend against estimate" sub="First quarter of 2026" series={SPEND_SERIES} legend /></Stage> },
-  { id: 'value-not-legend',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first quarter of each year" periods={QUARTER} /></Stage> },
-  { id: 'two-lines-at-most',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend /></Stage>,
-    dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} look="thin" legend /></Stage> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dashboards and reports', parameters: { layout: 'fullscreen' } };

@@ -185,8 +185,8 @@ describe('guideline pages in React: Density and accents', () => {
  * the same card. Found by its rule id. How the switch moves on the keyboard is the
  * kit's: Segmented.test.tsx holds it. JSDOM applies no sheet, so the look is the
  * pixel comparison's question, not this file's. */
-describe('guideline pages in React: Dashboards and reports', () => {
-  const page = pages.find(p => p.file.endsWith('/DashboardsAndReports.stories.tsx'))!;
+describe('guideline pages in React: Charts', () => {
+  const page = pages.find(p => p.file.endsWith('/Charts.stories.tsx'))!;
   const block = () => {
     const section = mount(page).querySelector('[data-rule="chart-table-switch"]');
     expect(section, 'no rule "chart-table-switch" on the page: the gate is checking nothing').toBeTruthy();

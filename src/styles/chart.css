@@ -220,7 +220,7 @@
    room and flips below it where it has not, which near the top of the plot
    means covering the mark and the first axis labels. The guideline asks for
    that flip rather than for a readout outside the part.
-   why: guidelines/hover-readouts.md#prefer-above-the-mark */
+   why: guidelines/charts.md#prefer-above-the-mark */
 .ui-chart__anchor { fill: none; pointer-events: none; }
 
 /* The hit area a pointer lands on. It is the series' own band in the column, so

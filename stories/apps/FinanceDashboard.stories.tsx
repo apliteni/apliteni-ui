@@ -37,7 +37,7 @@ const Dashboard = () => {
       <Segmented label="Period" options={(PERIODS as string[]).map(p => ({ label: p, value: p }))} value={period} onChange={setPeriod} />
       <p className="ui-sr" id={PERIOD_BASIS} data-period-basis="">{periodBasis(period)}</p>
     </div>
-    {/* A hovered month shows in its figure. why: guidelines/hover-readouts.md */}
+    {/* A hovered month shows in its figure. why: guidelines/charts.md */}
     <KpiBand id="fd-cashflow" basisId={PERIOD_BASIS} format={money} stats={cashflowStats(period, true) as KpiFigure[]} />
     {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
     <Card>{bar}</Card>
