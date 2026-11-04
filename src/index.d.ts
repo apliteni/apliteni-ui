@@ -8,6 +8,7 @@ export declare function revealCurrentNav(nav: HTMLElement): void;
 /** Scroll a tab row so the link a focus event landed on clears the row's edge. */
 export declare function revealFocusedNav(nav: HTMLElement, target: EventTarget | null): void;
 
+export declare function filterChipValue(filter?: { value?: string }): string;
 export declare function filterChipText(filter?: { label?: string; value?: string }): string;
 export declare function filterChipName(filter?: { label?: string; value?: string }): string;
 export declare function filterChipUnset(filter?: { value?: string }): boolean;

@@ -34,7 +34,7 @@ const Cashflow = ({ id }: { id: string }) => <KpiBand id={id} format={money} sta
   .map(figure => ({ ...figure, delta: figure.delta && { ...figure.delta, basis: 'vs prior year' } }))} />;
 
 // `fees` swaps Status for the fees, so the report shows how each net is made.
-const LedgerTable = ({ fees = false }: { fees?: boolean }) => <table className="ui-table ui-table--dense ui-table--zebra">
+const LedgerTable = ({ fees = false }: { fees?: boolean }) => <table className="ui-table ui-table--dense ui-table--hover">
   <thead><tr><th>Reference</th>{fees && <th className="ui-table__num">Fees (EUR)</th>}<th className="ui-table__num">Net (EUR)</th>{!fees && <th>Status</th>}</tr></thead>
   <tbody>{(LEDGER as string[][]).map(([ref, , fee, net, tone, label]) => <tr key={ref}>
     <td>{ref}</td>{fees && <td className="ui-table__num">{fee}</td>}<td className="ui-table__num ui-table__num--strong">{net}</td>
@@ -53,7 +53,7 @@ const EXCEPTIONS: [string, string, Tone, string][] = [
 const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters search="Search exceptions" placeholder="Reference"
   label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'In transit', 'Unmatched'] }]} />
 <Card title="Needs a decision">
-  <table className="ui-table ui-table--dense">
+  <table className="ui-table ui-table--dense ui-table--hover">
     <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
     <tbody>{EXCEPTIONS.map(([ref, net, tone, label]) => <tr key={ref}>
       <td><span className="ui-table__pair">{onward ? <a href={payoutHref(ref)}>{ref}</a> : ref}<Badge variant={tone}>{label}</Badge></span></td>

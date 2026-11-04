@@ -60,7 +60,7 @@ const Ledger = ({ className = 'ui-table--dense ui-table--hover', hovered, rows =
   </table>;
 
 const Numbers = ({ className = '' }: { className?: string }) => <Card>
-  <table className={`ui-table ui-table--dense ${className}`} aria-label="Payouts">
+  <table className={`ui-table ui-table--dense ui-table--hover ${className}`} aria-label="Payouts">
     <thead><tr><th>Payee</th><th className="ui-table__num">Amount{EUR}</th><th className="ui-table__num">Fee{BP}</th></tr></thead>
     <tbody>{LEDGER.map(row => <tr key={row.ref}>
       <td>{row.payee}</td><td className="ui-table__num">{row.amount}</td><td className="ui-table__num">{row.fee}</td>
@@ -69,7 +69,7 @@ const Numbers = ({ className = '' }: { className?: string }) => <Card>
 </Card>;
 
 const Delta = ({ named = true }: { named?: boolean }) => <Card>
-  <table className="ui-table ui-table--dense" aria-label="Payouts">
+  <table className="ui-table ui-table--dense ui-table--hover" aria-label="Payouts">
     <thead><tr><th>Payee</th><th className="ui-table__num">{named ? 'Change from March' : 'Change'}</th></tr></thead>
     <tbody>{LEDGER.map(row => <tr key={row.ref}>
       <td>{row.payee}</td>
@@ -81,7 +81,7 @@ const Delta = ({ named = true }: { named?: boolean }) => <Card>
 </Card>;
 
 const Units = () => <Card>
-  <table className="ui-table ui-table--dense" aria-label="Payouts">
+  <table className="ui-table ui-table--dense ui-table--hover" aria-label="Payouts">
     <thead><tr><th>Payee</th><th className="ui-table__num">Amount{EUR}</th><th className="ui-table__num">Fee{BP}</th></tr></thead>
     <tbody>{LEDGER.slice(0, 3).map(row => <tr key={row.ref}>
       <td>{row.payee}</td><td className="ui-table__num">{row.amount}</td><td className="ui-table__num">{row.fee}</td>
@@ -92,7 +92,7 @@ const Units = () => <Card>
 
 // Every column the ledger has, which is more than the card has room for.
 const Wide = ({ squeezed = false }: { squeezed?: boolean }) => {
-  const table = <table className={squeezed ? 'ui-table ui-table--compact gdt-squeezed' : 'ui-table ui-table--compact ui-table--sticky ui-table--pinned'} aria-label="Payouts">
+  const table = <table className={squeezed ? 'ui-table ui-table--compact ui-table--hover gdt-squeezed' : 'ui-table ui-table--compact ui-table--hover ui-table--sticky ui-table--pinned'} aria-label="Payouts">
     <thead><tr>
       <th className={squeezed ? undefined : 'ui-table__identity'}>Payee</th><th>Reference</th><th className="ui-table__num">Amount{EUR}</th>
       <th className="ui-table__num">Fee{BP}</th><th>Date</th><th>Account</th>
@@ -109,7 +109,7 @@ const Wide = ({ squeezed = false }: { squeezed?: boolean }) => {
 // The pinned name and its sub-line: on a phone, which cuts it, and on a wide screen, which does not.
 const Identity = () =>
   <div className="ui-table-scroll" role="region" aria-label="Payouts, scroll for more columns" tabIndex={0}>
-    <table className="ui-table ui-table--compact ui-table--pinned" aria-label="Payouts">
+    <table className="ui-table ui-table--compact ui-table--hover ui-table--pinned" aria-label="Payouts">
       <thead><tr><th className="ui-table__identity">Payee</th><th className="ui-table__num">Amount{EUR}</th></tr></thead>
       <tbody>{LEDGER.slice(0, 2).map(row => <tr key={row.ref}>
         <td className="ui-table__identity">
@@ -135,7 +135,7 @@ const States = ({ kept = true }: { kept?: boolean }) => <Card>
 
 const specimens = [
   { id: 'surface', do: () => <Card><Ledger /></Card>, dont: () => <Card className="gdt-grey"><Ledger className="ui-table--dense ui-table--zebra" hovered="1161" /></Card> },
-  { id: 'density', do: () => <Card><Ledger className="ui-table--compact" rows={4} /></Card>, dont: () => <Card><Ledger className="ui-table--compact gdt-shrunk" rows={4} /></Card> },
+  { id: 'density', do: () => <Card><Ledger className="ui-table--compact ui-table--hover" rows={4} /></Card>, dont: () => <Card><Ledger className="ui-table--compact ui-table--hover gdt-shrunk" rows={4} /></Card> },
   { id: 'numbers', do: () => <Numbers />, dont: () => <Numbers className="gdt-left" /> },
   { id: 'delta', do: () => <Delta />, dont: () => <Delta named={false} /> },
   { id: 'units', do: () => <Units /> },

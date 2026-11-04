@@ -19,7 +19,7 @@ export {
   dropdownReveal, dropdownRest, dropdownSnap, dropdownViewportFit,
 } from './logic/dropdown-placement.js';
 export { nearestSection } from './logic/feedback.js';
-export { filterChipText, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from './logic/filter-bar.js';
+export { filterChipText, filterChipValue, filterChipName, filterChipUnset, filterChipItems, nextFocusStop, focusNextStop } from './logic/filter-bar.js';
 export { observeNavFit, revealCurrentNav, revealFocusedNav } from './logic/nav.js';
 export { PAGE_SIZES, DEFAULT_PAGE_SIZE } from './logic/pagination.js';
 export { segmentedNextIndex } from './logic/segmented.js';

@@ -46,7 +46,7 @@ const PAYOUTS: [string, string, ReactNode][] = [
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['In transit', 'Paid'] }];
 const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
 <div className="gda-table"><div className="ui-card ui-card--pad-sm ui-card--fit">
-  <table className="ui-table ui-table--dense ui-table--zebra">
+  <table className="ui-table ui-table--dense ui-table--hover">
     <caption>Payouts in EUR</caption>
     <thead><tr><th>Reference</th><th className="ui-table__num">Amount</th><th>Status</th></tr></thead>
     <tbody>{PAYOUTS.map(([reference, amount, status]) =>

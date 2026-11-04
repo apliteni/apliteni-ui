@@ -49,11 +49,11 @@ it('offers the clear action only once there is something to clear', () => {
   expect(clear).not.toHaveClass('ui-btn--secondary');
 });
 // DOM text and names only; these do not measure appearance.
-it('prints the chosen value alone and names the field it filters', () => {
+it('prints the field and the value, and names the chip with the same words', () => {
   const props = callbacks();
   render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
-  expect(screen.getByRole('button', { name: 'Status: Active' })).toHaveTextContent(/^Active$/);
-  expect(screen.getByRole('button', { name: 'Region: any' })).toHaveTextContent(/^Region$/);
+  expect(screen.getByRole('button', { name: 'Status: Active' })).toHaveTextContent(/^Status: Active$/);
+  expect(screen.getByRole('button', { name: 'Region: Any' })).toHaveTextContent(/^Region: Any$/);
   expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
 });
 // The class the sheet paints with --muted; appearance itself is not measured here.
@@ -285,7 +285,7 @@ it('drops the row it marked once the chip\'s value moves', async () => {
 
   // Cleared, the chip prints its field's name again and still marks nothing.
   rerender(<FilterBar filters={chip(undefined)} {...props} />);
-  await open('any');
+  await open('Any');
   expect(marked()).toEqual([]);
   expect(items.map(it => it.selected)).toEqual([true, undefined, undefined]);
 });

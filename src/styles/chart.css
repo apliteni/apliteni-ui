@@ -359,6 +359,9 @@
    Sideways only — there are as many rows as the chart has columns, and capping
    their height would hide the last period behind a second scrollbar. */
 .ui-chart__data .ui-table-scroll { --ui-table-height: none; }
+/* The scroller's 4px focus band hangs into the card padding, so the first column
+   starts on the card title's edge. #768 */
+.ui-chart__data .ui-table-scroll { margin-inline: calc(-1 * var(--space-1)); }
 .ui-chart__data .ui-table { margin: 0; }
 /* Why a period is not final is a sentence, not a label, so it wraps under the
    period it qualifies instead of carrying the money columns another two hundred

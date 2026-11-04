@@ -90,6 +90,8 @@
     linear-gradient(var(--muted), var(--muted)) bottom / 100% var(--caret-ink) no-repeat;
   /* Shift BEFORE rotate, so it lands in page space rather than on the turned axis. */
   transform: translateY(calc(var(--caret-off) * -1)) rotate(45deg);
+  /* The value's capitals sit below the line box's middle, so the caret follows them. #768 */
+  translate: 0 0.06em;
   transition: transform var(--dur-fast) var(--ease);
   flex: none;
 }
