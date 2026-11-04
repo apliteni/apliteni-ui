@@ -60,8 +60,8 @@ const specimens = [
   // No `action` on the don't: a warn toast carrying one paints --amber ink that
   // misses AA in light (#131), and the contrast walk reads this page.
   { id: 'transient',
-    do: () => <Stage><Callout variant="warn">This token is shown once. Copy it now — you won’t see it again.</Callout></Stage>,
-    dont: () => <Stage><NoticePicture tone="warn" title="This token is shown once" text="Copy it now — you won’t see it again." /></Stage> },
+    do: () => <Stage><Callout variant="warn">This token is shown once. Copy it now. You won’t see it again.</Callout></Stage>,
+    dont: () => <Stage><NoticePicture tone="warn" title="This token is shown once" text="Copy it now. You won’t see it again." /></Stage> },
   { id: 'panels',
     do: () => <Stage><Segmented options={FILTERS.map(label => ({ label, value: label }))} value="Pending" onChange={noop} label="Status filter" /></Stage>,
     dont: () => <Stage><Tabs label="Status filter" value="Pending" onChange={noop}

@@ -843,7 +843,7 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:150",
+    "ref": "react/src/primitives/Button.tsx:144",
     "pattern": "ui-btn__label-slot"
    },
    {
@@ -863,7 +863,7 @@
     "pattern": "export const iconOnlyAllowed"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:117",
+    "ref": "react/src/primitives/Button.tsx:113",
     "pattern": "const named = iconOnly"
    },
    {

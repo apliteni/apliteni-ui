@@ -118,7 +118,7 @@ export const RULES = withSpecimens(content.rules, [
       acts: actions(removeBtn()),
     })}</div>`),
     dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>
-      <div class="gf-card">statement-08.pdf<br>248 KB — 40%${bar(40)}</div>${rows()}`),
+      <div class="gf-card">statement-08.pdf<br>248 KB, 40%${bar(40)}</div>${rows()}`),
   },
   {
     id: 'failure',

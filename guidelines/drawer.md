@@ -60,7 +60,7 @@
 
 **Why:** In a drawer up to 560px wide, labels and values stay together at any zoom without row lines.
 
-**Do:** Put a short value beside its label, such as `Status — Active`.
+**Do:** Put a short value beside its label, such as `Status: Active`.
 
 **Don't:** Put the value at the far edge, with row lines to guide the eye back.
 

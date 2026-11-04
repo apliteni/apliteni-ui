@@ -25,7 +25,7 @@ export const Playground: StoryObj<typeof Drawer> = {
           <DrawerSection title="Reconciliation">
             <div className="ui-field">
               <label className="ui-field__label" htmlFor="rx-drawer-demo-note">Note</label>
-              <input id="rx-drawer-demo-note" className="ui-input" placeholder="e.g. Refund — duplicate charge" />
+              <input id="rx-drawer-demo-note" className="ui-input" placeholder="e.g. Refund for a duplicate charge" />
             </div>
           </DrawerSection>
         </Drawer>

@@ -82,11 +82,11 @@ const WAY_IN = [{ id: 'settings', icon: 'gear', label: 'Account settings' }, { i
 // A setting answered in the menu, drawn the only way the menu can draw one: the
 // row states its current value. The menu holds no control, which is the point.
 const ANSWERED = [
-  { id: 'zone', icon: 'clock', label: 'Time zone — UTC' },
-  { id: 'digest', icon: 'bell', label: 'Weekly digest — On' },
-  { id: 'news', icon: 'mail', label: 'Product news — Off' },
-  { id: 'density', icon: 'layout', label: 'Rows — Compact' },
-  { id: 'locale', icon: 'globe', label: 'Language — English' },
+  { id: 'zone', icon: 'clock', label: 'Time zone, UTC' },
+  { id: 'digest', icon: 'bell', label: 'Weekly digest, On' },
+  { id: 'news', icon: 'mail', label: 'Product news, Off' },
+  { id: 'density', icon: 'layout', label: 'Rows, Compact' },
+  { id: 'locale', icon: 'globe', label: 'Language, English' },
 ].map(row);
 // A shut React menu panel is folded to no height ([data-dd-shut] in dropdown.css), so
 // holding it open in the flow gives back the open panel's 6px and 1px edge as well.

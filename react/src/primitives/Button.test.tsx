@@ -62,17 +62,22 @@ it('retains the last action label while busy and restores the next label on comp
   expect(container.querySelector('.ui-btn__spinner')).toBeNull();
 });
 
-it('keeps the label beside the spinner for a long action with a leading glyph', () => {
-  const { container, rerender } = render(<Button icon="upload" busy keepLabel>Import</Button>);
+it('keeps the label beside the spinner on every busy button', () => {
+  const { container, rerender } = render(<Button icon="upload" busy>Import</Button>);
   const button = container.querySelector('button')!;
-  expect(button).toHaveAttribute('data-btn-keep-label');
   expect(button.firstElementChild).toHaveClass('ui-btn__spinner');
   // The spinner replaces the glyph, so no empty glyph box stays beside it.
   expect(button.querySelector('svg')).toBeNull();
   expect(button.querySelectorAll('.ui-btn__spinner')).toHaveLength(1);
-  // Without a glyph to stand in for, the spinner covers the label so the width stays.
-  rerender(<Button busy keepLabel>Import</Button>);
-  expect(button).not.toHaveAttribute('data-btn-keep-label');
+  expect(button.querySelector('.ui-btn__label')).toHaveTextContent('Import');
+  // Without a glyph, the spinner stands before the label.
+  rerender(<Button busy>Import</Button>);
+  expect(button.firstElementChild).toHaveClass('ui-btn__spinner');
+  expect(button.querySelector('.ui-btn__label')).toHaveTextContent('Import');
+  // An icon-only button has no label, so its spinner covers the hidden glyph.
+  rerender(<Button icon="upload" iconOnly busy>Import</Button>);
+  expect(button.lastElementChild).toHaveClass('ui-btn__spinner');
+  expect(button.querySelector('svg')).not.toBeNull();
 });
 
 it('keeps focus while busy, blocks clicks and activation keys, and announces label changes', async () => {

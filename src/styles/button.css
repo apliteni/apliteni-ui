@@ -213,24 +213,15 @@
   border-color: transparent;
   /* muted-ink: state — busy+disabled ghost */ color: var(--disabled-ink-bare);
 }
-/* The slide is vertical, so only y clips: a rounded text width never cuts the last glyph. */
+/* The label slot clips only y, so a rounded text width never cuts the last glyph. */
 .ui-btn__label-slot { display: inline-grid; overflow: hidden; overflow: visible clip; }
-.ui-btn__label {
-  grid-area: 1 / 1;
-  transform: translateY(0);
-}
-.ui-btn[data-btn-ready] .ui-btn__label { animation: ui-btn-label-in var(--dur-med) var(--ease-out) both; }
-.ui-btn[aria-busy="true"] .ui-btn__label {
-  transform: translateY(100%);
-  animation: ui-btn-label-out var(--dur-med) var(--ease-in) both;
-}
+.ui-btn__label { grid-area: 1 / 1; }
 .ui-btn[aria-busy="true"] > svg,
 .ui-btn[aria-busy="true"] > span[aria-hidden="true"]:not(.ui-btn__spinner) { visibility: hidden; }
-/* A spinner over the hidden label: the label and icons still size the button. */
+/* Every busy button keeps its label. The spinner takes the leading glyph's place,
+   or adds its own place before the label when the button has no glyph. */
 .ui-btn__spinner {
-  position: absolute;
-  inset: 0;
-  margin: auto;
+  flex: none;
   width: 16px;
   height: 16px;
   box-sizing: border-box;
@@ -241,20 +232,14 @@
   pointer-events: none;
   animation: ui-spin 0.8s linear infinite; /* motion: ambient — the spinner turns until the request completes */
 }
-.ui-btn--xs .ui-btn__spinner { width: 12px; height: 12px; }
-.ui-btn--sm .ui-btn__spinner { width: 14px; height: 14px; }
-.ui-btn--lg .ui-btn__spinner { width: 18px; height: 18px; }
-/* A long action keeps its label: the spinner takes the leading glyph's place, so the width stays. */
-.ui-btn[data-btn-keep-label] > .ui-btn__spinner { position: static; margin: 0; flex: none; width: 16px; height: 16px; }
-.ui-btn--xs[data-btn-keep-label] > .ui-btn__spinner { width: 13px; height: 13px; }
-.ui-btn[data-btn-keep-label] > span[aria-hidden="true"] { visibility: visible; }
-.ui-btn[aria-busy="true"][data-btn-keep-label] .ui-btn__label { transform: none; animation: none; }
-@keyframes ui-btn-label-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes ui-btn-label-out { from { transform: translateY(0); } 45%, to { transform: translateY(100%); } }
+.ui-btn--xs .ui-btn__spinner { width: 13px; height: 13px; }
+/* An icon-only button has no label: the spinner covers its hidden glyph. */
+.ui-btn--icon > .ui-btn__spinner { position: absolute; inset: 0; margin: auto; }
+.ui-btn--icon.ui-btn--xs > .ui-btn__spinner { width: 12px; height: 12px; }
+.ui-btn--icon.ui-btn--sm > .ui-btn__spinner { width: 14px; height: 14px; }
+.ui-btn--icon.ui-btn--lg > .ui-btn__spinner { width: 18px; height: 18px; }
 @media (prefers-reduced-motion: reduce) {
-  .ui-btn, .ui-btn__label { transition: none; }
-  .ui-btn[data-btn-ready] .ui-btn__label,
-  .ui-btn[aria-busy="true"] .ui-btn__label { animation: none; }
+  .ui-btn { transition: none; }
 }
 
 @keyframes ui-spin { to { transform: rotate(360deg); } }

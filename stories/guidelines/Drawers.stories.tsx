@@ -21,7 +21,7 @@ const PAYMENT = [['Amount', '12,480.50 €'], ['Date', '31 Aug 2026'], ['Counter
 const DETAIL = [...PAYMENT, ['Description', 'Card payout'], ['Batch', '2291'], ['Source', 'Bank feed']];
 const GROUPS = [
   { rows: PAYMENT },
-  { title: 'How it is classified', rows: [['Category', '—'], ['Unit', 'Ledger']] },
+  { title: 'How it is classified', rows: [['Category', 'Not set'], ['Unit', 'Ledger']] },
   { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'po_example_1047']] },
 ];
 // Two short groups keep the header line, the line between groups and the footer in one view at 390.

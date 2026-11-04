@@ -795,10 +795,11 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 
 ### Busy button labels
 
-A busy button shows a spinner in the variant's full label ink and keeps its width. By default the
-spinner covers the hidden label. For a long action, pass `keepLabel` with a leading glyph: the
-spinner takes the glyph's place and the label stays beside it. Without a glyph, `keepLabel` falls
-back to the covered label. Text does not fade or blink. Reduced motion stops the spinner's turn.
+A busy button shows a spinner in the variant's full label ink and keeps its label. With a leading
+glyph, the spinner takes the glyph's place and the width stays. Without a glyph, the spinner
+stands before the label and the button grows by the spinner and the gap, 24px at the default
+size. An icon-only button has no label, so its spinner covers the hidden glyph and the width
+stays. Text does not fade or blink. Reduced motion stops the spinner's turn.
 **A wired busy button keeps focus:**
 `aria-disabled` communicates the state. Click, Enter and Space activation are blocked. Both faces
 announce through a status region outside `aria-busy`. This region stays through completion, so it
