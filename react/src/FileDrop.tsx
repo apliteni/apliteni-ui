@@ -140,7 +140,8 @@ export function FileDrop({
 
   return <div className={cx('ui-drop', disabled && 'is-disabled', className)} {...drag}>
     {children}
-    <div className="ui-drop__row">
+    {/* At rest the whole row is the pointer's way to the picker; a file in hand has its own actions. */}
+    <div className="ui-drop__row" onClick={file ? undefined : pick}>
       {file
         ? <div className={cx('ui-drop__file', status === 'error' && 'ui-drop__file--failed')}>
           {/* The name tier. It keeps the actions on its own line at every width:
@@ -154,10 +155,10 @@ export function FileDrop({
                 && <Button size="sm" icon="refresh" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
               {/* Both actions carry their word. `x` is on the kit's icon-only
                   list for close and dismiss, and taking a file off a row is
-                  neither: the row stays and the file leaves it. Remove stays
-                  plain beside Retry's glyph: a dismissing action is not the
-                  committing one's peer. why: guidelines/button-labels.md */}
-              {onRemove && <Button variant="ghost" size="sm"
+                  neither: the row stays and the file leaves it. Remove is a
+                  bordered button without a glyph, so it reads as a control on the
+                  name line and not as loose text. why: guidelines/button-labels.md */}
+              {onRemove && <Button size="sm"
                 onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
             </span>}
           </div>
@@ -182,12 +183,14 @@ export function FileDrop({
           </span>}
         </div>
         : <>
-          <Button size="sm" icon="upload" disabled={disabled}
-            onClick={pick}>{label}</Button>
+          {/* Covered by the target, the button leaves the tab order: the target is the stop. */}
+          <Button size="sm" icon="upload" disabled={disabled} tabIndex={showTarget ? -1 : undefined}
+            onClick={event => { event.stopPropagation(); pick(); }}>{label}</Button>
           {note && <p className="ui-drop__note">{note}</p>}
         </>}
       {picker}
     </div>
-    {showTarget && <div className="ui-drop__target" aria-hidden="true">{dropLabel}</div>}
+    {/* The target is the whole zone, so a click, Enter or Space on it opens the picker too. */}
+    {showTarget && <button type="button" className="ui-drop__target" onClick={pick}>{dropLabel}</button>}
   </div>;
 }

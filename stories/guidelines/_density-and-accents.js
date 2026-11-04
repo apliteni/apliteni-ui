@@ -5,7 +5,8 @@ export const BLURB = content.blurb;
 export const RULES = content.rules;
 
 export const SPEC_CSS = `<style>
-  .gda-stage { min-width: 0; padding: var(--space-4); background: var(--bg); border-radius: var(--radius-lg); }
+  /* The cards sit on the reading page itself: a grey ground under them is a block in a block (#768). */
+  .gda-stage { min-width: 0; }
   .gda-stage > * + * { margin-top: var(--space-4); }
   .gda-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
   .gda-table { overflow-x: auto; }

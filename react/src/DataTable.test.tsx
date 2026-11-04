@@ -293,6 +293,15 @@ it('stops taking input while a page loads, and keeps the numbers legible', () =>
   }
 });
 
+it('draws skeleton rows in its own columns on a first load, and says nothing it has not got', () => {
+  const { container } = render(<DataTable columns={columns} rows={[]} selectable={false} loading />);
+  const skeleton = container.querySelectorAll('tbody tr[aria-hidden="true"]');
+  expect(skeleton.length).toBe(3);
+  expect(skeleton[0].querySelectorAll('td .ui-skel__bar')).toHaveLength(columns.length);
+  expect(screen.queryByText(/Loading rows/)).toBeNull();
+  expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'true');
+});
+
 it('shows the size it is given and reports the one the reader picked', async () => {
   // A `pageSize` prop is the caller's statement of the size in use, exactly as
   // `sort` is: the table reports the choice and waits to be told.

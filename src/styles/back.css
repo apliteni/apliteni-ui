@@ -18,6 +18,10 @@
   /* WCAG 2.5.8's 24px: the line of text alone is 17px tall. */
   min-height: var(--space-6);
   padding: 0 var(--space-2) 0 var(--space-1);
+  /* Pulls the chevron's ink onto the column edge, so it starts at the title's x.
+     5px is the glyph's empty side at 16px, less half its stroke. The hover
+     ground reaches past the column instead. */
+  margin-inline-start: calc(-1 * var(--space-1) - 5px);
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: var(--text-sm);

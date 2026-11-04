@@ -75,9 +75,15 @@
   border-radius: var(--radius-md);
   background: var(--surface); /* code-bg: inherit — the target is painted while a file is over the region and holds no focus target. */
   color: var(--strong);
+  font: inherit;
   font-size: var(--text-sm);
   text-align: center;
+  cursor: pointer;
 }
+.ui-drop__target:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+/* A click anywhere on the row at rest or on the empty page's area opens the picker. */
+.ui-drop:not(.is-disabled) > .ui-drop__row:not(:has(.ui-drop__file)),
+.ui-drop--area:not(.is-disabled) { cursor: pointer; }
 
 .ui-drop.is-disabled .ui-drop__row { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }
 .ui-drop.is-disabled .ui-drop__name { /* muted-ink: state — the drop accepts nothing */ color: var(--disabled-ink); }

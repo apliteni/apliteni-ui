@@ -6,9 +6,9 @@
 
 **Rule:** Put an item in the palette only if a reader can name it.
 
-**Why:** Readers can search for “New invoice”, but “More” gives them no name to search for.
+**Why:** Readers can search for “New invoice”, but not for “More”.
 
-**Do:** Include recognisable commands and numbered records that readers can also get to when they click through the product.
+**Do:** Include known commands and numbered records that readers also reach by clicking through the product.
 
 **Don't:** Include “Advanced…”, “More”, a frequency option, or a row that opens the current page.
 
@@ -34,18 +34,18 @@
 
 **Why:** The caller order keeps the preferred commands first, and the kit stores no usage history.
 
-**Do:** For “inv”, rank whole-word matches above fragments, and rank names above notes. Put the group of the best row first.
+**Do:** For “inv”, rank whole-word matches above fragments and names above notes. Put the group of the best row first.
 
 **Except:** For server results, pass `rank: false`. Then respond to `ui-command-query`. The server ranks the full result, and the kit keeps that order.
 
-## Confirm destructive actions
+## Send destructive actions to their page
 
-<!-- rule: ask-first -->
+<!-- rule: danger-page -->
 
-**Rule:** Never let the palette run a delete without a confirmation.
+**Rule:** Keep a destructive action on its settings page, and give the palette one row that opens that section.
 
-**Why:** A destructive row must have a confirmation because readers look at the text box on this fast surface.
+**Why:** On this fast surface readers look at the text box, so a delete needs the page that shows what it removes.
 
-**Do:** Show an ellipsis and danger ink. Let Enter open a confirmation above the palette that responds to the first Escape.
+**Do:** Show one Go to row, such as “Danger zone in Settings”, that opens that section.
 
-**Don't:** Do not omit the confirmation. The row becomes disabled, and arrow navigation skips it.
+**Don't:** List “Delete workspace…” and “Revoke every API key…” as rows, even with a confirmation.

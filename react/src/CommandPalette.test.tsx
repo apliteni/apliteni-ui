@@ -86,7 +86,7 @@ describe('the shape the vanilla factory agreed on', () => {
 
   it('keeps a destructive row that asks, and one that cannot', () => {
     const items = [
-      { id: 'del', label: 'Delete workspace…', description: 'Nebula, with 42 API keys', icon: 'trash', danger: true },
+      { id: 'del', label: 'Delete workspace…', description: '42 API keys go with it', icon: 'trash', danger: true },
       { id: 'revoke', label: 'Revoke every API key', description: 'They stop working at once', icon: 'key', danger: true },
     ];
     render(

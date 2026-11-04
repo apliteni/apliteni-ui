@@ -31,8 +31,8 @@ for (const file of Object.keys(modules).sort()) {
   }
 }
 
-// Measured when this gate was written. 54: the ranking rule lost its Don't palette (#768).
-const ROWS_FLOOR = 54;
+// Measured when this gate was written. 57 since the danger-page Do shows one Go to row (#768).
+const ROWS_FLOOR = 57;
 
 describe('every palette row a React story renders', () => {
   it('the sweep found the palettes the stories render', () => {

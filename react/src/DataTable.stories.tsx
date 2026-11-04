@@ -7,11 +7,11 @@ import { useTableFilters } from '../../stories/_table-filters';
 
 type Row = { name: string; status: string; clicks: number };
 const rows: Row[] = [
-  { name: 'Nutra — DE push', status: 'live', clicks: 48210 },
-  { name: 'Sweeps — BR pop', status: 'live', clicks: 91032 },
-  { name: 'Dating — FR native', status: 'paused', clicks: 33890 },
-  { name: 'Crypto — global', status: 'paused', clicks: 60112 },
-  { name: 'Ecom — UK shopping', status: 'live', clicks: 8830 },
+  { name: 'Nutra, DE push', status: 'live', clicks: 48210 },
+  { name: 'Sweeps, BR pop', status: 'live', clicks: 91032 },
+  { name: 'Dating, FR native', status: 'paused', clicks: 33890 },
+  { name: 'Crypto, global', status: 'paused', clicks: 60112 },
+  { name: 'Ecom, UK shopping', status: 'live', clicks: 8830 },
 ];
 const TONE: Record<string, string> = { live: 'live', paused: 'warn' };
 const columns: Column<Row>[] = [
@@ -148,7 +148,7 @@ const pinnedColumns: Column<Row>[] = [
 // only in the gate; the rest fit the column at 390 and are left as they are.
 const pinnedRows: Row[] = [
   ...rows,
-  { name: 'Sweeps — BR pop, seasonal retargeting and lookalikes', status: 'live', clicks: 12408 },
+  { name: 'Sweeps, BR pop with seasonal retargeting and lookalikes', status: 'live', clicks: 12408 },
 ];
 
 export const PinnedSortable: StoryObj = {
@@ -160,6 +160,18 @@ export const PinnedSortable: StoryObj = {
         <DataTable columns={pinnedColumns} rows={shown} selectable={false} pager={false} empty="No campaigns match"
           density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
       </div>
+    </div>;
+  },
+};
+
+// A first load with no rows yet: the table draws skeleton rows in its own columns.
+export const FirstLoad: StoryObj = {
+  parameters: FULL_WIDTH,
+  render: () => {
+    const { bar } = useCampaignFilters([] as Row[]);
+    return <div className="ui-card-stack">
+      <Card>{bar}</Card>
+      <Card><DataTable columns={columns} rows={[]} pageSize={3} selectable={false} loading empty="No campaigns match" /></Card>
     </div>;
   },
 };

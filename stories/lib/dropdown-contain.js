@@ -71,7 +71,7 @@ export const MEASURE = `async (subject) => {
       portal: p.classList.contains('ui-dropdown__panel--portal'),
       open: !!(dd && dd.classList.contains('open')) || p.classList.contains('is-open'),
       name: (p.getAttribute('aria-label') || p.getAttribute('role') || 'panel')
-        + ' · ' + (dd && dd.querySelector('[data-dropdown-trigger]')
+        + ', ' + (dd && dd.querySelector('[data-dropdown-trigger]')
           ? dd.querySelector('[data-dropdown-trigger]').textContent.trim().slice(0, 24) : '?'),
     };
   };

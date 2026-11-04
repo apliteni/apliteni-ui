@@ -38,10 +38,9 @@ const btn = (label, { size = 'sm', variant = 'secondary', glyph, iconOnly } = {}
 
 /** The two actions, drawn as the component draws them: both carry their word.
  *  `x` is on the kit's icon-only list for close and dismiss, and taking a file
- *  off a row is neither — the row stays and the file leaves it. Remove stays
- *  plain beside Retry's glyph: a dismissing action is not the committing one's
- *  peer. why: guidelines/button-labels.md */
-const removeBtn = () => btn('Remove', { variant: 'ghost' });
+ *  off a row is neither. Remove is a bordered small button without a glyph, so
+ *  it reads as a control and not as loose text. why: guidelines/button-labels.md */
+const removeBtn = () => btn('Remove');
 const retryBtn = () => btn('Retry', { glyph: 'refresh' });
 
 const NOTE = 'PDF or CSV, up to 10 MB';
@@ -51,7 +50,7 @@ const MARKS = { uploading: 'clock', done: 'circleCheck', error: 'circleAlert' };
 const state = (words, kind = 'done') =>
   `<span class="ui-drop__state${kind === 'error' ? ' ui-drop__error' : ''}">${icon(MARKS[kind])}`
   + `<span class="ui-drop__word">${words}</span></span>`;
-const target = () => '<div class="ui-drop__target">Drop to upload</div>';
+const target = () => '<button type="button" class="ui-drop__target">Drop to upload</button>';
 const actions = (inner) => `<span class="ui-drop__actions">${inner}</span>`;
 
 /** The row at rest: the picker and the accepted types, and nothing else. */

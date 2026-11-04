@@ -22,29 +22,29 @@ const INCOME = [560, 548, 590, 610, 587, 640];
 // Every figure in a band takes the same parts, so Cost has a trend too.
 const COST = [352, 349, 362, 371, 358, 377];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].map(month => `${month} 2026`);
-const thousands = (n: number) => `€ ${n.toLocaleString('en-US')}k`;
+const thousands = (n: number) => `${n.toLocaleString('en-US')}k €`;
 type Tone = 'good' | 'bad';
 const FIGURES = [
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+  { label: 'Income', value: '6,459,401 €', delta: { value: '+47.1%' } },
+  { label: 'Cost', value: '4,127,880 €', delta: { value: '+12.4%' } },
 ];
 const toned = (id: string, tones: (Tone | undefined)[]) => <Stage><StatBand id={id} basis={BASIS} stats={[
-  { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: tones[0] } },
-  { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%', tone: tones[1] } },
-  { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%', tone: tones[2] } },
-  { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: tones[3] } },
+  { label: 'Income', value: '6,459,401 €', delta: { value: '+47.1%', tone: tones[0] } },
+  { label: 'Cost', value: '4,127,880 €', delta: { value: '+12.4%', tone: tones[1] } },
+  { label: 'Net cashflow', value: '+2,331,521 €', delta: { value: '+168.0%', tone: tones[2] } },
+  { label: 'Unclassified', value: '84,210 €', delta: { value: '−61.8%', tone: tones[3] } },
 ]} /></Stage>;
 
 const specimens = [
   { id: 'a-band-not-a-card',
     do: () => <Stage><KpiBand id="gs-band-do" basis={BASIS} format={thousands} stats={[
-      { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' },
+      { label: 'Income', value: '6,459,401 €', delta: { value: '+47.1%' },
         trend: { title: 'Income, last 6 months', name: 'Income', labels: MONTHS, values: INCOME } },
-      { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' },
+      { label: 'Cost', value: '4,127,880 €', delta: { value: '+12.4%' },
         trend: { title: 'Cost, last 6 months', name: 'Cost', labels: MONTHS, values: COST, tone: 'accent-soft' } },
     ]} /></Stage>,
     dont: () => <Stage><Card>
-      <div className="ui-eyebrow">Income</div><div className="ui-card__title">€ 6,459,401</div><Badge>+47.1%</Badge>
+      <div className="ui-eyebrow">Income</div><div className="ui-card__title">6,459,401 €</div><Badge>+47.1%</Badge>
     </Card></Stage> },
   { id: 'tone-not-direction',
     do: () => toned('gs-tone-do', ['good', 'bad', undefined, 'good']),

@@ -139,7 +139,9 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // an outward band.
   // 15 -> 16: #736 rings the AccountWindow rail inward, because the rail scrolls and clips
   // an outward band.
-  assert.equal(scrollRules.length, 16,
+  // 16 -> 17: #768 rings the file drop target inward, because the drop zone clips
+  // an outward band.
+  assert.equal(scrollRules.length, 17,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 3,
     'React\'s modal body, the picker\'s shortcut row and the account rail are not all among them, so the walk '

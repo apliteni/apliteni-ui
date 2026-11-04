@@ -19,14 +19,14 @@ const rows = (pairs: [string, string][]) => pairs.map(([label, value]) => ({ lab
 const Section = ({ title, pairs }: { title?: string; pairs: [string, string][] }) =>
   <DrawerSection title={title}><KeyValueList rows={rows(pairs)} /></DrawerSection>;
 
-const FACTS: [string, string][] = [['Amount', '€ 1,240.00'], ['Arrival', '30 Sep 2026'], ['Source', 'Bank feed']];
+const FACTS: [string, string][] = [['Amount', '1,240.00 €'], ['Arrival', '30 Sep 2026'], ['Source', 'Bank feed']];
 const Preview = ({ bad = false }: { bad?: boolean }) =>
   <div className="ui-card ui-card--pad-sm">
     <h3 className="ui-card__title">Payout 1162</h3>
     <Badge variant="pending">In transit</Badge>
     <Section pairs={FACTS} />
     {bad && <>
-      <Section title="Payout details" pairs={[['Payout reference', 'Payout 1162'], ['Payout status', 'In transit'], ['Payout amount', '€ 1,240.00']]} />
+      <Section title="Payout details" pairs={[['Payout reference', 'Payout 1162'], ['Payout status', 'In transit'], ['Payout amount', '1,240.00 €']]} />
       <Section title="History" pairs={[['28 Sep, 09:00', 'Created'], ['28 Sep, 09:02', 'Approved'], ['29 Sep, 08:00', 'Sent to bank']]} />
     </>}
     <div className="gda-actions">
@@ -54,7 +54,7 @@ const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Ref
   </table>
 </div></div></>;
 const Figures = () => <StatBand variant="tiles" basis="September payouts"
-  stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
+  stats={[{ label: 'Paid', value: '8,640 €' }, { label: 'In transit', value: '1,240 €' }]} />;
 
 // A document preview beside the fields a parser read from it. The saved fields get
 // the width, the value weight and the accent on the card's name.

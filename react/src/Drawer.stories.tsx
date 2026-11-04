@@ -2,11 +2,13 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Drawer } from './Drawer';
 import { Button } from './primitives/Button';
+import { DrawerSection } from './KeyValueList';
 
 const meta: Meta<typeof Drawer> = { title: 'React/Drawer', component: Drawer };
 export default meta;
 
 // The shape #272 was reported on: a transaction opened from a table, against the right edge.
+// The panel title, a section title and a field label show the drawer's three type levels.
 export const Playground: StoryObj<typeof Drawer> = {
   render: () => {
     const [open, setOpen] = useState(true);
@@ -20,10 +22,12 @@ export const Playground: StoryObj<typeof Drawer> = {
               <Button variant="primary" onClick={() => setOpen(false)}>Save</Button>
             </>
           )}>
-          <div className="ui-field">
-            <label className="ui-field__label" htmlFor="rx-drawer-demo-note">Note</label>
-            <input id="rx-drawer-demo-note" className="ui-input" placeholder="e.g. Refund — duplicate charge" />
-          </div>
+          <DrawerSection title="Reconciliation">
+            <div className="ui-field">
+              <label className="ui-field__label" htmlFor="rx-drawer-demo-note">Note</label>
+              <input id="rx-drawer-demo-note" className="ui-input" placeholder="e.g. Refund for a duplicate charge" />
+            </div>
+          </DrawerSection>
         </Drawer>
       </>
     );

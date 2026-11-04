@@ -9,5 +9,6 @@ export const RULES = content.rules;
 // halves of a pair differ in one decision and not in their data.
 export const SPEC_CSS = `
   <style>
-    .gs-stage { background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); }
+    /* The cards sit on the reading page itself: a grey ground under them is a block in a block (#768). */
+    .gs-stage { min-width: 0; }
   </style>`;

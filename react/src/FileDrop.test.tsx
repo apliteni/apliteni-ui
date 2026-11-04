@@ -45,6 +45,16 @@ describe('FileDrop at rest', () => {
     expect(click).toHaveBeenCalled();
   });
 
+  it('opens the picker once from a click anywhere on the row at rest', () => {
+    render(<FileDrop note="PDF or CSV, up to 10 MB" />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const click = vi.spyOn(input, 'click').mockImplementation(() => {});
+    fireEvent.click(screen.getByText('PDF or CSV, up to 10 MB'));
+    expect(click).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Upload' }));
+    expect(click).toHaveBeenCalledTimes(2);
+  });
+
   it('reports a chosen file and clears the input, so the same file can be chosen again', () => {
     const onFile = vi.fn();
     render(<FileDrop onFile={onFile} />);
@@ -91,6 +101,18 @@ describe('FileDrop while a file is over it', () => {
     expect(target()).toBeNull();
     rerender(<FileDrop dragging />);
     expect(target()).toHaveTextContent('Drop to upload');
+  });
+
+  // jsdom fires no click for a key, so Enter and Space are held by the target being a native button.
+  it('makes the target the zone\'s one control: a button that opens the picker', () => {
+    render(<FileDrop dragging />);
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const click = vi.spyOn(input, 'click').mockImplementation(() => {});
+    const zone = screen.getByRole('button', { name: 'Drop to upload' });
+    expect(zone.tagName).toBe('BUTTON');
+    expect(screen.getByRole('button', { name: 'Upload' })).toHaveAttribute('tabindex', '-1');
+    fireEvent.click(zone);
+    expect(click).toHaveBeenCalledTimes(1);
   });
 
   it('covers the region it is given, and nothing wider', () => {

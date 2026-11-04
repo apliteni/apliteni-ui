@@ -8,25 +8,25 @@
 
 **Do:** Export, Rename and Share, named at rest.
 
-**Don't:** The same three, named only on a hover that fingers cannot do.
+**Don't:** The same three, named only on hover, which phones lack.
 
 ## Let the glyph repeat the verb
 
 <!-- rule: glyph-repeats-the-verb -->
 
-**Rule:** Add a glyph only when it shows its label’s action. Treat the buttons of a row the same.
+**Rule:** Add a glyph only when it shows its label’s action. Treat row peers the same.
 
 **Except:** A dismiss action beside a commit action is not a peer and stays plain.
 
 **Do:** The arrow downloads, the sheets copy.
 
-**Don't:** A table is what is exported, not the export. The plain neighbour looks weaker.
+**Don't:** A table glyph shows the thing, not the export. The plain neighbour looks weaker.
 
 ## Earn a wordless button
 
 <!-- rule: wordless-earns-it -->
 
-**Rule:** Remove a button’s words only when its glyph is known everywhere, its action is on the closed list, and assistive technology and a hover title get its name.
+**Rule:** Remove a button’s words only for a well-known glyph on the closed list, with an accessible name and a hover title.
 
 **Why:** A reader needs words for an unknown glyph.
 
@@ -40,7 +40,7 @@
 
 <!-- rule: no-action-on-selection -->
 
-**Rule:** Give a text action its own button, which opens a popover or a modal. Never wait for a selection.
+**Rule:** Give a text action its own button that opens a popover or a modal.
 
 **Why:** A reader selects text to copy it. Phones and screen readers seldom select.
 

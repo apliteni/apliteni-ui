@@ -3,7 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage, PhoneFrame } from '../_guideline';
 import { DeltaValue } from '../../react/src/TableValues';
-import { SkeletonTable } from '../../react/src/Loading';
+import { EmptyState } from '../../react/src/EmptyState';
+import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -125,12 +126,14 @@ const Widths = () => <div className="gdt-widths">
   <Card fit={false}><Identity /></Card>
 </div>;
 
+// A refresh keeps the rows it has. The don't drops them for a blank state, which
+// tells the reader there are no payouts while the next page is still on its way.
 const States = ({ kept = true }: { kept?: boolean }) => <Card>
   <div className="ui-card__head">
     <h3 className="ui-card__title">Payouts</h3>
     <div className="ui-card__tools"><Button size="sm" busy completionMessage="">Refresh</Button></div>
   </div>
-  {kept ? <Ledger rows={3} busy /> : <SkeletonTable rows={3} cols={2} head />}
+  {kept ? <Ledger rows={3} busy /> : <EmptyState title="No payouts" sub="Payouts will appear here when they are paid." icon="table" />}
 </Card>;
 
 const specimens = [

@@ -795,10 +795,12 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 
 ### Busy button labels
 
-A busy button replaces its visible label with three centred pulsing dots in the variant's full
-label ink. The brightest dot clears 3:1 against every variant fill in both themes. Text does not
-fade or blink. The retained label and icons keep the button's dimensions stable. Reduced motion
-switches directly between the label and static dots. **A wired busy button keeps focus:**
+A busy button shows a spinner in the variant's full label ink and keeps its label. With a leading
+glyph, the spinner takes the glyph's place and the width stays. Without a glyph, the spinner
+stands before the label and the button grows by the spinner and the gap, 24px at the default
+size. An icon-only button has no label, so its spinner covers the hidden glyph and the width
+stays. Text does not fade or blink. Reduced motion stops the spinner's turn.
+**A wired busy button keeps focus:**
 `aria-disabled` communicates the state. Click, Enter and Space activation are blocked. Both faces
 announce through a status region outside `aria-busy`. This region stays through completion, so it
 can announce both progress and completion. React takes `completionMessage` to word that
@@ -810,8 +812,8 @@ announces the outcome. An explicitly disabled button stays natively disabled. Un
 
 `button({ size: 'xs' })` and React `<Button size="xs">` draw a 13px glyph at stroke-width 2.8.
 They have a minimum 24×24px target. An icon-only xs button is 24×24px. A labelled button grows
-to fit its label at `--text-xs`. Other sizes keep their 16px glyph at stroke-width 2.4. Busy
-dots fit inside the smaller target. The size does not change the variant's colour or its
+to fit its label at `--text-xs`. Other sizes keep their 16px glyph at stroke-width 2.4. The busy
+spinner fits inside the smaller target. The size does not change the variant's colour or its
 interaction states.
 
 ### Code highlighting
@@ -915,6 +917,8 @@ with no strike line. `stack` is deprecated and ignored: a phone table scrolls si
 Its pager follows the measured table width and wraps when necessary.
 Without `ResizeObserver`, the pager keeps its container width.
 A pager that renders no controls takes no space.
+While `loading` is set and there are no rows yet, the table draws three skeleton rows in its own columns.
+When rows are already on screen, a load keeps them and marks the table busy.
 
 Use `.ui-card--fit` when a card must end at its content.
 The company comparison story aligns its heading, filters, tabs and first column through one shared inset.
@@ -1060,7 +1064,10 @@ row draws includes a circled mark and a word**, because colour alone does not sh
 when you provide `onRemove` and `onRetry`. **No tier ever takes a second line:** the name
 truncates its stem but keeps its extension. The full name is in a `title`. **One layout serves
 every width.** **The drop target is painted only while a file is over the region. It covers
-that region instead of joining it**, so the row stays in place while the reader aims. Children
+that region instead of joining it**, so the row stays in place while the reader aims. **The
+whole zone opens the picker.** A click on the row at rest opens it. The target is a button, so
+a click, Enter or Space on it opens the picker too. `Remove` is a small bordered button on the
+name line. Children
 render above the row inside the same region. This lets one panel, or a whole page, become the
 target. A disabled drop never calls `preventDefault` on `dragover`, so it does not declare
 itself as a target the pointer can aim at. When a page uses a row, a region or a dialog, see

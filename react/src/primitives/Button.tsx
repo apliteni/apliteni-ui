@@ -10,7 +10,7 @@ type ButtonOptions = {
   iconRight?: string;
   iconOnly?: boolean;
   block?: boolean;
-  /** In flight: keeps focus, blocks activation, announces progress, and shows dots. */
+  /** In flight: keeps focus, blocks activation, announces progress, and shows a spinner. */
   busy?: boolean;
   /** Message after busy ends; an empty string leaves outcome announcements to the caller. */
   completionMessage?: string;
@@ -66,8 +66,6 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
   useImperativeHandle(forwardedRef, () => buttonRef.current!, [href !== undefined]);
   const labelRef = useRef<HTMLSpanElement>(null);
   const announcer = useRef<ReturnType<typeof acquireAnnouncer> | null>(null);
-  const hasBeenBusy = useRef(false);
-  if (busy) hasBeenBusy.current = true;
   const readyChildren = useRef(children);
   if (!busy) readyChildren.current = children;
   const renderedChildren = busy ? readyChildren.current : children;
@@ -116,12 +114,13 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
   const Root = href === undefined ? 'button' : 'a';
+  // A busy button keeps its label. The spinner takes the leading glyph's place, or stands before the label.
+  const keep = Boolean(busy && !iconOnly);
   return (
     <Root
       {...rest}
       ref={buttonRef as React.Ref<HTMLButtonElement & HTMLAnchorElement>}
       data-btn-wired=""
-      data-btn-ready={!busy && hasBeenBusy.current ? '' : undefined}
       type={href === undefined ? type : undefined}
       href={disabled || busy ? undefined : href}
       role={href !== undefined ? 'link' : rest.role}
@@ -141,10 +140,10 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
       onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
     >
-      {leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
+      {keep ? <span className="ui-btn__spinner" aria-hidden="true" /> : leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
       {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{renderedChildren}</span></span>}
       {iconRight && <Icon name={iconRight} />}
-      {busy && <span className="ui-btn__dots" aria-hidden="true"><i /><i /><i /></span>}
+      {busy && !keep && <span className="ui-btn__spinner" aria-hidden="true" />}
     </Root>
   );
 }) as {

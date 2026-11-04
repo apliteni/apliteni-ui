@@ -136,16 +136,17 @@
   border-bottom: 1px solid var(--border);
   flex: none;
 }
-/* An h2, and base.css would give it the display face. It opts out: at 15px in a
-   panel header it is a label on a piece of UI rather than a heading anybody
-   reads, and the display face at that size is exactly what #253 was about.
+/* An h2, and base.css would give it the display face. It opts out: in a panel
+   header it names a piece of UI, and the display face at that size is what #253
+   was about. It takes the card-title rank, one clear step above the section title.
    why: docs/foundations.md#typefaces */
 .ui-drawer__title {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: calc(var(--text-base) + 0.5px);
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  /* rank: card-title */
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
   color: var(--strong);
 }
 /* Header actions stand at the far end, beside the close button. */
@@ -214,12 +215,20 @@
 .ui-drawer__section-title {
   margin: 0 0 var(--space-2);
   font-family: var(--font-sans);
-  font-size: var(--text-sm);
-  /* Semibold, and so outside the rank table, which has nothing at this size and
-     weight. A group heading set in the label rank would match the row labels
-     under it in size and weight both, and differ from them by colour alone. */
+  /* Body size and semibold, so a group heading is one clear step above the 13px
+     labels under it, rows and field labels alike. Outside the rank table. */
+  font-size: var(--text-base);
   font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
   color: var(--strong);
+}
+/* A field in the body names its control at the label rank, as a row label does,
+   so a section title over it is the larger of the two. */
+.ui-drawer__body .ui-field__label {
+  /* rank: label */
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text);
 }
 .ui-drawer__rows {
   display: grid;
