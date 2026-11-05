@@ -699,8 +699,10 @@ in the first column takes the strongest ink. **`.ui-table__sub` puts a second va
 first**, such as an email under a name, in full ink at a smaller size. An act cell that holds icon
 buttons is as wide as its buttons, and they are 32px, so the row keeps its height. In a card, the
 table reaches the card's edges and its end cells keep the card's text edge. A scroll frame in a
-card keeps a 4px band at each side for its focus ring, so a row fill stops 4px inside the card's
-edges. The band shows no line at rest, and the frame adds no room below the table.
+card keeps a 4px band at each side and above the header for its focus ring, so a row fill stops
+4px inside the card's edges. The header gives that top band back, so the table keeps its place, and
+the header follows the ring's rounded corners. The band shows no line at rest, and the frame adds no
+room below the table.
 
 A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
 A landed row's `.is-target` mark shows on pointer arrival as well as keyboard focus, and it outlives focus, so arrival and focus show together and stay distinguishable.

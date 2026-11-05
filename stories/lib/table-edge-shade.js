@@ -117,7 +117,7 @@ export const FRAME_FLOORLESS = '.ui-table-scroll { display: block !important; }'
 export const LABEL_ESCAPES = '.ui-table-scroll, .ui-table-scroll th { position: static !important; }';
 export const CLOSED_TIP_BOX = '.ui-tip:not(.is-open) { display: flex !important; }';
 
-/** A card's table frame, focused by keyboard or at rest: its box, its corner radius,
+/** A card's table frame, focused by keyboard or at rest: its box, its corner radii,
  *  its ring colour, the card's ground and the room between the table and the frame's
  *  bottom edge. Null when the page has no frame directly in a card. */
 export const CARD_FRAME = (focus) => {
@@ -130,7 +130,7 @@ export const CARD_FRAME = (focus) => {
   const b = f.getBoundingClientRect();
   return {
     x: b.x + scrollX, y: b.y + scrollY, w: b.width, h: b.height,
-    radius: Math.max(...['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map((k) => parseFloat(s[`border${k}Radius`]) || 0)),
+    corners: Object.fromEntries(['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map((k) => [k, parseFloat(s[`border${k}Radius`]) || 0])),
     focused: f.matches(':focus-visible'),
     ring: rgb(s.outlineColor),
     ground: rgb(getComputedStyle(f.parentElement).backgroundColor),
@@ -142,14 +142,17 @@ export const CARD_FRAME = (focus) => {
  *  side's ring band must show the ring colour. At rest, the side bands must show the
  *  card's ground, so no edge line shows. The table must reach the frame's bottom.
  *  Limits: it samples one line 2px in from each edge, every 2px, and skips each corner's
- *  radius plus 4px, where the curve leaves the line. A tolerance of 40 per channel
- *  takes the ring's anti-aliasing and no other colour. */
+ *  radius plus 4px, where the curve leaves the line. Focused, it also samples each
+ *  rounded corner's arc 2px inside the frame's edge, the ring's middle, every 5 degrees,
+ *  so a cell painted square over a corner shows (#782). A corner under 4px is not
+ *  sampled. A tolerance of 40 per channel takes the ring's anti-aliasing and no other
+ *  colour. */
 export function cardFrameFindings(img, frame) {
   const out = [];
   if (frame.below > 0.5) out.push(`the frame has ${frame.below}px below its table`);
   const want = frame.focused ? frame.ring : frame.ground;
   const near = (p) => p.every((v, i) => Math.abs(v - want[i]) <= (frame.focused ? 40 : 2));
-  const skip = frame.radius + 4;
+  const skip = Math.max(...Object.values(frame.corners)) + 4;
   const along = (from, to) => { const at = []; for (let v = from + skip; v < to - skip; v += 2) at.push(v); return at; };
   const sides = {
     left: along(frame.y, frame.y + frame.h).map((y) => [frame.x + 2, y]),
@@ -159,6 +162,21 @@ export function cardFrameFindings(img, frame) {
       bottom: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + frame.h - 2.5]),
     } : {}),
   };
+  if (frame.focused) {
+    const { x, y, w, h } = frame;
+    const at = { TopLeft: [x, y, -1, -1], TopRight: [x + w, y, 1, -1], BottomLeft: [x, y + h, -1, 1], BottomRight: [x + w, y + h, 1, 1] };
+    for (const [corner, r] of Object.entries(frame.corners)) {
+      if (r < 4) continue;
+      const [cx, cy, dx, dy] = at[corner];
+      const points = [];
+      // The arc's centre is r in from both edges. A pixel's centre is half a pixel past its index.
+      for (let a = 5; a <= 85; a += 5) {
+        const t = (a * Math.PI) / 180;
+        points.push([cx - dx * r + dx * (r - 2) * Math.cos(t) - 0.5, cy - dy * r + dy * (r - 2) * Math.sin(t) - 0.5]);
+      }
+      sides[`the ${corner.replace(/([a-z])([A-Z])/, '$1 $2').toLowerCase()} corner`] = points;
+    }
+  }
   for (const [side, points] of Object.entries(sides)) {
     const miss = points.filter(([x, y]) => !near(pixelAt(img, x, y))).length;
     if (miss) out.push(`${frame.focused ? 'focused' : 'at rest'}, ${side}: ${miss} of ${points.length} samples are not ${frame.focused ? 'the ring' : "the card's ground"}`);
@@ -166,9 +184,11 @@ export function cardFrameFindings(img, frame) {
   return out;
 }
 
-/** The three defects the card frame check must catch: a frame with no bands, which lets
- *  the sticky header cover the ring, a band that paints a line at rest, and a band below
- *  the table. */
+/** The four defects the card frame check must catch: a frame with no bands, which lets
+ *  the sticky header cover the ring, a frame with no top band, which lets the header
+ *  paint square over the ring's top corners, a band that paints a line at rest, and a
+ *  band below the table. */
 export const FRAME_BANDLESS = '.ui-card > .ui-table-scroll { border-width: 0 !important; }';
+export const FRAME_TOPLESS = '.ui-card > .ui-table-scroll { border-top-width: 0 !important; }';
 export const FRAME_EDGE_LINE = '.ui-card > .ui-table-scroll { border-color: var(--border) !important; }';
 export const FRAME_GAP_BELOW = '.ui-card > .ui-table-scroll { border-bottom-width: var(--space-1) !important; }';

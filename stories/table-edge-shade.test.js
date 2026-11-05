@@ -79,8 +79,9 @@ const THEMES = ['light', 'dark'];
  * frame scroll past the table. Each defect is put back there to prove the check sees it.
  *
  * The members story also holds the card frame (#782), at 390 and 1440 wide: focused, its
- * ring shows on all four sides, at rest its side bands show no line, and the table
- * reaches its bottom. Limits: only the first frame in a card on that one story. */
+ * ring shows on all four sides and its rounded corners show the whole ring, at rest its
+ * side bands show no line, and the table reaches its bottom. Limits: only the first frame
+ * in a card on that one story. */
 const PHONE = { width: 390, height: 844 };
 const PAYOUTS_STORY = 'react-datatable-ledgers--finance-data';
 const MEMBERS_STORY = 'react-datatable-members--default';
@@ -91,7 +92,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
   const { playwright, serve, indexed, openStory, STORY_DONE } = await import('./lib/dropdown-contain.js');
   const {
     PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX,
-    decodePNG, CARD_FRAME, cardFrameFindings, FRAME_BANDLESS, FRAME_EDGE_LINE, FRAME_GAP_BELOW,
+    decodePNG, CARD_FRAME, cardFrameFindings, FRAME_BANDLESS, FRAME_TOPLESS, FRAME_EDGE_LINE, FRAME_GAP_BELOW,
   } = await import('./lib/table-edge-shade.js');
   const shot = async (page) => decodePNG(await page.screenshot({ fullPage: true, animations: 'disabled' }));
   const checkCardFrame = async (page, label) => {
@@ -101,7 +102,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
       if (focus) assert.ok(frame.focused, `${label}: the frame did not take a keyboard focus`);
       assert.deepEqual(cardFrameFindings(await shot(page), frame), [], `${label} ${focus ? 'focused' : 'at rest'}`);
     }
-    for (const [what, mutation, focus] of [['a frame without bands', FRAME_BANDLESS, true], ['an edge line at rest', FRAME_EDGE_LINE, false], ['a band below the table', FRAME_GAP_BELOW, false]]) {
+    for (const [what, mutation, focus] of [['a frame without bands', FRAME_BANDLESS, true], ['a frame without a top band', FRAME_TOPLESS, true], ['an edge line at rest', FRAME_EDGE_LINE, false], ['a band below the table', FRAME_GAP_BELOW, false]]) {
       const style = await page.addStyleTag({ content: mutation });
       const frame = await page.evaluate(CARD_FRAME, focus);
       assert.notDeepEqual(cardFrameFindings(await shot(page), frame), [], `${label}: ${what} still passed`);

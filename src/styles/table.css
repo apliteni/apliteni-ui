@@ -570,9 +570,14 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: calc(-1 * var(--space-5)); }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: calc(-1 * var(--space-5)); }
 .ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) { width: auto; max-width: calc(100% + 2 * var(--space-6)); }
-/* The frame keeps its side bands, because the sticky header covers a ring drawn anywhere
-   else. It drops the bottom band, so the card's padding is the only room below the table. */
-.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)) { border-bottom-width: 0; }
+/* The frame keeps its side bands and takes a top band, because the sticky header covers a
+   ring drawn anywhere else. The frame clips its cells to the inner curve of the bands, so
+   the header follows the ring at the top corners. The header gives the top band back from
+   its padding. The frame drops the bottom band, so the card's padding is the only room
+   below the table. */
+.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)) { border-top-width: var(--space-1); border-bottom-width: 0; }
+.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-top: calc(var(--space-3) - var(--space-1)); }
+.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact thead th { padding-top: calc(var(--space-2) - var(--space-1)); }
 /* The frame's corners follow the card's, so a fill in the first or last row does too. */
 .ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)):first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
 .ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)):last-child { border-end-start-radius: inherit; border-end-end-radius: inherit; }
