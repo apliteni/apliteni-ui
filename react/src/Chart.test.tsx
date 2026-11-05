@@ -80,6 +80,11 @@ const boxOf = (el: Element) => {
   return { x: Math.min(...xs), y: Math.min(...ys),
     width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys) };
 };
+/** A smooth segment's two ends, read off its `M` and the last pair of its `C`. */
+const endsOf = (el: Element) => {
+  const n = (el.getAttribute('d') ?? '').match(/-?\d*\.?\d+/g)!.map(Number);
+  return { x1: n[0], y1: n[1], x2: n.at(-2)!, y2: n.at(-1)! };
+};
 /** Where a bar spends its corner radius: the y of each arc the path draws. */
 const arcsOf = (el: Element) => {
   const d = el.getAttribute('d') ?? '';
@@ -1435,7 +1440,7 @@ it('draws a line look as lines only, with points or end labels where the look as
     const got = {
       bars: container.querySelectorAll('.ui-chart__bar, .ui-chart__segment').length,
       /* A line is drawn a segment a column step, so the estimated step can dash alone. */
-      lines: container.querySelectorAll('line.ui-chart__line').length,
+      lines: container.querySelectorAll('path.ui-chart__line').length,
       dots: container.querySelectorAll('.ui-chart__dot').length,
     };
     cleanup();
@@ -1486,8 +1491,8 @@ it('keeps a line\'s end label inside the plot when its value is the scale\'s top
   expect(baseline - 10, 'the label\'s top is inside the plot').toBeGreaterThanOrEqual(0);
   expect(baseline, 'and its baseline too').toBeLessThanOrEqual(height);
   // The label ends left of its point, where the rising line is under the baseline.
-  const edge = container.querySelector('line.ui-chart__line')!;
-  const [x1, y1, x2, y2] = ['x1', 'y1', 'x2', 'y2'].map((a) => Number(edge.getAttribute(a)));
+  // Two values make a straight curve, so its ends give the line.
+  const { x1, y1, x2, y2 } = endsOf(container.querySelector('path.ui-chart__line')!);
   const right = Number(label.getAttribute('x'));
   expect(right, 'the label ends left of the point').toBeLessThan(x2);
   expect(y2 + (x2 - right) * (y1 - y2) / (x2 - x1), 'the line passes under the label').toBeGreaterThan(baseline);
@@ -1608,6 +1613,19 @@ describe('onActive', () => {
     expect(document.querySelector('.ui-tip'), 'no readout while the caller shows the value').toBeNull();
   });
 
+  // The points sit 64px apart on a 192px plot. JSDOM has no layout, so the
+  // plot's box is mocked at the size it draws, and the pointer misses every dot.
+  it('opens the nearest point to a pointer that rests between two dots', () => {
+    const seen: unknown[] = [];
+    kpi((p) => seen.push(p));
+    vi.spyOn(plot(), 'getBoundingClientRect').mockReturnValue(
+      { left: 100, top: 50, width: 192, height: 32, right: 292, bottom: 82 } as DOMRect);
+    fireEvent.mouseMove(plot(), { clientX: 100 + 88, clientY: 50 + 2 });
+    expect(seen.at(-1)).toEqual({ index: 1, period: 'Feb 2026', value: 1500 });
+    fireEvent.mouseMove(plot(), { clientX: 100 + 104, clientY: 50 + 2 });
+    expect(seen.at(-1)).toEqual({ index: 2, period: 'Mar 2026', value: 1400 });
+  });
+
   it('reports each arrow key step, and null when focus goes', async () => {
     const user = userEvent.setup();
     const seen: unknown[] = [];
@@ -1660,9 +1678,9 @@ it('runs a sparkline of lines from edge to edge', () => {
   measuredAt(300);
   render(<Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
     series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />);
-  const lines = [...plot().querySelectorAll('line.ui-chart__line')];
-  expect(Number(lines[0].getAttribute('x1'))).toBe(0);
-  expect(Number(lines.at(-1)!.getAttribute('x2'))).toBe(300);
+  const lines = [...plot().querySelectorAll('path.ui-chart__line')];
+  expect(endsOf(lines[0]).x1).toBe(0);
+  expect(endsOf(lines.at(-1)!).x2).toBe(300);
   hover('income-0');
   expect(plot().querySelector('circle.ui-chart__dot')!.getAttribute('r')).toBe('5');
 });
@@ -1678,17 +1696,21 @@ it('gives each point of an edge-to-edge sparkline its own share of the width', (
   expect(boxes.map((b) => [b.x, b.w])).toEqual([[0, 24], [24, 24], [48, 24], [72, 24]]);
 });
 
-// The KPI line is the area look's ramp: the fade at the lowest value and the
-// tone at the highest. The dot and its ring stay inside the 32px drawing.
-it('fills a sparkline from its line to the foot, ramped from its lowest value to its highest', () => {
+// The KPI line's glow fades from its highest value to clear half way between its
+// lowest value and the foot, so it never fills the plot. The dot and its ring
+// stay inside the 32px drawing.
+it('glows under a sparkline from its highest value to clear well above the foot', () => {
   render(<Chart variant="spark" title="Income" periods={MONTHS.map((label) => ({ label }))} format={eur}
     series={[{ id: 'income', name: 'Income', values: INCOME, shape: 'line' }]} />);
   const svg = plot();
-  const area = svg.querySelector('path.ui-chart__area')!;
-  const ramp = svg.querySelector(`#${area.getAttribute('style')!.match(/url\(#([^)]+)\)/)![1]}`)!;
-  const [y1, y2] = ['y1', 'y2'].map((a) => Number(ramp.getAttribute(a)));
-  expect(y1, 'the faint stop sits at the lowest value, lower on the plot').toBeGreaterThan(y2);
-  expect(y2 - 3 - 2, 'the dot ring at the highest value stays inside the drawing').toBeGreaterThanOrEqual(0);
-  expect(y1 + 3 + 2, 'and at the lowest').toBeLessThanOrEqual(32);
-  expect(boxOf(area).y + boxOf(area).height).toBeCloseTo(32, 1);
+  const glow = svg.querySelector('path.ui-chart__glow')!;
+  const ramp = svg.querySelector(`#${glow.getAttribute('style')!.match(/url\(#([^)]+)\)/)![1]}`)!;
+  const [top, floor] = ['y1', 'y2'].map((a) => Number(ramp.getAttribute(a)));
+  const ys = [...svg.querySelectorAll('path.ui-chart__line')].flatMap((l) => [endsOf(l).y1, endsOf(l).y2]);
+  expect(top, 'the glow is strongest at the highest value').toBe(Math.min(...ys));
+  expect(floor, 'and clear half way from the lowest value to the foot').toBeCloseTo((Math.max(...ys) + 32) / 2, 1);
+  const bottom = Math.max(...glow.getAttribute('d')!.match(/-?\d*\.?\d+/g)!.map(Number).filter((_, i) => i % 2));
+  expect(bottom, 'the glow stops at its floor, above the foot').toBeCloseTo(floor, 1);
+  expect(top - 3 - 2, 'the dot ring at the highest value stays inside the drawing').toBeGreaterThanOrEqual(0);
+  expect(Math.max(...ys) + 3 + 2, 'and at the lowest').toBeLessThanOrEqual(32);
 });

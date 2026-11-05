@@ -66,7 +66,7 @@
     {
       "file": "react/src/Chart.contrast.test.tsx",
       "name": "React: Chart contrast",
-      "does": "Discovers every chart tone from the stylesheet and every tone name from the component's own union, fails when the two disagree, checks that each tone and its fade resolve the same under every accent discovered in accents.css, and measures each tone's strong end against both grounds the kit draws a chart on — the card and the page — in both themes, against the 3:1 graphic bar. Asserts the measured count, names the tightest row, and proves rejection twice: every fade end on the card, which is below the bar by design, and a tone whose value stops resolving.",
+      "does": "Discovers every chart tone from the stylesheet and every tone name from the component's own union, fails when the two disagree, checks that each tone and its fade resolve the same under every accent discovered in accents.css, and measures each tone's strong end against both grounds the kit draws a chart on — the card and the page — in both themes, against the 3:1 graphic bar, and the same for the latest stop of a line's stroke ramp. Asserts the measured count, names the tightest row, and proves rejection twice: every fade end on the card, which is below the bar by design, and a tone whose value stops resolving.",
       "blind": [
         "The ratios come from the stylesheet's own values rather than from painted pixels, so antialiasing, the ramp between a bar's two ends, a host override and a ground a consumer names through --ui-chart-ground are outside it; browser captures carry the paint.",
         "The grid, the zero rule and the line's casing are structure rather than series — the kit's edge and ground tokens — and are not measured against the bar."

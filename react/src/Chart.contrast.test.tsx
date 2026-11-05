@@ -122,6 +122,24 @@ describe('the chart\'s tones', () => {
     }
   });
 
+  /* A smooth line's stroke ramps from its tone to the stop below at the latest
+   * value. The tone end is measured above. The stop is read from the stylesheet,
+   * so a ramp towards the fade, which measures 2.72:1 at its worst, fails here. */
+  it('clears 3:1 for every line\'s latest stroke stop, on both grounds, in both themes', () => {
+    const now = /\.ui-chart__stroke-now\s*\{\s*stop-color:\s*([^;}]+);/.exec(CHART_CSS)?.[1].trim();
+    expect(now, 'the stroke ramp\'s latest stop was not found in src/styles/chart.css').toBeTruthy();
+    const rows = THEMES.flatMap((theme) => (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[])
+      .flatMap((ground) => [...TONES].map(([name, { strong }]) => {
+        const { behind, vars } = measure(theme, 'default', ground, strong);
+        const stop = colourOf(now!.replaceAll('var(--ui-chart-tone)', strong), vars) as Rgba | null;
+        expect(stop, `${name} stroke stop, ${theme}: it does not resolve to a colour`).not.toBeNull();
+        return { where: `${name} stroke stop on the ${ground}, ${theme}`, value: ratio(stop, behind) as number };
+      })));
+    expect(rows).toHaveLength(TONES.size * 2 * THEMES.length);
+    expect(rows.filter((row) => row.value < AA_LARGE).map((row) => `${row.where} ${row.value.toFixed(2)}:1`))
+      .toEqual([]);
+  });
+
   /* Rejection, twice: once for a colour under the bar, and once for a value the
    * gate cannot read. A gate that passes whatever it is handed measures nothing.
    * The fades are the colours under the bar: on the card, where the kit draws a

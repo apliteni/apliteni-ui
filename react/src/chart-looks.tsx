@@ -143,6 +143,48 @@ function monotone(xs: number[], ys: number[]) {
   return t;
 }
 
+/** The ring of tone round the point the reader is on, past the dot's edge. */
+export const HALO = 5;
+
+/** A line drawn smooth: one cubic per segment, so an estimated segment keeps
+ *  its own dash. Each is `M` and its `C`, and the curve stays between its values. */
+export function curveSegments(xs: number[], ys: number[]) {
+  const t = monotone(xs, ys);
+  return xs.slice(1).map((x, k) => {
+    const h = (x - xs[k]) / 3;
+    return `M${px(xs[k])} ${px(ys[k])}C${px(xs[k] + h)} ${px(ys[k] + h * t[k])}`
+      + ` ${px(x - h)} ${px(ys[k + 1] - h * t[k + 1])} ${px(x)} ${px(ys[k + 1])}`;
+  });
+}
+
+/** The glow under a smooth run: the curve closed at `floor`, which sits above
+ *  the plot's foot, so the glow fades out well clear of it. */
+export const glowPath = (xs: number[], segments: string[], floor: number) =>
+  `M${px(xs[0])} ${px(floor)}L${segments[0].slice(1).split('C')[0]}`
+  + `${segments.map((s) => s.slice(s.indexOf('C'))).join('')}L${px(xs[xs.length - 1])} ${px(floor)}Z`;
+
+/** How far under its lowest value a glow reaches: half the way to the foot. */
+export const glowFloor = (lowest: number, foot: number) => lowest + (foot - lowest) / 2;
+
+/** A line's stroke ramp across the plot, and the glow under it, in user space
+ *  so a flat line keeps them. The stroke deepens towards the latest value. */
+export function lineDefs(id: string, t: ChartTone, from: number, to: number, top: number, floor: number) {
+  return (
+    <defs className={tone(t)}>
+      <linearGradient id={`${id}-stroke`} gradientUnits="userSpaceOnUse"
+        x1={px(from)} x2={px(to)} y1="0" y2="0">
+        <stop className="ui-chart__stroke-past" offset="0" />
+        <stop className="ui-chart__stroke-now" offset="1" />
+      </linearGradient>
+      <linearGradient id={`${id}-glow`} gradientUnits="userSpaceOnUse"
+        x1="0" x2="0" y1={px(top)} y2={px(floor)}>
+        <stop className="ui-chart__wash-top" offset="0" />
+        <stop className="ui-chart__wash-floor" offset="1" />
+      </linearGradient>
+    </defs>
+  );
+}
+
 /** What one column's readout lists, top of the stack first. */
 function columnRows(g: LookGeometry, i: number): MarkRow[] {
   const { look, format } = g;
@@ -266,6 +308,10 @@ function linesDrawing(g: LookGeometry, open: number | null) {
   const finite = (layer: Layer, i: number) => Number.isFinite(look.stacked ? layer.to[i] : layer.values[i]);
   const at = (layer: Layer, i: number) => (look.stacked ? layer.to[i] : layer.values[i]);
   const curves = area && look.look === 'curves';
+  /* A line look draws smooth, with a stroke that deepens to the latest value and
+     a glow that fades out half way to the foot. */
+  const line = look.variant === 'line';
+  const smooth = curves || line;
   /* An area ramps from its fade at the layer's lowest top to its tone at the
      highest, in the plot's own units, so the strong colour sits where the values
      are high. A layer with one top value has no range and stays flat. A share
@@ -284,7 +330,7 @@ function linesDrawing(g: LookGeometry, open: number | null) {
     if (finite(layer, i - 1)) out[out.length - 1].push(i); else out.push([i]);
     return out;
   }, []);
-  const tangents = curves ? look.layers.map((layer) => {
+  const tangents = smooth ? look.layers.map((layer) => {
     const t = new Array<number>(n).fill(0);
     for (const run of runs(layer)) {
       monotone(run.map(centre), run.map((i) => y(at(layer, i)))).forEach((v, k) => { t[run[k]] = v; });
@@ -321,11 +367,30 @@ function linesDrawing(g: LookGeometry, open: number | null) {
         d={`${up.join('')}${down.join('')}Z`} />
     );
   });
-  const edges = curves ? look.layers.flatMap((layer, k) => layer.to.slice(1).map((_, i) => (
+  const glows = line ? look.layers.map((layer, k) => {
+    const tops = layer.values.filter(Number.isFinite);
+    if (!tops.length) return null;
+    const id = `${g.uid}-line-${layer.id}`;
+    const floor = glowFloor(y(Math.min(...tops)), plotHeight - pad);
+    const d = runs(layer).filter((run) => run.length > 1).map((run) => {
+      const [a, b] = [run[0], run[run.length - 1]];
+      return `M${px(centre(a))} ${px(floor)}L${px(centre(a))} ${px(y(at(layer, a)))}`
+        + `${run.slice(0, -1).map((i) => bend(k, i)).join('')}L${px(centre(b))} ${px(floor)}Z`;
+    }).join('');
+    return (
+      <g key={`glow-${layer.id}`}>
+        {lineDefs(id, layer.tone, centre(0), centre(n - 1), y(Math.max(...tops)), floor)}
+        {d && <path className={cx('ui-chart__area ui-chart__glow', tone(layer.tone))} d={d}
+          style={{ '--ui-chart-paint': `url(#${id}-glow)` } as CSSProperties} />}
+      </g>
+    );
+  }) : [];
+  const edges = smooth ? look.layers.flatMap((layer, k) => layer.to.slice(1).map((_, i) => (
     finite(layer, i) && finite(layer, i + 1) ? (
       <path key={`edge-${layer.id}-${i}`}
         className={cx('ui-chart__line', tone(layer.tone),
           (labels[i]?.estimated || labels[i + 1]?.estimated) && 'is-estimated')}
+        style={line ? { '--ui-chart-stroke': `url(#${g.uid}-line-${layer.id}-stroke)` } as CSSProperties : undefined}
         d={`M${px(centre(i))} ${px(y(at(layer, i)))}${bend(k, i)}`} />
     ) : null)))
     : !look.share && look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
@@ -343,9 +408,16 @@ function linesDrawing(g: LookGeometry, open: number | null) {
     if (!shown || (look.share && i !== open)) return null;
     // The share look's dot marks only the top of the whole.
     if (look.share && layer !== look.layers[look.layers.length - 1]) return null;
+    const r = points && i === open ? 5.5 : 4;
     return (
-      <circle key={`dot-${layer.id}-${i}`} className={cx('ui-chart__dot', tone(layer.tone))}
-        cx={px(centre(i))} cy={px(y(at(layer, i)))} r={points && i === open ? 5.5 : 4} />
+      <g key={`dot-${layer.id}-${i}`}>
+        {line && i === open && (
+          <circle className={cx('ui-chart__halo', tone(layer.tone))}
+            cx={px(centre(i))} cy={px(y(at(layer, i)))} r={r + HALO} />
+        )}
+        <circle className={cx('ui-chart__dot', tone(layer.tone))}
+          cx={px(centre(i))} cy={px(y(at(layer, i)))} r={r} />
+      </g>
     );
   }));
   const { rise, ascent, drop, gap } = END_LABEL;
@@ -410,6 +482,7 @@ function linesDrawing(g: LookGeometry, open: number | null) {
         </defs>
       )}
       {fills}
+      {glows}
       {open !== null && (
         <line className="ui-chart__cross"
           x1={px(centre(open))} x2={px(centre(open))} y1={pad} y2={px(plotHeight - pad)} />

@@ -15,7 +15,7 @@ import { placeTip } from './tip';
 import {
   BAR_RADIUS, LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, overlaps, pct,
   type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartSlice, type ChartStackedLook,
-  type Layer, type Look, type LookGeometry,
+  type Layer, type Look, type LookGeometry, curveSegments, glowFloor, glowPath, lineDefs, HALO,
 } from './chart-looks';
 
 // The paint is src/styles/chart.css, and this module does NOT import it: a kit
@@ -797,6 +797,26 @@ export function Chart(props: ChartProps) {
   };
   const markAt = (target: EventTarget) =>
     (target as Element).closest?.('[data-mark]')?.getAttribute('data-mark') ?? null;
+  /**
+   * The mark under a pointer. Off every target, a column chart snaps to the
+   * point nearest across, then nearest up and down, so the reader need not
+   * find a dot. why: docs/components.md#react-charts
+   */
+  const markNear = (target: EventTarget, clientX: number, clientY: number) => {
+    const hit = markAt(target);
+    if (hit || !columnsLayout || !svgEl.current || marks.length === 0) return hit;
+    const rect = svgEl.current.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    const x = ((clientX - rect.left) / rect.width) * plotWidth;
+    const yAt = boxTop + ((clientY - rect.top) / rect.height) * boxHeight;
+    let best: Mark | null = null;
+    let score = [Infinity, Infinity];
+    for (const m of marks) {
+      const next = [Math.round(Math.abs(m.x + m.w / 2 - x)), Math.abs(m.y + m.h / 2 - yAt)];
+      if (next[0] < score[0] || (next[0] === score[0] && next[1] < score[1])) { best = m; score = next; }
+    }
+    return best?.id ?? null;
+  };
 
   /* -- the keyboard, which is the one tab stop ----------------------------- */
 
@@ -978,7 +998,7 @@ export function Chart(props: ChartProps) {
                 : title}
               onMouseMove={(event) => {
                 if (Date.now() < ignoreMouseUntil.current) return;
-                show(markAt(event.target));
+                show(markNear(event.target, event.clientX, event.clientY));
               }}
               onMouseLeave={() => {
                 if (Date.now() < ignoreMouseUntil.current) return;
@@ -991,7 +1011,8 @@ export function Chart(props: ChartProps) {
               onTouchEnd={(event) => {
                 ignoreMouseUntil.current = Date.now() + 800;
                 if (touchMoved.current) return;
-                const id = markAt(event.target);
+                const touch = event.changedTouches[0];
+                const id = touch ? markNear(event.target, touch.clientX, touch.clientY) : markAt(event.target);
                 // The tap that OPENS a readout is the reader asking what the mark
                 // is worth, so it answers and nothing else: the synthetic click
                 // behind it is let through to the page but may not pick the
@@ -1011,7 +1032,7 @@ export function Chart(props: ChartProps) {
                 pointerFocus.current = false;
                 const opened = opening.current;
                 opening.current = false;
-                const mark = byId.get(markAt(event.target) ?? '');
+                const mark = byId.get(markNear(event.target, event.clientX, event.clientY) ?? '');
                 if (!mark) return;
                 setCursor(mark.column);
                 if (opened) { announce(mark.column); return; }
@@ -1086,9 +1107,10 @@ export function Chart(props: ChartProps) {
                 );
               })}
 
-              {/* A sparkline's area, from its line down to the plot's foot. It is the
-                  area look's ramp: the fade at the lowest value and the tone at the
-                  highest. A line with one value, or one flat value, stays the fade. */}
+              {/* A sparkline's glow: its smooth line closed half way between the
+                  lowest value and the foot, faded from the highest value down to
+                  nothing, so a flat line keeps a thin band and never a slab. The
+                  stroke deepens from the past to the latest value. */}
               {spark && lines.map((line, k) => {
                 const runs = line.values.reduce<number[][]>((out, v, i) => {
                   if (!Number.isFinite(v)) return out;
@@ -1097,27 +1119,35 @@ export function Chart(props: ChartProps) {
                 }, []).filter((run) => run.length > 1);
                 if (!runs.length) return null;
                 const finite = line.values.filter(Number.isFinite);
-                const lo = Math.min(...finite);
-                const hi = Math.max(...finite);
-                const ramp = y(lo) - y(hi) >= 1 ? `${uid}-spark-${k}` : null;
-                const d = runs.map((run) => `M${px(centre(run[0]))} ${px(plotHeight)}`
-                  + run.map((i) => `L${px(centre(i))} ${px(y(line.values[i]))}`).join('')
-                  + `L${px(centre(run[run.length - 1]))} ${px(plotHeight)}Z`).join('');
+                const floor = glowFloor(y(Math.min(...finite)), plotHeight);
+                const id = `${uid}-spark-${k}`;
+                const d = runs.map((run) => {
+                  const xs = run.map(centre);
+                  return glowPath(xs, curveSegments(xs, run.map((i) => y(line.values[i]))), floor);
+                }).join('');
                 return (
                   <g key={`area-${line.id}`} className={`ui-chart__tone--${line.tone}`}>
-                    {ramp && (
-                      <defs>
-                        <linearGradient id={ramp} gradientUnits="userSpaceOnUse"
-                          x1="0" x2="0" y1={px(y(lo))} y2={px(y(hi))}>
-                          <stop className="ui-chart__fade-base" offset="0" />
-                          <stop className="ui-chart__fade-end" offset="1" />
-                        </linearGradient>
-                      </defs>
-                    )}
-                    <path className="ui-chart__area" d={d}
-                      style={ramp ? { '--ui-chart-paint': `url(#${ramp})` } as CSSProperties : undefined} />
+                    {lineDefs(id, line.tone, 0, plotWidth, y(Math.max(...finite)), floor)}
+                    <path className="ui-chart__area ui-chart__glow" d={d}
+                      style={{ '--ui-chart-paint': `url(#${id}-glow)` } as CSSProperties} />
                   </g>
                 );
+              })}
+
+              {/* A sparkline's line: one smooth segment per pair, painted by the
+                  ramp above. It has no casing, because nothing crosses it. */}
+              {spark && lines.flatMap((line, k) => {
+                const xs = line.values.map((_, i) => centre(i));
+                const curves = curveSegments(xs, line.values.map((v) => (Number.isFinite(v) ? y(v) : 0)));
+                return line.values.slice(1).map((value, i) => (
+                  Number.isFinite(value) && Number.isFinite(line.values[i]) ? (
+                    <path key={`${line.id}-curve-${i}`}
+                      className={cx('ui-chart__line', `ui-chart__tone--${line.tone}`,
+                        (columns[i]?.estimated || columns[i + 1]?.estimated) && 'is-estimated')}
+                      style={{ '--ui-chart-stroke': `url(#${uid}-spark-${k}-stroke)` } as CSSProperties}
+                      d={curves[i]} />
+                  ) : null
+                ));
               })}
 
               {/* Every casing before any stroke. A casing is wider than the stroke
@@ -1127,7 +1157,7 @@ export function Chart(props: ChartProps) {
                   it buys the line its 3:1 against whatever it crosses, and the
                   bars it crosses are now its own hue.
                   why: docs/components.md#react-charts */}
-              {(['casing', 'stroke'] as const).map((layer) => lines.flatMap(
+              {!spark && (['casing', 'stroke'] as const).map((layer) => lines.flatMap(
                 (line) => line.values.slice(1).map((value, i) => (
                   Number.isFinite(value) && Number.isFinite(line.values[i]) ? (
                     <line
@@ -1155,6 +1185,10 @@ export function Chart(props: ChartProps) {
 
               {/* The point the reader is on. A line draws no marker of its own, so
                   without this a hovered point had only the readout to show it. */}
+              {!geometry && open?.kind === 'dot' && spark && (
+                <circle className={cx('ui-chart__halo', `ui-chart__tone--${open.tone}`)}
+                  cx={px(open.x + open.w / 2)} cy={px(open.y + open.h / 2)} r={ACTIVE_DOT + HALO} />
+              )}
               {!geometry && open?.kind === 'dot' && (
                 <circle className={cx('ui-chart__dot', `ui-chart__tone--${open.tone}`)}
                   cx={px(open.x + open.w / 2)} cy={px(open.y + open.h / 2)} r={ACTIVE_DOT} />

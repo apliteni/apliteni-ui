@@ -1143,9 +1143,13 @@ dark step for each theme. A bar fades from a light tint of its tone at its base 
 to the full tone at its data end, and a bar under zero fades the other way. The fill is opaque.
 The full tone clears 3:1 on the card and on the page in both themes. The tint is below 3:1 by
 design, because the data end, the zero line and the base carry the value. A bridge bar fades from
-the previous running total to the full tone at the new one, so a fall fades downwards. Lines,
-points and legend keys stay solid in the full tone. **An area ramps with its values:** the tint
-is at the series' lowest top and the full tone at its highest, in every column. An area with one
+the previous running total to the full tone at the new one, so a fall fades downwards. Points
+and legend keys stay solid in the full tone. **A line look and a spark of lines draw smooth.**
+Each curve stays between the values on each side of it. The stroke goes from the full tone at the
+first period to a deeper step at the latest. That step clears 3:1 on the card and on the page in
+both themes. A soft glow of the tone fades from the highest value to clear half way between the
+lowest value and the foot. A ring of the tone marks the point the reader is on.
+**An area ramps with its values:** the tint is at the series' lowest top and the full tone at its highest, in every column. An area with one
 value, a share band, a stacked part and a donut slice have no ramp. A `curves` area has a wash
 instead: its tone fades to clear at zero, under each series in the order you give them. Its curve
 never passes the values on each side of it and never goes under zero. Use `curves` for two or
@@ -1174,6 +1178,10 @@ is set, and `title` names the plot, the table and the switch without being drawn
 around a chart already carries its title. A plot that scrolls adds one more tab stop after the
 chart: the scrolling box, named after `title` and ringed by the kit.
 
+**A pointer anywhere over the plot opens the nearest point.** The chart picks the nearest
+period across, then the nearest mark up or down. The pointer does not have to touch a dot. A tap
+and a click pick the same mark as the pointer.
+
 **On a touch screen a tap opens the readout and a second tap on the same mark closes it. The tap
 that opens a readout does not call `onSelect`** — it is the reader asking what a mark is worth.
 The tap that closes one, and an ordinary mouse click, do, and the click itself is never swallowed,
@@ -1189,8 +1197,7 @@ place, and a column cut by the edge shows that more periods are there. While the
 the keyboard can scroll it from its own tab stop after the chart. Nothing animates.
 
 **A bar has a 2px radius on the end away from the axis, and a square base.** A bar that stands on
-nothing, such as a bridge step, rounds the end further from zero. A spark fills the room under
-its line with a ramp from the faint tone at the lowest value to the full tone at the highest.
+nothing, such as a bridge step, rounds the end further from zero.
 A spark of lines runs from edge to edge: its first point sits on the text edge above it and its
 last point on the far edge. A spark with bars centres each bar in its column.
 
