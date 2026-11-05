@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 57,
+    PARENTHESISED.length, 72,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'six layout rail rules, four nav rules, thirty-two table rules, four finance composition rules, two invoice showcase rules, two tap-zone rules, three checkbox mark rules, one drawer control-row rule, one danger hold-fill rule and one token rule',
+    + 'six layout rail rules, four nav rules, forty-five table rules, four finance composition rules, two invoice showcase rules, two tap-zone rules, three checkbox mark rules, one drawer control-row rule, one danger hold-fill rule and three token rules',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
@@ -154,7 +154,6 @@ const VALUE_SPLITS = [
   ['stories/lib/css-at-width.js', ')', 'a media-query condition list'],
   ['stories/motion-missing-element.test.js', 'params', 'an animation timing parameter list'],
   ['stories/motion-tokens.test.js', 'd.value', 'a transition value'],
-  ['stories/table-edge-shade.test.js', ']', 'a background-size layer list'],
 ];
 
 /** Every literal comma split in the trees `npm test` walks, as file + receiver. */

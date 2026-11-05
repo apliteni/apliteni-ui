@@ -133,10 +133,10 @@ in a real browser:
 `DASH_CENTRE=1 UI_PLAYWRIGHT=… node --test src/styles/check-partial.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
-## Check the table edge shade locally
+## Check the phone table frame locally
 
-Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
-measure both edges in a real browser — the source half only reads selectors, not paint.
+Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` rules, measure the
+phone frames in a real browser. The source half only checks that the frame paints no shade.
 Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
 Report the result in the PR. CI runs only this gate's source half.

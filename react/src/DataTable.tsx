@@ -50,7 +50,7 @@ export type DataTableProps<T> = {
   footer?: ReactNode;
   /** A caption read by assistive technology only. */
   caption?: string;
-  dense?: boolean; density?: 'default' | 'dense' | 'compact'; stickyHeader?: boolean; pinnedIdentity?: boolean; scrollLabel?: string; empty?: ReactNode;
+  dense?: boolean; density?: 'default' | 'dense' | 'compact' | 'comfortable'; stickyHeader?: boolean; pinnedIdentity?: boolean; scrollLabel?: string; empty?: ReactNode;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */
   pager?: boolean;
@@ -197,7 +197,7 @@ export function DataTable<T extends { name: string }>({
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
       <Wrap {...(scrollable ? { className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: 0 } : {})}>
-      <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}
         <thead>

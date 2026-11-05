@@ -157,6 +157,9 @@ test('compact end cells override the base last-header inset together', () => {
  * cascade — not browser line breaking, not layout, not contrast. Storybook captures
  * check the rendered edges. Decided in #385. */
 
+// The row table: a hover table that is neither dense nor zebra.
+const ROW_TABLE = '.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)';
+
 // Every modifier in the sheet is a subject, so a new density cannot ship unmeasured.
 const tableModifiers = (css) => {
   const found = [...new Set(css.match(/\.ui-table--[\w-]+/g))].map((selector) => selector.slice(1));
@@ -215,7 +218,8 @@ function checkFooter(css) {
       const [totalLabel, totalValue] = [...rows[1].cells].map((cell) => getComputedStyle(cell));
       assert.equal(totalLabel.fontWeight, totalValue.fontWeight, `${modifier}: the strong row carries one weight`);
       assert.equal(totalLabel.color, totalValue.color, `${modifier}: the strong row carries one ink`);
-      if (modifier !== 'ui-table--zebra') {
+      // The row table draws no lines between its rows; the totals' strong rule divides them.
+      if (modifier !== 'ui-table--zebra' && modifier !== 'ui-table--hover') {
         assert.equal(getComputedStyle(document.querySelector('tbody td')).borderBottomWidth, '1px',
           `${modifier}: items close before totals`);
       }
@@ -310,7 +314,9 @@ test('a right-aligned last column shares its header\'s right edge across table m
 });
 
 test('the last-column check rejects a hover table whose band ends at the figures', () => {
-  const without = CSS.replace(/:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) :is\(th, td\):not\(\.ui-table__act\):last-child \{[^}]*\}/, '');
+  // A plain hover table is the row table, which pads its end cells with --cell-edge.
+  const without = CSS.replace(`${ROW_TABLE} :is(th, td):last-child { padding-right: var(--cell-edge); }`,
+    `${ROW_TABLE} :is(th, td):last-child { padding-right: 0; }`);
   assert.notEqual(without, CSS, 'the mutation edits the sheet');
   assert.throws(() => checkLastColumnEdge(without));
 });
@@ -334,8 +340,8 @@ function checkLinkedHoverInset(css) {
       for (const side of ['paddingLeft', 'paddingRight']) {
         assert.equal(link[side], header[side], `${modifier}: linked end cell keeps the header inset, ${side}`);
         assert.notEqual(link[side], '0px');
-        // A hover fill keeps --space-2 at its ends in every variant. Zebra keeps its own inset.
-        if (!modifier.includes('zebra')) assert.equal(link[side], `${SPACE['--space-2']}px`, `${modifier}: linked end cell room, ${side}`);
+        // A dense hover fill keeps --space-2 at its ends. The row table and zebra keep their own inset.
+        if (modifier.includes('dense')) assert.equal(link[side], `${SPACE['--space-2']}px`, `${modifier}: linked end cell room, ${side}`);
       }
       measured++;
     } finally { dom.window.close(); }
@@ -345,10 +351,8 @@ function checkLinkedHoverInset(css) {
 
 test('a linked end cell keeps the hover table inset', () => checkLinkedHoverInset(CSS));
 test('the linked end-cell check rejects a missing inset', () => {
+  // The row table states its own linked end cells, so only the dense rule is mutated here.
   for (const end of ['first', 'last']) {
-    const without = CSS.replace(new RegExp(`:where\\(\\.ui-table--hover:not\\(\\.ui-table--zebra\\)\\) td\\.ui-table__linked:${end}-child > :is\\([^{}]+\\{[^}]+\\}`), '');
-    assert.notEqual(without, CSS, `the ${end}-child rule must exist to be taken out`);
-    assert.throws(() => checkLinkedHoverInset(without), `a missing ${end}-child inset must be rejected`);
     const variant = CSS.replace(new RegExp(`:where\\(\\.ui-table--hover:not\\(\\.ui-table--zebra\\)\\):is\\(\\.ui-table--dense, \\.ui-table--compact\\) td\\.ui-table__linked:${end}-child > :is\\([^{}]+\\{[^}]+\\}`), '');
     assert.notEqual(variant, CSS, `the dense and compact ${end}-child rule must exist to be taken out`);
     assert.throws(() => checkLinkedHoverInset(variant), `a missing dense or compact ${end}-child inset must be rejected`);
@@ -356,20 +360,22 @@ test('the linked end-cell check rejects a missing inset', () => {
 });
 
 /**
- * A hovered row's fill spans the table and rounds its ends (#773). Each end cell keeps
- * --space-2 inside the fill, the same as its header, in the dense and compact variants
- * too, and an end action cell keeps it. A row line that met a round corner crossed it, so
- * the hovered row, the row above it and, over the first row, the header drop their lines.
- * Every other line stays.
+ * A hovered row's fill spans the table. On a dense hover table it rounds its ends (#773):
+ * each end cell keeps --space-2 inside the fill, the same as its header, and an end action
+ * cell keeps it. A row line that met a round corner crossed it, so the hovered row, the
+ * row above it and, over the first row, the header drop their lines. Every other line stays.
+ * The row table of #770 (base and compact) draws no body row line, and its end figure
+ * cells start and end with their header.
  *
  * Limit: JSDOM has no pointer, so `:hover` is rewritten to a class the test sets. It
- * computes padding and border colour, not the paint of the corners.
+ * computes padding and border colour, not the paint of the corners. It does not resolve
+ * the row table's --cell-edge, so the row table's room is read against its header only.
  */
 function checkHoverRowEnds(css) {
   const probe = substitute(css, tokensFor('light', 'default')).replace(/:hover\b/g, '.is-probe-hover');
   assert.notEqual(probe, css, 'the sheet must have hover rules to probe');
   const room = `${SPACE['--space-2']}px`;
-  const clear = (style) => ['transparent', 'rgba(0, 0, 0, 0)'].includes(style.borderBottomColor);
+  const clear = (style) => style.borderBottomWidth === '0px' || ['transparent', 'rgba(0, 0, 0, 0)'].includes(style.borderBottomColor);
   const failures = [];
   let measured = 0;
   const shapes = ['', 'ui-table--dense', 'ui-table--compact'].flatMap((variant) => [
@@ -387,13 +393,15 @@ function checkHoverRowEnds(css) {
       const head = [...document.querySelectorAll('thead th')].map((th) => getComputedStyle(th));
       const first = getComputedStyle(rows[hovered].firstElementChild);
       const last = getComputedStyle(rows[hovered].lastElementChild);
-      if (first.paddingLeft !== room || head[0].paddingLeft !== room) failures.push(`${at}: first cell room ${first.paddingLeft}, header ${head[0].paddingLeft}`);
-      if (last.paddingRight !== room || head[1].paddingRight !== room) failures.push(`${at}: last cell room ${last.paddingRight}, header ${head[1].paddingRight}`);
-      if (clear(head[0]) !== (hovered === 0)) failures.push(`${at}: header line ${head[0].borderBottomColor}`);
+      const dense = variant === 'ui-table--dense';
+      if (dense ? first.paddingLeft !== room || head[0].paddingLeft !== room : first.paddingLeft !== head[0].paddingLeft) failures.push(`${at}: first cell room ${first.paddingLeft}, header ${head[0].paddingLeft}`);
+      // The row table's action cell gives part of its room to the button's own inset.
+      if (dense ? last.paddingRight !== room || head[1].paddingRight !== room : !end.includes('__act') && last.paddingRight !== head[1].paddingRight) failures.push(`${at}: last cell room ${last.paddingRight}, header ${head[1].paddingRight}`);
+      if (dense && clear(head[0]) !== (hovered === 0)) failures.push(`${at}: header line ${head[0].borderBottomColor}`);
       // The last row of the table has no line of its own, so only the rows above it are read.
       rows.slice(0, 2).forEach((row, i) => {
         const style = getComputedStyle(row.firstElementChild);
-        if (clear(style) !== (i === hovered || i === hovered - 1)) failures.push(`${at}: line under row ${i + 1} ${style.borderBottomColor}`);
+        if (clear(style) !== (!dense || i === hovered || i === hovered - 1)) failures.push(`${at}: line under row ${i + 1} ${style.borderBottomColor}`);
       });
       measured++;
     } finally { dom.window.close(); }
@@ -407,14 +415,11 @@ test('a hovered row keeps room inside its fill and no line crosses its corners',
 });
 
 test('the hover-row check rejects a sheet that loses an end room or a dropped line', () => {
-  const firstRoom = /:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) :is\(th, td\):not\(\.ui-table__act\):first-child \{[^}]*\}/;
   const headerLine = ',\n.ui-table--hover:not(.ui-table--zebra) thead:has(+ tbody > tr:first-child:hover) > tr > th';
   const rowAbove = '.ui-table--hover:not(.ui-table--zebra) tbody tr:has(+ tr:hover) > :is(td, th),\n';
-  const actionRoom = /:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\) td\.ui-table__act:last-child \{[^}]*\}/;
   const variantRoom = /:where\(\.ui-table--hover:not\(\.ui-table--zebra\)\):is\(\.ui-table--dense, \.ui-table--compact\) :is\(th, td\):last-child \{[^}]*\}/;
   for (const [name, mutated] of [
-    ['first-cell room', CSS.replace(firstRoom, '')],
-    ['action-cell room', CSS.replace(actionRoom, '')],
+    ['row table line', CSS.replace(`${ROW_TABLE} tbody > tr > :is(td, th) { border-bottom: 0; }`, '')],
     ['dense and compact room', CSS.replace(variantRoom, '')],
     ['header line', CSS.replace(headerLine, '')],
     ['row-above line', CSS.replace(rowAbove, '')],
@@ -422,6 +427,13 @@ test('the hover-row check rejects a sheet that loses an end room or a dropped li
     assert.notEqual(mutated, CSS, `the ${name} rule must exist to be taken out`);
     assert.notDeepEqual(checkHoverRowEnds(mutated), [], `a sheet without the ${name} rule must be rejected`);
   }
+});
+
+test('the linked end-cell check rejects a row table without its last-cell inset', () => {
+  // Limit: the check resolves every var(--cell-edge) to the sheet's last --cell-edge, which must differ from the link's 12px fallback.
+  const without = CSS.replace(`${ROW_TABLE} td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--cell-edge); }`, '');
+  assert.notEqual(without, CSS);
+  assert.throws(() => checkLinkedHoverInset(without));
 });
 
 /**
@@ -555,6 +567,9 @@ function tableWidths(css) {
         // A dense hover table holds 8px at its ends, so it bleeds by that much (#773).
         '.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'calc(100% + 2 * var(--space-2))',
         '.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'auto',
+        // The row table and its frame reach the card's edges, past the card's padding.
+        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--space-6))',
+        '.ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'auto',
       }[selector];
       if (width !== expected) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
@@ -627,7 +642,7 @@ test('the width gate rejects a table stretched back to its container', () => {
   }
   assert.ok(tableWidths(CSS.replace('  max-width: 100%;', '')).length > 0,
     'removing the cap must be rejected');
-  assert.ok(tableWidths(CSS.replace('max-width: calc(100% + 2 * var(--space-3));', 'max-width: 100%;')).length > 0,
+  assert.ok(tableWidths(CSS.replace(/max-width: calc\(100% \+ 2 \* var\(--space-\d\)\);/g, 'max-width: 100%;')).length > 0,
     'a card bleed that caps at the card instead of the bled width must be rejected');
   const HOVER = /\.ui-card > \.ui-table--dense\.ui-table--hover:not\(\.ui-table--zebra\) \{[^}]*\}/;
   const FIT_HOVER = /\.ui-card--fit > \.ui-table--dense\.ui-table--hover:not\(\.ui-table--zebra\) \{[^}]*\}/;

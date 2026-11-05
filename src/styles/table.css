@@ -337,37 +337,24 @@
 /* A hover table holds --space-2 inside the fill at each end, and dense and compact too. why: #773 */
 :where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) :is(th, td):first-child { padding-left: var(--space-2); }
 :where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) :is(th, td):last-child { padding-right: var(--space-2); }
-/* Columns past the box's edge, said in paint. Two shades, one per side, under two
-   cover layers that ride the content: `local` moves a cover with the scroll, so
-   reaching an end slides that cover over its shade. A cover is solid for its first
-   half, so at 24px it hides a 12px shade outright — which is why the two sizes are
-   not one. why: guidelines/dense-tables.md */
+/* A wide table scrolls sideways in its frame. The frame paints no shade at its edges. #770 */
 .ui-table-scroll {
   overflow: auto; max-height: var(--ui-table-height, 70vh);
   /* A transparent border, not padding: positioned cells cover an outline on the scrollport's
      padding. The side and bottom bands draw in the border at the visible edge at every scroll
      position. why: docs/foundations.md#the-focus-ring */
-  border: 0 solid transparent; border-inline-width: var(--space-1); border-bottom-width: var(--space-1); background-origin: border-box;
+  border: 0 solid transparent; border-inline-width: var(--space-1); border-bottom-width: var(--space-1);
   background-color: var(--table-bg);
-  background-image:
-    linear-gradient(to right, var(--table-bg) 50%, transparent),
-    linear-gradient(to left, var(--table-bg) 50%, transparent),
-    radial-gradient(farthest-side at 0 50%, var(--table-edge), transparent),
-    radial-gradient(farthest-side at 100% 50%, var(--table-edge), transparent);
-  background-position: 0 0, 100% 0, 0 0, 100% 0;
-  background-size: var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, var(--space-3) 100%;
-  background-repeat: no-repeat;
-  background-attachment: local, local, scroll, scroll;
+  /* The containing block of an absolute child, such as a screen-reader label, so the
+     frame clips it and it cannot widen the page. #770 */
+  position: relative;
+  /* A grid track with a zero floor, so a wide table cannot widen the frame's card. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
-/* The edge darkens on a light ground and lightens on a dark one: ink has nowhere to
-   go on a near-black page, which is why --elev-drop splits its spend and a raised
-   dark surface takes a light --elev-edge. */
-.ui-table-scroll { --table-edge: color-mix(in srgb, var(--sheen) 12%, transparent); }
-:root[data-theme="light"] .ui-table-scroll { --table-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent); }
-/* The surface belongs to the box that scrolls, so the shades land under the cells
-   rather than behind them; the row fills repeat that same surface and step aside.
-   The sticky header and pinned column keep their paint: they hide what scrolls
-   beneath them. A target row keeps its wash. */
+/* The surface belongs to the box that scrolls, and the row fills repeat that same surface.
+   The sticky header and pinned column keep their paint: they hide what scrolls beneath
+   them. A target row keeps its wash. */
 .ui-table-scroll > .ui-table,
 .ui-table-scroll > .ui-table tbody :where(tr:not(.is-target)) > td:not(.ui-table__identity, .ui-table__selection) { background-color: transparent; }
 .ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
@@ -398,45 +385,6 @@
    rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
    scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
 .ui-table-scroll { container-type: scroll-state; }
-/* A shared grid cell puts the edge shade over the opaque sticky header, on both
-   sides: the radial-gradient shades below answer only the table's own background
-   and fall to nothing where the sticky header paints over them, so an engine that
-   can ask whether the scrollport still has room sticks a shade of its own above
-   it instead and the base radial pair is sized to 0 here. #434 review round 2 */
-@supports (container-type: scroll-state) {
-  .ui-table-scroll {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    background-size: var(--space-6) 100%, var(--space-6) 100%, 0 100%, 0 100%;
-  }
-  .ui-table-scroll > .ui-table { grid-area: 1 / 1; }
-  .ui-table-scroll::before,
-  .ui-table-scroll::after {
-    content: '';
-    grid-area: 1 / 1;
-    position: sticky;
-    top: 0;
-    width: var(--space-3);
-    z-index: calc(var(--z-sticky) + 2);
-    pointer-events: none;
-  }
-  .ui-table-scroll::before { left: 0; right: calc(100% - var(--space-3)); justify-self: start; }
-  .ui-table-scroll::after { left: calc(100% - var(--space-3)); right: 0; justify-self: end; }
-  @container scroll-state(scrollable: left) {
-    .ui-table-scroll::before { background: linear-gradient(to right, var(--table-edge), transparent); }
-    /* A pinned column stays, so the shade falls on its right side, over the columns that
-       scroll under it. The spread carries the shadow past each row's ends, and the clip cuts
-       it there and on the left, so the rows join as one even band. why: #736 */
-    .ui-table-scroll:has(> .ui-table--pinned)::before { background: none; }
-    .ui-table--pinned .ui-table__identity {
-      box-shadow: calc(-1 * var(--space-2)) 0 var(--space-3) var(--space-3) var(--table-edge);
-      clip-path: inset(0 calc(-1 * var(--space-6)) 0 0);
-    }
-  }
-  @container scroll-state(scrollable: right) {
-    .ui-table-scroll::after { background: linear-gradient(to left, var(--table-edge), transparent); }
-  }
-}
 @container not scroll-state(scrollable: x) {
   .ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { border-right-color: transparent; }
 }
@@ -544,3 +492,106 @@ a.ui-identity:hover { text-decoration: underline; }
    --dense, --compact and __title. The floor keeps a note a readable paragraph when the table
    is wider than its frame, so the frame scrolls instead of the note collapsing to one word. */
 .ui-table td.ui-table__long { white-space: normal; min-width: var(--panel-sm); }
+
+
+/* ============================================================================
+ * The row table: a hover table that is neither dense nor zebra. #770
+ * Body rows have no lines, and the head keeps its rule. A row's fill is square. Rows
+ * are 48px, `--compact` 36px and `--comfortable` 56px. In a card, the table meets the
+ * card's edges and its end cells keep the card's text edge.
+ * ========================================================================== */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) {
+  --cell-gap: var(--space-4);
+  --cell-edge: var(--space-3);
+  padding: 0;
+}
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td) {
+  line-height: var(--leading-snug);
+  padding-inline: 0 var(--cell-gap);
+}
+/* A pinned selection cell keeps its fixed, centred track. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):first-child:not(:where(.ui-table--pinned) .ui-table__selection) { padding-left: var(--cell-edge); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):last-child { padding-right: var(--cell-edge); }
+/* 16px, so the box's 44px phone tap layer stops at the cell's edge and leaves the next cell's control whole. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):not(.ui-table--pinned) .ui-table__selection { padding-right: var(--space-4); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-block: var(--space-3); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody > tr > :is(td, th) { border-bottom: 0; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(tbody, tfoot) :is(td, th):not(.ui-table__act) {
+  height: var(--space-12);
+  padding-block: var(--space-2);
+}
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact { --cell-gap: var(--space-3); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact thead th { padding-block: var(--space-2); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact :is(tbody, tfoot) :is(td, th):not(.ui-table__act) { height: calc(var(--space-8) + var(--space-1)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable { --cell-gap: var(--space-5); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable :is(tbody, tfoot) :is(td, th):not(.ui-table__act) {
+  height: calc(var(--space-12) + var(--space-2));
+  padding-block: var(--space-3);
+}
+/* A filled cell link carries the padding its cell gave up. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--cell-gap) var(--space-2) 0; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-block: var(--space-3); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--cell-edge); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--cell-edge); }
+
+/* The row's name, in the first column after the selection, is the row's strongest ink. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-dead) > :is(td, th):is(:first-child, .ui-table__selection + *) {
+  color: var(--strong);
+  font-weight: var(--weight-medium);
+}
+/* A second line under a cell's value, such as an email under a name. It is a value, so
+   it keeps full ink. Its size and weight set it below the name. */
+.ui-table__sub { display: block; font-size: var(--text-sm); font-weight: var(--weight-normal); color: var(--text); }
+
+/* Row states. Hover is a quiet neutral fill. A selected row takes an accent wash, one step
+   stronger under the pointer. Each fill is opaque and square, so a pinned cell still covers
+   the columns that scroll under it. A target row keeps its own wash. The selected wash
+   is 9%: at 8% an inline code chip on the dark page loses its 1.1:1 step. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover > :is(td, th) { border-radius: 0; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface-3); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th) { background: color-mix(in srgb, var(--accent) 9%, var(--table-bg)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { background: color-mix(in srgb, var(--accent) 12%, var(--table-bg)); }
+
+/* Icon row actions: 32px buttons in a cell as wide as its buttons, so a row keeps its
+   height. The glyph, not the button, meets the end cell's edge. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act { padding-block: 0; padding-right: calc(var(--cell-edge) - var(--space-2)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act:has(.ui-btn--icon) { width: 1%; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act .ui-btn--icon { box-sizing: border-box; width: var(--space-8); height: var(--space-8); padding: 0; justify-content: center; }
+
+/* In a card the table, or its frame, reaches the card's edges, so a row's fill does too. */
+.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) {
+  width: calc(100% + 2 * var(--space-6));
+  max-width: none;
+  margin-inline: calc(-1 * var(--space-6));
+}
+.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: calc(-1 * var(--space-6)); }
+.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: calc(-1 * var(--space-6)); }
+.ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: calc(-1 * var(--space-5)); }
+.ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: calc(-1 * var(--space-5)); }
+.ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) { width: auto; max-width: calc(100% + 2 * var(--space-6)); }
+/* The frame keeps its side bands and takes a top band, because the sticky header covers a
+   ring drawn anywhere else. The frame clips its cells to the inner curve of the bands, so
+   the header follows the ring at the top corners. The header gives the top band back from
+   its padding. The frame drops the bottom band, so the card's padding is the only room
+   below the table. */
+.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)) { border-top-width: var(--space-1); border-bottom-width: 0; }
+.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-top: calc(var(--space-3) - var(--space-1)); }
+.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact thead th { padding-top: calc(var(--space-2) - var(--space-1)); }
+/* The frame's corners follow the card's, so a fill in the first or last row does too. */
+.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)):first-child { border-start-start-radius: inherit; border-start-end-radius: inherit; }
+.ui-card > .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)):last-child { border-end-start-radius: inherit; border-end-end-radius: inherit; }
+.ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-6); }
+/* In a frame, the side band holds space-1 of the card's text edge. */
+.ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-6) - var(--space-1)); }
+
+/* On a phone the cells pad by space-3 across and a card's end cells by space-4. A wide
+   table scrolls under a finger, so the frame shows no scrollbar. 560px is the kit's phone
+   breakpoint. */
+@media (max-width: 560px) {
+  .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(*, .ui-table--comfortable) { --cell-gap: var(--space-3); }
+  .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-4) - var(--space-1)); }
+  .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-4); }
+  .ui-table-scroll { scrollbar-width: none; }
+  .ui-table-scroll::-webkit-scrollbar { display: none; }
+}

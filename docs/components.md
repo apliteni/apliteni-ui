@@ -597,7 +597,8 @@ leave it to the window.
 
 `tooltip()` is the readout that a surface shows while a pointer rests on one of its marks. It is an
 overlay. That is the guarantee: **showing, filling or moving a readout never changes the size or
-the place of anything else on the page.** There is one element per host. It is placed absolutely
+the place of anything else on the page.** A closed readout has no box, so it cannot widen a
+scroll region that holds it. There is one element per host. It is placed absolutely
 and takes no pointer events. `.ui-tip-host` marks the box it is placed against. The readout flips
 or slides only as far as needed to stay inside the viewport and every ancestor whose overflow
 clips. **What it says is text**, written with `textContent` and never parsed. Focus on a mark shows
@@ -612,7 +613,17 @@ what the bar says. No value may be reachable only by hovering. See
 React `Tooltip` shows a label, a value and an optional detail.
 `text` is still a shorthand for `label`. Empty parts are hidden.
 The focusable trigger provides the readout as its accessible description. Escape keeps focus on the trigger.
-The panel does not change the layout or intercept pointer events. Reduced motion removes the fade.
+The panel does not change the layout or intercept pointer events.
+
+**A pointer opens the readout after it rests for 300ms, and the readout closes at once when the
+pointer leaves.** A pointer that leaves within 300ms opens nothing. **Within 300ms after a readout
+closes, the next one opens at once**, so a pointer that moves along a row of icon buttons reads
+each word without a new wait. **Keyboard focus opens the readout at once.** A mouse press that
+focuses the trigger waits for the hover.
+
+`control` is for a child that is one control and names itself, such as an icon button with an
+`aria-label`. The readout shows its word on hover and focus. It adds no tab stop and no
+description, and it is hidden from assistive technology, because the control's name already says it.
 
 `placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
 and viewport bounds, and updates its position on scroll and resize.
@@ -665,20 +676,33 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. Without zebra, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends.
-Keyboard focus keeps its ring, and a landed row keeps its own mark. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. On a dense hover table, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends.
+Keyboard focus keeps its ring, and a landed row keeps its own mark. On a zebra or dense table, `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
 pinned column draws its divider only where the region can actually scroll:** at a width where
-every column fits, the line divides nothing, so it is not drawn. **The region shows a soft shade
-on whichever edge still has columns behind it, and none on an edge that has been reached** —
-darker on a light ground, lighter on a dark one. Both are CSS alone, so vanilla and React tables
-carry them alike, and neither reaches the focus ring. An engine that cannot report a scroll state
-keeps the divider at every width. **A link
+every column fits, the line divides nothing, so it is not drawn. **The region draws no shade at
+its edges.** The divider is CSS alone, so vanilla and React tables carry it alike, and it does not
+reach the focus ring. An engine that cannot report a scroll state keeps the divider at every
+width. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
 explicit judgement. **Colour never supplies the sign.**
+
+**A hover table that is neither zebra nor dense is a row table.** Its body rows have no lines
+and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
+56px with `comfortable`**, and larger or wrapped content makes it taller. Hover gives the row a
+neutral fill, and a checked selection box gives it an accent wash. Both fills are square, and the
+first and last content sit 12px inside them. The name
+in the first column takes the strongest ink. **`.ui-table__sub` puts a second value under the
+first**, such as an email under a name, in full ink at a smaller size. An act cell that holds icon
+buttons is as wide as its buttons, and they are 32px, so the row keeps its height. In a card, the
+table reaches the card's edges and its end cells keep the card's text edge. A scroll frame in a
+card keeps a 4px band at each side and above the header for its focus ring, so a row fill stops
+4px inside the card's edges. The header gives that top band back, so the table keeps its place, and
+the header follows the ring's rounded corners. The band shows no line at rest, and the frame adds no
+room below the table.
 
 A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
 A landed row's `.is-target` mark shows on pointer arrival as well as keyboard focus, and it outlives focus, so arrival and focus show together and stay distinguishable.
@@ -705,9 +729,10 @@ its right side.
 
 **On a phone, a table stays a table.** No kit table lays its rows out as blocks. A table wider
 than the screen scrolls sideways inside its frame, and the page does not scroll. A pinned identity
-column stays at the frame's left edge on the table's own surface, so it follows the theme. While
-columns sit under it, a soft shade from the edge token falls to its right. At the left edge there
-is no shade. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+column stays at the frame's left edge on the table's own surface, so it follows the theme.
+**Below 560px the frame shows no scrollbar**, because a finger scrolls it. **A screen-reader label
+in the table stays inside the frame**, so it cannot widen the page. This is a rule in
+[Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -940,7 +965,8 @@ vanilla sections above.
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
 A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
-`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`,
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
+(`dense`, `compact` or `comfortable`),
 `stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
 with no strike line. `stack` is deprecated and ignored: a phone table scrolls sideways like any other. A table that does not scroll is the card's own child, so a dense table reaches the card's text edge.
@@ -1340,7 +1366,8 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   and follows the OS otherwise. It sets `data-theme-choice` and the resolved `data-theme` on
   `html` and exports `THEME_INIT_SCRIPT` for a head script.
 - **`Tooltip`** renders the vanilla host, panel and label classes. Escape keeps focus on the
-  trigger.
+  trigger. A hover opens it after 300ms and keyboard focus at once; see
+  [The React tooltip](#the-react-tooltip).
 - **`Pill`** and **`StatusDot`** add no interactive role and create no live region. Visible
   status text belongs beside the dot.
 - **`SuccessPanel`** is the inline confirmation. **`SuccessCheck`** is the bare shared mark.
@@ -1356,8 +1383,8 @@ This is stated so nobody has to discover it by trying:
 
 - **No build step**, whose consequence is
   [breakpoints as literals](foundations.md#breakpoints).
-- **No density system.** `.ui-table--dense`, `.ui-table--compact` and `.ui-cmdk--roomy` are the
-  only density modifiers, and each is local to its component.
+- **No density system.** `.ui-table--dense`, `.ui-table--compact`, `.ui-table--comfortable` and
+  `.ui-cmdk--roomy` are the only density modifiers, and each is local to its component.
 - **No container scale.** There is one `--container`, not a narrow/wide set.
 - **No second bar for a control's glyph.** 1.5 CSS px is the line for every stroked mark.
 - **No charts.** A stat band's trend is a slot for your `<svg>`.
