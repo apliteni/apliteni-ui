@@ -83,23 +83,27 @@ export const SPEC_CSS = `
     .gas-modal__cap { font-family: var(--font-sans); font-size: var(--text-lg);
       font-weight: var(--weight-semibold); line-height: var(--leading-snug);
       color: var(--strong); margin-bottom: var(--space-1); }
-    .gas-modal__nav { flex: 0 1 auto; min-width: 0; padding: var(--space-3) var(--space-2);
-      border-right: 1px solid var(--border); }
+    /* The nav takes at most a third of the panel, so the pane keeps two. A row fills
+       the capped column, and a name too long for it wraps rather than clips. The
+       specimen panel is narrower than the window, so the rows give up some inset. */
+    .gas-modal__nav { flex: 0 1 auto; min-width: 0; max-width: calc(100% / 3);
+      padding: var(--space-3) var(--space-1); border-right: 1px solid var(--border);
+      background: var(--bg); /* code-bg: inherit — The window's rail is the page ground, so the current row's plate shows on it. */ }
+    .gas-modal__nav .ui-nav--side { --ui-nav-col: 100%; }
+    .gas-modal__nav .ui-nav__item { padding-inline: var(--space-2); gap: var(--space-2); }
+    .gas-modal__nav .ui-nav__label { white-space: normal; }
+    .gas-modal__tabs { display: none; }
     .gas-modal__pane { flex: 1 1 0; min-width: 0; padding: var(--space-4);
       display: flex; flex-direction: column; gap: var(--space-3); overflow: hidden; }
 
-    /* Below the fold the pane has no room beside a column of names, so the navigation
-       goes above it — the phone shape rule 1's Except names. */
-    @media (max-width: 720px) {
+    /* A floating panel goes edge to edge at 560, and the sections become one row of
+       tabs over the pane, as the window does. The pane takes the full width. */
+    @media (max-width: 560px) {
       .gas-modal__body, .gas-modal--nav .gas-modal__body { display: block; height: auto; }
-      .gas-modal__nav { width: auto; padding: var(--space-2);
-        border-right: 0; border-bottom: 1px solid var(--border); }
-      /* The rail's open column is wider than the drawn panel at 320, which clipped
-         58px off every row. Each row takes the width it is given instead. */
-      .gas-modal__nav .ui-nav--side { --ui-nav-col: 100%; }
-      /* The panel at 320 is narrower than two of the five names, and this rule is
-         about reading them, so a name too long for its row wraps rather than clips. */
-      .gas-modal__nav .ui-nav__label { white-space: normal; }
+      .gas-modal__nav { max-width: none; padding: var(--space-2) var(--space-2) 0; border-right: 0;
+        background: none; }
+      .gas-modal__side { display: none; }
+      .gas-modal__tabs { display: flex; --ui-tabs-ground: var(--bg-elevated); }
     }
 
     /* The account menu, in the flow and at its shipped width. A pair drawn at two

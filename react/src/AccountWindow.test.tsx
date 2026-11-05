@@ -5,6 +5,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { AccountWindow, type AccountSection } from './AccountWindow';
 
 afterEach(cleanup);
@@ -115,4 +117,19 @@ it('each close and Escape call onClose', async () => {
 it('renders nothing while closed', () => {
   render(<AccountWindow open={false} onClose={() => {}} reader={reader} sections={sections} />);
   expect(screen.queryByRole('dialog')).toBeNull();
+});
+
+// The owner's floor: the rail never takes more than a third of the window. This reads the
+// declarations, not a layout: the shares at 390, 720 and 1280 are measured in a browser.
+it('caps the rail and its column at a third of the window, and lifts the cap on a phone', () => {
+  const css = readFileSync(join(dirname(expect.getState().testPath!), 'AccountWindow.css'), 'utf8')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  const [wide, phone] = css.split('@media (max-width: 560px)');
+  const rule = (sheet: string, sel: string) =>
+    sheet.match(new RegExp(`(?:^|\\})\\s*${sel.replace(/[.>*]/g, m => `\\${m}`)}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+  expect(rule(wide, '.rx-modal.rx-account')).toMatch(/width:\s*min\(calc\(var\(--container\) - var\(--space-12\) \* 2\), 96vw\);/);
+  expect(rule(wide, '.rx-account__rail')).toMatch(/max-width:\s*calc\(100% \/ 3 - var\(--space-2\) \* 2\)/);
+  expect(rule(wide, '.rx-account__rail > .rx-account__side,\n.rx-account__rail > .rx-account__side > *'))
+    .toMatch(/width:\s*min\(var\(--ui-nav-col\), min\(calc\(var\(--container\) - var\(--space-12\) \* 2\), 96vw\) \/ 3 - var\(--space-2\) \* 2 - var\(--space-3\) \* 2\)/);
+  expect(rule(phone, '.rx-account__rail')).toMatch(/max-width:\s*none/);
 });

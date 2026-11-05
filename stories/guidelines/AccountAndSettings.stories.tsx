@@ -2,6 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
+import { NavTabs } from '../../react/src/NavTabs';
 import { SidebarNav } from '../../react/src/SidebarNav';
 import { Switch } from '../../react/src/Switch';
 import { AccountMenu } from '../../react/src/TopBar';
@@ -63,8 +64,12 @@ const Modal = ({ mod = '', children }: { mod?: string; children: ReactNode }) =>
 </div></Stage>;
 const Pane = ({ cap, children }: { cap?: string; children: ReactNode }) =>
   <div className="gas-modal__pane">{cap && <div className="gas-modal__cap">{cap}</div>}{children}</div>;
-const Nav = ({ active }: { active: string }) =>
-  <div className="gas-modal__nav"><SidebarNav items={PANES} active={active} aria-label="Account" /></div>;
+// Both navs render, as in the window, and the specimen CSS shows one: the rail beside
+// the pane, or the phone's one row of tabs over it.
+const Nav = ({ active }: { active: string }) => <div className="gas-modal__nav">
+  <SidebarNav className="gas-modal__side" items={PANES} active={active} aria-label="Account" />
+  <NavTabs className="gas-modal__tabs" items={PANES} active={active} aria-label="Account" />
+</div>;
 
 const GROUPS = [
   ['Profile', 'Name, address and the photograph beside them.'],

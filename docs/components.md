@@ -584,7 +584,8 @@ The React `AccountWindow` is the account and settings window. The product gives 
 and the sections, each with its id, label, icon and content. The window draws the rest: the
 dimmed page, the close, the section title and the rail. It is 1024px wide and 76% of the
 viewport high, with a 216px rail. It narrows to 96% of a smaller screen, and it keeps 32px
-above and below it on a short one. The rail is the page ground, with the reader's avatar, name
+above and below it on a short one. The rail takes at most a third of the window, so on a
+narrow window the rail narrows and the pane keeps two thirds. The rail is the page ground, with the reader's avatar, name
 and email at its top. Only the open section's row carries the accent. Each rail row is a button
 with `aria-current`, because a section is a place in the window and not a route. The pane remounts
 when the section changes, so a half-filled form does not follow the reader. At 560px and below
