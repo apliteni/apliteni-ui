@@ -30,7 +30,6 @@
 .rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8); }
 /* The tabs and the rail's close are the phone's. */
 .rx-account__tabs, .rx-account__who > .ui-btn { display: none; }
-.rx-account__tabs { --ui-tabs-ground: var(--bg); }
 .rx-account__tabs .ui-nav__tab { border: 0; background: none; font-family: inherit; cursor: pointer; }
 .rx-account__who > .ui-btn { width: calc(var(--space-10) + var(--space-1));
   height: calc(var(--space-10) + var(--space-1)); flex: none; }

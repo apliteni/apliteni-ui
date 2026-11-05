@@ -1,11 +1,14 @@
 /* Browser paint regression for both tab appearances and themes at 390px.
  * Run with NAV_EDGE_SHADE=1 and UI_PLAYWRIGHT (and optionally UI_CHROME).
- * Discovers tab rows from Navigation stories. Checks start, middle, end and fit.
- * Limits: Chromium, the page ground and a plain, accent and live card, default accent. React shares this stylesheet;
- * its mounted stories still need visual inspection. CI does not measure paint.
+ * The rows are wired with observeNavFit() from the source, as React's NavTabs wires them.
+ * Checks start, middle, end and fit. The fade is measured on a probe fill, so the
+ * result does not depend on where a label's ink falls.
+ * Limits: Chromium, left-to-right rows, the page ground, a card and a white stage,
+ * default accent. CI does not measure paint.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { markup } from './lib/react-markup.js';
 
 const TABS = {
@@ -23,7 +26,16 @@ const subjects = [
   { name: 'Pill', html: await markup(({ h, kit }) => h(kit.NavTabs, { ...TABS, variant: 'pill' })) },
 ].filter(({ html }) => html.includes('ui-nav--tabs'));
 
-test('tab row shades mark only edges with hidden tabs', {
+const NAV = readFileSync(new URL('../src/logic/nav.js', import.meta.url), 'utf8');
+const wire = `${NAV}\nfor (const row of document.querySelectorAll('.ui-nav--tabs')) observeNavFit(row);`;
+/** Set the row's scroll and wait until its scroll listener and a paint have run. */
+const scrollTo = (row, state) => new Promise((done) => {
+  row.scrollLeft = state === 'middle' ? 90 : state === 'end' ? row.scrollWidth : 0;
+  requestAnimationFrame(() => requestAnimationFrame(done));
+});
+const PROBE = '.ui-nav--tabs { background: rgb(255, 0, 0) !important; } .ui-nav--tabs > * { visibility: hidden; }';
+
+test('a tab row fades only the edges with hidden tabs', {
   skip: process.env.NAV_EDGE_SHADE !== '1' && 'set NAV_EDGE_SHADE=1',
 }, async () => {
   const { kitStylesheet, playwright } = await import('./lib/tap-zone.js');
@@ -38,32 +50,34 @@ test('tab row shades mark only edges with hidden tabs', {
     const page = await browser.newPage({ viewport: { width: 390, height: 200 } });
     for (const theme of ['light', 'dark']) for (const { name, html } of subjects) {
       await page.setViewportSize({ width: 390, height: 200 });
-      await page.setContent(`<html data-theme="${theme}"><style>${kitStylesheet()}</style><body>${html}</body></html>`);
+      await page.setContent(`<html data-theme="${theme}"><style>${kitStylesheet()}${PROBE}</style><body style="padding: 24px">${html}</body></html>`);
+      await page.addScriptTag({ type: 'module', content: wire });
+      await page.waitForSelector('.ui-nav--tabs[data-nav-after]');
       for (const state of ['start', 'middle', 'end', 'fit']) {
-        if (state === 'fit') await page.setViewportSize({ width: 1280, height: 200 });
-        const geo = await page.locator('.ui-nav--tabs').evaluate((row, state) => {
-          row.scrollLeft = state === 'middle' ? 90 : state === 'end' ? row.scrollWidth : 0;
-          const { x, y, width, height } = row.getBoundingClientRect();
-          return { x, y, width, height, max: row.scrollWidth - row.clientWidth };
-        }, state);
+        if (state === 'fit') {
+          await page.setViewportSize({ width: 1280, height: 200 });
+          await page.waitForSelector('.ui-nav--tabs[data-nav-fit]');
+        }
+        const row = page.locator('.ui-nav--tabs');
+        await row.evaluate(scrollTo, state);
+        const geo = await row.evaluate((el) => {
+          const { x, y, width, height } = el.getBoundingClientRect();
+          return { x, y, width, height, max: el.scrollWidth - el.clientWidth };
+        });
         assert.equal(geo.max > 0, state !== 'fit', `${name}: ${state} fixture`);
-        const shaded = decodePNG(await page.screenshot());
-        const strip = await page.addStyleTag({ content: '.ui-nav--tabs { --ui-tabs-edge: transparent !important; }' });
+        const faded = decodePNG(await page.screenshot());
+        const strip = await page.addStyleTag({ content: '.ui-nav--tabs { mask-image: none !important; }' });
         const plain = decodePNG(await page.screenshot());
         await strip.evaluate(el => el.remove());
         for (const side of ['left', 'right']) {
           const x = side === 'left' ? Math.ceil(geo.x + 1) : Math.floor(geo.x + geo.width - 2);
           const y = Math.round(geo.y + geo.height / 2);
-          const before = pixelAt(plain, x, y);
-          const after = pixelAt(shaded, x, y);
-          const delta = before.reduce((sum, channel, i) => sum + channel - after[i], 0) / 3;
+          const was = pixelAt(plain, x, y);
+          const lost = pixelAt(faded, x, y).reduce((sum, c, i) => sum + Math.abs(c - was[i]), 0);
           const expected = state === 'middle' || (state === 'start' && side === 'right') || (state === 'end' && side === 'left');
           const label = `${theme} ${name} ${state} ${side}`;
-          if (expected) {
-            assert.ok(theme === 'light' ? delta >= 15 : delta <= -15, `${label}: shade delta ${delta}`);
-          } else {
-            assert.equal(delta, 0, `${label}: reached edge has no shade`);
-          }
+          if (expected) assert.ok(lost >= 100, `${label}: the probe fill changed by only ${lost} at the edge`);
+          else assert.equal(lost, 0, `${label}: a reached edge is not faded`);
         }
       }
     }
@@ -72,8 +86,9 @@ test('tab row shades mark only edges with hidden tabs', {
   }
 });
 
-// A tinted ground is mixed in the gradient and in the card separately, so one 8-bit step may differ.
-test('on a card the reached edge shows the card ground, plain or tinted', {
+// The owner's case in #768: a short row on a white stage showed grey bands at both ends.
+// A tinted ground is mixed in the card's own paint, so one 8-bit step may differ.
+test('a row that fits shows its ground at both edges, on a card or any stage', {
   skip: process.env.NAV_EDGE_SHADE !== '1' && 'set NAV_EDGE_SHADE=1',
 }, async () => {
   const { kitStylesheet, playwright } = await import('./lib/tap-zone.js');
@@ -83,21 +98,30 @@ test('on a card the reached edge shows the card ground, plain or tinted', {
   const browser = await pw.chromium.launch({
     executablePath: process.env.UI_CHROME || undefined, args: ['--no-sandbox'],
   });
+  const grounds = [
+    ['card', '<div class="ui-card">', '</div>'],
+    ['accent card', '<div class="ui-card ui-card--accent">', '</div>'],
+    ['live card', '<div class="ui-card ui-card--live">', '</div>'],
+    ['white stage', '<div style="background:#fff;padding:24px">', '</div>'],
+  ];
   try {
-    const page = await browser.newPage({ viewport: { width: 390, height: 240 } });
-    for (const theme of ['light', 'dark']) for (const cardClass of ['ui-card', 'ui-card ui-card--accent', 'ui-card ui-card--live']) for (const { name, html } of subjects) {
-      await page.setContent(`<html data-theme="${theme}"><style>${kitStylesheet()}</style><body><div class="${cardClass}">${html}</div></body></html>`);
+    const page = await browser.newPage({ viewport: { width: 1280, height: 240 } });
+    for (const theme of ['light', 'dark']) for (const [ground, open, close] of grounds) for (const { name, html } of subjects) {
+      await page.setContent(`<html data-theme="${theme}"><style>${kitStylesheet()}</style><body>${open}${html}${close}</body></html>`);
+      await page.addScriptTag({ type: 'module', content: wire });
+      await page.waitForSelector('.ui-nav--tabs[data-nav-fit]');
       const geo = await page.locator('.ui-nav--tabs').evaluate((row) => {
-        row.scrollLeft = 0;
-        const { x, y, height } = row.getBoundingClientRect();
-        return { x, y, height, max: row.scrollWidth - row.clientWidth };
+        const { x, y, width, height } = row.getBoundingClientRect();
+        return { x, y, width, height };
       });
-      assert.ok(geo.max > 0, `${name}: the row scrolls on a card`);
       const shot = decodePNG(await page.screenshot());
-      const card = pixelAt(shot, Math.ceil(geo.x + 1), Math.round(geo.y) - 6);
-      const edge = pixelAt(shot, Math.ceil(geo.x + 1), Math.round(geo.y + geo.height / 2));
-      assert.ok(edge.every((c, i) => Math.abs(c - card[i]) <= 1),
-        `${theme} ${cardClass} ${name}: the left edge at the start is the card's ground, ${edge} against ${card}`);
+      const y = Math.round(geo.y + geo.height / 2);
+      const above = pixelAt(shot, Math.ceil(geo.x + 1), Math.round(geo.y) - 6);
+      for (const x of [Math.ceil(geo.x + 1), Math.floor(geo.x + geo.width - 2)]) {
+        const edge = pixelAt(shot, x, y);
+        assert.ok(edge.every((c, i) => Math.abs(c - above[i]) <= 1),
+          `${theme} ${ground} ${name}: the edge at x=${x} is ${edge}, the ground is ${above}`);
+      }
     }
   } finally {
     await browser.close();

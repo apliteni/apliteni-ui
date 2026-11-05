@@ -46,7 +46,7 @@
 
 **Why:** If a row removes the file, the reader must choose a file again.
 
-**Do:** Keep the name on its line, and show “Larger than 10 MB” and Retry under it.
+**Do:** Keep Retry on the name line, and show “Larger than 10 MB” under the name.
 
 **Don't:** Replace the row with “Upload failed”, because this removes the file and the retry.
 

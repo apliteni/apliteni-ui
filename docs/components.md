@@ -260,13 +260,13 @@ current section, not the page. When a page should take one:
 ### A tab row scrolls inside its column
 
 `navTabs()` lays its links out in one row and never wraps them. **When the links are wider than
-the column, the row scrolls inside itself and the page does not widen.** A shade marks each edge with more tabs beyond it, on the page or on a card.
+the column, the row scrolls inside itself and the page does not widen.** An edge with more tabs beyond it fades the cut label out. The fade paints no colour, so it works on any ground. A row that fits has no fade.
 
 **The row stays aligned with the page gutter, and the active underline stays on the row rule.**
 Call `wireNav()` for vanilla rows. React rows update automatically when their labels, badges,
 or available width change.
 Use `observeNavFit()` for custom rows, and call its returned function when removing the row.
-Server-rendered or unwired rows keep their scroll containment.
+Server-rendered or unwired rows keep their scroll containment and have no fade.
 
 **Keyboard navigation reveals each focused link with its complete focus band.**
 The row scrolls without moving focus or scrolling the page. Content and container changes preserve the reader's scroll position where space permits.
@@ -795,11 +795,10 @@ setBusy(el, { busy: false, message: `${rows.length} rows`, body: table(rows) });
 
 ### Busy button labels
 
-A busy button shows a spinner in the variant's full label ink and keeps its label. With a leading
-glyph, the spinner takes the glyph's place and the width stays. Without a glyph, the spinner
-stands before the label and the button grows by the spinner and the gap, 24px at the default
-size. An icon-only button has no label, so its spinner covers the hidden glyph and the width
-stays. Text does not fade or blink. Reduced motion stops the spinner's turn.
+A busy button keeps its label and its glyph, so its width does not change. A sheen of light
+crosses the face from start to end until the work stops. The sheen is a tint of the accent on a
+quiet face and of the label ink on a primary face. Text does not fade or blink. With reduced
+motion, the sheen stays still on the middle of the label.
 **A wired busy button keeps focus:**
 `aria-disabled` communicates the state. Click, Enter and Space activation are blocked. Both faces
 announce through a status region outside `aria-busy`. This region stays through completion, so it
@@ -813,7 +812,7 @@ announces the outcome. An explicitly disabled button stays natively disabled. Un
 `button({ size: 'xs' })` and React `<Button size="xs">` draw a 13px glyph at stroke-width 2.8.
 They have a minimum 24×24px target. An icon-only xs button is 24×24px. A labelled button grows
 to fit its label at `--text-xs`. Other sizes keep their 16px glyph at stroke-width 2.4. The busy
-spinner fits inside the smaller target. The size does not change the variant's colour or its
+sheen stays inside the smaller target. The size does not change the variant's colour or its
 interaction states.
 
 ### Code highlighting
@@ -1066,8 +1065,8 @@ truncates its stem but keeps its extension. The full name is in a `title`. **One
 every width.** **The drop target is painted only while a file is over the region. It covers
 that region instead of joining it**, so the row stays in place while the reader aims. **The
 whole zone opens the picker.** A click on the row at rest opens it. The target is a button, so
-a click, Enter or Space on it opens the picker too. `Remove` is a small bordered button on the
-name line. Children
+a click, Enter or Space on it opens the picker too. `Remove` is a small ghost button on the
+name line, quieter than the bordered `Retry` beside it. Children
 render above the row inside the same region. This lets one panel, or a whole page, become the
 target. A disabled drop never calls `preventDefault` on `dragover`, so it does not declare
 itself as a target the pointer can aim at. When a page uses a row, a region or a dialog, see

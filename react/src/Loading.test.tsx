@@ -57,20 +57,18 @@ it('Denied carries no live region, and names the scope verbatim', () => {
 });
 
 // Busy keeps focus while the component blocks activation.
-it('Button busy sets aria-busy and aria-disabled, keeps focusability, and draws the kit spinner', () => {
+it('Button busy sets aria-busy and aria-disabled, and keeps focusability', () => {
   render(<Button variant="primary" busy>Saving…</Button>);
   const btn = screen.getByRole('button', { name: 'Saving…' });
   expect(btn).toHaveAttribute('aria-busy', 'true');
   expect(btn).toBeEnabled();
   expect(btn).toHaveAttribute('aria-disabled', 'true');
-  expect(btn.querySelector('.ui-btn__spinner')).toBeInTheDocument();
 });
 
-it('Button without busy is untouched — no stray attributes, no spinner', () => {
+it('Button without busy is untouched — no stray attributes', () => {
   render(<Button variant="primary">Save</Button>);
   const btn = screen.getByRole('button', { name: 'Save' });
   expect(btn).not.toHaveAttribute('aria-busy');
   expect(btn).not.toHaveAttribute('aria-disabled');
   expect(btn).toBeEnabled();
-  expect(btn.querySelector('.ui-btn__spinner')).toBeNull();
 });

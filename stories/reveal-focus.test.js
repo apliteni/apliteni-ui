@@ -191,10 +191,6 @@ const LEDGER = {
     noFocus: 'the rail hides its wordmark as it collapses. Nothing is focused when it comes back — the '
       + 'reader expanded the rail, they did not open it',
   },
-  '.ui-btn[aria-busy="true"] > span[aria-hidden="true"]:not(.ui-btn__spinner)': {
-    noFocus: 'a busy button hides its own label and keeps the focus it already had; there is nothing '
-      + 'inside the label to focus',
-  },
 };
 
 /** Every curtain the sheets declare, as `selector → [where:line]`. */

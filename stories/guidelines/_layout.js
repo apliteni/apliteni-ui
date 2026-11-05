@@ -31,9 +31,7 @@ export const SPEC_CSS = `
        frames a specimen now, and the fill is kept so a stage is still a stage
        wherever one is rendered outside this layout. */
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5);
-      /* A tab row covers its edge shades with this ground, so a row that fits shows none. */
-      --ui-tabs-ground: var(--surface); }
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
     /* A picture that brings its own frame drops the stage's, so no block sits in a
        block with the same border. A page lists its own framed parts the same way.
        why: guidelines/the-page.md#one-frame-per-block */

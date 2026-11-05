@@ -3,14 +3,16 @@
 // solid band reaches --ring-gap-width + --ring-width = 3px out of a 4px padding.
 // Both readers below want that edge — the current route so its label is not cut off,
 // a link Tab landed on so its ring is not. Neither moves focus or scrolls the page;
-// only the row's own scrollLeft changes.
+// only the row's own scrollLeft changes. The item also clears the fade a scrolling
+// edge draws, so its label and ring are not faded.
 function revealNavItem(nav, item) {
   if (!item || nav.scrollWidth <= nav.clientWidth) return;
   const bounds = nav.getBoundingClientRect();
   const box = item.getBoundingClientRect();
   const style = nav.ownerDocument.defaultView.getComputedStyle(nav);
-  const left = bounds.left + (parseFloat(style.paddingLeft) || 0);
-  const right = bounds.right - (parseFloat(style.paddingRight) || 0);
+  const fade = parseFloat(style.getPropertyValue('--ui-tabs-fade')) || 0;
+  const left = bounds.left + (parseFloat(style.paddingLeft) || 0) + fade;
+  const right = bounds.right - (parseFloat(style.paddingRight) || 0) - fade;
   if (box.left < left) nav.scrollLeft += box.left - left;
   else if (box.right > right) nav.scrollLeft += box.right - right;
 }
@@ -19,14 +21,24 @@ function revealNavItem(nav, item) {
 // One pixel allows fractional columns. Unmeasured rows keep their scroll containment.
 function fitNav(nav) {
   nav.removeAttribute('data-nav-fit');
-  if (!nav.clientWidth) return;
-  if (nav.scrollWidth - nav.clientWidth <= 1) nav.setAttribute('data-nav-fit', '');
+  if (nav.clientWidth && nav.scrollWidth - nav.clientWidth <= 1) nav.setAttribute('data-nav-fit', '');
+  markNavEdges(nav);
+}
+
+// Mark each edge that has more tabs beyond it, so the sheet fades only that edge.
+// A row that fits or has no layout gets no mark. Left-to-right rows only.
+function markNavEdges(nav) {
+  const hidden = nav.clientWidth ? nav.scrollWidth - nav.clientWidth : 0;
+  const mark = (name, on) => (on ? nav.setAttribute(name, '') : nav.removeAttribute(name));
+  mark('data-nav-before', hidden > 1 && nav.scrollLeft > 1);
+  mark('data-nav-after', hidden > 1 && nav.scrollLeft < hidden - 1);
 }
 
 // Watch layout independently from route changes so a resize preserves the reader's scroll.
 export function observeNavFit(nav) {
   const win = nav.ownerDocument.defaultView;
   const measure = () => fitNav(nav);
+  const edges = () => markNavEdges(nav);
   const resize = win.ResizeObserver ? new win.ResizeObserver(measure) : null;
   const observe = () => {
     resize?.disconnect();
@@ -41,10 +53,12 @@ export function observeNavFit(nav) {
   });
   observe();
   win.addEventListener('resize', measure);
+  nav.addEventListener('scroll', edges, { passive: true });
   return () => {
     resize?.disconnect();
     changes.disconnect();
     win.removeEventListener('resize', measure);
+    nav.removeEventListener('scroll', edges);
   };
 }
 

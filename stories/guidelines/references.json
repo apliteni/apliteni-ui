@@ -114,15 +114,15 @@
     "pattern": "background: var(--accent);"
    },
    {
-    "ref": "src/styles/nav.css:368",
+    "ref": "src/styles/nav.css:359",
     "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
    },
    {
-    "ref": "src/styles/nav.css:376",
+    "ref": "src/styles/nav.css:367",
     "pattern": "background: var(--glow-purple);"
    },
    {
-    "ref": "src/styles/nav.css:375",
+    "ref": "src/styles/nav.css:366",
     "pattern": "color: var(--accent);"
    },
    {
@@ -843,7 +843,7 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:144",
+    "ref": "react/src/primitives/Button.tsx:142",
     "pattern": "ui-btn__label-slot"
    },
    {

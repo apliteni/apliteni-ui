@@ -24,6 +24,6 @@
 
 **Do:** Mark the loading region as busy and announce “Loading…” in its status region.
 
-**Don't:** Show a spinner only in the button while the loading region has no busy state or no announcement.
+**Don't:** Show the busy state only in the button while the loading region has no busy state or announcement.
 
 **Except:** A toast has its own live region, so a screen that reports through the toast stack does not need a second live region.

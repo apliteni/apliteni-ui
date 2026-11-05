@@ -13,7 +13,8 @@ export const SPEC_CSS = `
     .gf-frame { background: var(--bg); border-radius: var(--radius-md); padding: var(--space-4); }
     .gf-panel { background: var(--surface); border-radius: var(--radius-md);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-4); }
-    .gf-panel + .gf-rows, .gf-rows + .gf-panel, .ui-drop + .gf-rows { margin-top: var(--space-3); }
+    .gf-panel + .gf-rows, .gf-rows + .gf-panel, .ui-drop + .gf-rows,
+    .gf-rows + .ui-drop, .gf-rows + .ui-drop__row { margin-top: var(--space-3); }
     .gf-head { font: 600 13px/1.5 var(--font-sans); color: var(--strong); margin-bottom: var(--space-3); }
     .gf-rows__row { display: flex; justify-content: space-between; gap: var(--space-4);
       font: 400 13px/1.6 var(--font-sans); color: var(--text); padding-block: var(--space-1); }
@@ -38,9 +39,9 @@ const btn = (label, { size = 'sm', variant = 'secondary', glyph, iconOnly } = {}
 
 /** The two actions, drawn as the component draws them: both carry their word.
  *  `x` is on the kit's icon-only list for close and dismiss, and taking a file
- *  off a row is neither. Remove is a bordered small button without a glyph, so
- *  it reads as a control and not as loose text. why: guidelines/button-labels.md */
-const removeBtn = () => btn('Remove');
+ *  off a row is neither. Retry is the bordered main act and Remove the quieter
+ *  ghost, so the pair has one rank. why: guidelines/the-page.md */
+const removeBtn = () => btn('Remove', { variant: 'ghost' });
 const retryBtn = () => btn('Retry', { glyph: 'refresh' });
 
 const NOTE = 'PDF or CSV, up to 10 MB';
@@ -72,7 +73,7 @@ const fileRow = ({ facts = '', track = '', failed = false, acts = '' } = {}) =>
   <div class="ui-drop__line">${fileName()}${acts}</div>
   ${facts ? `<div class="ui-drop__facts${failed ? ' ui-drop__error' : ''}">${facts}</div>` : ''}${track}</div></div>`;
 
-/** Three statements already received, so a row has the list it feeds above it. */
+/** Two statements already received, so a row has the list it feeds above it. */
 const RECEIVED = [['statement-07.pdf', '241 KB'], ['statement-06.pdf', '236 KB']];
 const rows = () => `<div class="gf-rows">${RECEIVED
   .map(([name, size]) => `<div class="gf-rows__row"><span>${name}</span><span>${size}</span></div>`)

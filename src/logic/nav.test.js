@@ -21,7 +21,7 @@ const fits = (nav) => nav.hasAttribute('data-nav-fit');
 const row = ({ scrollWidth, clientWidth = 310, rect }) => ({
   scrollLeft: 0, scrollWidth, clientWidth,
   ...attributes(),
-  ownerDocument: { defaultView: { getComputedStyle: () => ({ paddingLeft: '4px', paddingRight: '4px' }) } },
+  ownerDocument: { defaultView: { getComputedStyle: () => ({ paddingLeft: '4px', paddingRight: '4px', getPropertyValue: () => '' }) } },
   querySelector: () => (rect ? { getBoundingClientRect: () => rect } : null),
   getBoundingClientRect: () => ({ left: 40, right: 350 }),
   contains: () => true,
@@ -79,7 +79,7 @@ test('a row that fits is left alone even when its current link measures outside 
 const PHONE_ROW = {
   scrollLeft: 0, scrollWidth: 456, clientWidth: 318,
   ...attributes(),
-  ownerDocument: { defaultView: { getComputedStyle: () => ({ paddingLeft: '4px', paddingRight: '4px' }) } },
+  ownerDocument: { defaultView: { getComputedStyle: () => ({ paddingLeft: '4px', paddingRight: '4px', getPropertyValue: () => '' }) } },
   getBoundingClientRect: () => ({ left: 36, right: 354 }),
   contains: () => true,
 };
@@ -228,4 +228,50 @@ test('the fitting-row case fails when the fits-in-row guard is removed', async (
     'without the guard the fitting row is still left at 0, so the case above would pass '
     + 'with the guard deleted and is measuring nothing',
   );
+});
+
+/* -- Which edges fade -------------------------------------------------------- */
+//
+// The sheet fades an edge only while it carries a mark, so the marks are the whole
+// cue. A row that fits carries none, which is what keeps a short row unfaded.
+// JSDOM gets fixed widths and scroll positions. The paint is measured in the
+// browser half, stories/nav-edge-shade.test.js.
+
+const edges = (nav) => ['data-nav-before', 'data-nav-after'].filter((name) => nav.hasAttribute(name));
+
+test('only an edge with tabs beyond it is marked', () => {
+  for (const [scrollLeft, expected] of [[0, ['data-nav-after']],
+    [100, ['data-nav-before', 'data-nav-after']], [290, ['data-nav-before']]]) {
+    const nav = { ...row({ scrollWidth: 600, rect: null }), scrollLeft };
+    revealCurrentNav(nav);
+    assert.deepEqual(edges(nav), expected, `scrolled to ${scrollLeft} of 290`);
+  }
+});
+
+test('a row that fits or has no layout fades neither edge', () => {
+  for (const [scrollWidth, clientWidth] of [[200, 310], [311, 310], [0, 0]]) {
+    const nav = row({ scrollWidth, clientWidth, rect: null });
+    revealCurrentNav(nav);
+    assert.deepEqual(edges(nav), [], `${scrollWidth} of content in ${clientWidth}`);
+  }
+});
+
+test('a revealed link clears the fade as well as the padding', () => {
+  const nav = row({ scrollWidth: 600, rect: { left: 360, right: 450 } });
+  nav.ownerDocument = { defaultView: { getComputedStyle: () => ({
+    paddingLeft: '4px', paddingRight: '4px', getPropertyValue: () => '24px' }) } };
+  revealCurrentNav(nav);
+  assert.equal(nav.scrollLeft, 128, 'the link ends at 322: 350, less 4px of padding and 24px of fade');
+});
+
+const AFTER = "mark('data-nav-after', hidden > 1 && nav.scrollLeft < hidden - 1)";
+
+test('the edge case fails when the far edge stops being marked', async () => {
+  const source = readFileSync(new URL('./nav.js', import.meta.url), 'utf8');
+  assert.equal(source.split(AFTER).length - 1, 1, `no single copy of \`${AFTER}\`, so move the mutation with it`);
+  const mutated = `data:text/javascript,${encodeURIComponent(source.replace(AFTER, 'void 0'))}`;
+  const { revealCurrentNav: unmarked } = await import(mutated);
+  const nav = row({ scrollWidth: 600, rect: null });
+  unmarked(nav);
+  assert.deepEqual(edges(nav), [], 'with the mark deleted the start case would still pass');
 });

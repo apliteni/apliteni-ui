@@ -10,7 +10,7 @@ type ButtonOptions = {
   iconRight?: string;
   iconOnly?: boolean;
   block?: boolean;
-  /** In flight: keeps focus, blocks activation, announces progress, and shows a spinner. */
+  /** In flight: keeps focus, blocks activation, announces progress, and sweeps a sheen across the face. */
   busy?: boolean;
   /** Message after busy ends; an empty string leaves outcome announcements to the caller. */
   completionMessage?: string;
@@ -114,8 +114,6 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
   const Root = href === undefined ? 'button' : 'a';
-  // A busy button keeps its label. The spinner takes the leading glyph's place, or stands before the label.
-  const keep = Boolean(busy && !iconOnly);
   return (
     <Root
       {...rest}
@@ -140,10 +138,9 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
       onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
     >
-      {keep ? <span className="ui-btn__spinner" aria-hidden="true" /> : leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
+      {leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
       {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{renderedChildren}</span></span>}
       {iconRight && <Icon name={iconRight} />}
-      {busy && !keep && <span className="ui-btn__spinner" aria-hidden="true" />}
     </Root>
   );
 }) as {

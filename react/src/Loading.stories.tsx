@@ -111,8 +111,7 @@ export const Transition: StoryObj = {
 // A busy button is one control saying it is working. Shipped since day one on
 // the vanilla side, absent from this workspace until #128 — so a React screen
 // could not even say it at control scale, let alone at screen scale.
-// Every busy button keeps its label. The spinner takes the glyph's place, so a button with a
-// glyph keeps its width. A button with no glyph grows by the spinner and the gap.
+// Every busy button keeps its label and its glyph, so its width stays. A sheen crosses the face.
 export const BusyButton: StoryObj = {
   render: () => (
     <div style={{ display: 'flex', gap: 12 }}>

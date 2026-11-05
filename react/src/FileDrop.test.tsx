@@ -206,6 +206,9 @@ describe('FileDrop once a file is in hand', () => {
     // the kit's small text button and nothing in the row is wordless.
     expect([...actions.children].map(c => c.textContent)).toEqual(['Retry', 'Remove']);
     expect(screen.getByRole('button', { name: 'Remove' })).not.toHaveClass('ui-btn--icon');
+    // One rank: Retry is the bordered main act, Remove the quieter ghost.
+    expect(screen.getByRole('button', { name: 'Retry' })).not.toHaveClass('ui-btn--ghost');
+    expect(screen.getByRole('button', { name: 'Remove' })).toHaveClass('ui-btn--ghost');
     expect(actions.querySelector('.ui-btn--icon')).toBeNull();
     // One control size across every state, so the row keeps its height when a
     // file arrives. The resting Upload button sets it.

@@ -155,10 +155,10 @@ export function FileDrop({
                 && <Button size="sm" icon="refresh" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
               {/* Both actions carry their word. `x` is on the kit's icon-only
                   list for close and dismiss, and taking a file off a row is
-                  neither: the row stays and the file leaves it. Remove is a
-                  bordered button without a glyph, so it reads as a control on the
-                  name line and not as loose text. why: guidelines/button-labels.md */}
-              {onRemove && <Button size="sm"
+                  neither: the row stays and the file leaves it. Retry is the
+                  bordered main act and Remove the quieter ghost beside it, so
+                  the pair has one rank. why: guidelines/the-page.md */}
+              {onRemove && <Button size="sm" variant="ghost"
                 onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
             </span>}
           </div>
