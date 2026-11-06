@@ -43,7 +43,7 @@ const Durations = ({ rows }: { rows: [string, string, string][] }) => <div class
   <tbody>{rows.map(([what, token, time]) =>
     <tr key={what}><td>{what}</td><td>{token}</td><td className="ui-table__num">{time}</td></tr>)}</tbody>
 </table></div></div>;
-const Css = ({ code }: { code: string }) => <div className="gl-stage"><Snippet label="css" code={code} copy={false} /></div>;
+const Css = ({ code }: { code: string }) => <div className="gl-stage"><Snippet label="CSS" code={code} copy={false} /></div>;
 
 const specimens = [
   { id: 'after-load', do: () => <Film frames={SLIDE} />, dont: () => <Film frames={JUMP} /> },
