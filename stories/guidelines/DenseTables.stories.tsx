@@ -129,9 +129,13 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 type Year = { name: string } & Record<string, string>;
 const YEAR: Year[] = [['Northwind Studio', 11], ['Bluebell Supply', 7], ['Harbor and Pine', 19]].map(([name, seed]) =>
   ({ name: String(name), ...Object.fromEntries(MONTHS.map((month, i) => [month, `${(Number(seed) * 97 + i * 131) % 2400 + 300}.00`])) }));
+// The web fonts widen the table when they arrive, so scroll again once they have.
 const toEnd = (frame: HTMLDivElement | null) => {
   const scroll = frame?.querySelector<HTMLElement>('.ui-table-scroll');
-  if (scroll) scroll.scrollLeft = scroll.scrollWidth;
+  if (!scroll) return;
+  const end = () => { if (scroll.isConnected) scroll.scrollLeft = scroll.scrollWidth; };
+  end();
+  document.fonts?.ready.then(end);
 };
 const Overflow = ({ dropped = false }: { dropped?: boolean }) => <div className="gdt-stage ui-card ui-card--pad-sm" ref={dropped ? undefined : toEnd}>
   <DataTable<Year> dense pager={false} caption="Payouts by month" rows={YEAR}
