@@ -45,7 +45,7 @@ const Ledger = ({ rows }: { rows: Month[] }) => <table className="ui-table">
 // the window it covers, a band of labelled figures and a titled card.
 export const InAPage: StoryObj = {
   render: function Render() {
-    // Every table has its filter bar directly above it. why: guidelines/dense-tables.md
+    // Each long table has its filter bar directly above it. why: guidelines/dense-tables.md
     const { bar, shown } = useTableFilters(MONTHS, {
       search: 'Search months', placeholder: 'Month', label: 'Cashflow filters', text: (row) => row.month,
       facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (row) => row.status }],

@@ -39,7 +39,7 @@ const TokenTable = ({ rows }: { rows: string[][] }) => <table className="ui-tabl
       : <Button variant="danger" size="sm">Revoke access</Button>}</td>
   </tr>)}</tbody>
 </table>;
-// Every table has its filter bar directly above it, the loading one included, on a
+// Each long table has its filter bar directly above it, the loading one included, on a
 // card because a field never stands on the page ground. why: guidelines/dense-tables.md
 const Agents = ({ loading = false, children }: { loading?: boolean; children?: ReactNode }) => {
   const [query, setQuery] = useState('');

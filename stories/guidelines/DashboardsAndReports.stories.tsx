@@ -62,7 +62,7 @@ const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters
     </tr>)}</tbody>
   </table>
 </Card></>;
-// The whole ledger, under the bar every table has.
+// The whole ledger, under the bar every long table has.
 const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
   chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
 
@@ -75,7 +75,7 @@ const MonthChart = () => <div className="gd-chart">
   <div className="gd-chart__months ui-stat__label" aria-hidden="true">{MONTHS.map(month => <span key={month}>{month}</span>)}</div>
 </div>;
 const MonthTable = () => (
-  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar
   <table className="ui-table ui-table--dense">
     <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
     <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>

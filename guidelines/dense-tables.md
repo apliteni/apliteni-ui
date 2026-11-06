@@ -112,16 +112,16 @@
 
 **Don't:** Replace the table with a blank state or move focus without telling the reader why.
 
-## Give every table its filter bar
+## Give a long table its filter bar
 
 <!-- rule: filter-bar -->
 
-**Why:** Readers narrow rows before reading them, and look for the bar where other tables put it.
+**Why:** Readers narrow a long table before they read it, and look for the bar where other tables put it.
 
-**Rule:** Put a bar with a search field and column filters directly above every table.
+**Rule:** Put a bar with a search field and column filters directly above a table that can hold more than 10 rows.
 
 **Do:** Search, then a status filter, on the row above the table.
 
 **Don't:** Leave rows that the reader cannot narrow.
 
-**Except:** Two tables take no bar: one that compares a document line by line, where a filter hides lines the reviewer must check, and a chart's Table view, which holds only the chart's points.
+**Except:** Three tables take no bar. One compares a document line by line, where a filter hides lines the reviewer must check. One is a chart's Table view, which holds only the chart's points. One never holds more than 10 rows, such as a list of API tokens, because the reader sees every row at once.

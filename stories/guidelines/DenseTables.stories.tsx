@@ -2,6 +2,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { GuidelinePage } from '../_guideline';
 import { RestingFilters } from '../_table-filters';
+import { DataTable } from '../../react/src/DataTable';
+import { Badge } from '../../react/src/primitives/Badge';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -23,19 +25,35 @@ const Payouts = ({ stretch = false }: { stretch?: boolean }) =>
     </table>
   </div>;
 
+// The first page of a long result: the pager's count says the table holds far more
+// rows than the three it shows. Pagination: "Use the server count". The status
+// column is the one the bar's chip filters, and it gives the pager room for one row.
+const PAYOUT_COLUMNS = [
+  { key: 'name' as const, label: 'Reference' },
+  { key: 'status' as const, label: 'Status', render: (row: { status: string }) => <Badge variant="success">{row.status}</Badge> },
+  { key: 'amount' as const, label: <>Amount<span className="ui-value__unit">EUR</span></>, num: true },
+];
+const LongPayouts = ({ pagerLabel }: { pagerLabel: string }) =>
+  <div className="gdt-stage ui-card ui-card--pad-sm ui-card--fit">
+    <DataTable columns={PAYOUT_COLUMNS} rows={PAYOUTS.map(([name, amount]) => ({ name, status: 'Paid', amount }))}
+      dense selectable={false} scrollLabel="Payouts" pagerLabel={pagerLabel}
+      page={1} pageSize={PAYOUTS.length} total={1162} onPageChange={() => {}} />
+  </div>;
+
 // The same card, with and without the row that narrows it. Every other specimen
-// keeps the row, because every table has one.
+// keeps the row, because a long table has one.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
-const Filtered = ({ bar = true, stretch = false }: { bar?: boolean; stretch?: boolean }) => <div className="gdt-stage gdt-filtered">
+const Filtered = ({ bar = true, stretch = false, long }: { bar?: boolean; stretch?: boolean; long?: string }) => <div className="gdt-stage gdt-filtered">
   {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />}
-  <Payouts stretch={stretch} />
+  {long ? <LongPayouts pagerLabel={long} /> : <Payouts stretch={stretch} />}
 </div>;
 
 const specimens = [
   { id: 'surface' }, { id: 'density' }, { id: 'numbers' }, { id: 'delta' }, { id: 'units' },
   { id: 'content-width', do: () => <Filtered />, dont: () => <Filtered stretch /> },
   { id: 'overflow' }, { id: 'pinned-identity-sub-lines' }, { id: 'states' },
-  { id: 'filter-bar', do: () => <Filtered />, dont: () => <Filtered bar={false} /> },
+  { id: 'filter-bar', do: () => <Filtered long="Filtered payout pages" />,
+    dont: () => <Filtered bar={false} long="Unfiltered payout pages" /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dense tables', parameters: { layout: 'fullscreen' } };

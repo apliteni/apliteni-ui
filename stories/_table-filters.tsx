@@ -6,7 +6,7 @@ import { SearchField } from '../react/src/SearchField';
 export type Facet<Row> = { id: string; label: string; any: string; of: (row: Row) => string };
 type Options<Row> = { search: string; placeholder: string; label: string; text: (row: Row) => string; facets: Facet<Row>[] };
 
-/** The filter bar every table has directly above it: a search field and the chips
+/** The filter bar every long table has directly above it: a search field and the chips
  *  that fit the table's columns, each chip offering the values its column holds.
  *  A table with no column worth a chip gets the search field alone. The caller puts
  *  `bar` on a card, because a field never stands on the page ground.

@@ -753,8 +753,11 @@ test('the check accepts the shape the add menu is actually written with', () => 
 });
 
 /* Rule: every table a story draws has a filter bar with a search field, or sits
- * under the stated exception for a table that compares one document line by line.
- * why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+ * under a stated exception. The guideline frees a table that never holds more than
+ * 10 rows, but a story's few demo rows stand for a long table, so the sweep still
+ * asks for the bar. A short table cites the exception, and the closed list below
+ * names it.
+ * why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar
  *
  * WHAT THIS SWEEP DOES NOT REACH:
  *   - Order: it does not read that the bar sits directly above its table. A
@@ -769,7 +772,7 @@ test('the check accepts the shape the add menu is actually written with', () => 
  *     tests check that the rows follow the field. */
 const SEARCH = /<SearchField\b|useTableFilters\(|<RestingFilters\b/;
 const TABLE = /<(table|DataTable|SkeletonTable)\b/g;
-const EXCEPTION = 'guidelines/dense-tables.md#give-every-table-its-filter-bar';
+const EXCEPTION = 'guidelines/dense-tables.md#give-a-long-table-its-filter-bar';
 
 /** Every story file of both workspaces, as [path, source]. */
 function storyFiles() {

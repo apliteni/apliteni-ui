@@ -24,7 +24,7 @@ const Table = ({ rows = ROWS }: { rows?: string[][] }) => (
     ))}</tbody>
   </table>
 );
-// Every table has its filter bar directly above it, the loading one included.
+// Each long table has its filter bar directly above it, the loading one included.
 // why: guidelines/dense-tables.md
 const usePayoutFilters = () => useTableFilters(ROWS, {
   search: 'Search payouts', placeholder: 'ID', label: 'Payout filters', text: ([id]) => id, facets: [],

@@ -37,7 +37,7 @@ const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?
 
 // The ledger sits in a card, as the preview under it does, and the card ends where
 // the table does (--fit), so the two halves are compared on their content. Its filter
-// bar sits directly above it, because every table has one.
+// bar sits directly above it, because every long table has one.
 const PAYOUTS: [string, string, ReactNode][] = [
   ['1162', '1,240.00', <Badge variant="pending">In transit</Badge>],
   ['1161', '860.00', <Badge variant="success">Paid</Badge>],
