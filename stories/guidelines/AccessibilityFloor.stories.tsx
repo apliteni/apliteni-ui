@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
 import { Checkbox } from '../../react/src/Checkbox';
+import { TextField } from '../../react/src/Field';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
@@ -36,11 +37,15 @@ const Revoking = ({ disabled }: { disabled: boolean }) => <div className="gl-sta
   {!disabled && <div className="gl-cursor">Revoke key is unavailable</div>}
 </div>;
 
-// A pointer, a keyboard and a touch screen are states a still page cannot set,
-// so those halves show the code that decides them, in the kit's Snippet.
+// A still page has no touch screen, so `.gl-touch` pins the field text a phone
+// gets: 16px in the Do, a smaller computed size in the Don't.
+const PromoCode = ({ mod }: { mod: string }) => <div className={`gl-stage gl-touch ${mod}`}>
+  <TextField label="Promo code" defaultValue="SPRING-24" />
+</div>;
+
+// Finished, both keyboard-first halves look the same, so each draws the order of
+// work in the kit's Snippet.
 const Code = ({ label = 'CSS', code }: { label?: string; code: string }) => <Snippet label={label} code={code} copy={false} />;
-const TOUCH_DO = '@media (pointer: coarse) {\n  input, select, textarea { font-size: 16px; }\n}';
-const TOUCH_DONT = '@media (pointer: coarse) {\n  input { font-size: 16px; transform: scale(0.875); }\n}';
 
 // The Don't is the kit's own muted card title: pale ink at the card-title size.
 const Cashflow = ({ pale }: { pale?: boolean }) => <div className="gl-stage">{pale
@@ -48,7 +53,6 @@ const Cashflow = ({ pale }: { pale?: boolean }) => <div className="gl-stage">{pa
     <div className="ui-card__sub">Income and expenses by month.</div></div>
   : <Card title="Monthly cashflow" sub="Income and expenses by month." />}</div>;
 
-// Finished, both halves look the same, so each half draws the order of work.
 const KEYS_DO = '1. <button>Publish</button> <button>Discard</button>\n   Tab reaches Publish, then Discard. Enter publishes.\n2. Add the ui-btn classes.';
 const KEYS_DONT = '1. <div class="ui-btn" onclick="publish()">Publish</div>\n2. Add tabindex and a keydown handler afterwards.';
 
@@ -69,7 +73,7 @@ const specimens = [
     dont: () => <Row mod="gl-tap gl-tap--tight"><span className="gl-tap__ink" aria-hidden="true" /><span className="gl-tap__ink" aria-hidden="true" /></Row> },
   { id: 'ring-contrast', do: () => <Ringed />, dont: () => <Ringed mod="gl-ring--halo" /> },
   { id: 'disabled-legibility', do: () => <Revoking disabled />, dont: () => <Revoking disabled={false} /> },
-  { id: 'touch-field-size', do: () => <Code code={TOUCH_DO} />, dont: () => <Code code={TOUCH_DONT} /> },
+  { id: 'touch-field-size', do: () => <PromoCode mod="gl-touch--16" />, dont: () => <PromoCode mod="gl-touch--14" /> },
   { id: 'body-contrast', do: () => <Cashflow />, dont: () => <Cashflow pale /> },
   { id: 'status-label',
     do: () => <Row><Badge variant="warn">Paused</Badge><Badge variant="live">Live</Badge></Row>,

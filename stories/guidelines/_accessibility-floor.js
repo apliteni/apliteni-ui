@@ -267,6 +267,9 @@ export const SPEC_CSS = `
     .gl-measure { display: block; margin: 0; max-width: none;
       padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
     .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); }
+    /* !important beats the kit's own coarse-pointer 16px, so a phone sees the pair too. */
+    .gl-touch--16 .ui-input { font-size: 16px !important; }
+    .gl-touch--14 .ui-input { font-size: 14px !important; }
   </style>`;
 
 

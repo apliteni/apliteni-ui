@@ -7,6 +7,9 @@ import { TextField } from '../../react/src/Field';
 import { NavTabs } from '../../react/src/NavTabs';
 import { Button } from '../../react/src/primitives/Button';
 import { Snippet } from '../../react/src/Snippet';
+import { Segmented } from '../../react/src/Segmented';
+import { Card } from '../../react/src/primitives/Card';
+import { Badge } from '../../react/src/primitives/Badge';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -22,15 +25,24 @@ const SelectionTabs = ({ badge }: { badge?: { text: string; tone: 'accent' } }) 
     { id: 'overview', label: 'Overview' }, { id: 'activity', label: 'Activity', badge }]} />
 </Stage>;
 
-// A failing pair, a second theme and forced colours cannot be drawn live on this
-// page without failing it, so those halves show the code in the kit's Snippet.
+// A failing accent ground cannot be drawn live on this page without failing
+// the contrast walk, so that half shows the code in the kit's Snippet.
 const Code = ({ label = 'CSS', code }: { label?: string; code: string }) => <Snippet label={label} code={code} copy={false} />;
 const GROUND_DONT = '.publish {\n  background: var(--accent);\n  color: #fff;\n}';
-const CHECKS_DO = 'dark, Nebula\ndark, Ocean\nlight, Nebula\nlight, Ocean';
-const CHECKS_DONT = 'dark, Nebula';
-const FIELD_DONT = '.ui-input {\n  background: var(--surface-2);\n  border-color: transparent;\n}';
-const FORCED_DO = '@media (forced-colors: active) {\n  .ui-seg button[aria-pressed="true"] {\n    forced-color-adjust: none;\n    background: Highlight;\n    color: HighlightText;\n    --ring: var(--ring-width) solid CanvasText;\n  }\n}';
-const FORCED_DONT = '@media (forced-colors: active) {\n  .ui-seg button[aria-pressed="true"] {\n    outline: 2px solid Highlight;\n  }\n}';
+const CELLS = [['Dark', 'Nebula'], ['Dark', 'Ocean'], ['Light', 'Nebula'], ['Light', 'Ocean']];
+const Checks = ({ checked }: { checked: number }) => <Card title="Theme checks">
+  <table className="ui-table ui-table--dense">
+    <thead><tr><th>Theme</th><th>Accent</th><th>Result</th></tr></thead>
+    <tbody>{CELLS.map(([theme, accent], i) => <tr key={theme + accent}><td>{theme}</td><td>{accent}</td>
+      <td>{i < checked ? <Badge variant="success">Checked</Badge> : <Badge variant="warn">Not checked</Badge>}</td></tr>)}</tbody>
+  </table>
+</Card>;
+const SearchField = () => <TextField label="Search" defaultValue="Spring launch" />;
+// `.gl-forced` paints the system colours that forced colours hands the page.
+const ForcedSeg = ({ mod }: { mod: string }) => <Stage mod={`gl-forced ${mod}`}>
+  <Segmented label="Period" value="week" onChange={() => {}} options={[
+    { value: 'day', label: 'Day' }, { value: 'week', label: 'Week' }, { value: 'month', label: 'Month' }]} />
+</Stage>;
 
 // The frozen hexes in SPEC_CSS are the specimen's subject, not a slip: `.gl-literal`
 // writes out what the dark theme composites, so the pair is one picture in dark
@@ -40,9 +52,9 @@ const specimens = [
   { id: 'signals', do: () => <Stage><BouncedEmail /></Stage>, dont: () => <Stage mod="gl-drift"><BouncedEmail /></Stage> },
   { id: 'accent-strong', do: () => <Stage><Button variant="primary">Publish</Button></Stage>, dont: () => <Code code={GROUND_DONT} /> },
   { id: 'selection-accent', do: () => <SelectionTabs />, dont: () => <SelectionTabs badge={{ text: '3', tone: 'accent' }} /> },
-  { id: 'both-themes', do: () => <Code label="Checks" code={CHECKS_DO} />, dont: () => <Code label="Checks" code={CHECKS_DONT} /> },
-  { id: 'text-surface', do: () => <Stage><TextField label="Search" defaultValue="Spring launch" /></Stage>, dont: () => <Code code={FIELD_DONT} /> },
-  { id: 'selected-forced-colours', do: () => <Code code={FORCED_DO} />, dont: () => <Code code={FORCED_DONT} /> },
+  { id: 'both-themes', do: () => <Checks checked={4} />, dont: () => <Checks checked={1} /> },
+  { id: 'text-surface', do: () => <Stage><SearchField /></Stage>, dont: () => <Stage mod="gl-grey"><SearchField /></Stage> },
+  { id: 'selected-forced-colours', do: () => <ForcedSeg mod="gl-forced--fill" />, dont: () => <ForcedSeg mod="gl-forced--outline" /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Colour and theming', parameters: { layout: 'fullscreen' } };
