@@ -191,10 +191,33 @@ const KNOWN_GAPS: Record<string, string> = {
   './PeriodPicker.stories.tsx:Loading': 'the loading band draws change rows with no text',
 };
 
+// A guideline page draws each rule's failure in its Don't half, so a finding inside
+// [data-specimen="dont"] is the picture, not a defect. Only that half is skipped: the
+// Do half and every other story are judged in full. Limit: a story that labels a real
+// band as a Don't escapes the gate, which only guideline pages do. #768
+const judged = (found: Element[]) => found.filter((el) => !el.closest('[data-specimen="dont"]'));
+
+// The Stat bands guideline page's Do halves, counted so the skip cannot hide the page.
+const GUIDELINE = '../../stories/guidelines/StatBands.stories.tsx';
+const GUIDELINE_DO_FLOOR = 9;
+
+describe('stat basis: a Don\'t half is skipped, a Do half is not', () => {
+  const band = statBand({ stats: [{ label: 'Income', value: '€ 1', delta: { value: '+4%' } }] });
+  it('a Do half with no basis still fails', () => {
+    const box = mount(`<div data-specimen="do">${band}</div>`);
+    assert.equal(judged(unexplained(box)).length, 1, 'the skip let a Do half through with no basis');
+  });
+  it('the same band in a Don\'t half is the picture', () => {
+    const box = mount(`<div data-specimen="dont">${band}</div>`);
+    assert.equal(unexplained(box).length, 1, 'premise: the band has no basis');
+    assert.equal(judged(unexplained(box)).length, 0);
+  });
+});
+
 describe('stat basis: React stories', () => {
   // One `it` per story file, so a slow file shows as itself and no single test
   // carries the whole walk past the 5 s budget.
-  const sweep = { subjects: 0, captions: 0, figures: 0, fromControl: 0, failures: [] as string[], known: new Set<string>() };
+  const sweep = { guidelineDo: 0, subjects: 0, captions: 0, figures: 0, fromControl: 0, failures: [] as string[], known: new Set<string>() };
 
   for (const file of Object.keys(modules).sort()) {
     it(`every change in ${file} says what it is measured against`, () => {
@@ -219,13 +242,14 @@ describe('stat basis: React stories', () => {
         const control = [...allowedBases(box)].filter(([, what]) => what === "the period control's basis").map(([id]) => id);
         sweep.fromControl += [...box.querySelectorAll('.ui-stat__delta[aria-describedby]')]
           .filter((d) => control.includes(d.getAttribute('aria-describedby'))).length;
+        if (file === GUIDELINE) sweep.guidelineDo += box.querySelectorAll('[data-specimen="do"] .ui-stat__delta').length;
         const id = `${file}:${name}`;
         const before = sweep.failures.length;
-        for (const d of unexplained(box) as Element[]) {
+        for (const d of judged(unexplained(box))) {
           sweep.failures.push(`${file}:${name} — "${d.textContent!.trim()}" under "${d.parentElement!.querySelector('dt')?.textContent}"`);
         }
-        for (const p of misplaced(box) as Element[]) sweep.failures.push(`${file}:${name} — the caption "${p.textContent!.trim()}" does not lead its figures`);
-        for (const f of overloaded(box) as Element[]) sweep.failures.push(`${file}:${name} — "${f.querySelector('dt')?.textContent}" stacks two rows under its value`);
+        for (const p of judged(misplaced(box))) sweep.failures.push(`${file}:${name} — the caption "${p.textContent!.trim()}" does not lead its figures`);
+        for (const f of judged(overloaded(box))) sweep.failures.push(`${file}:${name} — "${f.querySelector('dt')?.textContent}" stacks two rows under its value`);
         if (KNOWN_GAPS[id]) {
           if (sweep.failures.length > before) sweep.known.add(id);
           sweep.failures.length = before;
@@ -241,6 +265,7 @@ describe('stat basis: React stories', () => {
     assert.ok(sweep.figures >= FIGURES_FLOOR, `walked ${sweep.figures} figures — the walk stopped finding them`);
     // The third shape has one screen today, the Finance dashboard's three figures. #505
     assert.ok(sweep.fromControl >= 3, `${sweep.fromControl} change(s) take their basis from a period control; the Finance dashboard draws three`);
+    assert.ok(sweep.guidelineDo >= GUIDELINE_DO_FLOOR, `walked ${sweep.guidelineDo} Do changes on the Stat bands page`);
     assert.deepEqual(sweep.failures, []);
     assert.deepEqual(Object.keys(KNOWN_GAPS).filter((id) => !sweep.known.has(id)), [], 'it comes clean now: take it off the list');
   });
