@@ -12,8 +12,8 @@ import { SPEC_CSS } from './_motion.js';
 const content = await loadGuideline('motion.md', new URL('../../guidelines/motion.md', import.meta.url));
 
 // A drawer opening, as still frames at the times printed above them. A closed
-// drawer is hidden, so the first frame is the page alone. The scrim is drawn at
-// its end value in every open frame.
+// drawer is hidden, so the first frame is the page alone. The half frame draws the
+// panel and the scrim where --ease has them at that time.
 type Step = 'closed' | 'half' | 'open';
 const Page = () => <table className="ui-table">
   <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
@@ -33,7 +33,7 @@ const Film = ({ frames }: { frames: [string, Step][] }) => <div className="gm-fi
     </div>,
   ])}
 </div>;
-const SLIDE: [string, Step][] = [['0 ms', 'closed'], ['125 ms', 'half'], ['250 ms', 'open']];
+const SLIDE: [string, Step][] = [['0 ms', 'closed'], ['125 ms, 78% of the way', 'half'], ['250 ms', 'open']];
 const JUMP: [string, Step][] = [['0 ms', 'closed'], ['16 ms, the next frame', 'open']];
 
 // What each motion is written with.

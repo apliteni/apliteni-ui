@@ -18,6 +18,7 @@ export const SPEC_CSS = `
     .gm-frame .ui-drawer { position: absolute; }
     .gm-frame .ui-drawer__panel { width: 70%; }
     /* Half of --dur-med: --ease has covered 78% of the travel, so 22% of the
-       panel's 70% is still past the edge. */
+       panel's 70% is still past the edge, and the scrim is at 78% of its fade. */
     .gm-frame--half .ui-drawer__panel { right: -15.4%; }
+    .gm-frame--half .ui-drawer.is-open .ui-drawer__scrim { opacity: 0.78; }
   </style>`;
