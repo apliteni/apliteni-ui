@@ -5,6 +5,7 @@ import { GuidelinePage, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
 import { FilterBar } from '../../react/src/FilterBar';
+import { TextField } from '../../react/src/Field';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 
@@ -36,9 +37,17 @@ const Page = ({ children }: { children: ReactNode }) => <Stage>
   <div className="ui-app__main" style={{ padding: 0, ['--ui-app-main' as string]: '100%' }}><h1>Overview</h1>{children}</div>
 </Stage>;
 
+// The faded halves use the kit's own muted classes: a supporting card title and a chart caption.
+const Cashflow = ({ faded, children }: { faded?: boolean; children?: ReactNode }) => <Stage><div className="ui-card">
+  <h2 className={faded ? 'ui-card__title ui-card__title--muted' : 'ui-card__title'}>Monthly cashflow</h2>
+  <div className="ui-card__sub">Income and expenses by month.</div>{children}</div></Stage>;
+
 const specimens = [
-  { id: 'text-ink' },
-  { id: 'text-ink-exceptions' },
+  { id: 'text-ink', do: () => <Cashflow />,
+    dont: () => <Cashflow faded><p className="ui-chart__caption">Income and expenses by month.</p></Cashflow> },
+  { id: 'text-ink-exceptions',
+    do: () => <Stage><TextField label="Campaign" placeholder="Search campaigns" /></Stage>,
+    dont: () => <Cashflow><p className="ui-chart__caption">Updated 5 minutes ago</p></Cashflow> },
   { id: 'sentence-case',
     do: () => <Band a={['Income', '+12% on last year']} b={['Invoices waiting', '3 overdue']} />,
     dont: () => <Band a={['INCOME', '+12% ON LAST YEAR']} b={['INVOICES WAITING', '3 OVERDUE']} /> },
@@ -47,7 +56,12 @@ const specimens = [
     do: () => <Page><Card title="Monthly cashflow" sub="Income and expenses by month." /></Page>,
     dont: () => <Page><div className="ui-card"><h1>Monthly cashflow</h1>
       <div className="ui-card__sub">Income and expenses by month.</div></div></Page> },
-  { id: 'title-is-heading' },
+  { id: 'title-is-heading',
+    do: () => <><Page><Card title="Monthly cashflow" sub="Income and expenses by month." /></Page>
+      <div className="gl-cursor">Outline: Overview › Monthly cashflow</div></>,
+    dont: () => <><Page><div className="ui-card"><div className="ui-card__title">Monthly cashflow</div>
+      <div className="ui-card__sub">Income and expenses by month.</div></div></Page>
+      <div className="gl-cursor">Outline: Overview</div></> },
   { id: 'eyebrow-names-the-kind',
     do: () => <Stage><div className="ui-card"><div className="ui-eyebrow">Last 30 days</div>
       <h2 className="ui-card__title">Top contractors</h2><div className="ui-card__sub">Paid out, by counterparty.</div></div></Stage>,

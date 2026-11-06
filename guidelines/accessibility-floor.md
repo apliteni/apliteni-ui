@@ -70,7 +70,7 @@
 
 **Rule:** Set coarse-pointer field text to 16px without scaling it down.
 
-**Why:** iOS Safari zooms into a field under 16px and does not zoom out. There is no specimen pair because the size answers to the pointer rather than the width, so both halves would draw the desktop size.
+**Why:** iOS Safari zooms into a field under 16px and does not zoom out.
 
 **Do:** Real 16px text in the field itself.
 
@@ -84,7 +84,7 @@
 
 **Rule:** Keep body text close to 7:1 at every size, not merely at 4.5:1.
 
-**Why:** Stronger contrast supports comfortable reading at every size. There is no specimen pair because a pale example would break this rule in front of the reader.
+**Why:** Stronger contrast supports comfortable reading at every size.
 
 **Do:** Body ink at every size, with size, weight and spacing carrying the hierarchy.
 
@@ -122,7 +122,7 @@
 
 **Rule:** Build keyboard behaviour before pointer behaviour and styling.
 
-**Why:** Keyboard access defines the interaction before visual polish. There is no specimen pair because this is an order of work: both halves look the same once they are finished.
+**Why:** Keyboard access defines the interaction before visual polish.
 
 **Do:** Focus, order and keyboard actions working before anything is styled.
 
