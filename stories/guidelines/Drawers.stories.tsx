@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { DrawerPicture, GuidelinePage } from '../_guideline';
 import { BackLink } from '../../react/src/BackLink';
 import { Checkbox } from '../../react/src/Checkbox';
+import { SelectField, TextField } from '../../react/src/Field';
 import { DrawerSection, KeyValueList, type KeyValueRow } from '../../react/src/KeyValueList';
 import { Switch } from '../../react/src/Switch';
 import { Button } from '../../react/src/primitives/Button';
@@ -61,12 +62,33 @@ const PageDont = () => <Frame title="Member access" footer={<Button variant="pri
     ({ label, value: <UnitSwitch label={label} on={on} /> }))} /></DrawerSection>
 </Frame>;
 
+// A quick edit of the opened record, against a long form of several steps that
+// creates a new one.
+const QuickEdit = () => <Frame footer={<Button variant="primary">Save</Button>}>
+  <Group rows={PAYMENT} />
+  <DrawerSection title="Classify">
+    <SelectField label="Category" defaultValue="payout">
+      <option value="">Choose a category</option><option value="payout">Card payout</option><option value="fee">Fee</option>
+    </SelectField>
+  </DrawerSection>
+</Frame>;
+const BANK = ['Account holder', 'IBAN', 'BIC', 'Bank name', 'Bank address', 'City', 'Postcode', 'Country'];
+const LongForm = () => <Frame title="New supplier" footer={<Button variant="primary">Next</Button>}>
+  <DrawerSection title="Step 2 of 4: bank details">
+    {BANK.map((label) => <TextField key={label} label={label} />)}
+  </DrawerSection>
+</Frame>;
+const Lined = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
+  <DrawerSection title={title}><Ruled pairs={pairs} /></DrawerSection>;
+const footer = <Button variant="primary">Save</Button>;
+
 const specimens = [
-  { id: 'one-record' },
+  { id: 'one-record', do: () => <QuickEdit />, dont: () => <LongForm /> },
   { id: 'drawer-or-page', do: () => <PageDo />, dont: () => <PageDont /> },
   { id: 'no-cards', do: () => <Frame>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,
     dont: () => <Frame>{GROUPS.map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },
-  { id: 'three-lines' },
+  { id: 'three-lines', do: () => <Frame footer={footer}>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,
+    dont: () => <Frame footer={footer}>{GROUPS.map((g, i) => <Lined key={i} {...g} />)}</Frame> },
   { id: 'rows', do: () => <Frame><Group rows={DETAIL} /></Frame>, dont: () => <Frame><Ruled pairs={DETAIL} /></Frame> },
 ];
 
