@@ -42,9 +42,9 @@ const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
 // One density per page. Each table keeps its filter bar directly above it.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
 // Brief drops Arrival so a table inside a card fits a 390px phone.
-const MiniTable = ({ dense, brief = false }: { dense: boolean; brief?: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
+const MiniTable = ({ dense, brief = false, failed = false }: { dense: boolean; brief?: boolean; failed?: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
   <thead><tr><th>ID</th>{!brief && <th>Arrival</th>}<th className="ui-table__num">Net</th><th>Status</th></tr></thead>
-  <tbody><tr><td>1162</td>{!brief && <td>2026-06-30</td>}<td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
+  <tbody><tr><td>1162</td>{!brief && <td>2026-06-30</td>}<td className="ui-table__num">14,942.27</td><td>{failed ? <Badge variant="danger">Failed</Badge> : <Badge variant="success">Paid</Badge>}</td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
   <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
@@ -92,10 +92,10 @@ const Head = ({ parts }: { parts: ('back' | 'title' | 'sub' | 'filters')[] }) =>
 
 // One h1 with cards under it, or a second h1 that splits the page in two.
 const Titles = ({ twice }: { twice: boolean }) => <Stage><div className="ui-app__main tp-head"><h1>Payouts</h1>
-  {twice ? <div className="tp-rows"><MiniTable dense={false} brief /><h1>Failed payouts</h1><MiniTable dense={false} brief /></div>
+  {twice ? <div className="tp-rows"><MiniTable dense={false} brief /><h1>Failed payouts</h1><MiniTable dense={false} brief failed /></div>
     : <div className="tp-rows">
       <Card title="Last 7 days"><MiniTable dense={false} brief /></Card>
-      <Card title="Failed this week"><MiniTable dense={false} brief /></Card>
+      <Card title="Failed this week"><MiniTable dense={false} brief failed /></Card>
     </div>}
 </div></Stage>;
 
