@@ -14,7 +14,7 @@ export const SPEC_CSS = `
   <style>
     .gm-film { display: flex; flex-direction: column; gap: var(--space-2); }
     .gm-film > p + .gl-stage { margin-bottom: var(--space-2); }
-    .gm-frame { position: relative; height: 176px; overflow: hidden; padding: var(--space-4); }
+    .gm-frame { position: relative; height: 296px; overflow: hidden; padding: var(--space-4); }
     .gm-frame .ui-drawer { position: absolute; }
     .gm-frame .ui-drawer__panel { width: 70%; }
     /* Half of --dur-med: --ease has covered 78% of the travel, so 22% of the

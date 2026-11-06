@@ -4,6 +4,7 @@ import { DrawerPicture, GuidelinePage } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { KeyValueList } from '../../react/src/KeyValueList';
 import { Snippet } from '../../react/src/Snippet';
+import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -15,13 +16,13 @@ const content = await loadGuideline('motion.md', new URL('../../guidelines/motio
 // drawer is hidden, so the first frame is the page alone. The half frame draws the
 // panel and the scrim where --ease has them at that time.
 type Step = 'closed' | 'half' | 'open';
-const Page = () => <table className="ui-table">
+const Page = () => <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" /><table className="ui-table">
   <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
   <tbody>
     <tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr>
     <tr><td>1161</td><td className="ui-table__num">9,310.00</td><td><Badge variant="success">Paid</Badge></td></tr>
   </tbody>
-</table>;
+</table></div>;
 const Film = ({ frames }: { frames: [string, Step][] }) => <div className="gm-film">
   {frames.map(([time, step]) => [
     <p key={`${time}-t`}>{time}</p>,
@@ -37,11 +38,11 @@ const SLIDE: [string, Step][] = [['0 ms', 'closed'], ['125 ms, 78% of the way', 
 const JUMP: [string, Step][] = [['0 ms', 'closed'], ['16 ms, the next frame', 'open']];
 
 // What each motion is written with.
-const Durations = ({ rows }: { rows: [string, string, string][] }) => <div className="gl-stage"><table className="ui-table">
+const Durations = ({ rows }: { rows: [string, string, string][] }) => <div className="gl-stage"><div className="ui-card-stack"><RestingFilters search="Search motions" placeholder="Motion" label="Motion filters" /><table className="ui-table">
   <thead><tr><th>Motion</th><th>Written as</th><th className="ui-table__num">Time</th></tr></thead>
   <tbody>{rows.map(([what, token, time]) =>
     <tr key={what}><td>{what}</td><td>{token}</td><td className="ui-table__num">{time}</td></tr>)}</tbody>
-</table></div>;
+</table></div></div>;
 const Css = ({ code }: { code: string }) => <div className="gl-stage"><Snippet label="css" code={code} copy={false} /></div>;
 
 const specimens = [
