@@ -74,7 +74,7 @@ export const RECORDED = {
   'iconography.md': 304,
   'layout-and-density.md': 318,
   'state-set.md': 299,
-  'stat-bands.md': 224,
+  'stat-bands.md': 217,
 };
 
 /* A word is a whitespace-separated token holding a letter or a digit, so an em

@@ -38,4 +38,4 @@
 
 **Do:** The basis once, in a caption each change references or beside one exception; the caption before and outside every figure.
 
-**Don't:** A title attribute, the note below the tiles or inside the first figure, no basis, nested captions.
+**Don't:** The caption below the tiles, after the changes it explains.
