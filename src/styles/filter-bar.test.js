@@ -278,3 +278,99 @@ test('the weight check refuses a sheet without the chip answer', () => {
   assert.notEqual(without, BAR, 'the mutation must find the chip answer');
   assert.notDeepEqual(unweighed(without), []);
 });
+
+/* One row, one height (#768): a chip beside the search field stood 39.16px against the
+ * field's 45px and sat 2.92px higher. Every control on a toolbar line, and both file
+ * drop actions, must reach the row through boxes that stretch on the cross axis, so it
+ * takes the line's height and centre. The rows come from the React kit, and the
+ * cascade from every sheet index.css imports, in its order.
+ *
+ * WHAT THIS DOES NOT REACH: layout. JSDOM lays out nothing and skips the phone query,
+ * so this reads which boxes stretch at a desktop width, not the heights. The split
+ * row's phone end is held in toolbar-split.test.js, and the measured heights are in
+ * docs/evidence/768-row-align. */
+const SHEETS = [...ENTRY.matchAll(/@import\s+"([^"]+)"/g)].map((m) => read(path.join('..', m[1]))).join('\n');
+const ROWS = await markup(({ h, kit }) => {
+  const noop = () => {};
+  const bar = { label: 'Invoice filters', onChange: noop, onRemove: noop, onClear: noop, onAdd: noop,
+    filters: [{ id: 'status', label: 'Status', value: 'Paid', items: [{ label: 'Any', value: '' }, { label: 'Paid', value: 'Paid' }] },
+      { id: 'period', label: 'Period', value: '', items: [{ label: 'Any', value: '' }, { label: 'Q3', value: 'Q3' }] }],
+    add: [{ id: 'vendor', label: 'Vendor', items: [{ label: 'Northwind', value: 'Northwind' }] }] };
+  const view = { label: 'View', value: 'table', onChange: noop, options: [{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }] };
+  const search = { ariaLabel: 'Search invoices', value: '', onChange: noop };
+  return h('div', null,
+    h('div', { className: 'ui-toolbar' }, h(kit.SearchField, search), h(kit.FilterBar, bar), h(kit.Segmented, view)),
+    h('div', { className: 'ui-toolbar ui-toolbar--split' }, h(kit.SearchField, search), h(kit.Segmented, view),
+      h('div', null, h(kit.FilterBar, bar)), h(kit.Button, { icon: 'download', iconOnly: true }, 'Export rows')),
+    h(kit.FileDrop, { file: { name: 'statement-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }, onRetry: noop, onRemove: noop }));
+});
+const ROW = '.ui-toolbar, .ui-drop__actions';
+const CONTROL = '.ui-input-group, .ui-input, .ui-filter-bar__chip, .ui-dropdown__trigger, .ui-seg, .ui-btn';
+const DEFAULT = new Set(['', 'auto', 'normal', 'stretch']);
+
+/** Each control in each row, with the first box on its way to the row that does not stretch it. */
+const rowWalk = (css) => {
+  const { window } = new JSDOM(`<style>${css}</style>${ROWS}`);
+  const style = (el) => window.getComputedStyle(el);
+  const name = (el) => el.getAttribute('aria-label') || el.textContent.trim() || el.className;
+  return [...window.document.querySelectorAll(ROW)].flatMap((row) => [...row.querySelectorAll(CONTROL)]
+    .filter((control) => !control.parentElement.closest(CONTROL) || !row.contains(control.parentElement.closest(CONTROL)))
+    .map((control) => {
+      let loose = null;
+      for (let box = control; box !== row && !loose; box = box.parentElement) {
+        const parent = box.parentElement;
+        const own = style(box).alignSelf;
+        const align = DEFAULT.has(own) && own !== 'stretch' ? style(parent).alignItems : own;
+        if (!/^(inline-)?(flex|grid)$/.test(style(parent).display)) loose = `a ${style(parent).display || 'block'} box`;
+        else if (!DEFAULT.has(align)) loose = `align ${align} on <${box.tagName.toLowerCase()} class="${box.className}">`;
+      }
+      return { row: row.className, control: control.className.split(' ')[0], name: name(control), loose };
+    }));
+};
+
+test('a control row: every control is found', () => {
+  const walked = rowWalk(SHEETS);
+  const count = (kind) => walked.filter((c) => c.control === kind).length;
+  // Two toolbars of a field, two chips, the add control, Clear all and a view switch,
+  // the split one ending in Export, and the file drop's Retry and Remove.
+  assert.equal(count('ui-input-group'), 2);
+  assert.equal(count('ui-filter-bar__chip'), 4);
+  assert.equal(count('ui-dropdown__trigger'), 2, 'the add control is not in the row');
+  assert.equal(count('ui-seg'), 2);
+  assert.equal(count('ui-btn'), 5, 'Clear all twice, Export, Retry and Remove');
+  assert.equal(walked.length, 15);
+});
+
+test('a control row: every control takes the row\'s height and centre', () => {
+  const loose = rowWalk(SHEETS).filter((c) => c.loose);
+  assert.deepEqual(loose, [], 'a control keeps its own height in a row, so it sits off the field\'s centre');
+});
+
+test('a control row: the walk refuses each box that keeps its own height', () => {
+  const MUTANTS = [
+    ['.ui-toolbar :where(div:has(.ui-filter-bar)) { display: grid; }', 'Status'],
+    ['.ui-toolbar > .ui-seg { align-self: stretch; }', 'View'],
+    ['.ui-toolbar .ui-filter-bar { align-items: stretch; }', 'Status'],
+    ['.ui-toolbar .ui-filter-bar [data-filter-clear] { display: flex; }', 'Clear all'],
+    ['align-items: stretch; gap: var(--space-2); margin-left: auto;', 'Retry'],
+  ];
+  for (const [rule, control] of MUTANTS) {
+    assert.ok(SHEETS.includes(rule), `the sheets no longer hold \`${rule}\``);
+    const loose = rowWalk(SHEETS.replace(rule, rule.includes('{') ? '' : rule.replace('stretch', 'center')));
+    assert.ok(loose.some((c) => c.loose && c.name.startsWith(control)),
+      `without \`${rule}\` the walk still passes ${control}`);
+  }
+});
+
+/**
+ * Rule: the row height is a whole pixel. A fractional line moved a scrolled table below
+ * the toolbar off the pixel its hit test uses, so a link took a row of its neighbour's
+ * pixels. Read as text; the hit test itself is the tap zone gate's, in a browser. #768
+ */
+test('the filter row height rounds up to a whole pixel', () => {
+  const whole = (css) => /--ui-filter-row-h:\s*round\(up,[\s\S]*?,\s*1px\)\s*;/.test(css);
+  assert.ok(whole(BAR), '--ui-filter-row-h is not rounded up to 1px');
+  const mutant = BAR.replace(/round\(up, (calc\([^;]*\)), 1px\)/, '$1');
+  assert.notEqual(mutant, BAR, 'the mutation found no round() to remove');
+  assert.ok(!whole(mutant), 'the check passes a fractional row height');
+});

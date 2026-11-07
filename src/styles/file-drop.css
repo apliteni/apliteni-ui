@@ -49,7 +49,7 @@
 .ui-drop__error { color: var(--pink); }
 
 /* Closes the name's line on the edge the content ends on, in every state. */
-.ui-drop__actions { display: flex; flex: none; align-items: center; gap: var(--space-2); margin-left: auto; }
+.ui-drop__actions { display: flex; flex: none; align-items: stretch; gap: var(--space-2); margin-left: auto; } /* stretch: a small button sizes to its content, so a glyph and a bare label differ by 1px. #768 */
 
 /* The width of the row it reports on, so 40% reads as 40% rather than as a dash.
    The ground is the kit's token for sunken tracks; --surface-3 was invisible. */
