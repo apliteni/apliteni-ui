@@ -535,6 +535,18 @@
   .ui-app__main .ui-card__row { flex-wrap: wrap; gap: var(--space-3); }
 }
 
+/* -- One height for a row of controls -------------------------------------- */
+/* Every control on a toolbar line takes the line's height, so it shares the field's
+   centre too. The plain boxes around a filter bar and a segmented track take back the
+   stretch they leave out elsewhere. The phone step's split end keeps its own height,
+   but beside a filter bar it takes a chip's height and so the first line's centre.
+   These sit below the phone shell because guideline references cite the lines above. #768 */
+.ui-toolbar :where(div:has(.ui-filter-bar)) { display: grid; }
+.ui-toolbar > .ui-seg { align-self: stretch; }
+@media (max-width: 560px) {
+  .ui-toolbar--split:has(.ui-filter-bar) > :last-child { min-height: var(--ui-filter-row-h); }
+}
+
 /* -- The band's search at one column --------------------------------------- */
 /* The band holds the trigger, the reader's mark and whatever the page puts between
    them, so the sentence broke mid-word — "Search or run a co…". The search glyph takes

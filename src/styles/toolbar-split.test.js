@@ -5,6 +5,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 /* The sheet's two declarations of the selector, told apart by the phone query
  * rather than by which one comes first: reading `match()` alone would take
@@ -54,4 +55,31 @@ test('export at the row end: below the phone step the end control stays in the r
     'the group needs a fractional basis — on `auto` its content is its hypothetical size and the '
     + 'line breaks before the end control');
   assert.match(group[1], /min-width:\s*0/, 'without this the group cannot shrink to the basis it was given');
+});
+
+/* #768: below the phone step the end control keeps its own height, so beside a filter
+ * bar the export stood 36px against the chips' 39.16px and sat 1.58px higher. The end
+ * control takes a chip's height, which the toolbar names from the filter bar's sheet.
+ *
+ * WHAT THIS DOES NOT REACH: paint, for the same reason as above. The measured heights
+ * and centres are in docs/evidence/768-row-align. */
+const endBesideChips = (layout, filterBar) => {
+  const phone = [...layout.matchAll(/@media \(max-width: 560px\)\s*\{([\s\S]*?)\n\}/g)].map((m) => m[1]).join('\n');
+  const end = phone.match(/\.ui-toolbar--split:has\(\.ui-filter-bar\)\s*>\s*:last-child\s*\{([^}]*)\}/);
+  if (!end || !/min-height:\s*var\(--ui-filter-row-h\)/.test(end[1])) return 'the phone end control takes no chip height';
+  const named = [...filterBar.matchAll(/([^{}]+)\{([^}]*--ui-filter-row-h:[^}]*)\}/g)]
+    .some(([, selector]) => splitSelectorList(selector.trim()).includes('.ui-toolbar'));
+  return named ? null : 'the toolbar does not name --ui-filter-row-h, so the end control takes no height';
+};
+const sheet = (name) => readFileSync(new URL(`./${name}`, import.meta.url), 'utf8');
+
+test('export at the row end: beside a filter bar the phone end control takes a chip\'s height', () => {
+  assert.equal(endBesideChips(sheet('layout.css'), sheet('filter-bar.css')), null);
+});
+
+test('export at the row end: the chip height check refuses a sheet without either half', () => {
+  const layout = sheet('layout.css');
+  const filterBar = sheet('filter-bar.css');
+  assert.ok(endBesideChips(layout.replace('min-height: var(--ui-filter-row-h)', 'min-height: 0'), filterBar));
+  assert.ok(endBesideChips(layout, filterBar.replace('.ui-filter-bar, .ui-toolbar {', '.ui-filter-bar {')));
 });

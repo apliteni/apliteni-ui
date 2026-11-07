@@ -130,8 +130,9 @@
 .ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 
 /* A chip's height — a remove mark's line box, padding and border — named so every chip,
-   with or without a mark, and a control on a line of its own stand as tall. */
-.ui-filter-bar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
+   with or without a mark, and a control on a line of its own stand as tall. A toolbar
+   names it too, for the control at the end of a split row. */
+.ui-filter-bar, .ui-toolbar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the
@@ -143,6 +144,13 @@
    why: guidelines/colour-and-theming.md#keep-text-off-grey-fills */
 .ui-filter-bar [data-filter-add] { display: flex; align-self: stretch; }
 .ui-filter-bar [data-filter-add] .ui-dropdown { display: flex; }
+/* In a toolbar the chips, the add control and Clear all fill the line, so they stand as
+   tall as the field beside them and share its centre. #768 */
+.ui-toolbar .ui-filter-bar { align-items: stretch; }
+.ui-toolbar .ui-filter-bar [data-filter-clear] { display: flex; }
+/* Clear all keeps a chip's height when it wraps to a line of its own, so a wider gap
+   that moves it to the next line does not change its size. */
+.ui-toolbar .ui-filter-bar [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
