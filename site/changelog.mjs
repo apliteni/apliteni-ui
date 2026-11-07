@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.162.2', date: '2026-11-07',
+    changes: [
+      ['fixed', 'The controls in one row of a `FilterBar`, a split toolbar and a file drop now share one height and one centre line. Before, a status chip sat about 3 px higher than the search field beside it. On a phone, a chip on its own line now grows by less than 1 px to a whole 40 px. Part of #768.', ['FilterBar', 'Toolbar', 'FileDrop']],
+      ['changed', 'Five Don\'t pictures on the Colour and theming, Accessibility floor and Iconography guideline pages now show the failure built from kit parts in place of a code block. Part of #768.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.162.1', date: '2026-11-06',
     changes: [
       ['changed', 'The Dense tables guideline now asks for a filter bar only above a table that can hold more than 10 rows. A table that never holds more than 10 rows, such as a list of API tokens, can take no bar. Resolves #785.', ['Guidelines']],
