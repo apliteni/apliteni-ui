@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.162.2', date: '2026-11-07',
     changes: [
       ['fixed', 'The controls in one row of a `FilterBar`, a split toolbar and a file drop now share one height and one centre line. Before, a status chip sat about 3 px higher than the search field beside it. On a phone, a chip on its own line now grows by less than 1 px to a whole 40 px. Part of #768.', ['FilterBar', 'Toolbar', 'FileDrop']],
-      ['changed', 'Five Don\'t pictures on the Colour and theming, Accessibility floor and Iconography guideline pages now show the failure built from kit parts in place of a code block. Part of #768.', ['Guidelines']],
+      ['added', 'More rules on the Colour and theming, Accessibility floor, Iconography, Labels and titles, and Layout and density guideline pages now show a Do and a Don\'t picture built from kit parts. Part of #768.', ['Guidelines']],
     ],
   },
   {
