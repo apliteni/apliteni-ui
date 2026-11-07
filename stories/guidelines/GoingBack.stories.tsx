@@ -14,10 +14,13 @@ const content = await loadGuideline('going-back.md', new URL('../../guidelines/g
 
 // The specimens are the top of a page: the link, and the title under it. A <p>,
 // not an <h1>: one guideline page must not carry a dozen h1s.
-const Head = ({ above, title, action }: { above: ReactNode; title: string; action?: ReactNode }) =>
+const Head = ({ above, title, action, note }: { above: ReactNode; title: string; action?: ReactNode; note?: string }) =>
   <div className="gl-stage"><div className="gb-head">{above}
-    <div className="gb-titlerow"><p className="gb-title">{title}</p>{action}</div></div></div>;
-const Back = ({ label }: { label: string }) => <BackLink href="#" label={label} />;
+    <div className="gb-titlerow"><p className="gb-title">{title}</p>{action}</div></div>
+    {note && <div className="gl-cursor">{note}</div>}</div>;
+const Back = ({ label, href = '#' }: { label: string; href?: string }) => <BackLink href={href} label={label} />;
+// Where a link goes is not on the screen, so the note under each picture says it.
+const LIST = '/invoices?status=overdue&sort=due&page=2';
 
 // A rail folded to its icons, so a specimen can show which row is lit beside the
 // page it belongs to at the width of one panel.
@@ -38,7 +41,11 @@ const specimens = [
     dont: () => <Head above={<Back label="Dashboard" />} title="Invoices" /> },
   { id: 'name-it', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
     dont: () => <Head above={<Back label="Back" />} title="Invoice INV-1001" /> },
-  { id: 'address-not-history' },
+  { id: 'address-not-history',
+    do: () => <Head above={<Back label="Invoices" href={LIST} />} title="Invoice INV-1001"
+      note={`Goes to ${LIST}, also from a new tab`} />,
+    dont: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001"
+      note="Goes one step back in history, so a new tab has nowhere to go" /> },
   { id: 'one-or-the-other', do: () => <Head above={<Back label="Invoices" />} title="Invoice INV-1001" />,
     dont: () => <Head title="Invoice INV-1001" above={<>
       <Back label="Finance" />

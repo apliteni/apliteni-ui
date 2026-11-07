@@ -118,10 +118,33 @@ describe('links: React stories', () => {
     expect(subjects.flatMap(({ id, links }) => (failures(links) as string[]).map((f) => `${id} → ${f}`))).toEqual([]);
   });
 
+  const anchors = ({ stops }: { stops: Stop[] }) => ({ stops: stops.filter((stop) => stop.el.tagName === 'A') });
+  // #513 moves the ring of a link in a pinned identity's sub-line to the line itself, and
+  // takes the link's own outline away. Only that pair of table.css rules is skipped; any
+  // other :has() delegation is judged. Limit: the skip reads selector text, not paint, so
+  // the two mutations below hold it to the one rule.
+  const DELEGATE = '.ui-table--pinned .ui-table__identity > *:has(a:focus-visible)';
+  const subLine = (stop: { delegated: string[]; outline: { selector: string } | null }) =>
+    stop.delegated.includes(DELEGATE) && stop.outline?.selector === '.ui-table--pinned .ui-table__identity > * a:focus-visible';
+
   it('the ring a link asks for is the one that paints', () => {
     expect(subjects.flatMap(({ id, paint }) => (paint.unmatchable as string[]).map((u) => `${id}: ${u}`))).toEqual([]);
-    const anchors = ({ stops }: { stops: Stop[] }) => ({ stops: stops.filter((stop) => stop.el.tagName === 'A') });
-    expect(subjects.flatMap(({ id, paint }) => (cascadeFailures(anchors(paint)) as string[]).map((f) => `${id} → ${f}`))).toEqual([]);
+    expect(subjects.flatMap(({ id, paint }) => (cascadeFailures(anchors(paint), subLine) as string[]).map((f) => `${id} → ${f}`))).toEqual([]);
+  });
+
+  it('the sub-line skip covers no other delegation', () => {
+    const html = '<p class="gx-line"><a href="#terms">Terms</a></p>';
+    const own = { file: 'mutation <style>', css: '.gx-line:has(a:focus-visible) { outline: var(--ring); }\n.gx-line a:focus-visible { outline: none; }' };
+    expect(cascadeFailures(anchors(rejudge(html, [...KIT, own]).paint), subLine)).not.toEqual([]);
+  });
+
+  it('removing the sub-line delegation turns the dense-tables pair red', () => {
+    const tables = subjects.filter(({ id }) => id.includes('DenseTables'));
+    expect(tables.length, 'the dense-tables page draws a sub-line link').toBeGreaterThan(0);
+    const cut = ({ file, css }: Sheet) => ({ file, css: file.endsWith('table.css') ? sheetText(css).replace(/[^{}]*:has\(a:focus-visible\)\s*\{[^}]*\}/, '') : css });
+    for (const { sheets } of tables) expect(sheetText(sheets.find(({ file }) => file.endsWith('table.css'))!.css)).toContain(DELEGATE);
+    const bad = tables.flatMap(({ html, sheets }) => cascadeFailures(anchors(rejudge(html, sheets.map(cut)).paint), subLine) as string[]);
+    expect(bad, 'the link keeps no ring without the delegation').not.toEqual([]);
   });
 
   // The stories are dealt over eight tests so none judges them all; the last reads their results.

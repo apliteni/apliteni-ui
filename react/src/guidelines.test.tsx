@@ -245,3 +245,37 @@ describe('guideline pages in React: the prose stands on the reading surface', ()
     expect(offGround(container)).toHaveLength(1);
   });
 });
+
+/* The overflow Do promises December in view. The web fonts widen the table after the
+ * first scroll, so the frame scrolls to its end again once the fonts are ready.
+ * Limits: JSDOM lays nothing out, so the widths are stubbed. Whether December is in
+ * view in a real browser is the measurement on the pull request. */
+describe('guideline pages in React: Dense tables', () => {
+  const page = pages.find(p => p.file.endsWith('/DenseTables.stories.tsx'))!;
+  it('scrolls the overflow Do to its end again after the fonts load', async () => {
+    let width = 400;
+    const left = new WeakMap<Element, number>();
+    const proto = HTMLElement.prototype;
+    const fonts = Object.getOwnPropertyDescriptor(document, 'fonts');
+    let loaded!: () => void;
+    Object.defineProperty(document, 'fonts', { configurable: true, value: { ready: new Promise<void>(r => { loaded = r; }) } });
+    Object.defineProperty(proto, 'scrollWidth', { configurable: true, get: () => width });
+    Object.defineProperty(proto, 'scrollLeft', { configurable: true,
+      get() { return left.get(this) ?? 0; }, set(value: number) { left.set(this, value); } });
+    try {
+      const frame = mount(page).querySelector('[data-rule="overflow"] [data-specimen="do"] .ui-table-scroll');
+      expect(frame, 'no scroll frame in the overflow Do: the gate is checking nothing').toBeTruthy();
+      expect(frame!.scrollLeft).toBe(400);
+      width = 463;
+      loaded();
+      await document.fonts.ready;
+      await Promise.resolve();
+      expect(frame!.scrollLeft).toBe(463);
+    } finally {
+      Reflect.deleteProperty(proto, 'scrollWidth');
+      Reflect.deleteProperty(proto, 'scrollLeft');
+      Reflect.deleteProperty(document, 'fonts');
+      if (fonts) Object.defineProperty(document, 'fonts', fonts);
+    }
+  });
+});

@@ -20,4 +20,18 @@ export const SPEC_CSS = `<style>
   /* The filter bar's card sits above the table's card, at the gap the shell keeps
      between two cards. */
   .gdt-filtered { display: grid; gap: var(--space-5); align-content: start; }
+  /* Paint below draws a state the kit cannot hold at rest. Each rule is scoped to one
+     specimen class and uses kit tokens only. */
+  /* Hover needs a pointer. The do half holds row 1161 in the kit's hover fill, with its
+     rounded ends and the row lines it drops. */
+  .gdt-held .gdt-hovering > td { background: var(--surface-2); border-bottom-color: transparent; }
+  .gdt-held .gdt-hovering > td:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .gdt-held .gdt-hovering > td:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .gdt-held tr:has(+ .gdt-hovering) > td { border-bottom-color: transparent; }
+  /* The kit removed the grey stripe from every table. The don't half paints it back. */
+  .gdt-zebra tbody tr:nth-child(even) > td { background: var(--surface-2); }
+  /* The don't half shrinks the type one rank, to the kit's unit size. */
+  .gdt-shrunk .ui-table :is(th, td) { font-size: var(--text-xs); }
+  /* The don't half fades the units that the rule keeps in body ink. */
+  .gdt-muted .ui-value__unit { /* muted-ink: chrome — the don't half draws the faded unit this rule refuses */ color: var(--muted); }
 </style>`;

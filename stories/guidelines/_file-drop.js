@@ -144,5 +144,21 @@ export const RULES = withSpecimens(content.rules, [
       <p class="gf-repeat">${NOTE}</p>
       <p class="gf-repeat">${state(NOTE, 'error')}</p>`),
   },
-  { id: 'which-shape' },
+  {
+    id: 'which-shape',
+    doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow({
+      facts: state('Received'),
+      acts: actions(removeBtn()),
+    })}</div>`),
+    // The dialog asks nothing the row could not: one file, then Upload. It is
+    // the React Modal's own markup, held open in the page flow.
+    dontHtml: () => `<div class="gl-stage gl-stage--confirm"><div class="rx-modal" role="group" aria-label="Upload statement">
+      <div class="rx-modal__head"><h2 class="rx-modal__title">Upload statement</h2>${btn('Close', { variant: 'ghost', glyph: 'x', iconOnly: true })}</div>
+      <div class="rx-modal__body"><div class="ui-drop">${fileRow({
+        facts: '<span class="ui-drop__size">248 KB</span>',
+        acts: actions(removeBtn()),
+      })}</div></div>
+      <div class="rx-modal__foot">${btn('Cancel', { size: 'md', variant: 'ghost' })}${btn('Upload', { size: 'md', variant: 'primary' })}</div>
+    </div></div>`,
+  },
 ]);

@@ -40,7 +40,18 @@ const specimens = [
   { id: 'tone-not-direction',
     do: () => toned('gs-tone-do', ['good', 'bad', undefined, 'good']),
     dont: () => toned('gs-tone-dont', ['good', 'good', 'good', 'bad']) },
-  { id: 'say-the-basis' },
+  { id: 'say-the-basis',
+    do: () => <Stage><StatBand id="gs-basis-do" basis={BASIS} stats={[
+      { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
+      { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+      { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', basis: 'against plan' } },
+    ]} /></Stage>,
+    // The note is the band's own caption, moved under the tiles it should lead.
+    dont: () => <Stage><StatBand id="gs-basis-dont" basisId="gs-basis-dont-note" stats={[
+      { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
+      { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
+      { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%' } },
+    ]} /><p className="ui-stats__basis" id="gs-basis-dont-note">{BASIS}</p></Stage> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Stat bands', parameters: { layout: 'fullscreen' } };

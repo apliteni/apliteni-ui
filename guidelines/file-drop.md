@@ -82,7 +82,7 @@
 
 **Rule:** Use a row where the file joins a list on the page, a region when one panel owns the file, and a dialog only when the upload needs answers of its own.
 
-**Why:** A dialog that asks nothing is one more thing to dismiss. A drawing would show one container, not the choice.
+**Why:** A dialog that asks nothing is one more thing to dismiss.
 
 **Do:** Take a statement into the row under the statements it joins.
 

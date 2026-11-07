@@ -8,6 +8,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
+import { Segmented } from '../../react/src/Segmented';
 import { RestingFilters } from '../_table-filters';
 import { Chart, type ChartLookSeries } from '../../react/src/Chart';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -140,8 +141,20 @@ const FILTERS = [
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
+// A wrapper, so the stage's column does not stretch the control across the cell.
+const Period = () => <div><Segmented label="Period" size="sm" value="1Y" onChange={noop}
+  options={['1M', '3M', '1Y'].map(label => ({ label, value: label }))} /></div>;
+
 const specimens = [
-  { id: 'fast-glance' },
+  // The figures are a year, so the period control stands on 1Y. The Don't puts
+  // three blocks between the figures and the exceptions, and the note says where
+  // the first screen ends, which a picture in a page cannot.
+  { id: 'fast-glance',
+    do: () => <Stage><Period /><Cashflow id="gd-fast-do" /><Attention /></Stage>,
+    dont: () => <Stage><Period /><Cashflow id="gd-fast-dont" /><MonthBlock view="chart" />
+      <LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
+      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend />
+      <div className="gl-cursor">The first screen has ended. The exceptions start here</div><Attention /></Stage> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
     dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },

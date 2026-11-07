@@ -68,13 +68,13 @@ export const RECORDED = {
   'density-and-accents.md': 408,
   'drawer.md': 324,
   'empty-states.md': 91,
-  'file-drop.md': 535,
+  'file-drop.md': 526,
   'going-back.md': 363,
   'hover-readouts.md': 333,
   'iconography.md': 304,
   'layout-and-density.md': 318,
   'state-set.md': 299,
-  'stat-bands.md': 224,
+  'stat-bands.md': 217,
 };
 
 /* A word is a whitespace-separated token holding a letter or a digit, so an em
