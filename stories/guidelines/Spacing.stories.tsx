@@ -28,7 +28,7 @@ const Table = () => <div className="ui-table-scroll" role="region" aria-label="I
       <tr key={a}><td>{a}</td><td>{b}</td><td className="ui-table__num">{c}</td></tr>)}</tbody>
   </table>
 </div>;
-// Every table has a search field in the row above it.
+// Each long table has a search field in the row above it.
 const Search = () => <SearchField ariaLabel="Search invoices" placeholder="Invoice" />;
 const Row = ({ n = 1 }: { n?: number }) => <div className="gl-sp__row"><Strip /><Search /><Chips n={n} /></div>;
 const Reminders = () => <Card title="Reminders"><p>A reminder goes out 3 days before an invoice falls due.</p></Card>;

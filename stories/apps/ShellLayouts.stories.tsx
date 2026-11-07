@@ -56,7 +56,7 @@ const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 
   return <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Payouts"
     lede="Two of the four that arrived this week are waiting for a second approval."
     palette={layout === 'topbar' ? PALETTE : undefined}>
-    {/* Every table has its filter bar directly above it, on a card because a field
+    {/* Each long table has its filter bar directly above it, on a card because a field
         never stands on the page ground. why: guidelines/dense-tables.md */}
     <Card><div className="ui-toolbar">
       <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />

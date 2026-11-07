@@ -11,7 +11,7 @@ import { useTableFilters } from '../../stories/_table-filters';
 export default { title: 'React/DataTable ledgers' };
 
 const page = (children: ReactNode, width: number | string = 720) => <div style={{ maxWidth: width }}>{children}</div>;
-// Every table has its filter bar directly above it, on its own card. why: guidelines/dense-tables.md
+// Each long table has its filter bar directly above it, on its own card. why: guidelines/dense-tables.md
 const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack"><Card>{bar}</Card>{table}</div>;
 const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 

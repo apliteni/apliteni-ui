@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.162.1', date: '2026-11-06',
+    changes: [
+      ['changed', 'The Dense tables guideline now asks for a filter bar only above a table that can hold more than 10 rows. A table that never holds more than 10 rows, such as a list of API tokens, can take no bar. Resolves #785.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.162.0', date: '2026-11-04',
     changes: [
       ['changed', 'A hover table that is neither zebra nor dense is now a row table: 48px rows with no row or column lines, a square neutral hover fill across the full width and a square accent wash on a checked row. Its first and last content sit 12px inside the fill, 24px in a card and 16px in a card below 560px. The 8px room and round ends of 0.160.0 stay on a dense hover table. `.ui-table--compact` makes the rows 36px, and the new `.ui-table--comfortable` makes them 56px. `.ui-table__sub` puts a second value, such as an email, under the first. Resolves #770.', ['Table']],

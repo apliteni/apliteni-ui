@@ -51,7 +51,7 @@ function Example(args: Partial<AppShellProps>) {
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args}>
-      {/* Every table has its filter bar directly above it, on a card because a field
+      {/* Each long table has its filter bar directly above it, on a card because a field
           never stands on the page ground. why: guidelines/dense-tables.md */}
       <Card><div className="ui-toolbar">
         <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />

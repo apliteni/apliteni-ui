@@ -20,7 +20,7 @@ const columns: Column<Row>[] = [
   { key: 'clicks', label: 'Clicks', num: true, sortable: true, render: (r) => r.clicks.toLocaleString() },
 ];
 
-// Every table has its filter bar directly above it. why: guidelines/dense-tables.md
+// Each long table has its filter bar directly above it. why: guidelines/dense-tables.md
 const useCampaignFilters = <R extends Row>(list: R[]) => useTableFilters(list, {
   search: 'Search campaigns', placeholder: 'Campaign', label: 'Campaign filters', text: (r) => r.name,
   facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (r) => r.status }],

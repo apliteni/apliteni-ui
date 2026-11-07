@@ -35,7 +35,7 @@ const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
   <div className={`tp-stack${over ? ' tp-stack--over' : ''}`}>{Array.from({ length: n }, (_, i) => <div key={i} className="tp-card" />)}</div>
 </Stage>;
 
-// One density per page. Each table keeps its filter bar directly above it.
+// One density per page. Each long table keeps its filter bar directly above it.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
 const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
   <thead><tr><th>ID</th><th>Arrival</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>

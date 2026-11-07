@@ -40,7 +40,7 @@ const Dashboard = () => {
     </div>
     <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
-    {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
+    {/* Each long table has its filter bar directly above it. why: guidelines/dense-tables.md */}
     <Card>{bar}</Card>
     {/* Each reference opens its payout row in the report. */}
     <Card title="Needs a decision">
