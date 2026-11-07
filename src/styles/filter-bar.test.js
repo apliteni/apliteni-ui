@@ -361,3 +361,16 @@ test('a control row: the walk refuses each box that keeps its own height', () =>
       `without \`${rule}\` the walk still passes ${control}`);
   }
 });
+
+/**
+ * Rule: the row height is a whole pixel. A fractional line moved a scrolled table below
+ * the toolbar off the pixel its hit test uses, so a link took a row of its neighbour's
+ * pixels. Read as text; the hit test itself is the tap zone gate's, in a browser. #768
+ */
+test('the filter row height rounds up to a whole pixel', () => {
+  const whole = (css) => /--ui-filter-row-h:\s*round\(up,[\s\S]*?,\s*1px\)\s*;/.test(css);
+  assert.ok(whole(BAR), '--ui-filter-row-h is not rounded up to 1px');
+  const mutant = BAR.replace(/round\(up, (calc\([^;]*\)), 1px\)/, '$1');
+  assert.notEqual(mutant, BAR, 'the mutation found no round() to remove');
+  assert.ok(!whole(mutant), 'the check passes a fractional row height');
+});

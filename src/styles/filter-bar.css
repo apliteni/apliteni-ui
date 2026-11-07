@@ -131,8 +131,9 @@
 
 /* A chip's height — a remove mark's line box, padding and border — named so every chip,
    with or without a mark, and a control on a line of its own stand as tall. A toolbar
-   names it too, for the control at the end of a split row. */
-.ui-filter-bar, .ui-toolbar { --ui-filter-row-h: calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)); }
+   names it too, for the control at the end of a split row. Rounded up to a whole pixel:
+   a fractional line moved a scrolled table below it off the pixel its hit test uses. #768 */
+.ui-filter-bar, .ui-toolbar { --ui-filter-row-h: round(up, calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)), 1px); }
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the
