@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.162.3', date: '2026-11-07',
+    changes: [
+      ['added', 'More rules on the Dense tables, Stat bands, Drawers, Hover readouts, File drop, Going back, The command palette, Pagination, and Dashboards and reports guideline pages now show a Do and a Don\'t picture built from kit parts. Part of #768.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.162.2', date: '2026-11-07',
     changes: [
       ['fixed', 'The controls in one row of a `FilterBar`, a split toolbar and a file drop now share one height and one centre line. Before, a status chip sat about 3 px higher than the search field beside it. On a phone, a chip on its own line now grows by less than 1 px to a whole 40 px. Part of #768.', ['FilterBar', 'Toolbar', 'FileDrop']],
