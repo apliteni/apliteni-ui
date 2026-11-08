@@ -150,15 +150,15 @@
     "pattern": "background: var(--accent);"
    },
    {
-    "ref": "src/styles/nav.css:368",
+    "ref": "src/styles/nav.css:370",
     "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
    },
    {
-    "ref": "src/styles/nav.css:376",
+    "ref": "src/styles/nav.css:378",
     "pattern": "background: var(--glow-purple);"
    },
    {
-    "ref": "src/styles/nav.css:375",
+    "ref": "src/styles/nav.css:377",
     "pattern": "color: var(--accent);"
    },
    {
@@ -194,7 +194,7 @@
     "pattern": "rankGroups(groups, query)"
    },
    {
-    "ref": "src/styles/command-palette.css:161",
+    "ref": "src/styles/command-palette.css:163",
     "pattern": ".ui-cmdk__group-head"
    }
   ],
@@ -238,7 +238,7 @@
     "pattern": "const isDisabled = (item: CommandItem) =>"
    },
    {
-    "ref": "src/styles/command-palette.css:253",
+    "ref": "src/styles/command-palette.css:255",
     "pattern": ".ui-cmdk__item.is-danger"
    }
   ]
@@ -340,7 +340,7 @@
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
-    "ref": "src/styles/nav.css:115",
+    "ref": "src/styles/nav.css:117",
     "pattern": ".ui-nav__item.is-danger:hover"
    }
   ],

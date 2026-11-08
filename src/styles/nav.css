@@ -86,8 +86,10 @@
    ground the rail stands on, so layout.css takes it the next rung where the rail
    is itself --surface. #475 r33/r34. why: docs/components.md#the-page-shell */
 
-.ui-nav__item:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.ui-nav__item.is-active:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* Drawn inward: rows stand 2px apart, so an outward band crossed into the next row.
+   why: docs/foundations.md#the-focus-ring */
+.ui-nav__item:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+.ui-nav__item.is-active:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
