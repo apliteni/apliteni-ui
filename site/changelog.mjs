@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.163.1', date: '2026-11-08',
+    changes: [
+      ['fixed', 'The keyboard focus ring of the `CommandPalette` search row now follows the round top corners of the panel. Before, its top corners were square and the panel clipped them. Resolves #789.', ['CommandPalette']],
+      ['fixed', 'The keyboard focus ring of a navigation row in the `AppShell` rail and phone drawer now stays inside its row. Before, it crossed into the next row, 2px away. Resolves #789.', ['AppShell']],
+    ],
+  },
+  {
     v: '0.163.0', date: '2026-11-08',
     changes: [
       ['changed', 'On a phone, the `AppShell` menu drawer opens from the side of its menu button: from the right in the topbar layout, and from the left in the rail layout as before. A topbar app that wants the old left drawer sets the new `drawerSide="left"`. See #790.', ['AppShell']],

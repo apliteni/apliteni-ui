@@ -99,7 +99,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 53 -> 52: #649 moves the dropdown row to the inward band.
   // 52 -> 49: #736 removes the breadcrumb link, and the stacked table card and its two
   // outset rules.
-  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
+  // 49 -> 47: #789 moves the two nav row rules to the inward band.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -139,7 +140,9 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // an outward band.
   // 15 -> 16: #736 rings the AccountWindow rail inward, because the rail scrolls and clips
   // an outward band.
-  assert.equal(scrollRules.length, 16,
+  // 16 -> 18: #789 rings the nav row inward, at rest and current, because the rows stand
+  // 2px apart and an outward band crossed into the next row.
+  assert.equal(scrollRules.length, 18,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 3,
     'React\'s modal body, the picker\'s shortcut row and the account rail are not all among them, so the walk '
@@ -253,13 +256,16 @@ const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.match
   .map(([, prop]) => `${rule.file}: ${rule.selector} paints ${prop} in the accent beside the band`));
 
 test('a focus rule draws the band and no second accent edge', () => {
-  // Every consumer is read, so this cannot go quiet by losing its subjects: the count
-  // is the one the offset gate pins, and the two have to move together.
+  // Every consumer of either band is read, so this cannot go quiet by losing its
+  // subjects: the counts are the ones the two offset gates pin, and they move together.
   // 53 -> 52: #649 moves the dropdown row to the inward band.
   // 52 -> 49: #736 removes the breadcrumb link, and the stacked table card and its two
   // outset rules.
-  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
-  assert.deepEqual(secondBands(consumers), []);
+  // 49 -> 47: #789 moves the nav row to the inward band, so the inward rules are read
+  // here too and the row keeps this check.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  assert.equal(scrollRules.length, 18, 'scroll-ring consumer discovery changed');
+  assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 
 test('the second-band gate rejects each way of drawing one', () => {

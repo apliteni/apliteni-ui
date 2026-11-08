@@ -26,9 +26,10 @@ const SHEETS = ['base.css', 'layout.css', 'topbar.css', 'nav.css', 'button.css']
 const shellControls = () => [...SHELL.matchAll(/<(a|button)\s[^>]*className="([^"{}]+)"/g)]
   .map((match) => ({ tag: match[1], classes: match[2].split(/\s+/).filter(Boolean) }));
 
-// Rules that paint the kit ring, with the selectors that reach it.
+// Rules that paint the kit ring, outward or inward, with the selectors that reach it.
+// The rail rows take the inward band since #789.
 const ringSelectors = (css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, , body]) => /outline:\s*var\(--ring\)/.test(body))
+  .filter(([, , body]) => /outline:\s*var\(--ring(?:-scroll)?\)/.test(body))
   .flatMap(([, selector]) => splitSelectorList(selector))
   .filter((part) => part.includes(':focus-visible'));
 
