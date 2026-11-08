@@ -74,8 +74,9 @@ const THEMES = ['dark', 'light'] as const;
 // its select. The other sections mount only when a reader opens them.
 // Then four search fields from the DataTable members stories (#770), one above each
 // of the four tables.
+// Then the band's search field in the AppShell PhoneMenu story (#790).
 // Move this count with the specimens.
-const FIELD_COUNT = 154;
+const FIELD_COUNT = 155;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
