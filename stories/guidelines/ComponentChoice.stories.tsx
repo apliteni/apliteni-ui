@@ -1,13 +1,14 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
-import { ConfirmPicture, GuidelinePage, NoticePicture, Typed, noop } from '../_guideline';
+import { ConfirmPicture, DrawerPicture, GuidelinePage, NoticePicture, Typed, noop } from '../_guideline';
 import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { Dropdown, type DropdownProps } from '../../react/src/Dropdown';
 import { FilterBar } from '../../react/src/FilterBar';
 import { Segmented } from '../../react/src/Segmented';
+import { SidebarNav } from '../../react/src/SidebarNav';
 import { Success, SuccessPanel } from '../../react/src/Success';
 import { Tabs } from '../../react/src/Tabs';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -56,6 +57,21 @@ const Currency = (props: Partial<DropdownProps>) => <Stage><div style={{ minHeig
   <Dropdown label="currency:" ariaLabel="Currency" items={currencyItems('EUR')} selectedValue="EUR" open onOpenChange={noop} {...props} />
 </div></Stage>;
 
+// A phone band with its menu button at the right, and the menu drawer open in a
+// frame of its own below the band: a drawer is position: fixed. The pair differs
+// only in the side the drawer comes from.
+const SECTIONS = ['Overview', 'Payouts', 'Reports'].map(label => ({ id: label, label, href: '#' }));
+const MenuOrigin = ({ side }: { side: 'left' | 'right' }) => <Stage>
+  <div className="gl-component-choice__frame">
+    <div className="gl-component-choice__band"><Button variant="ghost" icon="menu" iconOnly aria-label="Menu" /></div>
+    <div className="gl-component-choice__under">
+      <DrawerPicture title="Northwind" side={side} size="sm">
+        <SidebarNav aria-label={`Menu sections, ${side}`} items={SECTIONS} active="Payouts" />
+      </DrawerPicture>
+    </div>
+  </div>
+</Stage>;
+
 const specimens = [
   { id: 'paired-actions', do: () => <PairedActions cancel="ghost" />, dont: () => <PairedActions cancel="primary" /> },
   { id: 'interrupt',
@@ -71,6 +87,7 @@ const specimens = [
     do: () => <Stage><Segmented options={FILTERS.map(label => ({ label, value: label }))} value="Pending" onChange={noop} label="Status filter" /></Stage>,
     dont: () => <Stage><Tabs label="Status filter" value="Pending" onChange={noop}
       items={FILTERS.map(label => ({ value: label, label, panel: null }))} /></Stage> },
+  { id: 'panel-origin', do: () => <MenuOrigin side="right" />, dont: () => <MenuOrigin side="left" /> },
   { id: 'one-category', do: () => <CategoryDo />, dont: () => <CategoryDont /> },
   { id: 'scale',
     do: () => <Stage><Card><SuccessPanel title="Feedback sent" sub="It goes straight to the strategy owner." /></Card></Stage>,
@@ -86,5 +103,12 @@ export default meta;
 export const ComponentChoice: StoryObj = {
   name: 'Component choice',
   render: () => <GuidelinePage content={content} specimens={specimens}
-    css="<style>.gl-component-choice__search-panel{min-width:min(280px,calc(100vw - 80px));}</style>" />,
+    css={'<style>.gl-component-choice__search-panel{min-width:min(280px,calc(100vw - 80px));}'
+      + '.gl-component-choice__frame{display:flex;flex-direction:column;height:320px;overflow:hidden;border-radius:var(--radius-md);'
+      + 'background:var(--bg);box-shadow:inset 0 0 0 1px var(--border);}'
+      + '.gl-component-choice__band{display:flex;justify-content:flex-end;padding:var(--space-2);'
+      + 'border-bottom:1px solid var(--border);}'
+      + '.gl-component-choice__under{position:relative;flex:1;}'
+      + '.gl-component-choice__under .ui-drawer{position:absolute;}'
+      + '.gl-component-choice__under .ui-drawer__panel{width:calc(100% - var(--space-12));}</style>'} />,
 };

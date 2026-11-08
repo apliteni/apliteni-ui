@@ -10,7 +10,7 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Colour and theming](colour-and-theming.md) | Colour tokens, accents, signal colours, theme checks and forced colours. | Read it before you pick colours, accents or check contrast. |
 | [The full state set](state-set.md) | Focus rings, busy controls, errors and screen loading. | Read it before you build focus, busy, error or loading states. |
 | [Empty states](empty-states.md) | An empty page or list and a no-matches message. | Read it when a screen can show no content. |
-| [Component choice](component-choice.md) | Buttons, dialogs, toasts, tabs, segmented controls and dropdown search. | Read it before you choose a control, a dialog or a notice. |
+| [Component choice](component-choice.md) | Buttons, dialogs, toasts, tabs, segmented controls, dropdown search and where a panel opens. | Read it before you choose a control, a dialog or a notice. |
 | [Microcopy and tone](microcopy.md) | Names for controls and their current state. | Read it before you name controls or states. |
 | [Text length](text-length.md) | Labels, buttons, captions, callouts and introductions. | Read it when you write labels, captions or callouts. |
 | [Labels and titles](labels-and-titles.md) | Text ink, sentence case, card titles and eyebrows. | Read it when you write labels, titles or eyebrows. |

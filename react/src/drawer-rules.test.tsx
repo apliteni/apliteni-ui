@@ -27,7 +27,8 @@ const THEMES = ['dark', 'light'];
 // The drawer panels the catalogue renders in each theme: set them to the count the failure
 // prints once a change is meant. The shell draws the same drawer in every story that has a
 // shell, so one of them stands for all.
-const EXPECTED = { subjects: 14, donts: 9 };
+// 15 and 10: the panel-origin picture draws one drawer on each side (#790).
+const EXPECTED = { subjects: 15, donts: 10 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);

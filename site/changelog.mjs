@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.163.0', date: '2026-11-08',
     changes: [
       ['changed', 'On a phone, the `AppShell` menu drawer opens from the side of its menu button: from the right in the topbar layout, and from the left in the rail layout as before. A topbar app that wants the old left drawer sets the new `drawerSide="left"`. See #790.', ['AppShell']],
+      ['added', 'The Component choice guideline has a new rule, Open a panel at its control: a drawer, menu or popover opens next to the control that opened it. See #790.', ['Guidelines']],
     ],
   },
   {

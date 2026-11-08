@@ -67,8 +67,10 @@ export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel }: {
 
 /* A drawer drawn in place, as a picture of the React Drawer: the same markup,
  * open, with no portal, no trap and no inert page, inside a frame the page sizes. */
-export const DrawerPicture = ({ title, footer, children }: { title: string; footer?: ReactNode; children?: ReactNode }) =>
-  <div className="ui-drawer ui-drawer--right ui-drawer--md is-open">
+export const DrawerPicture = ({ title, footer, side = 'right', size = 'md', children }: {
+  title: string; footer?: ReactNode; side?: 'left' | 'right'; size?: 'sm' | 'md'; children?: ReactNode;
+}) =>
+  <div className={`ui-drawer ui-drawer--${side} ui-drawer--${size} is-open`}>
     <div className="ui-drawer__scrim" />
     <aside className="ui-drawer__panel" role="group" aria-label={title}>
       <header className="ui-drawer__header">
