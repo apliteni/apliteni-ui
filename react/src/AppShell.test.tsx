@@ -270,7 +270,18 @@ it('keeps the rail account at its foot and removes repeated menu identity and ra
   expect(onSignOut).toHaveBeenCalledOnce();
 });
 
-it('opens every section in a left drawer from the menu button', () => {
+// The drawer opens on the menu button's side: the band's end, or the rail layout's
+// start. `drawerSide` overrides it in each layout (#790).
+it.each([
+  ['topbar', undefined, 'right'], ['rail', undefined, 'left'],
+  ['topbar', 'left', 'left'], ['rail', 'right', 'right'],
+] as const)('opens the %s drawer with drawerSide %s on the %s', (layout, drawerSide, side) => {
+  render(<AppShell {...props} layout={layout} drawerSide={drawerSide} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+  expect(screen.getByRole('dialog').closest('.ui-drawer')).toHaveClass(`ui-drawer--${side}`);
+});
+
+it('opens every section in a drawer from the menu button', () => {
   const { rerender } = render(<AppShell {...props} />);
   const button = screen.getByRole('button', { name: 'Menu' });
   expect(button).toHaveAttribute('aria-expanded', 'false');

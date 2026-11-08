@@ -90,6 +90,13 @@ export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', i
 export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
 
+// The menu drawer opens from the band's end, the side of its menu button (#790).
+export const PhoneMenu: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Menu' }));
+    await expect(within(document.body).getByRole('dialog')).toBeVisible();
+  } };
+
 export const PhoneDropdown: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Dropdown variant="menu" ariaLabel="Workspace" triggerContent="Workspace"
     items={[{ label: 'Demo workspace', value: 'demo' }, { label: 'Sample workspace', value: 'sample' }]} /> } };

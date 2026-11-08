@@ -94,9 +94,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   assert.deepEqual(LINKS.map(link => link.summary), PAGES.map(page => page.summary));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  // 145: Dense tables gained filter-bar (#751), and Dashboards and reports gained
-  // no-range-on-chart (#736).
-  assert.equal(rules, 145);
+  // 146: Component choice gained panel-origin (#790).
+  assert.equal(rules, 146);
   // One, and it is named. Dashboards and reports asks every report for an export
   // and the Stock screener has none (#555). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);
