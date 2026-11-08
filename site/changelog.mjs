@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.163.0', date: '2026-11-08',
+    changes: [
+      ['changed', 'On a phone, the `AppShell` menu drawer opens from the side of its menu button: from the right in the topbar layout, and from the left in the rail layout as before. A topbar app that wants the old left drawer sets the new `drawerSide="left"`. See #790.', ['AppShell']],
+    ],
+  },
+  {
     v: '0.162.3', date: '2026-11-07',
     changes: [
       ['added', 'More rules on the Dense tables, Stat bands, Drawers, Hover readouts, File drop, Going back, The command palette, Pagination, and Dashboards and reports guideline pages now show a Do and a Don\'t picture built from kit parts. Part of #768.', ['Guidelines']],

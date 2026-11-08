@@ -228,7 +228,7 @@ losing both ends to a clip. There is one limit: a folded rail flush with a page'
 Every guarantee above still applies. The band stands beside the rail. It does not span the top
 of both. **The rail holds the shell's own controls:** the fold's control in its head, beside the
 mark, the theme switch above the reader's block, and the reader's block at its foot. The band
-control stands under the head (#732, `react/src/AppShell.tsx:191` `ui-react-app__control`). **The band carries the search
+control stands under the head (#732, `react/src/AppShell.tsx:195` `ui-react-app__control`). **The band carries the search
 field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
 line, the search trigger and the menu button (`react/src/AppShell.css:97` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
@@ -1303,8 +1303,11 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   or `onSelect` to open something in place.
   The existing band layout stays the default. The longest matching section
   path wins. **At 720px and below, a menu button and the brand mark on the band replace the
-  rail:** the button opens the full section list in the left drawer, and the page takes the full
-  width. A press on a section, Escape or a wider window closes the drawer, and focus returns to
+  rail:** the button opens the full section list in a drawer, and the page takes the full
+  width. **The drawer opens from the side of its menu button:** the right in the topbar
+  layout, where the button ends the band, and the left in the rail layout. Set `drawerSide`
+  to `'left'` or `'right'` to choose the side in either layout (#790,
+  `react/src/AppShell.tsx:185` `side={drawerSide ?? 'left'}`). A press on a section, Escape or a wider window closes the drawer, and focus returns to
   the button. **A shell whose list has nowhere to go — one section and no back
   link — draws no rail, no fold control and no menu button;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
@@ -1316,13 +1319,13 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   theme is a row of the account menu** (#732). The rail keeps the fold's control
   in its head, `bandControl` under the head, then the sections and the account at its foot. A
   folded rail keeps the account mark, and makes `bandControl` inert. The drawer puts
-  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:229` `{accountBlock(true, true)}`).
+  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:233` `{accountBlock(true, true)}`).
   **`headControl` is one glyph control in the sidebar head, before the fold button** (#732). It
   is drawn as the fold is: a plain glyph with no border and no fill, the fold's size, ink and
   hover (`react/src/AppShell.css:56` `.ui-react-app__head-control > :is(button, a)`). A folded
   rail moves it out of the head row onto the glyph column, one rail gap under the head, and it
   stays usable. The drawer puts it in the panel's head, before the close button, as a 40px tap
-  target (`react/src/AppShell.tsx:229` `headerActions={headSlot}`). `Drawer` takes
+  target (`react/src/AppShell.tsx:233` `headerActions={headSlot}`). `Drawer` takes
   `headerActions` for controls between its title and its close button. A shell with no sidebar
   puts `headControl` on the band after `bandControl`.
   **The Theme row opens a submenu of Auto, Light and Dark** (#736). The row shows the current
