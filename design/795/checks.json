@@ -1,0 +1,892 @@
+{
+  "baseCommit": "a245fac9",
+  "kitVersion": "0.163.1",
+  "scope": "Design prototypes only. No kit source changed.",
+  "capture": {
+    "viewport": [
+      390,
+      844
+    ],
+    "deviceScaleFactor": 1,
+    "fontsReady": true,
+    "theme": "light",
+    "accent": "Nebula (default)",
+    "browser": "Chromium headless shell",
+    "playwright": "1.64.0-beta-1791568591000",
+    "timezone": "UTC",
+    "reducedMotion": "reduce"
+  },
+  "images": {
+    "bottom-long.png": {
+      "width": 390,
+      "height": 844
+    },
+    "bottom-profile.png": {
+      "width": 390,
+      "height": 844
+    },
+    "center-long.png": {
+      "width": 390,
+      "height": 844
+    },
+    "center-profile.png": {
+      "width": 390,
+      "height": 844
+    },
+    "tabs.png": {
+      "width": 660,
+      "height": 646
+    },
+    "top-long.png": {
+      "width": 390,
+      "height": 844
+    },
+    "top-profile.png": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "measurements": [
+    {
+      "name": "top",
+      "rects": {
+        "window": {
+          "x": 12,
+          "y": 72,
+          "width": 366,
+          "height": 538.640625
+        },
+        "tabs": [
+          {
+            "label": "Profile",
+            "width": 72.25,
+            "height": 64,
+            "x": 20,
+            "y": 537.640625,
+            "scrollWidth": 72
+          },
+          {
+            "label": "Security",
+            "width": 82.25,
+            "height": 64,
+            "x": 96.25,
+            "y": 537.640625,
+            "scrollWidth": 82
+          },
+          {
+            "label": "Notifications",
+            "width": 112.25,
+            "height": 64,
+            "x": 182.5,
+            "y": 537.640625,
+            "scrollWidth": 112
+          },
+          {
+            "label": "Billing",
+            "width": 71.25,
+            "height": 64,
+            "x": 298.75,
+            "y": 537.640625,
+            "scrollWidth": 71
+          }
+        ],
+        "bodyWidth": 390,
+        "fonts": true
+      },
+      "scroll": {
+        "top": 600,
+        "height": 578,
+        "total": 1178
+      },
+      "profileAxe": [],
+      "billingAxe": []
+    },
+    {
+      "name": "bottom",
+      "rects": {
+        "window": {
+          "x": 16,
+          "y": 290.359375,
+          "width": 358,
+          "height": 537.640625
+        },
+        "tabs": [
+          {
+            "label": "Profile",
+            "width": 70.25,
+            "height": 64,
+            "x": 24,
+            "y": 756,
+            "scrollWidth": 70
+          },
+          {
+            "label": "Security",
+            "width": 80.25,
+            "height": 64,
+            "x": 98.25,
+            "y": 756,
+            "scrollWidth": 80
+          },
+          {
+            "label": "Notifications",
+            "width": 110.25,
+            "height": 64,
+            "x": 182.5,
+            "y": 756,
+            "scrollWidth": 110
+          },
+          {
+            "label": "Billing",
+            "width": 69.25,
+            "height": 64,
+            "x": 296.75,
+            "y": 756,
+            "scrollWidth": 69
+          }
+        ],
+        "bodyWidth": 390,
+        "fonts": true
+      },
+      "scroll": {
+        "top": 735,
+        "height": 443,
+        "total": 1178
+      },
+      "profileAxe": [],
+      "billingAxe": []
+    },
+    {
+      "name": "center",
+      "rects": {
+        "window": {
+          "x": 24,
+          "y": 142,
+          "width": 342,
+          "height": 560
+        },
+        "tabs": [
+          {
+            "label": "Profile",
+            "width": 66.25,
+            "height": 64,
+            "x": 32,
+            "y": 629,
+            "scrollWidth": 66
+          },
+          {
+            "label": "Security",
+            "width": 76.25,
+            "height": 64,
+            "x": 102.25,
+            "y": 629,
+            "scrollWidth": 76
+          },
+          {
+            "label": "Notifications",
+            "width": 106.25,
+            "height": 64,
+            "x": 182.5,
+            "y": 629,
+            "scrollWidth": 106
+          },
+          {
+            "label": "Billing",
+            "width": 65.25,
+            "height": 64,
+            "x": 292.75,
+            "y": 629,
+            "scrollWidth": 65
+          }
+        ],
+        "bodyWidth": 390,
+        "fonts": true
+      },
+      "scroll": {
+        "top": 815,
+        "height": 363,
+        "total": 1178
+      },
+      "profileAxe": [],
+      "billingAxe": []
+    }
+  ],
+  "browserChecks": [
+    {
+      "name": "top",
+      "accessibility": {
+        "Profile": [],
+        "Security": [],
+        "Notifications": [],
+        "Billing": []
+      },
+      "targets": [
+        {
+          "label": "Profile",
+          "width": 72.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Security",
+          "width": 82.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Notifications",
+          "width": 112.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Billing",
+          "width": 71.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        }
+      ],
+      "focus": {
+        "width": "2px",
+        "offset": "1px",
+        "style": "solid",
+        "color": "rgb(106, 45, 204)"
+      },
+      "keyboard": "pass",
+      "dismissal": "pass",
+      "demoForm": "pass",
+      "viewports": [
+        {
+          "width": 320,
+          "height": 568,
+          "geometry": {
+            "page": 320,
+            "width": 320,
+            "x": 12,
+            "right": 308,
+            "y": 72,
+            "bottom": 556,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 20,
+                "right": 74.75,
+                "width": 54.75,
+                "height": 64
+              },
+              {
+                "x": 78.75,
+                "right": 143.5,
+                "width": 64.75,
+                "height": 64
+              },
+              {
+                "x": 147.5,
+                "right": 242.25,
+                "width": 94.75,
+                "height": 64
+              },
+              {
+                "x": 246.25,
+                "right": 300,
+                "width": 53.75,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 390,
+          "height": 480,
+          "geometry": {
+            "page": 390,
+            "width": 390,
+            "x": 12,
+            "right": 378,
+            "y": 72,
+            "bottom": 468,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 20,
+                "right": 92.25,
+                "width": 72.25,
+                "height": 64
+              },
+              {
+                "x": 96.25,
+                "right": 178.5,
+                "width": 82.25,
+                "height": 64
+              },
+              {
+                "x": 182.5,
+                "right": 294.75,
+                "width": 112.25,
+                "height": 64
+              },
+              {
+                "x": 298.75,
+                "right": 370,
+                "width": 71.25,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 560,
+          "height": 844,
+          "geometry": {
+            "page": 560,
+            "width": 560,
+            "x": 12,
+            "right": 548,
+            "y": 72,
+            "bottom": 610.640625,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 20,
+                "right": 134.75,
+                "width": 114.75,
+                "height": 64
+              },
+              {
+                "x": 138.75,
+                "right": 263.5,
+                "width": 124.75,
+                "height": 64
+              },
+              {
+                "x": 267.5,
+                "right": 422.25,
+                "width": 154.75,
+                "height": 64
+              },
+              {
+                "x": 426.25,
+                "right": 540,
+                "width": 113.75,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 820,
+          "height": 844,
+          "geometry": {
+            "page": 820,
+            "width": 820,
+            "x": 16.40625,
+            "right": 803.59375,
+            "y": 101.28125,
+            "bottom": 742.71875,
+            "desktop": true,
+            "tabs": []
+          }
+        },
+        {
+          "width": 1440,
+          "height": 900,
+          "geometry": {
+            "page": 1440,
+            "width": 1440,
+            "x": 208,
+            "right": 1232,
+            "y": 108,
+            "bottom": 792,
+            "desktop": true,
+            "tabs": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "bottom",
+      "accessibility": {
+        "Profile": [],
+        "Security": [],
+        "Notifications": [],
+        "Billing": []
+      },
+      "targets": [
+        {
+          "label": "Profile",
+          "width": 70.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Security",
+          "width": 80.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Notifications",
+          "width": 110.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Billing",
+          "width": 69.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        }
+      ],
+      "focus": {
+        "width": "2px",
+        "offset": "1px",
+        "style": "solid",
+        "color": "rgb(106, 45, 204)"
+      },
+      "keyboard": "pass",
+      "dismissal": "pass",
+      "demoForm": "pass",
+      "viewports": [
+        {
+          "width": 320,
+          "height": 568,
+          "geometry": {
+            "page": 320,
+            "width": 320,
+            "x": 16,
+            "right": 304,
+            "y": 16,
+            "bottom": 552,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 24,
+                "right": 76.75,
+                "width": 52.75,
+                "height": 64
+              },
+              {
+                "x": 80.75,
+                "right": 143.5,
+                "width": 62.75,
+                "height": 64
+              },
+              {
+                "x": 147.5,
+                "right": 240.25,
+                "width": 92.75,
+                "height": 64
+              },
+              {
+                "x": 244.25,
+                "right": 296,
+                "width": 51.75,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 390,
+          "height": 480,
+          "geometry": {
+            "page": 390,
+            "width": 390,
+            "x": 16,
+            "right": 374,
+            "y": 16,
+            "bottom": 464,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 24,
+                "right": 94.25,
+                "width": 70.25,
+                "height": 64
+              },
+              {
+                "x": 98.25,
+                "right": 178.5,
+                "width": 80.25,
+                "height": 64
+              },
+              {
+                "x": 182.5,
+                "right": 292.75,
+                "width": 110.25,
+                "height": 64
+              },
+              {
+                "x": 296.75,
+                "right": 366,
+                "width": 69.25,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 560,
+          "height": 844,
+          "geometry": {
+            "page": 560,
+            "width": 560,
+            "x": 16,
+            "right": 544,
+            "y": 290.359375,
+            "bottom": 828,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 24,
+                "right": 136.75,
+                "width": 112.75,
+                "height": 64
+              },
+              {
+                "x": 140.75,
+                "right": 263.5,
+                "width": 122.75,
+                "height": 64
+              },
+              {
+                "x": 267.5,
+                "right": 420.25,
+                "width": 152.75,
+                "height": 64
+              },
+              {
+                "x": 424.25,
+                "right": 536,
+                "width": 111.75,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 820,
+          "height": 844,
+          "geometry": {
+            "page": 820,
+            "width": 820,
+            "x": 16.40625,
+            "right": 803.59375,
+            "y": 101.28125,
+            "bottom": 742.71875,
+            "desktop": true,
+            "tabs": []
+          }
+        },
+        {
+          "width": 1440,
+          "height": 900,
+          "geometry": {
+            "page": 1440,
+            "width": 1440,
+            "x": 208,
+            "right": 1232,
+            "y": 108,
+            "bottom": 792,
+            "desktop": true,
+            "tabs": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "center",
+      "accessibility": {
+        "Profile": [],
+        "Security": [],
+        "Notifications": [],
+        "Billing": []
+      },
+      "targets": [
+        {
+          "label": "Profile",
+          "width": 66.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Security",
+          "width": 76.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Notifications",
+          "width": 106.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        },
+        {
+          "label": "Billing",
+          "width": 65.25,
+          "height": 64,
+          "inside": true,
+          "hit": true
+        }
+      ],
+      "focus": {
+        "width": "2px",
+        "offset": "1px",
+        "style": "solid",
+        "color": "rgb(106, 45, 204)"
+      },
+      "keyboard": "pass",
+      "dismissal": "pass",
+      "demoForm": "pass",
+      "viewports": [
+        {
+          "width": 320,
+          "height": 568,
+          "geometry": {
+            "page": 320,
+            "width": 320,
+            "x": 24,
+            "right": 296,
+            "y": 24,
+            "bottom": 544,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 32,
+                "right": 82,
+                "width": 50,
+                "height": 64
+              },
+              {
+                "x": 86,
+                "right": 146,
+                "width": 60,
+                "height": 64
+              },
+              {
+                "x": 150,
+                "right": 240,
+                "width": 90,
+                "height": 64
+              },
+              {
+                "x": 244,
+                "right": 293,
+                "width": 49,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 390,
+          "height": 480,
+          "geometry": {
+            "page": 390,
+            "width": 390,
+            "x": 24,
+            "right": 366,
+            "y": 24,
+            "bottom": 456,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 32,
+                "right": 98.25,
+                "width": 66.25,
+                "height": 64
+              },
+              {
+                "x": 102.25,
+                "right": 178.5,
+                "width": 76.25,
+                "height": 64
+              },
+              {
+                "x": 182.5,
+                "right": 288.75,
+                "width": 106.25,
+                "height": 64
+              },
+              {
+                "x": 292.75,
+                "right": 358,
+                "width": 65.25,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 560,
+          "height": 844,
+          "geometry": {
+            "page": 560,
+            "width": 560,
+            "x": 24,
+            "right": 536,
+            "y": 142,
+            "bottom": 702,
+            "desktop": false,
+            "tabs": [
+              {
+                "x": 32,
+                "right": 140.75,
+                "width": 108.75,
+                "height": 64
+              },
+              {
+                "x": 144.75,
+                "right": 263.5,
+                "width": 118.75,
+                "height": 64
+              },
+              {
+                "x": 267.5,
+                "right": 416.25,
+                "width": 148.75,
+                "height": 64
+              },
+              {
+                "x": 420.25,
+                "right": 528,
+                "width": 107.75,
+                "height": 64
+              }
+            ]
+          }
+        },
+        {
+          "width": 820,
+          "height": 844,
+          "geometry": {
+            "page": 820,
+            "width": 820,
+            "x": 16.40625,
+            "right": 803.59375,
+            "y": 101.28125,
+            "bottom": 742.71875,
+            "desktop": true,
+            "tabs": []
+          }
+        },
+        {
+          "width": 1440,
+          "height": 900,
+          "geometry": {
+            "page": 1440,
+            "width": 1440,
+            "x": 208,
+            "right": 1232,
+            "y": 108,
+            "bottom": 792,
+            "desktop": true,
+            "tabs": []
+          }
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "npm run build": "pass",
+    "npm test": {
+      "result": "pass",
+      "tests": 1811,
+      "passed": 1786,
+      "skipped": 25,
+      "failed": 0,
+      "seconds": 102.02,
+      "budgetSeconds": 200
+    },
+    "npm test -w react": {
+      "result": "failed",
+      "passed": 4368,
+      "failed": 652,
+      "total": 5020,
+      "filesPassed": 93,
+      "filesFailed": 7,
+      "seconds": 473.66,
+      "budgetSeconds": 100,
+      "cause": "The first failures were timeouts. One axe timeout caused subsequent Axe is already running errors.",
+      "sourceComparison": "No changes to src, react, scripts, package.json or package-lock.json relative to a245fac9.",
+      "targetedRecheck": {
+        "result": "failed",
+        "passed": 10,
+        "failed": 2,
+        "skipped": 1232,
+        "seconds": 68.15,
+        "failures": [
+          "StockScreener Screener contrast, dark: exceeded 30000ms.",
+          "StockScreener Screener contrast, light: exceeded 30000ms."
+        ],
+        "options": "Seven affected files, maxWorkers=2, first failing case names only."
+      }
+    },
+    "npm run build-storybook": "pass",
+    "node site/build.mjs": "pass",
+    "stories/story-css.test.js": "26 passed",
+    "react/src/story-css.test.ts": "36 passed",
+    "Shipped surface vs version": "pass: packed files unchanged",
+    "gitleaks staged": "pass"
+  },
+  "selfReview": {
+    "verdict": "warn",
+    "kindPage": "design/references/app-screens.md",
+    "fixed": [
+      "Replaced the browser default window focus outline with ui-focusable.",
+      "Reduced pill padding so all four tabs stay inside the window."
+    ],
+    "kitRules": {
+      "top": [
+        "Foundations: Spacing and rhythm, The focus ring, A tap reaches the floor below the phone step.",
+        "Components: The modal, A tab row scrolls inside its column, The current route has an accent label.",
+        "Account and settings: modal, nav, one-action."
+      ],
+      "bottom": [
+        "The same rules as Top. The existing pill appearance marks the current section."
+      ],
+      "center": [
+        "The same rules as Top. The fixed height uses --panel-lg. Identity stays above the tabs."
+      ]
+    },
+    "knownRuleConflicts": [
+      "Account and settings modal Except requires tabs under the reader.",
+      "Account and settings nav Do requires phone navigation above the pane.",
+      "Foundations Breakpoints requires a floating panel to go edge to edge at 560px.",
+      "Components The account window requires a full-screen phone window."
+    ],
+    "slopScan": {
+      "surface": "Rendered DOM from each Profile page. Kit paint also reviewed from captures.",
+      "result": "warn",
+      "finding": "Update profile is a multi-word action label.",
+      "decision": "Keep the specific action label required by Account and settings, one-action.",
+      "report": "pass"
+    },
+    "assets": [
+      "Kit glyphs: user, lock, bell, card and x. SVG paths are unchanged.",
+      "IBM Plex Sans and Poppins Latin fonts from Fontsource 5.3.0. Each page embeds the font license.",
+      "All HTML pages passed through Amberstone sketch_inline.py. Its scoped styles are inactive."
+    ]
+  },
+  "limits": [
+    "The story CSS gates check served stories. They do not measure these design HTML pages.",
+    "Browser checks cover Chromium. They do not prove Safari behavior.",
+    "Headless safe-area insets are zero. The CSS reserves max(gap, env(safe-area-inset-bottom)).",
+    "The keyboard opening on a physical phone was not tested. A 390x480 viewport was checked.",
+    "No account data is saved. Form feedback is local to the prototype.",
+    "The state image uses browser-forced focus, hover and active states at the measured Profile tab sizes.",
+    "Pill corners are rounded. Target checks sample the centre and four corners of a centred 44px square.",
+    "Full guideline quotes and proposed wording are inside each layout HTML file.",
+    "The React suite is not green. Its two remaining targeted failures are timeouts in unchanged StockScreener stories."
+  ]
+}
