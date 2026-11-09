@@ -1,0 +1,874 @@
+{
+  "scope": "Disposable phone navigation designs. No kit source changed. No PR opened.",
+  "review": "Self-review using design/references/app-screens.md.",
+  "source": {
+    "issue": "https://github.com/apliteni/apliteni-ui/issues/795",
+    "kit": "0.163.1",
+    "baseCommit": "a245fac9",
+    "firstRoundCommit": "556dee85",
+    "mainCheck": "AccountWindow, NavTabs, Tabs, their navigation CSS and account guidelines match the fetched main branch."
+  },
+  "criteria": [
+    "Use existing kit navigation and glyph placement.",
+    "Keep the reader and close control at the top.",
+    "Keep four safe gaps and cap content height at the safe viewport.",
+    "Keep desktop window geometry.",
+    "Support pointer and keyboard navigation."
+  ],
+  "tokens": {
+    "space-4": "16px",
+    "radius-md": "12px",
+    "font-sans": "IBM Plex Sans",
+    "font-display": "Poppins",
+    "scrim": "Unmodified rx-scrim mixes shadow-ink at 82%.",
+    "shadow-ink-light": "#1e1e32",
+    "bg-elevated-light": "#ffffff",
+    "accent-light": "#6a2dcc",
+    "theme": "Light with the default accent."
+  },
+  "comparison": [
+    {
+      "variant": "navtabs",
+      "part": "NavTabs, underline",
+      "stories": [
+        "react-accountwindow--playground",
+        "react-navtabs--underline"
+      ],
+      "rightWhen": "Keep the current phone navigation.",
+      "cost": "Later entries need horizontal scrolling.",
+      "rules": [
+        "guidelines/account-and-settings.md: modal Except and nav Do",
+        "docs/components.md: A tab row scrolls inside its column"
+      ],
+      "glyphs": "No navigation glyphs."
+    },
+    {
+      "variant": "drill",
+      "part": "SidebarNav with BackLink",
+      "stories": [
+        "react-sidebarnav--sidebar"
+      ],
+      "rightWhen": "Show every section name before opening a pane.",
+      "cost": "Changing sections requires returning to the list.",
+      "rules": [
+        "guidelines/going-back.md: below-a-list, name-it, address-not-history, quiet"
+      ],
+      "conflicts": [
+        "guidelines/account-and-settings.md: modal Except",
+        "guidelines/account-and-settings.md: nav Do"
+      ],
+      "glyphs": "Kit user, lock, bell and card glyphs precede labels. BackLink uses chevronLeft."
+    },
+    {
+      "variant": "tabs",
+      "part": "Tabs",
+      "stories": [
+        "react-tabs--default"
+      ],
+      "rightWhen": "Keep tablist and panel structure together below the reader.",
+      "cost": "The row needs a scroll wrapper. The section title scrolls with its pane.",
+      "rules": [
+        "guidelines/component-choice.md: panels",
+        "guidelines/account-and-settings.md: modal Except and nav Do"
+      ],
+      "glyphs": "No navigation glyphs."
+    }
+  ],
+  "conflicts": [
+    {
+      "variants": "all",
+      "source": "docs/foundations.md: Breakpoints",
+      "quote": "a floating panel goes edge to edge"
+    },
+    {
+      "variants": "all",
+      "source": "docs/components.md: The account window",
+      "quote": "the window fills the screen"
+    },
+    {
+      "variants": "drill",
+      "source": "guidelines/account-and-settings.md: modal Except",
+      "quote": "On a phone the sections become tabs under the reader, where a column beside the pane would leave it narrower than its rows."
+    },
+    {
+      "variants": "drill",
+      "source": "guidelines/account-and-settings.md: nav Do",
+      "quote": "Stand the entries beside the pane \u2014 above it on a phone \u2014 and mark the one on screen."
+    }
+  ],
+  "proposedGuidelines": {
+    "navtabs": "No change to modal Except or nav Do.",
+    "tabs": "No change to modal Except or nav Do.",
+    "drill": {
+      "modal Except": "On a phone, use tabs under the reader or a section list. Each section has a return link.",
+      "nav Do": "Stand entries beside the pane on desktop and mark the open section. On a phone, use tabs or a section list."
+    }
+  },
+  "rejected": {
+    "iconOverLabel": "The owner rejected the first round. No variant uses this shape.",
+    "Segmented": "The panels rule reserves Segmented for a choice that owns no panel.",
+    "phoneMenuDrawer": "A second drawer would add another surface inside the requested floating window."
+  },
+  "glue": [
+    {
+      "declaration": ".rx-modal.demo-window: width, height, max-height, border-radius",
+      "reason": "The brief requires content height, kit radius and safe gaps."
+    },
+    {
+      "declaration": ".demo-root: padding on four sides",
+      "reason": "Each side uses max(space-4, its own safe-area inset)."
+    },
+    {
+      "declaration": ".demo-pane and .demo-body: flex",
+      "reason": "Shrink content height until the pane needs to scroll."
+    },
+    {
+      "declaration": ".demo-tabs-scroll: overflow-x, padding, margin",
+      "reason": "Contain the existing Tabs row without changing its controls."
+    },
+    {
+      "declaration": ".demo-tabs-scroll .ui-tabs__list: width, min-width",
+      "reason": "Keep the row on one line inside its scroll wrapper."
+    },
+    {
+      "declaration": ".demo-window [hidden]: display",
+      "reason": "Remove inactive panes and the drill-in list from layout and focus."
+    }
+  ],
+  "browser": {
+    "browser": "Chromium headless shell",
+    "viewport": {
+      "width": 390,
+      "height": 844,
+      "deviceScaleFactor": 2
+    },
+    "variants": [
+      {
+        "variant": "navtabs",
+        "audits": [
+          {
+            "state": "Profile",
+            "violations": []
+          },
+          {
+            "state": "Security",
+            "violations": []
+          },
+          {
+            "state": "Notifications",
+            "violations": []
+          },
+          {
+            "state": "Billing",
+            "violations": []
+          }
+        ],
+        "widths": [
+          {
+            "width": 320,
+            "pageWidth": 320,
+            "dialog": {
+              "x": 16,
+              "y": 129.140625,
+              "width": 288,
+              "height": 585.71875
+            },
+            "sideVisible": false
+          },
+          {
+            "width": 390,
+            "pageWidth": 390,
+            "dialog": {
+              "x": 16,
+              "y": 129.140625,
+              "width": 358,
+              "height": 585.71875
+            },
+            "sideVisible": false
+          },
+          {
+            "width": 820,
+            "pageWidth": 820,
+            "dialog": {
+              "x": 16.40625,
+              "y": 101.28125,
+              "width": 787.1875,
+              "height": 641.4375
+            },
+            "sideVisible": true
+          },
+          {
+            "width": 1440,
+            "pageWidth": 1440,
+            "dialog": {
+              "x": 208,
+              "y": 101.28125,
+              "width": 1024,
+              "height": 641.4375
+            },
+            "sideVisible": true
+          }
+        ],
+        "interactions": [
+          "All four sections open. Each has one visible pane.",
+          "Empty names fail native validation. Demo submission reports its local result.",
+          "Arrow keys, Home and End move selection and focus together.",
+          "Escape closes. Focus returns to Account. Tab remains in the open dialog."
+        ],
+        "safeArea": {
+          "insets": {
+            "top": 44,
+            "right": 24,
+            "bottom": 34,
+            "left": 24
+          },
+          "dialog": {
+            "x": 24,
+            "y": 44,
+            "width": 342,
+            "height": 766
+          }
+        }
+      },
+      {
+        "variant": "drill",
+        "audits": [
+          {
+            "state": "section list",
+            "violations": []
+          },
+          {
+            "state": "Profile",
+            "violations": []
+          },
+          {
+            "state": "Security",
+            "violations": []
+          },
+          {
+            "state": "Notifications",
+            "violations": []
+          },
+          {
+            "state": "Billing",
+            "violations": []
+          }
+        ],
+        "widths": [
+          {
+            "width": 320,
+            "pageWidth": 320,
+            "dialog": {
+              "x": 16,
+              "y": 133.640625,
+              "width": 288,
+              "height": 576.71875
+            },
+            "sideVisible": false
+          },
+          {
+            "width": 390,
+            "pageWidth": 390,
+            "dialog": {
+              "x": 16,
+              "y": 133.640625,
+              "width": 358,
+              "height": 576.71875
+            },
+            "sideVisible": false
+          },
+          {
+            "width": 820,
+            "pageWidth": 820,
+            "dialog": {
+              "x": 16.40625,
+              "y": 101.28125,
+              "width": 787.1875,
+              "height": 641.4375
+            },
+            "sideVisible": true
+          },
+          {
+            "width": 1440,
+            "pageWidth": 1440,
+            "dialog": {
+              "x": 208,
+              "y": 101.28125,
+              "width": 1024,
+              "height": 641.4375
+            },
+            "sideVisible": true
+          }
+        ],
+        "interactions": [
+          "All four sections open. Each has one visible pane.",
+          "Empty names fail native validation. Demo submission reports its local result.",
+          "Back to Account opens the parent address and restores section focus.",
+          "Escape closes. Focus returns to Account. Tab remains in the open dialog."
+        ],
+        "safeArea": {
+          "insets": {
+            "top": 44,
+            "right": 24,
+            "bottom": 34,
+            "left": 24
+          },
+          "dialog": {
+            "x": 24,
+            "y": 44,
+            "width": 342,
+            "height": 766
+          }
+        }
+      },
+      {
+        "variant": "tabs",
+        "audits": [
+          {
+            "state": "Profile",
+            "violations": []
+          },
+          {
+            "state": "Security",
+            "violations": []
+          },
+          {
+            "state": "Notifications",
+            "violations": []
+          },
+          {
+            "state": "Billing",
+            "violations": []
+          }
+        ],
+        "widths": [
+          {
+            "width": 320,
+            "pageWidth": 320,
+            "dialog": {
+              "x": 16,
+              "y": 122.640625,
+              "width": 288,
+              "height": 598.71875
+            },
+            "sideVisible": false
+          },
+          {
+            "width": 390,
+            "pageWidth": 390,
+            "dialog": {
+              "x": 16,
+              "y": 122.640625,
+              "width": 358,
+              "height": 598.71875
+            },
+            "sideVisible": false
+          },
+          {
+            "width": 820,
+            "pageWidth": 820,
+            "dialog": {
+              "x": 16.40625,
+              "y": 101.28125,
+              "width": 787.1875,
+              "height": 641.4375
+            },
+            "sideVisible": true
+          },
+          {
+            "width": 1440,
+            "pageWidth": 1440,
+            "dialog": {
+              "x": 208,
+              "y": 101.28125,
+              "width": 1024,
+              "height": 641.4375
+            },
+            "sideVisible": true
+          }
+        ],
+        "interactions": [
+          "All four sections open. Each has one visible pane.",
+          "Empty names fail native validation. Demo submission reports its local result.",
+          "Arrow keys, Home and End move selection and focus together.",
+          "Escape closes. Focus returns to Account. Tab remains in the open dialog."
+        ],
+        "safeArea": {
+          "insets": {
+            "top": 44,
+            "right": 24,
+            "bottom": 34,
+            "left": 24
+          },
+          "dialog": {
+            "x": 24,
+            "y": 44,
+            "width": 342,
+            "height": 766
+          }
+        }
+      }
+    ],
+    "browserVersion": "156.0.8078.4"
+  },
+  "captures": [
+    {
+      "name": "navtabs",
+      "profile": {
+        "x": 16,
+        "y": 152.375,
+        "width": 358,
+        "height": 539.234375
+      },
+      "long": {
+        "x": 16,
+        "y": 16,
+        "width": 358,
+        "height": 812,
+        "scrollTop": 184,
+        "scrollHeight": 814,
+        "clientHeight": 630,
+        "pageWidth": 390,
+        "viewport": 390,
+        "fonts": "loaded",
+        "bodyFont": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "errors": [],
+      "audit": [],
+      "focus": "Blurred after document.fonts.ready. Pointer moved outside the panel."
+    },
+    {
+      "name": "drill",
+      "profile": {
+        "x": 16,
+        "y": 155.375,
+        "width": 358,
+        "height": 533.234375
+      },
+      "long": {
+        "x": 16,
+        "y": 16,
+        "width": 358,
+        "height": 812,
+        "scrollTop": 175,
+        "scrollHeight": 814,
+        "clientHeight": 639,
+        "pageWidth": 390,
+        "viewport": 390,
+        "fonts": "loaded",
+        "bodyFont": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "errors": [],
+      "audit": [],
+      "focus": "Blurred after document.fonts.ready. Pointer moved outside the panel."
+    },
+    {
+      "name": "tabs",
+      "profile": {
+        "x": 16,
+        "y": 145.875,
+        "width": 358,
+        "height": 552.234375
+      },
+      "long": {
+        "x": 16,
+        "y": 16,
+        "width": 358,
+        "height": 812,
+        "scrollTop": 197,
+        "scrollHeight": 855,
+        "clientHeight": 658,
+        "pageWidth": 390,
+        "viewport": 390,
+        "fonts": "loaded",
+        "bodyFont": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+      },
+      "errors": [],
+      "audit": [],
+      "focus": "Blurred after document.fonts.ready. Pointer moved outside the panel."
+    }
+  ],
+  "hardCases": [
+    {
+      "variant": "navtabs",
+      "targets": [
+        {
+          "name": "Profile",
+          "height": 40,
+          "width": 70,
+          "hitAbove21": false,
+          "hitBelow21": false
+        },
+        {
+          "name": "Security",
+          "height": 40,
+          "width": 80,
+          "hitAbove21": false,
+          "hitBelow21": false
+        },
+        {
+          "name": "Notifications",
+          "height": 40,
+          "width": 110,
+          "hitAbove21": false,
+          "hitBelow21": false
+        },
+        {
+          "name": "Billing",
+          "height": 40,
+          "width": 69,
+          "hitAbove21": false,
+          "hitBelow21": false
+        }
+      ],
+      "longLabels": {
+        "pageWidth": 390,
+        "viewport": 390
+      },
+      "zoom200": {
+        "pageWidth": 390,
+        "viewport": 390,
+        "dialogWidth": 326
+      }
+    },
+    {
+      "variant": "drill",
+      "targets": [
+        {
+          "name": "Profile",
+          "height": 35.390625,
+          "width": 216,
+          "hitAbove21": false,
+          "hitBelow21": false
+        },
+        {
+          "name": "Security",
+          "height": 35.390625,
+          "width": 216,
+          "hitAbove21": false,
+          "hitBelow21": false
+        },
+        {
+          "name": "Notifications",
+          "height": 35.390625,
+          "width": 216,
+          "hitAbove21": false,
+          "hitBelow21": false
+        },
+        {
+          "name": "Billing",
+          "height": 35.390625,
+          "width": 216,
+          "hitAbove21": false,
+          "hitBelow21": false
+        }
+      ],
+      "longLabels": {
+        "pageWidth": 390,
+        "viewport": 390
+      },
+      "zoom200": {
+        "pageWidth": 390,
+        "viewport": 390,
+        "dialogWidth": 326
+      }
+    },
+    {
+      "variant": "tabs",
+      "targets": [
+        {
+          "name": "Profile",
+          "height": 38,
+          "width": 72,
+          "hitAbove21": true,
+          "hitBelow21": false
+        },
+        {
+          "name": "Security",
+          "height": 38,
+          "width": 82,
+          "hitAbove21": true,
+          "hitBelow21": false
+        },
+        {
+          "name": "Notifications",
+          "height": 38,
+          "width": 111,
+          "hitAbove21": true,
+          "hitBelow21": false
+        },
+        {
+          "name": "Billing",
+          "height": 38,
+          "width": 69,
+          "hitAbove21": true,
+          "hitBelow21": false
+        }
+      ],
+      "longLabels": {
+        "pageWidth": 390,
+        "viewport": 390
+      },
+      "zoom200": {
+        "pageWidth": 390,
+        "viewport": 390,
+        "dialogWidth": 326
+      }
+    }
+  ],
+  "limits": [
+    "Form changes are local and do not persist.",
+    "Real phone hardware and a software keyboard were not tested.",
+    "The 200% check uses CSS zoom, not an operating-system text-size setting.",
+    "NavTabs keeps its 40px height. SidebarNav rows keep their approximate 35px height.",
+    "BackLink keeps its documented 24px height. These kit exceptions remain unchanged.",
+    "The hit probes measure points near a drawn centre, not an entire target.",
+    "Desktop checks measure geometry and navigation visibility, not every pixel."
+  ],
+  "designReview": {
+    "result": "Ready for owner choice, with the stated rule conflicts.",
+    "fixes": [
+      "The drill-in list leaves layout after a section opens.",
+      "BackLink uses the kit chevron and visible destination name.",
+      "Tabs owns its panel content below the reader."
+    ],
+    "kitOverrides": [
+      "AccountWindow keeps the named Profile heading.",
+      "The reader rail keeps its kit page ground.",
+      "Existing navigation keeps the kit target-size exceptions."
+    ],
+    "appScreenChecks": {
+      "oneTask": true,
+      "kitTitlesAndLabels": true,
+      "singleColumn": true,
+      "visibleCopyUnder80Words": true,
+      "noExtraHelperCopy": true,
+      "countsApplicable": false,
+      "noAccordions": true,
+      "kitReadingSurfaces": true,
+      "kitColourRoles": true,
+      "actionsAfterFields": true,
+      "tablesApplicable": false,
+      "noNewCardTreatment": true,
+      "briefPresent": true,
+      "widthsChecked": true,
+      "nativeNamedControls": true,
+      "allTargets44px": false
+    }
+  },
+  "slop": {
+    "method": "The detector scanned rendered DOM after browser rendering.",
+    "findings": [
+      {
+        "rule": "multiword-control",
+        "location": "Update notifications in each long pane",
+        "status": "Rule conflict. Account and settings one-action requires the action to name its change."
+      },
+      {
+        "rule": "gradient-text",
+        "location": ".ui-hero__title .grad in inlined CSS",
+        "status": "No matching element is rendered."
+      },
+      {
+        "rule": "glassmorphism",
+        "location": ".ui-drop--page in inlined CSS",
+        "status": "No matching element is rendered."
+      }
+    ],
+    "editorial": "No filler copy or new visual style was found.",
+    "report": "The report passed the artifact scan without findings."
+  },
+  "assets": {
+    "fonts": "Embedded IBM Plex Sans and Poppins from the first round. Their SIL license notices remain in each HTML.",
+    "icons": "Unmodified output from src/assets/icons.js.",
+    "amberstone": "sketch_inline.py embeds its scoped kit. No data-sketch attribute activates that styling."
+  },
+  "tests": {
+    "npm test": {
+      "result": "passed",
+      "passed": 1789,
+      "skipped": 25,
+      "failed": 0,
+      "durationSeconds": 80.322
+    },
+    "npm test -w react": {
+      "result": "failed",
+      "passed": 5015,
+      "failed": 5,
+      "durationSeconds": 492.65,
+      "failures": [
+        "Dropdown.badges.test.tsx: Menu, light timed out at 5000ms.",
+        "guidelines.test.tsx: collection title timed out at 5000ms.",
+        "contrast-7.test.tsx: StockScreener dark and light timed out at 30000ms.",
+        "contrast-7.test.tsx: DenseTables dark timed out at 30000ms."
+      ],
+      "scope": "All failing files are unchanged."
+    },
+    "stories/story-css.test.js": {
+      "result": "passed",
+      "tests": 26
+    },
+    "react/src/story-css.test.ts": {
+      "result": "passed under Vitest",
+      "tests": 36,
+      "note": "An initial node --test invocation used the wrong runner."
+    },
+    "npm run build": {
+      "result": "passed"
+    },
+    "node site/build.mjs": {
+      "result": "passed after the clean Storybook build",
+      "exitCode": 0
+    },
+    "npm run build-storybook": {
+      "result": "passed",
+      "exitCode": 0,
+      "note": "A clean rerun completed after the first combined command exited 143."
+    },
+    "focused React rerun": {
+      "command": "npm test -w react -- src/Dropdown.badges.test.tsx src/guidelines.test.tsx src/contrast-7.test.tsx",
+      "result": "failed",
+      "passed": 228,
+      "failed": 1,
+      "durationSeconds": 158.36,
+      "failure": "StockScreener dark in contrast-7.test.tsx timed out at 30000ms.",
+      "scope": "The failing story and test are unchanged. No source fix was attempted in this design task."
+    }
+  },
+  "security": {
+    "artifactTree": "Gitleaks passed.",
+    "stagedDesign": "Gitleaks passed.",
+    "existingBranchHistory": "Gitleaks passed for origin/main..HEAD before the design commit.",
+    "finalCommit": "The final commit is scanned before push. The task handoff reports that result."
+  },
+  "screenshots": [
+    {
+      "path": "design/795/r2/drill-focus.png",
+      "pixels": [
+        716,
+        360
+      ],
+      "sha256": "8cf939b8da06d0aa4c20e6d0f5f29c80f0b487db3936b6b1779b22220f731616"
+    },
+    {
+      "path": "design/795/r2/drill-hover.png",
+      "pixels": [
+        716,
+        360
+      ],
+      "sha256": "01909d86513bab6e920308e613169150a5956d393b7db448e1e61bb396c13a98"
+    },
+    {
+      "path": "design/795/r2/drill-list.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "c885b6ab930f5dc7368bdf1a17cd6b699afe311ef984160bf9cacb41d3338da3"
+    },
+    {
+      "path": "design/795/r2/drill-long.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "540d7065c88ca02c3b3f1dce4d86dee89834231f71a567b7e85495cf6d8b5d8d"
+    },
+    {
+      "path": "design/795/r2/drill-pressed.png",
+      "pixels": [
+        716,
+        360
+      ],
+      "sha256": "01909d86513bab6e920308e613169150a5956d393b7db448e1e61bb396c13a98"
+    },
+    {
+      "path": "design/795/r2/drill-profile.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "a4267ef365a5ee77081d0fb902902c58d3202f3ca6e29d2862edd37a9cdff1fb"
+    },
+    {
+      "path": "design/795/r2/navtabs-focus.png",
+      "pixels": [
+        684,
+        252
+      ],
+      "sha256": "db19e189718916b482a86a12b3108ed7b616dd1d362b03704d39e08db0cc7ee3"
+    },
+    {
+      "path": "design/795/r2/navtabs-hover.png",
+      "pixels": [
+        684,
+        252
+      ],
+      "sha256": "a0e56b7764e3a41bbdd15e2685a9eb2a2ca0ef072ce1123b2d336853b3efe623"
+    },
+    {
+      "path": "design/795/r2/navtabs-long.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "66e5d933948098bdbc9c409a496e1b99b953a71d0eaf01bb5eae8e659c47d1b3"
+    },
+    {
+      "path": "design/795/r2/navtabs-pressed.png",
+      "pixels": [
+        684,
+        252
+      ],
+      "sha256": "a0e56b7764e3a41bbdd15e2685a9eb2a2ca0ef072ce1123b2d336853b3efe623"
+    },
+    {
+      "path": "design/795/r2/navtabs-profile.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "6b43fe4415a2fb0353669b7ab23741b4ed707a68061fdf08e26a4f544e3386b6"
+    },
+    {
+      "path": "design/795/r2/tabs-focus.png",
+      "pixels": [
+        652,
+        94
+      ],
+      "sha256": "d9aa2ecfbe3096953c7e80f498e1bd3efd35e18660cb7f24295371da3f692be4"
+    },
+    {
+      "path": "design/795/r2/tabs-hover.png",
+      "pixels": [
+        652,
+        94
+      ],
+      "sha256": "5286c84ccca8eed433083703b0f7867a6eb7f5308728afa486853d3e843a6294"
+    },
+    {
+      "path": "design/795/r2/tabs-long.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "15a5776c4bf04eb61d04cb0cb92370a748c12d27b0c41c74101dbb586b04f60e"
+    },
+    {
+      "path": "design/795/r2/tabs-pressed.png",
+      "pixels": [
+        652,
+        94
+      ],
+      "sha256": "5286c84ccca8eed433083703b0f7867a6eb7f5308728afa486853d3e843a6294"
+    },
+    {
+      "path": "design/795/r2/tabs-profile.png",
+      "pixels": [
+        780,
+        1688
+      ],
+      "sha256": "57eaa4d78804954f96c28f4f31fa8201034fe1e8e1ae0850b622f541f5ddca95"
+    }
+  ]
+}
