@@ -27,7 +27,9 @@
   /* rank: card-title */
   font-size: var(--text-lg); font-weight: var(--weight-semibold); line-height: var(--leading-snug);
   font-family: var(--font-sans); color: var(--strong); }
-.rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8); }
+.rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8);
+  /* The ring's reach outside a control, so a stop that focus scrolls in keeps its whole band. */
+  scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width)); }
 /* The tabs and the rail's close are the phone's. */
 .rx-account__tabs, .rx-account__who > .ui-btn { display: none; }
 .rx-account__tabs { --ui-tabs-ground: var(--bg); }

@@ -65,7 +65,7 @@ const longSections = sections.map(s => s.id !== 'notifications' ? s : { ...s, co
   {groups.map(([legend, labels]) => <CheckList key={legend} legend={legend}>
     {labels.map((l, i) => <Checkbox key={l} label={l} defaultChecked={i === 0} />)}
   </CheckList>)}
-  <div><Button variant="primary">Update notifications</Button></div>
+  <div><Button variant="primary">Update</Button></div>
 </> });
 
 export const LongSection: StoryObj<typeof AccountWindow> = {

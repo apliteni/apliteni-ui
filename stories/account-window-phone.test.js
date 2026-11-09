@@ -1,7 +1,8 @@
 /* Rule: at 560px and below the account window floats with a --space-4 gap on each side, or
  * the safe-area inset where that is wider. It is as tall as its content, up to the screen
  * height, and only the section's body scrolls under the reader and the tabs. End on the tab
- * row reveals the last tab with its whole ring and moves no box sideways (#795).
+ * row reveals the last tab with its whole ring and moves no box sideways (#795). Tab through
+ * the body scrolls each control in with its whole ring, at both text sizes (#795).
  *
  * The source half runs in CI. It reads the 560px block of AccountWindow.css and checks that
  * the window keeps all four clearances, a dvh cap and the modal radius. It proves rejection
@@ -17,7 +18,10 @@
  * 320x640, with the kit's text sizes and with each --text-* token doubled. Headless
  * Chromium reports no safe-area inset, so the browser half measures the --space-4 gap and
  * the env() half is the source half's. The ring check compares the outline's box with the
- * boxes of the clipping ancestors, and does not read paint.
+ * boxes of the clipping ancestors, and does not read paint. The body walk goes down with
+ * Tab only, so a ring that Shift+Tab scrolls in at the upper edge is not measured. The
+ * mutation removes the body's scroll padding in the long section at 320x640 and needs at
+ * least one clipped stop there.
  * why: docs/components.md#the-account-window
  */
 import test from 'node:test';
@@ -132,6 +136,22 @@ const RING = () => {
       .concat(document.scrollingElement.scrollLeft ? ['the page'] : []) };
 };
 
+// Tab from wherever focus is into the body, then through each stop in it, and read each ring.
+const walkBody = async (page) => {
+  await page.evaluate(() => { document.querySelector('.rx-account__body').scrollTop = 0; });
+  const inBody = () => page.evaluate(() => document.querySelector('.rx-account__body').contains(document.activeElement));
+  for (let i = 0; i < 40 && !await inBody(); i += 1) await page.keyboard.press('Tab');
+  const stops = [];
+  while (await inBody() && stops.length < 60) {
+    await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => ok(null)))));
+    stops.push(await page.evaluate(RING));
+    await page.keyboard.press('Tab');
+  }
+  const controls = await page.evaluate(() => document.querySelector('.rx-account__body')
+    .querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), a[href]').length);
+  return { stops, controls };
+};
+
 test('the phone window floats with a gap, and only the section body scrolls', {
   skip: process.env.ACCOUNT_PHONE !== '1' && 'set ACCOUNT_PHONE=1',
 }, async () => {
@@ -145,6 +165,7 @@ test('the phone window floats with a gap, and only the section body scrolls', {
   const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
   const server = await serve(build, path.join(build, 'iframe.html'));
   let measured = 0;
+  let mutated = 0;
   try {
     for (const view of VIEWS) for (const doubled of [false, true]) for (const story of STORIES) {
       const where = `${story.id} ${view.width}x${view.height}${doubled ? ' text 200%' : ''}`;
@@ -176,6 +197,21 @@ test('the phone window floats with a gap, and only the section body scrolls', {
           assert.ok(end.body.top > 0, `${where}: the body did not scroll`);
           assert.deepEqual([end.rail.top, end.head.top], [m.rail.top, m.head.top], `${where}: the reader or the title moved with the body`);
         }
+        // Tab through the body: each control scrolls in with its whole ring.
+        const walk = await walkBody(page);
+        assert.equal(walk.stops.length, walk.controls, `${where}: Tab stopped ${walk.stops.length} times in a body of ${walk.controls} controls`);
+        for (const stop of walk.stops) {
+          assert.ok(stop.out > 0, `${where}: ${stop.tab || stop.role} shows no outline`);
+          assert.deepEqual(stop.cuts, [], `${where}: the ring of ${stop.tab || stop.role} is clipped`);
+        }
+        if (story.long && view.width === 320) {
+          await page.addStyleTag({ content: '.rx-account__body { scroll-padding-block: 0 !important; }' });
+          await page.evaluate(() => document.activeElement.blur());
+          const bare = await walkBody(page);
+          assert.ok(bare.stops.some((stop) => stop.cuts.length), `${where}: the walk passed with no scroll padding`);
+          mutated += 1;
+          await page.evaluate(() => document.activeElement.blur());
+        }
         // Reach the tab row with Tab, so :focus-visible is on, then End.
         let role = null;
         for (let i = 0; i < 40 && role !== 'tab'; i += 1) {
@@ -200,4 +236,5 @@ test('the phone window floats with a gap, and only the section body scrolls', {
     await browser.close();
   }
   assert.equal(measured, VIEWS.length * 2 * STORIES.length, 'every case was measured');
+  assert.equal(mutated, 2, 'the mutation ran at both text sizes');
 });
