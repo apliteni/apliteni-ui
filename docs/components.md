@@ -588,8 +588,9 @@ above and below it on a short one. The rail is the page ground, with the reader'
 and email at its top. Only the open section's row carries the accent. Each rail row is a button
 with `aria-current`, because a section is a place in the window and not a route. The pane remounts
 when the section changes, so a half-filled form does not follow the reader. At 560px and below
-the window fills the screen, and the sections become tabs under the reader. They act as the
-`Tabs` panel tabs do: one Tab stop, the arrow keys, Home and End, and the open tab scrolled into
+the window floats with a gap on each side, clear of the notch and the home bar. It is as tall as
+its content, up to the screen height, and a long section scrolls inside it. The sections become
+tabs under the reader. They act as the `Tabs` panel tabs do: one Tab stop, the arrow keys, Home and End, and the open tab scrolled into
 view. Pass `section` and `onSectionChange` to control the open section, or `defaultSection` to
 leave it to the window.
 

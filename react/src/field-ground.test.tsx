@@ -75,8 +75,10 @@ const THEMES = ['dark', 'light'] as const;
 // Then four search fields from the DataTable members stories (#770), one above each
 // of the four tables.
 // Then the band's search field in the AppShell PhoneMenu story (#790).
+// Then sixteen checkboxes from the AccountWindow Long section story (#795), four in
+// each of its four groups.
 // Move this count with the specimens.
-const FIELD_COUNT = 155;
+const FIELD_COUNT = 171;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

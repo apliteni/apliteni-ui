@@ -44,7 +44,7 @@ The kit has three breakpoints, and every media query it ships uses one of them.
 | ------- | -------------------------------------------------------------------------------------- |
 | `860px` | the page stops holding three tracks — a three-across grid drops to two, a side-by-side pair stacks |
 | `720px` | the shell folds — the app rail becomes an icon strip, link columns halve, a secondary label drops out |
-| `560px` | one column — every remaining grid is a single track, and a floating panel goes edge to edge |
+| `560px` | one column — every remaining grid is a single track, and a floating panel goes edge to edge, except the account window, which keeps a gap on each side |
 
 A step describes a viewport class, not a preference for one surface. The values are written as
 literals because a media query cannot read a custom property, and the kit has no build step to
