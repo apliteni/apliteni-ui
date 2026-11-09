@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { AccountWindow, type AccountSection } from './AccountWindow';
-import { Checkbox } from './Checkbox';
+import { CheckList, Checkbox } from './Checkbox';
 import { SelectField, TextField } from './Field';
 import { KeyValueList } from './KeyValueList';
 import { Button } from './primitives/Button';
@@ -47,6 +47,35 @@ export const Playground: StoryObj<typeof AccountWindow> = {
       <>
         <Button variant="primary" onClick={() => setOpen(true)}>Account</Button>
         <AccountWindow open={open} onClose={() => setOpen(false)} sections={sections}
+          reader={{ name: 'Dana Example', email: 'dana@example.com', personKey: 'dana' }} />
+      </>
+    );
+  },
+};
+
+// A section taller than a phone screen: the window stops at the screen height, and only
+// the section scrolls under the reader and the tabs.
+const groups: [string, string[]][] = [
+  ['Reports', ['Daily summary', 'Weekly report', 'Monthly report', 'Export ready']],
+  ['Team', ['Invitation accepted', 'Member joined', 'Access changed', 'Team announcement']],
+  ['Account', ['New sign-in', 'Password changed', 'Email changed', 'Product news']],
+  ['Billing', ['Invoice ready', 'Payment failed', 'Card expiring', 'Plan changed']],
+];
+const longSections = sections.map(s => s.id !== 'notifications' ? s : { ...s, content: <>
+  {groups.map(([legend, labels]) => <CheckList key={legend} legend={legend}>
+    {labels.map((l, i) => <Checkbox key={l} label={l} defaultChecked={i === 0} />)}
+  </CheckList>)}
+  <div><Button variant="primary">Update notifications</Button></div>
+</> });
+
+export const LongSection: StoryObj<typeof AccountWindow> = {
+  name: 'Long section',
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <>
+        <Button variant="primary" onClick={() => setOpen(true)}>Account</Button>
+        <AccountWindow open={open} onClose={() => setOpen(false)} sections={longSections} defaultSection="notifications"
           reader={{ name: 'Dana Example', email: 'dana@example.com', personKey: 'dana' }} />
       </>
     );

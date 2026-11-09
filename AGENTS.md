@@ -222,6 +222,13 @@ Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the sh
 `UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
 Report the result in the PR. CI skips this check because Playwright is not a dependency.
 
+## Check the phone account window locally
+
+Before opening a PR that changes the 560px rules of `react/src/AccountWindow.css`, measure the
+window in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.
