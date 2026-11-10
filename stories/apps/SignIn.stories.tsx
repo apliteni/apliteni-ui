@@ -43,20 +43,22 @@ type SignInArgs = {
 /** The sign-in block that the page and the modal share. `onDone` stands in for the provider's answer. */
 function SignInBlock({ providers, lastUsed, email, failed, passwordError, onDone }: SignInArgs & { onDone?: () => void }) {
   // The last-used provider is the one main action, so the form's button steps down beside it.
-  const order = lastUsed ? [lastUsed, ...providers.filter(id => id !== lastUsed)] : providers;
+  // A last-used provider that this product does not offer gets no place and no fill.
+  const last = lastUsed && providers.includes(lastUsed) ? lastUsed : undefined;
+  const order = last ? [last, ...providers.filter(id => id !== last)] : providers;
   const other = providers.length > 1 || email;
   return <div className="ui-stack">
     {failed && <Callout variant="danger" actions={<Button variant="secondary" size="sm" icon="refresh" onClick={onDone}>Try {PROVIDERS[failed].name} again</Button>}>
       {PROVIDERS[failed].name} did not finish the sign-in. Nothing changed. {other ? 'Try again, or use another way to sign in.' : 'Try again.'}
     </Callout>}
-    {order.map(id => <Button key={id} variant={id === lastUsed ? 'primary' : 'secondary'} size="lg" block
+    {order.map(id => <Button key={id} variant={id === last ? 'primary' : 'secondary'} size="lg" block
       leading={PROVIDERS[id].mark} icon={PROVIDERS[id].icon} onClick={onDone}>Continue with {PROVIDERS[id].name}</Button>)}
     {email && <>
       {providers.length > 0 && <div className="ui-divider">or</div>}
       <form className="auth-form" onSubmit={event => { event.preventDefault(); onDone?.(); }}>
         <TextField label="Work email" type="email" autoComplete="username" placeholder="you@apliteni.com" defaultValue={passwordError ? 'ada@apliteni.com' : undefined} icon="mail" required />
         <TextField label="Password" type="password" autoComplete="current-password" placeholder="••••••••" defaultValue={passwordError ? 'wrong' : undefined} icon="lock" required error={passwordError} />
-        <Button variant={lastUsed ? 'secondary' : 'primary'} size="lg" block type="submit">Sign in</Button>
+        <Button variant={last ? 'secondary' : 'primary'} size="lg" block type="submit">Sign in</Button>
       </form>
     </>}
   </div>;
