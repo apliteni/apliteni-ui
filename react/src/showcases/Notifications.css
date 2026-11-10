@@ -8,14 +8,14 @@
    stands --space-1 off it, so the link keeps clear of the brand's name. On a one-section band
    the bell sits on the band with no head-control box, so it takes the same width itself. */
 .ui-nav__item.notifications__bell {
-  display: inline-flex; flex: none; justify-content: flex-start; width: var(--ui-head-control-w);
+  display: inline-flex; flex: none; justify-content: flex-start; width: var(--ui-head-control-w, 64px);
   gap: var(--space-1); padding-inline: var(--space-3) 0;
 }
 /* At zero the link is the kit's one-glyph width, and the margin holds the room the count
    had. So the bell does not move when its count hides. */
 .notifications__bell--zero {
-  --ui-head-control-w: var(--ui-nav-strip);
-  margin-inline-end: calc(64px - var(--ui-nav-strip));
+  --ui-head-control-w: var(--ui-nav-strip, 41px);
+  margin-inline-end: calc(64px - var(--ui-nav-strip, 41px));
 }
 
 /* The phone band has no slot for a product control. The bell stands before Menu on a
