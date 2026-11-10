@@ -94,7 +94,7 @@ const subjects: string[] = [...new Set([
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 5 };
+const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -151,6 +151,9 @@ const ALLOWED: Record<string, string> = {
   'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):first-child,\n.finance-comparison__card .ui-table td.ui-table__linked:first-child > a': 'the first column shares the comparison text inset',
   'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):last-child': 'the last column shares the comparison text inset',
   'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):first-child,\n  .finance-comparison__card .ui-table td.ui-table__linked:first-child > a': 'the phone first column shares the smaller text inset',
+  // The head control centres one glyph (#732) and has no count slot. The bell link names its nav
+  // row class to outrank that centring, so the bell keeps the row inset with its count beside it (#798).
+  'react/src/showcases/Notifications.css|.ui-nav__item.notifications__bell': 'the head control has no count slot, so the bell keeps the nav row inset beside its count, and on a one-section band it sits with no head-control box, so it takes that width itself',
 };
 
 /* ---- the glue ceiling --------------------------------------------------- */
@@ -217,6 +220,7 @@ describe('story CSS', () => {
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
       'react/src/showcases/InvoiceFlow.css',
+      'react/src/showcases/Notifications.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.

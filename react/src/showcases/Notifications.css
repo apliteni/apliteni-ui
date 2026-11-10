@@ -1,0 +1,29 @@
+/* Layout glue only. Paint, type and the current plate come from the kit's nav row. */
+
+/* The head control has no count slot (#798), so the bell link is wide enough for the bell
+   and a two-digit count: a 12px inset, the 17px bell, a 4px gap, a 26px count, a 5px end.
+   The shell's own width hook sets it, in the rail head, on the band and in the menu's head. */
+.notifications__bell { --ui-head-control-w: 64px; }
+/* The head control centres one glyph. The bell keeps the nav row's inset and the count
+   stands --space-1 off it, so the link keeps clear of the brand's name. On a one-section band
+   the bell sits on the band with no head-control box, so it takes the same width itself. */
+.ui-nav__item.notifications__bell {
+  display: inline-flex; flex: none; justify-content: flex-start; width: var(--ui-head-control-w);
+  gap: var(--space-1); padding-inline: var(--space-3) 0;
+}
+/* At zero the link is the kit's one-glyph width, and the margin holds the room the count
+   had. So the bell does not move when its count hides. */
+.notifications__bell--zero {
+  --ui-head-control-w: var(--ui-nav-strip);
+  margin-inline-end: calc(64px - var(--ui-nav-strip));
+}
+
+/* The phone band has no slot for a product control. The bell stands before Menu on a
+   phone only, at the band's 40px control height. */
+.notifications__bar-bell { display: none; --ui-head-control-h: 40px; }
+@media (max-width: 720px) {
+  .notifications__bar-bell { display: flex; }
+}
+
+/* The glyph sits off the title as on a nav row (11px), between --space-2 and --space-3. */
+.notifications__note { display: inline-flex; align-items: center; gap: 11px; }

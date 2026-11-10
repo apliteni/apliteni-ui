@@ -1,0 +1,16 @@
+import type { Meta, StoryObj } from '@storybook/react';
+import { Notifications } from './Notifications';
+const meta = { title: 'Apps/Notifications', id: 'apps-notifications', component: Notifications, parameters: { layout: 'fullscreen', docs: { description: { component: 'A notifications bell with its unread count in the shell head, and the page it opens. The data is sample data. Retry loads the list. Sign out is inactive.' } } } } satisfies Meta<typeof Notifications>;
+export default meta;
+type Story = StoryObj<typeof meta>;
+const phone = { viewport: { value: 'phone', isRotated: false } };
+export const List: Story = { args: { scene: 'list' } };
+export const OneSection: Story = { args: { scene: 'band' } };
+export const Overview: Story = { args: { scene: 'overview' } };
+export const NoneUnread: Story = { args: { scene: 'zero' } };
+export const Empty: Story = { args: { scene: 'empty' } };
+export const LoadError: Story = { args: { scene: 'error' } };
+export const PhoneOverview: Story = { args: { scene: 'overview' }, globals: phone };
+export const PhoneList: Story = { args: { scene: 'list' }, globals: phone };
+export const PhoneEmpty: Story = { args: { scene: 'empty' }, globals: phone };
+export const PhoneLoadError: Story = { args: { scene: 'error' }, globals: phone };
