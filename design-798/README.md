@@ -16,9 +16,7 @@ The coordinator decided that no new kit component is allowed. Each variant is a 
 
 | Variant | Where the list opens | Kit parts |
 | --- | --- | --- |
-| A | A menu panel under the bell | AppShell head control, Dropdown (menu, search, 480px scroll), nav badge |
-| B | A drawer on the bell's side | AppShell head control, Button, Drawer, DrawerSection, Timeline |
-| C | A Notifications page that the bell links to | AppShell head control, Button link, DataTable, EmptyState, Callout |
+| C | A Notifications page that the bell links to | AppShell head control, nav row link with the nav badge, DataTable, EmptyState, Callout |
 | D | A Notifications page that a nav section links to | AppShell sections with `count`, SidebarNav, DataTable, EmptyState |
 
 ## Recommendation
@@ -27,7 +25,7 @@ Use C for the bell, and use D where the product has a side nav and the owner doe
 
 The reasons:
 
-- A page holds all 6 rows at full width with a time column. The A menu caps at 300px, about 3.5 rows, unless the consumer sets a scroll height. The B drawer fixes the row shape to the 3 Timeline kinds.
+- A page holds all 6 rows at full width with a time column.
 - A page has a URL, so a link in an email or a toast can open it. "Open a panel at its control" on Component choice keeps a panel for a short choice, not for a record list.
 - C and D share one page. Only the entry is different, so a product can start with D and add the bell later.
 
@@ -37,32 +35,30 @@ Desktop pictures are 1440x900. Phone pictures are 390x844. All are at 1x, in the
 
 | Picture | What it shows | Kit parts and rules |
 | --- | --- | --- |
-| `shots/a-side.png` | A: the menu open from the bell in the rail head, 6 rows | Dropdown menu. Component choice "Open a panel at its control" and "Add dropdown search" |
-| `shots/a-band.png` | A: the menu open from the bell on the band of a one-section app | Dropdown menu. The page "Keep one shell" |
-| `shots/a-state-row-focus.png` | A: keyboard focus on a menu row | Dropdown row. The full state set "Focus rings" |
-| `shots/b-side-closed.png` | B: the bell with its count in the rail head, drawer closed | Button, nav badge. Iconography "Icon-only controls" |
-| `shots/b-side.png` | B: the drawer open on the left, Today and Earlier groups | Drawer, DrawerSection, Timeline. Drawers "Drawer or page" and "Grouped content" |
-| `shots/b-band-closed.png` | B: the bell on the band, drawer closed | Button, nav badge. The page "Keep one shell" |
-| `shots/b-band.png` | B: the drawer open on the right | Drawer, Timeline. Drawers "One-record drawer" |
-| `shots/c-side.png` | C: the bell in the rail head, the Notifications page with 6 rows | Button link, DataTable. Dense tables "Use the right surface" and "Size the table to its content" |
-| `shots/c-band.png` | C: the same page in a one-section app, bell on the band | DataTable. The page "Keep one shell" |
-| `shots/c-zero.png` | C: the bell at zero, with no badge | Button, icon only. Button labels "Earn a wordless button" |
-| `shots/c-empty.png` | C: the empty list | EmptyState first-run with "Open Overview". Empty states "Explain what is missing and show the next step" |
+| `shots/c-side.png` | C: the Notifications page with 6 rows. The bell in the rail head has the current plate and the count 6 | Nav row current plate, nav badge, DataTable. Dense tables "Use the right surface" and "Size the table to its content" |
+| `shots/c-band.png` | C: the same page in a one-section app. The bell on the band has the current plate | DataTable. The page "Keep one shell" |
+| `shots/c-overview.png` | C: the Overview page, the bell with the count 6 and no plate | StatBand, DataTable. Stat bands "Use a stat band" and "State the comparison basis" |
+| `shots/c-zero.png` | C: the Overview page, the bell at zero with no count, in the same place as in `c-overview.png` | Nav row link, icon only. Button labels "Earn a wordless button" |
+| `shots/c-empty.png` | C: the empty list, with no table head | EmptyState first-run with "Open Overview". Empty states "Explain what is missing and show the next step" |
 | `shots/c-error.png` | C: the list did not load | Danger Callout with Retry. Component choice "Show lasting conditions" |
-| `shots/c-phone-bar.png` | C on a phone: the top bar | AppShell phone band. The bell is not on the bar (a missing part) |
+| `shots/c-phone-bar.png` | C on a phone: the top bar with search, the bell with the count 6, and Menu | AppShell phone band, nav badge. The bell is a stand-in for a missing part, see below |
 | `shots/c-phone-menu.png` | C on a phone: the menu drawer with the bell in its head | AppShell menu drawer, head control |
-| `shots/c-phone-list.png` | C on a phone: the Notifications page | DataTable. Dense tables "Scroll instead of squeezing" |
-| `shots/c-state-bell-hover.png` | C: pointer on the bell at zero | Button ghost hover |
-| `shots/c-state-bell-focus.png` | C: keyboard focus on the bell with its count | Button focus. The full state set "Focus rings" |
+| `shots/c-phone-list.png` | C on a phone: the Notifications page. Each title wraps and each time is complete | DataTable. Dense tables "Scroll instead of squeezing" |
+| `shots/c-phone-empty.png` | C on a phone: the empty list | EmptyState first-run |
+| `shots/c-phone-error.png` | C on a phone: the list did not load | Danger Callout with Retry |
+| `shots/c-state-bell-hover.png` | C: pointer on the bell at zero | Nav row hover wash |
+| `shots/c-state-bell-focus.png` | C: keyboard focus on the bell with its count | Nav row focus ring. The full state set "Focus rings" |
 | `shots/c-state-row-hover.png` | C: pointer on a row link | DataTable linked cell. Labels and titles "Use body ink" |
 | `shots/c-state-row-focus.png` | C: keyboard focus on a row link | DataTable linked cell. The full state set "Focus rings" |
 | `shots/d-nav.png` | D: a Notifications section with the count 6 | SidebarNav badge, neutral tone |
 | `shots/d-nav-zero.png` | D: the count at zero, no badge, the current page and the empty list | SidebarNav current row, EmptyState |
 | `shots/d-phone-menu.png` | D on a phone: the menu drawer with Notifications 6 | AppShell menu drawer, SidebarNav |
 
+C and D use one count: the nav badge with the neutral tone. The bell is drawn as a nav row, so it gets the same current plate, hover wash and focus ring as D's row.
+
 ## Kit conflict
 
-The bell in A, B and C is a wordless control. Iconography, rule "Icon-only controls", says word for word:
+The bell in C is a wordless control. Iconography, rule "Icon-only controls", says word for word:
 
 > **Rule:** Remove a control’s label only for an action on the closed list.
 > **Why:** Without a legend, readers need labels for unfamiliar glyphs.
@@ -82,28 +78,36 @@ The prototypes show the bell so that the owner can decide. They do not assume th
 
 | Missing part | How close the kit comes |
 | --- | --- |
-| A count slot on the head control or an icon button | Close. The nav badge fits, but the 40px head control needs glue to widen. |
+| A count slot on the head control or an icon button | Close. The nav badge fits, but the head control is one glyph wide, so the glue widens the link to 64px. |
 | Hide the count at zero | Close. SidebarNav draws a count of 0, so the consumer passes `count || undefined`. |
-| A band slot for a product control when a side nav exists | Not close. On a phone the bell shows only in the menu drawer's head, not on the top bar. |
-| A notification row with icon, title, time and link | Partial. The Dropdown row has no time column. Timeline has 3 fixed kinds. The DataTable row works but is a table. |
+| A band slot for a product control when a side nav exists | Not close. The phone bar has no slot. The prototype puts the bell before Menu with a portal. That bell keeps the nav glyph's faded ink, but search and Menu have full ink. Glue cannot repaint it. |
+| A notification row with icon, title, time and link | Partial. The DataTable row works but is a table. The Dropdown row has no time column. Timeline has 3 fixed kinds. |
 | A list error state | Close. The danger Callout with Retry works. No list part has an error prop. |
-| A current style for an icon link | Not close. `aria-current` on the bell draws no style. D gets the style from SidebarNav. |
+| A current style for an icon link | Close. The kit head control draws no style for `aria-current`. The prototype draws the bell as a nav row, so it gets the nav row's current plate. |
 | A cap such as 99+ | Not present. The badge draws any number. |
-| A taller menu | Partial. The Dropdown menu caps at 300px, about 3.5 rows. `scroll={480}` lifts it. |
-| A time column on a phone | Partial. DataTable scrolls sideways, so the time is off screen at 390px. |
+| A time column on a phone | Close. At 390px the title column wraps, so the time is complete. A longer time word can still push the table to scroll. |
 
 ## Kit rules
 
 - Bell entry: Iconography "Icon-only controls" and Button labels "Earn a wordless button" (in conflict, see above).
 - Bell place: the page "Keep one shell".
-- Menu panel (A): Component choice "Open a panel at its control" and "Add dropdown search".
-- Drawer (B): Drawers "Drawer or page", "One-record drawer" and "Grouped content".
+- Bell paint and states: the nav row and the nav badge, the same parts as D's row.
 - List page (C, D): Dense tables "Use the right surface", "Size the table to its content", "Scroll instead of squeezing" and "Keep identity sub-lines as text".
 - Row text: Labels and titles "Use body ink" and "Limit muted ink".
+- Overview: Stat bands "Use a stat band" and "State the comparison basis".
 - Empty list: Empty states "Explain what is missing and show the next step".
 - Error: Component choice "Show lasting conditions".
 - Account menu: Account and settings "Limit the account menu to identity and the way in". The bell does not go in it.
 - States: the full state set "Focus rings".
+
+## Layout glue
+
+`glue.css` sets no paint, no type, no motion and no token. It does not re-declare `--ui-head-control-w`. It sets these boxes only:
+
+- The bell link is 64px wide: a 12px inset, the 17px bell, a 4px gap, a two-digit count and a 5px end. The kit head control has no count slot.
+- At zero the link is the kit's one-glyph width (41px), and a 23px end margin holds the room of the count. So the bell does not move when its count hides.
+- On a phone, the bar bell shows before Menu at the bar's 40px control height. Above 720px it is hidden.
+- In a row, the glyph stands 11px off the title, as on a nav row.
 
 ## Build and capture
 
@@ -114,15 +118,17 @@ L=$(mktemp -d); mkdir -p "$L/@apliteni" && ln -s "$(cd .. && pwd)" "$L/@apliteni
 NODE_PATH=$L ../node_modules/.bin/esbuild app.tsx --bundle --minify --format=iife --jsx=automatic \
   --outfile=app.js --define:process.env.NODE_ENV='"production"'
 UI_PLAYWRIGHT=<path to playwright/index.mjs> node capture.mjs "$PWD" shots
+rm -r "$L"
 ```
 
-The link folder lets the bundle resolve the package's own name. `capture.mjs` waits for `document.fonts.ready` and for each animation to finish before each picture.
+The link folder lets the bundle resolve the package's own name. `capture.mjs` waits for `document.fonts.ready` and for each animation to finish before each picture. A third argument captures only the pictures whose names start with it.
 
 ## Self-review
 
 This is a self-review, not an independent review.
 
-- Pages read: the guidelines Overview, Iconography, Button labels, Component choice, Empty states, the page, Drawers, Dense tables, Labels and titles, Account and settings, the full state set, and `docs/components.md` for AppShell, SidebarNav, Dropdown, DataTable, Drawer and Timeline.
-- axe-core ran on 13 scenes. B and the phone scenes are clean. Each other scene has one `label-content-name-mismatch` on the kit's account trigger, whose name is "Signed in as Sam Rivera, sam@example.com". D adds the same hit on the SidebarNav row "Notifications 6", because the visible text has no space before the count. Both hits are in kit parts, not in the composition.
-- The AI slop detector ran on the rendered DOM of 10 scenes and on `glue.css`. It found no hit in the composition. The kit's own labels "Collapse sidebar", "Search or run a command" and the account trigger get `multiword-control`. Kit rules for parts that these scenes do not show get `gradient-text` and `glassmorphism`. The detector first flagged "Try again", so the error state now says "Retry", as the kit's file drop does.
+- Pages read: the guidelines Overview, Iconography, Button labels, Component choice, Empty states, Stat bands, the page, Dense tables, Labels and titles, Account and settings, the full state set, and `docs/components.md` for AppShell, SidebarNav and DataTable.
+- Each rounded corner and focus ring was checked at 3x zoom.
+- axe-core ran on 8 desktop scenes and 4 phone scenes. The phone scenes are clean. Each desktop scene has one `label-content-name-mismatch` on the kit's account trigger, whose name is "Signed in as Sam Rivera, sam@example.com". D adds the same hit on the SidebarNav row "Notifications 6", because the visible text has no space before the count. Both hits are in kit parts, not in the composition.
+- The AI slop detector ran on the rendered DOM of the same 12 scenes, on `glue.css` and on this README. It found no hit in the composition. The kit's own labels "Collapse sidebar", "Search or run a command" and the account trigger get `multiword-control`. Kit rules for parts that these scenes do not show get `gradient-text` and `glassmorphism`.
 - Contrast was not measured apart from axe. The dark theme and the other accents were not captured.

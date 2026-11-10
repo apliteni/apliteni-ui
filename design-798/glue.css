@@ -1,11 +1,31 @@
-/* Layout glue only. The head control has no count slot, so the bell trigger widens to hold the kit's nav badge. */
-.ui-react-app__head-control .ui-dropdown__trigger.proto-bell,
-.ui-react-app__head-control > a.proto-bell {
-  --ui-head-control-w: auto;
+/* Layout glue only. Paint, type and the current plate come from the kit's nav row. */
+
+/* The head control has no count slot, so the bell link is wide enough for the bell and a
+   two-digit count, in the rail head, on the band and in the menu's head. The bell keeps the
+   row's 12px inset at the start. The count stands --space-1 off the bell, so the link keeps
+   clear of the brand's name. */
+.ui-nav__item.proto-bell {
   display: inline-flex;
-  align-items: center;
-  gap: 6px; /* between --space-1 and --space-2: keeps the badge on its bell, closer than the button's 8px label gap */
-  padding-inline: 10px; /* between --space-2 and --space-3: the 40px control's inset around a 20px glyph */
+  flex: none;
+  justify-content: flex-start;
+  gap: var(--space-1);
+  padding-inline: var(--space-3) 0;
+  width: 64px; /* 12px inset, 17px bell, 4px gap, a 26px two-digit count, 5px end */
 }
+/* At zero the link is the kit's one-glyph width, and the margin holds the room the count
+   had. So the bell does not move when its count hides. */
+.ui-nav__item.proto-bell:not(:has(.ui-nav__badge)) {
+  width: var(--ui-nav-strip);
+  margin-inline-end: calc(64px - var(--ui-nav-strip));
+}
+
+/* The phone bar has no slot for a product control. The bell stands before Menu on a phone only,
+   at the bar's 40px control height. */
+.proto-bar-bell { display: none; }
+@media (max-width: 720px) {
+  .proto-bar-bell { display: flex; }
+  .proto-bar-bell > a.proto-bell { height: 40px; }
+}
+
 /* gap between --space-2 and --space-3: the glyph sits off the title as on a nav row (11px). */
-.proto-note { display: inline-flex; align-items: center; gap: 10px; }
+.proto-note { display: inline-flex; align-items: center; gap: 11px; }
