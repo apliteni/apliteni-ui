@@ -6,6 +6,7 @@ import { brand } from '@apliteni/apliteni-ui';
 import { AuthShell } from '../../react/src/AuthShell';
 import { TextField } from '../../react/src/Field';
 import { Modal } from '../../react/src/Modal';
+import { SearchField } from '../../react/src/SearchField';
 import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Badge } from '../../react/src/primitives/Badge';
@@ -82,6 +83,10 @@ function EndedScreen({ open: initial, ...args }: SignInArgs & { open: boolean })
     {state === 'closed' && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setState('ended')}>Sign in</Button>}>
       You are signed out. Sign in to approve payouts. This screen stays as it is.
     </Callout>}
+    {/* The ledger's filter bar sits on a card directly above it. why: guidelines/dense-tables.md */}
+    <Card pad="sm"><div className="ui-toolbar">
+      <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" />
+    </div></Card>
     <Card title="Pending payouts">
       <table className="ui-table ui-table--dense">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Arrival</th><th>Status</th></tr></thead>
