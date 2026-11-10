@@ -1,0 +1,11 @@
+/* Layout glue only. The head control has no count slot, so the bell trigger widens to hold the kit's nav badge. */
+.ui-react-app__head-control .ui-dropdown__trigger.proto-bell,
+.ui-react-app__head-control > a.proto-bell {
+  --ui-head-control-w: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px; /* between --space-1 and --space-2: keeps the badge on its bell, closer than the button's 8px label gap */
+  padding-inline: 10px; /* between --space-2 and --space-3: the 40px control's inset around a 20px glyph */
+}
+/* gap between --space-2 and --space-3: the glyph sits off the title as on a nav row (11px). */
+.proto-note { display: inline-flex; align-items: center; gap: 10px; }
