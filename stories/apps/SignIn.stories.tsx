@@ -17,28 +17,17 @@ import '../../react/src/showcases/Auth.css';
 const brandMark = <span dangerouslySetInnerHTML={{ __html: brand({ p: 'signin', word: 'apliteni-ui', href: '#' }) }} />;
 const shell = (body: ReactNode) => <AuthShell brand={brandMark}>{body}</AuthShell>;
 
-// Vendor artwork for the two brand marks. GitHub uses the kit glyph.
+// Google's vendor artwork.
 const googleMark = <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1C42.7 36.4 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.2H4.3v5.7C7.9 41.1 15.3 46 24 46z"/><path fill="#FBBC05" d="M11.6 27.9c-.4-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.7H4.3C2.8 17.3 2 20.6 2 24s.8 6.7 2.3 9.6l7.3-5.7z"/><path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.2 30 2 24 2 15.3 2 7.9 6.9 4.3 14.4l7.3 5.7C13.3 14.7 18.2 10.8 24 10.8z"/></svg>;
-const microsoftMark = <svg width="17" height="17" viewBox="0 0 21 21" aria-hidden="true"><path fill="#F25022" d="M0 0h10v10H0z"/><path fill="#7FBA00" d="M11 0h10v10H11z"/><path fill="#00A4EF" d="M0 11h10v10H0z"/><path fill="#FFB900" d="M11 11h10v10H11z"/></svg>;
-
-type ProviderId = 'google' | 'microsoft' | 'github';
-const PROVIDERS: Record<ProviderId, { name: string; mark?: ReactNode; icon?: string }> = {
-  google: { name: 'Google', mark: googleMark },
-  microsoft: { name: 'Microsoft', mark: microsoftMark },
-  github: { name: 'GitHub', icon: 'github' },
-};
-
 type SignInArgs = {
-  /** The providers, in order. */
-  providers: ProviderId[];
-  /** The provider used last time: the one filled button. */
-  lastUsed?: ProviderId;
+  /** Google SSO, the one provider. */
+  google: boolean;
   /** An email and password form below "or". */
   email: boolean;
-  /** The provider that did not finish: a danger callout with a retry above the buttons. */
-  failed?: ProviderId;
-  /** The provider whose first answer is a failure, so a press reaches the error. */
-  refuses?: ProviderId;
+  /** Google did not finish: a danger callout with a retry above the button. */
+  failed?: boolean;
+  /** Google's first answer is a failure, so a press reaches the error. */
+  refuses?: boolean;
   passwordError?: string;
 };
 
@@ -46,44 +35,39 @@ type SignInArgs = {
 const ANSWER_MS = 1200;
 
 /** The sign-in block that the page and the modal share. A press waits for a simulated answer, then calls `onDone`. */
-function SignInBlock({ providers, lastUsed, email, failed, refuses, passwordError, onDone }: SignInArgs & { onDone?: () => void }) {
+function SignInBlock({ google, email, failed, refuses, passwordError, onDone }: SignInArgs & { onDone?: () => void }) {
   const [error, setError] = useState(failed);
-  const [busy, setBusy] = useState<{ id: ProviderId; retry: boolean }>();
+  const [busy, setBusy] = useState<{ retry: boolean }>();
   const refused = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => setError(failed), [failed]);
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  function answer(id: ProviderId, retry = false) {
+  function answer(retry = false) {
     if (busy) return;
-    setBusy({ id, retry });
+    setBusy({ retry });
     timer.current = setTimeout(() => {
       setBusy(undefined);
-      if (id === refuses && !refused.current) { refused.current = true; setError(id); return; }
-      setError(undefined);
+      if (refuses && !refused.current) { refused.current = true; setError(true); return; }
+      setError(false);
       onDone?.();
     }, ANSWER_MS);
   }
 
-  // The last-used provider is the one main action, so the form's button steps down beside it.
-  // A last-used provider that this product does not offer gets no place and no fill.
-  const last = lastUsed && providers.includes(lastUsed) ? lastUsed : undefined;
-  const order = last ? [last, ...providers.filter(id => id !== last)] : providers;
-  const other = providers.length > 1 || email;
+  // Google is the one main action, so the form's button steps down beside it.
   return <div className="ui-stack">
-    {error && <Callout variant="danger" actions={<Button variant="secondary" size="sm" icon="refresh"
-      busy={busy?.retry} completionMessage="" onClick={() => answer(error, true)}>Try {PROVIDERS[error].name} again</Button>}>
-      {PROVIDERS[error].name} did not finish the sign-in. Nothing changed. {other ? 'Try again, or use another way to sign in.' : 'Try again.'}
+    {google && error && <Callout variant="danger" actions={<Button variant="secondary" size="sm" icon="refresh"
+      busy={busy?.retry} completionMessage="" onClick={() => answer(true)}>Try Google again</Button>}>
+      Google did not finish the sign-in. Nothing changed. {email ? 'Try again, or sign in with your email.' : 'Try again.'}
     </Callout>}
-    {order.map(id => <Button key={id} variant={id === last ? 'primary' : 'secondary'} size="lg" block
-      busy={busy?.id === id && !busy.retry} completionMessage="" leading={PROVIDERS[id].mark} icon={PROVIDERS[id].icon}
-      onClick={() => answer(id)}>Continue with {PROVIDERS[id].name}</Button>)}
+    {google && <Button variant="primary" size="lg" block busy={busy && !busy.retry} completionMessage=""
+      leading={googleMark} onClick={() => answer()}>Continue with Google</Button>}
     {email && <>
-      {providers.length > 0 && <div className="ui-divider">or</div>}
+      {google && <div className="ui-divider">or</div>}
       <form className="auth-form" onSubmit={event => { event.preventDefault(); onDone?.(); }}>
         <TextField label="Work email" type="email" autoComplete="username" placeholder="you@apliteni.com" defaultValue={passwordError ? 'ada@apliteni.com' : undefined} icon="mail" required />
         <TextField label="Password" type="password" autoComplete="current-password" placeholder="••••••••" defaultValue={passwordError ? 'wrong' : undefined} icon="lock" required error={passwordError} />
-        <Button variant={last ? 'secondary' : 'primary'} size="lg" block type="submit">Sign in</Button>
+        <Button variant={google ? 'secondary' : 'primary'} size="lg" block type="submit">Sign in</Button>
       </form>
     </>}
   </div>;
@@ -146,39 +130,29 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   </FinanceShell>;
 }
 
-const PROVIDER_IDS = Object.keys(PROVIDERS);
 const meta: Meta<SignInArgs> = {
   title: 'Showcases/Sign In (OAuth2)', id: 'apps-sign-in-oauth2', parameters: { layout: 'fullscreen' },
-  args: { providers: ['google', 'microsoft', 'github'], email: false },
-  argTypes: {
-    providers: { control: 'check', options: PROVIDER_IDS },
-    lastUsed: { control: 'select', options: ['none', ...PROVIDER_IDS], mapping: { none: undefined } },
-    failed: { control: 'select', options: ['none', ...PROVIDER_IDS], mapping: { none: undefined } },
-    refuses: { control: 'select', options: ['none', ...PROVIDER_IDS], mapping: { none: undefined } },
-    passwordError: { control: 'text' },
-  },
+  args: { google: true, email: true },
+  argTypes: { passwordError: { control: 'text' } },
 };
 export default meta;
 type Story = StoryObj<SignInArgs>;
 
 export const Default: Story = { render: args => page('Access the Apliteni design system with your work account.', args) };
 
-export const ProviderError: Story = { name: 'Provider error', args: { failed: 'google' },
+export const ProviderError: Story = { name: 'Provider error', args: { failed: true },
   render: args => page('Access the Apliteni design system with your work account.', args) };
 
-export const LastUsed: Story = { name: 'Last used provider', args: { lastUsed: 'google', email: true },
-  render: args => page('You signed in with Google last time.', args) };
-
-export const Error: Story = { name: 'With error', args: { providers: [], email: true, passwordError: 'Incorrect email or password.' },
+export const Error: Story = { name: 'With error', args: { google: false, passwordError: 'Incorrect email or password.' },
   render: args => page('Access the Apliteni design system.', args) };
 
-export const GoogleOnly: Story = { name: 'Google SSO only', args: { providers: ['google'] },
+export const GoogleOnly: Story = { name: 'Google SSO only', args: { email: false },
   render: args => page('Sign in with your work Google account. There is no password.', args) };
 
 // The session stories walk the seven flow states: in use, ended, provider busy, error, retry busy,
 // back, and closed. Google refuses its first answer, so a press on it reaches the error.
 type SessionStory = StoryObj<SignInArgs & { session: Session }>;
-const session = { refuses: 'google' as const };
+const session = { refuses: true, email: false };
 const sessionArgTypes = { session: { control: 'inline-radio' as const, options: ['active', 'ended', 'closed'] } };
 
 export const InUse: SessionStory = { name: 'Session in use', args: { ...session, session: 'active' }, argTypes: sessionArgTypes,
@@ -187,7 +161,7 @@ export const InUse: SessionStory = { name: 'Session in use', args: { ...session,
 export const SessionEnded: SessionStory = { name: 'Session ended', args: { ...session, session: 'ended' }, argTypes: sessionArgTypes,
   render: args => <EndedScreen {...args} /> };
 
-export const SessionEndedError: SessionStory = { name: 'Session ended, provider error', args: { failed: 'google', session: 'ended' },
+export const SessionEndedError: SessionStory = { name: 'Session ended, provider error', args: { failed: true, email: false, session: 'ended' },
   argTypes: sessionArgTypes, render: args => <EndedScreen {...args} /> };
 
 export const SignedOut: SessionStory = { name: 'Signed out after close', args: { ...session, session: 'closed' }, argTypes: sessionArgTypes,

@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { composeStories } from '@storybook/react';
 import * as stories from '../../stories/apps/SignIn.stories';
 
-const { ProviderError, LastUsed, Error: WithError, InUse, SignedOut } = composeStories(stories);
+const { Default, ProviderError, Error: WithError, InUse, SignedOut } = composeStories(stories);
 afterEach(cleanup);
 
 // The provider's answer is a 1200ms timer in the story, so each wait outlasts it.
@@ -44,13 +44,14 @@ describe('sign-in flow', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('gives the filled button to a last-used provider only when the page offers it', () => {
-    render(<LastUsed />);
+  it('offers Google as the one provider, and fills Sign in only when Google is not offered', () => {
+    render(<Default />);
+    expect(screen.getAllByRole('button', { name: /^Continue with / })).toHaveLength(1);
     expect(screen.getByRole('button', { name: 'Continue with Google' })).toHaveClass('ui-btn--primary');
+    expect(screen.getByRole('button', { name: 'Sign in' })).not.toHaveClass('ui-btn--primary');
     cleanup();
-    render(<LastUsed providers={['microsoft']} />);
-    expect(screen.queryByRole('button', { name: 'Continue with Google' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Continue with Microsoft' })).not.toHaveClass('ui-btn--primary');
+    render(<WithError />);
+    expect(screen.queryByRole('button', { name: /^Continue with / })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toHaveClass('ui-btn--primary');
   });
 
