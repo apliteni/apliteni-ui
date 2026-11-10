@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.164.1', date: '2026-11-10',
+    changes: [
+      ['changed', 'The Page guideline rule Leave pages closed now has one exception: when a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was. Storybook shows it in the Sign In showcase, which now offers Google as the one provider, with an optional email form. It also gains a provider error with a retry, a busy button while the provider answers, and the session-ended dialog. Its email form tells a password manager which field is the email and which is the password. Resolves #799.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.164.0', date: '2026-11-09',
     changes: [
       ['changed', 'At 560px and below, the `AccountWindow` now floats with a 16px gap on each side, clear of the notch and the home bar, instead of filling the screen. It is as tall as its section, up to the screen height, and a long section scrolls under the reader and the tabs. When keyboard focus scrolls a control in the section into view, its whole focus ring shows. Resolves #795.', ['AccountWindow']],
