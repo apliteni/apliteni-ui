@@ -870,7 +870,7 @@
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
-    "ref": "react/src/contrast-walk.tsx:283",
+    "ref": "react/src/contrast-walk.tsx:292",
     "pattern": "inactive user-interface components"
    }
   ],
