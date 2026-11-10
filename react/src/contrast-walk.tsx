@@ -248,13 +248,22 @@ const stats = { walked: 0, judged: 0, unjudgeable: 0, hiddenSkipped: 0, disabled
 function measure(story: string, theme: Theme, state: string | null = null,
   elements: Iterable<Element> = document.body.querySelectorAll('*')): number {
   let judged = 0;
+  // JSDOM resolves the whole cascade on each getComputedStyle call, and every text element
+  // reads its ancestor chain three times. Nothing writes to the DOM inside one measure, so
+  // each element's style is read once here.
+  const styles = new Map<Element, CSSStyleDeclaration>();
+  const styleOf = (node: Element) => {
+    let style = styles.get(node);
+    if (!style) styles.set(node, style = window.getComputedStyle(node));
+    return style;
+  };
   for (const el of elements) {
     if (el.tagName === 'STYLE' || el.tagName === 'SCRIPT') continue;
     if (!hasOwnText(el)) continue;
 
     let hidden = false;
     for (let n: Element | null = el; n; n = n.parentElement) {
-      const c = window.getComputedStyle(n);
+      const c = styleOf(n);
       if (c.display === 'none' || c.visibility === 'hidden' || Number.parseFloat(c.opacity || '1') === 0) {
         hidden = true;
         break;
@@ -263,13 +272,13 @@ function measure(story: string, theme: Theme, state: string | null = null,
     if (hidden) { stats.hiddenSkipped += 1; continue; }
 
     stats.walked += 1;
-    const cs = window.getComputedStyle(el);
+    const cs = styleOf(el);
     const fgRaw = parseColour(cs.color);
     // Null, never a guess. An unresolved var() lands here, and a gate that
     // guessed black would fabricate a passing ratio on a light ground.
     if (!fgRaw) { stats.unresolvedFg += 1; continue; }
 
-    const bg = effectiveBackground(el, window);
+    const bg = effectiveBackground(el, window, styleOf);
     if (bg === 'IMAGE') {
       stats.unjudgeable += 1;
       records.push({
@@ -291,7 +300,7 @@ function measure(story: string, theme: Theme, state: string | null = null,
     // story. .rx-caret sits at .5 and its ancestors may cut it further.
     let op = Number.parseFloat(cs.opacity || '1');
     for (let n = el.parentElement; n; n = n.parentElement) {
-      const o = Number.parseFloat(window.getComputedStyle(n).opacity || '1');
+      const o = Number.parseFloat(styleOf(n).opacity || '1');
       if (Number.isFinite(o) && o < 1) op *= o;
     }
 
@@ -334,6 +343,7 @@ const homeHits = (entryCount: number) => (part === 0 ? entryCount : 0);
  * The number is the count of state shares. */
 const SPLIT_STATE_SHARES: Record<string, number> = {
   './Finance.stories.tsx:Comparison': 4,
+  '../../stories/apps/StockScreener.stories.tsx:Screener': 4,
 };
 
 /* A foundation, guideline or showcase story carries its own <style> block and inline
@@ -357,6 +367,23 @@ function mergeBases<T extends Record<string, Iterable<string>>>(kit: T, local: T
 
 type Share = { atRest: boolean; of: number; index: number } | null;
 
+/* A state target is measured with its whole subtree, so one table target can cost more than
+ * fifty buttons. Deal the targets by subtree size, the largest first to the lightest share,
+ * so no share holds most of the work. Every share renders the same story, so each one
+ * computes the same deal. */
+function dealt(targets: [Element, string][], of: number): number[] {
+  const weight = targets.map(([element]) => 1 + element.querySelectorAll('*').length);
+  const load = new Array<number>(of).fill(0);
+  const hand = new Array<number>(targets.length);
+  const order = weight.map((_, i) => i).sort((a, b) => weight[b] - weight[a] || a - b);
+  for (const i of order) {
+    const lightest = load.indexOf(Math.min(...load));
+    hand[i] = lightest;
+    load[lightest] += weight[i];
+  }
+  return hand;
+}
+
 function walkCell(story: (typeof allFound)[number], theme: Theme, share: Share) {
   if (document.documentElement.getAttribute('data-theme') !== theme) {
     document.documentElement.setAttribute('data-theme', theme);
@@ -374,9 +401,8 @@ function walkCell(story: (typeof allFound)[number], theme: Theme, share: Share) 
   const started = performance.now();
   const bases = local ? mergeBases(STATE_BASES[theme], local) : STATE_BASES[theme];
   const all = share?.atRest ? [] : [...stateTargets(document.body, bases)];
-  const mine = share
-    ? all.slice(Math.floor((share.index * all.length) / share.of), Math.floor(((share.index + 1) * all.length) / share.of))
-    : all;
+  const hand = share ? dealt(all, share.of) : [];
+  const mine = share ? all.filter((_, i) => hand[i] === share.index) : all;
   for (const [element, state] of mine) {
     const previous = element.getAttribute('data-ui-state');
     element.setAttribute('data-ui-state', state);
