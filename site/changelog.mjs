@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.164.2', date: '2026-11-11',
+    changes: [
+      ['changed', 'The Iconography guideline now allows a notifications bell with its unread count as an icon-only control. Its accessible name is its sentence, such as "Notifications, 6 unread". Storybook has a new Notifications showcase with the bell and the list it opens. Resolves #798.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.164.1', date: '2026-11-10',
     changes: [
       ['changed', 'The Page guideline rule Leave pages closed now has one exception: when a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was. Storybook shows it in the Sign In showcase, which now offers Google as the one provider, with an optional email form. It also gains a provider error with a retry, a busy button while the provider answers, and the session-ended dialog. Its email form tells a password manager which field is the email and which is the password. Resolves #799.', ['Guidelines']],
