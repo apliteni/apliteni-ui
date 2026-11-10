@@ -54,8 +54,8 @@ function SignInBlock({ providers, lastUsed, email, failed, passwordError, onDone
     {email && <>
       {providers.length > 0 && <div className="ui-divider">or</div>}
       <form className="auth-form" onSubmit={event => { event.preventDefault(); onDone?.(); }}>
-        <TextField label="Work email" type="email" placeholder="you@apliteni.com" defaultValue={passwordError ? 'ada@apliteni.com' : undefined} icon="mail" required />
-        <TextField label="Password" type="password" placeholder="••••••••" defaultValue={passwordError ? 'wrong' : undefined} icon="lock" required error={passwordError} />
+        <TextField label="Work email" type="email" autoComplete="username" placeholder="you@apliteni.com" defaultValue={passwordError ? 'ada@apliteni.com' : undefined} icon="mail" required />
+        <TextField label="Password" type="password" autoComplete="current-password" placeholder="••••••••" defaultValue={passwordError ? 'wrong' : undefined} icon="lock" required error={passwordError} />
         <Button variant={lastUsed ? 'secondary' : 'primary'} size="lg" block type="submit">Sign in</Button>
       </form>
     </>}
@@ -126,7 +126,7 @@ export const ProviderError: Story = { name: 'Provider error', args: { failed: 'g
 export const LastUsed: Story = { name: 'Last used provider', args: { lastUsed: 'google', email: true },
   render: args => page('You signed in with Google last time.', args) };
 
-export const Error: Story = { name: 'With error', args: { providers: [], email: true, passwordError: 'Incorrect password.' },
+export const Error: Story = { name: 'With error', args: { providers: [], email: true, passwordError: 'Incorrect email or password.' },
   render: args => page('Access the Apliteni design system.', args) };
 
 export const GoogleOnly: Story = { name: 'Google SSO only', args: { providers: ['google'] },
