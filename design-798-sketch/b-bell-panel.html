@@ -1,0 +1,773 @@
+<!--
+Layout B: a panel that opens from the bell (#798). Sample data is fabricated.
+Source: linear-notifications pattern record, from https://linear.app/docs/inbox
+Best for: a product where notifications are short news that a person reads and leaves, from any page, with a full page for the history.
+States: sidenav-count, topbar-count, zero, empty, error-retry. Each state shows the panel open.
+Transitions: open-panel, the panel opacity from 0 and transform from translateY(-4px), 150 ms, cubic-bezier(0.4, 0, 0.2, 1). Estimated: the designer chose it from the kit motion tokens.
+A row opens its record. "All notifications" opens layout A.
+-->
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications: Panel</title>
+<style data-sketch-kit="0.4.0">
+/* One black marker on bare paper. Scoped foundation for disposable review prototypes.
+   There is one ink; everything quieter is that ink thinned. A fill is only ever that ink or the
+   page, so a drawn frame sits on the page rather than around a card of some other colour. A
+   browser paints its own colours into a native control, a link and an autofilled field, so each
+   is taken back below. */
+[data-sketch] {
+  color-scheme: light;
+  --sketch-page: #fbfbf8; --sketch-ink: #1b1b19;
+  --sketch-muted: color-mix(in srgb, var(--sketch-ink) 68%, transparent);
+  --sketch-wash: color-mix(in srgb, var(--sketch-ink) 10%, transparent);
+  --sketch-stroke: 1.7px; --sketch-space: 8px;
+  /* A drawn box: four unequal corner radii, so no edge looks machine-made. */
+  --sketch-wobble: 18px 5px 14px 7px / 6px 16px 5px 17px;
+  margin: 0; color: var(--sketch-ink); background: var(--sketch-page);
+  font: 14px/1.5 Geist, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
+  /* The marker is the light stroke; the page is what went dark. */
+  color-scheme: dark;
+  --sketch-page: #141513; --sketch-ink: #efeee6;
+}
+[data-sketch] *, [data-sketch] *::before, [data-sketch] *::after { box-sizing: border-box; }
+[data-sketch] h1 { font-size: 30px; line-height: 1.2; letter-spacing: -1px; }
+[data-sketch] h2 { font-size: 18px; line-height: 1.35; letter-spacing: -.3px; }
+[data-sketch] h3 { font-size: 14px; line-height: 1.5; }
+[data-sketch] :is(button, input, textarea, select) { font: inherit; color: inherit; }
+[data-sketch] :is(input[type="radio"], input[type="checkbox"]) {
+  appearance: none; -webkit-appearance: none; flex: none; margin: 0;
+  width: 18px; height: 18px; background: none; cursor: pointer;
+  border: var(--sketch-stroke) solid var(--sketch-ink);
+  border-radius: 52% 48% 51% 49% / 49% 52% 48% 51%;
+}
+[data-sketch] input[type="checkbox"] { border-radius: 5px 2px 4px 3px / 3px 4px 2px 5px; }
+[data-sketch] :is(input[type="radio"], input[type="checkbox"]):checked { background: var(--sketch-ink); }
+/* Half-chosen: a struck bar, so it is not read as either of the other two. */
+[data-sketch] input[type="checkbox"]:indeterminate {
+  background: linear-gradient(var(--sketch-ink), var(--sketch-ink)) center / 60% var(--sketch-stroke) no-repeat;
+}
+[data-sketch] :is(input[type="radio"], input[type="checkbox"]):hover:not(:disabled) { box-shadow: 0 0 0 3px var(--sketch-wash); }
+[data-sketch] :is(input[type="radio"], input[type="checkbox"]):active:not(:disabled) { transform: translateY(1px); }
+[data-sketch] :is(input[type="radio"], input[type="checkbox"]):disabled { opacity: .4; cursor: not-allowed; }
+/* Forced colours repaints an author background, so the chosen state cannot rest on one alone. */
+@media (forced-colors: active) {
+  [data-sketch] :is(input[type="radio"], input[type="checkbox"]):checked { background: CanvasText; border-color: CanvasText; }
+}
+/* Covers what is left native: a range track, a progress bar. */
+[data-sketch] { accent-color: var(--sketch-ink); }
+/* A link keeps the browser's blue and its visited purple unless it is told not to. */
+[data-sketch] :is(a, a:link, a:visited, a:active):not(.sketch-button) { color: inherit; text-decoration-color: var(--sketch-muted); }
+[data-sketch] ::placeholder { color: var(--sketch-muted); }
+[data-sketch] ::selection { background: var(--sketch-wash); }
+
+/* A panel is spacing, not a surface: no fill, so the drawn outline is the only edge. */
+[data-sketch] .sketch-panel { background: none; padding: 24px; }
+[data-sketch] .sketch-frame { position: relative; isolation: isolate; border: 0; }
+[data-sketch] .sketch-outline { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: visible; }
+[data-sketch] .sketch-outline path {
+  stroke: var(--sketch-ink); stroke-width: var(--sketch-stroke); fill: none;
+  stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+}
+
+[data-sketch] .sketch-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; min-width: 44px; padding: 10px 16px; cursor: pointer; touch-action: manipulation;
+  background: var(--sketch-ink); color: var(--sketch-page); text-decoration: none;
+  border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: var(--sketch-wobble);
+}
+/* Filled in solid with the same marker, or left as the outline alone. */
+[data-sketch] .sketch-button.secondary { background: none; color: var(--sketch-ink); }
+[data-sketch] .sketch-button:hover:not(:disabled) { background: color-mix(in srgb, var(--sketch-ink) 84%, transparent); }
+[data-sketch] .sketch-button.secondary:hover:not(:disabled) { background: var(--sketch-wash); }
+[data-sketch] .sketch-button:active:not(:disabled) { transform: translateY(1px); }
+[data-sketch] .sketch-button:disabled { opacity: .4; cursor: not-allowed; }
+[data-sketch] .sketch-input {
+  min-height: 44px; width: 100%; padding: 10px 12px; background: none;
+  border: var(--sketch-stroke) solid var(--sketch-ink);
+  border-radius: 6px 16px 5px 15px / 15px 5px 17px 6px;
+}
+/* The native clear button of a search field is blue. It is drawn again as a cross in the ink. */
+[data-sketch] input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none; width: 14px; height: 14px; cursor: pointer;
+  background: linear-gradient(45deg, transparent 43%, var(--sketch-ink) 43% 57%, transparent 57%),
+              linear-gradient(-45deg, transparent 43%, var(--sketch-ink) 43% 57%, transparent 57%);
+}
+[data-sketch] :is(.sketch-input, input):is(:-webkit-autofill, :autofill) {
+  -webkit-text-fill-color: var(--sketch-ink);
+  -webkit-box-shadow: inset 0 0 0 100px var(--sketch-page);
+}
+/* The mark stays 18px; the label around it is the target. */
+[data-sketch] .sketch-choice {
+  display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 10px 12px; cursor: pointer;
+}
+[data-sketch] .sketch-choice:hover { background: var(--sketch-wash); }
+[data-sketch] :focus-visible { outline: var(--sketch-stroke) solid var(--sketch-ink); outline-offset: 3px; }
+
+/* Layout: the spacing every sketch would otherwise write by hand. */
+[data-sketch] .sketch-stack { display: grid; gap: 16px; align-content: start; }
+[data-sketch] .sketch-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+[data-sketch] .sketch-spacer { flex: 1; }
+[data-sketch] .sketch-muted { color: var(--sketch-muted); }
+
+/* An overlay covers what lies under it, so the page fills its drawn outline. The fill follows the
+   wobble: a rectangular background or a box shadow shows its corners outside the line. */
+[data-sketch] :is(.sketch-popover, .sketch-menu, .sketch-dialog, .sketch-toast) {
+  position: fixed; z-index: 40; isolation: isolate; margin: 0; border: 0; background: none; color: inherit; overflow: visible;
+}
+[data-sketch] :is(.sketch-popover, .sketch-menu, .sketch-dialog, .sketch-toast) > .sketch-outline path { fill: var(--sketch-page); }
+[data-sketch] [hidden] { display: none !important; }
+[data-sketch] .sketch-popover { width: max-content; max-width: min(360px, calc(100vw - 16px)); padding: 16px; display: grid; gap: 12px; }
+[data-sketch] .sketch-menu { min-width: 200px; max-width: calc(100vw - 16px); padding: 8px; display: grid; }
+[data-sketch] .sketch-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 12px;
+  background: none; border: 0; border-radius: var(--sketch-wobble); text-align: left; text-decoration: none; cursor: pointer;
+}
+[data-sketch] .sketch-menu-item:is(:hover, :focus-visible):not(:disabled) { background: var(--sketch-wash); outline: 0; }
+/* A disabled row and a disabled group label take the muted ink, not opacity, so they keep 4.5:1 on the page. */
+[data-sketch] .sketch-menu-item:disabled { color: var(--sketch-muted); cursor: not-allowed; }
+[data-sketch] .sketch-menu-group-label { padding: 12px 12px 4px; font-weight: 600; }
+[data-sketch] .sketch-menu-group[aria-disabled="true"] > .sketch-menu-group-label { color: var(--sketch-muted); cursor: not-allowed; }
+[data-sketch] .sketch-menu-item[aria-selected="true"] { background: var(--sketch-wash); font-weight: 600; }
+/* A native dialog arrives with a filled box and a dark backdrop; both are taken back. */
+[data-sketch] .sketch-dialog { inset: 0; width: min(480px, calc(100vw - 32px)); height: fit-content; margin: auto; padding: 24px; }
+[data-sketch] .sketch-dialog[open] { display: grid; gap: 16px; }
+[data-sketch] .sketch-dialog::backdrop { background: color-mix(in srgb, var(--sketch-page) 72%, transparent); }
+[data-sketch] .sketch-toast { left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+
+/* Icons: one line set drawn with the marker. Write <i data-icon="close"></i>. */
+[data-sketch] .sketch-icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+[data-sketch] .sketch-icon-button {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; flex: none;
+  background: none; border: 0; border-radius: var(--sketch-wobble); cursor: pointer; touch-action: manipulation;
+}
+[data-sketch] .sketch-icon-button:hover:not(:disabled) { background: var(--sketch-wash); }
+/* A hover rule outranks a state rule, so each state that fills names its own hover (#155). */
+[data-sketch] .sketch-icon-button:is([aria-pressed="true"], [aria-expanded="true"]),
+[data-sketch] .sketch-icon-button:is([aria-pressed="true"], [aria-expanded="true"]):hover:not(:disabled) { background: color-mix(in srgb, var(--sketch-ink) 18%, transparent); }
+[data-sketch] :is(.sketch-icon-button, .sketch-chip, .sketch-segmented label):active { transform: translateY(1px); }
+[data-sketch] :is(.sketch-icon-button, .sketch-chip):disabled { opacity: .4; cursor: not-allowed; }
+
+/* One of a few modes: native radios, so the arrow keys work. The chosen one is filled. */
+[data-sketch] .sketch-segmented {
+  display: inline-flex; gap: 2px; padding: 2px; border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: var(--sketch-wobble);
+}
+[data-sketch] .sketch-segmented label {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-width: 44px; min-height: 44px; padding: 0 14px; cursor: pointer; border-radius: var(--sketch-wobble);
+}
+[data-sketch] .sketch-segmented input { position: absolute; opacity: 0; pointer-events: none; }
+[data-sketch] .sketch-segmented label:hover { background: var(--sketch-wash); }
+[data-sketch] .sketch-segmented label:has(input:checked) { background: var(--sketch-ink); color: var(--sketch-page); }
+[data-sketch] .sketch-segmented label:has(input:focus-visible) { outline: var(--sketch-stroke) solid var(--sketch-ink); outline-offset: 3px; }
+[data-sketch] .sketch-segmented label:has(input:disabled) { opacity: .4; cursor: not-allowed; }
+
+/* An immediate on or off setting. The label stays the same in both states. */
+[data-sketch] .sketch-switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+[data-sketch] .sketch-switch input[type="checkbox"] {
+  position: relative; width: 40px; height: 24px; border-radius: 13px 11px 12px 13px / 12px 13px 11px 12px;
+}
+[data-sketch] .sketch-switch input[type="checkbox"]::before {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 15px; height: 15px; border-radius: 50%;
+  background: var(--sketch-ink); transition: transform .16s;
+}
+[data-sketch] .sketch-switch input[type="checkbox"]:checked::before { background: var(--sketch-page); transform: translateX(16px); }
+@media (prefers-reduced-motion: reduce) { [data-sketch] .sketch-switch input::before { transition: none; } }
+
+/* A chip is a filter or a removable tag: a button. A badge is a passive status word. */
+[data-sketch] .sketch-chip {
+  position: relative; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 4px 12px;
+  background: none; border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: 16px 14px 17px 13px / 14px 17px 13px 16px; cursor: pointer;
+}
+/* The pill is drawn 32px tall; its target reaches 44px. */
+[data-sketch] .sketch-chip::after { content: ""; position: absolute; inset: -7px -2px; }
+[data-sketch] .sketch-chip:hover:not(:disabled) { background: var(--sketch-wash); }
+[data-sketch] .sketch-chip[aria-pressed="true"] { background: var(--sketch-ink); color: var(--sketch-page); }
+/* Without this, a pressed chip on hover took the wash and kept the page as its words (#155). */
+[data-sketch] .sketch-chip[aria-pressed="true"]:hover:not(:disabled) { background: color-mix(in srgb, var(--sketch-ink) 84%, transparent); }
+[data-sketch] .sketch-badge {
+  display: inline-block; padding: 1px 8px; font-size: 13px; font-weight: 600; white-space: nowrap;
+  border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: 4px 9px 5px 8px / 8px 4px 9px 5px;
+}
+/* Only the state to act on first is filled. */
+[data-sketch] .sketch-badge.strong { background: var(--sketch-ink); color: var(--sketch-page); }
+
+/* A field: a permanent label, the control, then an error tied to it. */
+[data-sketch] .sketch-field { display: grid; gap: 6px; color: var(--sketch-muted); }
+[data-sketch] .sketch-field :is(input, textarea, select), [data-sketch] .sketch-error { color: var(--sketch-ink); }
+[data-sketch] textarea.sketch-input { min-height: 88px; resize: vertical; }
+[data-sketch] select.sketch-input {
+  appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer;
+  background: linear-gradient(45deg, transparent 50%, currentColor 50%) right 19px center / 6px 6px no-repeat,
+              linear-gradient(135deg, currentColor 50%, transparent 50%) right 13px center / 6px 6px no-repeat;
+}
+/* An open select is drawn as a sketch menu. A browser with appearance: base-select draws the list
+   from these rules. Every other browser gets a sketch-menu from sketch.js (#154). */
+@supports (appearance: base-select) {
+  [data-sketch] select.sketch-input, [data-sketch] select.sketch-input::picker(select) { appearance: base-select; }
+  [data-sketch] select.sketch-input::picker-icon, [data-sketch] select.sketch-input option::checkmark { display: none; }
+  /* The browser opened the list on the side with more space and shrank it to fit, so the list of a
+     lower field hid the row above it. The list now opens below at full height, and goes above when
+     it does not fit there. A list taller than both sides shrinks and scrolls (#173). */
+  @position-try --sketch-list-short { max-block-size: stretch; min-block-size: 160px; }
+  [data-sketch] select.sketch-input::picker(select) {
+    position-try: normal flip-block, flip-inline, flip-block flip-inline, --sketch-list-short, --sketch-list-short flip-block;
+    max-block-size: none;
+    min-width: max(200px, anchor-size(width)); max-width: calc(100vw - 16px); margin-block: 8px; padding: 8px;
+    color: var(--sketch-ink); background: var(--sketch-page); font: inherit;
+    border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: var(--sketch-wobble);
+  }
+  [data-sketch] select.sketch-input option {
+    display: flex; align-items: center; min-height: 44px; padding: 8px 12px; border-radius: var(--sketch-wobble); cursor: pointer;
+  }
+  [data-sketch] select.sketch-input option:is(:hover, :focus-visible):not(:disabled) { background: var(--sketch-wash); outline: 0; }
+  [data-sketch] select.sketch-input option:checked { background: var(--sketch-wash); font-weight: 600; }
+  [data-sketch] select.sketch-input optgroup { padding-top: 4px; color: var(--sketch-ink); font-weight: 600; }
+  [data-sketch] select.sketch-input optgroup option { font-weight: 400; }
+  [data-sketch] select.sketch-input :is(option, optgroup):disabled { color: var(--sketch-muted); cursor: not-allowed; }
+}
+[data-sketch] .sketch-input[aria-invalid="true"] { border-width: calc(var(--sketch-stroke) * 2); }
+[data-sketch] .sketch-error { font-weight: 600; }
+[data-sketch] .sketch-input:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Tabs: the chosen tab is underlined with the marker. */
+[data-sketch] .sketch-tabs { display: flex; gap: 4px; overflow-x: auto; }
+[data-sketch] .sketch-tabs [role="tab"] {
+  min-height: 44px; padding: 0 12px; background: none; border: 0; border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap;
+}
+[data-sketch] .sketch-tabs [role="tab"]:hover { background: var(--sketch-wash); }
+[data-sketch] .sketch-tabs [role="tab"][aria-selected="true"] { border-bottom-color: var(--sketch-ink); font-weight: 600; }
+
+/* Records in a table. A wide table scrolls inside its own box, not the page. */
+[data-sketch] .sketch-table-box { overflow-x: auto; }
+[data-sketch] .sketch-table { width: 100%; border-collapse: collapse; }
+[data-sketch] .sketch-table th { text-align: left; font-weight: 600; color: var(--sketch-muted); padding: 8px 12px; border-bottom: var(--sketch-stroke) solid var(--sketch-ink); white-space: nowrap; }
+[data-sketch] .sketch-table td { padding: 10px 12px; border-bottom: 1px solid var(--sketch-wash); }
+
+/* A picture, an avatar or a chart that is not decided yet: a crossed box. */
+[data-sketch] .sketch-placeholder {
+  display: grid; place-items: center; min-height: 96px; color: var(--sketch-muted);
+  border: var(--sketch-stroke) solid var(--sketch-muted); border-radius: var(--sketch-wobble);
+  background: linear-gradient(to top right, transparent calc(50% - 1px), var(--sketch-wash) 50%, transparent calc(50% + 1px)),
+              linear-gradient(to bottom right, transparent calc(50% - 1px), var(--sketch-wash) 50%, transparent calc(50% + 1px));
+}
+/* Page layouts for the sketch-page-*.html templates. Phone first, then a tablet step at 600 px and a desktop step at 1000 px.
+   .sketch-phone-only, .sketch-from-tablet, .sketch-from-desktop and .sketch-until-desktop show an element only at those widths. */
+[data-sketch] :is(.sketch-main, .sketch-narrow, .sketch-stack) > :is(h1, h2, h3, p, fieldset) { margin: 0; }
+[data-sketch] .sketch-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: var(--sketch-stroke) solid var(--sketch-ink); }
+[data-sketch] .sketch-nav { display: flex; gap: 4px; padding: 8px 16px; overflow-x: auto; }
+[data-sketch] :is(.sketch-nav, .sketch-bar, .sketch-list, .sketch-main, .sketch-narrow) a:not(.sketch-button) { display: inline-flex; align-items: center; justify-content: center; gap: 12px; min-width: 44px; min-height: 44px; }
+[data-sketch] :is(.sketch-main, .sketch-narrow) > a:not(.sketch-button) { justify-self: start; }
+[data-sketch] :is(.sketch-tabs [role="tab"], .sketch-switch, input[type="range"]) { min-width: 44px; min-height: 44px; } /* Every touch target is at least 44 px. */
+[data-sketch] .sketch-nav a { padding: 0 12px; white-space: nowrap; text-decoration: none; border-radius: var(--sketch-wobble); }
+[data-sketch] .sketch-nav a:hover { background: var(--sketch-wash); }
+[data-sketch] .sketch-nav a[aria-current] { font-weight: 600; background: var(--sketch-wash); }
+/* An app shell: a bottom tab bar on a phone, an icon rail from 600 px with .sketch-rail, a side nav from 1000 px. */
+[data-sketch] .sketch-shell { display: grid; grid-template: auto 1fr auto / minmax(0, 1fr); min-height: 100vh; }
+[data-sketch] .sketch-shell > .sketch-bar { grid-column: 1 / -1; }
+[data-sketch] .sketch-shell > .sketch-nav { order: 1; position: sticky; bottom: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); padding: 4px; background: var(--sketch-page); border-top: var(--sketch-stroke) solid var(--sketch-ink); }
+[data-sketch] .sketch-shell > .sketch-nav a { flex-direction: column; gap: 2px; padding: 4px; font-size: 12px; }
+[data-sketch] .sketch-main { display: grid; gap: 24px; align-content: start; width: 100%; min-width: 0; max-width: 1080px; margin: 0 auto; padding: 24px 16px; }
+[data-sketch] .sketch-narrow { display: grid; gap: 16px; align-content: start; width: 100%; max-width: var(--width, 440px); margin: 0 auto; padding: 48px 16px; }
+[data-sketch] .sketch-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px 48px; align-items: start; } /* Two columns from 1000 px; --cols sets them. */
+[data-sketch] .sketch-grid { display: grid; gap: 16px; grid-template-columns: repeat(var(--phone, 1), minmax(0, 1fr)); } /* 1, 2, then 4 columns; --phone, --tablet and --wide change them. */
+[data-sketch] .sketch-grid > :is(.sketch-span, .sketch-span + *) { grid-column: 1 / -1; }
+[data-sketch] .sketch-list { display: grid; align-content: start; margin: 0; padding: 0; list-style: none; }
+[data-sketch] .sketch-list > li { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; min-height: 56px; margin: 0 -8px; padding: 6px 8px; border-radius: var(--sketch-wobble); }
+[data-sketch] .sketch-list > li:has([aria-current]) { background: var(--sketch-wash); }
+[data-sketch] fieldset { border: 0; padding: 0; margin: 0; } [data-sketch] legend { padding: 0; } [data-sketch] fieldset > .sketch-choice { margin: 0 -12px; }
+[data-sketch] .sketch-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 24px; margin: 0; }
+[data-sketch] .sketch-facts dt { color: var(--sketch-muted); } [data-sketch] .sketch-facts dd { margin: 0; }
+/* A bar chart: each <i> gets its value as a height. */
+[data-sketch] .sketch-bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; align-items: end; height: 160px; text-align: center; }
+[data-sketch] .sketch-bars i { background: var(--sketch-ink); border-radius: 5px 3px 0 0; }
+[data-sketch] .sketch-split { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; }
+/* A board scrolls inside its own box until its columns fit. */
+[data-sketch] .sketch-board { display: grid; grid-auto-flow: column; grid-auto-columns: 85%; gap: 16px; align-items: start; overflow-x: auto; scroll-snap-type: x mandatory; }
+[data-sketch] .sketch-board > * { scroll-snap-align: start; } [data-sketch] .sketch-board .sketch-frame { padding: 12px 16px; }
+[data-sketch] .sketch-thread { display: grid; gap: 8px; align-content: end; }
+[data-sketch] .sketch-thread > p { margin: 0; justify-self: start; max-width: 80%; padding: 8px 12px; border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: var(--sketch-wobble); }
+[data-sketch] .sketch-thread > p.own { justify-self: end; background: var(--sketch-ink); color: var(--sketch-page); }
+/* A sparkline: an inline <svg viewBox="0 0 100 24" preserveAspectRatio="none"> with one <polyline>. */
+[data-sketch] .sketch-spark { width: 100%; height: 32px; fill: none; stroke: currentColor; stroke-width: var(--sketch-stroke); stroke-linejoin: round; } [data-sketch] .sketch-spark * { vector-effect: non-scaling-stroke; }
+/* Step dots: one <i> for each step, the current one with class "on". */
+[data-sketch] .sketch-dots { display: flex; gap: 8px; margin: 0; } [data-sketch] .sketch-dots i { width: 10px; height: 10px; border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: 50%; } [data-sketch] .sketch-dots .on { background: var(--sketch-ink); }
+[data-sketch] .sketch-steps { display: flex; flex-wrap: wrap; gap: 8px 32px; margin: 0; padding: 0; list-style: decimal inside; } [data-sketch] .sketch-steps [aria-current] { font-weight: 600; }
+/* A meter: a drawn track with an <i> that gets its value as a width. Give the box role="meter" and the aria-value attributes. */
+[data-sketch] .sketch-meter { height: 12px; border: var(--sketch-stroke) solid var(--sketch-ink); border-radius: 7px 5px 6px 4px; overflow: hidden; }
+[data-sketch] .sketch-meter i { display: block; height: 100%; background: var(--sketch-ink); }
+/* A menu button shows or hides the element right after it, below 1000 px. */
+[data-sketch] .sketch-collapse { display: grid; flex-basis: 100%; }
+@media (max-width: 599px) {
+  [data-sketch] :is(.sketch-from-tablet, .sketch-from-desktop, .sketch-table thead) { display: none !important; }
+  [data-sketch] .sketch-table tr { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; padding: 12px 0; border-bottom: var(--sketch-stroke) solid var(--sketch-wash); }
+  [data-sketch] .sketch-table td { padding: 0; border: 0; }
+}
+@media (max-width: 999px) {
+  [data-sketch] .sketch-from-desktop, [data-sketch] .sketch-menu-button[aria-expanded="false"] + .sketch-collapse { display: none !important; }
+  [data-sketch] .sketch-bar > .sketch-collapse { order: 1; }
+}
+@media (min-width: 600px) {
+  [data-sketch] .sketch-phone-only { display: none !important; }
+  [data-sketch] .sketch-rail { grid-template: auto 1fr / 88px minmax(0, 1fr); }
+  [data-sketch] .sketch-rail > .sketch-nav { order: 0; position: static; grid-auto-flow: row; align-content: start; padding: 16px 8px; border-top: 0; border-right: var(--sketch-stroke) solid var(--sketch-ink); }
+  [data-sketch] .sketch-grid { grid-template-columns: repeat(var(--tablet, 2), minmax(0, 1fr)); }
+  [data-sketch] .sketch-split { grid-template-columns: 260px minmax(0, 1fr); min-height: calc(100vh - 62px); align-content: stretch; }
+  [data-sketch] .sketch-split > :not(:last-child) { border-right: var(--sketch-stroke) solid var(--sketch-ink); }
+  [data-sketch] .sketch-split > .sketch-nav { flex-direction: column; padding: 24px 16px; } [data-sketch] .sketch-split > .sketch-nav a { justify-content: start; }
+  [data-sketch] .sketch-board { grid-auto-columns: 280px; }
+  [data-sketch] .sketch-main { padding: 32px; }
+}
+@media (min-width: 1000px) {
+  [data-sketch] :is(.sketch-menu-button, .sketch-until-desktop) { display: none !important; }
+  [data-sketch] .sketch-bar > .sketch-collapse { display: flex; flex-basis: auto; align-items: center; gap: 8px; }
+  [data-sketch] .sketch-shell { grid-template: auto 1fr / 220px minmax(0, 1fr); }
+  [data-sketch] .sketch-shell > .sketch-nav { order: 0; position: static; display: flex; flex-direction: column; padding: 24px 16px; border-top: 0; border-right: var(--sketch-stroke) solid var(--sketch-ink); }
+  [data-sketch] .sketch-shell > .sketch-nav a { flex-direction: row; justify-content: start; gap: 12px; padding: 0 12px; font-size: inherit; }
+  [data-sketch] .sketch-cols { grid-template-columns: var(--cols, minmax(0, 1fr) 300px); }
+  [data-sketch] .sketch-grid { grid-template-columns: repeat(var(--wide, 4), minmax(0, 1fr)); }
+  [data-sketch] .sketch-grid > .sketch-span { grid-column: span 3; } [data-sketch] .sketch-grid > .sketch-span + * { grid-column: auto; }
+  [data-sketch] .sketch-split { grid-template-columns: var(--split, 260px minmax(0, 1fr)); }
+  [data-sketch] .sketch-split:has(> :nth-child(3)) { grid-template-columns: var(--split, 200px 300px minmax(0, 1fr)); }
+  [data-sketch] .sketch-board { grid-auto-columns: minmax(0, 1fr); }
+  [data-sketch] .sketch-steps { flex-direction: column; }
+  [data-sketch] .sketch-cols.flip > :first-child { order: 1; } /* A band with its picture on the other side. */
+}
+</style>
+<style>
+/* Glue for this sketch only: badge placement, the row grid, the drawer edge and the motion. */
+@media (min-width: 1000px) { [data-sketch] .side-shell { grid-template-rows: 1fr; } }
+[data-sketch] .nav-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+[data-sketch] .bell { position: relative; }
+[data-sketch] .sketch-nav .nav-head a.bell { padding: 0; justify-content: center; }
+[data-sketch] .bell .count { position: absolute; top: 2px; right: 0; min-width: 20px; padding: 0 5px; font-size: 12px; line-height: 16px; text-align: center; }
+[data-sketch] .sketch-icon-button[aria-current] { background: var(--sketch-wash); }
+[data-sketch] .sketch-list > li.row { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: start; gap: 2px 12px; padding-block: 10px; }
+[data-sketch] .sketch-list .row a { display: inline; min-height: 0; min-width: 0; text-decoration: none; }
+[data-sketch] .sketch-list .row a::after { content: ""; position: absolute; inset: 0; border-radius: var(--sketch-wobble); }
+[data-sketch] .sketch-list .row a:hover::after { background: var(--sketch-wash); }
+[data-sketch] .sketch-list .row a:focus-visible { outline: none; }
+[data-sketch] .sketch-list .row a:focus-visible::after { outline: 2px solid var(--sketch-ink); outline-offset: -2px; }
+[data-sketch] .row .icon-cell { padding-top: 2px; }
+[data-sketch] .row .text { display: grid; gap: 2px; }
+[data-sketch] .row.unread a { font-weight: 600; }
+[data-sketch] .row time { white-space: nowrap; }
+[data-sketch] .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+[data-sketch] .list-head { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+[data-sketch] .list-head h1, [data-sketch] .list-head h2 { margin: 0; }
+[data-sketch] .empty { justify-items: center; text-align: center; padding: 32px 16px; }
+[data-sketch] .sketch-popover.panel { width: min(360px, calc(100vw - 16px)); }
+@media (max-width: 559px) { [data-sketch] .sketch-popover.panel { width: calc(100vw - 16px); } }
+@media (max-width: 999px) { [data-sketch] .sketch-list > li.row:has([aria-current]) { background: none; } }
+[data-sketch] .sketch-dialog.drawer { inset: 0 0 0 auto; margin: 0; width: min(420px, 100vw); max-width: 100vw; height: 100vh; max-height: none; align-content: start; }
+@media (min-width: 1000px) { [data-sketch] .sketch-dialog.drawer.left { inset: 0 auto 0 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  [data-sketch] .sketch-popover.panel:not([hidden]) { animation: panel-in 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+  [data-sketch] .sketch-dialog.drawer[open] { animation: drawer-in-right 250ms cubic-bezier(0.4, 0, 0.2, 1); }
+  [data-sketch] .sketch-dialog.drawer[open]::backdrop { animation: fade-in 250ms cubic-bezier(0.4, 0, 0.2, 1); }
+  [data-sketch] .detail { animation: fade-in 150ms cubic-bezier(0.4, 0, 0.2, 1); }
+}
+@media (prefers-reduced-motion: no-preference) and (min-width: 1000px) {
+  [data-sketch] .sketch-dialog.drawer.left[open] { animation-name: drawer-in-left; }
+}
+@keyframes panel-in { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes drawer-in-right { from { transform: translateX(100%); } }
+@keyframes drawer-in-left { from { transform: translateX(-100%); } }
+@keyframes fade-in { from { opacity: 0; } }
+</style>
+<body data-sketch>
+<section data-state="sidenav-count">
+<div class="sketch-shell side-shell">
+  <header class="sketch-bar sketch-until-desktop"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications, 3 unread" data-sketch-popover="panel-sidenav-count-narrow" aria-expanded="true"><i data-icon="bell"></i><span class="sketch-badge strong count" aria-hidden="true">3</span></button><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-sidenav-count" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-sidenav-count" aria-label="Main"><a href="#sidenav-count" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#sidenav-count"><i data-icon="download"></i>Reports</a><a href="#sidenav-count"><i data-icon="calendar"></i>Payouts</a><a href="#sidenav-count"><i data-icon="settings"></i>Settings</a></nav></header>
+  <nav class="sketch-nav sketch-from-desktop" aria-label="Main"><div class="nav-head"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications, 3 unread" data-sketch-popover="panel-sidenav-count-wide" aria-expanded="true"><i data-icon="bell"></i><span class="sketch-badge strong count" aria-hidden="true">3</span></button></div><a href="#sidenav-count" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#sidenav-count"><i data-icon="download"></i>Reports</a><a href="#sidenav-count"><i data-icon="calendar"></i>Payouts</a><a href="#sidenav-count"><i data-icon="settings"></i>Settings</a></nav>
+  <main class="sketch-main"><h1>Campaigns</h1>
+<div class="sketch-table-box"><table class="sketch-table"><thead><tr><th>Campaign</th><th>Status</th><th>Visits</th></tr></thead>
+<tbody><tr><td>Spring offer</td><td>Active</td><td>1,240</td></tr><tr><td>CMP-88 landing page</td><td>Draft</td><td>0</td></tr><tr><td>Winter sale</td><td>Ended</td><td>8,310</td></tr></tbody></table></div></main>
+</div>
+<div class="sketch-popover panel beside" id="panel-sidenav-count-wide" role="dialog" aria-label="Notifications" data-open-wide><div class="list-head"><h2>Notifications</h2><span class="sketch-spacer"></span><a class="sketch-button secondary" href="#zero">Mark all read</a></div><ul class="sketch-list" aria-label="Notifications"><li class="row unread"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row unread"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row unread"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul><div><a class="sketch-button secondary" href="a-inbox-page.html#sidenav-count">All notifications</a></div></div>
+<div class="sketch-popover panel" id="panel-sidenav-count-narrow" role="dialog" aria-label="Notifications" data-open-narrow><div class="list-head"><h2>Notifications</h2><span class="sketch-spacer"></span><a class="sketch-button secondary" href="#zero">Mark all read</a></div><ul class="sketch-list" aria-label="Notifications"><li class="row unread"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row unread"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row unread"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul><div><a class="sketch-button secondary" href="a-inbox-page.html#sidenav-count">All notifications</a></div></div>
+</section>
+<section data-state="topbar-count">
+<div>
+  <header class="sketch-bar"><strong>[Product]</strong><span class="sketch-spacer sketch-until-desktop"></span><span class="sketch-until-desktop"><button type="button" class="sketch-icon-button bell" aria-label="Notifications, 3 unread" data-sketch-popover="panel-topbar-count-narrow" aria-expanded="true"><i data-icon="bell"></i><span class="sketch-badge strong count" aria-hidden="true">3</span></button></span><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-topbar-count" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-topbar-count" style="flex:1;column-gap:16px" aria-label="Main"><a href="#topbar-count" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#topbar-count"><i data-icon="download"></i>Reports</a><a href="#topbar-count"><i data-icon="calendar"></i>Payouts</a><a href="#topbar-count"><i data-icon="settings"></i>Settings</a><span class="sketch-spacer"></span><input class="sketch-input" type="search" aria-label="Search" placeholder="Search" style="width:min(240px,100%)"></nav><span class="sketch-from-desktop"><button type="button" class="sketch-icon-button bell" aria-label="Notifications, 3 unread" data-sketch-popover="panel-topbar-count-wide" aria-expanded="true"><i data-icon="bell"></i><span class="sketch-badge strong count" aria-hidden="true">3</span></button></span></header>
+  <main class="sketch-main"><h1>Campaigns</h1>
+<div class="sketch-table-box"><table class="sketch-table"><thead><tr><th>Campaign</th><th>Status</th><th>Visits</th></tr></thead>
+<tbody><tr><td>Spring offer</td><td>Active</td><td>1,240</td></tr><tr><td>CMP-88 landing page</td><td>Draft</td><td>0</td></tr><tr><td>Winter sale</td><td>Ended</td><td>8,310</td></tr></tbody></table></div></main>
+</div>
+<div class="sketch-popover panel" id="panel-topbar-count-wide" role="dialog" aria-label="Notifications" data-open-wide><div class="list-head"><h2>Notifications</h2><span class="sketch-spacer"></span><a class="sketch-button secondary" href="#zero">Mark all read</a></div><ul class="sketch-list" aria-label="Notifications"><li class="row unread"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row unread"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row unread"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul><div><a class="sketch-button secondary" href="a-inbox-page.html#sidenav-count">All notifications</a></div></div>
+<div class="sketch-popover panel" id="panel-topbar-count-narrow" role="dialog" aria-label="Notifications" data-open-narrow><div class="list-head"><h2>Notifications</h2><span class="sketch-spacer"></span><a class="sketch-button secondary" href="#zero">Mark all read</a></div><ul class="sketch-list" aria-label="Notifications"><li class="row unread"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row unread"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row unread"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count"><span class="vh">Unread: </span>Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul><div><a class="sketch-button secondary" href="a-inbox-page.html#sidenav-count">All notifications</a></div></div>
+</section>
+<section data-state="zero">
+<div class="sketch-shell side-shell">
+  <header class="sketch-bar sketch-until-desktop"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications" data-sketch-popover="panel-zero-narrow" aria-expanded="true"><i data-icon="bell"></i></button><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-zero" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-zero" aria-label="Main"><a href="#zero" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#zero"><i data-icon="download"></i>Reports</a><a href="#zero"><i data-icon="calendar"></i>Payouts</a><a href="#zero"><i data-icon="settings"></i>Settings</a></nav></header>
+  <nav class="sketch-nav sketch-from-desktop" aria-label="Main"><div class="nav-head"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications" data-sketch-popover="panel-zero-wide" aria-expanded="true"><i data-icon="bell"></i></button></div><a href="#zero" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#zero"><i data-icon="download"></i>Reports</a><a href="#zero"><i data-icon="calendar"></i>Payouts</a><a href="#zero"><i data-icon="settings"></i>Settings</a></nav>
+  <main class="sketch-main"><h1>Campaigns</h1>
+<div class="sketch-table-box"><table class="sketch-table"><thead><tr><th>Campaign</th><th>Status</th><th>Visits</th></tr></thead>
+<tbody><tr><td>Spring offer</td><td>Active</td><td>1,240</td></tr><tr><td>CMP-88 landing page</td><td>Draft</td><td>0</td></tr><tr><td>Winter sale</td><td>Ended</td><td>8,310</td></tr></tbody></table></div></main>
+</div>
+<div class="sketch-popover panel beside" id="panel-zero-wide" role="dialog" aria-label="Notifications" data-open-wide><div class="list-head"><h2>Notifications</h2></div><ul class="sketch-list" aria-label="Notifications"><li class="row"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul><div><a class="sketch-button secondary" href="a-inbox-page.html#sidenav-count">All notifications</a></div></div>
+<div class="sketch-popover panel" id="panel-zero-narrow" role="dialog" aria-label="Notifications" data-open-narrow><div class="list-head"><h2>Notifications</h2></div><ul class="sketch-list" aria-label="Notifications"><li class="row"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="a-inbox-page.html#sidenav-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul><div><a class="sketch-button secondary" href="a-inbox-page.html#sidenav-count">All notifications</a></div></div>
+</section>
+<section data-state="empty">
+<div class="sketch-shell side-shell">
+  <header class="sketch-bar sketch-until-desktop"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications" data-sketch-popover="panel-empty-narrow" aria-expanded="true"><i data-icon="bell"></i></button><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-empty" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-empty" aria-label="Main"><a href="#empty" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#empty"><i data-icon="download"></i>Reports</a><a href="#empty"><i data-icon="calendar"></i>Payouts</a><a href="#empty"><i data-icon="settings"></i>Settings</a></nav></header>
+  <nav class="sketch-nav sketch-from-desktop" aria-label="Main"><div class="nav-head"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications" data-sketch-popover="panel-empty-wide" aria-expanded="true"><i data-icon="bell"></i></button></div><a href="#empty" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#empty"><i data-icon="download"></i>Reports</a><a href="#empty"><i data-icon="calendar"></i>Payouts</a><a href="#empty"><i data-icon="settings"></i>Settings</a></nav>
+  <main class="sketch-main"><h1>Campaigns</h1>
+<div class="sketch-table-box"><table class="sketch-table"><thead><tr><th>Campaign</th><th>Status</th><th>Visits</th></tr></thead>
+<tbody><tr><td>Spring offer</td><td>Active</td><td>1,240</td></tr><tr><td>CMP-88 landing page</td><td>Draft</td><td>0</td></tr><tr><td>Winter sale</td><td>Ended</td><td>8,310</td></tr></tbody></table></div></main>
+</div>
+<div class="sketch-popover panel beside" id="panel-empty-wide" role="dialog" aria-label="Notifications" data-open-wide><div class="list-head"><h2>Notifications</h2></div><div class="sketch-stack empty"><i data-icon="bell"></i><h2>No notifications</h2><p>Mentions, assignments and failed runs show here.</p><button class="sketch-button secondary" type="button" data-sketch-toast="Opens notification settings">Notification settings</button></div></div>
+<div class="sketch-popover panel" id="panel-empty-narrow" role="dialog" aria-label="Notifications" data-open-narrow><div class="list-head"><h2>Notifications</h2></div><div class="sketch-stack empty"><i data-icon="bell"></i><h2>No notifications</h2><p>Mentions, assignments and failed runs show here.</p><button class="sketch-button secondary" type="button" data-sketch-toast="Opens notification settings">Notification settings</button></div></div>
+</section>
+<section data-state="error-retry">
+<div class="sketch-shell side-shell">
+  <header class="sketch-bar sketch-until-desktop"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications" data-sketch-popover="panel-error-retry-narrow" aria-expanded="true"><i data-icon="bell"></i></button><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-error-retry" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-error-retry" aria-label="Main"><a href="#error-retry" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#error-retry"><i data-icon="download"></i>Reports</a><a href="#error-retry"><i data-icon="calendar"></i>Payouts</a><a href="#error-retry"><i data-icon="settings"></i>Settings</a></nav></header>
+  <nav class="sketch-nav sketch-from-desktop" aria-label="Main"><div class="nav-head"><strong>[Product]</strong><span class="sketch-spacer"></span><button type="button" class="sketch-icon-button bell" aria-label="Notifications" data-sketch-popover="panel-error-retry-wide" aria-expanded="true"><i data-icon="bell"></i></button></div><a href="#error-retry" aria-current="page"><i data-icon="home"></i>Campaigns</a><a href="#error-retry"><i data-icon="download"></i>Reports</a><a href="#error-retry"><i data-icon="calendar"></i>Payouts</a><a href="#error-retry"><i data-icon="settings"></i>Settings</a></nav>
+  <main class="sketch-main"><h1>Campaigns</h1>
+<div class="sketch-table-box"><table class="sketch-table"><thead><tr><th>Campaign</th><th>Status</th><th>Visits</th></tr></thead>
+<tbody><tr><td>Spring offer</td><td>Active</td><td>1,240</td></tr><tr><td>CMP-88 landing page</td><td>Draft</td><td>0</td></tr><tr><td>Winter sale</td><td>Ended</td><td>8,310</td></tr></tbody></table></div></main>
+</div>
+<div class="sketch-popover panel beside" id="panel-error-retry-wide" role="dialog" aria-label="Notifications" data-open-wide><div class="list-head"><h2>Notifications</h2></div><div class="sketch-stack" role="alert"><p><strong>Error: Notifications did not load.</strong> Check the connection, then try again.</p><div><a class="sketch-button" href="#sidenav-count">Retry</a></div></div></div>
+<div class="sketch-popover panel" id="panel-error-retry-narrow" role="dialog" aria-label="Notifications" data-open-narrow><div class="list-head"><h2>Notifications</h2></div><div class="sketch-stack" role="alert"><p><strong>Error: Notifications did not load.</strong> Check the connection, then try again.</p><div><a class="sketch-button" href="#sidenav-count">Retry</a></div></div></div>
+</section>
+
+<script>
+const wide = matchMedia('(min-width: 1000px)').matches;
+document.querySelectorAll(wide ? '[data-open-wide]' : '[data-open-narrow]').forEach(layer => layer.setAttribute('data-open', ''));
+</script>
+<script data-sketch-kit="0.4.0">
+/* Local-only presentation helper. Load after markup; no network requests. */
+(() => {
+  const page = document.querySelector('[data-sketch]');
+  if (!page) return;
+  // The host page (Amberstone) sets html[data-theme] and may change it at any time; the CSS reads it.
+  // Until the page sets it, follow the system theme. Never overwrite a value the page set.
+  const root = document.documentElement;
+  const system = matchMedia('(prefers-color-scheme: dark)');
+  /* A gallery opens a page with ?theme=dark or ?theme=light. That counts as a value the page set. */
+  const asked = new URLSearchParams(location.search).get('theme');
+  if (!root.hasAttribute('data-theme') && ['light', 'dark'].includes(asked)) root.dataset.theme = asked;
+  let pageTheme = root.hasAttribute('data-theme');
+  const watch = new MutationObserver(() => { pageTheme = true; watch.disconnect(); });
+  if (!pageTheme) watch.observe(root, {attributeFilter: ['data-theme']});
+  function applyTheme() {
+    if (watch.takeRecords().length) { pageTheme = true; watch.disconnect(); }
+    if (pageTheme) return;
+    root.dataset.theme = system.matches ? 'dark' : 'light';
+    watch.takeRecords();
+  }
+  system.addEventListener('change', applyTheme);
+  const observer = new ResizeObserver(entries => entries.forEach(({target}) => {
+    const w = target.clientWidth, h = target.clientHeight;
+    const svg = target.querySelector(':scope > .sketch-outline');
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    svg.firstChild.setAttribute('d', `M7 3 Q${w*.18} -.5 ${w*.38} 2.5 T${w*.7} 2 Q${w*.9} .5 ${w-7} 3 Q${w-1} 1 ${w-2} 8 Q${w+1} ${h*.45} ${w-2} ${h-8} Q${w} ${h-2} ${w-8} ${h-2} Q${w*.7} ${h+1} ${w*.5} ${h-2} T7 ${h-2} Q1 ${h-1} 2 ${h-8} Q-1 ${h*.6} 2 9 Q1 2 7 3`);
+  }));
+  const outlined = '.sketch-frame, .sketch-popover, .sketch-menu, .sketch-dialog, .sketch-toast';
+  const outline = frame => {
+    if (frame.querySelector(':scope > .sketch-outline')) return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'sketch-outline');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.append(document.createElementNS(svg.namespaceURI, 'path'));
+    frame.prepend(svg);
+    observer.observe(frame);
+  };
+  /* Line icons, drawn on a 24px grid. <i data-icon="close"></i> becomes the svg. */
+  const icons = {
+    close: 'M6 6l12 12M18 6L6 18', plus: 'M12 5v14M5 12h14', minus: 'M5 12h14', check: 'M5 12.5l4.5 4.5L19 7',
+    'chevron-down': 'M6 9l6 6 6-6', 'chevron-up': 'M6 15l6-6 6 6', 'chevron-left': 'M15 6l-6 6 6 6', 'chevron-right': 'M9 6l6 6-6 6',
+    'arrow-left': 'M19 12H5M11 6l-6 6 6 6', 'arrow-right': 'M5 12h14M13 6l6 6-6 6',
+    search: 'M10.5 4a6.5 6.5 0 1 0 0 13a6.5 6.5 0 1 0 0-13zM15.5 15.5L20 20', menu: 'M4 7h16M4 12h16M4 17h16',
+    more: 'M5 12h1M11.5 12h1M18 12h1', edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+    trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13', sliders: 'M4 7h10M18 7h2M16 5v4M4 17h4M12 17h8M10 15v4',
+    settings: 'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1',
+    comment: 'M4 5h16v11H9l-5 4z', user: 'M12 4a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM4 21c1-4 4-6 8-6s7 2 8 6',
+    home: 'M4 11l8-7 8 7M6 9.5V20h12V9.5', bell: 'M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4',
+    calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4', copy: 'M8 8h12v12H8zM16 8V4H4v12h4',
+    link: 'M10 14l4-4M9 7l2-2a4 4 0 0 1 6 6l-2 2M15 17l-2 2a4 4 0 0 1-6-6l2-2',
+    upload: 'M12 16V4M7 9l5-5 5 5M4 20h16', download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+    eye: 'M2 12c3-5 6.5-7 10-7s7 2 10 7c-3 5-6.5 7-10 7S5 17 2 12zM12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z',
+    filter: 'M4 5h16l-6 8v6l-4 2v-8z', external: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
+    info: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18zM12 11v6M12 7.5v.5', warning: 'M12 3L2 20h20zM12 10v5M12 17.5v.5',
+    image: 'M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4',
+  };
+  const drawIcon = slot => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'sketch-icon');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    const path = document.createElementNS(svg.namespaceURI, 'path');
+    path.setAttribute('d', icons[slot.dataset.icon] || icons.image);
+    svg.append(path);
+    slot.replaceWith(svg);
+  };
+
+  /* Popover and menu: a trigger with data-sketch-popover="id" opens the element with that id. */
+  let open = null;
+  const focusables = root => [...root.querySelectorAll('a[href], button:not(:disabled), input:not(:disabled), select, textarea, [tabindex="0"]')];
+  const place = (layer, trigger) => {
+    layer.style.maxHeight = `${innerHeight - 16}px`;
+    layer.style.overflowY = '';
+    if (layer.scrollHeight > layer.clientHeight) layer.style.overflowY = 'auto';
+    const t = trigger.getBoundingClientRect(), w = layer.offsetWidth, h = layer.offsetHeight;
+    const below = t.bottom + 8, above = t.top - h - 8;
+    const top = below + h > innerHeight - 8 && above > 8 ? above : below;
+    layer.style.top = `${Math.max(8, Math.min(top, innerHeight - h - 8))}px`;
+    const start = t.left + w > innerWidth - 8 ? t.right - w : t.left;
+    layer.style.left = `${Math.max(8, Math.min(start, innerWidth - w - 8))}px`;
+  };
+  const closeLayer = (returnFocus = true) => {
+    if (!open) return;
+    const {layer, trigger} = open;
+    open = null;
+    layer.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (returnFocus) trigger.focus();
+  };
+  const openLayer = (layer, trigger, moveFocus = true) => {
+    closeLayer(false);
+    open = {layer, trigger};
+    layer.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    place(layer, trigger);
+    if (moveFocus) focusables(layer)[0]?.focus();
+  };
+  const menuItems = menu => [...menu.querySelectorAll('.sketch-menu-item:not(:disabled)')];
+
+  /* An open select: sketch.css draws the list where the browser has appearance: base-select.
+     Every other browser paints its own list, so a sketch-menu of the options takes its place (#154). */
+  const drawnList = !CSS.supports('appearance', 'base-select');
+  const ownsList = target => drawnList && target.matches?.('select.sketch-input:not([multiple], :disabled)') && target.size <= 1;
+  /* The list takes the field's name: the select's aria-label, or its label's words without the options. */
+  const fieldName = select => select.getAttribute('aria-label') || [...select.labels].map(label => {
+    const copy = label.cloneNode(true);
+    copy.querySelectorAll('select, .sketch-menu').forEach(part => part.remove());
+    return copy.textContent.trim();
+  }).join(' ');
+  let lists = 0;
+  const openList = select => {
+    if (!select.sketchList) {
+      select.sketchList = Object.assign(document.createElement('div'), {className: 'sketch-menu', hidden: true, id: `sketch-list-${++lists}`});
+      select.sketchList.setAttribute('role', 'listbox');
+      select.setAttribute('aria-controls', select.sketchList.id);
+      /* Next to its field, so the list stays in the same dialog and landmark as the select. */
+      (select.closest('label') || select).after(select.sketchList);
+      outline(select.sketchList);
+    }
+    const list = select.sketchList;
+    list.setAttribute('aria-label', fieldName(select));
+    list.querySelectorAll(':scope > :is(.sketch-menu-item, .sketch-menu-group)').forEach(item => item.remove());
+    /* A hidden option stays out, and :disabled also covers an option in a disabled optgroup.
+       An optgroup becomes a group with its label as a heading. */
+    let group = null;
+    [...select.options].forEach((option, index) => {
+      if (option.hidden) return;
+      const optgroup = option.parentElement.closest('optgroup');
+      if (optgroup && optgroup !== group?.sketchGroup) {
+        group = Object.assign(document.createElement('div'), {className: 'sketch-menu-group', sketchGroup: optgroup});
+        group.setAttribute('role', 'group');
+        group.setAttribute('aria-label', optgroup.label);
+        if (optgroup.disabled) group.setAttribute('aria-disabled', 'true');
+        const label = Object.assign(document.createElement('div'), {className: 'sketch-menu-group-label', textContent: optgroup.label});
+        label.setAttribute('aria-hidden', 'true');
+        group.append(label);
+        list.append(group);
+      } else if (!optgroup) group = null;
+      const item = Object.assign(document.createElement('button'), {type: 'button', className: 'sketch-menu-item', textContent: option.text, disabled: option.matches(':disabled')});
+      item.setAttribute('role', 'option');
+      item.setAttribute('aria-selected', String(option.selected));
+      item.sketchIndex = index;
+      (group || list).append(item);
+    });
+    list.style.minWidth = `${select.offsetWidth}px`;
+    openLayer(list, select, false);
+    (list.querySelector('[aria-selected="true"]:not(:disabled)') || menuItems(list)[0])?.focus();
+  };
+  const chooseOption = (select, item) => {
+    if (select.selectedIndex === item.sketchIndex) return;
+    select.selectedIndex = item.sketchIndex;
+    select.dispatchEvent(new Event('input', {bubbles: true}));
+    select.dispatchEvent(new Event('change', {bubbles: true}));
+  };
+
+  /* A native dialog: data-sketch-open="id" shows it, data-sketch-close closes the nearest one. */
+  const showDialog = (dialog, opener) => {
+    if (dialog.open) return;
+    /* Focus goes back to something that stays visible: the trigger of a menu that held the opener. */
+    opener = opener || page.querySelector(`[data-sketch-open="${dialog.id}"]`);
+    dialog.sketchOpener = open?.layer.contains(opener) ? open.trigger : opener;
+    dialog.showModal();
+  };
+
+  /* One toast at a time, announced politely, gone after four seconds. */
+  let toastTimer, toastOpener;
+  const hideToast = () => {
+    const toast = page.querySelector(':scope > .sketch-toast:not([hidden])');
+    if (!toast) return false;
+    toast.hidden = true;
+    clearTimeout(toastTimer);
+    toastOpener?.focus();
+    return true;
+  };
+  window.sketchToast = (text, opener) => {
+    toastOpener = opener;
+    let toast = page.querySelector(':scope > .sketch-toast');
+    if (!toast) {
+      toast = Object.assign(document.createElement('div'), {className: 'sketch-toast', hidden: true});
+      toast.setAttribute('role', 'status');
+      toast.append(document.createElement('span'));
+      page.append(toast);
+      outline(toast);
+    }
+    toast.lastChild.textContent = text;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toast.hidden = true; }, 4000);
+  };
+
+  const selectTab = (tab, moveFocus) => {
+    tab.closest('[role="tablist"]').querySelectorAll('[role="tab"]').forEach(other => {
+      const chosen = other === tab;
+      other.setAttribute('aria-selected', String(chosen));
+      other.tabIndex = chosen ? 0 : -1;
+      const panel = document.getElementById(other.getAttribute('aria-controls'));
+      if (panel) panel.hidden = !chosen;
+    });
+    if (moveFocus) tab.focus();
+  };
+
+  page.addEventListener('click', event => {
+    const target = event.target;
+    /* A menu button opens or closes the .sketch-collapse right after it. */
+    const menu = target.closest('.sketch-menu-button');
+    if (menu) menu.setAttribute('aria-expanded', String(menu.getAttribute('aria-expanded') !== 'true'));
+    const layerTrigger = open?.layer.contains(target) ? open.trigger : null;
+    const popoverTrigger = target.closest('[data-sketch-popover]');
+    if (popoverTrigger) {
+      const layer = document.getElementById(popoverTrigger.dataset.sketchPopover);
+      if (open?.layer === layer) closeLayer(); else openLayer(layer, popoverTrigger);
+      return;
+    }
+    const opener = target.closest('[data-sketch-open]');
+    if (opener) showDialog(document.getElementById(opener.dataset.sketchOpen), opener);
+    if (target.closest('[data-sketch-close]')) {
+      const dialog = target.closest('dialog');
+      if (dialog) dialog.close(); else closeLayer();
+    }
+    if (target.matches('dialog.sketch-dialog')) {
+      const r = target.getBoundingClientRect();
+      if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) target.close();
+    }
+    const option = open && target.closest('[role="option"].sketch-menu-item');
+    if (option) chooseOption(open.trigger, option);
+    if (open && target.closest('.sketch-menu-item')) closeLayer();
+    const chip = target.closest('.sketch-chip[aria-pressed]');
+    if (chip) chip.setAttribute('aria-pressed', String(chip.getAttribute('aria-pressed') !== 'true'));
+    const tab = target.closest('.sketch-tabs [role="tab"]');
+    if (tab) selectTab(tab, false);
+    const toast = target.closest('[data-sketch-toast]');
+    if (toast) sketchToast(toast.dataset.sketchToast, layerTrigger || toast);
+  });
+  page.addEventListener('pointerdown', event => {
+    if (open && !open.layer.contains(event.target) && !open.trigger.contains(event.target)) closeLayer(false);
+  });
+  page.addEventListener('mousedown', event => {
+    if (!ownsList(event.target)) return;
+    event.preventDefault();
+    event.target.focus();
+    if (open?.trigger === event.target) closeLayer(); else openList(event.target);
+  });
+  page.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && open) { event.preventDefault(); closeLayer(); return; }
+    if (event.key === 'Escape' && !event.target.closest('dialog') && hideToast()) { event.preventDefault(); return; }
+    if (ownsList(event.target) && [' ', 'Enter', 'ArrowDown', 'ArrowUp'].includes(event.key)) { event.preventDefault(); openList(event.target); return; }
+    const menu = event.target.closest('.sketch-menu');
+    if (menu && ['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+      const items = menuItems(menu), at = items.indexOf(event.target);
+      const next = {ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1}[event.key];
+      items[(next + items.length) % items.length]?.focus();
+      event.preventDefault();
+    }
+    const tab = event.target.closest('.sketch-tabs [role="tab"]');
+    if (tab && ['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) {
+      const tabs = [...tab.parentElement.querySelectorAll('[role="tab"]')], at = tabs.indexOf(tab);
+      const next = {ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: tabs.length - 1}[event.key];
+      selectTab(tabs[(next + tabs.length) % tabs.length], true);
+      event.preventDefault();
+    }
+  });
+  addEventListener('resize', () => open && place(open.layer, open.trigger));
+
+  /* States: each [data-state="id"] is one screen. The address #id shows it; no address shows the
+     first. An overlay marked data-open inside a state opens with it, so a review can link to it. */
+  const showState = () => {
+    const states = [...page.querySelectorAll('[data-state]')];
+    if (!states.length) return;
+    const current = states.find(state => state.dataset.state === location.hash.slice(1)) || states[0];
+    closeLayer(false);
+    page.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+    states.forEach(state => { state.hidden = state !== current; });
+    current.querySelectorAll('[data-open]').forEach(layer => {
+      if (layer.matches('dialog')) { showDialog(layer, null); return; }
+      const trigger = page.querySelector(`[data-sketch-popover="${layer.id}"]`);
+      if (trigger) openLayer(layer, trigger, false);
+    });
+  };
+  addEventListener('hashchange', showState);
+
+  window.initSketch = () => {
+    page.querySelectorAll('i[data-icon]').forEach(drawIcon);
+    page.querySelectorAll(outlined).forEach(outline);
+    page.querySelectorAll('.sketch-popover, .sketch-menu').forEach(layer => {
+      if (!layer.matches('dialog')) layer.hidden = !open || open.layer !== layer;
+      if (!layer.sketchReady) {
+        layer.sketchReady = true;
+        /* A layer taller than the screen scrolls, and its outline stays on the visible box. */
+        layer.addEventListener('scroll', () => {
+          const svg = layer.querySelector(':scope > .sketch-outline');
+          if (svg) svg.style.transform = `translateY(${layer.scrollTop}px)`;
+        });
+      }
+      if (layer.matches('.sketch-menu:not([role="listbox"])')) {
+        layer.setAttribute('role', 'menu');
+        layer.querySelectorAll('.sketch-menu-item').forEach(item => item.setAttribute('role', 'menuitem'));
+      }
+    });
+    page.querySelectorAll('[data-sketch-popover]').forEach(trigger => {
+      trigger.setAttribute('aria-controls', trigger.dataset.sketchPopover);
+      trigger.setAttribute('aria-haspopup', document.getElementById(trigger.dataset.sketchPopover)?.matches('.sketch-menu') ? 'menu' : 'dialog');
+      if (!trigger.hasAttribute('aria-expanded')) trigger.setAttribute('aria-expanded', 'false');
+    });
+    page.querySelectorAll('dialog.sketch-dialog').forEach(dialog => {
+      if (dialog.sketchReady) return;
+      dialog.sketchReady = true;
+      dialog.addEventListener('close', () => dialog.sketchOpener?.focus());
+    });
+    page.querySelectorAll('.sketch-tabs').forEach(list => {
+      list.setAttribute('role', 'tablist');
+      const tabs = [...list.querySelectorAll('[role="tab"]')];
+      const chosen = tabs.find(tab => tab.getAttribute('aria-selected') === 'true') || tabs[0];
+      if (chosen) selectTab(chosen, false);
+    });
+    applyTheme();
+    showState();
+  };
+  window.initSketch();
+})();
+</script>
+<script>
+const besideNav = () => requestAnimationFrame(() => {
+  if (!matchMedia('(min-width: 1000px)').matches) return;
+  document.querySelectorAll('[data-state]:not([hidden]) .panel.beside:not([hidden])').forEach(panel => {
+    const nav = panel.closest('[data-state]').querySelector('.sketch-nav');
+    panel.style.left = nav.getBoundingClientRect().right + 8 + 'px';
+    panel.style.top = nav.querySelector('.bell').getBoundingClientRect().top + 'px';
+  });
+});
+besideNav();
+['hashchange', 'resize', 'click'].forEach(type => addEventListener(type, besideNav));
+</script>

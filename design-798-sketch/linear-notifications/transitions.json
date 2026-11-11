@@ -1,0 +1,29 @@
+[
+  {
+    "label": "item-open",
+    "element": "detail pane",
+    "property": "opacity",
+    "animation": null,
+    "duration": 150,
+    "delay": 0,
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  {
+    "label": "display-options",
+    "element": "display options panel",
+    "property": "opacity",
+    "animation": null,
+    "duration": 150,
+    "delay": 0,
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)"
+  },
+  {
+    "label": "display-options",
+    "element": "display options panel",
+    "property": "transform",
+    "animation": null,
+    "duration": 150,
+    "delay": 0,
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)"
+  }
+]
