@@ -45,6 +45,28 @@ describe('notifications showcase', () => {
     await user.click(within(panel()).getByRole('menuitem', { name: 'Mark all read' }));
     expect(bell()).toHaveAccessibleName('Notifications');
   });
+  // jsdom has no layout, so this checks which element has focus, not the ring. The built Storybook probe checks the ring.
+  it.each([['the mouse', 'click'], ['Enter', 'enter']])('keeps focus in the panel after Mark all read and Retry with %s', async (_how, how) => {
+    const user = userEvent.setup();
+    const act = async (name: string) => {
+      const item = within(panel()).getByRole('menuitem', { name });
+      if (how === 'click') await user.click(item);
+      else { item.focus(); await user.keyboard('{Enter}'); }
+    };
+    const firstRow = () => within(panel()).getAllByRole('menuitem').find(row => row.tagName === 'A');
+    const { unmount } = render(<Notifications defaultOpen />);
+    await act('Mark all read');
+    expect(bell()).toHaveAttribute('aria-expanded', 'true');
+    expect(firstRow()).toHaveFocus();
+    expect(firstRow()).toHaveAccessibleName(/^Payout run PR-204 failed/);
+    await user.keyboard('{ArrowDown}');
+    expect(within(panel()).getByRole('menuitem', { name: /Mira Kade/ })).toHaveFocus();
+    unmount();
+    render(<Notifications defaultOpen initialLoad="error" />);
+    await act('Retry');
+    expect(bell()).toHaveAttribute('aria-expanded', 'true');
+    expect(firstRow()).toHaveFocus();
+  });
   it('shows the error with Retry in the panel and on the page, and the empty state', async () => {
     const user = userEvent.setup();
     const { unmount } = render(<Notifications defaultOpen initialLoad="error" />);

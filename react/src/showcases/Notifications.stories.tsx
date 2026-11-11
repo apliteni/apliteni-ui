@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Notifications } from './Notifications';
 const meta = { title: 'Apps/Notifications', id: 'apps-notifications', component: Notifications, render: args => <Notifications {...args} />, parameters: { layout: 'fullscreen',
   viewport: { options: { phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' } } },
-  docs: { description: { component: 'A notifications bell with its unread count opens a panel of the latest notifications. Its All notifications button opens the notifications page: a list with a detail pane. All data is sample data. Mark all read and Retry change only this tab. Sign out is inactive.' } } } } satisfies Meta<typeof Notifications>;
+  docs: { description: { component: 'A notifications bell with its unread count opens a panel of the latest notifications. Its All notifications button opens the notifications page: a list with a detail pane. All data is sample data. Mark all read and Retry change only this tab. Sign out is inactive. The other links show the Campaigns page.' } } } } satisfies Meta<typeof Notifications>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 const phone = { viewport: { value: 'phone', isRotated: false } };

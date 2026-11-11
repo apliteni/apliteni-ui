@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { icon } from '@apliteni/apliteni-ui';
 import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
@@ -66,9 +66,19 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     showPage(href === '/notifications' ? 'notifications' : 'campaigns');
   };
   const markRead = () => setLoad('read');
+  /* Mark all read and Retry in the panel remove the focused item, and the panel stays open.
+     So focus goes to the first row after the render, or it falls to the page body. */
+  const shell = useRef<HTMLDivElement>(null);
+  const refocus = useRef(false);
+  const inPanel = (next: NotificationsLoad) => () => { refocus.current = true; setLoad(next); };
+  useEffect(() => {
+    if (!refocus.current) return;
+    refocus.current = false;
+    shell.current?.querySelector<HTMLElement>('.notifications__panel a[data-dd-item]')?.focus();
+  }, [load]);
 
   const title = (note: Note) => <>{note.title}{note.unread && <span className="ui-sr">, unread</span>}</>;
-  const retry = (where: 'panel' | 'page') => <Button variant="primary" size="sm" {...(where === 'panel' ? asItem : {})} onClick={() => setLoad('unread')}>Retry</Button>;
+  const retry = (where: 'panel' | 'page') => <Button variant="primary" size="sm" {...(where === 'panel' ? asItem : {})} onClick={where === 'panel' ? inPanel('unread') : () => setLoad('unread')}>Retry</Button>;
   /* A menu may own only its items, so the danger callout, an alert, cannot stand in the panel.
      The panel says it with the empty state. The PR names the kit gap. */
   const failed = (where: 'panel' | 'page') => where === 'panel'
@@ -83,7 +93,7 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     panelClass="notifications__panel" scroll={480} open={open} onOpenChange={setOpen}
     triggerContent={<span className="notifications__bell"><Glyph name="bell" className="ui-nav__ic" />{count > 0 && <span className="notifications__count" aria-hidden="true"><Badge>{count}</Badge></span>}</span>}
     header={<div className="ui-dropdown__head notifications__head"><b>Notifications</b>
-      {count > 0 && <Button variant="secondary" size="sm" {...asItem} onClick={markRead}>Mark all read</Button>}</div>}
+      {count > 0 && <Button variant="secondary" size="sm" {...asItem} onClick={inPanel('read')}>Mark all read</Button>}</div>}
     footer={<>
       {load === 'error' && failed('panel')}
       {load === 'empty' && nothing('panel')}
@@ -101,7 +111,7 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     }} />;
 
   const onNotes = page === 'notifications';
-  return <div className="notifications">
+  return <div className="notifications" ref={shell}>
     <AppShell word="Product" brandHref="/campaigns" sections={layout === 'side' ? SECTIONS : SECTIONS.slice(0, 1)}
       pathname={onNotes ? '/notifications' : '/campaigns'} title={onNotes ? 'Notifications' : 'Campaigns'} width="wide"
       renderLink={(section, props) => <a {...props} onClick={event => { props.onClick?.(event); follow(section.href)(event); }} />}
@@ -114,7 +124,7 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
       ]} /> : load === 'error' ? failed('page') : load === 'empty' ? nothing('page')
         : <div className="notifications__columns">
           <DataTable selectable={false} pager={false} scrollLabel="Notifications" rows={notes.map(note => ({ ...note, name: note.id }))} rowState={note => note.id === chosen.id ? 'target' : undefined} columns={[
-            { key: 'title', label: 'Notification', render: note => <span className="notifications__entry">
+            { key: 'title', label: 'Notification', cell: 'title', render: note => <span className="notifications__entry">
               <Glyph name={note.glyph} className="ui-dropdown__ic" />
               <span><a href={`#${note.id}`} aria-current={note.id === chosen.id ? 'true' : undefined}
                 onClick={event => { event.preventDefault(); setPicked(note.id); }}>{title(note)}</a><span className="ui-table__sub">{note.sub}</span></span>
