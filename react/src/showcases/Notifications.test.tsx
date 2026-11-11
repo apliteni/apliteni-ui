@@ -67,6 +67,23 @@ describe('notifications showcase', () => {
     expect(bell()).toHaveAttribute('aria-expanded', 'true');
     expect(firstRow()).toHaveFocus();
   });
+  it.each([['the mouse', 'click'], ['Enter', 'enter']])('keeps focus on the page after Mark all read and Retry with %s', async (_how, how) => {
+    const user = userEvent.setup();
+    const act = async (name: string) => {
+      const button = within(screen.getByRole('main')).getByRole('button', { name });
+      if (how === 'click') await user.click(button);
+      else { button.focus(); await user.keyboard('{Enter}'); }
+    };
+    const firstRow = () => within(screen.getByRole('main')).getByRole('link', { name: /^Payout run PR-204 failed/ });
+    const { unmount } = render(<Notifications initialPage="notifications" />);
+    await act('Mark all read');
+    expect(bell()).toHaveAccessibleName('Notifications');
+    expect(firstRow()).toHaveFocus();
+    unmount();
+    render(<Notifications initialPage="notifications" initialLoad="error" />);
+    await act('Retry');
+    expect(firstRow()).toHaveFocus();
+  });
   it('shows the error with Retry in the panel and on the page, and the empty state', async () => {
     const user = userEvent.setup();
     const { unmount } = render(<Notifications defaultOpen initialLoad="error" />);

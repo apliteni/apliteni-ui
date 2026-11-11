@@ -65,20 +65,19 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     event.preventDefault();
     showPage(href === '/notifications' ? 'notifications' : 'campaigns');
   };
-  const markRead = () => setLoad('read');
-  /* Mark all read and Retry in the panel remove the focused item, and the panel stays open.
-     So focus goes to the first row after the render, or it falls to the page body. */
+  /* Mark all read and Retry remove the focused control, in the panel and on the page.
+     So focus goes to the first row there after the render, or it falls to the page body. */
   const shell = useRef<HTMLDivElement>(null);
-  const refocus = useRef(false);
-  const inPanel = (next: NotificationsLoad) => () => { refocus.current = true; setLoad(next); };
+  const refocus = useRef<'panel' | 'page' | null>(null);
+  const setLoadFrom = (where: 'panel' | 'page', next: NotificationsLoad) => () => { refocus.current = where; setLoad(next); };
   useEffect(() => {
-    if (!refocus.current) return;
-    refocus.current = false;
-    shell.current?.querySelector<HTMLElement>('.notifications__panel a[data-dd-item]')?.focus();
+    const where = refocus.current;
+    refocus.current = null;
+    if (where) shell.current?.querySelector<HTMLElement>(where === 'panel' ? '.notifications__panel a[data-dd-item]' : 'main tbody a')?.focus();
   }, [load]);
 
   const title = (note: Note) => <>{note.title}{note.unread && <span className="ui-sr">, unread</span>}</>;
-  const retry = (where: 'panel' | 'page') => <Button variant="primary" size="sm" {...(where === 'panel' ? asItem : {})} onClick={where === 'panel' ? inPanel('unread') : () => setLoad('unread')}>Retry</Button>;
+  const retry = (where: 'panel' | 'page') => <Button variant="primary" size="sm" {...(where === 'panel' ? asItem : {})} onClick={setLoadFrom(where, 'unread')}>Retry</Button>;
   /* A menu may own only its items, so the danger callout, an alert, cannot stand in the panel.
      The panel says it with the empty state. The PR names the kit gap. */
   const failed = (where: 'panel' | 'page') => where === 'panel'
@@ -93,7 +92,7 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     panelClass="notifications__panel" scroll={480} open={open} onOpenChange={setOpen}
     triggerContent={<span className="notifications__bell"><Glyph name="bell" className="ui-nav__ic" />{count > 0 && <span className="notifications__count" aria-hidden="true"><Badge>{count}</Badge></span>}</span>}
     header={<div className="ui-dropdown__head notifications__head"><b>Notifications</b>
-      {count > 0 && <Button variant="secondary" size="sm" {...asItem} onClick={inPanel('read')}>Mark all read</Button>}</div>}
+      {count > 0 && <Button variant="secondary" size="sm" {...asItem} onClick={setLoadFrom('panel', 'read')}>Mark all read</Button>}</div>}
     footer={<>
       {load === 'error' && failed('panel')}
       {load === 'empty' && nothing('panel')}
@@ -115,7 +114,7 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     <AppShell word="Product" brandHref="/campaigns" sections={layout === 'side' ? SECTIONS : SECTIONS.slice(0, 1)}
       pathname={onNotes ? '/notifications' : '/campaigns'} title={onNotes ? 'Notifications' : 'Campaigns'} width="wide"
       renderLink={(section, props) => <a {...props} onClick={event => { props.onClick?.(event); follow(section.href)(event); }} />}
-      tools={onNotes && count > 0 ? <Button variant="secondary" size="sm" onClick={markRead}>Mark all read</Button> : undefined}
+      tools={onNotes && count > 0 ? <Button variant="secondary" size="sm" onClick={setLoadFrom('page', 'read')}>Mark all read</Button> : undefined}
       headControl={bell} account={{ name: 'Demo user', email: 'demo@example.com' }} onSignOut={() => {}}>
       {!onNotes ? <DataTable selectable={false} pager={false} scrollLabel="Campaigns" rows={CAMPAIGNS} columns={[
         { key: 'name', label: 'Campaign' },
