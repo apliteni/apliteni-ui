@@ -76,6 +76,10 @@ describe('notifications showcase', () => {
     };
     const firstRow = () => within(screen.getByRole('main')).getByRole('link', { name: /^Payout run PR-204 failed/ });
     const { unmount } = render(<Notifications initialPage="notifications" />);
+    // The action sits in the title row of the list's card, above the list.
+    const card = screen.getByRole('heading', { level: 2, name: 'All' }).closest('.ui-card') as HTMLElement;
+    expect(within(card).getByRole('button', { name: 'Mark all read' })).toBeInTheDocument();
+    expect(within(card).getByRole('table')).toBeInTheDocument();
     await act('Mark all read');
     expect(bell()).toHaveAccessibleName('Notifications');
     expect(firstRow()).toHaveFocus();

@@ -114,7 +114,6 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
     <AppShell word="Product" brandHref="/campaigns" sections={layout === 'side' ? SECTIONS : SECTIONS.slice(0, 1)}
       pathname={onNotes ? '/notifications' : '/campaigns'} title={onNotes ? 'Notifications' : 'Campaigns'} width="wide"
       renderLink={(section, props) => <a {...props} onClick={event => { props.onClick?.(event); follow(section.href)(event); }} />}
-      tools={onNotes && count > 0 ? <Button variant="secondary" size="sm" onClick={setLoadFrom('page', 'read')}>Mark all read</Button> : undefined}
       headControl={bell} account={{ name: 'Demo user', email: 'demo@example.com' }} onSignOut={() => {}}>
       {!onNotes ? <DataTable selectable={false} pager={false} scrollLabel="Campaigns" rows={CAMPAIGNS} columns={[
         { key: 'name', label: 'Campaign' },
@@ -122,14 +121,18 @@ export function Notifications({ layout = 'side', initialPage = 'campaigns', init
         { key: 'visits', label: 'Visits', num: true },
       ]} /> : load === 'error' ? failed('page') : load === 'empty' ? nothing('page')
         : <div className="notifications__columns">
-          <DataTable selectable={false} pager={false} scrollLabel="Notifications" rows={notes.map(note => ({ ...note, name: note.id }))} rowState={note => note.id === chosen.id ? 'target' : undefined} columns={[
-            { key: 'title', label: 'Notification', cell: 'title', render: note => <span className="notifications__entry">
-              <Glyph name={note.glyph} className="ui-dropdown__ic" />
-              <span><a href={`#${note.id}`} aria-current={note.id === chosen.id ? 'true' : undefined}
-                onClick={event => { event.preventDefault(); setPicked(note.id); }}>{title(note)}</a><span className="ui-table__sub">{note.sub}</span></span>
-            </span> },
-            { key: 'time', label: 'Time', num: true },
-          ]} />
+          {/* The list wears the same card as the detail pane, and its one action sits in the card's title row.
+              A table that does not scroll is the card's own child. why: docs/components.md, "React tables" */}
+          <Card title="All" tools={count > 0 ? <Button variant="secondary" size="sm" onClick={setLoadFrom('page', 'read')}>Mark all read</Button> : undefined}>
+            <DataTable selectable={false} pager={false} scrollLabel="Notifications" rows={notes.map(note => ({ ...note, name: note.id }))} rowState={note => note.id === chosen.id ? 'target' : undefined} columns={[
+              { key: 'title', label: 'Notification', cell: 'title', render: note => <span className="notifications__entry">
+                <Glyph name={note.glyph} className="ui-dropdown__ic" />
+                <span><a href={`#${note.id}`} aria-current={note.id === chosen.id ? 'true' : undefined}
+                  onClick={event => { event.preventDefault(); setPicked(note.id); }}>{title(note)}</a><span className="ui-table__sub">{note.sub}</span></span>
+              </span> },
+              { key: 'time', label: 'Time', num: true },
+            ]} />
+          </Card>
           <Card title={chosen.title}>
             <p>{chosen.text}</p>
             <KeyValueList rows={chosen.facts} />
