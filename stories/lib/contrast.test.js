@@ -192,7 +192,14 @@ test('desugar turns state pseudo-classes into attribute selectors of equal weigh
 test('expandAnchors gives a bare `a` rule the :link/:visited forms JSDOM needs', () => {
   // JSDOM ranks its UA sheet's a:link above a same-specificity author `a` rule,
   // so an anchor with an href reads back as the UA blue. See the gate's header.
-  assert.match(expandAnchors('a{color:#9b5dff}'), /a,a:link,a:visited\{/);
+  assert.match(expandAnchors('a{color:#9b5dff}'), /a,:where\(a\):link,:where\(a\):visited\{/);
+  // The forms weigh one class, so a later class rule on a link still wins, as in a browser.
+  const ink = (css) => {
+    const { window } = new JSDOM(`<style>${expandAnchors(css)}</style><a class="k" href="/x">x</a>`, { url: 'http://localhost/' });
+    return window.getComputedStyle(window.document.querySelector('a')).color;
+  };
+  assert.equal(ink('a{color:rgb(1, 1, 1)}'), 'rgb(1, 1, 1)', 'the author rule beats the UA blue');
+  assert.equal(ink('a{color:rgb(1, 1, 1)} .k{color:rgb(2, 2, 2)}'), 'rgb(2, 2, 2)', 'a later class beats the bare `a`');
   assert.equal(expandAnchors('.k a{color:red}'), '.k a{color:red}', 'a descendant `a` is already correct');
 });
 

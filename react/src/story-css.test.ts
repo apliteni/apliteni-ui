@@ -94,7 +94,7 @@ const subjects: string[] = [...new Set([
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 5 };
+const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -216,7 +216,7 @@ describe('story CSS', () => {
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
-      'react/src/showcases/InvoiceFlow.css',
+      'react/src/showcases/InvoiceFlow.css', 'react/src/showcases/Notifications.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.
