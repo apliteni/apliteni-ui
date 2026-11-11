@@ -6,51 +6,53 @@ Open a state with its hash, for example `a-inbox-page.html#empty`. Each page lis
 
 ## Three answers
 
-- **Why is this necessary?** Each product builds its own bell, count and list. The owner rejected the built showcase and chose Linear as the reference.
-- **How often does the problem occur?** 3 issues in the 41 days from 2026-10-01 to 2026-11-10: #529 (closed, not planned), #622 (closed, duplicate) and #798. No issue names two products. So the answer is a composition and a showcase, not a new kit component.
-- **Is there a simpler option?** Yes. A labelled "Notifications" link in the side nav, with the count the shell already shows. It gives an app with no side nav no control, so it covers half of the goal.
+- **Why is this necessary?** Each product builds its own bell, count and list. The owner rejected the showcase and named Linear as the reference.
+- **How often does the problem occur?** 3 issues in 41 days: #529 (closed as not planned), #622 (closed as duplicate) and #798. No issue names two products. So build a showcase, not a new kit component.
+- **Is there a simpler option?** Yes. A labelled side-nav link with its count. An app with no side nav gets nothing.
 
 ## Files
 
 - `linear-notifications/`: the pattern record from Linear's public documentation. It has `pattern.md`, `transitions.json` and `sketch.html`.
-- `a-inbox-page.html`: layout A. The list is a page, with a detail pane beside it.
-- `b-bell-panel.html`: layout B. The list is a panel under the bell.
-- `c-drawer.html`: layout C. The list is a drawer.
-- `png/`: one picture for each state, at 1440 x 900 and 390 x 844, 1x. A frame whose content ends above 60% of the height is cropped at the bottom.
+- `b-bell-panel.html`: step 1 of the flow. The list is a panel under the bell. "All notifications" and each row open the A page.
+- `a-inbox-page.html`: step 2 of the flow. The list is a page, with a detail pane beside it.
+- `png/`: one picture for each state, at 1440 x 900 and 390 x 844, 1x. A frame whose content ends at or above 60% of the height is cropped at the bottom.
 
 | Picture | State |
 | --- | --- |
-| `a-sidenav-count-1440.png` | A: bell with count 3 in the side nav, the page open |
-| `a-sidenav-count-390.png` | A: phone, bell with count 3, the page open |
-| `a-topbar-count-1440.png` | A: bell with count 3 in the top bar, no side nav |
-| `a-zero-1440.png`, `a-zero-390.png` | A: no unread items, bell with no count |
-| `a-empty-1440.png`, `a-empty-390.png` | A: empty list |
-| `a-error-retry-1440.png`, `a-error-retry-390.png` | A: the list did not load, with Retry |
-| `b-sidenav-count-1440.png` | B: panel open from the side nav bell |
-| `b-sidenav-count-390.png` | B: phone, panel open under the bar |
+| `b-sidenav-count-1440.png` | B: panel open from the side nav bell, below the page title |
+| `b-sidenav-count-390.png` | B: phone, panel at full width under the bar |
 | `b-topbar-count-1440.png` | B: panel open from the top bar bell |
-| `b-zero-1440.png`, `b-zero-390.png` | B: panel with read items only, bell with no count |
-| `b-empty-1440.png`, `b-empty-390.png` | B: empty panel |
-| `b-error-retry-1440.png`, `b-error-retry-390.png` | B: panel that did not load, with Retry |
-| `c-sidenav-count-1440.png`, `c-sidenav-count-390.png` | C: bell with count, drawer closed |
-| `c-list-open-1440.png`, `c-list-open-390.png` | C: drawer open with the list |
-| `c-topbar-count-1440.png` | C: bell with count 3 in the top bar, no side nav |
-| `c-zero-1440.png`, `c-zero-390.png` | C: bell with no count |
-| `c-empty-1440.png`, `c-empty-390.png` | C: empty drawer |
-| `c-error-retry-1440.png`, `c-error-retry-390.png` | C: drawer that did not load, with Retry |
+| `b-zero-1440.png`, `b-zero-390.png` | B: side nav, read items only, bell with no count |
+| `b-topbar-zero-1440.png` | B: top bar, read items only, bell with no count |
+| `b-empty-1440.png`, `b-empty-390.png` | B: side nav, empty panel |
+| `b-topbar-empty-1440.png` | B: top bar, empty panel |
+| `b-error-retry-1440.png`, `b-error-retry-390.png` | B: side nav, panel that did not load, with Retry |
+| `b-topbar-error-1440.png` | B: top bar, panel that did not load, with Retry |
+| `b-kit-drawer-390.png` | Phone menu drawer: where the kit puts the bell today |
+| `a-sidenav-count-1440.png`, `a-sidenav-count-390.png` | A: side nav, bell with count 3, the page current |
+| `a-topbar-count-1440.png` | A: top bar, bell with count 3, the page current |
+| `a-zero-1440.png`, `a-zero-390.png` | A: side nav, no unread items, bell with no count |
+| `a-topbar-zero-1440.png` | A: top bar, no unread items, bell with no count |
+| `a-empty-1440.png`, `a-empty-390.png` | A: side nav, empty list |
+| `a-topbar-empty-1440.png` | A: top bar, empty list |
+| `a-error-retry-1440.png`, `a-error-retry-390.png` | A: side nav, the list did not load, with Retry |
+| `a-topbar-error-1440.png` | A: top bar, the list did not load, with Retry |
 
-At 390 px both shells draw the same phone bar. So each `*-sidenav-count-390.png` also shows the top bar case.
+At 390 px both shells draw the same phone bar. So each `*-390.png` also shows the top bar case.
 
 The Linear frames are not in the repository, because the repository is public. They stay in `/tmp/designer-798-apliteni-ui/frames/` on the agent host.
 
 ## Recommendation
 
-Use B, the panel from the bell, in both shells. Add A as the "All notifications" page that the panel links to.
+Use B and A as one flow in both shells. The bell opens the B panel. "All notifications" in the panel opens the A page.
 
 - B keeps the reader on the current page, and a notification is a short look.
 - B opens at its control, as "Open a panel at its control" asks.
 - A gives a long list and the detail pane a place to grow, the same as Linear's inbox.
-- Do not use C. It holds a list, but "One-record drawer" keeps a drawer for one record. Its modal layer also hides the bell that opened it.
+- The bell has two marks. When the panel is open, it has the kit's pressed fill. When the A page is current, it has the wash and a 3px ink rule below it.
+- On the phone, the bell stays on the bar. The kit has no part for this when a side nav is present. Today the kit puts the bell in the menu drawer head, before the close button, as `b-kit-drawer-390.png` shows.
+
+Rejected: C, a drawer with the list. "One-record drawer" keeps a drawer for one record, and its modal layer hides the bell.
 
 ## Kit conflict
 
@@ -64,36 +66,23 @@ The Iconography page, rule "Icon-only controls":
 
 The goal asks for a wordless bell. The bell is not on the closed list. The sketches draw it with the accessible name "Notifications, 3 unread" and a hover title. Choose one way:
 
-1. **Follow the kit.** Give the bell the word "Notifications". The top bar and the side nav head then need more width.
-2. **Record an exception.** The owner adds the bell to the closed list on this issue, as #729 did for search.
-3. **Change the kit.** Add the bell to the closed list in the Iconography and Button labels pages for every product.
+1. **Follow the kit.** Give the bell the word "Notifications".
+2. **Record an exception.** Add the bell to the rule's "Except" line on this issue, as #729 did for search.
+3. **Change the kit.** Add the bell to the closed list for every product.
 
 ## Kit rules
 
 | Part | Kit part | Rule and page |
 | --- | --- | --- |
 | Bell | `button({ iconOnly })` with the `bell` glyph, React `AppShell` `headControl` or `bandControl` | "Icon-only controls", Iconography. "Earn a wordless button", Button labels |
-| Count on the bell | `badge()` | "State and action", Iconography |
-| Panel (B) | `dropdown()` with `wireDropdown()` | "Open a panel at its control", Component choice |
+| Count on the bell | `badge()`, dropped as null at zero | "State and action", Iconography |
+| Panel (B) | `dropdown()` with `wireDropdown()` and description rows | "Open a panel at its control", Component choice |
 | List page (A) | React `SidebarNav` or `NavTabs` link to a page | "Drawer or page", Drawers |
-| Drawer (C) | `drawer()` with `drawerSection()` | "One-record drawer", Drawers |
-| Empty list | `emptyState()` with "Notification settings" | "Explain what is missing and show the next step", Empty states |
+| Empty list | `emptyState()` with "Settings" | "Explain what is missing and show the next step", Empty states |
 | List did not load | `callout()` in the danger tone, with Retry | "Show lasting conditions", Component choice |
 | Loading | `skeleton()` in a `busyRegion()` | "Screen loading", The full state set |
 
 ## Parts the kit does not have
 
-- A count slot on `headControl` or on an icon-only button.
-- A count that hides at zero. `SidebarNav` and `NavTabs` show 0 today.
-- A cap such as 99+.
-- A band slot for a product control when the shell has a side nav.
-- A phone place for the head control. With a side nav, it moves into the menu drawer.
-- A notification row: glyph, title, sub-line, time and link.
-- An error state for a list.
-- A current style for an icon link.
-- A time column on a phone.
-- A drawer that starts at the edge of the side nav and keeps the nav and its bell in view.
-
-## Drawer side
-
-In C, the drawer opens on the left, on the side of the bell, and covers the side nav. In the top bar app, it opens on the right, below the bell. The kit `drawer()` takes a left or a right side. The kit menu drawer also opens on the side of its menu button.
+- A count on an icon-only control.
+- A visible count on the phone when a side nav is present.

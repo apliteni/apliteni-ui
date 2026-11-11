@@ -1,10 +1,10 @@
 <!--
-Layout A: notifications page with a detail pane (#798). Sample data is fabricated.
+Layout A: the notifications page with a detail pane (#798). Sample data is fabricated.
 Source: linear-notifications pattern record, from https://linear.app/docs/inbox
-Best for: a product where a notification leads to work, such as a failed run to fix, and a person reads many in one sitting.
-States: sidenav-count, topbar-count, zero, empty, error-retry.
+Best for: the full history of notifications, opened from "All notifications" in the panel (layout B).
+States: sidenav-count, topbar-count, zero, empty, error-retry, topbar-zero, topbar-empty, topbar-error.
 Transitions: the detail pane fades in, opacity 150 ms, cubic-bezier(0.4, 0, 0.2, 1). Estimated: the designer chose it from the kit motion tokens.
-The bell is a link to this page, and it is the current page here.
+The bell is a link to this page, and it is the current page here: the bell has the wash and a 3 px rule under it.
 -->
 <!doctype html>
 <html lang="en">
@@ -338,15 +338,16 @@ html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
 }
 </style>
 <style>
-/* Glue for this sketch only: badge placement, the row grid, the drawer edge and the motion. */
+/* Glue for this sketch only: badge placement, the row grid, the bell's two marks, the panel's place, the menu drawer and the motion. */
 @media (min-width: 1000px) { [data-sketch] .side-shell { grid-template-rows: 1fr; } }
 [data-sketch] .nav-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 [data-sketch] .bell { position: relative; }
 [data-sketch] .sketch-nav .nav-head a.bell { padding: 0; justify-content: center; }
 [data-sketch] .bell .count { position: absolute; top: 2px; right: 0; min-width: 20px; padding: 0 5px; font-size: 12px; line-height: 16px; text-align: center; }
-[data-sketch] .sketch-icon-button[aria-current] { background: var(--sketch-wash); }
+/* An open panel keeps the kit's pressed fill. The current page takes the wash and the selected tab's 3 px rule. */
+[data-sketch] a.bell[aria-current], [data-sketch] a.bell[aria-current]:hover { background: var(--sketch-wash); border-bottom: 3px solid var(--sketch-ink); }
 [data-sketch] .sketch-list > li.row { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: start; gap: 2px 12px; padding-block: 10px; }
-[data-sketch] .sketch-list .row a { display: inline; min-height: 0; min-width: 0; text-decoration: none; }
+[data-sketch] .sketch-list .row a { display: inline; min-height: 0; min-width: 0; }
 [data-sketch] .sketch-list .row a::after { content: ""; position: absolute; inset: 0; border-radius: var(--sketch-wobble); }
 [data-sketch] .sketch-list .row a:hover::after { background: var(--sketch-wash); }
 [data-sketch] .sketch-list .row a:focus-visible { outline: none; }
@@ -359,23 +360,24 @@ html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
 [data-sketch] .list-head { display: flex; align-items: center; gap: 8px; min-height: 44px; }
 [data-sketch] .list-head h1, [data-sketch] .list-head h2 { margin: 0; }
 [data-sketch] .empty { justify-items: center; text-align: center; padding: 32px 16px; }
-[data-sketch] .sketch-popover.panel { width: min(360px, calc(100vw - 16px)); }
-@media (max-width: 559px) { [data-sketch] .sketch-popover.panel { width: calc(100vw - 16px); } }
+[data-sketch] .sketch-popover.panel { width: 360px; }
+/* Below 1000 px the panel spans the screen under the bar. */
+@media (max-width: 999px) { [data-sketch] .sketch-popover.panel { width: 100vw; max-width: none; } }
 @media (max-width: 999px) { [data-sketch] .sketch-list > li.row:has([aria-current]) { background: none; } }
-[data-sketch] .sketch-dialog.drawer { inset: 0 0 0 auto; margin: 0; width: min(420px, 100vw); max-width: 100vw; height: 100vh; max-height: none; align-content: start; }
-@media (min-width: 1000px) { [data-sketch] .sketch-dialog.drawer.left { inset: 0 auto 0 0; } }
+/* The product table keeps its headings on a phone, as the product kit's table does. */
+@media (max-width: 599px) {
+  [data-sketch] .sketch-table.keep-head thead { display: table-header-group !important; }
+  [data-sketch] .sketch-table.keep-head tr { display: table-row; }
+  [data-sketch] .sketch-table.keep-head td { padding: 10px 12px; border-bottom: 1px solid var(--sketch-wash); }
+}
+[data-sketch] .sketch-dialog.drawer { inset: 0 auto 0 0; margin: 0; width: min(320px, 85vw); max-width: 85vw; height: 100vh; max-height: none; align-content: start; }
+[data-sketch] .drawer .sketch-nav { display: grid; padding: 0; }
+[data-sketch] .drawer .sketch-nav a { justify-content: start; }
 @media (prefers-reduced-motion: no-preference) {
   [data-sketch] .sketch-popover.panel:not([hidden]) { animation: panel-in 150ms cubic-bezier(0.4, 0, 0.2, 1); }
-  [data-sketch] .sketch-dialog.drawer[open] { animation: drawer-in-right 250ms cubic-bezier(0.4, 0, 0.2, 1); }
-  [data-sketch] .sketch-dialog.drawer[open]::backdrop { animation: fade-in 250ms cubic-bezier(0.4, 0, 0.2, 1); }
   [data-sketch] .detail { animation: fade-in 150ms cubic-bezier(0.4, 0, 0.2, 1); }
 }
-@media (prefers-reduced-motion: no-preference) and (min-width: 1000px) {
-  [data-sketch] .sketch-dialog.drawer.left[open] { animation-name: drawer-in-left; }
-}
 @keyframes panel-in { from { opacity: 0; transform: translateY(-4px); } }
-@keyframes drawer-in-right { from { transform: translateX(100%); } }
-@keyframes drawer-in-left { from { transform: translateX(-100%); } }
 @keyframes fade-in { from { opacity: 0; } }
 </style>
 <body data-sketch>
@@ -387,18 +389,18 @@ html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
 <h2>Payout run PR-204 failed</h2>
 <p>The bank refused 2 of 18 transfers in payout run PR-204.</p>
 <dl class="sketch-stack" style="gap:8px;margin:0"><div class="sketch-row"><dt>Run</dt><dd style="margin:0">PR-204</dd></div><div class="sketch-row"><dt>Refused</dt><dd style="margin:0">2 transfers</dd></div><div class="sketch-row"><dt>Time</dt><dd style="margin:0">4 min ago</dd></div></dl>
-<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open payout run</button></div>
+<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open</button></div>
 </section></div></main>
 </div>
 </section>
 <section data-state="topbar-count">
 <div>
   <header class="sketch-bar"><strong>[Product]</strong><span class="sketch-spacer sketch-until-desktop"></span><span class="sketch-until-desktop"><a class="sketch-icon-button bell" aria-label="Notifications, 3 unread" href="#topbar-count" aria-current="page"><i data-icon="bell"></i><span class="sketch-badge strong count" aria-hidden="true">3</span></a></span><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-topbar-count" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-topbar-count" style="flex:1;column-gap:16px" aria-label="Main"><a href="#topbar-count"><i data-icon="home"></i>Campaigns</a><a href="#topbar-count"><i data-icon="download"></i>Reports</a><a href="#topbar-count"><i data-icon="calendar"></i>Payouts</a><a href="#topbar-count"><i data-icon="settings"></i>Settings</a><span class="sketch-spacer"></span><input class="sketch-input" type="search" aria-label="Search" placeholder="Search" style="width:min(240px,100%)"></nav><span class="sketch-from-desktop"><a class="sketch-icon-button bell" aria-label="Notifications, 3 unread" href="#topbar-count" aria-current="page"><i data-icon="bell"></i><span class="sketch-badge strong count" aria-hidden="true">3</span></a></span></header>
-  <main class="sketch-main"><div class="sketch-cols" style="--cols: minmax(0, 420px) minmax(0, 1fr)"><div class="sketch-stack"><div class="list-head"><h1>Notifications</h1><span class="sketch-spacer"></span><a class="sketch-button secondary" href="#zero">Mark all read</a></div><ul class="sketch-list" aria-label="Notifications"><li class="row unread"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="#topbar-count" aria-current="true"><span class="vh">Unread: </span>Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row unread"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="#topbar-count"><span class="vh">Unread: </span>Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row unread"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="#topbar-count"><span class="vh">Unread: </span>Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="#topbar-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="#topbar-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul></div><section class="sketch-panel sketch-frame sketch-stack detail sketch-from-desktop" aria-label="Selected notification">
+  <main class="sketch-main"><div class="sketch-cols" style="--cols: minmax(0, 420px) minmax(0, 1fr)"><div class="sketch-stack"><div class="list-head"><h1>Notifications</h1><span class="sketch-spacer"></span><a class="sketch-button secondary" href="#topbar-zero">Mark all read</a></div><ul class="sketch-list" aria-label="Notifications"><li class="row unread"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="#topbar-count" aria-current="true"><span class="vh">Unread: </span>Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row unread"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="#topbar-count"><span class="vh">Unread: </span>Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row unread"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="#topbar-count"><span class="vh">Unread: </span>Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="#topbar-count">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="#topbar-count">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul></div><section class="sketch-panel sketch-frame sketch-stack detail sketch-from-desktop" aria-label="Selected notification">
 <h2>Payout run PR-204 failed</h2>
 <p>The bank refused 2 of 18 transfers in payout run PR-204.</p>
 <dl class="sketch-stack" style="gap:8px;margin:0"><div class="sketch-row"><dt>Run</dt><dd style="margin:0">PR-204</dd></div><div class="sketch-row"><dt>Refused</dt><dd style="margin:0">2 transfers</dd></div><div class="sketch-row"><dt>Time</dt><dd style="margin:0">4 min ago</dd></div></dl>
-<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open payout run</button></div>
+<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open</button></div>
 </section></div></main>
 </div>
 </section>
@@ -410,7 +412,7 @@ html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
 <h2>Payout run PR-204 failed</h2>
 <p>The bank refused 2 of 18 transfers in payout run PR-204.</p>
 <dl class="sketch-stack" style="gap:8px;margin:0"><div class="sketch-row"><dt>Run</dt><dd style="margin:0">PR-204</dd></div><div class="sketch-row"><dt>Refused</dt><dd style="margin:0">2 transfers</dd></div><div class="sketch-row"><dt>Time</dt><dd style="margin:0">4 min ago</dd></div></dl>
-<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open payout run</button></div>
+<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open</button></div>
 </section></div></main>
 </div>
 </section>
@@ -418,7 +420,7 @@ html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
 <div class="sketch-shell side-shell">
   <header class="sketch-bar sketch-until-desktop"><strong>[Product]</strong><span class="sketch-spacer"></span><a class="sketch-icon-button bell" aria-label="Notifications" href="#empty" aria-current="page"><i data-icon="bell"></i></a><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-empty" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-empty" aria-label="Main"><a href="#empty"><i data-icon="home"></i>Campaigns</a><a href="#empty"><i data-icon="download"></i>Reports</a><a href="#empty"><i data-icon="calendar"></i>Payouts</a><a href="#empty"><i data-icon="settings"></i>Settings</a></nav></header>
   <nav class="sketch-nav sketch-from-desktop" aria-label="Main"><div class="nav-head"><strong>[Product]</strong><span class="sketch-spacer"></span><a class="sketch-icon-button bell" aria-label="Notifications" href="#empty" aria-current="page"><i data-icon="bell"></i></a></div><a href="#empty"><i data-icon="home"></i>Campaigns</a><a href="#empty"><i data-icon="download"></i>Reports</a><a href="#empty"><i data-icon="calendar"></i>Payouts</a><a href="#empty"><i data-icon="settings"></i>Settings</a></nav>
-  <main class="sketch-main"><div class="list-head"><h1>Notifications</h1></div><div class="sketch-stack empty"><i data-icon="bell"></i><h2>No notifications</h2><p>Mentions, assignments and failed runs show here.</p><button class="sketch-button secondary" type="button" data-sketch-toast="Opens notification settings">Notification settings</button></div></main>
+  <main class="sketch-main"><div class="list-head"><h1>Notifications</h1></div><div class="sketch-stack empty"><i data-icon="bell"></i><h2>No notifications</h2><p>Mentions, assignments and failed runs show here.</p><button class="sketch-button secondary" type="button" data-sketch-toast="Opens notification settings">Settings</button></div></main>
 </div>
 </section>
 <section data-state="error-retry">
@@ -426,6 +428,29 @@ html[data-theme="dark"] [data-sketch], html[data-theme="dark"][data-sketch] {
   <header class="sketch-bar sketch-until-desktop"><strong>[Product]</strong><span class="sketch-spacer"></span><a class="sketch-icon-button bell" aria-label="Notifications" href="#error-retry" aria-current="page"><i data-icon="bell"></i></a><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-error-retry" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-error-retry" aria-label="Main"><a href="#error-retry"><i data-icon="home"></i>Campaigns</a><a href="#error-retry"><i data-icon="download"></i>Reports</a><a href="#error-retry"><i data-icon="calendar"></i>Payouts</a><a href="#error-retry"><i data-icon="settings"></i>Settings</a></nav></header>
   <nav class="sketch-nav sketch-from-desktop" aria-label="Main"><div class="nav-head"><strong>[Product]</strong><span class="sketch-spacer"></span><a class="sketch-icon-button bell" aria-label="Notifications" href="#error-retry" aria-current="page"><i data-icon="bell"></i></a></div><a href="#error-retry"><i data-icon="home"></i>Campaigns</a><a href="#error-retry"><i data-icon="download"></i>Reports</a><a href="#error-retry"><i data-icon="calendar"></i>Payouts</a><a href="#error-retry"><i data-icon="settings"></i>Settings</a></nav>
   <main class="sketch-main"><div class="list-head"><h1>Notifications</h1></div><div class="sketch-panel sketch-frame sketch-stack" role="alert"><p><strong>Error: Notifications did not load.</strong> Check the connection, then try again.</p><div><a class="sketch-button" href="#sidenav-count">Retry</a></div></div></main>
+</div>
+</section>
+<section data-state="topbar-zero">
+<div>
+  <header class="sketch-bar"><strong>[Product]</strong><span class="sketch-spacer sketch-until-desktop"></span><span class="sketch-until-desktop"><a class="sketch-icon-button bell" aria-label="Notifications" href="#topbar-zero" aria-current="page"><i data-icon="bell"></i></a></span><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-topbar-zero" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-topbar-zero" style="flex:1;column-gap:16px" aria-label="Main"><a href="#topbar-zero"><i data-icon="home"></i>Campaigns</a><a href="#topbar-zero"><i data-icon="download"></i>Reports</a><a href="#topbar-zero"><i data-icon="calendar"></i>Payouts</a><a href="#topbar-zero"><i data-icon="settings"></i>Settings</a><span class="sketch-spacer"></span><input class="sketch-input" type="search" aria-label="Search" placeholder="Search" style="width:min(240px,100%)"></nav><span class="sketch-from-desktop"><a class="sketch-icon-button bell" aria-label="Notifications" href="#topbar-zero" aria-current="page"><i data-icon="bell"></i></a></span></header>
+  <main class="sketch-main"><div class="sketch-cols" style="--cols: minmax(0, 420px) minmax(0, 1fr)"><div class="sketch-stack"><div class="list-head"><h1>Notifications</h1></div><ul class="sketch-list" aria-label="Notifications"><li class="row"><span class="icon-cell"><i data-icon="warning"></i></span><span class="text"><a href="#topbar-zero" aria-current="true">Payout run PR-204 failed</a><span>The bank refused 2 transfers.</span></span><time>4 min</time></li><li class="row"><span class="icon-cell"><i data-icon="user"></i></span><span class="text"><a href="#topbar-zero">Mira Kade assigned you CMP-88</a><span>Spring offer landing page</span></span><time>1 h</time></li><li class="row"><span class="icon-cell"><i data-icon="comment"></i></span><span class="text"><a href="#topbar-zero">Jon Avery commented on Spring offer</a><span>Can we move the start date?</span></span><time>3 h</time></li><li class="row"><span class="icon-cell"><i data-icon="download"></i></span><span class="text"><a href="#topbar-zero">Report March totals is ready</a><span>CSV, 412 rows</span></span><time>Yesterday</time></li><li class="row"><span class="icon-cell"><i data-icon="check"></i></span><span class="text"><a href="#topbar-zero">Export of campaign stats finished</a><span>CSV, 96 rows</span></span><time>2 d</time></li></ul></div><section class="sketch-panel sketch-frame sketch-stack detail sketch-from-desktop" aria-label="Selected notification">
+<h2>Payout run PR-204 failed</h2>
+<p>The bank refused 2 of 18 transfers in payout run PR-204.</p>
+<dl class="sketch-stack" style="gap:8px;margin:0"><div class="sketch-row"><dt>Run</dt><dd style="margin:0">PR-204</dd></div><div class="sketch-row"><dt>Refused</dt><dd style="margin:0">2 transfers</dd></div><div class="sketch-row"><dt>Time</dt><dd style="margin:0">4 min ago</dd></div></dl>
+<div><button class="sketch-button" type="button" data-sketch-toast="Opens payout run PR-204">Open</button></div>
+</section></div></main>
+</div>
+</section>
+<section data-state="topbar-empty">
+<div>
+  <header class="sketch-bar"><strong>[Product]</strong><span class="sketch-spacer sketch-until-desktop"></span><span class="sketch-until-desktop"><a class="sketch-icon-button bell" aria-label="Notifications" href="#topbar-empty" aria-current="page"><i data-icon="bell"></i></a></span><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-topbar-empty" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-topbar-empty" style="flex:1;column-gap:16px" aria-label="Main"><a href="#topbar-empty"><i data-icon="home"></i>Campaigns</a><a href="#topbar-empty"><i data-icon="download"></i>Reports</a><a href="#topbar-empty"><i data-icon="calendar"></i>Payouts</a><a href="#topbar-empty"><i data-icon="settings"></i>Settings</a><span class="sketch-spacer"></span><input class="sketch-input" type="search" aria-label="Search" placeholder="Search" style="width:min(240px,100%)"></nav><span class="sketch-from-desktop"><a class="sketch-icon-button bell" aria-label="Notifications" href="#topbar-empty" aria-current="page"><i data-icon="bell"></i></a></span></header>
+  <main class="sketch-main"><div class="list-head"><h1>Notifications</h1></div><div class="sketch-stack empty"><i data-icon="bell"></i><h2>No notifications</h2><p>Mentions, assignments and failed runs show here.</p><button class="sketch-button secondary" type="button" data-sketch-toast="Opens notification settings">Settings</button></div></main>
+</div>
+</section>
+<section data-state="topbar-error">
+<div>
+  <header class="sketch-bar"><strong>[Product]</strong><span class="sketch-spacer sketch-until-desktop"></span><span class="sketch-until-desktop"><a class="sketch-icon-button bell" aria-label="Notifications" href="#topbar-error" aria-current="page"><i data-icon="bell"></i></a></span><button type="button" class="sketch-icon-button sketch-menu-button" aria-expanded="false" aria-controls="menu-topbar-error" aria-label="Menu"><i data-icon="menu"></i></button><nav class="sketch-collapse" id="menu-topbar-error" style="flex:1;column-gap:16px" aria-label="Main"><a href="#topbar-error"><i data-icon="home"></i>Campaigns</a><a href="#topbar-error"><i data-icon="download"></i>Reports</a><a href="#topbar-error"><i data-icon="calendar"></i>Payouts</a><a href="#topbar-error"><i data-icon="settings"></i>Settings</a><span class="sketch-spacer"></span><input class="sketch-input" type="search" aria-label="Search" placeholder="Search" style="width:min(240px,100%)"></nav><span class="sketch-from-desktop"><a class="sketch-icon-button bell" aria-label="Notifications" href="#topbar-error" aria-current="page"><i data-icon="bell"></i></a></span></header>
+  <main class="sketch-main"><div class="list-head"><h1>Notifications</h1></div><div class="sketch-panel sketch-frame sketch-stack" role="alert"><p><strong>Error: Notifications did not load.</strong> Check the connection, then try again.</p><div><a class="sketch-button" href="#topbar-count">Retry</a></div></div></main>
 </div>
 </section>
 
