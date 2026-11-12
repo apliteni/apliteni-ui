@@ -113,8 +113,9 @@ function layerOf(text) {
   const lengths = [];
   while (parts.length && /^(-?[\d.]+(px)?$|calc\()/.test(parts[0])) lengths.push(parts.shift());
   assert.ok(lengths.length >= 2 && lengths.length <= 4, `a shadow layer takes 2-4 lengths: ${text}`);
-  colour = colour ?? parts.join(' ');
+  if (colour == null) colour = parts.shift();
   assert.ok(colour, `a shadow layer with no colour: ${text}`);
+  assert.equal(parts.length, 0, `a shadow layer carries an unsupported term: ${parts.join(' ')}`);
   return {
     blur: lengths.length >= 3 ? px(lengths[2]) : 0,
     spread: lengths.length >= 4 ? px(lengths[3]) : 0,
