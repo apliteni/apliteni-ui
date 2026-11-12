@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.165.2', date: '2026-11-12',
+    changes: [
+      ['changed', 'The development tooling moves to jsdom 31 and vitest 5.1. The kit\'s CSS and components are unchanged.'],
+    ],
+  },
+  {
     v: '0.165.1', date: '2026-11-12',
     changes: [
       ['added', 'Storybook has a Notifications showcase: a bell with its unread count opens a panel of the latest notifications, and its All notifications button opens a list with a detail pane. It shows the empty and error states, the top bar and a phone. The Icon-only controls rule now allows the notifications bell, named by its sentence. Resolves #798.', ['Guidelines']],

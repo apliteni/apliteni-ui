@@ -34,6 +34,17 @@ assert.ok(
 /** Blank comments, keeping newlines, so a reported line number is the real one. */
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
+/* jsdom 31 resolves var() in computed styles, so a face reads as the family the
+ * token names rather than the token itself. Compare against the token's own
+ * value with quotes stripped, which is how jsdom serialises a family list. */
+const tokenValue = (name) => {
+  const tokens = readFileSync(path.join(src, 'tokens/tokens.css'), 'utf8');
+  const m = new RegExp(`${name}\\s*:\\s*([^;]+);`).exec(tokens);
+  assert.ok(m, `${name} is not defined in src/tokens/tokens.css`);
+  return m[1].trim();
+};
+const unquote = (v) => String(v).replace(/["']/g, '');
+
 /* The three roles, and nothing else. `inherit` is allowed because it names no
  * family at all — react/src/DataTable.css uses it to hand a control the box it
  * sits in, which is the opposite of the defect this gate is about. */
@@ -208,13 +219,13 @@ test('a heading is the display face and everything else is the text face', () =>
   const family = (sel) => getComputedStyle(document.querySelector(sel)).fontFamily;
 
   assert.equal(
-    family('body'), 'var(--font-sans)',
+    unquote(family('body')), unquote(tokenValue('--font-sans')),
     'the document default is not the text face. Everything that is not a heading inherits from '
     + 'here — tables, fields, chat — which is most of what the kit renders.',
   );
   for (const h of ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']) {
     assert.equal(
-      family(h), 'var(--font-display)',
+      unquote(family(h)), unquote(tokenValue('--font-display')),
       `${h} does not resolve to the display face. Either base.css's heading rule went, or a rule `
       + 'loaded after it out-ranks it — which reads fine in the file and is wrong on the page.',
     );
@@ -222,7 +233,8 @@ test('a heading is the display face and everything else is the text face', () =>
 
   const cut = mount(without(HEADING_RULE));
   assert.equal(
-    cut.getComputedStyle(cut.document.querySelector('h2')).fontFamily, 'var(--font-sans)',
+    unquote(cut.getComputedStyle(cut.document.querySelector('h2')).fontFamily),
+    unquote(tokenValue('--font-sans')),
     'with base.css\'s heading rule removed a heading STILL resolves to the display face, so the '
     + 'assertion above is being satisfied by something else and would pass with the rule gone.',
   );
@@ -236,7 +248,7 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
 
   for (const id of ['b', 'strong']) {
     assert.equal(
-      getComputedStyle(document.getElementById(id)).fontWeight, 'var(--weight-semibold)',
+      getComputedStyle(document.getElementById(id)).fontWeight, semibold[1],
       `<${id}> does not take the kit's emphasis weight. The browser default is 700, and at the `
       + '13px a table row and a chat bubble are set at, 700 reads as a filled-in shape rather '
       + 'than as emphasis (#253).',
@@ -249,10 +261,11 @@ test('b and strong are the semibold step, not the browser\'s bold', () => {
   );
 
   const cut = mount(without(STRONG_RULE));
-  // jsdom leaves custom properties unresolved; check loss of the rule, not its UA fallback.
+  // jsdom 31 resolves the token, so the browser default 700 reads as a number; the loss of the
+  // rule is what is checked, not the UA fallback.
   for (const id of ['b', 'strong']) {
     assert.notEqual(
-      cut.getComputedStyle(cut.document.getElementById(id)).fontWeight, 'var(--weight-semibold)',
+      cut.getComputedStyle(cut.document.getElementById(id)).fontWeight, semibold[1],
       `with the rule removed <${id}> still takes the semibold token, so the assertion above `
       + 'does not prove that the rule supplies the emphasis weight.',
     );
@@ -304,7 +317,7 @@ test('a dropdown panel keeps its role wherever it is mounted', async () => {
   const moved = face();
 
   assert.equal(
-    inPlace, 'var(--font-sans)',
+    unquote(inPlace), unquote(tokenValue('--font-sans')),
     `a dropdown panel inside a display-face subtree is set in ${inPlace}. A list of item rows is `
     + 'text — it takes the text face wherever it is, which is what stating the role on the panel '
     + 'buys over inheriting one.',

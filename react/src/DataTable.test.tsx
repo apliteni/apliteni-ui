@@ -616,7 +616,10 @@ it('gives the sortable label the rules that let it give way, and the caret none 
         .filter(rule => 'selectorText' in rule && selector.matches((rule as CSSStyleRule).selectorText))
         .flatMap(rule => Array.from((rule as CSSStyleRule).style).map(p => [p, (rule as CSSStyleRule).style.getPropertyValue(p)])));
     const onLabel = declarations(label);
-    expect(onLabel['overflow']).toBe('hidden');
+    // jsdom 31 expands the `overflow` shorthand into its longhands when a rule's
+    // declarations are iterated, so the pair is asserted here.
+    expect(onLabel['overflow-x']).toBe('hidden');
+    expect(onLabel['overflow-y']).toBe('hidden');
     expect(onLabel['text-overflow']).toBe('ellipsis');
     expect(onLabel['min-width']).toBe('0px');
     const onButton = declarations(label.parentElement!);

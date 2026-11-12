@@ -13,6 +13,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { markup } from '../../stories/lib/react-markup.js';
+import { substitute, tokensFor } from '../../stories/lib/contrast.js';
 
 /** The React band's markup, as a page gets it from a server. */
 const statBand = (opts) => markup(({ h, kit }) => h(kit.StatBand, opts));
@@ -47,7 +48,8 @@ test('a figure never breaks across lines, and its digits sit on one grid', () =>
 // A rule on the figure's <dd>s outranked the value's, change's and trend's own
 // margins once, and every screenshot showed a value flush under its label.
 test('each part of a figure keeps the spacing its own rule gives it', async () => {
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
+  const sheet = substitute(RAW, tokensFor('dark', 'default'));
+  const doc = new JSDOM(`<!doctype html><html><head><style>${sheet}</style></head><body>${await statBand({
     stats: [
       { label: 'Income', value: '€ 1', delta: { value: '+1%' }, trend: '<svg width="1" height="1"></svg>' },
       { label: 'Gross margin', value: '36.1%', caption: 'of income' },
@@ -55,7 +57,7 @@ test('each part of a figure keeps the spacing its own rule gives it', async () =
   })}</body></html>`).window;
   const margin = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).marginTop;
   for (const [sel, prop] of [['.ui-stat__value', 'margin-top'], ['dd.ui-stat__caption', 'margin-top'], ['.ui-stat__delta', 'margin-top'], ['.ui-stat__trend', 'margin-top']]) {
-    assert.equal(margin(sel), valueOf(ruleFor(sel).body, prop), `${sel} lost its ${prop} to another rule in the sheet`);
+    assert.equal(margin(sel), substitute(valueOf(ruleFor(sel).body, prop), tokensFor('dark', 'default')), `${sel} lost its ${prop} to another rule in the sheet`);
   }
 });
 
@@ -222,13 +224,14 @@ test('no tone reaches a figure\'s caption', async () => {
     'a second rule colours the caption, and the only colour it takes is body ink');
   // Leading a change, the caption sits inside the element a tone paints, so the
   // rule above is not enough on its own: this is the cascade resolved.
-  const doc = new JSDOM(`<!doctype html><html><head><style>${RAW}</style></head><body>${await statBand({
+  const sheet = substitute(RAW, tokensFor('dark', 'default'));
+  const doc = new JSDOM(`<!doctype html><html><head><style>${sheet}</style></head><body>${await statBand({
     variant: 'band',
     stats: [{ label: 'Operating margin', value: '12.4%', caption: 'of income', delta: { value: '+1.2 pts', tone: 'good' } }],
   })}</body></html>`).window;
   const colour = (sel) => doc.getComputedStyle(doc.document.querySelector(sel)).color;
-  assert.equal(colour('.ui-stat__caption'), 'var(--text)', 'the figure\'s tone painted the caption beside the change');
-  assert.equal(colour('.ui-stat__delta'), 'var(--chip-success-ink)', 'the tone stopped reaching the change, so this compared nothing');
+  assert.equal(colour('.ui-stat__caption'), 'rgb(233, 231, 240)', 'the figure\'s tone painted the caption beside the change');
+  assert.equal(colour('.ui-stat__delta'), 'rgb(152, 255, 143)', 'the tone stopped reaching the change, so this compared nothing');
 });
 
 test('a figure is never narrower than its value, so a band wraps rather than overlaps', () => {

@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
-import { STYLE_FILES, desugar, substitute, tokensFor } from './lib/contrast.js';
+import { STYLE_FILES, desugar, outlineBare, shadowQuiet, substitute, tokensFor } from './lib/contrast.js';
 import { leafRules } from './lib/motion-css.js';
 import { liveMarkup, markup } from './lib/react-markup.js';
 
@@ -52,10 +52,9 @@ const PALETTE = await liveMarkup(({ h, kit }) => h(kit.CommandPalette, {
 
 const source = STYLE_FILES.map((file) => readFileSync(file, 'utf8')).join('\n');
 /** No shadow at all — the reading for a box that carries none at rest. */
-const quiet = (style) => ['', 'none'].includes(style.boxShadow);
+const quiet = shadowQuiet;
 /** Nothing a reader can see where an outline would be. */
-const bareOutline = (style) => ['', 'none', '0px'].includes(style.outline)
-  || /\btransparent\b/.test(style.outline);
+const bareOutline = outlineBare;
 
 const tableMarkup = () => '<table class="ui-table"><tbody>'
   + '<tr><td>Nebula</td><td>42</td></tr><tr><td>Vela</td><td>17</td></tr>'

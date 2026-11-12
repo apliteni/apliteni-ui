@@ -142,16 +142,15 @@ function measureMark(subject) {
   return { wash: r.wash, tick: tickRatio, label: r.labelRatio };
 }
 
-/** The `outline` shorthand, read as its three parts.
- *
- *  JSDOM resolves the shorthand but leaves `outlineStyle` at `none` and
- *  `outlineWidth` at `medium` on every element, drawn or not, so the longhands
- *  cannot answer whether a row has an edge. `outlineColor` is likewise
- *  `rgba(0, 0, 0, 0)` whether a rule set it or nothing did. */
+/** The outline, read from its longhands. jsdom 31 reports them faithfully:
+ *  `outlineStyle` is `solid` where a band is drawn and `none` where it is not,
+ *  and `outlineColor` is the band's ink. */
 function outlineOf(cs) {
-  const parts = /^(\S+)\s+(\S+)\s+(.+)$/.exec((cs.outline || '').trim());
-  if (!parts) return { width: 0, style: 'none', ink: null };
-  return { width: parseFloat(parts[1]) || 0, style: parts[2], ink: parseColour(parts[3]) };
+  return {
+    width: parseFloat(cs.outlineWidth) || 0,
+    style: cs.outlineStyle,
+    ink: parseColour(cs.outlineColor),
+  };
 }
 
 /** The wash the sheet promises this row, composited onto the panel under it.
@@ -207,7 +206,7 @@ function measureStates(subject) {
         // --ring-offset, so the outline is where the band is read rather than the
         // shadow. A solid edge in any other ink is the browser's own. #457, #578
         assert.ok(edge.width > 0 && edge.style === 'solid',
-          `${subject.id}: focus draws no kit ring (${cs.outline || 'none'})`);
+          `${subject.id}: focus draws no kit ring (${cs.outlineStyle})`);
         assert.deepEqual(edge.ink, parseColour(accent),
           `${subject.id}: focus falls back to a native outline (${cs.outline})`);
       }

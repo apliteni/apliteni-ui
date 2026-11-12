@@ -771,11 +771,12 @@ test('a <style> assembled by concatenation is not a block with no CSS in it', ()
 });
 
 test('a block that is nothing but an at-rule cssom models nothing of is not a blind spot', () => {
-  /* `@property` and `@charset` are valid CSS a browser honours, and cssom builds
-   * no rule for either — so a block that is nothing else parses to zero rules for
-   * the same reason an empty one does, and reporting it reds on correct code.
-   * cssom recovers the moment an ordinary rule sits beside them, which is what
-   * makes this shape as narrow as it is and also what would have hidden it. */
+  /* A block that is nothing but an at-rule is not a blind spot, whether the
+   * CSSOM models it or not. `@charset` reaches the CSSOM as no rule at all, so
+   * a block holding one of them parses to zero rules exactly as an empty block
+   * does. jsdom 31 models `@property` as a CSSPropertyRule, which has no
+   * selector and so gives this gate no subject to report. Reporting either reds
+   * on correct code. */
   for (const css of ["@property --ic-size { syntax: '<length>'; inherits: false; initial-value: 16px }",
     '@charset "utf-8";',
     "@charset \"utf-8\";\n@property --ic { syntax: '<color>'; inherits: false; initial-value: red }"]) {
@@ -789,7 +790,7 @@ test('an at-rule in front of a concatenated block does not buy the block silence
    * concatenation, and an at-rule written above the seam must not turn it off —
    * nor must an at-rule nobody closed, which is not a shape a browser honours
    * either. */
-  for (const css of ['@charset "utf-8";\n\' + CSS + \'', '@property --ic {']) {
+  for (const css of ['@charset "utf-8";\n\' + CSS + \'', '@color-profile --ic {']) {
     assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
       ['probe.css: a <style> block this gate parsed to no rules at all'],
       `"${css}" reads as a block this gate saw the whole of`);
@@ -1101,14 +1102,16 @@ test('a test file is skipped by the spelling the test runner discovers it under'
 });
 
 test('a logical declaration is asked about the property the fold lands it on', () => {
-  /* cssstyle waves `inline-size` through whatever the value, so asked under the
-   * name the file spells it this declaration survives — and then foldLogicalDims()
-   * rewrites it onto `width`, which refuses the value, and the rule is empty. The
-   * question is whether the declaration survives into the cascade the gate
-   * measures, and that cascade is the physical one. Reported under the spelling
+  /* The fold rewrites `inline-size` onto `width`, so the question is whether the
+   * declaration survives into the physical cascade — not the logical spelling it
+   * is written under. jsdom 31 parses `-webkit-fill-available` as a width but not
+   * an inline-size, so asked under `width` this declaration survives and nothing
+   * is reported. A value jsdom drops under both is reported under the spelling
    * the file uses, since that is what the reader has to go and find. */
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { inline-size: fit-content(20%) }', new Set()),
-    ['probe.css: .zz svg { inline-size: fit-content(20%) }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { inline-size: -webkit-fill-available }', new Set()),
+    []);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { inline-size: 20sp }', new Set()),
+    ['probe.css: .zz svg { inline-size: 20sp }']);
 });
 
 test('a clamp jsdom cannot parse is reported too', () => {
@@ -1128,10 +1131,10 @@ test('a property spelled in capitals is asked the same question, and asked in lo
     assert.deepEqual(droppedDecls('probe.css', `.a svg { ${decl} }`, classes), [],
       `"${decl}" reads as a value jsdom threw away`);
   }
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { WIDTH: fit-content(20%) }', new Set()),
-    ['probe.css: .zz svg { WIDTH: fit-content(20%) }']);
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { INLINE-SIZE: fit-content(20%) }', new Set()),
-    ['probe.css: .zz svg { INLINE-SIZE: fit-content(20%) }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { WIDTH: 20sp }', new Set()),
+    ['probe.css: .zz svg { WIDTH: 20sp }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { INLINE-SIZE: 20sp }', new Set()),
+    ['probe.css: .zz svg { INLINE-SIZE: 20sp }']);
 });
 
 /* Values a browser resolves and this guard must not refuse. It asks jsdom
@@ -1178,9 +1181,9 @@ test('a value nothing could resolve is left to the blind-spot machinery', () => 
    * different messages for one rule sends the reader looking for two problems.
    * blindSpots() owns that one, because it can say what is actually wrong with
    * it. A genuinely dropped declaration beside it is still reported. */
-  const css = `.zz svg { width: ${UNRESOLVED}px; height: fit-content(20%) }`;
+  const css = `.zz svg { width: ${UNRESOLVED}px; height: 20sp }`;
   assert.deepEqual(droppedDecls('probe.css', css, new Set()),
-    ['probe.css: .zz svg { height: fit-content(20%) }']);
+    ['probe.css: .zz svg { height: 20sp }']);
   assert.deepEqual(blindSpots('probe.css', css, sheetOf(css)).blind,
     [`probe.css: width: ${UNRESOLVED}px`]);
 });
@@ -1191,13 +1194,13 @@ test('a value named only inside a comment is not read as a dropped declaration',
    * declRe() anchors on `{` or `;` and a fixture without one reads the same
    * whether the comments were stripped or left where they were. */
   assert.deepEqual(droppedDecls('probe.css',
-    '.zz svg { height: 12px; /* width: 12px; height: fit-content(20%) */ }', new Set()), []);
+    '.zz svg { height: 12px; /* width: 12px; height: 20sp */ }', new Set()), []);
   /* The other edge of that same anchor, and the reason stripping beats widening
    * the pattern: a comment sitting between `{` and the first declaration hides
    * that declaration too. Cutting the comment out is what keeps a genuinely
    * dropped value from going quiet behind a note about it. */
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { /* the chevron */ width: fit-content(20%) }',
-    new Set()), ['probe.css: .zz svg { width: fit-content(20%) }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { /* the chevron */ width: 20sp }',
+    new Set()), ['probe.css: .zz svg { width: 20sp }']);
 });
 
 test('an icon named inside :is() or :where() is refused by mount, and says why', () => {
@@ -1305,8 +1308,8 @@ test('a dropped declaration on an icon rule is refused, and named with its selec
    * because the scan has one — the message used to say "sizes something" for want
    * of it, which sends the reader through the file looking for the rule. Both
    * shapes an icon rule takes: an `svg` leaf, and a class the kit puts on an svg. */
-  assert.deepEqual(droppedDecls('probe.css', '.zz svg { width: fit-content(20%); height: 12px }',
-    new Set(['ic'])), ['probe.css: .zz svg { width: fit-content(20%) }']);
+  assert.deepEqual(droppedDecls('probe.css', '.zz svg { width: 20sp; height: 12px }',
+    new Set(['ic'])), ['probe.css: .zz svg { width: 20sp }']);
   assert.deepEqual(droppedDecls('probe.css', '.zz .ic { min-width: 20sp }', new Set(['ic'])),
     ['probe.css: .zz .ic { min-width: 20sp }']);
 });
@@ -1324,12 +1327,12 @@ test('a rule inside a conditional group is scoped by its own selector', () => {
   // cost. Nothing else catches it: the declaration is gone from the CSSOM, so
   // rulesOf() reads that rule as sizing nothing and lets it by.
   assert.deepEqual(
-    droppedDecls('probe.css', '@media screen { .zz svg { width: fit-content(20%) } }', new Set()),
-    ['probe.css: .zz svg { width: fit-content(20%) }']);
+    droppedDecls('probe.css', '@media screen { .zz svg { width: 20sp } }', new Set()),
+    ['probe.css: .zz svg { width: 20sp }']);
   // At any depth, since a group nests inside a group.
   assert.deepEqual(
-    droppedDecls('probe.css', '@layer k { @media screen { .zz .ic { width: fit-content(20%) } } }',
-      new Set(['ic'])), ['probe.css: .zz .ic { width: fit-content(20%) }']);
+    droppedDecls('probe.css', '@layer k { @media screen { .zz .ic { width: 20sp } } }',
+      new Set(['ic'])), ['probe.css: .zz .ic { width: 20sp }']);
 });
 
 test('a dropped declaration this gate cannot scope to a rule stays loud', () => {
@@ -1339,14 +1342,14 @@ test('a dropped declaration this gate cannot scope to a rule stays loud', () => 
    * whose inner selector means nothing on its own, and a selector computed at
    * render time, where "not an icon" is a guess rather than an answer. */
   assert.deepEqual(
-    droppedDecls('probe.css', '@media screen { width: fit-content(20%) }', new Set()),
-    ['probe.css: @media screen { width: fit-content(20%) }']);
+    droppedDecls('probe.css', '@media screen { width: 20sp }', new Set()),
+    ['probe.css: @media screen { width: 20sp }']);
   assert.deepEqual(
-    droppedDecls('probe.css', '@media screen { .drawer { svg { width: fit-content(20%) } } }',
-      new Set()), ['probe.css: .drawer { width: fit-content(20%) }']);
+    droppedDecls('probe.css', '@media screen { .drawer { svg { width: 20sp } } }',
+      new Set()), ['probe.css: .drawer { width: 20sp }']);
   assert.deepEqual(
-    droppedDecls('probe.css', `.a${UNRESOLVED} { width: fit-content(20%) }`, new Set()),
-    [`probe.css: .a${UNRESOLVED} { width: fit-content(20%) }`]);
+    droppedDecls('probe.css', `.a${UNRESOLVED} { width: 20sp }`, new Set()),
+    [`probe.css: .a${UNRESOLVED} { width: 20sp }`]);
 });
 
 test('a declaration pattern reads min-width as a clamp and never as a width', () => {

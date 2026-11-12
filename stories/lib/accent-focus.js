@@ -28,7 +28,7 @@
  * why: docs/components.md#page-furniture. See issues #429, #472 and #578.
  */
 import assert from 'node:assert/strict';
-import { parseColour, ratio, substitute, tokensFor } from './contrast.js';
+import { outlineBare, parseColour, ratio, substitute, tokensFor } from './contrast.js';
 
 /** The ring-contrast floor in guidelines/accessibility-floor.md. */
 export const BAND_FLOOR = 3;
@@ -106,10 +106,14 @@ export function px(value) {
  */
 function layerOf(text) {
   const parts = splitTop(text, ' ');
+  // jsdom 31 serialises the colour first per CSSOM; the kit writes it last. Accept
+  // both: a first token that is not a length is the colour.
+  let colour = null;
+  if (parts.length && !/^(-?[\d.]+(px)?$|calc\()/.test(parts[0])) colour = parts.shift();
   const lengths = [];
   while (parts.length && /^(-?[\d.]+(px)?$|calc\()/.test(parts[0])) lengths.push(parts.shift());
   assert.ok(lengths.length >= 2 && lengths.length <= 4, `a shadow layer takes 2-4 lengths: ${text}`);
-  const colour = parts.join(' ');
+  colour = colour ?? parts.join(' ');
   assert.ok(colour, `a shadow layer with no colour: ${text}`);
   return {
     blur: lengths.length >= 3 ? px(lengths[2]) : 0,
@@ -130,6 +134,7 @@ const paints = (c) => `rgb(${c.slice(0, 3).map(Math.round).join(', ')})`;
  * wide as the outline. JSDOM leaves the shorthand as written, so this parses it.
  */
 function outlineBand(style) {
+  if (outlineBare(style)) return null;
   const text = String(style.outline || '').trim();
   if (!text || ['none', '0', '0px'].includes(text)) return null;
   const parts = splitTop(text, ' ');

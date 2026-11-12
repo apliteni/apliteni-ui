@@ -165,8 +165,29 @@ describe('document review flow', () => {
     'var(--weight-medium)': 500,
     'var(--weight-semibold)': 600,
   };
+  /** The value a matching rule declares for one property, in source order. jsdom 31
+   * resolves var() in computed styles, so a reading of `getComputedStyle` cannot tell
+   * a declared token from the initial value it fell back to; the declaration can. It
+   * reads base rules only: breakpoint overrides are measured in the #385 captures. */
+  const declaredValue = (el: Element | null, property: string): string => {
+    let declared = '';
+    const visit = (rules: CSSRuleList) => {
+      for (const rule of [...rules]) {
+        if ('selectorText' in rule && 'style' in rule) {
+          if (!(el as HTMLElement).matches(rule.selectorText)) continue;
+          const value = rule.style.getPropertyValue(property);
+          if (value) declared = value;
+        } else if ('cssRules' in rule) {
+          if ('media' in rule) continue; // jsdom 31 ships no matchMedia to judge these
+          visit((rule as CSSGroupingRule).cssRules);
+        }
+      }
+    };
+    for (const sheet of [...document.styleSheets]) visit(sheet.cssRules);
+    return declared;
+  };
   const rank = (el: Element | null, what: string) => {
-    const declared = getComputedStyle(el as HTMLElement).fontWeight;
+    const declared = declaredValue(el, 'font-weight');
     if (!(declared in RANK)) {
       throw new Error(`${what} carries no weight this showcase declares (${declared || 'nothing'}); `
         + 'the leading pane must state its own ranking, not inherit one.');
@@ -251,9 +272,9 @@ describe('document review flow', () => {
     // The preview is quieter by being narrower, not by being scaled down: the sheet's
     // own page width is the panel it sits in, so Fit lands near 1:1.
     const sheet = container.querySelector('.doc-flow__sheet') as HTMLElement;
-    expect(getComputedStyle(sheet).width).toBe('var(--panel-md)');
+    expect(declaredValue(sheet, 'width')).toBe('var(--panel-md)');
     const panes_ = container.querySelector('.doc-flow__panes') as HTMLElement;
-    expect(getComputedStyle(panes_).gridTemplateColumns).toBe('minmax(0, 1fr) var(--panel-md)');
+    expect(declaredValue(panes_, 'grid-template-columns')).toBe('minmax(0, 1fr) var(--panel-md)');
   });
 
   // The showcase paints the accent as ink on one name. This holds that it paints no line
