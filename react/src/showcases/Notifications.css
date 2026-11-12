@@ -1,0 +1,31 @@
+/* The shell's own hook for its main width, not an override of its rule. */
+.notifications { --ui-app-main: var(--container); }
+
+/* The count stands on the bell's corner, out of the flow, so the bell keeps its place at zero. */
+.notifications__bell { position: relative; display: inline-grid; place-items: center; }
+.notifications__count { position: absolute; inset-block-end: 50%; inset-inline-start: 50%; }
+
+/* At the bar's end the panel's box is the bell's, so it shrank to its 240px floor and its rows
+   wrapped. Its content's width is the width it takes beside the side nav. */
+.notifications__panel { inline-size: max-content; }
+
+/* The panel's title and its one action share the head row. */
+.notifications__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+
+/* The page's glyph leads its row, as the panel's glyph leads its row. */
+.notifications__entry { display: flex; align-items: flex-start; gap: var(--space-3); }
+
+/* The list leads and takes the wider track. The detail pane stands beside it. */
+.notifications__columns {
+  display: grid; align-items: start; gap: var(--space-8);
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+}
+
+@media (max-width: 860px) {
+  .notifications__columns { grid-template-columns: minmax(0, 1fr); }
+}
+/* On a phone the panel takes the full width under the bar. The edge is the kit's documented
+   hook for a panel flush with the screen. Two classes, to outrank the kit's phone edge. */
+@media (max-width: 560px) {
+  .notifications .notifications__panel { --ui-dropdown-edge: 0; width: 100vw; }
+}
