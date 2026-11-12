@@ -370,8 +370,8 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
  * on. Its scroll shade is a gradient, which the React contrast walk cannot sample, so this
  * measures the block's inks here instead, on every surface the hand-off can give and under
  * the shade's peak. Each ink is the WINNING `color` for its theme and token class: theme
- * prefix, specificity, then source order, as the cascade picks it. A rule that could colour
- * the block's code in a shape this reader does not know fails the gate, so no ink escapes it.
+ * prefix, specificity, then source order, as the cascade picks it. Every colour rule in the
+ * sheet is a code ink, the header or the chip. Any other shape fails the gate, so no ink escapes it.
  * LIMITS: flat colours from the sheets, the default accent, the shade at its darkest point
  * only. It reads code.css alone, so a rule in another sheet is not seen. The reveal block
  * paints its own ground and is not measured. */
@@ -379,8 +379,14 @@ const codeRules = rulesIn('src/styles/code.css');
 const INK_SELECTOR = /^(?:(?::where\(:root\[data-theme="(?<zero>dark|light)"\]\)|:root\[data-theme="(?<theme>dark|light)"\]) )?\.ui-snippet(?<scope>:not\(\.ui-snippet--reveal\)|--reveal)? pre(?: (?:\.(?<leaf>[\w-]+)|:is\((?<list>\.[\w-]+(?:, ?\.[\w-]+)*)\)))?$/;
 /** The last `color` a body declares, or nothing. */
 const colourIn = (body) => [...body.matchAll(/(?:^|;)\s*color\s*:\s*([^;]+)/g)].at(-1)?.[1].trim();
-/** A selector that reaches the block's code: it names the block or a pre, and is not the bar or the copy button. */
-const reachesCode = (selector) => /\.ui-snippet|(?:^|[\s>+~])pre\b/.test(selector) && !/\.ui-snippet__/.test(selector);
+const THEME_PREFIX = '(?:(?::where\\(:root\\[data-theme="(?:dark|light)"\\]\\)|:root\\[data-theme="(?:dark|light)"\\]) )?';
+/** The bar, its label or the copy button as the subject. The code is the bar's sibling, so these never reach it. */
+const HEADER_SELECTOR = new RegExp(`^${THEME_PREFIX}(?:\\.ui-snippet(?::not\\(\\.ui-snippet--reveal\\)|--reveal)? )?`
+  + '\\.ui-snippet__(?:bar(?: > span)?|copy(?::hover|:focus-visible)?)$');
+/** The inline chip, which sits in prose and never in a block. */
+const CHIP_SELECTOR = /^\.ui-code$/;
+/** A selector that can reach the block's code: every colour selector in the sheet that is not the header or the chip. */
+const reachesCode = (selector) => !HEADER_SELECTOR.test(selector) && !CHIP_SELECTOR.test(selector);
 /** Each theme's winning ink for the block text and each token class, read from these rules. */
 const inksFrom = (rules) => {
   const claims = [];
@@ -500,12 +506,17 @@ test('the code ink gate takes the winning ink per theme and refuses a shape it c
   assert.equal(zero.get('dark').get('.c'), 'var(--bg)');
   assert.equal(zero.get('light').get('.c'), 'var(--text)');
   for (const selector of ['.ui-snippet > pre .s', '.ui-snippet pre span.s', '.ui-snippet .k', 'pre .u',
-    'html[data-theme="light"] .ui-snippet pre .k', '.ui-snippet:not(.ui-snippet--reveal) pre :is(.f, .u, span)']) {
+    'html[data-theme="light"] .ui-snippet pre .k', '.ui-snippet:not(.ui-snippet--reveal) pre :is(.f, .u, span)',
+    // The second review's mutation: the bar's name let a route to the code past the gate.
+    ':root[data-theme="light"] .ui-snippet__bar + pre .s', '.ui-snippet__bar ~ pre .s', '.ui-snippet__bar + pre',
+    '.ui-snippet .ui-snippet__bar + pre :is(.s)', '.ui-snippet__bar > span ~ pre', '.ui-snippet__bar ~ * .s', '.s']) {
     assert.throws(() => inksFrom([...codeRules, rule(selector, 'color: var(--bg);')]), /shape the ink gate cannot read/,
       `${selector} colours the code and the gate let it through`);
   }
   assert.throws(() => inksFrom([...codeRules, rule('.ui-snippet pre .s', 'color: var(--bg) !important;')]), /!important/);
-  // The bar's label and the copy button are not code, and the reveal block is not measured.
+  // The bar, its label and the copy button are not code, and the reveal block is not measured.
   assert.doesNotThrow(() => inksFrom([...codeRules, rule('.ui-snippet__bar > span', 'color: var(--bg);'),
+    rule(':root[data-theme="light"] .ui-snippet__bar', 'color: var(--bg);'),
+    rule('.ui-snippet:not(.ui-snippet--reveal) .ui-snippet__copy:focus-visible', 'color: var(--bg);'),
     rule('.ui-snippet--reveal pre .s', 'color: var(--bg);')]));
 });
