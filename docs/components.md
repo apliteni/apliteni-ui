@@ -886,10 +886,13 @@ meanings per language:
 | `json` | a property key | a string value | a number, `true`, `false`, `null` | — | — |
 | `ts` | a keyword | a string or template | a number or literal | — | a `//` or `/* */` comment |
 
-They colour short snippets, not arbitrary programs. Three of the five miss WCAG AA on the light
-card. They are recorded as debt, not presented as compliant: `.f` and `.u` at 3.81:1 and `.s` at
-4.45:1. **The copy button is icon-only in both faces**, with `copyLabel` as its accessible name
-and `title`. **Confirming a copy does not change the control's size or its name**: the glyph
+They colour short snippets, not arbitrary programs. All five clear WCAG AA in both themes, on
+every ground a code block can take. **In a card, a code block paints the page ground**, as an
+inline chip does, and a line divides its label row from the code. When more code lies past an
+edge, a shade marks that edge. In light, keywords, flags and URLs fall below AA where that
+shade is darkest: 4.15:1 and 4.36:1, and 3.91:1 and 4.10:1 in a table scroll. This is recorded
+debt. The reveal block keeps its own look. **The copy button is
+icon-only in both faces**, with `copyLabel` as its accessible name and `title`. **Confirming a copy does not change the control's size or its name**: the glyph
 swaps inside the same box, and the word goes to a hidden live region. Snippet descendants use
 the shared ring, except the browser-focusable code region. A `<pre>` sits flush with its card and
 has no radius, so **the card paints that ring instead**.

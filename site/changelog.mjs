@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.165.0', date: '2026-11-12',
+    changes: [
+      ['changed', 'In a card, a `Snippet` code block now paints the page ground, as an inline code chip does, and a line divides its label row from the code. A shade marks an edge with more code past it. In light, strings and flags take the chip inks. Under the darkest part of the light shade, keywords, flags and URLs still fall below WCAG AA. The reveal block and inline code do not change. Resolves #800.', ['Snippet']],
+    ],
+  },
+  {
     v: '0.164.1', date: '2026-11-10',
     changes: [
       ['changed', 'The Page guideline rule Leave pages closed now has one exception: when a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was. Storybook shows it in the Sign In showcase, which now offers Google as the one provider, with an optional email form. It also gains a provider error with a retry, a busy button while the provider answers, and the session-ended dialog. Its email form tells a password manager which field is the email and which is the password. Resolves #799.', ['Guidelines']],

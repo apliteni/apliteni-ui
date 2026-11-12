@@ -21,8 +21,8 @@
  *    ships no browser. Source-over in sRGB is what Chrome does, and it is checked against
  *    rendered pixels rather than asserted — the producer is scripts/evidence/code-chip.mjs,
  *    which samples its fixtures in a browser. This source gate does not establish
- *    agreement with pixels for every discovered composition. The ink belongs to
- *    stories/contrast-dark.test.js and stories/contrast-light.test.js.
+ *    agreement with pixels for every discovered composition. The chip's ink belongs to the
+ *    React contrast walk; the code block's inks are measured at the end of this file.
  *  - The callout wash subjects take CALLER markup: `callout()` and the success
  *    panel hand their body straight through, so a chip inside one is ordinary product
  *    markup. The composer's own `__done` and `__err` panels are washes too and are not
@@ -160,7 +160,10 @@ const paintedAliases = new Set(sheets
   .filter((rule) => HANDS_NOTHING_ON.test(rule.raw))
   .map((rule) => paintOf(rule.body))
   .filter((paint) => paint && /^var\(\s*--[\w-]+\s*\)$/.test(paint))
-  .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1]));
+  .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1])
+  // A code block paints the chip's hand-off (#800). A rule that declares --code-bg hands a
+  // chip a surface and paints nothing, so it is not a variant of the block.
+  .filter((name) => name !== '--code-bg'));
 const aliased = sheets.flatMap((rule) => {
   if (isRoot(rule) || paintOf(rule.body)) return [];
   return [...own(rule)]
@@ -282,7 +285,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 39, 'painted-ground discovery changed; the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 38, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
@@ -361,4 +364,82 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
   const recipe = rulesIn('src/tokens/tokens.css').find((r) => own(r).get('--code-bg') === 'var(--bg)');
   assert.ok(!selectorsOf(recipe.selector).includes('.ui-code'),
     'the chip cannot be in the hand-off list: it would hand the page to itself and paint the page everywhere');
+});
+
+/* A code block reads the same hand-off (#800): it paints the surface its container is not
+ * on. Its scroll shade is a gradient, which the React contrast walk cannot sample, so this
+ * measures the block's inks here instead, on every surface the hand-off can give and under
+ * the shade's peak. LIMITS: flat colours from the sheets, the default accent, the shade at
+ * its darkest point only. The reveal block paints its own ground and is not measured. */
+const codeRules = rulesIn('src/styles/code.css');
+const BLOCK = /^\.ui-snippet(?::not\(\.ui-snippet--reveal\))? pre(?: \.(\w)| :is\(([^)]*)\))?$/;
+const inks = new Map();
+for (const rule of codeRules) {
+  const match = BLOCK.exec(rule.selector);
+  const colour = /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(rule.body)?.[1].trim();
+  if (!match || !colour) continue;
+  const leaves = match[1] ? [`.${match[1]}`] : match[2] ? selectorsOf(match[2]) : ['text'];
+  for (const leaf of leaves) inks.set(leaf, colour);
+}
+const edgeOf = (theme) => codeRules.filter((rule) => (theme === 'light'
+  ? rule.selector === ':root[data-theme="light"] .ui-snippet pre' : rule.selector === '.ui-snippet pre'))
+  .map((rule) => own(rule).get('--ui-snippet-edge')).find(Boolean);
+const blockGrounds = [...new Set(handOffs.filter(({ selector }) => !selector.includes('--reveal'))
+  .map(({ pick }) => pick))];
+
+/* Accepted failures, written by hand. Cause: the light edge shade is 13% --shadow-ink, the
+ * tab row's own value, and at its darkest point it sits under the outer 1-2 px of text.
+ * Keywords, flags and URLs then fall below 4.5:1. The owner kept the approved 13% and
+ * recorded the gap on #800. LIMIT: these are the shade's peak, so text further in sees less
+ * shade and a higher ratio. Every flat pair and every dark pair clears AA. */
+const ACCEPTED = [
+  'light the page var(--bg) shaded .k 4.15',
+  'light the page var(--bg) shaded .f 4.36',
+  'light the page var(--bg) shaded .u 4.36',
+  'light the page var(--table-code-bg) shaded .k 4.15',
+  'light the page var(--table-code-bg) shaded .f 4.36',
+  'light the page var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .k 4.15',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .f 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .u 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .k 3.91',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .f 4.10',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .u 4.10',
+  'light inside .ui-card__page var(--bg) shaded .k 4.15',
+  'light inside .ui-card__page var(--bg) shaded .f 4.36',
+  'light inside .ui-card__page var(--bg) shaded .u 4.36',
+  'light inside .ui-card__page var(--table-code-bg) shaded .k 4.15',
+  'light inside .ui-card__page var(--table-code-bg) shaded .f 4.36',
+  'light inside .ui-card__page var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-card var(--bg) shaded .k 4.15',
+  'light inside .ui-card var(--bg) shaded .f 4.36',
+  'light inside .ui-card var(--bg) shaded .u 4.36',
+  'light inside .ui-card var(--table-code-bg) shaded .k 4.15',
+  'light inside .ui-card var(--table-code-bg) shaded .f 4.36',
+  'light inside .ui-card var(--table-code-bg) shaded .u 4.36',
+];
+
+test('a code block\'s inks clear AA on every surface it is handed, except the recorded shade peaks', () => {
+  assert.deepEqual([...inks.keys()].sort(), ['.c', '.f', '.k', '.s', '.u', 'text'],
+    'code ink discovery changed; measure the new token class here');
+  assert.equal(blockGrounds.length, 5, 'a hand-off gives a code block a new surface; it is measured below');
+  const low = [];
+  for (const theme of THEMES) {
+    const edge = edgeOf(theme);
+    assert.ok(edge, `the block's shade colour is unreadable in ${theme}`);
+    for (const { where, overrides } of contexts) {
+      const vars = varsFor(theme, overrides);
+      for (const pick of blockGrounds) {
+        const flat = colourOf(pick, vars);
+        assert.ok(flat, `${pick} is unreadable in ${theme}, ${where}`);
+        for (const [under, ground] of [['flat', flat], ['shaded', composite(colourOf(edge, vars), flat)]]) {
+          for (const [leaf, ink] of inks) {
+            const value = ratio(composite(colourOf(ink, vars), ground), ground);
+            if (value < 4.5) low.push(`${theme} ${where} ${pick} ${under} ${leaf} ${value.toFixed(2)}`);
+          }
+        }
+      }
+    }
+  }
+  assert.deepEqual(low, ACCEPTED, 'a code ink misses 4.5:1, or an accepted failure moved or cleared');
 });

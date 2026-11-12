@@ -4,7 +4,8 @@
  * ========================================================================== */
 
 .ui-snippet {
-  background: var(--surface);
+  /* The surface its container is not on, as an inline chip takes it. #800 */
+  background: var(--code-bg); /* code-bg: inherit — a block reads the ground its container hands a chip, and holds no chip. */
   border-radius: var(--radius-md);
   overflow: hidden;
 }
@@ -13,6 +14,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
+  /* A line between two regions of one surface, as the viewer toolbar draws it. */
+  border-bottom: 1px solid var(--card-edge);
 }
 .ui-snippet__bar > span {
   /* rank: label */
@@ -22,14 +25,29 @@
 }
 .ui-snippet pre {
   margin: 0;
-  padding: 0 15px 14px;
+  padding: var(--space-3) 15px 14px;
   overflow-x: auto;
+  /* The tab row's edge shade (src/styles/nav.css): a cover in the block's ground scrolls with
+     the code and hides the shade at an edge the reader has reached. Painted under the text. */
+  --ui-snippet-edge: color-mix(in srgb, var(--sheen) 11%, transparent);
+  background-image:
+    linear-gradient(to right, var(--code-bg) 50%, transparent),
+    linear-gradient(to left, var(--code-bg) 50%, transparent),
+    radial-gradient(farthest-side at 0 50%, var(--ui-snippet-edge), transparent),
+    radial-gradient(farthest-side at 100% 50%, var(--ui-snippet-edge), transparent);
+  background-repeat: no-repeat;
+  background-position: 0 0, 100% 0, 0 0, 100% 0;
+  background-size: var(--space-6) 100%, var(--space-6) 100%, var(--space-3) 100%, var(--space-3) 100%;
+  background-attachment: local, local, scroll, scroll;
   font-size: var(--text-sm);
   line-height: 1.55;
   color: var(--text);
   white-space: pre;
   font-family: var(--font-mono);
 }
+:root[data-theme="light"] .ui-snippet pre { --ui-snippet-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent); }
+/* The reveal block wraps, so it never scrolls and draws no shade. */
+.ui-snippet--reveal pre { background-image: none; }
 /* Scrollable code is a keyboard target, but a <pre> flush with the card and
    without its radius draws a square ring that cuts across the card and squares
    its corners. The card carries the ring instead, so it follows --radius-md and
@@ -72,6 +90,10 @@
 .ui-snippet pre .f { color: var(--cyan); }
 .ui-snippet pre .s { color: var(--green); }
 .ui-snippet pre .u { color: var(--cyan); }
+/* The chip inks equal --green and --cyan in dark and clear AA on both light grounds. The
+   reveal block keeps its own. #800 */
+.ui-snippet:not(.ui-snippet--reveal) pre .s { color: var(--chip-success-ink); }
+.ui-snippet:not(.ui-snippet--reveal) pre :is(.f, .u) { color: var(--chip-info-ink); }
 .ui-snippet pre .c { color: var(--text); font-style: italic; }
 
 /* Reveal: a live secret/token, tinted green */
