@@ -228,9 +228,11 @@ export function specialiseContextual(css) {
   return out + css.slice(last);
 }
 
-/** Give a bare `a` rule the :link/:visited forms JSDOM's UA sheet demands. */
+/** Give a bare `a` rule the :link/:visited forms JSDOM's UA sheet demands.
+    `:where(a)` holds them at one class's weight, so a later `.ui-btn--primary` still wins, as in
+    a browser. Limit: JSDOM ranks its UA sheet with the author's, so an earlier class loses here. */
 export const expandAnchors = (css) =>
-  css.replace(/(^|[},])(\s*)a(\s*)\{/g, (m, p, w1, w2) => `${p}${w1}a,a:link,a:visited${w2}{`);
+  css.replace(/(^|[},])(\s*)a(\s*)\{/g, (m, p, w1, w2) => `${p}${w1}a,:where(a):link,:where(a):visited${w2}{`);
 
 /** The state pseudo-classes the walker exercises. */
 export const STATES = ['hover', 'focus-visible', 'focus', 'active'];

@@ -6,6 +6,24 @@
 
 export const RELEASES = [
   {
+    v: '0.165.1', date: '2026-11-12',
+    changes: [
+      ['added', 'Storybook has a Notifications showcase: a bell with its unread count opens a panel of the latest notifications, and its All notifications button opens a list with a detail pane. It shows the empty and error states, the top bar and a phone. The Icon-only controls rule now allows the notifications bell, named by its sentence. Resolves #798.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.165.0', date: '2026-11-12',
+    changes: [
+      ['changed', 'In a card, a `Snippet` code block now paints the page ground, as an inline code chip does, and a line divides its label row from the code. A shade marks an edge with more code past it. In light, strings and flags take the chip inks. Under the darkest part of the light shade, keywords, flags and URLs still fall below WCAG AA. The reveal block and inline code do not change. Resolves #800.', ['Snippet']],
+    ],
+  },
+  {
+    v: '0.164.1', date: '2026-11-10',
+    changes: [
+      ['changed', 'The Page guideline rule Leave pages closed now has one exception: when a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was. Storybook shows it in the Sign In showcase, which now offers Google as the one provider, with an optional email form. It also gains a provider error with a retry, a busy button while the provider answers, and the session-ended dialog. Its email form tells a password manager which field is the email and which is the password. Resolves #799.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.164.0', date: '2026-11-09',
     changes: [
       ['changed', 'At 560px and below, the `AccountWindow` now floats with a 16px gap on each side, clear of the notch and the home bar, instead of filling the screen. It is as tall as its section, up to the screen height, and a long section scrolls under the reader and the tabs. When keyboard focus scrolls a control in the section into view, its whole focus ring shows. Resolves #795.', ['AccountWindow']],
