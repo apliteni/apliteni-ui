@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 72,
+    PARENTHESISED.length, 73,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'six layout rail rules, four nav rules, forty-five table rules, four finance composition rules, two invoice showcase rules, two tap-zone rules, three checkbox mark rules, one drawer control-row rule, one danger hold-fill rule and three token rules',
+    + 'six layout rail rules, four nav rules, forty-five table rules, four finance composition rules, two invoice showcase rules, two tap-zone rules, three checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule and three token rules',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
@@ -203,8 +203,8 @@ test('the shared splitter is read by every gate that was reading a selector list
   const callers = tracked.filter((file) => SOURCE.test(file) && !self.includes(file)
     && /splitSelectorList\s*\(/.test(readFileSync(path.join(root, file), 'utf8')));
   assert.equal(
-    callers.length, 40,
+    callers.length, 41,
     'the set of gates reading a selector list changed; the scroll-ring and story CSS gates share this splitter '
-    + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table, guideline page, dropdown panel, dropdown row, field focus, tooltip, document sheet, split toolbar and other style gates',
+    + 'with the React date-picker, chart-target, tap-zone, table-edge, card-fit, table, guideline page, dropdown panel, dropdown row, field focus, tooltip, document sheet, split toolbar, code block shade and other style gates',
   );
 });

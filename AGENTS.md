@@ -141,6 +141,14 @@ Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
+## Check the code block's edge shade locally
+
+Before opening a PR that changes `.ui-snippet` rules in `src/styles/code.css`, measure the block
+in a real browser. The source half only reads the declarations. Run `npm run build-storybook`
+first, then:
+`UI_PLAYWRIGHT=… UI_CHROME=… SNIPPET_SHADE=1 node --test stories/snippet-shade.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Documentation
 
 Record a consumer guarantee in one of the two reader pages: a token or a floor in
