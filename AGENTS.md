@@ -126,6 +126,13 @@ the column in a real browser — the source half reads declarations, not layout:
 `SELECTION_WIDTH=1 UI_PLAYWRIGHT=… node --test src/styles/table-selection-width.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
+## Check the table's top alignment locally
+
+Before opening a PR that changes a cell's `vertical-align` in `src/styles/table.css` or the
+`.rx-sort` alignment in `react/src/DataTable.css`, measure the first lines in a real browser:
+`TOP_ALIGN=1 UI_PLAYWRIGHT=… node --test src/styles/table-top-align.test.js`
+Report the result in the PR. CI runs only the source half, in the table and DataTable tests.
+
 ## Check the partial dash locally
 
 Before opening a PR that changes the `:indeterminate::after` rule in `src/styles/input.css`, measure the dash

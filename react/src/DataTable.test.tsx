@@ -631,6 +631,27 @@ it('gives the sortable label the rules that let it give way, and the caret none 
   } finally { style.remove(); }
 });
 
+// A wrapped header keeps its sort mark on the first line, beside the start of the label (#806).
+// Limits: jsdom resolves the cascade, not layout, so this proves the button's declaration.
+// The mark's position is measured in Chromium by src/styles/table-top-align.test.js.
+it('holds the sort mark on the first line of a wrapped header', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+  const buttons = within(screen.getAllByRole('row')[0]).getAllByRole('button');
+  expect(buttons).toHaveLength(2);
+  const css = readFileSync(join(dirname(expect.getState().testPath!), 'DataTable.css'), 'utf8');
+  const alignOf = (sheet: string) => {
+    const style = document.createElement('style');
+    style.textContent = sheet;
+    document.head.append(style);
+    try { return buttons.map(button => getComputedStyle(button).alignItems); } finally { style.remove(); }
+  };
+  expect(alignOf(css)).toEqual(['flex-start', 'flex-start']);
+  // The check rejects the mark centred on the whole label again.
+  const centred = css.replace('align-items: flex-start;', 'align-items: center;');
+  expect(centred).not.toBe(css);
+  expect(alignOf(centred)).toEqual(['center', 'center']);
+});
+
 it('disables the chevron transition under reduced motion', () => {
   render(<DataTable columns={columns} rows={rows} selectable={false} />);
   const caret = screen.getByRole('button', { name: 'Clicks' }).querySelector('svg')!;

@@ -298,6 +298,42 @@ test('the numeric-header check rejects a sheet that lets them wrap', () => {
   assert.throws(() => checkNumericHeaderWrap(`${CSS}\n.ui-table th.ui-table__num { white-space: normal; }`));
 });
 
+// Every cell holds its first line at the top, so a short cell and a wrapped cell start on
+// one line (#806). Limits: jsdom resolves the cascade, not layout, so this proves the
+// declaration reaches every head, body and footer cell. The line positions are measured in
+// Chromium by src/styles/table-top-align.test.js.
+function checkTopAlign(css) {
+  let measured = 0;
+  for (const modifier of tableModifiers(css)) {
+    const dom = footerTable(css, modifier);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      for (const cell of document.querySelectorAll('th, td')) {
+        const where = `${cell.parentElement.parentElement.localName} ${cell.localName}`;
+        assert.equal(getComputedStyle(cell).verticalAlign, 'top', `${modifier || 'ui-table'}: ${where} leaves the top`);
+        measured++;
+      }
+    } finally { dom.window.close(); }
+  }
+  assert.ok(measured >= 56, `every modifier's head, body and footer cells must be measured, got ${measured}`);
+}
+
+test('every table cell aligns its first line to the top across table modifiers', () => {
+  checkTopAlign(CSS);
+});
+
+test('the top-align check rejects a body cell put back in the middle', () => {
+  const broken = CSS.replace('  color: var(--text);\n  vertical-align: top;\n  white-space: nowrap;', '  color: var(--text);\n  white-space: nowrap;');
+  assert.notEqual(broken, CSS, 'mutation must remove the body cell declaration');
+  assert.throws(() => checkTopAlign(broken), /: tbody td leaves the top/);
+});
+
+test('the top-align check rejects a header cell put back in the middle', () => {
+  const broken = CSS.replace('  border-bottom: 1px solid var(--border);\n  vertical-align: top;\n}', '  border-bottom: 1px solid var(--border);\n  vertical-align: middle;\n}');
+  assert.notEqual(broken, CSS, 'mutation must restore the old header declaration');
+  assert.throws(() => checkTopAlign(broken), /: thead th leaves the top/);
+});
+
 // A right-aligned last column ends where its header ends. The base table dropped the cell gap
 // on the header only, so the figures stood 16px in from the header and the table edge. Limit:
 // JSDOM computes padding, not layout, so this holds the inset the edge is made of.
