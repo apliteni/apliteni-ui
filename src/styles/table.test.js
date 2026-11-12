@@ -177,6 +177,16 @@ function footerTable(css, modifier = '') {
   </table>`);
 }
 
+// Cells align to the top, so two cells of a row must centre their first lines together.
+// A row table's header is a size smaller than its values, so its top padding differs (#806).
+function assertLevel(header, value, message) {
+  const firstLine = (cell) => parseFloat(cell.paddingTop) + parseFloat(cell.lineHeight) / 2;
+  const level = header.lineHeight === value.lineHeight
+    ? header.paddingTop === value.paddingTop
+    : Math.abs(firstLine(header) - firstLine(value)) < 0.01;
+  assert.ok(level, `${message} ${header.paddingTop} puts its first line off the value's ${value.paddingTop}`);
+}
+
 function checkFooter(css) {
   let measured = 0;
   for (const modifier of tableModifiers(css)) {
@@ -190,7 +200,7 @@ function checkFooter(css) {
       // body sits the name low against the values beside it.
       const header = getComputedStyle(bodyHeader);
       const value = getComputedStyle(document.querySelector('tbody td'));
-      assert.equal(header.paddingTop, value.paddingTop, `${modifier}: body header top padding`);
+      assertLevel(header, value, `${modifier}: body header top padding`);
       assert.equal(header.paddingBottom, value.paddingBottom, `${modifier}: body header bottom padding`);
       if (modifier === 'ui-table--compact') {
         // The cell aligns to the top, so the top step centres one line in the 33px row (#806).
@@ -205,7 +215,7 @@ function checkFooter(css) {
       for (const row of rows) {
         const [label, value] = [...row.cells].map((cell) => getComputedStyle(cell));
         assert.equal(label.borderBottomWidth, value.borderBottomWidth, `${modifier}: complete footer rule`);
-        assert.equal(label.paddingTop, value.paddingTop, `${modifier}: label top padding`);
+        assertLevel(label, value, `${modifier}: label top padding`);
         assert.equal(label.paddingBottom, value.paddingBottom, `${modifier}: label bottom padding`);
         assert.equal(getComputedStyle(row.cells[0]).textAlign, 'right', `${modifier}: footer label sits against its figure`);
         measured++;
