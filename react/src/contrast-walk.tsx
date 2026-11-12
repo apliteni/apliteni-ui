@@ -1,8 +1,8 @@
 // Contrast gate for the React workspace.
 //
 // The walk is dealt over CONTRAST_PARTS test files (contrast.test.tsx, contrast-2.test.tsx and so
-// on), each calling runWalkSlice, so no one file walks the whole catalogue. The Snippet
-// story file is never split, because the ledger below names its stories.
+// on), each calling runWalkSlice, so no one file walks the whole catalogue. The stories
+// the ledger below names are never split from part 0.
 //
 // Share the calculation but check each workspace separately.
 // Fail if a custom property cannot be resolved.
@@ -56,53 +56,19 @@ type Theme = (typeof THEMES)[number];
 type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string };
 
 // An entry belongs here only when A PERSON has decided a failure is debt and
-// written down why. This list was empty until #429 PR 3.8, and it stopped being
-// empty on an agent's judgement — which is why the PR body names these two entries
-// for Artur rather than leaving them to pass as a green suite. Before this gate had
-// anything in it, it found the sort caret painting --muted at opacity .5, 2.39:1
-// dark and 2.16:1 light against a 4.5 floor; #131 removed the opacity rather than
-// ledgering it, and that is still the first thing to try.
+// written down why. Before this gate had anything in it, it found the sort caret
+// painting --muted at opacity .5, 2.39:1 dark and 2.16:1 light against a 4.5 floor;
+// #131 removed the opacity rather than ledgering it, and that is still the first
+// thing to try.
 //
-// Both entries carry debt the vanilla side already records. stories/contrast.test.js
-// holds the original rationale and #455's measurements: syntax colour repeats meaning
-// present in the source, and these light pairs still miss AA. No other surface or
-// colour inherits this debt.
-//
-// Round 24 added JSON and TypeScript to the highlighter, so the same two pairs are
-// now painted in more stories. The grouping key is the colour, the state and the
-// leaf selector rather than the story, so the counts below did not move: these are
-// the same four and two findings, reached from more places.
+// The code block's light cyan and green entries went with #800: the block now inks
+// strings and flags with the chip inks, which clear AA. Its edge shade is a gradient,
+// so this walk records the block's code as unjudgeable, and stories/code-chip.test.js
+// measures those inks instead.
 //
 // The stories are named rather than matched by file. A prefix match would absorb
-// every Snippet story anyone adds later into the accepted debt, with no count
-// change and nobody deciding — which is the opposite of what this list is for.
-// Adding a story that paints these classes should turn the gate red and make
-// somebody look.
-const ACCESS_STORY = '../../stories/apps/Access.stories.tsx:Default';
-const SNIPPET_STORIES = new Set([
-  './Snippet.stories.tsx:Shell',
-  './Snippet.stories.tsx:Json',
-  './Snippet.stories.tsx:TypeScript',
-  './Snippet.stories.tsx:Variants',
-  './Snippet.stories.tsx:Comparison',
-  './Snippet.stories.tsx:CopyHover',
-  './Snippet.stories.tsx:Copied',
-  './Snippet.stories.tsx:KeyboardFocus',
-  // The Access showcase's connect command (#429, PR 4): the vanilla ledger's E and C
-  // count this pair across every story, that showcase's snippet included.
-  ACCESS_STORY,
-]);
-// At rest, and only at rest. The walk re-measures a container's descendants in a state
-// when a state rule on that container can change a captured colour; `.ui-snippet:has(pre
-// :focus-visible)` writes nothing but the band now, so focus reaches none of these spans.
-// Until #578 the same rule also carried `--ring-gap: inherit` — a custom property, which
-// the walk cannot rule out — so every entry was counted twice, once at rest and once
-// under a state that painted the same literals at the same ratios. The halving below is
-// that artifact going, not a debt being paid.
-const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default'
-  && f.state === null && f.bg === 'rgb(255,255,255)'
-  && [...f.stories].every(story => SNIPPET_STORIES.has(story))
-  && [...f.paths].every(path => /div\.ui-snippet > pre > span\.[fsu]$/.test(path));
+// every story anyone adds later into the accepted debt, with no count change and
+// nobody deciding, which is the opposite of what this list is for.
 // #429 PR 4 brought the foundation pages over from the vanilla Storybook. Two of their
 // vanilla ledger buckets come with them, unchanged in cause: B and P, from the vanilla
 // ledger that #724 deleted. Each is named by story, for the reason above. Bucket S went
@@ -110,34 +76,9 @@ const snippetDebt = (f: Finding) => f.theme === 'light' && f.accent === 'default
 const PALETTE_STORY = '../../stories/foundations/BrandPrimitives.stories.tsx:Palette';
 const MOTION_PLAYGROUND = '../../stories/foundations/Motion.stories.tsx:Playground';
 const onlyIn = (f: Finding, story: string) => [...f.stories].every(s => s === story);
-/** Whole stories the ledger counts, dealt to part 0 with the snippet file. */
-const LEDGER_STORIES = new Set([PALETTE_STORY, MOTION_PLAYGROUND, ACCESS_STORY]);
+/** Whole stories the ledger counts, dealt to part 0. */
+const LEDGER_STORIES = new Set([PALETTE_STORY, MOTION_PLAYGROUND]);
 const LEDGER: LedgerEntry[] = [
-  {
-    match: f => snippetDebt(f) && f.fg === 'rgb(12, 143, 168)'
-      && [...f.paths].every(path => /span\.[fu]$/.test(path)),
-    count: 2,
-    why: 'Vanilla E: light cyan retains the existing 3.81:1 pair. '
-      + 'It paints shell flags and URLs, and since round 24 also '
-      + 'JSON and TypeScript scalars — numbers, true, false, null. In shell the '
-      + 'colour is a second signal over text that reads without it; on a JSON '
-      + 'scalar it is the only colour the value gets, so the debt is larger in kind '
-      + 'than when this entry was written. It is accepted because the value itself '
-      + 'is the text — a reader reads the 3 in "retries": 3, not a hint about it — '
-      + 'and because no token moved; fixing it means re-picking --cyan for the light '
-      + 'card, which is a palette decision and not this PR\'s. No AA claim is made.',
-  },
-  {
-    match: f => snippetDebt(f) && f.fg === 'rgb(28, 138, 44)'
-      && [...f.paths].every(path => path.endsWith('span.s')),
-    count: 1,
-    why: 'Vanilla C: light green retains the existing 4.45:1 pair. '
-      + 'It paints quoted strings in all three languages — shell '
-      + 'arguments, JSON string values, TypeScript literals. The same widening as '
-      + 'the cyan entry: a JSON string value carries its own meaning rather than '
-      + 'repeating one. Accepted for the same reason and with the same limit — it '
-      + 'is 0.05 under the 4.5:1 floor, and closing it is a palette decision.',
-  },
   {
     match: f => onlyIn(f, PALETTE_STORY),
     count: 130,
@@ -220,15 +161,12 @@ const allFound = files.flatMap((file) => {
 });
 
 export { CONTRAST_PARTS };
-/** The file the ledger entries below can only match in. */
-const LEDGER_HOME = './Snippet.stories.tsx';
-
-/** Deal the stories over `parts` hands in turn. The ledger home stays whole on the first hand. */
+/** Deal the stories over `parts` hands in turn. The ledger's stories stay on the first hand. */
 function dealStories(parts: number): string[][] {
   const hands: string[][] = Array.from({ length: parts }, () => []);
   let turn = 0;
   for (const story of allFound) {
-    if (story.id.startsWith(`${LEDGER_HOME}:`) || LEDGER_STORIES.has(story.id)) hands[0].push(story.id);
+    if (LEDGER_STORIES.has(story.id)) hands[0].push(story.id);
     else hands[turn++ % parts].push(story.id);
   }
   return hands;
@@ -468,9 +406,6 @@ describe('contrast: React coverage', () => {
 
   it('discovered every story the ledger names, and dealt them to part 0', () => {
     const ids = new Set(allFound.map((s) => s.id));
-    expect([...SNIPPET_STORIES].filter((id) => !ids.has(id)), 'ledger stories not discovered').toEqual([]);
-    expect(hands[0].filter((id) => SNIPPET_STORIES.has(id)).length, 'ledger stories in part 0')
-      .toBe(SNIPPET_STORIES.size);
     expect([...LEDGER_STORIES].filter((id) => !ids.has(id)), 'foundation ledger stories not discovered').toEqual([]);
     expect([...LEDGER_STORIES].filter((id) => !hands[0].includes(id)), 'foundation ledger stories outside part 0').toEqual([]);
   });
@@ -528,10 +463,10 @@ describe('contrast: React coverage', () => {
     // #478 asserted the ledger was empty, and said why: the claim is stated here
     // rather than left as a silence, so adding an entry forces whoever adds it to
     // come back and say so. This is that. The ledger stopped being empty on #474,
-    // and what the line claims now is narrower: React accepts the two pairs the
+    // and what the line claims now is narrower: React accepts the failures the
     // ledger names and nothing else, so an unledgered failure still fails here.
-    // The two entries are named in the PR body for Artur, because the decision to
-    // accept them is his and not a green suite's.
+    // A new entry is named in its PR body for Artur, because the decision to
+    // accept it is his and not a green suite's.
     expect(findings.filter((f) => !LEDGER.some((e) => e.match(f))),
       'React accepts only the failures its ledger names; every other pair clears AA')
       .toEqual([]);
