@@ -369,18 +369,46 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
 /* A code block reads the same hand-off (#800): it paints the surface its container is not
  * on. Its scroll shade is a gradient, which the React contrast walk cannot sample, so this
  * measures the block's inks here instead, on every surface the hand-off can give and under
- * the shade's peak. LIMITS: flat colours from the sheets, the default accent, the shade at
- * its darkest point only. The reveal block paints its own ground and is not measured. */
+ * the shade's peak. Each ink is the WINNING `color` for its theme and token class: theme
+ * prefix, specificity, then source order, as the cascade picks it. A rule that could colour
+ * the block's code in a shape this reader does not know fails the gate, so no ink escapes it.
+ * LIMITS: flat colours from the sheets, the default accent, the shade at its darkest point
+ * only. It reads code.css alone, so a rule in another sheet is not seen. The reveal block
+ * paints its own ground and is not measured. */
 const codeRules = rulesIn('src/styles/code.css');
-const BLOCK = /^\.ui-snippet(?::not\(\.ui-snippet--reveal\))? pre(?: \.(\w)| :is\(([^)]*)\))?$/;
-const inks = new Map();
-for (const rule of codeRules) {
-  const match = BLOCK.exec(rule.selector);
-  const colour = /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(rule.body)?.[1].trim();
-  if (!match || !colour) continue;
-  const leaves = match[1] ? [`.${match[1]}`] : match[2] ? selectorsOf(match[2]) : ['text'];
-  for (const leaf of leaves) inks.set(leaf, colour);
-}
+const INK_SELECTOR = /^(?:(?::where\(:root\[data-theme="(?<zero>dark|light)"\]\)|:root\[data-theme="(?<theme>dark|light)"\]) )?\.ui-snippet(?<scope>:not\(\.ui-snippet--reveal\)|--reveal)? pre(?: (?:\.(?<leaf>[\w-]+)|:is\((?<list>\.[\w-]+(?:, ?\.[\w-]+)*)\)))?$/;
+/** The last `color` a body declares, or nothing. */
+const colourIn = (body) => [...body.matchAll(/(?:^|;)\s*color\s*:\s*([^;]+)/g)].at(-1)?.[1].trim();
+/** A selector that reaches the block's code: it names the block or a pre, and is not the bar or the copy button. */
+const reachesCode = (selector) => /\.ui-snippet|(?:^|[\s>+~])pre\b/.test(selector) && !/\.ui-snippet__/.test(selector);
+/** Each theme's winning ink for the block text and each token class, read from these rules. */
+const inksFrom = (rules) => {
+  const claims = [];
+  rules.forEach((rule, order) => {
+    const colour = colourIn(rule.body);
+    if (!colour) return;
+    for (const selector of selectorsOf(rule.selector).filter(reachesCode)) {
+      const match = INK_SELECTOR.exec(selector);
+      if (!match) throw new Error(`${rule.file}: "${selector}" colours the code block in a shape the ink gate cannot read; write it in a known shape or teach the gate`);
+      if (/!important/.test(colour)) throw new Error(`${rule.file}: "${selector}" colours the code block with !important, which the ink gate cannot rank`);
+      const { zero, theme, scope, leaf, list } = match.groups;
+      if (scope === '--reveal') continue;
+      // Specificity as a number: classes, attributes and pseudo-classes count ten, a type one.
+      // `:where()` counts nothing; `:root[data-theme]` counts two; `:is()` counts its one class.
+      const weight = (theme ? 20 : 0) + 10 + (scope ? 10 : 0) + 1 + (leaf || list ? 10 : 0);
+      for (const target of leaf ? [`.${leaf}`] : list ? selectorsOf(list) : ['text']) {
+        claims.push({ themes: theme || zero ? [theme || zero] : THEMES, target, weight, order, colour });
+      }
+    }
+  });
+  return new Map(THEMES.map((theme) => {
+    const winner = (target) => claims.filter((claim) => claim.themes.includes(theme) && claim.target === target)
+      .sort((a, b) => a.weight - b.weight || a.order - b.order).at(-1)?.colour;
+    const targets = [...new Set(claims.map(({ target }) => target))];
+    // A token class with no rule of its own inherits the block's text ink.
+    return [theme, new Map(targets.map((target) => [target, winner(target) ?? winner('text')]))];
+  }));
+};
 const edgeOf = (theme) => codeRules.filter((rule) => (theme === 'light'
   ? rule.selector === ':root[data-theme="light"] .ui-snippet pre' : rule.selector === '.ui-snippet pre'))
   .map((rule) => own(rule).get('--ui-snippet-edge')).find(Boolean);
@@ -419,10 +447,9 @@ const ACCEPTED = [
   'light inside .ui-card var(--table-code-bg) shaded .u 4.36',
 ];
 
-test('a code block\'s inks clear AA on every surface it is handed, except the recorded shade peaks', () => {
-  assert.deepEqual([...inks.keys()].sort(), ['.c', '.f', '.k', '.s', '.u', 'text'],
-    'code ink discovery changed; measure the new token class here');
-  assert.equal(blockGrounds.length, 5, 'a hand-off gives a code block a new surface; it is measured below');
+/** Every ink below 4.5:1, flat and under the shade's peak, for these code.css rules. */
+const lowInks = (rules) => {
+  const inks = inksFrom(rules);
   const low = [];
   for (const theme of THEMES) {
     const edge = edgeOf(theme);
@@ -433,7 +460,7 @@ test('a code block\'s inks clear AA on every surface it is handed, except the re
         const flat = colourOf(pick, vars);
         assert.ok(flat, `${pick} is unreadable in ${theme}, ${where}`);
         for (const [under, ground] of [['flat', flat], ['shaded', composite(colourOf(edge, vars), flat)]]) {
-          for (const [leaf, ink] of inks) {
+          for (const [leaf, ink] of inks.get(theme)) {
             const value = ratio(composite(colourOf(ink, vars), ground), ground);
             if (value < 4.5) low.push(`${theme} ${where} ${pick} ${under} ${leaf} ${value.toFixed(2)}`);
           }
@@ -441,5 +468,44 @@ test('a code block\'s inks clear AA on every surface it is handed, except the re
       }
     }
   }
-  assert.deepEqual(low, ACCEPTED, 'a code ink misses 4.5:1, or an accepted failure moved or cleared');
+  return low;
+};
+
+test('a code block\'s inks clear AA on every surface it is handed, except the recorded shade peaks', () => {
+  const inks = inksFrom(codeRules);
+  for (const theme of THEMES) {
+    assert.deepEqual([...inks.get(theme).keys()].sort(), ['.c', '.f', '.k', '.s', '.u', 'text'],
+      `code ink discovery changed in ${theme}; measure the new token class here`);
+  }
+  // The chip inks win over the older --green and --cyan rules on the plain block.
+  assert.equal(inks.get('light').get('.s'), 'var(--chip-success-ink)');
+  assert.equal(inks.get('light').get('.f'), 'var(--chip-info-ink)');
+  assert.equal(blockGrounds.length, 5, 'a hand-off gives a code block a new surface; it is measured below');
+  assert.deepEqual(lowInks(codeRules), ACCEPTED, 'a code ink misses 4.5:1, or an accepted failure moved or cleared');
+});
+
+test('the code ink gate takes the winning ink per theme and refuses a shape it cannot read', () => {
+  const rule = (selector, body) => ({ file: 'mutation', selector, body, raw: `${selector} { ${body} }` });
+  // The review's mutation: a light-only rule that out-ranks the plain one. A reader that
+  // skipped it, or took the first rule, stayed green.
+  const themed = lowInks([...codeRules,
+    rule(':root[data-theme="light"] .ui-snippet:not(.ui-snippet--reveal) pre .s', 'color: var(--bg);')]);
+  assert.ok(themed.some((row) => /^light .* \.s 1\.00$/.test(row)), 'a light-only ink rule is not measured');
+  assert.ok(!themed.some((row) => /^dark .* \.s /.test(row)), 'a light-only ink rule leaked into dark');
+  // A weaker rule later in the sheet loses to the stronger one, as the cascade has it.
+  assert.deepEqual(lowInks([...codeRules, rule('.ui-snippet pre .s', 'color: var(--bg);')]), ACCEPTED,
+    'a rule the cascade loses was measured as the winner');
+  // A :where() theme rule weighs nothing, so it wins only by source order over an equal weight.
+  const zero = inksFrom([...codeRules, rule(':where(:root[data-theme="dark"]) .ui-snippet pre .c', 'color: var(--bg);')]);
+  assert.equal(zero.get('dark').get('.c'), 'var(--bg)');
+  assert.equal(zero.get('light').get('.c'), 'var(--text)');
+  for (const selector of ['.ui-snippet > pre .s', '.ui-snippet pre span.s', '.ui-snippet .k', 'pre .u',
+    'html[data-theme="light"] .ui-snippet pre .k', '.ui-snippet:not(.ui-snippet--reveal) pre :is(.f, .u, span)']) {
+    assert.throws(() => inksFrom([...codeRules, rule(selector, 'color: var(--bg);')]), /shape the ink gate cannot read/,
+      `${selector} colours the code and the gate let it through`);
+  }
+  assert.throws(() => inksFrom([...codeRules, rule('.ui-snippet pre .s', 'color: var(--bg) !important;')]), /!important/);
+  // The bar's label and the copy button are not code, and the reveal block is not measured.
+  assert.doesNotThrow(() => inksFrom([...codeRules, rule('.ui-snippet__bar > span', 'color: var(--bg);'),
+    rule('.ui-snippet--reveal pre .s', 'color: var(--bg);')]));
 });
