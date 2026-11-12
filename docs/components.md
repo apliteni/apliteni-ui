@@ -689,11 +689,15 @@ width. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
-explicit judgement. **Colour never supplies the sign.**
+explicit judgement. **Colour never supplies the sign.** **Every body and header cell aligns its
+content to the top**, so when one cell wraps, the other values stay level with its first line. A
+React sort mark stands on the first line of a wrapped label. A badge, a logo, a selection box or
+an icon button in a cell stays level with the text beside it.
 
 **A hover table that is neither zebra nor dense is a row table.** Its body rows have no lines
 and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
-56px with `comfortable`**, and larger or wrapped content makes it taller. Hover gives the row a
+56px with `comfortable`**, and larger or wrapped content makes it taller. The space above a
+row's first line centres that line in this height, so a one-line row looks centred. Hover gives the row a
 neutral fill, and a checked selection box gives it an accent wash. Both fills are square, and the
 first and last content sit 12px inside them. The name
 in the first column takes the strongest ink. **`.ui-table__sub` puts a second value under the

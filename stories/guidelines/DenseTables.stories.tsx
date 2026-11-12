@@ -170,6 +170,18 @@ const States = ({ blank = false }: { blank?: boolean }) => <Card>
     ]} />}
 </Card>;
 
+// A payee with a second line: the other values stay on its first line, or sit between the two.
+type Terms = { name: string; terms: string; status: string; amount: string };
+const TERMED: Terms[] = [{ name: 'Northwind Studio', terms: 'Paid monthly', status: 'Paid', amount: '1,240.00' },
+  { name: 'Bluebell Supply', terms: 'Paid weekly', status: 'Paid', amount: '860.00' }];
+const TopAlign = ({ middle = false }: { middle?: boolean }) => <Card className={middle ? 'gdt-middle' : ''}>
+  <DataTable<Terms> pager={false} caption="Payouts" rows={TERMED} columns={[
+    { key: 'name', label: 'Payee', render: (row) => <>{row.name}<span className="ui-table__sub">{row.terms}</span></> },
+    { key: 'status', label: 'Status', render: (row) => <Badge variant="success">{row.status}</Badge> },
+    { key: 'amount', label: <>Amount<span className="ui-value__unit">EUR</span></>, num: true },
+  ]} />
+</Card>;
+
 const specimens = [
   { id: 'surface', do: () => <Framed note="Pointer resting on 1161"><Surface /></Framed>, dont: () => <Framed><Surface zebra /></Framed> },
   { id: 'density', do: () => <Framed><Density /></Framed>, dont: () => <Framed><Density shrunk /></Framed> },
@@ -181,6 +193,7 @@ const specimens = [
   { id: 'overflow', do: () => <Framed note="Scrolled to December, payee pinned"><Overflow /></Framed>,
     dont: () => <Framed note="March to November left out"><Overflow dropped /></Framed> },
   { id: 'pinned-identity-sub-lines', do: () => <Framed><SubLines /></Framed>, dont: () => <Framed><SubLines boxed /></Framed> },
+  { id: 'top-align', do: () => <Framed><TopAlign /></Framed>, dont: () => <Framed><TopAlign middle /></Framed> },
   { id: 'states', do: () => <Framed note="Rows kept, table marked busy"><States /></Framed>,
     dont: () => <Framed note="Refreshing the same results"><States blank /></Framed> },
   { id: 'filter-bar', do: () => <Filtered long="Filtered payout pages" />,

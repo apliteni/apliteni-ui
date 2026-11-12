@@ -193,9 +193,9 @@ function checkFooter(css) {
       assert.equal(header.paddingTop, value.paddingTop, `${modifier}: body header top padding`);
       assert.equal(header.paddingBottom, value.paddingBottom, `${modifier}: body header bottom padding`);
       if (modifier === 'ui-table--compact') {
-        for (const side of ['Top', 'Bottom']) {
-          assert.equal(header[`padding${side}`], `${SPACE['--space-1']}px`, `compact body header ${side}`);
-        }
+        // The cell aligns to the top, so the top step centres one line in the 33px row (#806).
+        assert.equal(header.paddingTop, `${SPACE['--space-2']}px`, 'compact body header Top');
+        assert.equal(header.paddingBottom, `${SPACE['--space-1']}px`, 'compact body header Bottom');
         for (const side of ['Left', 'Right']) {
           assert.equal(header[`padding${side}`], `${SPACE['--space-3']}px`, `compact body header ${side}`);
         }

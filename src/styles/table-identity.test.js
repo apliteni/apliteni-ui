@@ -160,11 +160,6 @@ const OUTCOME = {
   display: (v, { decorative }) => (decorative
     ? (v === 'none' ? null : `the logo is back in the narrow column as ${v}`)
     : (v !== 'none' ? null : 'the pinned identity column is not drawn at all')),
-  // A block box is what carries the cut: `text-overflow` is a block container's
-  // property, and the fill's flex box holds its text in an anonymous item no ellipsis
-  // reaches. Measured in Chromium: flex cut "…Holdings Inte" with no ellipsis. #513
-  'align-content': (v) => (v === 'center' ? null
-    : `${v} drops the filled link's line to the top of a row taller than one line`),
   'justify-content': (v) => (v === 'flex-start' ? null
     : `${v} can cut the front of a capped control label`),
   'text-align': (v) => (['start', 'left'].includes(v) ? null
@@ -720,8 +715,9 @@ function fillProblems(css) {
   if (bare.display !== 'block') {
     problems.push(`the bare link is ${bare.display}, and only a block container draws the ellipsis it is promised`);
   }
-  if (bare.alignContent !== 'center') {
-    problems.push(`the bare link aligns its line ${bare.alignContent || 'at the top'}, which the flex box it replaces centred`);
+  // Every cell holds its first line at the top, and the padding above places it (#806).
+  if (!['', 'normal', 'start', 'flex-start'].includes(bare.alignContent || '')) {
+    problems.push(`the bare link aligns its line ${bare.alignContent}, where every other cell holds its first line at the top`);
   }
 
   return problems;
@@ -738,14 +734,15 @@ const FILL_MUTATIONS = [
       + ':has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; height: 1px; }\n', '')],
   // #513's filled-link defect, and the two rules that answer it, each taken away on its own.
   ['the filled bare link left a flex box, whose text no ellipsis shortens',
-    (css) => css.replace('    display: block;\n    align-content: center;\n', '')],
-  ['the block box kept and its line left at the top of the row',
-    (css) => css.replace('    align-content: center;\n', '')],
+    (css) => css.replace('a:not([class]):only-child { display: block; }', 'a:not([class]):only-child { }')],
+  ['the block box kept and its line centred in a row taller than one line',
+    (css) => css.replace('a:not([class]):only-child { display: block; }',
+      'a:not([class]):only-child { display: block; align-content: center; }')],
   ['the fill padded with a step the cell never had',
     (css) => css.replace('.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child '
-      + '{ padding: var(--space-1) var(--space-3); }',
+      + '{ padding: var(--space-2) var(--space-3) var(--space-1); }',
     '.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child '
-      + '{ padding: var(--space-2) var(--space-3); }')],
+      + '{ padding: var(--space-1) var(--space-3); }')],
 ];
 
 test('the gate rejects every way the fill reaches a linked identity wrongly', () => {
