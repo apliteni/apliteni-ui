@@ -14,16 +14,9 @@
 
 /* The page's glyph leads its row, as the panel's glyph leads its row. */
 .notifications__entry { display: flex; align-items: flex-start; gap: var(--space-3); }
+/* The time stands on the title's line, as it does in the panel, not in the middle of two lines. */
+.notifications td { vertical-align: top; }
 
-/* The list leads and takes the wider track. The detail pane stands beside it. */
-.notifications__columns {
-  display: grid; align-items: start; gap: var(--space-8);
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-}
-
-@media (max-width: 860px) {
-  .notifications__columns { grid-template-columns: minmax(0, 1fr); }
-}
 /* On a phone the panel takes the full width under the bar. The edge is the kit's documented
    hook for a panel flush with the screen. Two classes, to outrank the kit's phone edge. */
 @media (max-width: 560px) {

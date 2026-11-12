@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.166.0', date: '2026-11-12',
+    changes: [
+      ['changed', 'In a `Toast` and in a `Dropdown` row with a description, the glyph and the trailing parts now align with the first line of text, not with the middle of the block. A one-line toast does not change. Part of #798.', ['Toast', 'Dropdown']],
+      ['added', 'A Notifications guideline page tells when an event goes in the bell, when a notification becomes read, and how to show a failed load. The Notifications showcase now opens each record on its own page with a back link, and Mark all read shows a toast with Undo. The Choose confirmation or undo rule no longer asks for a confirmation when one Undo restores the whole set. Part of #798.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.165.2', date: '2026-11-12',
     changes: [
       ['changed', 'The development tooling moves to jsdom 31 and vitest 5.1. The kit\'s CSS and components are unchanged.'],

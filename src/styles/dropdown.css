@@ -378,7 +378,8 @@
   /* rank: chip */
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  padding: 3px 9px;
+  --ui-dropdown-badge-pad: 3px;
+  padding: var(--ui-dropdown-badge-pad) 9px;
   border-radius: var(--radius-pill);
   margin-left: auto;
   flex: none;
@@ -389,6 +390,17 @@
   background: var(--chip-neutral-fill); /* ring-gap: inherit — translucent wash retains the opaque containing gap. */
 }
 .ui-dropdown__badge.is-live { color: var(--chip-success-ink); background: var(--chip-success-fill); /* code-bg: inherit — decorative or text-only surface has no nested chip. */ }
+
+/* A row with a description is two lines tall. Its glyph, its trailing parts and its
+   tick centre on the label line, not on the middle of the two lines. The badge
+   subtracts its own line and its block padding (#798). */
+.ui-dropdown__item:has(> .ui-dropdown__main > .ui-dropdown__desc) {
+  --ui-dropdown-line: calc((var(--text-sm) - 0.5px) * var(--leading-normal));
+  align-items: flex-start;
+}
+.ui-dropdown__item:has(> .ui-dropdown__main > .ui-dropdown__desc) > :is(.ui-dropdown__ic, .ui-dropdown__tick, .ui-dropdown__more) { height: var(--ui-dropdown-line); align-items: center; }
+.ui-dropdown__item:has(> .ui-dropdown__main > .ui-dropdown__desc) > .ui-dropdown__aside { line-height: var(--ui-dropdown-line); }
+.ui-dropdown__item:has(> .ui-dropdown__main > .ui-dropdown__desc) > .ui-dropdown__badge { margin-top: calc((var(--ui-dropdown-line) - var(--text-xs) * var(--leading-normal)) / 2 - var(--ui-dropdown-badge-pad)); }
 
 /* Disabled + danger rows */
 .ui-dropdown__item.is-disabled { /* muted-ink: state — unavailable control */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }
