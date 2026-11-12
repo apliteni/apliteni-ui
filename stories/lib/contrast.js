@@ -269,6 +269,22 @@ export function parseColour(value) {
   return null;
 }
 
+/** Nothing a reader can see where an outline would be. jsdom 31 serialises a
+ * quiet outline as `Npx rgb(...)` — the longhands stay populated — so the quiet
+ * reading is `outlineStyle: none`, or a zero width, or a transparent colour. */
+export function outlineBare(style) {
+  if (['', 'none'].includes(style.outlineStyle)) return true;
+  if (style.outlineWidth === '0px' || style.outlineWidth === '0') return true;
+  const colour = parseColour(style.outlineColor);
+  return colour != null && colour[3] === 0;
+}
+
+/** No box-shadow layer at all. jsdom 31 serialises the unset value as
+ * `currentcolor none` and the written keyword as `none`. */
+export function shadowQuiet(style) {
+  return ['', 'none', 'currentcolor none'].includes(String(style.boxShadow ?? '').trim());
+}
+
 /**
  * A token value or a color-mix() of them, resolved to [r, g, b, a].
  *

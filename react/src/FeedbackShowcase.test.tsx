@@ -34,7 +34,11 @@ describe('feedback showcase', () => {
     render(<WithExcerpt />);
     const pill = screen.getByRole('button', { name: 'Feedback' });
     expect(pill).toHaveClass('ui-btn--primary');
-    expect(pill.parentElement).toHaveStyle({ bottom: 'calc(var(--rx-toast-stack, 0px) + var(--space-4))' });
+    // jsdom 31 resolves var() in computed styles, so the unresolved --space-4 here
+    // reads 'auto'; the inline declaration is what proves the kit's stack offset is
+    // used rather than a hardcoded pixel.
+    expect((pill.parentElement as HTMLElement).style.bottom)
+      .toBe('calc(var(--rx-toast-stack, 0px) + var(--space-4))');
     expect(pill.parentElement).toHaveStyle({ opacity: '1' });
     fireEvent.click(pill);
     // Its dialog is open, so the page's own filled action stands down.

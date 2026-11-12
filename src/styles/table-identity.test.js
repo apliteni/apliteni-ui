@@ -250,18 +250,9 @@ test('every pinned identity cell is held to the column\'s cap at both phone widt
   for (const width of PHONE_WIDTHS) assert.deepStrictEqual(capProblems(CSS, width), [], `at ${width}`);
 });
 
-/** Whether the mounted sheet wrote a white-space on this element. `getComputedStyle`
- *  reports the shorthand's initial `normal` for an unwritten value and for a written
- *  `white-space: normal`, so the cascaded property list tells the two apart. */
-function declaredWhiteSpace(box) {
-  for (let i = 0; i < box.length; i += 1) {
-    if (box.item(i) === 'white-space') return true;
-  }
-  return false;
-}
-
 /** The white-space half of the "nothing inside the column defeats it" sweep, as a pure
- *  function of the stylesheet so a mutation is held to the same check. why: #500. */
+ *  function of the stylesheet so a mutation is held to the same check. jsdom 31 resolves the
+ *  shorthand's inheritance, so a computed value that is not nowrap is the defect. why: #500. */
 function whiteSpaceProblems(css) {
   const { document, style, cells } = mountAt(390, '', css);
   const problems = [];
@@ -269,8 +260,7 @@ function whiteSpaceProblems(css) {
     for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
       const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
       const box = style(el);
-      const written = declaredWhiteSpace(box);
-      if (!(box.whiteSpace === 'nowrap' || (['', 'normal'].includes(box.whiteSpace) && !written))) {
+      if (box.whiteSpace !== 'nowrap') {
         problems.push(`${where} wraps at ${box.whiteSpace}`);
       }
     }

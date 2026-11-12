@@ -84,6 +84,11 @@ for (const theme of ['light', 'dark']) {
       const nearly = `rgb(${ring.colour.slice(0, 3).map((c: number) => Math.min(255, Math.round(c) + 4)).join(', ')})`;
       selected!.style.boxShadow = [band(gap.spread, gap.raw), band(ring.spread + 2, nearly)].join(', ');
       expect(() => measureFocusedEdge(selected, window, want)).toThrow(`under the ${BAND_FLOOR}:1 ring floor`);
+      // An inset shadow is painted inside the swatch, not as an outer band, so
+      // counting it as the gap band measures the wrong geometry. The gate rejects
+      // the term rather than reading the declaration as the kit's outer shadow.
+      selected!.style.boxShadow = `${band(gap.spread, gap.raw)} inset`;
+      expect(() => measureFocusedEdge(selected, window, want)).toThrow('inset');
       selected!.style.boxShadow = resting;
       // And an edge with no ring on it at all. The band is an outline since #578,
       // and putting it back on a box-shadow draws nothing a browser paints.

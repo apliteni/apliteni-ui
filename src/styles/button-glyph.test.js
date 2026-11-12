@@ -5,8 +5,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { markup } from '../../stories/lib/react-markup.js';
+import { substitute, tokensFor } from '../../stories/lib/contrast.js';
 
-const css = readFileSync(new URL('./button.css', import.meta.url), 'utf8');
+const css = substitute(readFileSync(new URL('./button.css', import.meta.url), 'utf8'),
+  tokensFor('dark', 'default'));
 
 const glyphs = async (size, sheet = css) => {
   const html = await markup(({ h, kit }) => h(kit.Button, { size, icon: 'copy', iconRight: 'arrowRight' }, 'Copy'));
@@ -64,7 +66,8 @@ test('a hovered link button underlines its label once, at the label offset', asy
   const found = await hovered();
   assert.ok(!/underline/.test(found.button), `the button draws a second underline: ${found.button}`);
   assert.match(found.label, /underline/);
-  // JSDOM cannot resolve var(--btn-font), so it reads 0.2em against its default 16px.
-  assert.equal(found.offset, '3.2px', 'the underline sits 0.2em under the label');
-  assert.equal(found.color, 'var(--strong)');
+  // Tokens are substituted first: jsdom 31 resolves var(), and the md size's 15.5px --text-md
+  // makes 0.2em read 3.1px rather than the 3.2px a 16px default would give.
+  assert.equal(found.offset, '3.1px', 'the underline sits 0.2em under the label');
+  assert.equal(found.color, 'rgb(255, 255, 255)');
 });
