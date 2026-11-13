@@ -26,6 +26,7 @@ import * as hoverContent from './_hover-readouts.js';
 import * as backContent from './_going-back.js';
 import * as pageContent from './_the-page.js';
 import * as accountContent from './_account-and-settings.js';
+import * as notificationsContent from './_notifications.js';
 import * as kindContent from './_dashboards-and-reports.js';
 import * as densityAccentContent from './_density-and-accents.js';
 
@@ -65,6 +66,7 @@ const ENTRIES = [
   [hoverContent, 'Guidelines/Hover readouts', 'HoverReadouts', 'Data', 'Values beside chart marks, by pointer or touch'],
   [backContent, 'Guidelines/Going back', 'GoingBack', 'Pages', 'When to show a back link and where it goes'],
   [accountContent, 'Guidelines/Account and settings', 'AccountAndSettings', 'Panels', 'The account window and the account menu'],
+  [notificationsContent, 'Guidelines/Notifications', 'Notifications', 'Controls and states', 'The bell, read state and a failed load'],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page

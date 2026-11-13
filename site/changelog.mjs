@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.166.0', date: '2026-11-12',
+    changes: [
+      ['changed', 'In a `Toast` and in a `Dropdown` row with a description, the glyph and the trailing parts now align with the first line of text, not with the middle of the block. A one-line toast does not change. Part of #798.', ['Toast', 'Dropdown']],
+      ['added', 'A Notifications guideline page tells when an event goes in the bell, when a notification becomes read, and how to show a failed load. The Notifications showcase now opens each record on its own page with a back link, and Mark all read shows a toast with Undo. Part of #798.', ['Guidelines']],
+      ['changed', 'At 720px and below, a `Dropdown` panel keeps a 16px gap from each screen border, or the phone\'s safe area where that is wider. The Notifications showcase panel no longer fills the phone width. Part of #798.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.165.3', date: '2026-11-12',
     changes: [
       ['changed', 'Table and `DataTable` cells now align their content to the top, so the values of a row stay level with the first line of a wrapped cell, and a sort mark stands on the first line of a wrapped label. A one-line row does not move. At the default density, a row with two lines grows by about 6px. The Dense tables guidelines add the Align cells to the top rule. Resolves #806.', ['Table', 'DataTable']],

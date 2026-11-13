@@ -36,7 +36,7 @@
 .ui-toast {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* every part centres on the first line: a glyph or a button never drifts to the middle of a wrapped text */
   gap: 12px;
   padding: var(--space-3);
   border-radius: var(--radius-sm);
@@ -58,28 +58,28 @@
 .ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
 .ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
 
-.ui-toast__icon { width: 22px; height: 22px; flex: none; display: grid; place-items: center; background: transparent; color: var(--toast-action-ink); }
+.ui-toast__icon { width: 22px; height: 1lh; flex: none; display: grid; place-items: center; background: transparent; color: var(--toast-action-ink); }
 .ui-toast__icon svg { width: var(--space-4); height: var(--space-4); stroke: currentColor; fill: none; stroke-width: 2.25; } /* 16px × 2.25 / 24 = 1.5 CSS px. */
 .ui-toast__body { flex: 1; min-width: 0; }
 .ui-toast__title { font-weight: var(--weight-medium); color: var(--strong); }
 .ui-toast__text { color: var(--text); }
 
 /* Tone ink keeps actions readable on the neutral surface. */
-.ui-toast__action { flex: none; align-self: center; background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
+.ui-toast__action { flex: none; margin-block: -4px; /* the fill overhangs the first line by its own padding */ background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-toast__action:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
-.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; padding: 2px; display: grid; place-items: center; position: relative; font: inherit; }
+.ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; height: 1lh; padding: 0 2px; display: grid; place-items: center; position: relative; font: inherit; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
 /* The target, not the ink. WCAG 2.5.8 measures what a pointer can land on, and
-   the drawn button is 19x19 — a 15px glyph in 2px of padding. Growing the box
-   to 24 would push the glyph 2.5px off the corner it is aligned to, so the
+   the drawn button is 19px wide and one line tall, a 15px glyph centred on the
+   first line. Growing the box to 24 would push the glyph off that line, so the
    TARGET grows instead and the glyph does not move at all.
    Centred, so the overhang is 2.5px on every side. It has 12px of flex gap to
    .ui-toast__action beside it and 12px between stacked toasts, so it reaches no
    neighbouring target; .ui-toast's overflow: hidden clips at 12px of padding,
    well outside it. Measured, not asserted:
-   stories/guidelines/accessibility-floor.test.js reads this rule out of the
+   stories/tap-zone.test.js reads this rule out of the
    sheet and reports the target it makes. #219 */
 .ui-toast__close::before {
   content: '';

@@ -18,7 +18,7 @@ describe('notifications showcase', () => {
     expect(bell()).toHaveAccessibleName('Notifications');
     expect(bell().querySelector('.ui-badge')).toBeNull();
   });
-  it('opens the panel of links, and All notifications opens the page with the detail pane', async () => {
+  it('opens the panel of links, and a row opens its record, marks it read and links back to its section', async () => {
     const user = userEvent.setup();
     render(<Notifications />);
     await user.click(bell());
@@ -26,24 +26,42 @@ describe('notifications showcase', () => {
     const rows = within(panel()).getAllByRole('menuitem').filter(row => row.tagName === 'A');
     expect(rows).toHaveLength(5);
     expect(rows[0]).toHaveAccessibleName(/Payout run PR-204 failed, unread/);
-    await user.click(within(panel()).getByRole('menuitem', { name: 'All notifications' }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { level: 2, name: 'Payout run PR-204 failed' })).toBeInTheDocument();
-    await user.click(screen.getByRole('link', { name: 'Report March totals is ready' }));
-    expect(screen.getByRole('heading', { level: 2, name: 'Report March totals is ready' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Report March totals is ready' })).toHaveAttribute('aria-current', 'true');
+    await user.click(rows[0]);
+    expect(screen.getByRole('heading', { level: 1, name: 'Payout run PR-204' })).toBeInTheDocument();
+    expect(bell()).toHaveAccessibleName('Notifications, 2 unread');
+    await user.click(screen.getByRole('link', { name: 'Back to Payouts' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Payouts' })).toBeInTheDocument();
   });
-  it('opens the page at the row picked in the panel', async () => {
+  it('opens a record from a row of the page', async () => {
     const user = userEvent.setup();
     render(<Notifications layout="top" defaultOpen />);
-    await user.click(within(panel()).getByRole('menuitem', { name: /Jon Avery commented/ }));
-    expect(screen.getByRole('heading', { level: 2, name: 'Jon Avery commented on Spring offer' })).toBeInTheDocument();
+    await user.click(within(panel()).getByRole('menuitem', { name: 'All notifications' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Notifications' })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: /^Jon Avery commented/ }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Spring offer' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to Campaigns' })).toBeInTheDocument();
   });
-  it('marks all read from the panel', async () => {
+  it('says Mark all read in a toast, and its Undo restores the unread set', async () => {
     const user = userEvent.setup();
-    render(<Notifications defaultOpen />);
+    render(<Notifications initialPage="record" />);
+    await user.click(screen.getByRole('link', { name: 'Back to Payouts' }));
+    await user.click(screen.getByRole('link', { name: 'Campaigns' }));
+    await user.click(bell());
     await user.click(within(panel()).getByRole('menuitem', { name: 'Mark all read' }));
     expect(bell()).toHaveAccessibleName('Notifications');
+    expect(screen.getByText('2 notifications marked read')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(bell()).toHaveAccessibleName('Notifications, 2 unread');
+  });
+  it('starts just after Mark all read with one toast, and its Undo restores the unread set', async () => {
+    const user = userEvent.setup();
+    render(<Notifications initialPage="notifications" markedAllRead />);
+    expect(bell()).toHaveAccessibleName('Notifications');
+    expect(screen.queryByRole('button', { name: 'Mark all read' })).toBeNull();
+    expect(screen.getAllByText('3 notifications marked read')).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(bell()).toHaveAccessibleName('Notifications, 3 unread');
+    expect(screen.getByRole('button', { name: 'Mark all read' })).toBeInTheDocument();
   });
   // jsdom has no layout, so this checks which element has focus, not the ring. The built Storybook probe checks the ring.
   it.each([['the mouse', 'click'], ['Enter', 'enter']])('keeps focus in the panel after Mark all read and Retry with %s', async (_how, how) => {
@@ -76,10 +94,9 @@ describe('notifications showcase', () => {
     };
     const firstRow = () => within(screen.getByRole('main')).getByRole('link', { name: /^Payout run PR-204 failed/ });
     const { unmount } = render(<Notifications initialPage="notifications" />);
-    // The action sits in the title row of the list's card, above the list.
-    const card = screen.getByRole('heading', { level: 2, name: 'All' }).closest('.ui-card') as HTMLElement;
-    expect(within(card).getByRole('button', { name: 'Mark all read' })).toBeInTheDocument();
-    expect(within(card).getByRole('table')).toBeInTheDocument();
+    // The action sits in the page's title row, beside the h1 and above the list.
+    const row = screen.getByRole('heading', { level: 1, name: 'Notifications' }).closest('.ui-app__title-row') as HTMLElement;
+    expect(within(row).getByRole('button', { name: 'Mark all read' })).toBeInTheDocument();
     await act('Mark all read');
     expect(bell()).toHaveAccessibleName('Notifications');
     expect(firstRow()).toHaveFocus();
@@ -88,7 +105,7 @@ describe('notifications showcase', () => {
     await act('Retry');
     expect(firstRow()).toHaveFocus();
   });
-  it('shows the error with Retry in the panel and on the page, and the empty state', async () => {
+  it('shows the error with Retry in the panel and on the page, the empty state and the loading state', async () => {
     const user = userEvent.setup();
     const { unmount } = render(<Notifications defaultOpen initialLoad="error" />);
     expect(within(panel()).getByText('Notifications did not load')).toBeInTheDocument();
@@ -98,7 +115,11 @@ describe('notifications showcase', () => {
     const page = render(<Notifications initialPage="notifications" initialLoad="error" />);
     expect(within(screen.getByRole('main')).getByRole('alert')).toHaveTextContent('Check the connection, then try again.');
     page.unmount();
-    render(<Notifications initialPage="notifications" initialLoad="empty" />);
+    const empty = render(<Notifications initialPage="notifications" initialLoad="empty" />);
     expect(within(screen.getByRole('main')).getByText('No notifications')).toBeInTheDocument();
+    empty.unmount();
+    render(<Notifications initialPage="notifications" initialLoad="loading" />);
+    expect(within(screen.getByRole('main')).getByRole('status')).toHaveAttribute('aria-busy', 'true');
+    expect(bell()).toHaveAccessibleName('Notifications');
   });
 });

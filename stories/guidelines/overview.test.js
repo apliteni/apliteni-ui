@@ -94,12 +94,14 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   assert.deepEqual(LINKS.map(link => link.summary), PAGES.map(page => page.summary));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  // 147: Dense tables gained top-align (#806).
-  assert.equal(rules, 147);
-  // One, and it is named. Dashboards and reports asks every report for an export
-  // and the Stock screener has none (#555). This list empties as each lands.
+  // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
+  assert.equal(rules, 150);
+  // Each is named. Dashboards and reports asks every report for an export and
+  // the Stock screener has none (#555). The kit has no unread row weight and no
+  // dropdown error part (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);
-  assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`), ['report-offers #555'],
+  assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`),
+    ['report-offers #555', 'read-state #798', 'failed-load #798'],
     'update the Overview when a rule becomes unmet or its gap closes');
 });
 
