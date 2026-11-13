@@ -17,7 +17,7 @@ const CSS = `<style>
   .gi-grid { display: grid; gap: var(--space-8);
     grid-template-columns: repeat(auto-fill, minmax(min(var(--panel-sm), 100%), 1fr)); }
   .gi-pages { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-2); }
-  .gi-pages a { display: flex; flex-direction: column; min-height: var(--tap-min); }
+  .gi-pages a { display: flex; flex-direction: column; min-height: var(--tap-min, 44px); }
   .gi-pages b { font: var(--weight-semibold) var(--text-md)/var(--leading-snug) var(--font-sans); }
   .gi-pages span { font: var(--weight-normal) var(--text-base)/var(--leading-snug) var(--font-sans); color: var(--text); }
 </style>`;
