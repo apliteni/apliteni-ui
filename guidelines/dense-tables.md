@@ -100,6 +100,18 @@
 
 **Don't:** Lay a badge, a control or a picture along it, or make it a flex or grid box.
 
+## Align cells to the top
+
+<!-- rule: top-align -->
+
+**Why:** When one cell wraps, values centred in the taller row no longer sit on the line they belong to.
+
+**Rule:** Align every cell, header and sort mark with the first line of its row.
+
+**Do:** Keep the status and the amount level with the payee's name when a second line follows the name.
+
+**Don't:** Centre the values between the two lines of a taller row.
+
 ## Keep updates stable
 
 <!-- rule: states -->

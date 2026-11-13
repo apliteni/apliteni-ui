@@ -21,6 +21,7 @@
   color: var(--text);
   padding: 0 var(--space-4) var(--space-3) 0;
   border-bottom: 1px solid var(--border);
+  vertical-align: top;
 }
 /* A row header is a body cell that happens to name its row, so it takes the body cell's
  * padding. `.ui-table th` pads for the head, where the label sits above the rule and
@@ -32,7 +33,7 @@
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
   border-bottom: 1px solid var(--border);
   color: var(--text);
-  vertical-align: middle;
+  vertical-align: top;
   white-space: nowrap;
 }
 /* The last row of the last section, so a final body row keeps its separator when a
@@ -188,7 +189,7 @@
 .ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child {
   box-sizing: border-box;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   width: 100%;
   height: 100%;
   padding: var(--space-4) var(--space-4) var(--space-4) 0;
@@ -200,7 +201,7 @@
 :where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--space-2); }
 :where(.ui-table--hover:not(.ui-table--zebra)) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-2); }
 .ui-table--dense td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3); }
-.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-1) var(--space-3); }
+.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--space-3) var(--space-1); }
 :where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--space-2); }
 :where(.ui-table--hover:not(.ui-table--zebra)):is(.ui-table--dense, .ui-table--compact) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-2); }
 /* Zebra insets the row's END cells only, so the fill does too: a marked identity behind a
@@ -327,8 +328,9 @@
   margin-inline: calc(-1 * var(--space-3));
 }
 .ui-table td.ui-table__num { text-align: right; }
+/* The top padding centres one 18.2px line in the 33px row (7.4px), rounded up to the step. */
 .ui-table--compact td,
-.ui-table--compact :is(tbody, tfoot) th { padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
+.ui-table--compact :is(tbody, tfoot) th { padding: var(--space-2) var(--space-3) var(--space-1); font-size: var(--text-sm); line-height: var(--leading-snug); height: 33px; }
 .ui-table--compact th { padding: var(--space-2) var(--space-3); }
 .ui-table--compact th:first-child,
 .ui-table--compact td:first-child { padding-left: var(--space-3); }
@@ -396,6 +398,16 @@
 .ui-identity__symbol { font-weight: var(--weight-semibold); }
 .ui-identity__name { white-space: normal; max-width: var(--panel-sm); }
 .ui-identity__logo { width: 24px; height: 24px; flex: 0 0 24px; position: relative; display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-xs); font-size: var(--text-xs); }
+/* In a top-aligned cell, a logo, a badge or an identity takes no more height than the cell's
+   line, so the text stays level with the text of the other cells. A badge gives back its
+   padding. The logo is 24px (--space-6), and an identity keeps its 24px tap floor and gives
+   back the room around its line. A linked identity fills its cell, so it keeps its place.
+   The line height is resolved on the cell, because a logo, a box or a button has its own. */
+@property --ui-cell-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
+.ui-table :is(td, th) { --ui-cell-line: 1lh; }
+.ui-table :is(td, th) .ui-identity:not(.ui-table__linked > :only-child) { margin-block: calc((var(--ui-cell-line) - var(--space-6)) / 2); }
+.ui-table :is(td, th) .ui-identity__logo { margin-block: calc((var(--ui-cell-line) - var(--space-6)) / 2); }
+.ui-table :is(td, th) .ui-badge { margin-block: calc(-1 * var(--badge-pad-y)); }
 .ui-identity__logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
@@ -447,10 +459,7 @@ a.ui-identity:hover { text-decoration: underline; }
      ring, and the line's ellipsis reaches it. #513 */
   .ui-table--pinned .ui-table__identity a:not([class]) { display: inline; }
   /* Except where the fill gave the lone link the cell's box: it cuts as a block box. */
-  .ui-table--pinned .ui-table__identity.ui-table__linked > a:not([class]):only-child {
-    display: block;
-    align-content: center;
-  }
+  .ui-table--pinned .ui-table__identity.ui-table__linked > a:not([class]):only-child { display: block; }
   /* The ring goes on the LINE: a link longer than the cell runs past the cut, so a ring
      around the link has no surface to draw its right side on. Inward, like every ring
      the kit puts in a clipped region. why: docs/foundations.md#the-focus-ring, #513 */
@@ -503,6 +512,7 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) {
   --cell-gap: var(--space-4);
   --cell-edge: var(--space-3);
+  --row-floor: var(--space-12);
   padding: 0;
 }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td) {
@@ -516,22 +526,20 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):not(.ui-table--pinned) .ui-table__selection { padding-right: var(--space-4); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-block: var(--space-3); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody > tr > :is(td, th) { border-bottom: 0; }
+/* Cells align to the top, so the top padding centres the FIRST line in the row's floor: a
+   one-line row reads as centred, and a wrapped row keeps its first line in the same place. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(tbody, tfoot) :is(td, th):not(.ui-table__act) {
-  height: var(--space-12);
-  padding-block: var(--space-2);
+  height: var(--row-floor);
+  padding-block: calc((var(--row-floor) - 1lh) / 2) var(--space-2);
 }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact { --cell-gap: var(--space-3); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact { --cell-gap: var(--space-3); --row-floor: calc(var(--space-8) + var(--space-1)); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact thead th { padding-block: var(--space-2); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--compact :is(tbody, tfoot) :is(td, th):not(.ui-table__act) { height: calc(var(--space-8) + var(--space-1)); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable { --cell-gap: var(--space-5); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable :is(tbody, tfoot) :is(td, th):not(.ui-table__act) {
-  height: calc(var(--space-12) + var(--space-2));
-  padding-block: var(--space-3);
-}
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable { --cell-gap: var(--space-5); --row-floor: calc(var(--space-12) + var(--space-2)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable :is(tbody, tfoot) :is(td, th):not(.ui-table__act) { padding-bottom: var(--space-3); }
 /* A filled cell link carries the padding its cell gave up. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: var(--space-2) var(--cell-gap) var(--space-2) 0; }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-block: var(--space-3); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding: calc((var(--row-floor) - 1lh) / 2) var(--cell-gap) var(--space-2) 0; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--comfortable td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-bottom: var(--space-3); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: var(--cell-edge); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--cell-edge); }
 
@@ -554,10 +562,13 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { background: color-mix(in srgb, var(--accent) 12%, var(--table-bg)); }
 
 /* Icon row actions: 32px buttons in a cell as wide as its buttons, so a row keeps its
-   height. The glyph, not the button, meets the end cell's edge. */
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act { padding-block: 0; padding-right: calc(var(--cell-edge) - var(--space-2)); }
+   height. The glyph, not the button, meets the end cell's edge. The top padding centres a
+   button on the first line of text: a labelled button gives back its padding and sits on the
+   text's baseline, and an icon button takes the line's height. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act { padding-block: calc((var(--row-floor) - 1lh) / 2) 0; padding-right: calc(var(--cell-edge) - var(--space-2)); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act:has(.ui-btn--icon) { width: 1%; }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act .ui-btn--icon { box-sizing: border-box; width: var(--space-8); height: var(--space-8); padding: 0; justify-content: center; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act .ui-btn { margin-block: calc(-1 * (var(--btn-pad-y) + var(--btn-edge-width))); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__act .ui-btn--icon { box-sizing: border-box; width: var(--space-8); height: var(--space-8); padding: 0; justify-content: center; vertical-align: top; margin-block: calc((var(--ui-cell-line) - var(--space-8)) / 2); }
 
 /* In a card the table, or its frame, reaches the card's edges, so a row's fill does too. */
 .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) {

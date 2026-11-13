@@ -94,8 +94,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   assert.deepEqual(LINKS.map(link => link.href), PAGES.map(page => page.href));
   assert.deepEqual(LINKS.map(link => link.summary), PAGES.map(page => page.summary));
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
-  // 149: Notifications added three rules (#798).
-  assert.equal(rules, 149);
+  // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
+  assert.equal(rules, 150);
   // Each is named. Dashboards and reports asks every report for an export and
   // the Stock screener has none (#555). The kit has no unread row weight and no
   // dropdown error part (#798). This list empties as each lands.

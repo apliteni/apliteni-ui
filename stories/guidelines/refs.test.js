@@ -301,8 +301,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  // 149: Notifications added three rules (#798).
-  assert.equal(count, 149, 'update the rule count when adding or removing a rule');
+  // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
+  assert.equal(count, 150, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
