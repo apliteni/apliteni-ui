@@ -4,7 +4,6 @@ import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
 import { Dropdown, type DropdownItem } from '../Dropdown';
 import { EmptyState } from '../EmptyState';
-import { KeyValueList } from '../KeyValueList';
 import { BusyRegion, Skeleton, SkeletonTable } from '../Loading';
 import { Badge } from '../primitives/Badge';
 import { Button } from '../primitives/Button';
@@ -12,29 +11,30 @@ import { Callout } from '../primitives/Callout';
 import { Toast, useToast } from '../Toast';
 import './Notifications.css';
 
-type Note = { id: string; glyph: string; title: string; sub: string; time: string; unread: boolean; text: string; facts: { label: string; value: string }[];
+type Note = { id: string; glyph: string; title: string; sub: string; time: string; unread: boolean; text: string;
   path: string; record: string; section: string };
 export type NotificationsLoad = 'loading' | 'unread' | 'read' | 'empty' | 'error';
 export type NotificationsPage = 'campaigns' | 'notifications' | 'record';
 
 /* Fabricated demo notifications. The first three are unread, so the bell counts 3.
-   A circled glyph is a state, so a failed run and a finished export take one. Each opens its record's own page. */
+   A circled glyph is a state, so a failed run and a finished export take one. Each opens its record's own page,
+   where the title names the record and the text says what happened, so no fact shows twice. */
 const NOTES: Note[] = [
   { id: 'payout', glyph: 'circleX', title: 'Payout run PR-204 failed', sub: 'The bank refused 2 transfers.', time: '4 min', unread: true,
     path: '/payouts/pr-204', record: 'Payout run PR-204', section: '/payouts',
-    text: 'The bank refused 2 of 18 transfers in payout run PR-204.', facts: [{ label: 'Run', value: 'PR-204' }, { label: 'Refused', value: '2 transfers' }, { label: 'Time', value: '4 min ago' }] },
+    text: 'The bank refused 2 of 18 transfers.' },
   { id: 'assign', glyph: 'user', title: 'Mira Kade assigned you CMP-88', sub: 'Spring offer landing page', time: '1 h', unread: true,
     path: '/campaigns/cmp-88', record: 'CMP-88 landing page', section: '/campaigns',
-    text: 'Mira Kade assigned you the campaign CMP-88, Spring offer landing page.', facts: [{ label: 'Campaign', value: 'CMP-88' }, { label: 'From', value: 'Mira Kade' }, { label: 'Time', value: '1 h ago' }] },
+    text: 'Mira Kade assigned this campaign to you.' },
   { id: 'comment', glyph: 'chat', title: 'Jon Avery commented on Spring offer', sub: 'Can we move the start date?', time: '3 h', unread: true,
     path: '/campaigns/spring-offer', record: 'Spring offer', section: '/campaigns',
-    text: 'Jon Avery asked: Can we move the start date?', facts: [{ label: 'Campaign', value: 'Spring offer' }, { label: 'From', value: 'Jon Avery' }, { label: 'Time', value: '3 h ago' }] },
+    text: 'Jon Avery asked: Can we move the start date?' },
   { id: 'report', glyph: 'download', title: 'Report March totals is ready', sub: 'CSV, 412 rows', time: 'Yesterday', unread: false,
     path: '/reports/march-totals', record: 'March totals', section: '/reports',
-    text: 'The report March totals is ready to download.', facts: [{ label: 'Format', value: 'CSV' }, { label: 'Rows', value: '412' }, { label: 'Time', value: 'Yesterday' }] },
+    text: 'The report is ready to download as a CSV file of 412 rows.' },
   { id: 'export', glyph: 'circleCheck', title: 'Export of campaign stats finished', sub: 'CSV, 96 rows', time: '2 d', unread: false,
     path: '/reports/campaign-stats', record: 'Campaign stats', section: '/reports',
-    text: 'The export of campaign stats finished.', facts: [{ label: 'Format', value: 'CSV' }, { label: 'Rows', value: '96' }, { label: 'Time', value: '2 days ago' }] },
+    text: 'The export finished as a CSV file of 96 rows.' },
 ];
 const CAMPAIGNS = [
   { name: 'Spring offer', status: 'Active', tone: 'success', visits: '1,240' },
@@ -144,7 +144,7 @@ function Screen({ layout = 'side', initialPage = 'campaigns', initialLoad = 'unr
     </span> },
     { key: 'time', label: 'Time', num: true },
   ]} />;
-  const body = record ? <><p>{record.text}</p><KeyValueList rows={record.facts} /></>
+  const body = record ? <p>{record.text}</p>
     : onNotes ? load === 'loading' ? <BusyRegion busy label="Loading notifications" placeholder={<SkeletonTable rows={5} cols={2} />} />
       : load === 'error' ? failed('page') : load === 'empty' ? nothing('page') : list
     : path === '/campaigns' ? <DataTable selectable={false} pager={false} scrollLabel="Campaigns" rows={CAMPAIGNS} columns={[
