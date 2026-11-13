@@ -27,6 +27,7 @@ const Bell = () => <div className="gl-stage gl-stage--menu">
   <Dropdown variant="menu" chevron={false} ariaLabel="Notifications, 120 unread" open onOpenChange={noop}
     triggerContent={<span className="gn-bell"><span className="ui-nav__ic" aria-hidden="true"><Raw html={icon('bell')} /></span>
       <span aria-hidden="true"><Badge>99+</Badge></span></span>}
+    header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
     items={ITEMS}
     row={(item, props) => {
       const note = NOTES.find(n => n.value === item.value)!;
@@ -51,7 +52,7 @@ const specimens = [
   { id: 'failed-load',
     do: () => <div className="gl-stage"><Card title="Notifications" level={3}>
       <Callout variant="danger" actions={<Button variant="primary" size="sm" onClick={noop}>Retry</Button>}>
-        Notifications did not load. Check the connection, then try again.</Callout></Card></div>,
+        <strong>Error:</strong> Notifications did not load. Check the connection, then try again.</Callout></Card></div>,
     dont: () => <div className="gl-stage"><Card title="Notifications" level={3}>
       <EmptyState icon="bell" title="No notifications" sub="Mentions, assignments and failed runs show here." /></Card></div> },
 ];
