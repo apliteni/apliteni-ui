@@ -13,7 +13,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { filterPanelFit, DD_MENU_FLOOR, dropdownViewportFit, dropdownRest } from './dropdown-placement.js';
 import { WIDTHS, SLACK } from '../../stories/lib/dropdown-contain.js';
 
@@ -412,11 +413,44 @@ test('the gap a panel keeps from the view\'s edge is one named number', () => {
   // One declaration on the panel, and one phone override inside the 720px query: the page
   // margin, which is the step the shell's own gutter takes at that width.
   const declared = [...SHEET.matchAll(/--ui-dropdown-edge:\s*([^;]+);/g)].map((m) => m[1].trim());
-  assert.deepEqual(declared, ['8px', 'var(--space-4)'],
+  const phone = 'max(var(--space-4), env(safe-area-inset-left), env(safe-area-inset-right))';
+  assert.deepEqual(declared, ['8px', phone],
     `dropdown.css declares --ui-dropdown-edge ${declared.length} times (${declared.join(', ') || 'never'}); `
     + 'the fit and the width bound both read it, so a second gap is two different gaps for one panel');
-  assert.ok(/@media \(max-width: 720px\) \{[^{}]*\{[^{}]*--ui-dropdown-edge:\s*var\(--space-4\);/.exec(SHEET),
+  assert.ok(/@media \(max-width: 720px\) \{[^{}]*\{[^{}]*--ui-dropdown-edge:\s*max\(var\(--space-4\), env\(safe-area-inset-left\), env\(safe-area-inset-right\)\);/.exec(SHEET),
     'the second declaration is the phone override, inside the 720px query');
+  // The wiring parses the computed value as a number. Unregistered, the max() above stays
+  // an expression, parseFloat gives NaN and the wiring falls back to 8px.
+  assert.match(SHEET, /@property --ui-dropdown-edge \{ syntax: "<length>"; inherits: true; initial-value: 8px; \}/,
+    'dropdown.css no longer registers --ui-dropdown-edge as a length');
+});
+
+/* The owner's note on #808: a phone panel that touches the screen's border. The kit keeps
+ * the gap; a showcase or a story that sets the edge to 0 or a panel 100vw wide takes it
+ * away. Limits: it reads the declarations, not layout, and only the stylesheets under
+ * react/src and stories. A <style> block or style= attribute is not read here; the
+ * story-css gates reject those. The real-browser half is DROPDOWN_EDGES. */
+function cssFiles(dir) {
+  return readdirSync(dir, { recursive: true }).filter((f) => f.endsWith('.css') && !f.includes('node_modules'))
+    .map((f) => fileURLToPath(new URL(f, dir)));
+}
+function flushPanels(css) {
+  const bare = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...bare.matchAll(/([^{}]*)\{([^{}]*)\}/g)]
+    .filter(([, sel, body]) => /--ui-dropdown-edge:\s*0(px)?\s*(;|$)/.test(body)
+      || (/dropdown__panel|__panel\b/.test(sel) && /(^|;)\s*(inline-size|width):\s*100vw/.test(body)))
+    .map(([, sel]) => sel.trim());
+}
+
+test('no showcase or story stylesheet lays a dropdown panel flush with the screen', () => {
+  const files = [...cssFiles(new URL('../../react/src/', import.meta.url)), ...cssFiles(new URL('../../stories/', import.meta.url))];
+  assert.ok(files.length >= 15, `found only ${files.length} stylesheets; the walk lost its subjects`);
+  const flush = files.flatMap((f) => flushPanels(readFileSync(f, 'utf8')).map((sel) => `${f}: ${sel}`));
+  assert.deepEqual(flush, [], 'a panel set flush with the screen touches its border on a phone (#808)');
+  // The rule above cannot pass on a check that reads nothing: the defect #808 removed fails it.
+  assert.deepEqual(flushPanels('@media (max-width: 560px) {\n  .notifications .notifications__panel { --ui-dropdown-edge: 0; width: 100vw; }\n}'),
+    ['.notifications .notifications__panel']);
+  assert.deepEqual(flushPanels('.rx-date__panel { --ui-dropdown-edge: 8px; }'), []);
 });
 
 test('the panel keeps the floor that makes a menu readable', () => {

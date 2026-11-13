@@ -216,10 +216,13 @@
    at the room the viewport left either way. #489 */
 .ui-dropdown__panel.is-scroll { --ui-dropdown-cap: var(--ui-dropdown-max); }
 
-/* On a phone, the panel keeps the page's 16px margin at the shell fold.
+/* On a phone, the panel keeps the page's 16px margin at the shell fold, or the wider
+   safe-area inset, the gap the phone account window keeps. Registered as a length so
+   the wiring reads one number, not the max() expression. #808
    why: docs/components.md#the-dropdown-panel */
+@property --ui-dropdown-edge { syntax: "<length>"; inherits: true; initial-value: 8px; }
 @media (max-width: 720px) {
-  .ui-dropdown__panel { --ui-dropdown-edge: var(--space-4); }
+  .ui-dropdown__panel { --ui-dropdown-edge: max(var(--space-4), env(safe-area-inset-left), env(safe-area-inset-right)); }
 }
 
 /* The wiring adds this where the room is below the floor: even spending the whole

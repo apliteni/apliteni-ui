@@ -10,6 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'In a `Toast` and in a `Dropdown` row with a description, the glyph and the trailing parts now align with the first line of text, not with the middle of the block. A one-line toast does not change. Part of #798.', ['Toast', 'Dropdown']],
       ['added', 'A Notifications guideline page tells when an event goes in the bell, when a notification becomes read, and how to show a failed load. The Notifications showcase now opens each record on its own page with a back link, and Mark all read shows a toast with Undo. Part of #798.', ['Guidelines']],
+      ['changed', 'At 720px and below, a `Dropdown` panel keeps a 16px gap from each screen border, or the phone\'s safe area where that is wider. The Notifications showcase panel no longer fills the phone width. Part of #798.', ['Dropdown']],
     ],
   },
   {

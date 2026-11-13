@@ -328,6 +328,7 @@ page before anything is clicked. A panel adds nothing to the page's scrollable w
 `--ui-dropdown-edge` is the gap a panel keeps from the edge of the view. Set it to 0 for a panel
 flush with the edge, or wider for more room. A view that cannot afford the gap on both sides halves
 it. At 720px and below the gap is the page margin, 16px, so a panel lines up with the page's text.
+Where a phone's safe area is wider than 16px, the gap is the safe area.
 
 **A panel has a floor and a ceiling.** The floor is the kit's 240px, which is what makes a list of
 rows readable. The ceiling is the view less that gap at each side. The floor wins where the two
