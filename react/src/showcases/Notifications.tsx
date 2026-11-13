@@ -60,17 +60,18 @@ export const bellName = (count: number) => count > 0 ? `Notifications, ${count} 
    why: docs/components.md, "A dropdown row you write yourself" */
 const asItem = { role: 'menuitem', 'data-dd-item': '', tabIndex: -1 } as const;
 
-type Props = { layout?: 'side' | 'top'; initialPage?: NotificationsPage; initialLoad?: NotificationsLoad; defaultOpen?: boolean };
+/* markedAllRead starts the screen just after Mark all read: each row read and the toast with Undo showing. */
+type Props = { layout?: 'side' | 'top'; initialPage?: NotificationsPage; initialLoad?: NotificationsLoad; defaultOpen?: boolean; markedAllRead?: boolean };
 
 /* Mark all read says so in a toast with Undo, so the screen sits inside the toast provider. */
 export function Notifications(props: Props) {
   return <Toast><Screen {...props} /></Toast>;
 }
 
-function Screen({ layout = 'side', initialPage = 'campaigns', initialLoad = 'unread', defaultOpen = false }: Props) {
+function Screen({ layout = 'side', initialPage = 'campaigns', initialLoad = 'unread', defaultOpen = false, markedAllRead = false }: Props) {
   const toast = useToast();
   const [path, setPath] = useState(START[initialPage]);
-  const [load, setLoad] = useState<NotificationsLoad>(initialLoad);
+  const [load, setLoad] = useState<NotificationsLoad>(markedAllRead ? 'read' : initialLoad);
   const [open, setOpen] = useState(defaultOpen);
   /* Opening a notification marks it read. Mark all read and its Undo leave this set alone. */
   const [seen, setSeen] = useState<string[]>(initialPage === 'record' ? [NOTES[0].id] : []);
@@ -84,10 +85,9 @@ function Screen({ layout = 'side', initialPage = 'campaigns', initialLoad = 'unr
   const shell = useRef<HTMLDivElement>(null);
   const refocus = useRef<'panel' | 'page' | null>(null);
   const setLoadFrom = (where: 'panel' | 'page', next: NotificationsLoad) => () => { refocus.current = where; setLoad(next); };
-  const markAllRead = (where: 'panel' | 'page') => () => {
-    setLoadFrom(where, 'read')();
-    toast({ title: `${count} notifications marked read`, action: { label: 'Undo', onClick: () => setLoad('unread') } });
-  };
+  const announce = (marked: number) => toast({ title: `${marked} notifications marked read`, action: { label: 'Undo', onClick: () => setLoad('unread') } });
+  const markAllRead = (where: 'panel' | 'page') => () => { setLoadFrom(where, 'read')(); announce(count); };
+  useEffect(() => { if (markedAllRead) announce(NOTES.filter(note => note.unread).length); }, []);
   useEffect(() => {
     const where = refocus.current;
     refocus.current = null;

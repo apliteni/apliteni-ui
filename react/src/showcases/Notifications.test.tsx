@@ -53,6 +53,16 @@ describe('notifications showcase', () => {
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(bell()).toHaveAccessibleName('Notifications, 2 unread');
   });
+  it('starts just after Mark all read with one toast, and its Undo restores the unread set', async () => {
+    const user = userEvent.setup();
+    render(<Notifications initialPage="notifications" markedAllRead />);
+    expect(bell()).toHaveAccessibleName('Notifications');
+    expect(screen.queryByRole('button', { name: 'Mark all read' })).toBeNull();
+    expect(screen.getAllByText('3 notifications marked read')).toHaveLength(1);
+    await user.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(bell()).toHaveAccessibleName('Notifications, 3 unread');
+    expect(screen.getByRole('button', { name: 'Mark all read' })).toBeInTheDocument();
+  });
   // jsdom has no layout, so this checks which element has focus, not the ring. The built Storybook probe checks the ring.
   it.each([['the mouse', 'click'], ['Enter', 'enter']])('keeps focus in the panel after Mark all read and Retry with %s', async (_how, how) => {
     const user = userEvent.setup();

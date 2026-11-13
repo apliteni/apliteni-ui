@@ -11,6 +11,7 @@ export const SideNavZero: Story = { args: { initialLoad: 'read' } };
 export const SideNavPanelEmpty: Story = { args: { defaultOpen: true, initialLoad: 'empty' } };
 export const SideNavPanelError: Story = { args: { defaultOpen: true, initialLoad: 'error' } };
 export const SideNavPage: Story = { args: { initialPage: 'notifications' } };
+export const SideNavPageAllRead: Story = { args: { initialPage: 'notifications', markedAllRead: true } };
 export const SideNavPageEmpty: Story = { args: { initialPage: 'notifications', initialLoad: 'empty' } };
 export const SideNavPageLoading: Story = { args: { initialPage: 'notifications', initialLoad: 'loading' } };
 export const SideNavPageError: Story = { args: { initialPage: 'notifications', initialLoad: 'error' } };
