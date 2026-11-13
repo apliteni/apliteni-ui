@@ -14,5 +14,3 @@
 
 /* The page's glyph leads its row, as the panel's glyph leads its row. */
 .notifications__entry { display: flex; align-items: flex-start; gap: var(--space-3); }
-/* The time stands on the title's line, as it does in the panel, not in the middle of two lines. */
-.notifications td { vertical-align: top; }
