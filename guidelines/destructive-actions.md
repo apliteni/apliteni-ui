@@ -36,7 +36,7 @@
 
 **Why:** Confirmation adds a click to undoable actions, while undo is an empty promise for actions that cannot be restored.
 
-**Except:** Confirm actions affecting many items unless one Undo restores the whole set: one row is undoable with one click, but a whole selection rarely is.
+**Except:** Confirm actions affecting many items: one row is undoable with one click, but a whole selection is not.
 
 **Do:** Ask first when nothing can be restored.
 
