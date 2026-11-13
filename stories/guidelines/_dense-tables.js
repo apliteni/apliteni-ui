@@ -32,6 +32,8 @@ export const SPEC_CSS = `<style>
   .gdt-zebra tbody tr:nth-child(even) > td { background: var(--surface-2); }
   /* The don't half shrinks the type one rank, to the kit's unit size. */
   .gdt-shrunk .ui-table :is(th, td) { font-size: var(--text-xs); }
+  /* The kit aligns every cell to the top. The don't half centres them again. */
+  .gdt-middle .ui-table :is(th, td) { vertical-align: middle; }
   /* The don't half fades the units that the rule keeps in body ink. */
   .gdt-muted .ui-value__unit { /* muted-ink: chrome — the don't half draws the faded unit this rule refuses */ color: var(--muted); }
 </style>`;

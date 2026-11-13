@@ -566,7 +566,13 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, "");
  *  that had given its sides up against a link that had not. Read as left/right, which is
  *  what start/end come to in the kit's own direction. */
 const sidesOf = (property, value) => {
-  const parts = value.trim().split(/\s+/);
+  // Split on the spaces outside brackets, so a `calc()` side stays one side.
+  const parts = [""];
+  let depth = 0;
+  for (const char of value.trim()) {
+    depth += char === "(" ? 1 : char === ")" ? -1 : 0;
+    if (/\s/.test(char) && depth === 0) { if (parts.at(-1)) parts.push(""); } else parts[parts.length - 1] += char;
+  }
   if (property === "padding") {
     const [top, right = top, bottom = top, left = right] = parts;
     return { "padding-top": top, "padding-right": right, "padding-bottom": bottom, "padding-left": left };

@@ -301,8 +301,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
     });
     assert.equal(fragment.querySelector('.gc-refs'), null);
   }
-  // 146: Component choice gained panel-origin (#790).
-  assert.equal(count, 146, 'update the rule count when adding or removing a rule');
+  // 147: Dense tables gained top-align (#806).
+  assert.equal(count, 147, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

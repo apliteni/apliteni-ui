@@ -177,6 +177,16 @@ function footerTable(css, modifier = '') {
   </table>`);
 }
 
+// Cells align to the top, so two cells of a row must centre their first lines together.
+// A row table's header is a size smaller than its values, so its top padding differs (#806).
+function assertLevel(header, value, message) {
+  const firstLine = (cell) => parseFloat(cell.paddingTop) + parseFloat(cell.lineHeight) / 2;
+  const level = header.lineHeight === value.lineHeight
+    ? header.paddingTop === value.paddingTop
+    : Math.abs(firstLine(header) - firstLine(value)) < 0.01;
+  assert.ok(level, `${message} ${header.paddingTop} puts its first line off the value's ${value.paddingTop}`);
+}
+
 function checkFooter(css) {
   let measured = 0;
   for (const modifier of tableModifiers(css)) {
@@ -190,12 +200,12 @@ function checkFooter(css) {
       // body sits the name low against the values beside it.
       const header = getComputedStyle(bodyHeader);
       const value = getComputedStyle(document.querySelector('tbody td'));
-      assert.equal(header.paddingTop, value.paddingTop, `${modifier}: body header top padding`);
+      assertLevel(header, value, `${modifier}: body header top padding`);
       assert.equal(header.paddingBottom, value.paddingBottom, `${modifier}: body header bottom padding`);
       if (modifier === 'ui-table--compact') {
-        for (const side of ['Top', 'Bottom']) {
-          assert.equal(header[`padding${side}`], `${SPACE['--space-1']}px`, `compact body header ${side}`);
-        }
+        // The cell aligns to the top, so the top step centres one line in the 33px row (#806).
+        assert.equal(header.paddingTop, `${SPACE['--space-2']}px`, 'compact body header Top');
+        assert.equal(header.paddingBottom, `${SPACE['--space-1']}px`, 'compact body header Bottom');
         for (const side of ['Left', 'Right']) {
           assert.equal(header[`padding${side}`], `${SPACE['--space-3']}px`, `compact body header ${side}`);
         }
@@ -205,7 +215,7 @@ function checkFooter(css) {
       for (const row of rows) {
         const [label, value] = [...row.cells].map((cell) => getComputedStyle(cell));
         assert.equal(label.borderBottomWidth, value.borderBottomWidth, `${modifier}: complete footer rule`);
-        assert.equal(label.paddingTop, value.paddingTop, `${modifier}: label top padding`);
+        assertLevel(label, value, `${modifier}: label top padding`);
         assert.equal(label.paddingBottom, value.paddingBottom, `${modifier}: label bottom padding`);
         assert.equal(getComputedStyle(row.cells[0]).textAlign, 'right', `${modifier}: footer label sits against its figure`);
         measured++;
@@ -286,6 +296,42 @@ test('numeric headers hold one line across table modifiers', () => {
 
 test('the numeric-header check rejects a sheet that lets them wrap', () => {
   assert.throws(() => checkNumericHeaderWrap(`${CSS}\n.ui-table th.ui-table__num { white-space: normal; }`));
+});
+
+// Every cell holds its first line at the top, so a short cell and a wrapped cell start on
+// one line (#806). Limits: jsdom resolves the cascade, not layout, so this proves the
+// declaration reaches every head, body and footer cell. The line positions are measured in
+// Chromium by src/styles/table-top-align.test.js.
+function checkTopAlign(css) {
+  let measured = 0;
+  for (const modifier of tableModifiers(css)) {
+    const dom = footerTable(css, modifier);
+    try {
+      const { document, getComputedStyle } = dom.window;
+      for (const cell of document.querySelectorAll('th, td')) {
+        const where = `${cell.parentElement.parentElement.localName} ${cell.localName}`;
+        assert.equal(getComputedStyle(cell).verticalAlign, 'top', `${modifier || 'ui-table'}: ${where} leaves the top`);
+        measured++;
+      }
+    } finally { dom.window.close(); }
+  }
+  assert.ok(measured >= 56, `every modifier's head, body and footer cells must be measured, got ${measured}`);
+}
+
+test('every table cell aligns its first line to the top across table modifiers', () => {
+  checkTopAlign(CSS);
+});
+
+test('the top-align check rejects a body cell put back in the middle', () => {
+  const broken = CSS.replace('  color: var(--text);\n  vertical-align: top;\n  white-space: nowrap;', '  color: var(--text);\n  white-space: nowrap;');
+  assert.notEqual(broken, CSS, 'mutation must remove the body cell declaration');
+  assert.throws(() => checkTopAlign(broken), /: tbody td leaves the top/);
+});
+
+test('the top-align check rejects a header cell put back in the middle', () => {
+  const broken = CSS.replace('  border-bottom: 1px solid var(--border);\n  vertical-align: top;\n}', '  border-bottom: 1px solid var(--border);\n  vertical-align: middle;\n}');
+  assert.notEqual(broken, CSS, 'mutation must restore the old header declaration');
+  assert.throws(() => checkTopAlign(broken), /: thead th leaves the top/);
 });
 
 // A right-aligned last column ends where its header ends. The base table dropped the cell gap

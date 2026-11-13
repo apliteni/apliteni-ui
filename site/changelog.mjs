@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.165.3', date: '2026-11-12',
+    changes: [
+      ['changed', 'Table and `DataTable` cells now align their content to the top, so the values of a row stay level with the first line of a wrapped cell, and a sort mark stands on the first line of a wrapped label. A one-line row does not move. At the default density, a row with two lines grows by about 6px. The Dense tables guidelines add the Align cells to the top rule. Resolves #806.', ['Table', 'DataTable']],
+    ],
+  },
+  {
     v: '0.165.2', date: '2026-11-12',
     changes: [
       ['changed', 'The development tooling moves to jsdom 31 and vitest 5.1. The kit\'s CSS and components are unchanged.'],

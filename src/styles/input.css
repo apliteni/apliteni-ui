@@ -148,9 +148,9 @@
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
 }
-/* In a cell there is no label line to sit beside, so the box centres on the row's
-   text instead of dropping 1px to meet a label's first line. */
-.ui-table__selection input[type="checkbox"] { margin-top: 0; vertical-align: middle; }
+/* In a cell there is no label line to sit beside, so the box centres on the cell's first
+   line instead of dropping 1px to meet a label's first line. */
+.ui-table__selection input[type="checkbox"] { margin-block: calc((var(--ui-cell-line) - 19px) / 2); vertical-align: top; }
 /* The target, not the ink. The box above is drawn at 19x19 because that is what
    sits beside a 15px label without shouting; WCAG 2.5.8 wants 24 CSS px of
    pointer target, which is a different question. This overlay answers it and
