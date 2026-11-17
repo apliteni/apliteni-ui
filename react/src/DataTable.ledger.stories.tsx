@@ -71,6 +71,8 @@ const transferColumns: Column<Transfer>[] = [
 ];
 
 export const StatusWords = {
+  // A centred canvas sizes the story to its widest row. Padded gives the bar and table the view's width.
+  parameters: { layout: 'padded' },
   render: function Render() {
     const [sel, setSel] = useState(new Set(['Orchard Lane Café', 'Harbor Freight Lines']));
     const { bar, shown } = useTableFilters(TRANSFERS, {
