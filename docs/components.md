@@ -1444,10 +1444,13 @@ dropdown's `id` sits on a wrapper that a label cannot name. The label and then t
 the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
 label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
 placeholder is not a name. **In a field, a dropdown trigger has the shape of a text input.** It
-takes the input's corner, padding and type size, so the two have the same height. On a touch
-screen its text is 16px, as the input's is. A date picker in a field does the same. Outside a
-field, for example in a filter bar, a toolbar or the topbar, the trigger keeps the pill. At a
-large text size a long value wraps to a second line, so that trigger is taller than the input.
+takes the input's corner, its top and bottom padding and its type size, so the two have the same
+height. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
+fixed 16px, as the input's is, also when the host changes `--text-base`. A long value stays on
+one line, starts at the left and ends with an ellipsis, as in a select, so the trigger keeps the
+input's height at every value length. A person mark stands as far from the left edge as from the
+top and bottom edges. A date picker in a field does the same. Outside a field, for example in a
+filter bar, a toolbar or the topbar, the trigger keeps the pill.
 Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
 [Colour and contrast](foundations.md#colour-and-contrast).

@@ -8,6 +8,8 @@
  * UI_PLAYWRIGHT, optionally UI_CHROME) draws the React Field with a TextField, a
  * Dropdown and a DatePicker, and a Dropdown with no field, in Chromium. It measures at
  * 1440 and at 390 with touch emulation, which matches (pointer: coarse), in both themes.
+ * A third cell sets a host's `--text-base: 18px` on the touch phone: the trigger stays at
+ * the input's 16px. One field holds a long value, which must keep one line.
  * It draws in the browser's fallback font, not IBM Plex Sans, so it proves equal heights,
  * not the 45px the served Storybook measures.
  */
@@ -24,11 +26,17 @@ const { env } = process;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (p) => readFileSync(path.join(root, p), 'utf8');
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
+const mediaBody = (css, media) => new RegExp(`@media ${media.replace(/[()]/g, '\\$&')} \\{([\\s\\S]*?)\\n\\}`).exec(decomment(css))?.[1];
 
 const TRIGGER = '.ui-field > .ui-dropdown > .ui-dropdown__trigger';
 // The rule this gate holds, deleted. Both halves must reject it.
 const MUTATION = ['the field trigger rule removed', 'src/styles/dropdown.css',
   /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{\n[^}]*\}\n/, ''];
+// The touch size written as an offset of the host's scale, as it was before #812's review.
+const SCALED = ['the touch size scaled with --text-base', 'src/styles/dropdown.css',
+  /(\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{ font-size: )16px;/, '$1calc(var(--text-base) + 1.5px);'];
+// A long value let wrap again.
+const WRAP = ['a long value let wrap', 'src/styles/dropdown.css', /(overflow: hidden;)\n  white-space: nowrap;(\n  text-overflow: ellipsis;\n  text-align: start;)/, '$1$2'];
 
 const mutate = (p, css, mutation) => {
   if (!mutation || mutation[1] !== p) return css;
@@ -78,6 +86,8 @@ function sourceFaults(mutation) {
   if (field['font-size'] !== input['font-size']) out.push(`font size ${field['font-size']}, the input's is ${input['font-size']}`);
   const net = /font-size:\s*(\d+px)/.exec(read('src/styles/field-zoom.css'))[1];
   if (touch?.['font-size'] !== net) out.push(`touch font size ${touch?.['font-size']}, the input's is ${net}`);
+  // Written flat, as the net is, so a host's scale cannot move it off the input.
+  if (!new RegExp(`\\{\\s*font-size:\\s*${net};`).test(mediaBody(dropdown, '(pointer: coarse)') ?? '')) out.push(`touch font size is not the net's flat ${net}`);
   if (pill['border-radius'] !== resolve('var(--radius-pill)')) out.push(`the trigger outside a field lost the pill: ${pill['border-radius']}`);
   return out;
 }
@@ -86,22 +96,27 @@ test('source: the field trigger takes the input corner, block padding and size',
   assert.deepEqual(sourceFaults(), []);
 });
 
-test(`source: the gate rejects ${MUTATION[0]}`, () => {
-  assert.ok(sourceFaults(MUTATION).length > 0);
-});
+for (const mutation of [MUTATION, SCALED]) {
+  test(`source: the gate rejects ${mutation[0]}`, () => {
+    assert.ok(sourceFaults(mutation).length > 0);
+  });
+}
 
 // The whole kit sheet, in the order index.css imports it, and the picker's own sheet.
 const SHEETS = [...read('src/index.css').matchAll(/@import "\.\/([^"]+)"/g)].map((m) => `src/${m[1]}`)
   .concat('react/src/DatePicker.css');
 const sheet = (mutation) => SHEETS.map((p) => mutate(p, read(p), mutation)).join('\n');
-const ITEMS = [{ label: 'Avery Example', value: 'a' }, { label: 'Jordan Okafor', value: 'j' }];
+const ITEMS = [{ label: 'Avery Example', value: 'a' }, { label: 'Jordan Okafor', value: 'j' },
+  { label: 'Northwind Studio, the design and print office on the third floor', value: 'n' }];
 const form = () => markup(({ h, kit }) => h('div', { style: { width: '360px' } },
   h(kit.TextField, { label: 'Title', defaultValue: 'Pay the studio invoice' }),
   h(kit.Field, { label: 'Owner' }, (control) => h(kit.Dropdown, { ...control, variant: 'select', items: ITEMS, value: 'a' })),
   h(kit.Field, { label: 'Due' }, ({ id }) => h(kit.DatePicker, { id, mode: 'day', value: '2026-11-20' })),
+  h(kit.Field, { label: 'Office' }, (control) => h(kit.Dropdown, { ...control, variant: 'select', items: ITEMS, value: ITEMS[2].label, selectedValue: 'n' })),
   h(kit.Dropdown, { ariaLabel: 'Status', variant: 'select', items: ITEMS, value: 'a' })));
 
-const WIDTHS = [{ name: 'desktop', width: 1440, touch: false }, { name: 'touch phone', width: 390, touch: true }];
+const WIDTHS = [{ name: 'desktop', width: 1440, touch: false }, { name: 'touch phone', width: 390, touch: true },
+  { name: 'touch phone, host --text-base 18px', width: 390, touch: true, host: ':root { --text-base: 18px; }' }];
 
 async function measure(css) {
   const pw = await import(env.UI_PLAYWRIGHT || 'playwright');
@@ -110,14 +125,15 @@ async function measure(css) {
   const html = await form();
   try {
     const out = [];
-    for (const { name, width, touch } of WIDTHS) {
+    for (const { name, width, touch, host = '' } of WIDTHS) {
       for (const theme of ['light', 'dark']) {
         const context = await browser.newContext({ viewport: { width, height: 800 }, hasTouch: touch, isMobile: touch });
         const page = await context.newPage();
-        await page.setContent(`<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
+        await page.setContent(`<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}\n${host}</style></head>`
           + `<body>${html}</body></html>`, { waitUntil: 'load' });
         const box = await page.evaluate(() => {
-          const one = (el) => ({ height: el.getBoundingClientRect().height, radius: getComputedStyle(el).borderTopLeftRadius });
+          const one = (el) => ({ height: el.getBoundingClientRect().height, radius: getComputedStyle(el).borderTopLeftRadius,
+            font: getComputedStyle(el).fontSize });
           return {
             coarse: matchMedia('(pointer: coarse)').matches,
             input: one(document.querySelector('.ui-field .ui-input')),
@@ -141,10 +157,11 @@ function faults(cells) {
   if (cells.length !== WIDTHS.length * 2) out.push(`${cells.length} of ${WIDTHS.length * 2} cells measured`);
   for (const c of cells) {
     if (c.coarse !== c.touch) out.push(`${c.cell}: (pointer: coarse) is ${c.coarse}, so the cell proves nothing`);
-    if (c.field.length !== 2) out.push(`${c.cell}: ${c.field.length} of 2 field triggers found`);
+    if (c.field.length !== 3) out.push(`${c.cell}: ${c.field.length} of 3 field triggers found`);
     c.field.forEach((t, i) => {
       if (Math.abs(t.height - c.input.height) > 0.5) out.push(`${c.cell}: field trigger ${i + 1} is ${t.height}px, the input ${c.input.height}px`);
       if (t.radius !== c.input.radius) out.push(`${c.cell}: field trigger ${i + 1} radius ${t.radius}, the input's ${c.input.radius}`);
+      if (t.font !== c.input.font) out.push(`${c.cell}: field trigger ${i + 1} text ${t.font}, the input's ${c.input.font}`);
     });
     if (c.pill.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: the trigger outside a field has radius ${c.pill.radius}`);
   }
@@ -157,9 +174,11 @@ test('measured in Chromium: a field trigger is as high as the input, both widths
   const cells = await measure(sheet());
   for (const c of cells) t.diagnostic(`${c.cell}: input ${c.input.height}px, triggers ${c.field.map((f) => f.height).join(' and ')}px, pill radius ${c.pill.radius}`);
   assert.deepEqual(faults(cells), []);
-  await t.test(`the gate rejects ${MUTATION[0]}`, async () => {
-    const found = faults(await measure(sheet(MUTATION)));
-    assert.ok(found.length > 0, `the gate passed a sheet with ${MUTATION[0]}`);
-    t.diagnostic(found[0]);
-  });
+  for (const mutation of [MUTATION, SCALED, WRAP]) {
+    await t.test(`the gate rejects ${mutation[0]}`, async () => {
+      const found = faults(await measure(sheet(mutation)));
+      assert.ok(found.length > 0, `the gate passed a sheet with ${mutation[0]}`);
+      t.diagnostic(found[0]);
+    });
+  }
 });

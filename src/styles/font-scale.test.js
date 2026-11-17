@@ -7,6 +7,9 @@ import { readFileSync, readdirSync } from 'node:fs';
 const root = new URL('./', import.meta.url);
 const sheets = readdirSync(root, { recursive: true }).filter(file => file.endsWith('.css'));
 const display = new Set(['.ui-hero__title', '.ui-hero__sub', '.ui-section-head h2']);
+// A field trigger matches the zoom net's flat 16px on a touch screen, so a host scale
+// does not move it off the input beside it. #812
+const FIELD_TRIGGER = '.ui-field > .ui-dropdown > .ui-dropdown__trigger';
 
 function inspect(css, file) {
   const declarations = [];
@@ -14,7 +17,8 @@ function inspect(css, file) {
   for (const [, selector, body] of clean.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     for (const [, property, value] of body.matchAll(/(?:^|;)\s*(font-size|font|--[\w-]+-font)\s*:\s*([^;]+)/g)) {
       const exempt = file === 'field-zoom.css' || (file === 'layout.css'
-        && display.has(selector.trim()) && property === 'font-size' && /^clamp\(/.test(value));
+        && display.has(selector.trim()) && property === 'font-size' && /^clamp\(/.test(value))
+        || (file === 'dropdown.css' && selector.trim() === FIELD_TRIGGER && property === 'font-size' && value.trim() === '16px');
       // Remove only scale-derived offsets, never arbitrary calc() pixel sizes.
       let remaining = value.replace(/calc\(\s*var\(--text-[\w-]+\)\s*[+-]\s*[\d.]+px\s*\)/g, 'token');
       if (property === 'font') remaining = remaining.replace(/\/\s*[\d.]+px\b/g, '/leading');
@@ -44,5 +48,8 @@ test('only the documented exceptions and token offsets admit pixel values', () =
   assert.equal(inspect('.ui-hero__title { font-size: clamp(38px, 6vw, 66px); }', 'layout.css')[0].invalid, false);
   assert.equal(inspect('.other { font-size: clamp(12px, 2vw, 16px); }', 'layout.css')[0].invalid, true);
   assert.equal(inspect('input { font-size: 16px !important; }', 'field-zoom.css')[0].invalid, false);
+  assert.equal(inspect(`${FIELD_TRIGGER} { font-size: 16px; }`, 'dropdown.css')[0].invalid, false);
+  assert.equal(inspect(`${FIELD_TRIGGER} { font-size: 17px; }`, 'dropdown.css')[0].invalid, true);
+  assert.equal(inspect('.ui-dropdown__trigger { font-size: 16px; }', 'dropdown.css')[0].invalid, true);
   assert.equal(inspect('.example { font: 600 calc(var(--text-base) - 0.5px)/20px var(--font-sans); --btn-font: calc(var(--text-sm) - 0.5px); }', 'new.css').filter(d => d.invalid).length, 0);
 });

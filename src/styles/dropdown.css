@@ -546,17 +546,36 @@
 .ui-field > .ui-dropdown { display: grid; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
-/* In a form the trigger takes the text input's corner, padding and type, so the two
-   stand at one height. Elsewhere it keeps the pill. #812
+/* In a form the trigger takes the text input's corner, block padding and type, so the
+   two stand at one height. Elsewhere it keeps the pill. #812
    why: docs/components.md#forms */
+@property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
   border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base);
+  min-inline-size: 0;
+  /* The value line, as a length the mark below can read. */
+  --ui-dropdown-line: 1lh;
 }
-/* The input beside it is 16px on a touch screen, so the trigger follows it. Not the
-   zoom net's job: the trigger takes no typing. The offset lands on the net's 16px.
+/* A long value keeps one line from the left and ends in an ellipsis, as the select
+   does, so the trigger keeps the input's height at every length. */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__value,
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__text {
+  min-inline-size: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: start;
+}
+/* The mark stands as far from the left edge as from the top and bottom edges. */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-avatar {
+  --ui-avatar-pull-start: calc(var(--space-4) - var(--space-3) - (var(--ui-dropdown-line) - var(--ui-avatar-size)) / 2);
+}
+/* The input beside it is 16px on a touch screen, so the trigger follows it. A flat
+   16px like the zoom net, so a host's --text-base does not move it off the input.
+   Not the net's job: the trigger takes no typing.
    why: docs/foundations.md#a-field-is-16px-on-a-touch-screen */
 @media (pointer: coarse) {
-  .ui-field > .ui-dropdown > .ui-dropdown__trigger { font-size: calc(var(--text-base) + 1.5px); }
+  .ui-field > .ui-dropdown > .ui-dropdown__trigger { font-size: 16px; }
 }
