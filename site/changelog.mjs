@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.169.0', date: '2026-11-17',
+    v: '0.170.0', date: '2026-11-17',
     changes: [
       ['changed', 'A badge in a table cell is now 19px high, not 24px. A dense row stays 38px, and a badge outside a table does not change. Part of #814.', ['Badge', 'Table']],
       ['added', '`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a status word the ink of its tone with no fill. Use them for a second status beside the badge of a row. Part of #814.', ['Badge', 'Table']],
