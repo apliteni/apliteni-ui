@@ -256,8 +256,9 @@ test('the open search panel does not transition visibility, so the field can tak
 // opening the panel focuses this one. What it is sized to on a touch screen is
 // the kit's one net, src/styles/field-zoom.css, held by stories/field-zoom.test.js
 // over every field the kit renders. This sheet states the mouse size and carries
-// no (pointer: coarse) rule of its own, which is the second answer that could
-// disagree with the net. #294
+// no (pointer: coarse) rule that reaches the field, which is the second answer that
+// could disagree with the net. #294 A touch rule for the trigger in a form field is
+// not one: the trigger takes no typing, and it is 16px to match the input. #812
 test('the field is 12.5px with a mouse, and this sheet does not size it on touch', async () => {
   const rules = sheet();
   const base = rules.find((r) => r.selectorText === '.ui-dropdown__search-input');
@@ -265,7 +266,8 @@ test('the field is 12.5px with a mouse, and this sheet does not size it on touch
   assert.equal(resolved[0].px, 12.5, 'a mouse keeps the size the rows use');
   const coarse = rules
     .filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
-    .flatMap((r) => [...r.cssRules].map((inner) => inner.cssText));
+    .flatMap((r) => [...r.cssRules].map((inner) => inner.cssText))
+    .filter((text) => /\.ui-dropdown__search/.test(text));
   assert.deepEqual(coarse, [], 'a local touch rule beside the net is a second answer to one question');
   // The net is written over element selectors, so what puts this field inside it
   // is that the field is an <input>.

@@ -554,7 +554,9 @@
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base);
 }
-/* The input beside it is 16px on a touch screen, so the trigger follows it. */
+/* The input beside it is 16px on a touch screen, so the trigger follows it. Not the
+   zoom net's job: the trigger takes no typing. The offset lands on the net's 16px.
+   why: docs/foundations.md#a-field-is-16px-on-a-touch-screen */
 @media (pointer: coarse) {
-  .ui-field > .ui-dropdown > .ui-dropdown__trigger { font-size: 16px; }
+  .ui-field > .ui-dropdown > .ui-dropdown__trigger { font-size: calc(var(--text-base) + 1.5px); }
 }

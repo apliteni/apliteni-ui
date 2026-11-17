@@ -38,10 +38,11 @@ const mutate = (p, css, mutation) => {
 
 const tokens = Object.fromEntries([...read('src/tokens/tokens.css').matchAll(/(--[\w-]+):\s*([^;]+);/g)]
   .reverse().map((m) => [m[1], m[2].trim()]));
+// Tokens, then one `calc(<px> ± <px>)`, the only arithmetic the kit's offsets use.
 const resolve = (value) => value.replace(/var\((--[\w-]+)\)/g, (_, name) => {
   assert.ok(name in tokens, `${name} is not in tokens.css`);
   return resolve(tokens[name]);
-});
+}).replace(/^calc\(([\d.]+)px ([+-]) ([\d.]+)px\)$/, (_, a, op, b) => `${op === '+' ? +a + +b : a - b}px`);
 
 /** The declarations of the first rule whose selector list is exactly `selector`, outside any @media. */
 function declarations(css, selector, media = null) {
