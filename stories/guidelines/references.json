@@ -452,7 +452,7 @@
     "pattern": "position: absolute;"
    },
    {
-    "ref": "src/styles/tooltip.css:60",
+    "ref": "src/styles/tooltip.css:63",
     "pattern": ".ui-tip.is-open { opacity: 1; visibility: visible; }"
    }
   ],
@@ -530,7 +530,7 @@
     "pattern": "stroke-width: 2.1;"
    },
    {
-    "ref": "stories/signal-contrast.test.js:590",
+    "ref": "stories/signal-contrast.test.js:649",
     "pattern": "const barFor = (px) =>"
    }
   ]
@@ -1137,7 +1137,7 @@
     "pattern": "ariaLabel?: string;"
    },
    {
-    "ref": "src/styles/badge.css:8",
+    "ref": "src/styles/badge.css:9",
     "pattern": ".ui-badge {"
    }
   ],

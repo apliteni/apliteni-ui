@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Tooltip } from './Tooltip';
 import { DataTable } from './DataTable';
 import { Card } from './primitives/Card';
+import { useTableFilters } from '../../stories/_table-filters';
 
 function Example({
   state = 'closed',
@@ -65,15 +66,17 @@ const PAYEES = [
 ];
 function InTable() {
   const root = useRef<HTMLDivElement>(null);
-  useEffect(() => { root.current!.querySelector<HTMLElement>('.ui-focusable')!.focus(); }, []);
-  return <div ref={root} style={{ maxWidth: 720 }}>
+  const { bar, shown } = useTableFilters(PAYEES, { search: 'Search payees', placeholder: 'Payee', label: 'Payee filters', text: (r) => r.name, facets: [] });
+  useEffect(() => { root.current!.querySelector<HTMLElement>('table .ui-focusable')!.focus(); }, []);
+  return <div ref={root} style={{ maxWidth: 720 }}><div className="ui-card-stack">
+    <Card>{bar}</Card>
     <Card title="Payees">
-      <DataTable selectable={false} pager={false} density="dense" rows={PAYEES} scrollLabel="Payees"
+      <DataTable selectable={false} pager={false} density="dense" rows={shown} scrollLabel="Payees"
         columns={[
           { key: 'name', label: 'Payee', render: (r) => (r.full ? <Tooltip text={r.full}>{r.name}</Tooltip> : r.name) },
           { key: 'date', label: 'Date' },
         ]} />
     </Card>
-  </div>;
+  </div></div>;
 }
 export const InTableCell: Story = { render: () => <InTable /> };

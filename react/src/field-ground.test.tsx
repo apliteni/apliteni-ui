@@ -80,9 +80,10 @@ const THEMES = ['dark', 'light'] as const;
 // Then the payouts search field in the four Sign In session stories, and the email
 // and password fields in the Sign In Default and Provider error stories (#799).
 // Then the text input in the Form Row and Form Row Long Value stories (#812).
-// Then the transfers search field in the DataTable ledgers Status Words story (#814).
+// Then the transfers search field in the DataTable ledgers Status Words story, and the
+// payees search field in the Tooltip In Table Cell story (#814).
 // Move this count with the specimens.
-const FIELD_COUNT = 180;
+const FIELD_COUNT = 181;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
