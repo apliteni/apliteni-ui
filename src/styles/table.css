@@ -488,7 +488,7 @@ a.ui-identity:hover { text-decoration: underline; }
 /* One width reserves the selection track and offsets the adjacent identity. */
 .ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
-.ui-table--pinned .ui-table__selection + .ui-table__identity { left: var(--ui-table-selection-width); }
+.ui-table--pinned .ui-table__selection ~ .ui-table__identity { left: var(--ui-table-selection-width); }
 
 /* ============================================================================
  * Running text in a cell — .ui-table__long

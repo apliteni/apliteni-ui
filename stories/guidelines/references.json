@@ -228,7 +228,7 @@
     "pattern": "role=\"status\" aria-live=\"polite\""
    },
    {
-    "ref": "react/src/dialog.ts:151",
+    "ref": "react/src/dialog.ts:155",
     "pattern": "function returnFocus(opener: Element | null, fallback: Element | null)"
    }
   ],
@@ -468,7 +468,7 @@
   ],
   "contents": [
    {
-    "ref": "react/src/Tooltip.tsx:64",
+    "ref": "react/src/Tooltip.tsx:66",
     "pattern": "ui-tip__value"
    }
   ],

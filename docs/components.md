@@ -569,7 +569,8 @@ edge of the panel. A row whose value is a field or a dropdown lines its label up
 This alignment happens by itself. There is no setting for it.
 Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
 outside the scrolling body. **It moves on open and on close**, and both movements are instant when
-reduced motion is enabled. For when a flow should use a drawer or a page:
+reduced motion is enabled. **An Escape a tooltip or a picker already handled closes only that
+overlay, and the next Escape closes the drawer.** For when a flow should use a drawer or a page:
 [Drawer](../guidelines/drawer.md).
 
 ### The modal
@@ -615,6 +616,7 @@ what the bar says. No value may be reachable only by hovering. See
 React `Tooltip` shows a label, a value and an optional detail.
 `text` is still a shorthand for `label`. Empty parts are hidden.
 The focusable trigger provides the readout as its accessible description. Escape keeps focus on the trigger.
+**Escape closes only the readout; the next Escape reaches the dialog around it.**
 The panel does not change the layout or intercept pointer events.
 
 **A pointer opens the readout after it rests for 300ms, and the readout closes at once when the
@@ -976,7 +978,8 @@ A `.ui-table__title` cell gives a text column the remaining width. A column take
 `title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),
-`stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
+`stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,
+so a date can stand before the pinned identity. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
 with no strike line. `stack` is deprecated and ignored: a phone table scrolls sideways like any other. A table that does not scroll is the card's own child, so a dense table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
@@ -1093,7 +1096,9 @@ field and white button on the dark one.
 
 `DatePicker` picks one month, a range of months, one date or a range of dates. At its ordinary
 width, it uses the dropdown's shell and adds only the grid inside it. The panel is a `dialog`,
-because a calendar is a grid and a listbox may own only options. The panel is `inert` while closed.
+because a calendar is a grid and a listbox may own only options. The panel is `inert` while closed,
+and a shut panel carries `data-dd-shut`, as a shut Dropdown does. **Escape closes only the calendar,
+wherever focus is in the picker, and the next Escape closes the dialog around it.**
 
 **The grain and the span are two questions, not one:** `month` and `day` pick a single period.
 `range` and `day-range` pick a start and an end in the same two presses. Periods are ISO strings in

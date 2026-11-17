@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.168.0', date: '2026-11-17',
+    changes: [
+      ['added', 'A `DataTable` `pinnedIdentity` now also takes a column key, so a date or another column can stand before it and the named column stays pinned. `pinnedIdentity: true` still pins column 0. Part of #814.', ['DataTable']],
+      ['fixed', 'Escape over an open `Tooltip` or `DatePicker` calendar now closes only that overlay, and the next Escape closes the `Drawer` or `Modal` around it. Part of #814.', ['Tooltip', 'DatePicker', 'Drawer', 'Modal']],
+      ['fixed', 'A shut `DatePicker` panel now carries `data-dd-shut`, as a shut `Dropdown` does. Part of #814.', ['DatePicker']],
+    ],
+  },
+  {
     v: '0.167.0', date: '2026-11-17',
     changes: [
       ['changed', 'In a form field, a `Dropdown` trigger and a `DatePicker` trigger now have the corner, padding and type size of a text input, so they have the same height as the input beside them. A long value stays on one line and ends with an ellipsis. A trigger outside a field, for example in a filter bar, a toolbar or the topbar, keeps the pill. Closes #812.', ['Dropdown', 'DatePicker']],

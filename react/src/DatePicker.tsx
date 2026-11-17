@@ -2,7 +2,7 @@ import {
   useCallback, useEffect, useMemo, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { dropdownViewportFit } from '@apliteni/apliteni-ui';
+import { dropdownRest, dropdownViewportFit } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 import { Drawer } from './Drawer';
 import { useIsoLayoutEffect } from './dialog';
@@ -339,26 +339,28 @@ export function DatePicker({
     };
   }, [open, asSheet]);
 
-  // Click-outside and Escape, while it is open as a popover. A sheet gets both
-  // from <Drawer>, along with the scrim that makes the outside click visible.
+  // Click-outside while it is open as a popover. Escape is the root's own handler
+  // below, which marks it handled so a dialog around it lets the first Escape close
+  // only the calendar. A sheet gets both from <Drawer>.
   useEffect(() => {
     if (!open || asSheet) return;
     const doc = root.current?.ownerDocument ?? document;
     const onClick = (e: MouseEvent) => {
       if (!root.current?.contains(e.target as Node)) close.current(false);
     };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      close.current(false);
-      trigger.current?.focus();
-    };
     doc.addEventListener('click', onClick);
-    doc.addEventListener('keydown', onKey);
     return () => {
       doc.removeEventListener('click', onClick);
-      doc.removeEventListener('keydown', onKey);
     };
   }, [open]);
+
+  // An open popover has its box; a shut one gives it back once its fade is over,
+  // marked `data-dd-shut` exactly as a shut Dropdown is. why: docs/components.md#the-dropdown-panel
+  useIsoLayoutEffect(() => {
+    const el = panel.current;
+    if (!el || !root.current) return undefined;
+    return dropdownRest(root.current, el, open);
+  }, [open, asSheet]);
 
   // The cell the keyboard is on takes DOM focus after the grid has rendered it.
   useIsoLayoutEffect(() => {
@@ -708,7 +710,15 @@ export function DatePicker({
     // `open` on the root whichever form the panel takes, so the trigger's
     // chevron flips for the sheet as it does for the popover. The panel rules
     // it also switches on have no panel to find while the sheet is up.
-    <div className={cx('ui-dropdown', 'ui-datepicker', open && 'open')} ref={root}>
+    <div className={cx('ui-dropdown', 'ui-datepicker', open && 'open')} ref={root}
+      onKeyDown={(e) => {
+        if (asSheet || !open || e.key !== 'Escape') return;
+        // Mark it handled so a dialog around the picker lets this Escape close
+        // only the calendar, wherever focus is inside the picker. why: docs/components.md#the-drawer
+        e.preventDefault();
+        close.current(false);
+        trigger.current?.focus();
+      }}>
       <button
         type="button"
         className="ui-dropdown__trigger ui-datepicker__trigger"

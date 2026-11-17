@@ -31,7 +31,9 @@ type DocHandlers = {
 };
 
 const DOC_EVENTS = ['pointerdown', 'pointercancel', 'click', 'keydown', 'touchend'] as const;
-const CAPTURED = new Set<string>(['pointerdown', 'pointercancel']);
+// keydown is captured so an open readout marks Escape before the dialog stack's
+// bubble listener, whatever mounted first. why: docs/components.md#the-drawer
+const CAPTURED = new Set<string>(['pointerdown', 'pointercancel', 'keydown']);
 const wirings = new WeakMap<Document, { members: Set<DocHandlers>; off(): void }>();
 
 function wireDocument(doc: Document, handlers: DocHandlers) {
@@ -132,7 +134,13 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     ignoreMouseUntil.current = 0;
     pointerKind.current = '';
     pendingClick.current = null;
-    if (event.key === 'Escape') close();
+    if (event.key === 'Escape') {
+      // Mark it handled so the dialog stack lets this Escape pass and closes
+      // only the readout, and only while there is a readout to close.
+      // why: docs/components.md#the-drawer
+      if (active.current) event.preventDefault();
+      close();
+    }
   };
   shared.current.touchend = (event) => {
     if (!host.current?.contains(event.target as Node)) close(true);
