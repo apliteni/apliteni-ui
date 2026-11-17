@@ -11,7 +11,7 @@ export const RELEASES = [
       ['changed', 'A badge in a table cell is now 19px high, not 24px. A dense row stays 38px, and a badge outside a table does not change. Part of #814.', ['Badge', 'Table']],
       ['added', '`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a status word the ink of its tone with no fill. Use them for a second status beside the badge of a row. Part of #814.', ['Badge', 'Table']],
       ['fixed', 'A hover readout in a table cell now wraps its text inside its box. Before, it took the cell\'s one-line rule, so a long name ran out of the box. Part of #814.', ['Tooltip', 'Table']],
-      ['fixed', 'A React `Tooltip` readout now shows whole in a pinned name cell on a phone. Before, the cell cut it. A box that clips and is too small to hold the readout no longer bounds it. Part of #814.', ['Tooltip', 'Table']],
+      ['fixed', 'A React `Tooltip` readout now opens in the browser\'s top layer. A pinned name cell on a phone no longer cuts it, and a sticky table header no longer covers it. A browser with no popover support keeps the old placement. Part of #814.', ['Tooltip', 'Table']],
     ],
   },
   {

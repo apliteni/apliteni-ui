@@ -448,21 +448,21 @@
  "_hover-readouts.js": {
   "overlay": [
    {
-    "ref": "src/styles/tooltip.css:18",
+    "ref": "src/styles/tooltip.css:20",
     "pattern": "position: absolute;"
    },
    {
-    "ref": "src/styles/tooltip.css:63",
+    "ref": "src/styles/tooltip.css:78",
     "pattern": ".ui-tip.is-open { opacity: 1; visibility: visible; }"
    }
   ],
   "above-the-mark": [
    {
-    "ref": "react/src/tip.ts:47",
+    "ref": "react/src/tip.ts:55",
     "pattern": "const flip = prefersBelow"
    },
    {
-    "ref": "react/src/tip.ts:54",
+    "ref": "react/src/tip.ts:62",
     "pattern": "const left = Math.max(clip.left"
    }
   ],

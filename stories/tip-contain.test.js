@@ -1,6 +1,7 @@
 /* Rule: an open readout shows whole, and opening it changes the size of nothing. An
  * ancestor too small to hold it, such as a pinned name cell that cuts its text on a
- * phone, does not cut it (#814). docs/components.md#the-hover-readout states it.
+ * phone, does not cut it, and no sticky cell paints over it (#814).
+ * docs/components.md#the-hover-readout states it.
  *
  * Two halves:
  *  - The source half (always on) finds the story files that render a React Tooltip,
@@ -12,12 +13,14 @@
  *    It opens every story of those files at 1280, 820 and 390px and focuses each visible
  *    readout mark. The open readout must lie inside the view and inside the padding box
  *    of each ancestor that clips it. The box of each ancestor, and the scroll size of
- *    each one that scrolls or clips, must be the same open and shut.
+ *    each one that scrolls or clips, must be the same open and shut. Nothing may paint
+ *    over the readout: the top element at its corners, one radius in, at the middle of
+ *    each edge, 2px in, and at its centre must be it.
  *
  * Its limits: one engine, Chromium; the light theme only, because a theme changes
  * paint, not geometry; keyboard focus opens each readout, so a hover and a tap are not
- * measured here; a readout that is not visible when its story loads is not reached; it
- * does not ask what paints over the readout, such as a sticky cell later in the table.
+ * measured here; a readout that is not visible when its story loads is not reached; the
+ * cover check samples nine points, so a cover that misses all nine is not found.
  * CI runs the source half only. Report the browser half's output in the pull request.
  */
 import test from 'node:test';
@@ -73,23 +76,31 @@ const SIZES = (i) => {
   return out;
 };
 
-/* Runs in the page: each ancestor whose padding box cuts the open readout, and whether
-   the readout leaves the view. A fixed readout escapes an ancestor's clip, unless that
-   ancestor is the frame a fixed box is placed in. */
+/* Runs in the page: each ancestor whose padding box cuts the open readout, whether the
+   readout leaves the view, and what paints over it. A readout in the top layer escapes
+   every ancestor's clip. */
 const CUT = () => {
   const tip = document.querySelector('.ui-tip.is-open');
   const r = tip.getBoundingClientRect();
   const view = document.documentElement;
-  const fixed = getComputedStyle(tip).position === 'fixed';
-  const frame = (s) => ['transform', 'translate', 'rotate', 'scale', 'filter', 'backdropFilter', 'perspective']
-    .some((p) => s[p] && s[p] !== 'none')
-    || /paint|layout|strict|content/.test(s.contain) || s.containerType !== 'normal'
-    || /transform|filter|perspective/.test(s.willChange);
+  const layered = tip.matches(':popover-open');
+  // The top element at the corners, the middle of each edge and the centre. A hit test
+  // follows the rounded corner, so a corner point sits its radius in. The readout takes
+  // no pointer, so the hit test lends it one.
+  const d = parseFloat(getComputedStyle(tip).borderTopLeftRadius) + 1;
+  tip.style.pointerEvents = 'auto';
+  const x = r.left + r.width / 2;
+  const y = r.top + r.height / 2;
+  const covers = [...new Set([[r.left + d, r.top + d], [r.right - d, r.top + d], [r.left + d, r.bottom - d],
+    [r.right - d, r.bottom - d], [x, r.top + 2], [x, r.bottom - 2], [r.left + 2, y], [r.right - 2, y], [x, y]]
+    .map(([px, py]) => document.elementFromPoint(px, py))
+    .filter((el) => el && !tip.contains(el))
+    .map((el) => `${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}`))];
+  tip.style.pointerEvents = '';
   const cuts = [];
-  for (let el = tip.parentElement; el && el !== document.body; el = el.parentElement) {
+  for (let el = layered ? null : tip.parentElement; el && el !== document.body; el = el.parentElement) {
     const s = getComputedStyle(el);
     if (s.display === 'inline' || [s.overflowX, s.overflowY].every((v) => v === 'visible')) continue;
-    if (fixed && !frame(s)) continue;
     const b = el.getBoundingClientRect();
     const left = b.left + el.clientLeft;
     const top = b.top + el.clientTop;
@@ -100,14 +111,24 @@ const CUT = () => {
   return {
     cuts,
     outside: r.left < -0.5 || r.top < -0.5 || r.right > view.clientWidth + 0.5 || r.bottom > view.clientHeight + 0.5,
-    lifted: tip.hasAttribute('data-tip-lifted'),
+    covers,
+    layered,
     box: [r.left, r.top, r.width, r.height].map(Math.round).join(' '),
   };
+};
+
+/* Runs in the page before the story: a browser with no popover, which keeps the readout
+   in its host as before #814. */
+const NO_TOP_LAYER = () => {
+  delete HTMLElement.prototype.showPopover;
+  new MutationObserver(() => document.querySelectorAll('[popover]').forEach((el) => el.removeAttribute('popover')))
+    .observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['popover'] });
 };
 
 /** Every readout of one story at one width, as rows; a story that will not render is a problem. */
 async function measureStory(browser, lib, port, story, width, mutation) {
   const ctx = await browser.newContext({ viewport: { width, height: 800 }, timezoneId: 'UTC' });
+  if (mutation) await ctx.addInitScript(mutation);
   const page = await ctx.newPage();
   const rows = [];
   const problems = [];
@@ -118,7 +139,6 @@ async function measureStory(browser, lib, port, story, width, mutation) {
       return { rows, problems };
     }
     await page.evaluate(() => document.fonts.ready);
-    if (mutation) await page.addStyleTag({ content: mutation });
     const marks = await page.evaluate(MARKS);
     for (const i of marks) {
       // Shut: a mark a story focused gets no second focus event, so blur it first.
@@ -171,25 +191,29 @@ test('measured in a browser at three widths', {
       }
     }
     assert.deepEqual(problems, [], 'a story that will not render is an unmeasured subject');
-    const bad = rows.filter((r) => r.cuts.length || r.outside || r.resized)
-      .map((r) => `${r.where}: box ${r.box}${r.lifted ? ', lifted' : ''}`
-        + `${r.cuts.length ? `, cut by ${r.cuts.join(' ')}` : ''}`
+    const bad = rows.filter((r) => r.cuts.length || r.covers.length || r.outside || r.resized)
+      .map((r) => `${r.where}: box ${r.box}${r.layered ? '' : ', not in the top layer'}`
+        + `${r.cuts.length ? `, cut by ${r.cuts.join(' ')}` : ''}${r.covers.length ? `, covered by ${r.covers.join(' ')}` : ''}`
         + `${r.outside ? ', leaves the view' : ''}${r.resized ? `, resizes ${r.resized}` : ''}`);
-    console.log(`measured ${rows.length} open readouts in ${entries.length} stories, ${rows.filter((r) => r.lifted).length} lifted`);
-    assert.deepEqual(bad, [], 'an open readout is cut, outside the view, or resizes the page');
+    console.log(`measured ${rows.length} open readouts in ${entries.length} stories, ${rows.filter((r) => r.layered).length} in the top layer`);
+    assert.deepEqual(bad, [], 'an open readout is cut, covered, outside the view, or resizes the page');
     // Coverage: each story file gives a readout, and the cut cell is measured where it cuts.
     for (const file of files) {
       const measured = entries.filter((e) => e.file === file && rows.some((r) => r.where.startsWith(`${e.label} at`)));
       assert.ok(measured.length, `no readout of ${file} was measured`);
     }
-    assert.ok(rows.some((r) => r.where.startsWith('React/Tooltip > In Table Cell at 390px') && r.lifted),
-      'the readout in the pinned cell at 390px was not measured lifted');
+    assert.deepEqual(rows.filter((r) => !r.layered).map((r) => r.where), [], 'a React readout opened outside the top layer');
+    for (const width of [1280, 390]) {
+      assert.ok(rows.some((r) => r.where.startsWith(`React/Tooltip > In Table Cell at ${width}px`)),
+        `the readout in the pinned cell at ${width}px was not measured`);
+    }
 
-    // Rejection: a readout that stays inside the cut cell is reported.
-    const cut = await measureStory(browser, lib, server.port,
-      entries.find((e) => e.id === 'react-tooltip--in-table-cell'), 390,
-      '.ui-tip[data-tip-lifted] { position: absolute !important; }');
-    assert.ok(cut.rows.length && cut.rows.every((r) => r.cuts.length), 'the gate did not report a readout the cell cuts');
+    // Rejection: without the top layer the cell cuts the readout on a phone, and the
+    // sticky name header covers it on a desktop. The gate must report both.
+    const story = entries.find((e) => e.id === 'react-tooltip--in-table-cell');
+    const [phone, desk] = await Promise.all([390, 1280].map((width) => measureStory(browser, lib, server.port, story, width, NO_TOP_LAYER)));
+    assert.ok(phone.rows.length && phone.rows.every((r) => !r.layered && r.cuts.length), `the gate did not report a readout the cell cuts: ${JSON.stringify(phone)}`);
+    assert.ok(desk.rows.some((r) => r.covers.some((c) => c.startsWith('th.'))), `the gate did not report a readout a sticky header covers: ${JSON.stringify(desk)}`);
   } finally {
     await browser.close();
     server.proc.kill();

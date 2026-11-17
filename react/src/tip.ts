@@ -11,11 +11,11 @@ const TIP_GAP = 8;
  * Flip only when that side is short and the other side has more room. Room is
  * measured inside the viewport and inside every ancestor whose overflow clips.
  * It then slides along the mark's edge to stay inside that box, no further than
- * it has to. An ancestor too small to hold the readout beside the mark, such as
- * a cut table cell, cannot keep it: the readout is lifted out of it, fixed to the
- * view, and stays inside the others.
+ * it has to. A readout in the top layer, an open popover, is placed in the view's
+ * coordinates. No ancestor can cut it there, so an ancestor too small to hold it
+ * beside the mark, such as a cut table cell, does not bound it.
  *
- * `host` must be the box the readout is positioned in: the three custom
+ * Otherwise `host` must be the box the readout is positioned in: the three custom
  * properties below are written in its coordinates. `bound` narrows the
  * measurement to one element, for a part that keeps its readout inside itself.
  * why: docs/components.md#the-hover-readout
@@ -26,16 +26,14 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bou
   const declared = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap'));
   const gap = Number.isFinite(declared) ? declared : TIP_GAP;
   const clip = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
-  let lifted = false;
+  const layered = typeof tip.showPopover === 'function' && tip.matches(':popover-open');
   for (let el: HTMLElement | null = host; el && el !== host.ownerDocument.body; el = el.parentElement) {
     const style = getComputedStyle(el);
     // Overflow does not apply to an inline box.
     if (style.display === 'inline' || ![style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) continue;
+    // In the top layer, an ancestor too small to hold the readout cannot cut it.
+    if (layered && (el.clientWidth < tip.offsetWidth || el.clientHeight < mrect.height + gap + tip.offsetHeight)) continue;
     // The padding box clips, inside the border and a scroll bar.
-    if (el.clientWidth < tip.offsetWidth || el.clientHeight < mrect.height + gap + tip.offsetHeight) {
-      lifted = true;
-      continue;
-    }
     const edge = el.getBoundingClientRect();
     const top = edge.top + el.clientTop;
     const left = edge.left + el.clientLeft;
@@ -59,23 +57,13 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bou
     : above < tip.offsetHeight + gap && below > above;
   const isBelow = prefersBelow !== flip;
   tip.classList.toggle('is-below', isBelow);
-  tip.toggleAttribute('data-tip-lifted', lifted);
   const centre = mrect.left + mrect.width / 2;
   const ideal = centre - tip.offsetWidth / 2;
   const left = Math.max(clip.left, Math.min(ideal, clip.right - tip.offsetWidth));
   const y = isBelow ? mrect.bottom : mrect.top;
-  // A lifted readout is placed in the view's coordinates, the host's otherwise.
-  const rect = lifted ? null : host.getBoundingClientRect();
+  // The view's coordinates in the top layer, the host's otherwise.
+  const rect = layered ? null : host.getBoundingClientRect();
   tip.style.setProperty('--ui-tip-x', `${rect ? centre - rect.left - host.clientLeft + host.scrollLeft : centre}px`);
   tip.style.setProperty('--ui-tip-y', `${rect ? y - rect.top - host.clientTop + host.scrollTop : y}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
-  if (!lifted) return;
-  // A transformed ancestor is the frame a fixed box is placed in: move by what it adds.
-  const at = tip.getBoundingClientRect();
-  const dx = left - at.left;
-  const dy = (isBelow ? y + gap : y - gap - tip.offsetHeight) - at.top;
-  if (dx || dy) {
-    tip.style.setProperty('--ui-tip-x', `${centre + dx}px`);
-    tip.style.setProperty('--ui-tip-y', `${y + dy}px`);
-  }
 }

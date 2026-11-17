@@ -5,8 +5,8 @@
  *   .ui-tip        the readout — __label, __value, __detail
  * The readout is an overlay in every state. It is absolutely placed inside its
  * host, so showing it, filling it and moving it change the size of nothing.
- * Where an ancestor that clips is too small to hold it, such as a cut table cell,
- * the placement lifts it: [data-tip-lifted] fixes it to the view.
+ * The React readout is a manual popover: open, it sits in the top layer and is
+ * fixed to the view, so no ancestor cuts it and no sticky cell covers it.
  * why: docs/components.md#the-hover-readout
  * ========================================================================== */
 
@@ -64,8 +64,16 @@
    author's own choice. */
 .ui-tip.is-below { translate: -50% var(--ui-tip-gap); }
 
-/* Lifted out of an ancestor too small to hold it, so that ancestor cannot cut it. */
-.ui-tip[data-tip-lifted] { position: fixed; }
+/* In the top layer: the place above, not the browser's centred popover box. A browser
+   with no popover drops this rule and keeps the readout in its host. */
+.ui-tip:popover-open {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+}
 
 .ui-tip.is-open { opacity: 1; visibility: visible; }
 

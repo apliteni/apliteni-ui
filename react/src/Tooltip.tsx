@@ -121,8 +121,12 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
 
   // Runs after content changes too: the current readout can change size.
   useLayoutEffect(() => {
-    if (!mark) return;
+    // The open readout sits in the top layer, so no clipping or sticky ancestor hides it.
+    const t = tip.current;
+    const layered = typeof t?.showPopover === 'function';
+    if (!mark) { if (layered && t.matches(':popover-open')) t.hidePopover(); return; }
     if (!host.current?.contains(mark)) { close(true); return; }
+    if (layered && !t.matches(':popover-open')) t.showPopover();
     place();
   });
 
@@ -221,7 +225,7 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
       {control
         ? <span ref={trigger}>{children}</span>
         : <span ref={trigger} className="ui-focusable" tabIndex={0} aria-describedby={id}>{children}</span>}
-      <span ref={tip} id={id} data-tip="" role="tooltip" aria-hidden={control || undefined} className={`ui-tip${open ? ' is-open' : ''}`}>
+      <span ref={tip} id={id} data-tip="" popover="manual" role="tooltip" aria-hidden={control || undefined} className={`ui-tip${open ? ' is-open' : ''}`}>
         <Text label={label} value={value} detail={detail} />
       </span>
     </span>
