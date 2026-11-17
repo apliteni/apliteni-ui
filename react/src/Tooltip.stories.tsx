@@ -66,10 +66,8 @@ const PAYEES = [
   { name: 'Orchard Lane Café', full: '', date: '2026-10-13' },
 ];
 function InTable() {
-  const root = useRef<HTMLDivElement>(null);
   const { bar, shown } = useTableFilters(PAYEES, { search: 'Search payees', placeholder: 'Payee', label: 'Payee filters', text: (r) => r.name, facets: [] });
-  useEffect(() => { root.current!.querySelector<HTMLElement>('table .ui-focusable')!.focus(); }, []);
-  return <div ref={root} className="ui-card-stack">
+  return <div className="ui-card-stack">
     <Card>{bar}</Card>
     <Card title="Payees">
       <DataTable selectable={false} pager={false} density="dense" pinnedIdentity rows={shown} scrollLabel="Payees"

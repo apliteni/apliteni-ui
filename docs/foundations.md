@@ -339,6 +339,9 @@ A link that breaks across two lines draws one band per line, because an `outline
 line box it covers. This is the same thing the browser's own outline already did, so a link
 gets no new limit by taking the kit's band instead.
 
+A text link, and words that open a hover readout, get a 6px corner and 4px of room at each side
+inside the band. Focus moves no word, because the margin gives that room back.
+
 ```css
 --ring-width: 2px;
 --ring-color: var(--accent);

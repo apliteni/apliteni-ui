@@ -214,6 +214,15 @@
 .ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child:focus-visible {
   outline: var(--ring-scroll);
   outline-offset: var(--ring-scroll-offset);
+  margin-inline: 0;
+}
+/* A later cell's name starts at its cell's edge, so the band crossed its first letter. The band
+   takes --space-2 of the gap before it: a clear edge, lent back by the margin, so no word moves.
+   #814 (rev_136bd26bc559/d22) */
+.ui-table td.ui-table__linked:not(:first-child) > :is(a:not([class]), a.ui-identity):only-child:focus-visible {
+  width: auto;
+  margin-inline-start: calc(-1 * var(--space-2));
+  border-inline-start: var(--space-2) solid transparent;
 }
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -429,11 +438,11 @@ a.ui-identity:hover { text-decoration: underline; }
     text-overflow: ellipsis;
   }
   /* A sub-line is one line of running text and cuts itself: the cell's ellipsis cannot
-     reach into a child block. 4px is a focused link's ring, inside the cell's padding.
-     Nothing is capped here — block layout already holds a child to the cell. */
+     reach into a child block. Nothing is capped here — block layout already holds a child
+     to the cell. */
   .ui-table--pinned .ui-table__identity > * {
     overflow: clip;
-    overflow-clip-margin: var(--space-1);
+    overflow-clip-margin: 7px; /* a focused link's 3px ring and the 4px room inside it (#814), inside the cell's padding */
     text-overflow: ellipsis;
   }
   /* A picture has no shorter form, so it keeps its intrinsic size and the cell cuts it.

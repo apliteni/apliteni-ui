@@ -695,6 +695,7 @@ reach the focus ring. An engine that cannot report a scroll state keeps the divi
 width. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
+In a cell after the first, the band keeps 8px of room before the name, and the name does not move.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
 explicit judgement. **Colour never supplies the sign.** **Every body and header cell aligns its
 content to the top**, so when one cell wraps, the other values stay level with its first line. A

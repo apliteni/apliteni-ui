@@ -11,6 +11,13 @@
  * ========================================================================== */
 
 .ui-tip-host { position: relative; }
+/* Words that open a readout take a text link's ring: a corner and room on each side. The margin
+   lends the side room back, and an inline box's block padding moves no line. #814 (rev_136bd26bc559/d22) */
+.ui-tip-host > .ui-focusable:focus-visible {
+  border-radius: var(--radius-xs);
+  padding: var(--space-1);
+  margin-inline: calc(-1 * var(--space-1));
+}
 
 .ui-tip {
   /* One number for the mark-to-readout distance, read by both placements here
