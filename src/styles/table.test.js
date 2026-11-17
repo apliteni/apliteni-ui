@@ -559,6 +559,28 @@ test('the pin-paint check rejects a condition that counts vertical overflow', ()
   ));
 });
 
+/* A pinned identity that stands after a column other than the selection still clears the
+ * selection column: the offset is written for any preceding selection, not only one
+ * directly beside it, so a date column before the identity scrolls under it instead of
+ * leaving the identity over the selection. why: #814 */
+const checkPinnedIdentityOffset = (css) => {
+  assert.match(css, /\.ui-table--pinned \.ui-table__selection ~ \.ui-table__identity \{[^}]*\}/,
+    'the pinned identity must clear the selection column whatever columns sit between them');
+  assert.match(css, /\.ui-table--pinned \.ui-table__selection ~ \.ui-table__identity \{[^}]*left:\s*var\(--ui-table-selection-width\)/,
+    'the pinned identity must take the selection column width as its offset');
+};
+
+test('a pinned identity after any column clears the selection column', () => {
+  checkPinnedIdentityOffset(CSS);
+});
+
+test('the identity-offset check rejects the adjacent-only selector', () => {
+  const adjacent = CSS.replace('.ui-table--pinned .ui-table__selection ~ .ui-table__identity',
+    '.ui-table--pinned .ui-table__selection + .ui-table__identity');
+  assert.notEqual(adjacent, CSS, 'the mutation must change the selector');
+  assert.throws(() => checkPinnedIdentityOffset(adjacent), /clear the selection column/);
+});
+
 const CELL = /(?:__|\s(?:thead|tbody|tr|caption)\b)/;
 // Comments out first: the header comment above the base rule names a cell class,
 // and an uncommented scan read it as part of that rule's selector.

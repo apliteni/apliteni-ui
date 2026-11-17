@@ -6,9 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.169.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'In a drawer 560px wide or more, each `DrawerSection` heading now stands in a 6.5rem column on the left of its rows, and a hairline still parts the groups. In a narrower drawer, and in a group that holds a table, the heading stays over its rows, and a 2px `--border-strong` line now parts the group from the group before it. The Drawers guideline permits both forms. A table in a drawer group now stands on the drawer's ground, and the first column of a default `DataTable` starts on the heading's edge. Closes #811.', ['Drawer', 'Guidelines']],
+    ],
+  },
+  {
     v: '0.168.0', date: '2026-11-17',
     changes: [
-      ['changed', 'In a drawer 560px wide or more, each `DrawerSection` heading now stands in a 6.5rem column on the left of its rows, and a hairline still parts the groups. In a narrower drawer, and in a group that holds a table, the heading stays over its rows, and a 2px `--border-strong` line now parts the group from the group before it. The Drawers guideline permits both forms. Closes #811.', ['Drawer', 'Guidelines']],
+      ['added', 'A `DataTable` `pinnedIdentity` now also takes a column key, so a date or another column can stand before it and the named column stays pinned. `pinnedIdentity: true` still pins column 0. Part of #814.', ['DataTable']],
+      ['fixed', 'Escape over an open `Tooltip` or `DatePicker` calendar now closes only that overlay, and the next Escape closes the `Drawer` or `Modal` around it. Part of #814.', ['Tooltip', 'DatePicker', 'Drawer', 'Modal']],
+      ['fixed', 'A shut `DatePicker` panel now carries `data-dd-shut`, as a shut `Dropdown` does. Part of #814.', ['DatePicker']],
     ],
   },
   {

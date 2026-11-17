@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Drawer, type DrawerProps } from './Drawer';
 import { Modal } from './Modal';
+import { Tooltip } from './Tooltip';
 import { classesOfEl } from './test/classlist';
 
 afterEach(() => {
@@ -272,6 +273,47 @@ it('Escape in a Modal opened over a Drawer closes only the Modal', async () => {
   );
   await userEvent.keyboard('{Escape}');
   expect({ modal: closeModal.mock.calls.length, drawer: closeDrawer.mock.calls.length }).toEqual({ modal: 1, drawer: 0 });
+});
+
+// #814: a Tooltip is not a dialog, but its Escape is handled first and marked, so the
+// dialog stack lets it pass and only the next Escape reaches the Drawer.
+it('Escape with a Tooltip open closes only the Tooltip', async () => {
+  const closeDrawer = vi.fn();
+  render(
+    <Drawer open title="Record" onClose={closeDrawer}>
+      <Tooltip text="Updated daily">Balance</Tooltip>
+    </Drawer>,
+  );
+  const tip = screen.getByRole('tooltip');
+  await waitFor(() => expect(tip).toHaveClass('is-open'));
+  await userEvent.keyboard('{Escape}');
+  expect(tip).not.toHaveClass('is-open');
+  expect(closeDrawer).not.toHaveBeenCalled();
+  await userEvent.keyboard('{Escape}');
+  expect(closeDrawer).toHaveBeenCalledTimes(1);
+});
+
+// #814 review round 1: the readout's document keydown registered when the Tooltip
+// mounted. A Tooltip mounted after an already-open Drawer registered after the dialog
+// stack's bubble listener, so the Drawer closed before the readout marked the Escape.
+// The readout's keydown now listens in the capture phase, ahead of the stack whatever
+// the mount order.
+it('Escape closes only a Tooltip that mounted after its open Drawer', async () => {
+  const closeDrawer = vi.fn();
+  const view = render(<Drawer open title="Record" onClose={closeDrawer} />);
+  view.rerender(
+    <Drawer open title="Record" onClose={closeDrawer}>
+      <Tooltip text="Updated daily">Balance</Tooltip>
+    </Drawer>,
+  );
+  const tip = screen.getByRole('tooltip');
+  act(() => screen.getByText('Balance').focus());
+  expect(tip).toHaveClass('is-open');
+  await userEvent.keyboard('{Escape}');
+  expect(tip).not.toHaveClass('is-open');
+  expect(closeDrawer).not.toHaveBeenCalled();
+  await userEvent.keyboard('{Escape}');
+  expect(closeDrawer).toHaveBeenCalledTimes(1);
 });
 
 it('Tab moves between the fields of a Modal opened over a Drawer, and wraps inside it', async () => {
