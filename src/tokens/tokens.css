@@ -241,6 +241,11 @@
   --chip-danger-fill: var(--glow-pink);
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
+  /* Status word ink: a tone word with no fill, read on a table row. Dark keeps the chip
+     ink, which is 7.42:1 or more on every row ground. Light deepens it, see there. */
+  --status-warn-ink: var(--chip-warn-ink);
+  --status-info-ink: var(--chip-info-ink);
+  --status-danger-ink: var(--chip-danger-ink);
   /* The fill of a chip with no status to carry. The themes match on SEPARATION, not on
      alpha — 12% here is 1.22:1 off the card, 15% in light is 1.23:1 — because --muted is
      a light violet-grey in dark and a mid slate in light.
@@ -469,6 +474,12 @@
      already occupy. See issue #131. */
   --chip-info-ink: #096a7c;
   --chip-info-fill: #ddeff3;
+  /* A status word has no fill, so a selected row's accent wash is its ground. The chip
+     inks read 4.95 to 6.24:1 there. These reach the 7:1 body aim on a plain, a selected
+     and a selected hover row under every accent. Owner decision on #814. */
+  --status-warn-ink: #684600;
+  --status-info-ink: #025463;
+  --status-danger-ink: #990149;
   /* See the dark block for why the two alphas differ. */
   --chip-neutral-fill: color-mix(in srgb, var(--muted) 13%, transparent);
 

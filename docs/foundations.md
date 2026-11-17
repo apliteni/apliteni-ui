@@ -198,6 +198,11 @@ This stronger aim is a written consumer rule only. The automated badge checks en
 so they would accept the previous success pair at 5.29:1. The other light status pairs
 meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these three grounds.
 
+**A status word has its own ink in light.** A word with no fill stands on a selected row's accent
+wash, so `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink` are deeper than the
+chip inks. They measure at least 7.01:1 on a plain, a selected and a selected hover row under
+every accent. In dark they are the chip inks, at 7.42:1 or more.
+
 **Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
 and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
 Check both before changing muted ink, the neutral fill or a containing surface.

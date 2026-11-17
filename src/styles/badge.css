@@ -44,9 +44,9 @@
 /* Status word: the tone's ink with no fill, for a second status in a row beside the
    record's badge. A word, not a change value, so not .ui-delta (#814). */
 .ui-status--success { color: var(--chip-success-ink); }
-.ui-status--danger { color: var(--chip-danger-ink); }
-.ui-status--warn { color: var(--chip-warn-ink); }
-.ui-status--info { color: var(--chip-info-ink); }
+.ui-status--danger { color: var(--status-danger-ink); }
+.ui-status--warn { color: var(--status-warn-ink); }
+.ui-status--info { color: var(--status-info-ink); }
 .ui-status--neutral { color: var(--text); }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */

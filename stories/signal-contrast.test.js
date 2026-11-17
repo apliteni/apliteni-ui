@@ -239,10 +239,11 @@ test('the status-word gate measures every tone on every row ground', () => {
     ['.ui-status--danger', '.ui-status--info', '.ui-status--neutral', '.ui-status--success', '.ui-status--warn']);
   assert.deepEqual(WASHES.map((w) => w.state).sort(), ['selected', 'selected, hover'], 'the selected washes were not found in table.css');
   assert.ok(STATUS_ACCENTS.length >= 4, `only ${STATUS_ACCENTS.length} accents discovered`);
+  assert.deepEqual(DEEPENED.map((r) => r.selector).sort(), ['.ui-status--danger', '.ui-status--info', '.ui-status--warn']);
 });
 
 /** Every status word under the floor in one theme and accent, and how many pairs were read. */
-function statusFailures(theme, accent, words = STATUS_WORDS) {
+function statusFailures(theme, accent, words = STATUS_WORDS, floor = AA) {
   const failures = [];
   let measured = 0;
   // The token's own --table-bg, and the --surface a card hands its table.
@@ -254,7 +255,7 @@ function statusFailures(theme, accent, words = STATUS_WORDS) {
       for (const ground of grounds) {
         const r = ratio(compositeRgba(colourOf(ink, vars), ground.rgb), ground.rgb);
         measured++;
-        if (r < AA) failures.push(`${selector} on a ${ground.state} row over ${tableBg}: ${show(r)}:1`);
+        if (r < floor) failures.push(`${selector} on a ${ground.state} row over ${tableBg}: ${show(r)}:1`);
       }
     }
   }
@@ -270,6 +271,20 @@ for (const theme of ['dark', 'light']) {
       assert.deepEqual(failures, []);
     });
   }
+}
+
+/* The light warn, info and danger words take their own deeper ink, so they reach the 7:1
+ * body aim on every row ground (owner decision on #814). Success and neutral keep their
+ * ink and the AA floor above. Dark keeps the chip ink, so it is not held to the aim here. */
+const BODY_AIM = 7;
+const DEEPENED = STATUS_WORDS.filter((r) => /^var\(--status-/.test(r.ink));
+
+for (const accent of STATUS_ACCENTS) {
+  test(`the deepened status words reach the 7:1 body aim on every row ground — light ${accent}`, () => {
+    const { failures, measured } = statusFailures('light', accent, DEEPENED, BODY_AIM);
+    assert.ok(measured >= 18, `measured ${measured} deepened status-word pairs, not 18`);
+    assert.deepEqual(failures, []);
+  });
 }
 
 test('the status-word gate rejects a word painted in its tone fill', () => {

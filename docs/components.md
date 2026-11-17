@@ -705,7 +705,8 @@ against 24px elsewhere, and never makes its row taller.
 Use a badge for the status of the record. Use an ink word for a second status in the same row.
 `.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a word the ink of
 its tone with no fill. Each one is at least 4.5:1 on a plain or a selected row, in both themes
-and under every accent.
+and under every accent. In light, warn, info and danger take a deeper ink than their badge, so
+they are at least 7:1 on a plain row, a selected row and a selected row under the pointer.
 
 **A hover table that is neither zebra nor dense is a row table.** Its body rows have no lines
 and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
