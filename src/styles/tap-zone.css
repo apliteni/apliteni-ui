@@ -195,9 +195,10 @@
      at 390 is often already full, so widening its column gap does not move the
      buttons apart — it makes them narrower, and that is the half #488 rules
      out. Measured on a toolbar of three buttons and a dropdown. These rows
-     wrap, which is also where the review measured them colliding. */
+     wrap, which is also where the review measured them colliding. Not a toolbar in a
+     table cell: the row would grow, and a table's rows keep their height. #812 */
   .ui-confirm__acts,
-  .ui-toolbar,
+  .ui-toolbar:not(.ui-table *),
   .ui-empty__actions,
   .ui-sx__actions,
   .ui-fbc__foot,
