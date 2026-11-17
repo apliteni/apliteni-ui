@@ -33,10 +33,10 @@ export const serve = (serveRoot, page) => new Promise((resolve, reject) => {
   proc.once('error', reject);
 });
 
-/* The mutations, each of which has to be caught by the measurement. `translate` is
- * where the in-place fit writes its answer, so refusing it is the state #572
+/* The mutations, each of which has to be caught by the measurement. The side margins
+ * are where the in-place fit writes its answer, so refusing it is the state #572
  * reported: `left: 0` and `.is-end`'s `right: 0`, mirrored and unmeasured. */
-export const TRANSLATE_OFF = '[data-dropdown-panel] { translate: none !important; }';
+export const SHIFT_OFF = '[data-dropdown-panel] { margin-left: 0 !important; margin-right: 0 !important; }';
 /**
  * The measurement, as it runs in the page: one call per subject, with the opens
  * driven from inside it rather than from the test, which would cost a round trip
@@ -66,7 +66,7 @@ export const MEASURE = `async (subject) => {
       left: Math.round(box.left * 10) / 10,
       right: Math.round(box.right * 10) / 10,
       width: Math.round(box.width * 10) / 10,
-      shift: p.style.translate || '',
+      shift: p.style.marginLeft || '',
       end: p.classList.contains('is-end'),
       portal: p.classList.contains('ui-dropdown__panel--portal'),
       open: !!(dd && dd.classList.contains('open')) || p.classList.contains('is-open'),

@@ -620,9 +620,9 @@ export function Dropdown({
          why: src/styles/dropdown.css */
       el.style.setProperty('--ui-dropdown-ceiling', got.max > 0 ? `${got.max}px` : '');
       if (got.width > got.max) got = dropdownViewportFit(el) ?? got;
-      // A transform, so the shift moves no layout and the width it was measured
-      // against is still the panel's own. why: src/components/dropdown.js
-      el.style.translate = got.shift ? `${got.shift}px` : '';
+      // Side margins, not a translate. why: ddShiftOf in src/logic/dropdown-placement.js
+      el.style.marginLeft = got.shift ? `${got.shift}px` : '';
+      el.style.marginRight = got.shift ? `${-got.shift}px` : '';
     };
     fit();
     const view = root.current?.ownerDocument?.defaultView;

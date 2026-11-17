@@ -253,12 +253,12 @@ const viewOf = (width, edge = 8) => ({
 
 /**
  * A panel as the browser would report it: `left` is where the sheet puts it and
- * `shift` is a translate already written, which the rect includes and the fit has
+ * `shift` is a shift already written, which the rect includes and the fit has
  * to take off again.
  */
 const panelAt = (left, width, view, { shift = 0, edge = 8, bar = false } = {}) => ({
   ownerDocument: { defaultView: viewOf(view, edge) },
-  style: { translate: shift ? `${shift}px` : '' },
+  style: { marginLeft: shift ? `${shift}px` : '' },
   closest: (sel) => (bar && sel === '.ui-filter-bar' ? {} : null),
   classList: { contains: () => false },
   getBoundingClientRect: () => ({ left: left + shift, right: left + shift + width, width }),
