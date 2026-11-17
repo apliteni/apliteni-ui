@@ -179,6 +179,8 @@
   /* How much of its own colour a tinted card mixes in. Dark mixes upward off a mid-grey
      card, so it can afford this much. why: docs/foundations.md#elevation */
   --card-tint: 9%;
+  /* A selected row takes the card's tint, and one step more under the pointer. #814 */
+  --card-tint-hover: 12%;
 
   --text: #e9e7f0;
   --strong: #ffffff;
@@ -426,6 +428,7 @@
   /* Light mixes DOWN from white, so tint costs lightness: 5% is the most a card can spend
      and stay above the page. why: docs/foundations.md#elevation */
   --card-tint: 5%;
+  --card-tint-hover: 8%;
 
   --text: #1a1e27;
   --strong: #0c0e13;

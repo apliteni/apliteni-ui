@@ -713,7 +713,8 @@ they are at least 7:1 on a plain row, a selected row and a selected row under th
 and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
 56px with `comfortable`**, and larger or wrapped content makes it taller. The space above a
 row's first line centres that line in this height, so a one-line row looks centred. Hover gives the row a
-neutral fill, and a checked selection box gives it an accent wash. Both fills are square, and the
+neutral fill, and a checked selection box gives it an accent wash at a tinted card's strength: 5% in
+light and 8% under the pointer, 9% in dark and 12% under the pointer. Both fills are square, and the
 first and last content sit 12px inside them. The name
 in the first column takes the strongest ink. **`.ui-table__sub` puts a second value under the
 first**, such as an email under a name, in full ink at a smaller size. An act cell that holds icon

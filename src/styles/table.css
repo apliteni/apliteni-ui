@@ -564,12 +564,13 @@ a.ui-identity:hover { text-decoration: underline; }
 
 /* Row states. Hover is a quiet neutral fill. A selected row takes an accent wash, one step
    stronger under the pointer. Each fill is opaque and square, so a pinned cell still covers
-   the columns that scroll under it. A target row keeps its own wash. The selected wash
-   is 9%: at 8% an inline code chip on the dark page loses its 1.1:1 step. */
+   the columns that scroll under it. A target row keeps its own wash. The wash is a tinted
+   card's strength: 5% in light, where 9% read too strong beside the checked box (#814), and 9% in
+   dark, where at 8% an inline code chip on the dark page loses its 1.1:1 step. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover > :is(td, th) { border-radius: 0; }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface-3); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th) { background: color-mix(in srgb, var(--accent) 9%, var(--table-bg)); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { background: color-mix(in srgb, var(--accent) 12%, var(--table-bg)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th) { background: color-mix(in srgb, var(--accent) var(--card-tint), var(--table-bg)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { background: color-mix(in srgb, var(--accent) var(--card-tint-hover), var(--table-bg)); }
 
 /* Icon row actions: 32px buttons in a cell as wide as its buttons, so a row keeps its
    height. The glyph, not the button, meets the end cell's edge. The top padding centres a
