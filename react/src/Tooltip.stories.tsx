@@ -58,7 +58,8 @@ export const Structured: Story = {
 };
 
 // The full name of a payee whose list shows a short name: a table cell is one line, and the
-// readout wraps inside its box (#814). Keyboard focus opens it at once.
+// readout wraps inside its box (#814). Keyboard focus opens it at once. On a phone the pinned
+// name is cut, and the readout rises over the cell that cuts it.
 const PAYEES = [
   { name: 'Kestrel Print Co.', full: '', date: '2026-10-07' },
   { name: 'Meridian Coastal Logistics', full: 'Meridian Coastal Logistics and Cold Storage Cooperative of the Northern Ports', date: '2026-10-12' },
@@ -68,15 +69,16 @@ function InTable() {
   const root = useRef<HTMLDivElement>(null);
   const { bar, shown } = useTableFilters(PAYEES, { search: 'Search payees', placeholder: 'Payee', label: 'Payee filters', text: (r) => r.name, facets: [] });
   useEffect(() => { root.current!.querySelector<HTMLElement>('table .ui-focusable')!.focus(); }, []);
-  return <div ref={root} style={{ maxWidth: 720 }}><div className="ui-card-stack">
+  return <div ref={root} className="ui-card-stack">
     <Card>{bar}</Card>
     <Card title="Payees">
-      <DataTable selectable={false} pager={false} density="dense" rows={shown} scrollLabel="Payees"
+      <DataTable selectable={false} pager={false} density="dense" pinnedIdentity rows={shown} scrollLabel="Payees"
         columns={[
           { key: 'name', label: 'Payee', render: (r) => (r.full ? <Tooltip text={r.full}>{r.name}</Tooltip> : r.name) },
           { key: 'date', label: 'Date' },
         ]} />
     </Card>
-  </div></div>;
+  </div>;
 }
-export const InTableCell: Story = { render: () => <InTable /> };
+// A centred canvas sizes the story to its widest row. Padded gives the table the view's width.
+export const InTableCell: Story = { parameters: { layout: 'padded' }, render: () => <InTable /> };

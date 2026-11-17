@@ -604,7 +604,8 @@ the place of anything else on the page.** A closed readout has no box, so it can
 scroll region that holds it. There is one element per host. It is placed absolutely
 and takes no pointer events. `.ui-tip-host` marks the box it is placed against. The readout flips
 or slides only as far as needed to stay inside the viewport and every ancestor whose overflow
-clips. **What it says is text**, written with `textContent` and never parsed. The text wraps inside
+clips. **An ancestor too small to hold the readout beside its mark, such as a cut table cell, does
+not cut it**: the readout rises over that ancestor and stays inside the others. **What it says is text**, written with `textContent` and never parsed. The text wraps inside
 the readout's box, also in a table cell that keeps its text on one line. Focus on a mark shows
 the readout and describes the mark through `aria-describedby`. **Escape dismisses every readout
 the kit is showing**. **Under a coarse pointer the tap is the switch**, and the opening tap is
@@ -631,7 +632,7 @@ focuses the trigger waits for the hover.
 description, and it is hidden from assistive technology, because the control's name already says it.
 
 `placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
-and viewport bounds, and updates its position on scroll and resize.
+that can hold it and within the viewport, and updates its position on scroll and resize.
 
 ### Pagination
 

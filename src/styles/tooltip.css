@@ -5,6 +5,8 @@
  *   .ui-tip        the readout — __label, __value, __detail
  * The readout is an overlay in every state. It is absolutely placed inside its
  * host, so showing it, filling it and moving it change the size of nothing.
+ * Where an ancestor that clips is too small to hold it, such as a cut table cell,
+ * the placement lifts it: [data-tip-lifted] fixes it to the view.
  * why: docs/components.md#the-hover-readout
  * ========================================================================== */
 
@@ -17,9 +19,11 @@
   --ui-tip-bg: var(--bg-elevated);
   position: absolute;
   top: var(--ui-tip-y, 0px);
-  left: var(--ui-tip-x, 50%);
+  /* The slide is in `left`, not in `translate`: a change of `translate` alone does not lay
+     the box out again, so a scroll region kept the overflow of the readout's last place. */
+  left: calc(var(--ui-tip-x, 50%) + var(--ui-tip-shift, 0px));
   z-index: var(--z-dropdown);
-  translate: calc(-50% + var(--ui-tip-shift, 0px)) calc(-100% - var(--ui-tip-gap));
+  translate: -50% calc(-100% - var(--ui-tip-gap));
   display: flex;
   flex-direction: column;
   width: max-content;
@@ -58,7 +62,10 @@
 
 /* Below the mark: the wiring's flip when above would be clipped, or the
    author's own choice. */
-.ui-tip.is-below { translate: calc(-50% + var(--ui-tip-shift, 0px)) var(--ui-tip-gap); }
+.ui-tip.is-below { translate: -50% var(--ui-tip-gap); }
+
+/* Lifted out of an ancestor too small to hold it, so that ancestor cannot cut it. */
+.ui-tip[data-tip-lifted] { position: fixed; }
 
 .ui-tip.is-open { opacity: 1; visibility: visible; }
 

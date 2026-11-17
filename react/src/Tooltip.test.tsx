@@ -173,8 +173,52 @@ it('flips inside a clipping ancestor', () => {
   const host = trigger.parentElement!;
   host.style.overflow = 'hidden';
   vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ top: 95, bottom: 300, left: 0, right: 500 } as DOMRect);
+  vi.spyOn(host, 'clientWidth', 'get').mockReturnValue(500);
+  vi.spyOn(host, 'clientHeight', 'get').mockReturnValue(205);
   hover(trigger);
   expect(tip).toHaveClass('is-below');
+  expect(tip).not.toHaveAttribute('data-tip-lifted');
+});
+
+// A clipping ancestor, with its box, the border inside it and the room it gives.
+function clipper(el: HTMLElement, box: { left: number; top: number; right: number; bottom: number }, client: { left: number; top: number; width: number; height: number }) {
+  el.style.overflow = 'hidden';
+  vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(box as DOMRect);
+  vi.spyOn(el, 'clientLeft', 'get').mockReturnValue(client.left);
+  vi.spyOn(el, 'clientTop', 'get').mockReturnValue(client.top);
+  vi.spyOn(el, 'clientWidth', 'get').mockReturnValue(client.width);
+  vi.spyOn(el, 'clientHeight', 'get').mockReturnValue(client.height);
+}
+
+it('slides inside the padding box of a clipping ancestor, not over its border', () => {
+  const { trigger, tip } = mount();
+  geometry(trigger, tip, 100);
+  // The right edge of the room is 4 + 150 = 154, inside a 4px border; the box ends at 162.
+  clipper(trigger.parentElement!, { left: 0, top: 0, right: 162, bottom: 300 }, { left: 4, top: 0, width: 150, height: 300 });
+  hover(trigger);
+  expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('-26px');
+});
+
+it('lifts the readout out of an ancestor too small to hold it, such as a cut table cell', () => {
+  const { trigger, tip } = mount();
+  geometry(trigger, tip, 100);
+  // 60px wide: the 100px readout cannot fit, so the cell does not bound it.
+  clipper(trigger.parentElement!, { left: 100, top: 90, right: 160, bottom: 130 }, { left: 0, top: 0, width: 60, height: 40 });
+  // Where a fixed box with these properties lands when nothing transformed holds it.
+  const at = vi.spyOn(tip, 'getBoundingClientRect').mockReturnValue({ left: 80, top: 62 } as DOMRect);
+  hover(trigger);
+  expect(tip).toHaveAttribute('data-tip-lifted');
+  expect(tip).not.toHaveClass('is-below');
+  expect(tip.style.getPropertyValue('--ui-tip-x')).toBe('130px');
+  expect(tip.style.getPropertyValue('--ui-tip-y')).toBe('100px');
+  expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('0px');
+  // A transformed ancestor moves the fixed box by 10 and 20: the placement takes it back.
+  fireEvent.keyDown(document, { key: 'Escape' });
+  at.mockReturnValue({ left: 90, top: 82 } as DOMRect);
+  fireEvent.mouseLeave(trigger);
+  hover(trigger);
+  expect(tip.style.getPropertyValue('--ui-tip-x')).toBe('120px');
+  expect(tip.style.getPropertyValue('--ui-tip-y')).toBe('80px');
 });
 
 it('has no axe violations when open (colour and layout require a browser)', async () => {
