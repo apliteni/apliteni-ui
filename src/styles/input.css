@@ -141,9 +141,11 @@
   height: 19px;
   flex: none;
   margin-top: 1px;
-  border: 1.5px solid var(--border-strong);
+  /* A field's fill and a --muted edge: the edge clears the 3:1 control floor on every ground a box
+     stands on, and a grey fill read as disabled. Decided on #814 (rev_136bd26bc559/d21). */
+  border: 1.5px solid var(--muted);
   border-radius: var(--radius-xs);
-  background: var(--surface-2); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
@@ -201,7 +203,7 @@
 .ui-check input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Off. `.ui-check` had no disabled rule at all until #429 put a disabled checkbox
-   on screen: the box kept --surface-2 and --border-strong, its words kept --text,
+   on screen: the box kept its resting fill and edge, its words kept --text,
    and it was the word "unavailable" in the label that carried the state. The same
    flat pair the fields and the buttons take (#220, #273) — a paint on the box and
    quiet ink on the words, never an `opacity`, which drags label and box toward the

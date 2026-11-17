@@ -1379,7 +1379,9 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
-  disabled one uses the same paint as every other disabled control in the kit.**
+  disabled one uses the same paint as every other disabled control in the kit.** A resting box
+  has a field's fill and an edge of at least 3:1 on the page, a card, a menu and a hovered row.
+  It measures 5.36:1 or more in light and 5.38:1 or more in dark.
 - **A checkbox whose `indeterminate` property is true shows the checked fill with a short dash**
   in place of the tick. **`DataTable`'s selection boxes use the kit box and show the dash when some,
   but not all, rows on the page are selected.** **A selection column takes the width of its box in
