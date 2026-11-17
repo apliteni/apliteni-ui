@@ -530,7 +530,7 @@
     "pattern": "stroke-width: 2.1;"
    },
    {
-    "ref": "stories/signal-contrast.test.js:649",
+    "ref": "stories/signal-contrast.test.js:664",
     "pattern": "const barFor = (px) =>"
    }
   ]
@@ -856,7 +856,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:298",
+    "ref": "src/tokens/tokens.css:303",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
