@@ -161,7 +161,7 @@ test('the resting box takes a field fill and an edge of 3:1 on every ground, in 
   const body = declaredIn('.ui-check input');
   assert.match(body, /background:\s*var\(--field-bg\)/, 'the resting box is not filled as a field');
   const edge = /border:\s*[\d.]+px\s+solid\s+(var\(--[\w-]+\))/.exec(body);
-  assert.ok(edge, 'the resting box has no solid token edge');
+  assert.ok(edge, 'the resting box has no solid edge in a custom property');
   const grounds = ['--field-bg', '--bg', '--surface', '--bg-elevated', '--surface-3'];
   const low = THEMES.flatMap((theme) => grounds.map((ground) => {
     const vars = tokensFor(theme);
