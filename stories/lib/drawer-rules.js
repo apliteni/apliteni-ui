@@ -54,6 +54,8 @@ export const CONTROL = 'input, select, textarea, button, a[href], [role="button"
 // A popup menu and a caret drawn with two borders are paint of a control, not a box or a rule.
 export const POPUP = '.ui-dropdown__panel, .ui-dropdown__chevron';
 export const SLOT = '.ui-drawer__header, .ui-drawer__body, .ui-drawer__footer';
+// A kit table draws its own lines, and the Drawers guideline lets a table stand in a group.
+export const TABLE = '.ui-table';
 
 /** A group that follows another group: the one element inside the body allowed a line. */
 export const follows = (el) => el.classList.contains('ui-drawer__section')
@@ -79,7 +81,7 @@ export function measure(win, panel, where) {
       .filter((el) => el.classList.contains('ui-card') || (!hr(el) && !el.closest(CONTROL) && !el.closest(POPUP) && fourSided(style(el))))
       .map((el) => selectorPath(el)),
     ruledRows: inside
-      .filter((el) => hr(el) || (isRule(style(el)) && !separator(el) && !el.closest(POPUP)))
+      .filter((el) => hr(el) || (isRule(style(el)) && !separator(el) && !el.closest(POPUP) && !el.closest(TABLE)))
       .map((el) => selectorPath(el)),
     strayEdges: [
       ...edge('.ui-drawer__body', 'top', 'a line on the body\'s top edge, under the header\'s own'),
@@ -106,6 +108,7 @@ export const FAULTS = [
   { fault: 'a different footer fill', kind: 'footerFills', css: '.zz-fault .ui-drawer__footer { background: red; }' },
   { fault: 'a line on the body\'s top edge', kind: 'strayEdges', css: '.zz-fault .ui-drawer__body { border-top: 1px solid var(--border); }' },
   { fault: 'a rule under every row', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__row dt, .zz-fault .ui-drawer__row dd { border-bottom: 1px solid var(--border); }' },
+  { fault: 'a rule under every row, beside a kit table', kind: 'ruledRows', body: `${GROUPS}<table class="ui-table"><tbody><tr><td>Fee</td></tr></tbody></table>`, css: '.zz-fault .ui-drawer__row dt { border-bottom: 1px solid var(--border); }' },
   { fault: 'a logical rule under a group', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section { border-block-end: 1px solid var(--border); }' },
   { fault: 'a rule over the first group, where there is nothing to part it from', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section { border-top: 1px solid var(--border); }' },
   { fault: 'a ruled title', kind: 'ruledRows', css: '.zz-fault .ui-drawer__title { border-bottom: 1px solid var(--border); }' },

@@ -388,17 +388,17 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:211",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
   "three-lines": [
    {
-    "ref": "src/styles/drawer.css:130",
+    "ref": "src/styles/drawer.css:133",
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:211",
     "pattern": ".ui-drawer__section + .ui-drawer__section {"
    }
   ],
@@ -408,7 +408,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:245",
+    "ref": "src/styles/drawer.css:266",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -772,7 +772,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:258",
+    "ref": "src/styles/drawer.css:279",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]

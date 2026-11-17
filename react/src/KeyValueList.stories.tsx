@@ -88,6 +88,7 @@ export const WideDrawer: StoryObj = {
       <Drawer open={open} size="lg" title="Invoice details" onClose={() => setOpen(false)}>
         <DrawerSection title="Invoice"><KeyValueList rows={rows} /></DrawerSection>
         <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} /></DrawerSection>
+        {/* No filter bar: the invoice holds two lines, and no more than 10. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
         <DrawerSection title="Lines"><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} scrollLabel="Lines" /></DrawerSection>
       </Drawer>
     </>;
