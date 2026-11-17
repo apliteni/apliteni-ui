@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.167.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'In a form field, a `Dropdown` trigger and a `DatePicker` trigger now have the corner, padding and type size of a text input, so they have the same height as the input beside them. A trigger outside a field, for example in a filter bar, a toolbar or the topbar, keeps the pill. Closes #812.', ['Dropdown', 'DatePicker']],
+    ],
+  },
+  {
     v: '0.166.0', date: '2026-11-12',
     changes: [
       ['changed', 'In a `Toast` and in a `Dropdown` row with a description, the glyph and the trailing parts now align with the first line of text, not with the middle of the block. A one-line toast does not change. Part of #798.', ['Toast', 'Dropdown']],

@@ -1,9 +1,10 @@
-/* Rule: a picker trigger holding a mark is as high as a trigger without one, 32px.
+/* Rule: a picker trigger holding a mark is as high as a trigger without one. In a field
+ * that is 42px: the 16px line, 12px of padding on each side and the 1px edges. #812
  * why: docs/components.md#avatar
  *
  * The mark is 24px and gives back room with a negative block margin on each side, so the
  * row stays as tall as the 16px value line. A pull of 3px left the row 18px and the
- * trigger 34px; 4px leaves 16px.
+ * trigger 44px; 4px leaves 16px.
  *
  * Limits: the fixture pins the trigger's line to 16px, because the kit's own face sets a
  * `normal` line that depends on the font file and this host has none; the built Storybook
@@ -61,21 +62,21 @@ async function measure(css, theme) {
   }
 }
 
-test('measured in Chromium: the trigger is 32px with the ring and with a person, both themes', {
+test('measured in Chromium: the trigger is 42px with the ring and with a person, both themes', {
   skip: !process.env.AVATAR_TRIGGER && 'set AVATAR_TRIGGER=1 and UI_PLAYWRIGHT to run the Chrome layout gate',
 }, async (t) => {
   const css = SHEETS.map(read).join('\n');
   for (const theme of ['light', 'dark']) {
     const [none, ring, person] = await measure(css, theme);
     t.diagnostic(`${theme}: no mark ${none}px, dashed ring ${ring}px, chosen person ${person}px`);
-    assert.equal(none, 32, `${theme}: the plain trigger is ${none}px, so the premise is off`);
-    assert.equal(ring, 32, `${theme}: the trigger with the dashed ring is ${ring}px`);
-    assert.equal(person, 32, `${theme}: the trigger with a chosen person is ${person}px`);
+    assert.equal(none, 42, `${theme}: the plain trigger is ${none}px, so the premise is off`);
+    assert.equal(ring, 42, `${theme}: the trigger with the dashed ring is ${ring}px`);
+    assert.equal(person, 42, `${theme}: the trigger with a chosen person is ${person}px`);
   }
   await t.test('with the pull at 3px the trigger grows', async () => {
     const broken = css.replace(PULL, '--ui-avatar-pull: 3px');
     assert.notEqual(broken, css);
     const [, ring] = await measure(broken, 'light');
-    assert.equal(ring, 34, 'the old pull no longer grows the trigger, so this check would pass over the defect');
+    assert.equal(ring, 44, 'the old pull no longer grows the trigger, so this check would pass over the defect');
   });
 });

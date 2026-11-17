@@ -546,3 +546,15 @@
 .ui-field > .ui-dropdown { display: grid; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
+/* In a form the trigger takes the text input's corner, padding and type, so the two
+   stand at one height. Elsewhere it keeps the pill. #812
+   why: docs/components.md#forms */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger {
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+}
+/* The input beside it is 16px on a touch screen, so the trigger follows it. */
+@media (pointer: coarse) {
+  .ui-field > .ui-dropdown > .ui-dropdown__trigger { font-size: 16px; }
+}
