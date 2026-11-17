@@ -221,6 +221,26 @@ it('lifts the readout out of an ancestor too small to hold it, such as a cut tab
   expect(tip.style.getPropertyValue('--ui-tip-y')).toBe('80px');
 });
 
+it('places the readout again when it or its mark changes size, as when a font loads', () => {
+  let resized = () => {};
+  class Observer { constructor(cb: () => void) { resized = cb; } observe() {} disconnect() {} }
+  const was = Object.getOwnPropertyDescriptor(window, 'ResizeObserver');
+  Object.defineProperty(window, 'ResizeObserver', { configurable: true, writable: true, value: Observer });
+  try {
+    const { trigger, tip } = mount();
+    geometry(trigger, tip, 100);
+    hover(trigger);
+    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('0px');
+    // The font arrives and the readout is 300px wide: centred on 130, it would start at -20.
+    vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(300);
+    resized();
+    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('20px');
+  } finally {
+    if (was) Object.defineProperty(window, 'ResizeObserver', was);
+    else delete (window as { ResizeObserver?: unknown }).ResizeObserver;
+  }
+});
+
 it('has no axe violations when open (colour and layout require a browser)', async () => {
   vi.useRealTimers();
   const { trigger, container } = mount();

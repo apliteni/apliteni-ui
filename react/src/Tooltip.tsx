@@ -164,9 +164,13 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     const reposition = () => place();
     view.addEventListener('scroll', reposition, true);
     view.addEventListener('resize', reposition);
+    // A font that loads after the first placement resizes the readout and its mark.
+    const sized = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(reposition) : null;
+    if (sized) [tip.current, active.current].forEach((el) => el && sized.observe(el));
     return () => {
       view.removeEventListener('scroll', reposition, true);
       view.removeEventListener('resize', reposition);
+      sized?.disconnect();
     };
   }, [open, placement]);
 
