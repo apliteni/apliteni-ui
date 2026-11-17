@@ -144,6 +144,24 @@ const SHORTFALLS = [
       + 'extension and by the `title` the markup carries rather than by what is on screen. Every '
       + 'other row, container and width clears the floor, and the extension is never cut anywhere.',
   },
+  {
+    id: 'B',
+    count: 2,
+    rows: {
+      'react-file-drop--failed panel@390': 107,
+      'react-file-drop--failed plain@360': 109,
+    },
+    why: 'The File drop story draws its row on the kit\'s card, because a form goes on a card '
+      + '(#568), and since #724 this gate measures every served story as it renders, card '
+      + 'included. The ledger was not measured again after #724, so these two cells were missing '
+      + 'from it until #814. The card takes 25px of inset on each side, so the story\'s row gets '
+      + '50px less line than the bare component in the same container, and A\'s arithmetic '
+      + 'applies: under a 351px line a failed upload\'s name is cut below the floor. Two story '
+      + 'cells fall there and are wide enough to be asked: a panel at 390, which is a card inside '
+      + 'a panel, and a plain row at 360, which is the card on a phone. The narrower story cells '
+      + 'are under the smallest panel and are not asked. The cause is A\'s, so #566 decides both. '
+      + 'Limitation: the same as A, the name is cut and the extension and the `title` identify the file.',
+  },
 ];
 
 /** The cell a measured row was taken in: subject, container and width together,
@@ -551,16 +569,20 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   // The tiers and the height, per state, and the same in every container at
   // every width — which is what one layout at every width means. A state that
   // gains or loses a tier, or changes height, is a design change, so it fails
-  // here and is reviewed by hand rather than re-recorded. The heights are the
-  // ones docs/components.md publishes; they moved in #566 when this half
-  // started loading the font, because a tier is as tall as its own line box.
+  // here and is reviewed by hand rather than re-recorded. The name tier is as
+  // tall as its tallest small button. #697 gave a button's label a 1.2 line
+  // height, so the text button grew from 26.5 to 29px and these heights rose
+  // 2.5px; nobody measured again, so this half failed on main until #814.
+  // #814 makes a small button 32px: +3 where a text button is the tallest,
+  // and +2 in a failed row, whose 30px icon button gains a pixel of padding
+  // on each side.
   const STATES = {
-    'react:uploading': { tiers: 3, height: 69.55 }, // name, size, track
-    'react:uploading-long': { tiers: 3, height: 69.55 },
-    'react:starting': { tiers: 2, height: 55.55 }, // name, then the word the absent track cannot carry
-    'react:done': { tiers: 2, height: 55.55 },
-    'react:failed': { tiers: 2, height: 59.05 }, // name, then the message
-    'react:failed-long': { tiers: 2, height: 59.05 },
+    'react:uploading': { tiers: 3, height: 75.05 }, // name, size, track
+    'react:uploading-long': { tiers: 3, height: 75.05 },
+    'react:starting': { tiers: 2, height: 61.05 }, // name, then the word the absent track cannot carry
+    'react:done': { tiers: 2, height: 61.05 },
+    'react:failed': { tiers: 2, height: 61.05 }, // name, then the message
+    'react:failed-long': { tiers: 2, height: 61.05 },
   };
   for (const [id, { tiers, height }] of Object.entries(STATES)) {
     const seen = found.filter((r) => r.id === id);
