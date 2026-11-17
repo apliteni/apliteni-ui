@@ -468,7 +468,7 @@
   ],
   "contents": [
    {
-    "ref": "react/src/Tooltip.tsx:64",
+    "ref": "react/src/Tooltip.tsx:66",
     "pattern": "ui-tip__value"
    }
   ],
