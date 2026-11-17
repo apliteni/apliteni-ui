@@ -1458,7 +1458,10 @@ top and bottom edges. A date picker in a field does the same. Outside a field, f
 filter bar, a toolbar or the topbar, the trigger keeps the pill.
 Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
-[Colour and contrast](foundations.md#colour-and-contrast).
+[Colour and contrast](foundations.md#colour-and-contrast). **A filter bar is the one exception.**
+It stands on the page directly above its table card, with no card of its own. On the page ground,
+the edge of its search field measures 1.37:1 in light and 1.50:1 in dark. Keep that search field
+live on the page, because a field that is off measures 1.12:1 there.
 
 ### Segmented or tabs?
 

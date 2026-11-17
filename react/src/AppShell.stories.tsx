@@ -51,13 +51,13 @@ function Example(args: Partial<AppShellProps>) {
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args}>
-      {/* Each long table has its filter bar directly above it, on a card because a field
-          never stands on the page ground. why: guidelines/dense-tables.md */}
-      <Card><div className="ui-toolbar">
+      {/* Each long table has its filter bar directly above it, on the page with no card
+          of its own. why: docs/components.md#forms */}
+      <div className="ui-toolbar">
         <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <FilterBar filters={[{ ...status, value: state }]} label="Payout filters"
           onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
-      </div></Card>
+      </div>
       <Card title="Payouts this week">
         <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} />
       </Card>

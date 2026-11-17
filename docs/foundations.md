@@ -224,7 +224,8 @@ These fill ratios describe separation, not text contrast.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
   therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1. This is
-  a white box on a grey page. **Put a form on a card.**
+  a white box on a grey page. **Put a form on a card.** A filter bar above a table is the one
+  exception. See [Forms](components.md#forms).
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field

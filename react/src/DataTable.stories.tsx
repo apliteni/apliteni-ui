@@ -46,7 +46,7 @@ export const Playground: StoryObj = {
     const [sel, setSel] = useState<Set<string>>(new Set());
     const { bar, shown } = useCampaignFilters(rows);
     return <div className="ui-card-stack">
-      <Card>{bar}</Card>
+      {bar}
       <Card><DataTable columns={linkedColumns} rows={shown} pageSize={3} selected={sel} empty="No campaigns match"
         onToggle={(n) => setSel((s) => { const x = new Set(s); x.has(n) ? x.delete(n) : x.add(n); return x; })}
         onTogglePage={(ns) => setSel((s) => {
@@ -64,7 +64,7 @@ export const SharedOrder: StoryObj = {
     const [sort, setSort] = useState<TableSort<Row>>({ key: 'clicks', dir: -1 });
     const { bar, shown } = useCampaignFilters(rows);
     return <div className="ui-card-stack">
-      <Card>{bar}</Card>
+      {bar}
       {/* pager={false}, not pageSize={rows.length}. The second is the workaround
           this release exists to retire, and it would read as the recommendation
           sitting in the kit's own story. */}
@@ -108,7 +108,7 @@ export const ServerPaged: StoryObj = {
     // --table-bg. On the page ground the select had only its edge to be seen by.
     // react/src/field-ground.test.tsx holds it here.
     return <div className="ui-card-stack">
-      <Card>{bar}</Card>
+      {bar}
       <Card>
         <DataTable columns={columns} rows={fetched} selectable={false} empty="No campaigns match"
           sort={sort} onSortChange={setSort}
@@ -128,7 +128,7 @@ export const NoPager: StoryObj = {
     // page, the pager would be absent anyway, and the story would demonstrate
     // nothing. Take pager={false} off and a three-page strip appears.
     return <div className="ui-card-stack">
-      <Card>{bar}</Card>
+      {bar}
       <Card><DataTable columns={columns} rows={shown} pageSize={2} selectable={false} pager={false} empty="No campaigns match" /></Card>
     </div>;
   },
@@ -155,7 +155,7 @@ export const PinnedSortable: StoryObj = {
   render: function Render() {
     const { bar, shown } = useCampaignFilters(pinnedRows);
     return <div className="ui-card-stack" style={{ maxWidth: 'var(--panel-lg)' }}>
-      <Card>{bar}</Card>
+      {bar}
       <div className="ui-card">
         <DataTable columns={pinnedColumns} rows={shown} selectable={false} pager={false} empty="No campaigns match"
           density="compact" stickyHeader pinnedIdentity scrollLabel="Campaigns" />
