@@ -305,7 +305,7 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
     assert.ok(colourOf(paint, tokensFor('light')), `${selector} has no readable fill`);
   }
   // 5: a drawer group re-points --table-bg and --table-code-bg to the drawer's ground (#811).
-  assert.equal(contexts.length, 5, 'a container re-points a ground token; say what a chip inside it takes');
+  assert.equal(contexts.length, 5, 'a container re-points a ground variable; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
   for (const { file, selector } of grounds) {
     assert.ok(pickFor(selector), `${file}: ${selector} paints a ground and never hands an inline code chip a surface`);
