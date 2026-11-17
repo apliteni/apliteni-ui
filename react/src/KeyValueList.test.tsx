@@ -6,14 +6,17 @@ import { readFileSync } from 'node:fs';
 import { Drawer } from './Drawer';
 import { Modal } from './Modal';
 // @ts-expect-error -- shared CSS token resolver is JavaScript.
-import { tokensFor, substitute } from '../../stories/lib/contrast.js';
+import { tokensFor, substitute, kitCssFor, parseColour, ratio } from '../../stories/lib/contrast.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
+import { WideDrawer } from './KeyValueList.stories';
+import type { ReactElement } from 'react';
 import { Dropdown } from './Dropdown';
 import { SelectField, TextField } from './Field';
 
 afterEach(() => {
   cleanup();
   document.head.querySelectorAll('style[data-kv-test]').forEach(style => style.remove());
+  delete document.documentElement.dataset.theme;
 });
 
 it('groups each term and definition without a drawer list class', () => {
@@ -157,26 +160,39 @@ it.each(['light', 'dark'])('keeps each field label visible when a drawer value h
   expect(labels.map(label => getComputedStyle(label).position)).toEqual(['static', 'static', 'absolute']);
 });
 
-// jsdom resolves no @container, so the panel's width is applied here: the block stays for a
-// panel as wide as its condition and goes for a narrower one. The panel's 1px edge sits
-// inside its width. Where the heading lands in pixels is the browser capture's to show.
-const atDrawerWidth = (css: string, width: number) => {
-  const blocks = [...css.matchAll(/@container ui-drawer \(width >= (\d+)px\) \{([\s\S]*?)\n\}/g)];
-  expect(blocks).toHaveLength(1);
-  return blocks.reduce((sheet, [whole, min, inner]) => sheet.replace(whole, width - 1 >= Number(min) ? inner : ''), css);
+// jsdom resolves no @container, so the test applies it. It reads the panel's container
+// name and side edges for the drawer's edge, and keeps each block of that name whose
+// minimum fits the panel's width less those edges. Where the heading lands in pixels, and
+// the table's own paint, are the browser capture's to show.
+const BLOCK = /@container (ui-drawer[\w-]*) \(width >= (\d+)px\) \{([\s\S]*?)\n\}/g;
+const atDrawerWidth = (css: string, width: number, panel: Element) => {
+  const cs = getComputedStyle(panel);
+  const content = width - parseFloat(cs.borderLeftWidth || '0') - parseFloat(cs.borderRightWidth || '0');
+  const blocks = [...css.matchAll(BLOCK)];
+  expect(blocks.map(([, name]) => name).sort()).toEqual(['ui-drawer', 'ui-drawer-side']);
+  return blocks.reduce((sheet, [whole, name, min, inner]) =>
+    sheet.replace(whole, name === cs.getPropertyValue('container-name') && content >= Number(min) ? inner : ''), css);
 };
-const sectionsAt = (css: string, width: number, theme: string) => {
+// A path in a variable: Vite rewrites `new URL('<literal>', import.meta.url)` to a served URL.
+const KV_CSS = './KeyValueList.css';
+const kvSheet = () => readFileSync(new URL(KV_CSS, import.meta.url), 'utf8');
+const sectionsAt = (width: number, theme: string, edge = 'right') => {
   const palette = tokensFor(theme);
+  const css = `${kitCssFor(theme).css}\n${substitute(kvSheet(), palette)}`;
+  // The light theme's own overrides key on the root's theme, as in the browser.
+  document.documentElement.dataset.theme = theme;
   const style = document.createElement('style');
   style.dataset.kvTest = '';
-  style.textContent = substitute(atDrawerWidth(css, width), palette);
+  style.textContent = css.replace(BLOCK, '');
   document.head.appendChild(style);
   const rows = [{ label: 'Amount', value: '€ 12,480.50' }];
-  const { container } = render(<div className="ui-drawer is-open"><div className="ui-drawer__panel"><div className="ui-drawer__body">
+  const { container } = render(<div className={`ui-drawer ui-drawer--${edge} ui-drawer--lg is-open`}><div className="ui-drawer__panel"><div className="ui-drawer__body">
     <DrawerSection title="Payment"><KeyValueList rows={rows} /></DrawerSection>
     <DrawerSection><KeyValueList rows={rows} /></DrawerSection>
-    <DrawerSection title="Lines"><table className="ui-table"><tbody><tr><td>Fee</td></tr></tbody></table></DrawerSection>
+    <DrawerSection title="Lines"><table className="ui-table ui-table--hover"><thead><tr><th>Item</th></tr></thead><tbody><tr><td>Fee</td></tr></tbody></table></DrawerSection>
   </div></div></div>);
+  const panel = container.querySelector('.ui-drawer__panel')!;
+  style.textContent = atDrawerWidth(css, width, panel);
   const ink = (name: string) => {
     const probe = document.createElement('i');
     probe.style.color = substitute(`var(${name})`, palette);
@@ -187,28 +203,71 @@ const sectionsAt = (css: string, width: number, theme: string) => {
     const cs = getComputedStyle(section);
     const title = section.querySelector('.ui-drawer__section-title');
     const body = section.querySelector(':scope > :not(.ui-drawer__section-title)')!;
+    const table = section.querySelector('.ui-table');
     return {
       side: cs.display === 'grid' && cs.gridTemplateColumns === '104px minmax(0px, 1fr)' && getComputedStyle(body).gridColumnStart === '2',
       gap: title && getComputedStyle(title).marginBottom,
       line: cs.borderTopStyle === 'solid' && `${cs.borderTopWidth} ${cs.borderTopColor === ink('--border-strong') ? 'strong' : cs.borderTopColor === ink('--border') ? 'hairline' : cs.borderTopColor}`,
+      // The table stands on the drawer's ground, and hangs out by its end-cell inset.
+      ...table && {
+        ground: getComputedStyle(table).backgroundColor === getComputedStyle(panel).backgroundColor,
+        hang: hangOf(table, style),
+        hoverStep: hoverStep(table, panel),
+      },
     };
   });
 };
+// The sheet is desugared, so a state attribute stands for :hover. 1.1:1 is the floor: a
+// card's hovered row steps 1.17:1 from the card in dark, and --surface-3 on the drawer 1.04:1.
+const hoverStep = (table: Element, panel: Element) => {
+  const row = table.querySelector('tbody tr') as HTMLElement;
+  row.dataset.uiState = 'hover';
+  const step = ratio(parseColour(getComputedStyle(row.querySelector('td')!).backgroundColor)!, parseColour(getComputedStyle(panel).backgroundColor)!);
+  delete row.dataset.uiState;
+  return step >= 1.1;
+};
+// The contrast resolver gives a variable one value per element context, so it misreads a
+// variable that a table declares and uses on itself. Here the end-cell inset is one marked
+// length, so the table must hang out by the length that pads its first cell.
+const TABLE_CSS = '../../src/styles/table.css';
+const hangOf = (table: Element, style: HTMLStyleElement) => {
+  const resolved = style.textContent;
+  style.textContent = readFileSync(new URL(TABLE_CSS, import.meta.url), 'utf8').replaceAll('var(--cell-edge)', '7px');
+  const hang = [getComputedStyle(table).marginLeft, getComputedStyle(table.querySelector('td')!).paddingLeft];
+  style.textContent = resolved;
+  return hang;
+};
+const TABLE = { ground: true, hang: ['-7px', '7px'], hoverStep: true };
 
 it.each(['light', 'dark'])('puts each heading beside its rows in a 560px drawer, and over a table, in %s', theme => {
-  expect(sectionsAt(drawerSheet(), 560, theme)).toEqual([
+  expect(sectionsAt(560, theme)).toEqual([
     { side: true, gap: '0px', line: false },
     { side: true, gap: null, line: '1px hairline' },
-    { side: false, gap: '8px', line: '2px strong' },
+    { side: false, gap: '8px', line: '2px strong', ...TABLE },
   ]);
 });
 
 it.each(['light', 'dark'])('puts each heading over its rows with a strong line in a 420px drawer in %s', theme => {
-  expect(sectionsAt(drawerSheet(), 420, theme)).toEqual([
+  expect(sectionsAt(420, theme)).toEqual([
     { side: false, gap: '8px', line: false },
     { side: false, gap: null, line: '2px strong' },
-    { side: false, gap: '8px', line: '2px strong' },
+    { side: false, gap: '8px', line: '2px strong', ...TABLE },
   ]);
+});
+
+// A side panel's 1px edge sits inside its width, and a top or bottom panel has none.
+it.each(['right', 'left', 'top', 'bottom'].flatMap(edge => [[edge, 559, false], [edge, 560, true]] as const))(
+  'puts a heading beside its rows in a %s drawer %ipx wide: %s', (edge, width, side) => {
+    expect(sectionsAt(width, 'light', edge).map(section => section.side)).toEqual([side, side, false]);
+  });
+
+// Keep units readable, on the Dense tables page: the unit stands once, smaller, in the
+// column heading, and each figure is the number alone.
+it('names the unit of the wide drawer story\'s amounts in the column heading', () => {
+  const Story = (WideDrawer as { render: () => ReactElement }).render;
+  render(<Story />);
+  expect(screen.getByRole('columnheader', { name: /Amount/ }).querySelector('.ui-value__unit')).toHaveTextContent('EUR');
+  expect([...document.querySelectorAll('tbody td.ui-table__num')].map(cell => cell.textContent)).toEqual(['1,000.00', '240.00']);
 });
 
 it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {

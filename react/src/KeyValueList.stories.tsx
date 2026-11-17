@@ -75,8 +75,8 @@ export const InDrawer: StoryObj = {
   },
 };
 type Line = { name: string; amount: string };
-const lines: Line[] = [{ name: 'Annual subscription', amount: '€ 1,000.00' }, { name: 'Tax', amount: '€ 240.00' }];
-const lineColumns: Column<Line>[] = [{ key: 'name', label: 'Item' }, { key: 'amount', label: 'Amount', num: true }];
+const lines: Line[] = [{ name: 'Annual subscription', amount: '1,000.00' }, { name: 'Tax', amount: '240.00' }];
+const lineColumns: Column<Line>[] = [{ key: 'name', label: 'Item' }, { key: 'amount', label: <>Amount<span className="ui-value__unit">EUR</span></>, num: true }];
 
 // A drawer 560px wide stands each heading beside its rows. The group that holds a table
 // keeps its heading over the table. Below 560px every heading stands over its rows.

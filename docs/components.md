@@ -565,12 +565,14 @@ A drawer is a panel against one edge of the screen. It appears over a scrim. It 
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
 by card:** `DrawerSection` puts a heading with a `<dl>` of label and value pairs. A screen reader
 then hears each label with its value. **Where the heading stands depends on the panel width, not
-on the viewport.** In a drawer 560px wide or more, the heading stands in a 6.5rem column on the
+on the viewport.** The width is the whole panel, on every edge. In a drawer 560px wide or more, the heading stands in a 6.5rem column on the
 left of its rows, and a hairline parts the groups. A group without a heading leaves that column
 empty, so the rows of all groups start at one edge. In a narrower drawer, the heading stands over
 its rows, and a 2px `--border-strong` line parts each group from the group before it. A group
 that holds a `.ui-table` always puts its heading over the table and takes the strong line, because
-the table needs the full width. The value stays beside its label instead of moving to the far
+the table needs the full width. The table stands on the drawer's ground, in light and in dark.
+In a hover table that is not dense or zebra, the default `DataTable`, the first column starts on
+the edge of the group heading. A dense or zebra table keeps its own inset. The value stays beside its label instead of moving to the far
 edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text.
 This alignment happens by itself. There is no setting for it.
 Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay

@@ -82,6 +82,8 @@
   top: 0; bottom: 0;
   width: min(var(--drawer-w), 100vw);
   max-width: 100vw;
+  /* The 1px edge below sits inside the width, so the box a section measures is 1px less. */
+  container-name: ui-drawer-side;
 }
 .ui-drawer--right .ui-drawer__panel {
   right: 0;
@@ -229,9 +231,21 @@
    the column marks where a group starts, so the hairline is enough between groups. A
    group without a heading leaves the column empty, so every group's rows share one edge.
    A group that holds a table keeps its heading over the table, which needs the width.
-   559px is a 560px panel less its 1px edge, which sits inside the container's width.
+   The two blocks are one form. A side panel measures 559px at 560px, less its 1px edge.
+   A top or bottom panel has no side edge, so it measures its full width.
    why: docs/components.md#the-drawer */
-@container ui-drawer (width >= 559px) {
+@container ui-drawer (width >= 560px) {
+  .ui-drawer__section:not(:has(.ui-table)) {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: baseline;
+  }
+  .ui-drawer__section:not(:has(.ui-table)) > .ui-drawer__section-title { margin: 0; overflow-wrap: break-word; }
+  .ui-drawer__section:not(:has(.ui-table)) > :not(.ui-drawer__section-title) { grid-column: 2; }
+  .ui-drawer__section + .ui-drawer__section:not(:has(.ui-table)) { border-top: 1px solid var(--border); }
+}
+@container ui-drawer-side (width >= 559px) {
   .ui-drawer__section:not(:has(.ui-table)) {
     display: grid;
     grid-template-columns: 6.5rem minmax(0, 1fr);
