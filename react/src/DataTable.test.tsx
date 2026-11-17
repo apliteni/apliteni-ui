@@ -597,6 +597,29 @@ it('keeps a pinned sortable header a label that can give way and a caret that ca
   expect(button.querySelector('svg')).toHaveClass('rx-caret');
 });
 
+// #814: `pinnedIdentity` may name a column key, so a date can stand before the
+// pinned identity. `true` keeps column 0; a key pins only the column it names.
+it('pins the column a key names when a date stands before it', () => {
+  type Ledger = { date: string; name: string; clicks: number };
+  const ledgerColumns: Column<Ledger>[] = [
+    { key: 'date', label: 'Date' },
+    { key: 'name', label: 'Name' },
+    { key: 'clicks', label: 'Clicks', num: true },
+  ];
+  const ledgerRows: Ledger[] = [{ date: '2026-09', name: 'A', clicks: 10 }];
+  render(<DataTable columns={ledgerColumns} rows={ledgerRows} pager={false}
+    pinnedIdentity="name" stickyHeader scrollLabel="Ledger" />);
+  // Selectable by default: selection, date, name, clicks.
+  const nameHeader = screen.getByRole('columnheader', { name: 'Name' });
+  const dateHeader = screen.getByRole('columnheader', { name: 'Date' });
+  expect(nameHeader).toHaveClass('ui-table__identity');
+  expect(dateHeader).not.toHaveClass('ui-table__identity');
+  const cells = within(screen.getAllByRole('row')[1]).getAllByRole('cell');
+  expect(cells[2]).toHaveClass('ui-table__identity');
+  expect(cells[1]).not.toHaveClass('ui-table__identity');
+  expect(cells[0]).not.toHaveClass('ui-table__identity');
+});
+
 // The kit gate (src/styles/table-identity.test.js) holds the cell's side of #500:
 // a control in a pinned identity cell is capped, never clipped. This holds the half
 // that lives here — with the label unable to give way, its 231px of text runs over
