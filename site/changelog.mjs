@@ -12,6 +12,9 @@ export const RELEASES = [
       ['added', '`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a status word the ink of its tone with no fill. Use them for a second status beside the badge of a row. In light, warn, info and danger use the new `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink`, which reach 7:1 on a selected row. Part of #814.', ['Badge', 'Table']],
       ['fixed', 'A hover readout in a table cell now wraps its text inside its box. Before, it took the cell\'s one-line rule, so a long name ran out of the box. Part of #814.', ['Tooltip', 'Table']],
       ['fixed', 'A React `Tooltip` readout now opens in the browser\'s top layer. A pinned name cell on a phone no longer cuts it, and a sticky table header no longer covers it. A browser with no popover support keeps the old placement. Part of #814.', ['Tooltip', 'Table']],
+      ['changed', 'A resting check box and radio now have a field\'s fill and a `--muted` edge, at 5.36:1 or more on every ground. Before, a grey fill looked disabled and the edge was 1.52:1. Part of #814.', ['Checkbox', 'Table']],
+      ['changed', 'A focused text link, and words that open a hover readout, get a 6px corner and 4px of room at each side. In a table cell after the first, the band keeps 8px before the name. No word moves. Part of #814.', ['Focus', 'Table']],
+      ['changed', 'A selected row\'s accent wash is lighter in light: 5%, and 8% under the pointer, from 9% and 12%. Dark does not change. Part of #814.', ['Table']],
     ],
   },
   {
