@@ -259,11 +259,11 @@ test('the open search panel does not transition visibility, so the field can tak
 // no (pointer: coarse) rule that reaches the field, which is the second answer that
 // could disagree with the net. #294 A touch rule for the trigger in a form field is
 // not one: the trigger takes no typing, and it is 16px to match the input. #812
-test('the field is 12.5px with a mouse, and this sheet does not size it on touch', async () => {
+test('the field is 13px with a mouse, and this sheet does not size it on touch', async () => {
   const rules = sheet();
   const base = rules.find((r) => r.selectorText === '.ui-dropdown__search-input');
   const resolved = sizingRules(substitute(base.cssText, tokensFor('light')), 'dropdown.css');
-  assert.equal(resolved[0].px, 12.5, 'a mouse keeps the size the rows use');
+  assert.equal(resolved[0].px, 13, 'a mouse keeps the size the rows use');
   const coarse = rules
     .filter((r) => r.media && /\(\s*pointer\s*:\s*coarse\s*\)/.test(r.media.mediaText))
     .flatMap((r) => [...r.cssRules].map((inner) => inner.cssText))

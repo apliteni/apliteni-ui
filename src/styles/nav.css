@@ -183,7 +183,7 @@
   --m-dist: var(--space-1);
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
-.ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
+.ui-nav__item--sub { font-size: var(--text-base); padding: 7px 12px; }
 /* A nested current row takes the plate whole, like a top-level one. It used to
    take neither half — the bar hung back onto the guide hairline and the plate's
    own hairline was switched off so the two would not stack — and a fill with no
@@ -345,7 +345,7 @@
   padding: 11px 14px;
   color: var(--text);
   text-decoration: none;
-  font-size: calc(var(--text-base) - 0.5px);
+  font-size: var(--text-base);
   font-weight: 500;
   border-radius: 10px 10px 0 0;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);

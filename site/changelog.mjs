@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.171.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'The smallest text step, `--text-xs`, is now 12px, not 11px. Badges, pills, key caps, tooltips, units, counts, dropdown descriptions and chart ticks get text 1px larger, and a badge is about 1.6px taller. If your layout needs 11px text, set that size in your own CSS, because the kit has no smaller step. Part of #814.', ['Badge', 'Tooltip', 'Dropdown', 'Chart', 'Command palette']],
+      ['changed', 'Each kit text size is now one step of the `--text-*` scale, with no pixel offset, so a host that changes a step moves every part on it. Small buttons, dropdown triggers and rows, segments, callouts and footer links are 13px. Tabs and nav sub-items are 14.5px, drawer, modal and compact success titles are 15.5px, and the sign-in title and the page title on a phone are 22px. Part of #814.', ['Button', 'Dropdown', 'Segmented', 'Tabs', 'Navigation', 'Drawer', 'Modal', 'AppShell']],
+      ['changed', 'A small `Button` is now 32px tall, with or without a glyph, level with a dropdown trigger. An icon-only small button is 32×32px. A small `Segmented` control keeps its 24px box with 13px text, and inline code is never smaller than 12px. Part of #814.', ['Button', 'Segmented']],
+    ],
+  },
+  {
     v: '0.168.0', date: '2026-11-17',
     changes: [
       ['added', 'A `DataTable` `pinnedIdentity` now also takes a column key, so a date or another column can stand before it and the named column stays pinned. `pinnedIdentity: true` still pins column 0. Part of #814.', ['DataTable']],

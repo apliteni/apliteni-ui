@@ -1085,9 +1085,9 @@ export function resolve(getComputedStyle, el, dim, value) {
 
 /* What this element computes to with `rule`'s own declaration of `dim` taken
  * away, the rule put back before returning — how a gate proves its comparison
- * was capable of failing. .ui-badge declares 11px and the reset's 1.1em over
- * badge.css's font-size: 10px is also 11px, so that assertion agreed with the
- * winner and the loser alike.
+ * was capable of failing. The badge icon's rule declares 11px, and the reset's 1.1em
+ * once also computed to 11px on the badge, so that assertion agreed with the winner
+ * and the loser alike.
  *
  * It only works because resolve() ran first: jsdom throws its computed-style
  * cache away when the DOM changes, never when a declaration inside a rule does,

@@ -40,7 +40,7 @@
 .ui-badge--pending { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
 .ui-badge--neutral { color: var(--text); background: var(--chip-neutral-fill); }
 
-/* Pill: same shape, sentence case, a touch larger — a metadata chip */
+/* Pill: same shape and size, sentence case — a metadata chip */
 .ui-pill {
   display: inline-flex;
   align-items: center;
