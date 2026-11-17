@@ -3,6 +3,7 @@ import { Button } from './primitives/Button';
 import type { Meta, StoryObj } from '@storybook/react';
 import { KeyValueList, DrawerSection } from './KeyValueList';
 import { Drawer } from './Drawer';
+import { DataTable, type Column } from './DataTable';
 import { Modal } from './Modal';
 import { Badge } from './primitives/Badge';
 import { Card } from './primitives/Card';
@@ -69,6 +70,25 @@ export const InDrawer: StoryObj = {
       <Button onClick={() => setOpen(true)}>Open drawer</Button>
       <Drawer open={open} title="Invoice details" onClose={() => setOpen(false)}>
         <DrawerSection title="Invoice">{facts}</DrawerSection>
+      </Drawer>
+    </>;
+  },
+};
+type Line = { name: string; amount: string };
+const lines: Line[] = [{ name: 'Annual subscription', amount: '€ 1,000.00' }, { name: 'Tax', amount: '€ 240.00' }];
+const lineColumns: Column<Line>[] = [{ key: 'name', label: 'Item' }, { key: 'amount', label: 'Amount', num: true }];
+
+// A drawer 560px wide stands each heading beside its rows. The group that holds a table
+// keeps its heading over the table. Below 560px every heading stands over its rows.
+export const WideDrawer: StoryObj = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return <>
+      <Button onClick={() => setOpen(true)}>Open drawer</Button>
+      <Drawer open={open} size="lg" title="Invoice details" onClose={() => setOpen(false)}>
+        <DrawerSection title="Invoice"><KeyValueList rows={rows} /></DrawerSection>
+        <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} /></DrawerSection>
+        <DrawerSection title="Lines"><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} scrollLabel="Lines" /></DrawerSection>
       </Drawer>
     </>;
   },

@@ -36,9 +36,9 @@
 
 **Why:** The drawer already provides the edge and raised surface, so cards add unnecessary boxes.
 
-**Do:** Use three groups, with a heading over each group’s rows and one line between groups.
+**Do:** Use three groups, each with a heading over its rows, or beside them in a wide drawer.
 
-**Don't:** Put each group in a card inside the drawer.
+**Don't:** Put each group in a card.
 
 ## Header and group dividers
 

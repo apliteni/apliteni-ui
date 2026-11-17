@@ -157,6 +157,60 @@ it.each(['light', 'dark'])('keeps each field label visible when a drawer value h
   expect(labels.map(label => getComputedStyle(label).position)).toEqual(['static', 'static', 'absolute']);
 });
 
+// jsdom resolves no @container, so the panel's width is applied here: the block stays for a
+// panel as wide as its condition and goes for a narrower one. The panel's 1px edge sits
+// inside its width. Where the heading lands in pixels is the browser capture's to show.
+const atDrawerWidth = (css: string, width: number) => {
+  const blocks = [...css.matchAll(/@container ui-drawer \(width >= (\d+)px\) \{([\s\S]*?)\n\}/g)];
+  expect(blocks).toHaveLength(1);
+  return blocks.reduce((sheet, [whole, min, inner]) => sheet.replace(whole, width - 1 >= Number(min) ? inner : ''), css);
+};
+const sectionsAt = (css: string, width: number, theme: string) => {
+  const palette = tokensFor(theme);
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = substitute(atDrawerWidth(css, width), palette);
+  document.head.appendChild(style);
+  const rows = [{ label: 'Amount', value: '€ 12,480.50' }];
+  const { container } = render(<div className="ui-drawer is-open"><div className="ui-drawer__panel"><div className="ui-drawer__body">
+    <DrawerSection title="Payment"><KeyValueList rows={rows} /></DrawerSection>
+    <DrawerSection><KeyValueList rows={rows} /></DrawerSection>
+    <DrawerSection title="Lines"><table className="ui-table"><tbody><tr><td>Fee</td></tr></tbody></table></DrawerSection>
+  </div></div></div>);
+  const ink = (name: string) => {
+    const probe = document.createElement('i');
+    probe.style.color = substitute(`var(${name})`, palette);
+    container.appendChild(probe);
+    return getComputedStyle(probe).color;
+  };
+  return [...container.querySelectorAll('.ui-drawer__section')].map(section => {
+    const cs = getComputedStyle(section);
+    const title = section.querySelector('.ui-drawer__section-title');
+    const body = section.querySelector(':scope > :not(.ui-drawer__section-title)')!;
+    return {
+      side: cs.display === 'grid' && cs.gridTemplateColumns === '104px minmax(0px, 1fr)' && getComputedStyle(body).gridColumnStart === '2',
+      gap: title && getComputedStyle(title).marginBottom,
+      line: cs.borderTopStyle === 'solid' && `${cs.borderTopWidth} ${cs.borderTopColor === ink('--border-strong') ? 'strong' : cs.borderTopColor === ink('--border') ? 'hairline' : cs.borderTopColor}`,
+    };
+  });
+};
+
+it.each(['light', 'dark'])('puts each heading beside its rows in a 560px drawer, and over a table, in %s', theme => {
+  expect(sectionsAt(drawerSheet(), 560, theme)).toEqual([
+    { side: true, gap: '0px', line: false },
+    { side: true, gap: null, line: '1px hairline' },
+    { side: false, gap: '8px', line: '2px strong' },
+  ]);
+});
+
+it.each(['light', 'dark'])('puts each heading over its rows with a strong line in a 420px drawer in %s', theme => {
+  expect(sectionsAt(drawerSheet(), 420, theme)).toEqual([
+    { side: false, gap: '8px', line: false },
+    { side: false, gap: null, line: '2px strong' },
+    { side: false, gap: '8px', line: '2px strong' },
+  ]);
+});
+
 it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {
   const style = document.createElement('style');
   style.dataset.kvTest = '';

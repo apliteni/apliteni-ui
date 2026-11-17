@@ -70,6 +70,9 @@
   --drawer-line: 0 0 0 0 transparent;
   box-shadow: var(--drawer-line), var(--elev-drop);
   transition: transform var(--dur-med) var(--ease);
+  /* The box a section measures to choose where its heading stands. Not the viewport:
+     a --panel-md drawer is narrow on any screen. why: docs/components.md#the-drawer */
+  container: ui-drawer / inline-size;
 }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
 
@@ -198,16 +201,17 @@
 }
 
 /* -- Groups and rows ------------------------------------------------------- */
-/* drawerSection(): a heading over label/value rows. The value sits beside its
+/* DrawerSection: a heading with label/value rows. The value sits beside its
    label rather than at the far edge, so nothing has to lead the eye across the
    panel, and rows are held apart by space alone. Group from group is the one
    division inside the body worth a line; the body's padding insets it, so it
-   parts the groups without cutting the panel in two.
+   parts the groups without cutting the panel in two. A heading over its rows is
+   only one step above them, so the line that starts its group is the strong one.
    why: docs/components.md#the-drawer */
 .ui-drawer__section + .ui-drawer__section {
   margin-top: var(--space-6);
   padding-top: var(--space-6);
-  border-top: 1px solid var(--border);
+  border-top: 2px solid var(--border-strong);
 }
 /* An h3, and it opts out of the display face for the reason .ui-drawer__title does.
    why: docs/foundations.md#typefaces */
@@ -220,6 +224,23 @@
      under it in size and weight both, and differ from them by colour alone. */
   font-weight: var(--weight-semibold);
   color: var(--strong);
+}
+/* A drawer --panel-lg wide or more stands each heading in a column beside its rows, and
+   the column marks where a group starts, so the hairline is enough between groups. A
+   group without a heading leaves the column empty, so every group's rows share one edge.
+   A group that holds a table keeps its heading over the table, which needs the width.
+   559px is a 560px panel less its 1px edge, which sits inside the container's width.
+   why: docs/components.md#the-drawer */
+@container ui-drawer (width >= 559px) {
+  .ui-drawer__section:not(:has(.ui-table)) {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    column-gap: var(--space-4);
+    align-items: baseline;
+  }
+  .ui-drawer__section:not(:has(.ui-table)) > .ui-drawer__section-title { margin: 0; overflow-wrap: break-word; }
+  .ui-drawer__section:not(:has(.ui-table)) > :not(.ui-drawer__section-title) { grid-column: 2; }
+  .ui-drawer__section + .ui-drawer__section:not(:has(.ui-table)) { border-top: 1px solid var(--border); }
 }
 .ui-drawer__rows {
   display: grid;

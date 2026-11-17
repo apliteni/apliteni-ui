@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.168.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'In a drawer 560px wide or more, each `DrawerSection` heading now stands in a 6.5rem column on the left of its rows, and a hairline still parts the groups. In a narrower drawer, and in a group that holds a table, the heading stays over its rows, and a 2px `--border-strong` line now parts the group from the group before it. The Drawers guideline permits both forms. Closes #811.', ['Drawer', 'Guidelines']],
+    ],
+  },
+  {
     v: '0.167.0', date: '2026-11-17',
     changes: [
       ['changed', 'In a form field, a `Dropdown` trigger and a `DatePicker` trigger now have the corner, padding and type size of a text input, so they have the same height as the input beside them. A long value stays on one line and ends with an ellipsis. A trigger outside a field, for example in a filter bar, a toolbar or the topbar, keeps the pill. Closes #812.', ['Dropdown', 'DatePicker']],
