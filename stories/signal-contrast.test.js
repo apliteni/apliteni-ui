@@ -241,29 +241,41 @@ test('the status-word gate measures every tone on every row ground', () => {
   assert.ok(STATUS_ACCENTS.length >= 4, `only ${STATUS_ACCENTS.length} accents discovered`);
 });
 
+/** Every status word under the floor in one theme and accent, and how many pairs were read. */
+function statusFailures(theme, accent, words = STATUS_WORDS) {
+  const failures = [];
+  let measured = 0;
+  // The token's own --table-bg, and the --surface a card hands its table.
+  for (const tableBg of [sharedTokensFor(theme, accent).get('--table-bg'), 'var(--surface)']) {
+    const vars = new Map(sharedTokensFor(theme, accent)).set('--table-bg', tableBg);
+    const row = colourOf(tableBg, vars);
+    const grounds = [{ state: 'plain', rgb: row }, ...WASHES.map((w) => ({ state: w.state, rgb: compositeRgba(colourOf(w.fill, vars), row) }))];
+    for (const { selector, ink } of words) {
+      for (const ground of grounds) {
+        const r = ratio(compositeRgba(colourOf(ink, vars), ground.rgb), ground.rgb);
+        measured++;
+        if (r < AA) failures.push(`${selector} on a ${ground.state} row over ${tableBg}: ${show(r)}:1`);
+      }
+    }
+  }
+  return { failures, measured };
+}
+
 for (const theme of ['dark', 'light']) {
   for (const accent of STATUS_ACCENTS) {
     test(`every status word clears WCAG AA on a plain and a selected row — ${theme} ${accent}`, () => {
-      const failures = [];
-      let measured = 0;
-      // The token's own --table-bg, and the --surface a card hands its table.
-      for (const tableBg of [sharedTokensFor(theme, accent).get('--table-bg'), 'var(--surface)']) {
-        const vars = new Map(sharedTokensFor(theme, accent)).set('--table-bg', tableBg);
-        const row = colourOf(tableBg, vars);
-        const grounds = [{ state: 'plain', rgb: row }, ...WASHES.map((w) => ({ state: w.state, rgb: compositeRgba(colourOf(w.fill, vars), row) }))];
-        for (const { selector, ink } of STATUS_WORDS) {
-          for (const ground of grounds) {
-            const r = ratio(compositeRgba(colourOf(ink, vars), ground.rgb), ground.rgb);
-            measured++;
-            if (r < AA) failures.push(`${selector} on a ${ground.state} row over ${tableBg}: ${show(r)}:1`);
-          }
-        }
-      }
-      assert.equal(measured, STATUS_WORDS.length * (WASHES.length + 1) * 2);
+      const { failures, measured } = statusFailures(theme, accent);
+      // Five tones on three grounds over two row surfaces: fewer means a sweep lost its sheet.
+      assert.ok(measured >= 30, `measured ${measured} status-word pairs, not 30`);
       assert.deepEqual(failures, []);
     });
   }
 }
+
+test('the status-word gate rejects a word painted in its tone fill', () => {
+  const words = STATUS_WORDS.map((w) => (w.selector === '.ui-status--warn' ? { ...w, ink: 'var(--chip-warn-fill)' } : w));
+  assert.match(statusFailures('light', 'default', words).failures.join('\n'), /\.ui-status--warn on a plain row/);
+});
 
 /* ---- the glows stay tints of their own token -----------------------------
  * A glow is its own colour at low alpha — nothing more. The same hue is spent at
