@@ -3,6 +3,7 @@
  *   .ui-badge        — status chip (live / soon / archive / neutral)
  *   .ui-tag          — soft solid label
  *   .ui-dot          — leading status dot (pulses when .is-live)
+ *   .ui-status--*    — status word: tone ink, no fill
  * ========================================================================== */
 
 .ui-badge {
@@ -39,6 +40,14 @@
 .ui-badge--success { color: var(--chip-success-ink); background: var(--chip-success-fill); }
 .ui-badge--pending { color: var(--chip-warn-ink); background: var(--chip-warn-fill); }
 .ui-badge--neutral { color: var(--text); background: var(--chip-neutral-fill); }
+
+/* Status word: the tone's ink with no fill, for a second status in a row beside the
+   record's badge. A word, not a change value, so not .ui-delta (#814). */
+.ui-status--success { color: var(--chip-success-ink); }
+.ui-status--danger { color: var(--chip-danger-ink); }
+.ui-status--warn { color: var(--chip-warn-ink); }
+.ui-status--info { color: var(--chip-info-ink); }
+.ui-status--neutral { color: var(--text); }
 
 /* Pill: same shape, sentence case, a touch larger — a metadata chip */
 .ui-pill {

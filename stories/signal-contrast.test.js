@@ -16,6 +16,7 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { SOLID_STROKE, VIEWBOX } from './lib/glyph-stroke.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
+import { colourOf, composite as compositeRgba, ratio, tokensFor as sharedTokensFor } from './lib/contrast.js';
 
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
@@ -214,6 +215,52 @@ for (const theme of ['dark', 'light']) {
         + 'Either point it at the deepened --chip-*-ink / --chip-*-fill pair for its\n'
         + 'family, or move the signal token itself — but do not leave it here.',
       );
+    });
+  }
+}
+
+/* ---- status words on a table row, under every accent -----------------------
+ * A status word is tone ink with no fill, read in a table row (#814). The row is
+ * --table-bg, or the --surface a card gives it, and a checked row of a row table takes an
+ * accent wash, so every accent is a separate ground. The tones and the washes are
+ * discovered from the sheets. Limits: this reads tokens, not a render, so it does
+ * not see a consumer's own row fill; the walk in react/src/contrast-walk.tsx
+ * measures the rendered story under the default accent only. */
+const STATUS_WORDS = [...sourceOf('../src/styles/badge.css').matchAll(RULE)]
+  .map(([, sel, body]) => ({ selector: sel.trim(), ink: /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim() }))
+  .filter((r) => /^\.ui-status--[\w-]+$/.test(r.selector) && r.ink);
+const WASHES = [...sourceOf('../src/styles/table.css').matchAll(RULE)]
+  .filter(([sel, , body]) => sel.includes('.ui-table__selection :checked') && /background\s*:/.test(body))
+  .map(([, sel, body]) => ({ state: /:hover/.test(sel) ? 'selected, hover' : 'selected', fill: /background\s*:\s*([^;]+)/.exec(body)[1].trim() }));
+const STATUS_ACCENTS = ['default', ...new Set([...read('../src/tokens/accents.css').matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]))];
+
+test('the status-word gate measures every tone on every row ground', () => {
+  assert.deepEqual(STATUS_WORDS.map((r) => r.selector).sort(),
+    ['.ui-status--danger', '.ui-status--info', '.ui-status--neutral', '.ui-status--success', '.ui-status--warn']);
+  assert.deepEqual(WASHES.map((w) => w.state).sort(), ['selected', 'selected, hover'], 'the selected washes were not found in table.css');
+  assert.ok(STATUS_ACCENTS.length >= 4, `only ${STATUS_ACCENTS.length} accents discovered`);
+});
+
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`every status word clears WCAG AA on a plain and a selected row — ${theme} ${accent}`, () => {
+      const failures = [];
+      let measured = 0;
+      // The token's own --table-bg, and the --surface a card hands its table.
+      for (const tableBg of [sharedTokensFor(theme, accent).get('--table-bg'), 'var(--surface)']) {
+        const vars = new Map(sharedTokensFor(theme, accent)).set('--table-bg', tableBg);
+        const row = colourOf(tableBg, vars);
+        const grounds = [{ state: 'plain', rgb: row }, ...WASHES.map((w) => ({ state: w.state, rgb: compositeRgba(colourOf(w.fill, vars), row) }))];
+        for (const { selector, ink } of STATUS_WORDS) {
+          for (const ground of grounds) {
+            const r = ratio(compositeRgba(colourOf(ink, vars), ground.rgb), ground.rgb);
+            measured++;
+            if (r < AA) failures.push(`${selector} on a ${ground.state} row over ${tableBg}: ${show(r)}:1`);
+          }
+        }
+      }
+      assert.equal(measured, STATUS_WORDS.length * (WASHES.length + 1) * 2);
+      assert.deepEqual(failures, []);
     });
   }
 }

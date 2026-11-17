@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.169.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'A badge in a table cell is now 19px high, not 24px. A dense row stays 38px, and a badge outside a table does not change. Part of #814.', ['Badge', 'Table']],
+      ['added', '`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a status word the ink of its tone with no fill. Use them for a second status beside the badge of a row. Part of #814.', ['Badge', 'Table']],
+      ['fixed', 'A hover readout in a table cell now wraps its text inside its box. Before, it took the cell\'s one-line rule, so a long name ran out of the box. Part of #814.', ['Tooltip', 'Table']],
+    ],
+  },
+  {
     v: '0.168.0', date: '2026-11-17',
     changes: [
       ['added', 'A `DataTable` `pinnedIdentity` now also takes a column key, so a date or another column can stand before it and the named column stays pinned. `pinnedIdentity: true` still pins column 0. Part of #814.', ['DataTable']],

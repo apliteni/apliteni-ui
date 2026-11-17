@@ -36,6 +36,9 @@
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.45;
+  /* A host's one-line rule, such as a table cell's, must not reach the readout: the full
+     text of a cut cell wraps inside the box. why: the Hover readouts page, #814 */
+  white-space: normal;
   color: var(--text);
   /* The readout covers the marks beside the one it describes. Were it a hover
      target it would take the pointer, uncover the mark, lose the pointer and

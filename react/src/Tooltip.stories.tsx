@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Tooltip } from './Tooltip';
+import { DataTable } from './DataTable';
+import { Card } from './primitives/Card';
 
 function Example({
   state = 'closed',
@@ -53,3 +55,25 @@ export const ReducedMotion: Story = {
 export const Structured: Story = {
   render: () => <Example state="hover" structured />,
 };
+
+// The full name of a payee whose list shows a short name: a table cell is one line, and the
+// readout wraps inside its box (#814). Keyboard focus opens it at once.
+const PAYEES = [
+  { name: 'Kestrel Print Co.', full: '', date: '2026-10-07' },
+  { name: 'Meridian Coastal Logistics', full: 'Meridian Coastal Logistics and Cold Storage Cooperative of the Northern Ports', date: '2026-10-12' },
+  { name: 'Orchard Lane Café', full: '', date: '2026-10-13' },
+];
+function InTable() {
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => { root.current!.querySelector<HTMLElement>('.ui-focusable')!.focus(); }, []);
+  return <div ref={root} style={{ maxWidth: 720 }}>
+    <Card title="Payees">
+      <DataTable selectable={false} pager={false} density="dense" rows={PAYEES} scrollLabel="Payees"
+        columns={[
+          { key: 'name', label: 'Payee', render: (r) => (r.full ? <Tooltip text={r.full}>{r.name}</Tooltip> : r.name) },
+          { key: 'date', label: 'Date' },
+        ]} />
+    </Card>
+  </div>;
+}
+export const InTableCell: Story = { render: () => <InTable /> };

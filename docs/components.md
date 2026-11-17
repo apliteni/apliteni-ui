@@ -604,7 +604,8 @@ the place of anything else on the page.** A closed readout has no box, so it can
 scroll region that holds it. There is one element per host. It is placed absolutely
 and takes no pointer events. `.ui-tip-host` marks the box it is placed against. The readout flips
 or slides only as far as needed to stay inside the viewport and every ancestor whose overflow
-clips. **What it says is text**, written with `textContent` and never parsed. Focus on a mark shows
+clips. **What it says is text**, written with `textContent` and never parsed. The text wraps inside
+the readout's box, also in a table cell that keeps its text on one line. Focus on a mark shows
 the readout and describes the mark through `aria-describedby`. **Escape dismisses every readout
 the kit is showing**. **Under a coarse pointer the tap is the switch**, and the opening tap is
 captured. This means a chart that drills down on a bar does not drill down on the tap that asked
@@ -660,7 +661,8 @@ window's. In a flex row or an `auto` grid track, you give it one:
 | Open | 66rem | 50rem | 32rem | 15rem |
 
 Below 14rem, band and tile values use the next smaller type rank. Open values step down below 15rem.
-Longer values remain the caller's responsibility.
+Longer values remain the caller's responsibility. Totals that are the sum of a list go in the
+table's footer rows, not in a stat band.
 
 A band can use `basisId` to reference comparison text before the figures. An explicit `basis` takes precedence.
 When a period control already states the window, omit a caption that repeats it, including for totals without changes.
@@ -680,7 +682,7 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. On a dense hover table, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends.
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. On a dense hover table, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends. A dense table marks a selected row with its check box only, with no wash, because a round hover with selected rows looks bad.
 Keyboard focus keeps its ring, and a landed row keeps its own mark. On a zebra or dense table, `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
@@ -695,7 +697,13 @@ inside a cell uses the row's ink, gets an underline on hover, and uses the share
 explicit judgement. **Colour never supplies the sign.** **Every body and header cell aligns its
 content to the top**, so when one cell wraps, the other values stay level with its first line. A
 React sort mark stands on the first line of a wrapped label. A badge, a logo, a selection box or
-an icon button in a cell stays level with the text beside it.
+an icon button in a cell stays level with the text beside it. A badge in a cell is 19px high,
+against 24px elsewhere, and never makes its row taller.
+
+Use a badge for the status of the record. Use an ink word for a second status in the same row.
+`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a word the ink of
+its tone with no fill. Each one is at least 4.5:1 on a plain or a selected row, in both themes
+and under every accent.
 
 **A hover table that is neither zebra nor dense is a row table.** Its body rows have no lines
 and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
@@ -728,7 +736,8 @@ composed into a cell.
 
 **Below 720px a pinned identity cell keeps its content on one line**, capped at
 `--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
-`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
+`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. A table with a
+selection column leaves less room on a phone. Lower the cap there. The whole text stays in
 the markup, so the accessible name is unchanged and the company link remains the disclosure. The
 decorative logo is not drawn there. A sub-line stays running text, which is a rule in
 [Dense tables](../guidelines/dense-tables.md). **Focusing a link inside a sub-line draws the band
