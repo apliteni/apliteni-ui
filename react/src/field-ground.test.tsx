@@ -79,8 +79,9 @@ const THEMES = ['dark', 'light'] as const;
 // each of its four groups.
 // Then the payouts search field in the four Sign In session stories, and the email
 // and password fields in the Sign In Default and Provider error stories (#799).
+// Then the text input in the Form Row and Form Row Long Value stories (#812).
 // Move this count with the specimens.
-const FIELD_COUNT = 177;
+const FIELD_COUNT = 179;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -289,7 +290,7 @@ describe('field ground: React coverage', () => {
   // matching, or a story that stopped rendering its field, would otherwise leave
   // the gate green over nothing. Move the number with the specimens that moved.
   //
-  // Fields 41, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
+  // Fields 43, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
   // Drawer 2, DataTable 1, File drop 1.
   it('found the fields the catalogue renders, in both themes', () => {
     for (const theme of THEMES) {

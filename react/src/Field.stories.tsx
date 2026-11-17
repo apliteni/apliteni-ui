@@ -4,6 +4,7 @@ import { Field, TextField, TextArea, SelectField, FileField } from './Field';
 import { Card } from './primitives/Card';
 import { Checkbox, CheckList } from './Checkbox';
 import { Dropdown } from './Dropdown';
+import { DatePicker } from './DatePicker';
 
 // Every specimen sits on the card, for the reason the vanilla Inputs gallery gives
 // since #556: a field's own paint IS --surface, so on the page ground an inert one
@@ -78,3 +79,22 @@ export const DropdownControl: StoryObj = { render: () => onCard(<div style={{ di
   <Field label="Owner" hint="The person who answers for this project.">{control => <Dropdown {...control} variant="select" items={OWNERS} value="Avery Example" />}</Field>
   <Field label="Reviewer" error="That option is no longer available. Choose another.">{control => <Dropdown {...control} variant="select" items={OWNERS} placeholder="Choose a reviewer" />}</Field>
 </div>) };
+// A text input, a dropdown and a date picker side by side: in a field all three take
+// the input's corner and height. #812
+// Full screen like TextFields, so the centred layout does not shrink the row to one column.
+const formRow = (fields: ReactNode) => <div style={{ padding: 'var(--space-10) var(--space-4)' }}><div style={{ maxWidth: 'calc(var(--panel-lg) + var(--space-6) * 2)' }}>{onCard(<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))', gap: 'var(--space-5)' }}>
+  {fields}
+</div>)}</div></div>;
+export const FormRow: StoryObj = { parameters: { layout: 'fullscreen' }, render: () => formRow(<>
+  <TextField label="Task" defaultValue="Pay the studio invoice" />
+  <Field label="Owner">{control => <Dropdown {...control} variant="select" items={OWNERS} value="Avery Example" selectedValue="avery" />}</Field>
+  <Field label="Due">{({ id }) => <DatePicker id={id} mode="day" defaultValue="2026-11-20" />}</Field>
+  <Field label="Reviewer">{control => <Dropdown {...control} variant="select" items={OWNERS} placeholder="Choose a reviewer" disabled />}</Field>
+</>) };
+// A long value keeps one line and ends with an ellipsis, so the trigger stays as high as
+// the input beside it. #812
+const OFFICES = [{ label: 'Northwind Studio, design and print office, third floor', value: 'northwind' }];
+export const FormRowLongValue: StoryObj = { parameters: { layout: 'fullscreen' }, render: () => formRow(<>
+  <TextField label="Task" defaultValue="Pay the studio invoice" />
+  <Field label="Office">{control => <Dropdown {...control} variant="select" items={OFFICES} value={OFFICES[0].label} selectedValue="northwind" />}</Field>
+</>) };

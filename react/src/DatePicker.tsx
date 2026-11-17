@@ -325,7 +325,8 @@ export function DatePicker({
       if (!got) return;
       el.style.setProperty('--ui-dropdown-ceiling', got.max > 0 ? `${got.max}px` : '');
       if (got.width > got.max) got = dropdownViewportFit(el) ?? got;
-      el.style.translate = got.shift ? `${got.shift}px` : '';
+      el.style.marginLeft = got.shift ? `${got.shift}px` : '';
+      el.style.marginRight = got.shift ? `${-got.shift}px` : '';
     };
     fit();
     const ro = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(fit) : null;

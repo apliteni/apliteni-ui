@@ -1402,7 +1402,7 @@ function laidOut(where: { panelLeft: number; panelWidth?: number; view?: number 
   // trigger — the move that resizes nothing is half of this rule.
   spy.mockImplementation(function box(this: Element) {
     const panel = this.classList.contains('ui-dropdown__panel');
-    const shift = panel ? parseFloat((this as HTMLElement).style.translate) || 0 : 0;
+    const shift = panel ? parseFloat((this as HTMLElement).style.marginLeft) || 0 : 0;
     const left = panel ? where.panelLeft + shift : 0;
     const width = panel ? (where.panelWidth ?? 240) : 96;
     return {
@@ -1419,7 +1419,7 @@ it('a shut panel over the edge of the view is brought back inside it', () => {
   const spy = laidOut({ panelLeft: -136 });
   const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" align="end" />);
   const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
-  expect(panel.style.translate).toBe('144px');
+  expect(panel.style.marginLeft).toBe('144px');
   expect(panel.getBoundingClientRect().left).toBe(8);
   spy.mockRestore();
 });
@@ -1427,7 +1427,7 @@ it('a shut panel over the edge of the view is brought back inside it', () => {
 it('a panel with room keeps the edge align asked for', () => {
   const spy = laidOut({ panelLeft: 40, view: 1280 });
   const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Actions" />);
-  expect(container.querySelector<HTMLElement>('.ui-dropdown__panel')!.style.translate).toBe('');
+  expect(container.querySelector<HTMLElement>('.ui-dropdown__panel')!.style.marginLeft).toBe('');
   spy.mockRestore();
 });
 
@@ -1436,10 +1436,10 @@ it('opening asks again, so a panel opened after a resize is fitted to the view i
   const spy = laidOut({ panelLeft: 200 });
   const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Actions" />);
   const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
-  expect(panel.style.translate).toBe('-73px');
+  expect(panel.style.marginLeft).toBe('-73px');
   Object.defineProperty(document.documentElement, 'clientWidth', { value: 1280, configurable: true });
   await user.click(container.querySelector('.ui-dropdown__trigger')!);
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   spy.mockRestore();
 });
 
@@ -1459,11 +1459,11 @@ it('a trigger moved by its row, with nothing resized, is followed', async () => 
   );
   const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
   await user.click(container.querySelector('.ui-dropdown__trigger')!);
-  expect(panel.style.translate).toBe('144px');
+  expect(panel.style.marginLeft).toBe('144px');
   at.panelLeft = 110;
   container.firstElementChild!.setAttribute('style', 'display:flex;justify-content:flex-end');
   await settled();
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   expect(panel.getBoundingClientRect().left).toBe(110);
   spy.mockRestore();
 });
@@ -1480,7 +1480,7 @@ it('a panel shut after its anchor moved is fitted on the way out', async () => {
   await user.click(trigger);
   // A shut panel is laid out, so a stale shift goes on widening the page: #572's
   // review measured one left at 237.6…477.6 on a 390px screen with nothing open.
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   spy.mockRestore();
 });
 
@@ -1491,11 +1491,11 @@ it('an ancestor scrolled sideways moves the open panel with the trigger', async 
   const { container } = render(<Dropdown items={[{ label: 'Settings' }]} triggerContent="Period" />);
   const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
   await user.click(container.querySelector('.ui-dropdown__trigger')!);
-  expect(panel.style.translate).toBe('-118px');
+  expect(panel.style.marginLeft).toBe('-118px');
   // The scroll changes no style and resizes nothing; only the coordinates move.
   at.panelLeft = 10;
   window.dispatchEvent(new Event('scroll'));
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   expect(panel.getBoundingClientRect().left).toBe(10);
   spy.mockRestore();
 });
@@ -1516,13 +1516,13 @@ it('a sibling text node that grows moves the trigger, and the panel follows', as
   row.insertBefore(text, row.firstChild);
   const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
   await user.click(container.querySelector('.ui-dropdown__trigger')!);
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   // A longer run of text pushes the trigger along the row with every box the fit
   // reads the same size.
   at.panelLeft = 234;
   text.data = 'a'.repeat(39);
   await settled();
-  expect(panel.style.translate).toBe('-92px');
+  expect(panel.style.marginLeft).toBe('-92px');
   expect(panel.getBoundingClientRect().right).toBe(382);
   spy.mockRestore();
 });
@@ -1540,11 +1540,11 @@ it('a trigger slid by a transition is fitted where the motion stops', async () =
      not the one that goes stale. */
   dd.setAttribute('style', 'transition: transform 200ms linear; transform: translateX(220px)');
   await settled();
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   // Where the motion leaves it, reported by the end event and by nothing else.
   at.panelLeft = 228;
   dd.dispatchEvent(new Event('transitionend', { bubbles: true }));
-  expect(panel.style.translate).toBe('-86px');
+  expect(panel.style.marginLeft).toBe('-86px');
   spy.mockRestore();
 });
 
@@ -1562,7 +1562,7 @@ it('a motion whose end event never comes is answered by a timer', async () => {
   at.panelLeft = 228;
   // SETTLE_MS is 450: past --dur-slow, the longest motion the kit ships.
   await new Promise((done) => { setTimeout(done, 560); });
-  expect(panel.style.translate).toBe('-86px');
+  expect(panel.style.marginLeft).toBe('-86px');
   spy.mockRestore();
 });
 
@@ -1577,7 +1577,7 @@ it('a menu unmounted mid-motion leaves no timer to answer with', async () => {
   // Where the motion would have left it. Nothing is listening for it any more.
   at.panelLeft = 228;
   await new Promise((done) => { setTimeout(done, 560); });
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   spy.mockRestore();
 });
 
@@ -1612,7 +1612,7 @@ it('a move is news to every menu once, and no menu answers another menu', async 
 
   // And a write of the shape a fit's own answer has: news to nobody.
   const settledAt = fits();
-  panels[0].style.translate = '5px';
+  panels[0].style.marginLeft = '5px';
   await settled();
   await settled();
   expect(fits()).toBe(settledAt);
@@ -1645,7 +1645,7 @@ it('a row longer than the view is bounded, and the shift measured from the bound
   // second measurement is the one that has to answer for the narrowed panel.
   at.panelWidth = 374;
   window.dispatchEvent(new Event('resize'));
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   expect(panel.getBoundingClientRect().right).toBe(382);
   spy.mockRestore();
 });
@@ -1663,7 +1663,7 @@ it('a panel in a filter row is left to the row that bounds it', () => {
     </div>,
   );
   const panel = container.querySelector<HTMLElement>('.ui-dropdown__panel')!;
-  expect(panel.style.translate).toBe('');
+  expect(panel.style.marginLeft).toBe('');
   expect(panel.style.getPropertyValue('--ui-dropdown-ceiling')).toBe('');
   spy.mockRestore();
 });

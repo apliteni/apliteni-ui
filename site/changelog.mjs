@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.167.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'In a form field, a `Dropdown` trigger and a `DatePicker` trigger now have the corner, padding and type size of a text input, so they have the same height as the input beside them. A long value stays on one line and ends with an ellipsis. A trigger outside a field, for example in a filter bar, a toolbar or the topbar, keeps the pill. Closes #812.', ['Dropdown', 'DatePicker']],
+      ['fixed', 'A `Dropdown` or `DatePicker` panel that moves to stay in view no longer leaves the page wider in Chromium 158. The panel now moves by its inline `margin-left` and `margin-right`, not by `translate`, so a host style on those margins is replaced while the panel is moved. Part of #812.', ['Dropdown', 'DatePicker']],
+      ['fixed', 'On a touch phone, a tap on the last pixel of a control in the `AppShell` band, such as a notification bell, no longer changes the theme. A toolbar in a table cell no longer makes its row taller. Part of #812.', ['AppShell', 'Table']],
+    ],
+  },
+  {
     v: '0.166.0', date: '2026-11-12',
     changes: [
       ['changed', 'In a `Toast` and in a `Dropdown` row with a description, the glyph and the trailing parts now align with the first line of text, not with the middle of the block. A one-line toast does not change. Part of #798.', ['Toast', 'Dropdown']],
