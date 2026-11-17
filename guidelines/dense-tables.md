@@ -8,9 +8,11 @@
 
 **Rule:** Put tables on a white surface in light mode and the base canvas in dark mode.
 
-**Do:** Mark a hovered row with an inset grey fill that leaves room at both ends of the row.
+**Do:** Mark a hovered row with an inset grey fill, with room at both ends.
 
 **Don't:** Add a grey zebra.
+
+**Except:** A table in a card or drawer group stands on that surface.
 
 ## Choose density without shrinking type
 
