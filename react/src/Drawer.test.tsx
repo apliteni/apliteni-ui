@@ -293,6 +293,29 @@ it('Escape with a Tooltip open closes only the Tooltip', async () => {
   expect(closeDrawer).toHaveBeenCalledTimes(1);
 });
 
+// #814 review round 1: the readout's document keydown registered when the Tooltip
+// mounted. A Tooltip mounted after an already-open Drawer registered after the dialog
+// stack's bubble listener, so the Drawer closed before the readout marked the Escape.
+// The readout's keydown now listens in the capture phase, ahead of the stack whatever
+// the mount order.
+it('Escape closes only a Tooltip that mounted after its open Drawer', async () => {
+  const closeDrawer = vi.fn();
+  const view = render(<Drawer open title="Record" onClose={closeDrawer} />);
+  view.rerender(
+    <Drawer open title="Record" onClose={closeDrawer}>
+      <Tooltip text="Updated daily">Balance</Tooltip>
+    </Drawer>,
+  );
+  const tip = screen.getByRole('tooltip');
+  act(() => screen.getByText('Balance').focus());
+  expect(tip).toHaveClass('is-open');
+  await userEvent.keyboard('{Escape}');
+  expect(tip).not.toHaveClass('is-open');
+  expect(closeDrawer).not.toHaveBeenCalled();
+  await userEvent.keyboard('{Escape}');
+  expect(closeDrawer).toHaveBeenCalledTimes(1);
+});
+
 it('Tab moves between the fields of a Modal opened over a Drawer, and wraps inside it', async () => {
   render(
     <Drawer open title="Record" onClose={noop}>

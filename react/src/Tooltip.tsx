@@ -31,7 +31,9 @@ type DocHandlers = {
 };
 
 const DOC_EVENTS = ['pointerdown', 'pointercancel', 'click', 'keydown', 'touchend'] as const;
-const CAPTURED = new Set<string>(['pointerdown', 'pointercancel']);
+// keydown is captured so an open readout marks Escape before the dialog stack's
+// bubble listener, whatever mounted first. why: docs/components.md#the-drawer
+const CAPTURED = new Set<string>(['pointerdown', 'pointercancel', 'keydown']);
 const wirings = new WeakMap<Document, { members: Set<DocHandlers>; off(): void }>();
 
 function wireDocument(doc: Document, handlers: DocHandlers) {
