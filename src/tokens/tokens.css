@@ -653,6 +653,9 @@
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--surface); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th),
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { --code-bg: var(--table-bg); }
+/* A hovered row in a drawer group takes --surface in dark, so a chip there keeps the page. */
+.ui-drawer .ui-drawer__section .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--bg); }
+:where(:root[data-theme="light"]) .ui-drawer .ui-drawer__section .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--surface); }
 .ui-card--accent,
 .ui-card--live,
 .ui-snippet--reveal { --code-bg: var(--surface); }
