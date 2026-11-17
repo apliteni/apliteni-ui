@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs';
 import { SOLID_STROKE, VIEWBOX } from './lib/glyph-stroke.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 import { colourOf, composite as compositeRgba, ratio, tokensFor as sharedTokensFor } from './lib/contrast.js';
+import { ACCENTS as STATUS_ACCENTS } from './lib/accessibility-walks.js';
 
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
@@ -232,7 +233,6 @@ const STATUS_WORDS = [...sourceOf('../src/styles/badge.css').matchAll(RULE)]
 const WASHES = [...sourceOf('../src/styles/table.css').matchAll(RULE)]
   .filter(([sel, , body]) => sel.includes('.ui-table__selection :checked') && /background\s*:/.test(body))
   .map(([, sel, body]) => ({ state: /:hover/.test(sel) ? 'selected, hover' : 'selected', fill: /background\s*:\s*([^;]+)/.exec(body)[1].trim() }));
-const STATUS_ACCENTS = ['default', ...new Set([...read('../src/tokens/accents.css').matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]))];
 
 test('the status-word gate measures every tone on every row ground', () => {
   assert.deepEqual(STATUS_WORDS.map((r) => r.selector).sort(),
