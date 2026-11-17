@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { markup } from '../../stories/lib/react-markup.js';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 // The browser half's switches, read from the environment.
 const { env } = process;
@@ -55,7 +56,7 @@ function declarations(css, selector, media = null) {
     body = body.replace(/@media[^{]*\{[\s\S]*?\n\}/g, '');
   }
   for (const m of body.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    if (m[1].split(',').map((s) => s.trim().replace(/\s+/g, ' ')).includes(selector)) {
+    if (splitSelectorList(m[1]).map((s) => s.trim().replace(/\s+/g, ' ')).includes(selector)) {
       return Object.fromEntries([...m[2].matchAll(/([\w-]+)\s*:\s*([^;]+)/g)].map((d) => [d[1], resolve(d[2].trim())]));
     }
   }
