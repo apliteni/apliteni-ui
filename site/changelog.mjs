@@ -11,6 +11,9 @@ export const RELEASES = [
       ['added', '`SearchField` takes `size="sm"` for a toolbar above a dense table: 32px high with 13px text to a mouse, and the full 46px field with 16px text on a touch screen. Its toolbar and filter bar follow it to 32px, and the field stops at 320px. `TextField` and `SelectField` keep one size. Part of #822.', ['SearchField', 'FilterBar']],
       ['fixed', 'The leading glyph of every field with a glyph sits on the centre of the text and the caret, at every size. It sat 2px low. A dropdown trigger\'s text now shares a baseline with a small button. Part of #826.', ['SearchField', 'TextField', 'Dropdown']],
       ['fixed', 'On a touch screen, a dropdown trigger in a toolbar is 40px high, level with a filter chip. It stayed 32px. Part of #822.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.175.1', date: '2026-11-18',
     changes: [
       ['changed', 'The components page now says to put a button and a field that share a row in `.ui-toolbar`, so that they have the same top and bottom edge. Part of #825.', ['Toolbar']],
