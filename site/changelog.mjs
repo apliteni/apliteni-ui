@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.175.2', date: '2026-11-18',
+    changes: [
+      ['fixed', 'A pointer on a row of the top bar\'s account menu now shows only a fill, with no square edge. Keyboard focus draws the ring inside the row, on its corner, clear of the divider and the panel edge. The version menu rows take the same ring. Refs #824.', ['TopBar']],
+      ['fixed', 'In forced colours, a menu separator is a visible line again.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.175.1', date: '2026-11-18',
     changes: [
       ['changed', 'The components page now says to put a button and a field that share a row in `.ui-toolbar`, so that they have the same top and bottom edge. Part of #825.', ['Toolbar']],
