@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Tooltip } from './Tooltip';
+import { DataTable } from './DataTable';
+import { Card } from './primitives/Card';
+import { useTableFilters } from '../../stories/_table-filters';
 
 function Example({
   state = 'closed',
@@ -53,3 +56,27 @@ export const ReducedMotion: Story = {
 export const Structured: Story = {
   render: () => <Example state="hover" structured />,
 };
+
+// The full name of a payee whose list shows a short name: a table cell is one line, and the
+// readout wraps inside its box (#814). Keyboard focus opens it at once. On a phone the pinned
+// name cell is narrower than the readout, and the readout rises over the cell.
+const PAYEES = [
+  { name: 'Kestrel Print Co.', full: '', date: '2026-10-07' },
+  { name: 'Meridian Coastal Logistics', full: 'Meridian Coastal Logistics and Cold Storage Cooperative of the Northern Ports', date: '2026-10-12' },
+  { name: 'Orchard Lane Café', full: '', date: '2026-10-13' },
+];
+function InTable() {
+  const { bar, shown } = useTableFilters(PAYEES, { search: 'Search payees', placeholder: 'Payee', label: 'Payee filters', text: (r) => r.name, facets: [] });
+  return <div className="ui-card-stack">
+    <Card>{bar}</Card>
+    <Card title="Payees">
+      <DataTable selectable={false} pager={false} density="dense" pinnedIdentity rows={shown} scrollLabel="Payees"
+        columns={[
+          { key: 'name', label: 'Payee', render: (r) => (r.full ? <Tooltip text={r.full}>{r.name}</Tooltip> : r.name) },
+          { key: 'date', label: 'Date' },
+        ]} />
+    </Card>
+  </div>;
+}
+// A centred canvas sizes the story to its widest row. Padded gives the table the view's width.
+export const InTableCell: Story = { parameters: { layout: 'padded' }, render: () => <InTable /> };

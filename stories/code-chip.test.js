@@ -261,6 +261,19 @@ const LEDGER = [{
     + 'against: a grey chip (#455), an edge (#490) or a second accent signal on the one '
     + 'card whose subject IS the accent. What a tinted card carries is a short status line, '
     + 'not reference prose with identifiers in it.',
+}, {
+  id: 'B',
+  selectors: ['.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th)'],
+  themes: ['light'],
+  worst: 1.084,
+  why: 'A selected row in LIGHT takes the tinted card\'s strength, --card-tint 5% (#814, '
+    + 'rev_136bd26bc559/d23): the owner found the 9% wash too strong beside the checked box. '
+    + 'The row lands at #f8f5fc, so the white chip it is handed measures 1.079-1.083 in the four '
+    + 'contexts, under the 1.1 floor. Measured by hand under the other accents too: 1.080 '
+    + 'phoenix, 1.079 ocean, 1.076 emerald, so the limit holds for every accent and this gate '
+    + 'reads only the default. The same row under the pointer takes 8% and clears the floor at '
+    + '1.126 or more, and dark keeps 9%. Not closed here because the only cure is the stronger '
+    + 'wash the owner refused. The chip keeps its white surface, so its ink pair does not change.',
 }];
 
 const accepts = (finding) => LEDGER.some((entry) => entry.themes.includes(finding.theme)

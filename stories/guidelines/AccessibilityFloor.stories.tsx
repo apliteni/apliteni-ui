@@ -76,7 +76,7 @@ const specimens = [
   { id: 'touch-field-size', do: () => <PromoCode mod="gl-touch--16" />, dont: () => <PromoCode mod="gl-touch--14" /> },
   { id: 'body-contrast', do: () => <Cashflow />, dont: () => <Cashflow pale /> },
   { id: 'status-label',
-    do: () => <Row><Badge variant="warn">Paused</Badge><Badge variant="live">Live</Badge></Row>,
+    do: () => <Row><Badge variant="warn">Paused</Badge><Badge variant="live">Live</Badge><span className="ui-status--success">Matched</span></Row>,
     // A word is what this chip is missing, so the Don't cannot carry one.
     dont: () => <Row><span className="ui-badge ui-badge--live" aria-hidden="true"><span className="gl-status__gap" /></span></Row> },
   { id: 'measurable-pair',

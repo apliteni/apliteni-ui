@@ -62,7 +62,7 @@
 
 **Don't:** Unavailable keeps the live paint, so only the cursor reports the state.
 
-**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone. Where the browser fades a control for you, as Chromium does a disabled select, reset that fade: it takes the edge and the words down together, and the words are what a reader still has to read.
+**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone. Where the browser fades a control for you, as Chromium does a disabled select, reset that fade: it takes the edge and the words down together, and a reader still has to read the words.
 
 ## Touch field text
 
@@ -98,11 +98,11 @@
 
 **Why:** Colour alone is not reliably distinguishable.
 
-**Do:** The word carries the status; the tone fill agrees with it.
+**Do:** The word carries the status. The tone agrees with it, as a fill or as ink.
 
 **Don't:** A tone fill with the word taken out of it.
 
-**Except:** A status badge needs no glyph or dot. A callout or toast keeps its glyph, because its words sit in a sentence rather than in a fill.
+**Except:** A status badge needs no glyph or dot. A callout or toast keeps its glyph, because its words sit in a sentence, not a fill.
 
 ## Measurable pairs
 
@@ -110,7 +110,7 @@
 
 **Rule:** Keep text on opaque grounds so its contrast can be measured.
 
-**Why:** A gradient, filter or translucent layer puts the ink on more than one ground, so no single pair can be read off it.
+**Why:** A gradient, filter or translucent layer puts the ink on more than one ground, so no single pair measures it.
 
 **Do:** One opaque ground under the whole sentence.
 

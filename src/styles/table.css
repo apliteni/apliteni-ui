@@ -214,6 +214,15 @@
 .ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child:focus-visible {
   outline: var(--ring-scroll);
   outline-offset: var(--ring-scroll-offset);
+  margin-inline: 0;
+}
+/* A later cell's name starts at its cell's edge, so the band crossed its first letter. The band
+   takes --space-2 of the gap before it: a clear edge, lent back by the margin, so no word moves.
+   #814 (rev_136bd26bc559/d22) */
+.ui-table td.ui-table__linked:not(:first-child) > :is(a:not([class]), a.ui-identity):only-child:focus-visible {
+  width: auto;
+  margin-inline-start: calc(-1 * var(--space-2));
+  border-inline-start: var(--space-2) solid transparent;
 }
 
 .ui-table__num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -402,12 +411,13 @@
    line, so the text stays level with the text of the other cells. A badge gives back its
    padding. The logo is 24px (--space-6), and an identity keeps its 24px tap floor and gives
    back the room around its line. A linked identity fills its cell, so it keeps its place.
-   The line height is resolved on the cell, because a logo, a box or a button has its own. */
+   The line height is resolved on the cell, because a logo, a box or a button has its own.
+   A badge in a cell takes the tight line, so it paints 19px against 24px elsewhere (#814). */
 @property --ui-cell-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-table :is(td, th) { --ui-cell-line: 1lh; }
 .ui-table :is(td, th) .ui-identity:not(.ui-table__linked > :only-child) { margin-block: calc((var(--ui-cell-line) - var(--space-6)) / 2); }
 .ui-table :is(td, th) .ui-identity__logo { margin-block: calc((var(--ui-cell-line) - var(--space-6)) / 2); }
-.ui-table :is(td, th) .ui-badge { margin-block: calc(-1 * var(--badge-pad-y)); }
+.ui-table :is(td, th) .ui-badge { line-height: var(--leading-tight); margin-block: calc(-1 * var(--badge-pad-y)); }
 .ui-identity__logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
@@ -428,11 +438,11 @@ a.ui-identity:hover { text-decoration: underline; }
     text-overflow: ellipsis;
   }
   /* A sub-line is one line of running text and cuts itself: the cell's ellipsis cannot
-     reach into a child block. 4px is a focused link's ring, inside the cell's padding.
-     Nothing is capped here — block layout already holds a child to the cell. */
+     reach into a child block. Nothing is capped here — block layout already holds a child
+     to the cell. */
   .ui-table--pinned .ui-table__identity > * {
     overflow: clip;
-    overflow-clip-margin: var(--space-1);
+    overflow-clip-margin: 7px; /* a focused link's 3px ring and the 4px room inside it (#814), inside the cell's padding */
     text-overflow: ellipsis;
   }
   /* A picture has no shorter form, so it keeps its intrinsic size and the cell cuts it.
@@ -554,12 +564,13 @@ a.ui-identity:hover { text-decoration: underline; }
 
 /* Row states. Hover is a quiet neutral fill. A selected row takes an accent wash, one step
    stronger under the pointer. Each fill is opaque and square, so a pinned cell still covers
-   the columns that scroll under it. A target row keeps its own wash. The selected wash
-   is 9%: at 8% an inline code chip on the dark page loses its 1.1:1 step. */
+   the columns that scroll under it. A target row keeps its own wash. The wash is a tinted
+   card's strength: 5% in light, where 9% read too strong beside the checked box (#814), and 9% in
+   dark, where at 8% an inline code chip on the dark page loses its 1.1:1 step. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover > :is(td, th) { border-radius: 0; }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface-3); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th) { background: color-mix(in srgb, var(--accent) 9%, var(--table-bg)); }
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { background: color-mix(in srgb, var(--accent) 12%, var(--table-bg)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th) { background: color-mix(in srgb, var(--accent) var(--card-tint), var(--table-bg)); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { background: color-mix(in srgb, var(--accent) var(--card-tint-hover), var(--table-bg)); }
 
 /* Icon row actions: 32px buttons in a cell as wide as its buttons, so a row keeps its
    height. The glyph, not the button, meets the end cell's edge. The top padding centres a

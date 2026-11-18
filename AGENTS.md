@@ -98,10 +98,10 @@ gate's source half.
 ## Check the disabled field paint locally
 
 Before opening a PR that changes a field's or a button's disabled paint, or
-`src/styles/input.css`, measure it in a real browser — the source half only emulates the one
-declaration Chromium fades a disabled select with:
-`UI_PLAYWRIGHT=… UI_CHROME=… FIELD_PAINT=1 node --test stories/field-ground.test.js`
-Report the result in the PR. CI runs only this gate's source half.
+`src/styles/input.css`, run `npm test -w react -- field-ground` and measure the disabled paint
+by hand in a real browser. Report both results in the PR. The browser half,
+`stories/field-ground.test.js`, went with the vanilla galleries in #724, so no gate now reads
+how Chromium fades a disabled select. `react/src/field-ground.test.tsx` reads the cascade in JSDOM.
 
 ## Check the motion helpers' missing-element guard locally
 

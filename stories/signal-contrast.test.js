@@ -16,6 +16,8 @@ import assert from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { SOLID_STROKE, VIEWBOX } from './lib/glyph-stroke.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
+import { colourOf, composite as compositeRgba, ratio, tokensFor as sharedTokensFor } from './lib/contrast.js';
+import { ACCENTS as STATUS_ACCENTS } from './lib/accessibility-walks.js';
 
 const read = (rel) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
@@ -217,6 +219,78 @@ for (const theme of ['dark', 'light']) {
     });
   }
 }
+
+/* ---- status words on a table row, under every accent -----------------------
+ * A status word is tone ink with no fill, read in a table row (#814). The row is
+ * --table-bg, or the --surface a card gives it, and a checked row of a row table takes an
+ * accent wash, so every accent is a separate ground. The tones and the washes are
+ * discovered from the sheets. Limits: this reads tokens, not a render, so it does
+ * not see a consumer's own row fill; the walk in react/src/contrast-walk.tsx
+ * measures the rendered story under the default accent only. */
+const STATUS_WORDS = [...sourceOf('../src/styles/badge.css').matchAll(RULE)]
+  .map(([, sel, body]) => ({ selector: sel.trim(), ink: /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim() }))
+  .filter((r) => /^\.ui-status--[\w-]+$/.test(r.selector) && r.ink);
+const WASHES = [...sourceOf('../src/styles/table.css').matchAll(RULE)]
+  .filter(([sel, , body]) => sel.includes('.ui-table__selection :checked') && /background\s*:/.test(body))
+  .map(([, sel, body]) => ({ state: /:hover/.test(sel) ? 'selected, hover' : 'selected', fill: /background\s*:\s*([^;]+)/.exec(body)[1].trim() }));
+
+test('the status-word gate measures every tone on every row ground', () => {
+  assert.deepEqual(STATUS_WORDS.map((r) => r.selector).sort(),
+    ['.ui-status--danger', '.ui-status--info', '.ui-status--neutral', '.ui-status--success', '.ui-status--warn']);
+  assert.deepEqual(WASHES.map((w) => w.state).sort(), ['selected', 'selected, hover'], 'the selected washes were not found in table.css');
+  assert.ok(STATUS_ACCENTS.length >= 4, `only ${STATUS_ACCENTS.length} accents discovered`);
+  assert.deepEqual(DEEPENED.map((r) => r.selector).sort(), ['.ui-status--danger', '.ui-status--info', '.ui-status--warn']);
+});
+
+/** Every status word under the floor in one theme and accent, and how many pairs were read. */
+function statusFailures(theme, accent, words = STATUS_WORDS, floor = AA) {
+  const failures = [];
+  let measured = 0;
+  // The token's own --table-bg, and the --surface a card hands its table.
+  for (const tableBg of [sharedTokensFor(theme, accent).get('--table-bg'), 'var(--surface)']) {
+    const vars = new Map(sharedTokensFor(theme, accent)).set('--table-bg', tableBg);
+    const row = colourOf(tableBg, vars);
+    const grounds = [{ state: 'plain', rgb: row }, ...WASHES.map((w) => ({ state: w.state, rgb: compositeRgba(colourOf(w.fill, vars), row) }))];
+    for (const { selector, ink } of words) {
+      for (const ground of grounds) {
+        const r = ratio(compositeRgba(colourOf(ink, vars), ground.rgb), ground.rgb);
+        measured++;
+        if (r < floor) failures.push(`${selector} on a ${ground.state} row over ${tableBg}: ${show(r)}:1`);
+      }
+    }
+  }
+  return { failures, measured };
+}
+
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`every status word clears WCAG AA on a plain and a selected row — ${theme} ${accent}`, () => {
+      const { failures, measured } = statusFailures(theme, accent);
+      // Five tones on three grounds over two row surfaces: fewer means a sweep lost its sheet.
+      assert.ok(measured >= 30, `measured ${measured} status-word pairs, not 30`);
+      assert.deepEqual(failures, []);
+    });
+  }
+}
+
+/* The light warn, info and danger words take their own deeper ink, so they reach the 7:1
+ * body aim on every row ground (owner decision on #814). Success and neutral keep their
+ * ink and the AA floor above. Dark keeps the chip ink, so it is not held to the aim here. */
+const BODY_AIM = 7;
+const DEEPENED = STATUS_WORDS.filter((r) => /^var\(--status-/.test(r.ink));
+
+for (const accent of STATUS_ACCENTS) {
+  test(`the deepened status words reach the 7:1 body aim on every row ground — light ${accent}`, () => {
+    const { failures, measured } = statusFailures('light', accent, DEEPENED, BODY_AIM);
+    assert.ok(measured >= 18, `measured ${measured} deepened status-word pairs, not 18`);
+    assert.deepEqual(failures, []);
+  });
+}
+
+test('the status-word gate rejects a word painted in its tone fill', () => {
+  const words = STATUS_WORDS.map((w) => (w.selector === '.ui-status--warn' ? { ...w, ink: 'var(--chip-warn-fill)' } : w));
+  assert.match(statusFailures('light', 'default', words).failures.join('\n'), /\.ui-status--warn on a plain row/);
+});
 
 /* ---- the glows stay tints of their own token -----------------------------
  * A glow is its own colour at low alpha — nothing more. The same hue is spent at

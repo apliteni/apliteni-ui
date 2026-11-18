@@ -5,6 +5,7 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
 import { Tooltip } from './Tooltip';
 import { placeTip } from './tip';
+import { stubPopover } from './test/popover';
 
 // A fake clock: a hover opens after a delay, and a recent close skips it. Each
 // test starts an hour after the last, so no close carries into its skip window.
@@ -29,7 +30,7 @@ function typist() {
 function mount() {
   const view = render(<Tooltip text="Updated daily">Balance</Tooltip>);
   const trigger = view.getByText('Balance');
-  const tip = view.getByRole('tooltip');
+  const tip = view.getByRole('tooltip', { hidden: true });
   return { ...view, trigger, tip };
 }
 
@@ -71,7 +72,7 @@ it('opens on keyboard focus, dismisses with Escape without moving focus, then re
 
 it('waits before a hover opens it, and skips the wait just after a readout closed', () => {
   const view = render(<><Tooltip text="Edit">A</Tooltip><Tooltip text="Remove">B</Tooltip></>);
-  const [first, second] = view.getAllByRole('tooltip');
+  const [first, second] = view.getAllByRole('tooltip', { hidden: true });
   fireEvent.mouseEnter(view.getByText('A'));
   wait(299);
   expect(first).not.toHaveClass('is-open');
@@ -173,8 +174,71 @@ it('flips inside a clipping ancestor', () => {
   const host = trigger.parentElement!;
   host.style.overflow = 'hidden';
   vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ top: 95, bottom: 300, left: 0, right: 500 } as DOMRect);
+  vi.spyOn(host, 'clientWidth', 'get').mockReturnValue(500);
+  vi.spyOn(host, 'clientHeight', 'get').mockReturnValue(205);
   hover(trigger);
   expect(tip).toHaveClass('is-below');
+});
+
+// A clipping ancestor, with its box, the border inside it and the room it gives.
+function clipper(el: HTMLElement, box: { left: number; top: number; right: number; bottom: number }, client: { left: number; top: number; width: number; height: number }) {
+  el.style.overflow = 'hidden';
+  vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(box as DOMRect);
+  vi.spyOn(el, 'clientLeft', 'get').mockReturnValue(client.left);
+  vi.spyOn(el, 'clientTop', 'get').mockReturnValue(client.top);
+  vi.spyOn(el, 'clientWidth', 'get').mockReturnValue(client.width);
+  vi.spyOn(el, 'clientHeight', 'get').mockReturnValue(client.height);
+}
+
+it('slides inside the padding box of a clipping ancestor, not over its border', () => {
+  const { trigger, tip } = mount();
+  geometry(trigger, tip, 100);
+  // The right edge of the room is 4 + 150 = 154, inside a 4px border; the box ends at 162.
+  clipper(trigger.parentElement!, { left: 0, top: 0, right: 162, bottom: 300 }, { left: 4, top: 0, width: 150, height: 300 });
+  hover(trigger);
+  expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('-26px');
+});
+
+it('opens in the top layer, in the view, and an ancestor too small to hold it does not bound it', () => {
+  const layer = stubPopover();
+  try {
+    const { trigger, tip } = mount();
+    geometry(trigger, tip, 100);
+    // 60px wide: the 100px readout cannot fit, so the cut cell does not bound it.
+    clipper(trigger.parentElement!, { left: 100, top: 90, right: 160, bottom: 130 }, { left: 0, top: 0, width: 60, height: 40 });
+    hover(trigger);
+    expect(layer.show).toHaveBeenCalledTimes(1);
+    expect(tip).not.toHaveClass('is-below');
+    // The view's coordinates. Bounded by the cell, the shift would be 20px.
+    expect(tip.style.getPropertyValue('--ui-tip-x')).toBe('130px');
+    expect(tip.style.getPropertyValue('--ui-tip-y')).toBe('100px');
+    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('0px');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(layer.hide).toHaveBeenCalledTimes(1);
+    expect(tip).not.toHaveClass('is-open');
+  } finally {
+    layer.restore();
+  }
+});
+
+it('places the readout again when it or its mark changes size, as when a font loads', () => {
+  let resized = () => {};
+  class Observer { constructor(cb: () => void) { resized = cb; } observe() {} disconnect() {} }
+  const was = Object.getOwnPropertyDescriptor(window, 'ResizeObserver');
+  Object.defineProperty(window, 'ResizeObserver', { configurable: true, writable: true, value: Observer });
+  try {
+    const { trigger, tip } = mount();
+    geometry(trigger, tip, 100);
+    hover(trigger);
+    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('0px');
+    // The font arrives and the readout is 300px wide: centred on 130, it would start at -20.
+    vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(300);
+    resized();
+    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('20px');
+  } finally {
+    if (was) Object.defineProperty(window, 'ResizeObserver', was);
+    else delete (window as { ResizeObserver?: unknown }).ResizeObserver;
+  }
 });
 
 it('has no axe violations when open (colour and layout require a browser)', async () => {
@@ -200,14 +264,14 @@ it('does not treat a scrolling or cancelled touch as a tap', () => {
 it('renders structured inline content and keeps text as the label shorthand', () => {
   const view = render(<Tooltip text="Fallback" label="March" value="€48,210" detail="+4.2% on February">Revenue</Tooltip>);
   fireEvent.focus(view.getByText('Revenue'));
-  expect(view.getByRole('tooltip')).toHaveTextContent('March€48,210+4.2% on February');
+  expect(view.getByRole('tooltip', { hidden: true })).toHaveTextContent('March€48,210+4.2% on February');
   expect(view.queryByText('Fallback')).toBeNull();
 });
 
 it('anchors the inline readout to a nested anchor', () => {
   const view = render(<Tooltip value="42"><span data-tip-anchor="">Value</span></Tooltip>);
   const anchor = view.getByText('Value');
-  const tip = view.getByRole('tooltip');
+  const tip = view.getByRole('tooltip', { hidden: true });
   geometry(anchor, tip, 100);
   fireEvent.focus(anchor.parentElement!);
   expect(tip.style.getPropertyValue('--ui-tip-x')).toBe('130px');
