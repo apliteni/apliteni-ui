@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from './primitives/Button';
+import { Card } from './primitives/Card';
+import { Dropdown } from './Dropdown';
 
 const meta: Meta = { title: 'React/Button', parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -63,4 +65,15 @@ export const HoldPrimary: StoryObj = {
 export const HoldDanger: StoryObj = {
   name: 'Hold to confirm (danger)',
   render: () => <HoldExample variant="danger" label="Delete workspace" done="Workspace deleted." />,
+};
+
+// A small button and a dropdown trigger in one form row share one height and one
+// middle line. rev_5b88086f1604/d15
+const PERIODS = [{ label: 'This month', value: 'month' }, { label: 'This quarter', value: 'quarter' }];
+export const BesideTrigger: StoryObj = {
+  name: 'Small, beside a dropdown trigger',
+  render: () => canvas(<Card title="Export payouts"><form className="ui-toolbar" onSubmit={(e) => e.preventDefault()}>
+    <Dropdown ariaLabel="Period" items={PERIODS} value="This month" selectedValue="month" />
+    <Button size="sm" variant="primary" type="submit">Export</Button>
+  </form></Card>),
 };
