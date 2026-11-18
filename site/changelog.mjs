@@ -13,6 +13,13 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.176.1', date: '2026-11-18',
+    changes: [
+      ['fixed', 'A pointer on a row of the top bar\'s account menu now shows only a fill, with no square edge. Keyboard focus draws the ring inside the row, on its corner, clear of the divider and the panel edge. The version menu rows take the same ring. Refs #824.', ['TopBar']],
+      ['fixed', 'In forced colours, a menu separator is a visible line again.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.176.0', date: '2026-11-18',
     changes: [
       ['added', '`SearchField` takes `size="sm"` for a toolbar above a dense table: 32px high with 13px text to a mouse, and the full 46px field with 16px text on a touch screen. Its toolbar and filter bar follow it to 32px, and the field stops at 320px. `TextField` and `SelectField` keep one size. Part of #822.', ['SearchField', 'FilterBar']],

@@ -13,7 +13,7 @@
 // reader got two accent bars above and below the row instead of a ring around it. The
 // other two menus take the first way out and nothing said why, which is the hole this
 // closes: `.ui-dropdown__panel` pads by --ui-dropdown-pad and `.vsw__menu` by the same
-// six pixels. `.amenu` takes the second; the choice between them is recorded on #519.
+// six pixels. `.amenu` took the second at #519 and pads by six pixels since #489's cap.
 //
 // Subjects are discovered twice and the two readings have to agree. One is the kit's own
 // sources: every place under src/ and react/src/ that writes `data-dropdown-panel` into
@@ -49,8 +49,8 @@
 //   `if (…)` and once for the pairs. The check against a parser is by hand, and on #598.
 // - The source reading covers src/ and react/src/, the trees the package ships. A panel
 //   hand-written into an example page is not read; those pages compose the factories.
-// - It does not ask whether the rows take the ring at all. `.vopt:focus-visible` never
-//   names `.vsw__menu`, so pairing a panel to its rows from the selectors alone would
+// - It does not ask whether the rows take the ring at all. `.ui-dropdown__item:focus-visible`
+//   never names `.vsw__menu`, so pairing a panel to its rows from the selectors alone would
 //   be guesswork. stories/focus-ring.test.js is the gate that asks every stop for a
 //   ring; this one asks the panel to let it be drawn.
 //

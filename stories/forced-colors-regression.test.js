@@ -1,12 +1,12 @@
 // Browser only: Chromium paints forced system colours that JSDOM cannot measure.
-// This fixture covers the shared Dropdown, version row, and table scroll rules in
-// both themes. It does not measure every menu or table composition.
+// This fixture covers the shared Dropdown, its separator, version row, and table scroll
+// rules in both themes. It does not measure every menu or table composition.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cssText } from '../src/inline.js';
 
 const enabled = process.env.FORCED_REGRESSION === '1';
-const subjects = ['chevron', 'dropdown', 'version', 'scroll'];
+const subjects = ['chevron', 'dropdown', 'separator', 'version', 'scroll'];
 const hasChevron = widths => { assert.notEqual(widths[0], '0px'); assert.notEqual(widths[1], '0px'); };
 
 test('forced colours keep the chevron, hover rows, and table focus band', { skip: !enabled }, async () => {
@@ -19,7 +19,7 @@ test('forced colours keep the chevron, hover rows, and table focus band', { skip
       const page = await browser.newPage({ forcedColors: 'active' });
       await page.setContent(`<html data-theme="${theme}"><head><style>${cssText}</style></head><body>
         <div class="ui-dropdown open"><button class="ui-dropdown__trigger">Choose <span class="ui-dropdown__chevron"></span></button>
-        <div class="ui-dropdown__panel" style="position:static;visibility:visible;opacity:1"><button class="ui-dropdown__item">Choice</button></div></div>
+        <div class="ui-dropdown__panel" style="position:static;visibility:visible;opacity:1"><button class="ui-dropdown__item">Choice</button><div class="ui-dropdown__sep"></div></div></div>
         <button class="vopt">Version</button>
         <div class="ui-table-scroll" tabindex="0"><table class="ui-table"><thead><tr><th>Invoice</th></tr></thead><tbody><tr><td>1162</td></tr></tbody></table></div>
       </body></html>`);
@@ -53,6 +53,15 @@ test('forced colours keep the chevron, hover rows, and table focus band', { skip
         assert.equal(border.width, '1px');
         measured++;
       }
+      // A separator painted as a background vanishes, because forced colours drop it (#824).
+      const sep = await page.locator('.ui-dropdown__sep').evaluate(el => {
+        const css = getComputedStyle(el);
+        return { box: el.getBoundingClientRect().height, width: css.borderTopWidth, ink: css.borderTopColor };
+      });
+      assert.equal(sep.width, '1px', `${theme} separator draws a line`);
+      assert.notEqual(sep.ink, system.canvas, `${theme} separator line differs from the canvas`);
+      assert.equal(sep.box, 1, `${theme} separator keeps its 1px height`);
+      measured++;
       const scroll = page.locator('.ui-table-scroll');
       assert.equal(await scroll.evaluate(el => getComputedStyle(el).borderLeftColor), system.canvas);
       await scroll.focus();
