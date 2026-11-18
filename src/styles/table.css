@@ -615,6 +615,22 @@ a.ui-identity:hover { text-decoration: underline; }
   max-width: none;
   margin-inline: calc(-1 * var(--cell-edge));
 }
+/* A table in a drawer group takes the drawer body's 13px text. Its head is set as a group
+   heading is, semibold in strong ink on the same hairline, so the two read as one kind of
+   line. Its rows are held apart by space, as the drawer's pairs are, with no line between.
+   A hover table keeps its own row floor, because its rows are targets.
+   why: docs/components.md#the-drawer */
+.ui-drawer .ui-drawer__section .ui-table thead th {
+  padding-bottom: var(--space-2);
+  font-weight: var(--weight-semibold);
+  color: var(--strong);
+}
+.ui-drawer .ui-drawer__section .ui-table :is(tbody, tfoot) :is(td, th) {
+  font-size: var(--text-sm);
+  border-bottom: 0;
+}
+.ui-drawer .ui-drawer__section .ui-table:not(.ui-table--hover) :is(tbody, tfoot) :is(td, th) { padding-block: var(--space-2); }
+.ui-drawer .ui-drawer__section .ui-table:not(.ui-table--hover) tbody tr:first-child > :is(td, th) { padding-top: var(--space-3); }
 /* --surface-3 barely steps off the raised drawer ground in dark, so a hovered row there takes
    --surface, as a menu item does. Light keeps the grey. */
 .ui-drawer .ui-drawer__section .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface); }

@@ -78,18 +78,24 @@ type Line = { name: string; amount: string };
 const lines: Line[] = [{ name: 'Annual subscription', amount: '1,000.00' }, { name: 'Tax', amount: '240.00' }];
 const lineColumns: Column<Line>[] = [{ key: 'name', label: 'Item' }, { key: 'amount', label: <>Amount<span className="ui-value__unit">EUR</span></>, num: true }];
 
-// A drawer 560px wide stands a heading beside one column of pairs. A group of two-column
-// pairs or a table keeps its heading over them. Below 560px every heading stands over its rows.
+// The reference names the drawer, the total leads, and the lines prove it. The table names its
+// own columns, so its group has no heading. Below 560px the account pairs stack.
 export const WideDrawer: StoryObj = {
   render: () => {
     const [open, setOpen] = useState(true);
     return <>
       <Button onClick={() => setOpen(true)}>Open drawer</Button>
-      <Drawer open={open} size="lg" title="Invoice details" onClose={() => setOpen(false)}>
-        <DrawerSection title="Invoice"><KeyValueList rows={rows} columns={2} /></DrawerSection>
-        <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} columns={2} /></DrawerSection>
+      <Drawer open={open} size="lg" title="Invoice INV-1001" onClose={() => setOpen(false)}
+        headerActions={<Button size="sm" href="#invoice">View invoice</Button>}>
+        <DrawerSection>
+          <dl className="ui-drawer__figure">
+            <dt>Total</dt>
+            <dd><span className="ui-drawer__figure-value">€ 1,240.00</span><Badge variant="success">Posted</Badge></dd>
+          </dl>
+        </DrawerSection>
         {/* No filter bar: the invoice holds two lines, and no more than 10. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
-        <DrawerSection title="Lines"><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} scrollLabel="Lines" /></DrawerSection>
+        <DrawerSection><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} hover={false} scrollLabel="Lines" /></DrawerSection>
+        <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} columns={2} /></DrawerSection>
       </Drawer>
     </>;
   },

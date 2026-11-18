@@ -1,4 +1,4 @@
-// What a drawer panel draws inside itself: separators between groups and no borders
+// What a drawer panel draws inside itself: a line under each group heading and no borders
 // around content. Shared by the vanilla gate (stories/drawer-rules.test.js) and the React
 // one (react/src/drawer-rules.test.tsx), which walk their own stories.
 import { selectorPath } from './contrast.js';
@@ -57,9 +57,8 @@ export const SLOT = '.ui-drawer__header, .ui-drawer__body, .ui-drawer__footer';
 // A kit table draws its own lines, and the Drawers guideline lets a table stand in a group.
 export const TABLE = '.ui-table';
 
-/** A group that follows another group: the one element inside the body allowed a line. */
-export const follows = (el) => el.classList.contains('ui-drawer__section')
-  && !!el.previousElementSibling?.classList?.contains('ui-drawer__section');
+/** A group heading: the one element inside the body that stands on a line. */
+export const heading = (el) => el.classList.contains('ui-drawer__section-title');
 
 /** What one panel draws inside itself, and what it fails to draw, as plain data. */
 export function measure(win, panel, where) {
@@ -68,9 +67,9 @@ export function measure(win, panel, where) {
   const hr = (el) => el.tagName === 'HR' && style(el).display !== 'none';
   const edge = (sel, side, said) => [...panel.querySelectorAll(sel)].filter((el) => drawn(style(el), side)).map(() => said);
   const lacks = (sel, side, said) => [...panel.querySelectorAll(sel)].filter((el) => !drawn(style(el), side)).map(() => said);
-  // A group separator is a line on the top edge and nothing else. A group that draws
-  // its bottom edge too puts two lines in one gap, so it stays a ruled row.
-  const separator = (el) => follows(el) && drawn(style(el), 'top') && !drawn(style(el), 'bottom');
+  // A heading's line is on its bottom edge and nothing else. A heading that draws its top
+  // edge too puts a second line over the group, so it stays a ruled row.
+  const separator = (el) => heading(el) && drawn(style(el), 'bottom') && !drawn(style(el), 'top');
   return {
     where,
     footerCount: panel.querySelectorAll('.ui-drawer__footer').length,
@@ -91,11 +90,11 @@ export function measure(win, panel, where) {
       ...lacks('.ui-drawer__header', 'bottom', 'a header with no line under it'),
       ...edge('.ui-drawer__footer', 'top', 'a rule above the footer'),
     ],
-    unparted: inside.filter((el) => follows(el) && !drawn(style(el), 'top')).map((el) => selectorPath(el)),
+    unparted: inside.filter((el) => heading(el) && !drawn(style(el), 'bottom')).map((el) => selectorPath(el)),
   };
 }
 
-// Two groups, the shape the separator is about, for the faults that need one.
+// Two groups, the shape the heading line is about, for the faults that need one.
 export const GROUPS = '<section class="ui-drawer__section"><h3 class="ui-drawer__section-title">One</h3>'
   + '<dl class="ui-drawer__rows"><div class="ui-drawer__row"><dt>Amount</dt><dd>12.00</dd></div></dl></section>'
   + '<section class="ui-drawer__section"><h3 class="ui-drawer__section-title">Two</h3>'
@@ -116,6 +115,8 @@ export const FAULTS = [
   { fault: 'a box drawn by hand', kind: 'cards', body: '<div style="border: 1px solid var(--border); padding: 12px">Boxed</div>' },
   { fault: 'the header\'s line taken away', kind: 'unframed', css: '.zz-fault .ui-drawer__header { border-bottom: 0; }' },
   { fault: 'a rule above the footer', kind: 'unframed', css: '.zz-fault .ui-drawer__footer { border-top: 1px solid var(--border); }' },
-  { fault: 'the line between the groups taken away', kind: 'unparted', body: GROUPS, css: '.zz-fault .ui-drawer__section + .ui-drawer__section { border-top: 0; }' },
+  { fault: 'a line between the groups', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section + .ui-drawer__section { border-top: 1px solid var(--border); }' },
+  { fault: 'a second line over a group heading', kind: 'ruledRows', body: GROUPS, css: '.zz-fault .ui-drawer__section-title { border-top: 1px solid var(--border); }' },
+  { fault: 'the line under a group heading taken away', kind: 'unparted', body: GROUPS, css: '.zz-fault .ui-drawer__section-title { border-bottom: 0; }' },
 ];
 

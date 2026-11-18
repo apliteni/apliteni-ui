@@ -388,18 +388,18 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:213",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
   "three-lines": [
    {
-    "ref": "src/styles/drawer.css:135",
+    "ref": "src/styles/drawer.css:130",
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:213",
-    "pattern": ".ui-drawer__section + .ui-drawer__section {"
+    "ref": "src/styles/drawer.css:210",
+    "pattern": ".ui-drawer__section-title {"
    }
   ],
   "rows": [
@@ -408,7 +408,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:280",
+    "ref": "src/styles/drawer.css:267",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -788,7 +788,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:293",
+    "ref": "src/styles/drawer.css:280",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]

@@ -414,9 +414,9 @@ Set `redacted` on a row to display “Hidden” with an eye-off icon without ren
 the value. Below 560px, each label appears above its value, and the layout
 changes to one column.
 
-DrawerSection groups content under a heading and adds a line between adjacent
-sections. In a drawer 560px wide or more, the heading stands beside one column of
-pairs. It stands over two-column pairs and over a table, which need the width.
+DrawerSection groups content under a heading that stands on a thin line. Groups
+stand apart by space. A section without a title has no heading and no line. Use it
+for a lead figure (`ui-drawer__figure`) or for a table that names its own columns.
 Its `headingLevel` defaults to 3. Import both the kit CSS and the React
 CSS. Use a table for figures that readers need to compare down a column.
 
