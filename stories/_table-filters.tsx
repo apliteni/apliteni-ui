@@ -34,9 +34,9 @@ const noop = () => {};
 export type Chip = { id: string; label: string; any: string; values: string[] };
 /** The same bar at rest, for a guideline specimen: nothing typed, every chip
  *  unset, nothing wired. */
-export const RestingFilters = ({ search, placeholder, label, chips = [] }: { search: string; placeholder: string; label: string; chips?: Chip[] }) =>
+export const RestingFilters = ({ search, placeholder, label, chips = [], size }: { search: string; placeholder: string; label: string; chips?: Chip[]; size?: 'sm' }) =>
   <div className="ui-toolbar">
-    <SearchField ariaLabel={search} placeholder={placeholder} />
+    <SearchField ariaLabel={search} placeholder={placeholder} size={size} />
     {chips.length > 0 && <FilterBar label={label} onChange={noop} onRemove={noop} onClear={noop}
       filters={chips.map((chip) => ({ id: chip.id, label: chip.label, value: '',
         items: [{ label: chip.any, value: '' }, ...chip.values.map((value) => ({ label: value, value }))] }))} />}

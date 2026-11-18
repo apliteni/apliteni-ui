@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { SearchField } from './SearchField';
 import { FilterBar } from './FilterBar';
 import { Segmented } from './Segmented';
+import { Dropdown } from './Dropdown';
+import { Button } from './primitives/Button';
 import { DataTable, type Column } from './DataTable';
 import { NumericValue } from './TableValues';
 import { Badge } from './primitives/Badge';
@@ -94,6 +96,44 @@ export const Toolbar: StoryObj = {
             </div>
           </Card>)}
         </div>}
+    </div>;
+  },
+};
+
+// The small size: a toolbar above a dense table. With a mouse the field, the trigger,
+// the chips, Clear all, the small switch and the small button all stand at 32px, and the
+// filter bar takes that height from the field. On a touch screen the field is the full
+// field and every other control is a chip's height. #822
+const CURRENCIES = [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }];
+export const SmallToolbar: StoryObj = {
+  name: 'Toolbar at the small size',
+  render: function Render() {
+    const [query, setQuery] = useState('');
+    const [currency, setCurrency] = useState('');
+    const [chosen, setChosen] = useState<Record<string, string>>({ status: 'Pending' });
+    const [view, setView] = useState('table');
+
+    const term = query.trim().toLowerCase();
+    const rows = INVOICES.filter((row) =>
+      (!chosen.status || row.status === chosen.status)
+      && (!chosen.period || row.days <= Number(chosen.period))
+      && (term === '' || `${row.name} ${row.number}`.toLowerCase().includes(term)));
+    const set = (id: string, value?: string) => setChosen((previous) => ({ ...previous, [id]: value ?? '' }));
+
+    return <div className="ui-app__body">
+      <div className="ui-toolbar ui-toolbar--split">
+        <SearchField size="sm" ariaLabel="Search invoices" placeholder="Vendor or number"
+          value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
+        <Dropdown variant="select" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
+          items={CURRENCIES.map((item) => ({ ...item, selected: item.value === currency }))} />
+        <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
+          filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
+        <Segmented label="View" size="sm" value={view} onChange={setView}
+          options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
+        <Button variant="primary" size="sm" icon="plus">New invoice</Button>
+      </div>
+      <Card><DataTable columns={columns} rows={rows} density="dense" pager={false} selectable={false} stickyHeader
+        scrollLabel="Invoices" /></Card>
     </div>;
   },
 };
