@@ -6,7 +6,9 @@ import { readFileSync } from 'node:fs';
 import { Drawer } from './Drawer';
 import { Modal } from './Modal';
 // @ts-expect-error -- shared CSS token resolver is JavaScript.
-import { tokensFor, substitute, kitCssFor, parseColour, ratio } from '../../stories/lib/contrast.js';
+import { tokensFor, substitute, kitCssFor, parseColour, ratio, desugar } from '../../stories/lib/contrast.js';
+// @ts-expect-error -- shared cascade reader is JavaScript.
+import { specificity, selectorList, sheetText } from '../../stories/lib/focus-walk.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
 import { WideDrawer } from './KeyValueList.stories';
 import type { ReactElement } from 'react';
@@ -179,7 +181,10 @@ const drawerAt = (theme: string) => {
     <DrawerSection><dl className="ui-drawer__figure"><dt>Total</dt><dd><span className="ui-drawer__figure-value">€ 1,240.00</span><span className="ui-badge">Posted</span></dd></dl></DrawerSection>
     <DrawerSection><table className="ui-table"><thead><tr><th>Item</th></tr></thead><tbody><tr><td>Fee</td></tr><tr><td>Tax</td></tr></tbody></table></DrawerSection>
     <DrawerSection title="Account"><KeyValueList rows={rows} columns={2} /></DrawerSection>
-    <DrawerSection><table className="ui-table ui-table--hover"><tbody><tr><td>Fee</td></tr></tbody></table></DrawerSection>
+    <DrawerSection><table className="ui-table ui-table--hover"><tbody>
+      <tr><td>Fee</td><td className="ui-table__selection"><input type="checkbox" aria-label="Select Fee" /></td></tr>
+      <tr><td>Tax</td><td className="ui-table__selection"><input type="checkbox" aria-label="Select Tax" defaultChecked /></td></tr>
+    </tbody></table></DrawerSection>
   </div></div></div>);
   const ink = (name: string) => {
     const probe = document.createElement('i');
@@ -210,6 +215,7 @@ const drawerAt = (theme: string) => {
     },
     // A hover table keeps its row floor, and hangs out by its end-cell inset.
     hover: { cell: [getComputedStyle(hover.querySelector('td')!).fontSize, line(hover.querySelector('td')!, 'Bottom')], hang: hangOf(hover, style), hoverStep: hoverStep(hover, panel) },
+    selected: selectedFill(hover.querySelectorAll('tbody tr')[1] as HTMLElement),
   };
 };
 // The sheet is desugared, so a state attribute stands for :hover. 1.1:1 is the floor: a
@@ -220,6 +226,30 @@ const hoverStep = (table: Element, panel: Element) => {
   const step = ratio(parseColour(getComputedStyle(row.querySelector('td')!).backgroundColor)!, parseColour(getComputedStyle(panel).backgroundColor)!);
   delete row.dataset.uiState;
   return step >= 1.1;
+};
+type Fill = { one: string; fill: string };
+// A checked row keeps its accent wash at rest and takes the stronger wash under the pointer.
+// JSDOM ranks a `:has()` rule above an equal one, so the winner is ranked here, by specificity
+// and then by order in the table sheet. LIMIT: table.css only, with each at-rule's condition
+// taken as true, and `background` and `background-color` read as one property.
+const selectedFill = (row: HTMLElement) => {
+  const sheet = sheetText(desugar(readFileSync(new URL(TABLE_CSS, import.meta.url), 'utf8')));
+  const rules: Fill[] = [...sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap(([, selector, body]: string[]) => {
+    const fill = /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body);
+    return fill ? selectorList(selector).map((one: string) => ({ one: one.trim(), fill: fill[1].trim() })) : [];
+  });
+  const cell = row.querySelector('td')!;
+  const winner = () => rules.filter(({ one }) => cell.matches(one)).reduce((best: Fill | null, rule) => {
+    if (!best) return rule;
+    const [a, b]: number[][] = [specificity(rule.one), specificity(best.one)];
+    const at = a.findIndex((n, i) => n !== b[i]);
+    return at === -1 || a[at] > b[at] ? rule : best;
+  }, null)?.fill;
+  const rest = winner();
+  row.dataset.uiState = 'hover';
+  const hovered = winner();
+  delete row.dataset.uiState;
+  return { rest, hovered };
 };
 // The contrast resolver gives a variable one value per element context, so it misreads a
 // variable that a table declares and uses on itself. Here the end-cell inset is one marked
@@ -244,6 +274,10 @@ it.each(['light', 'dark'])('parts drawer groups by space, stands a heading on a 
       ground: [true, true],
     },
     hover: { cell: ['13px', false], hang: ['-7px', '7px'], hoverStep: true },
+    selected: {
+      rest: 'color-mix(in srgb, var(--accent) var(--card-tint), var(--table-bg))',
+      hovered: 'color-mix(in srgb, var(--accent) var(--card-tint-hover), var(--table-bg))',
+    },
   });
 });
 
