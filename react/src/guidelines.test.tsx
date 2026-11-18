@@ -294,3 +294,55 @@ describe('guideline pages in React: Dense tables', () => {
     }
   });
 });
+
+/* The easing pair plots each curve it names and draws the drawer at four times. A
+ * plot's control points and a frame's offset are read against the brand values, so a
+ * changed value fails here. Visibility is discrete: a frame reads hidden at 0 ms and
+ * visible after it, never a part value.
+ * Limits: JSDOM lays nothing out, so where the panel lands is the pixel comparison's
+ * question. CSS `ease` is the spec's curve, not a kit value. */
+describe('guideline pages in React: Motion', () => {
+  const page = pages.find(p => p.file.endsWith('/Motion.stories.tsx'))!;
+  const brand = read('../../src/tokens/brand.generated.css');
+  const brandValue = (name: string) => brand.match(new RegExp(`${name}:\\s*([^;]+);`))![1].trim();
+  const points = (value: string) => value.match(/cubic-bezier\(([^)]+)\)/)![1].match(/[\d.]+/g)!.map(Number);
+  const curves: Record<string, number[]> = {
+    '--ease': points(brandValue('--easing-ease-in-out')), '--ease-out': points(brandValue('--easing-ease-out')),
+    ease: [0.25, 0.1, 0.25, 1],
+  };
+  const dur = parseFloat(brandValue('--duration-normal'));
+  // Progress of a cubic-bezier at time x, 0 to 1, by bisection on the curve's own x.
+  const at = ([x1, y1, x2, y2]: number[], x: number) => {
+    const b = (a: number, c: number, t: number) => 3 * (1 - t) ** 2 * t * a + 3 * (1 - t) * t * t * c + t ** 3;
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 60; i++) { const t = (lo + hi) / 2; if (b(x1, x2, t) < x) lo = t; else hi = t; }
+    return b(y1, y2, (lo + hi) / 2);
+  };
+  const sides = () => {
+    const section = mount(page).querySelector('[data-rule="easing"]');
+    expect(section, 'no rule "easing" on the page: the gate is checking nothing').toBeTruthy();
+    return [...section!.querySelectorAll('[data-specimen]')];
+  };
+  it('plots each curve it names at the kit value, and linear as a line', () => {
+    const plots = sides().map(side => [...side.querySelectorAll('.gm-plot')].map(plot => ({
+      name: plot.querySelector('.gm-plot__name')!.textContent!, d: plot.querySelector('path')!.getAttribute('d'),
+    })));
+    expect(plots.map(side => side.map(p => p.name))).toEqual([['--ease', '--ease-out', 'linear'], ['ease', 'ease']]);
+    for (const { name, d } of plots.flat()) {
+      const c = curves[name];
+      expect(d, name).toBe(c ? `M0 100 C${c[0] * 100} ${100 - c[1] * 100} ${c[2] * 100} ${100 - c[3] * 100} 100 0` : 'M0 100 L100 0');
+    }
+  });
+  it('draws the drawer where its curve has it at each time, and visibility only steps', () => {
+    const [doSide, dontSide] = sides();
+    for (const [side, curve] of [[doSide, curves['--ease']], [dontSide, curves.ease]] as const) {
+      const shots = [...side.querySelectorAll('.gm-shot')].map(shot => {
+        const [ms, vis] = [...shot.querySelectorAll('.gm-time')].map(el => el.textContent);
+        return { ms: parseFloat(ms!), vis, left: parseFloat((shot.querySelector('.gm-mini') as HTMLElement).style.getPropertyValue('--gm-at')) };
+      });
+      expect(shots.map(s => s.ms)).toEqual([0, Math.round(dur / 3), Math.round(dur * 2 / 3), dur]);
+      expect(shots.map(s => s.vis)).toEqual(['hidden', 'visible', 'visible', 'visible']);
+      for (const s of shots) expect(Math.abs(s.left - (1 - at(curve, s.ms / dur)) * 100), `${s.ms} ms`).toBeLessThanOrEqual(1);
+    }
+  });
+});
