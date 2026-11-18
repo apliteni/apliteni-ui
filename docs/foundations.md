@@ -68,6 +68,26 @@ and the next. On a touch phone the inner gap of a group of small controls is `--
 and the view strip wraps its rows `--space-1` (4px) apart. A control that draws no box starts its
 first label on the page title's edge.
 
+## Control corners
+
+**Every control that a reader presses or types into is a pill.** This covers each button size,
+each dropdown trigger, also in a form, a filter chip and the filter bar's add control, a search
+field, a text field, a select and every other one-line field. The corner is `--radius-pill`. A
+wordless button is square, so the pill makes it a circle. A dropdown in a form and the text input
+beside it have the same corner and the same height. The kit's padding keeps text, glyphs, units
+and the focus ring inside the rounded edge. Give a control of your own the same corner.
+
+These parts keep another corner:
+
+- A text area keeps `--radius-md`, because a pill does not fit several lines.
+- A segmented strip keeps its own rounded track.
+- A menu row, a palette row and a date picker's day cell keep their small corner. They are rows
+  and cells in a panel, not controls on the page.
+- The account row in the side rail keeps the corner of the rail rows.
+- The search line of the command palette is the top edge of the palette, so it follows the
+  palette's corners.
+- A file drop area keeps its large dashed corner. The button in it is a pill.
+
 ## Typefaces
 
 The kit uses two families, and the split is based on role:

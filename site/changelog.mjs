@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.177.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField` at both sizes, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
+      ['changed', 'A dropdown in a form is a pill, the same as the text input beside it, and the two stay at one height. A multi-line `TextArea` keeps its 12px corner, because a pill does not fit several lines. Part of #823.', ['Dropdown', 'Field', 'Guidelines']],
+    ],
+  },
+  {
     v: '0.176.1', date: '2026-11-18',
     changes: [
       ['fixed', 'A pointer on a row of the top bar\'s account menu now shows only a fill, with no square edge. Keyboard focus draws the ring inside the row, on its corner, clear of the divider and the panel edge. The version menu rows take the same ring. Refs #824.', ['TopBar']],
