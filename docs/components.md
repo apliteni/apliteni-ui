@@ -569,8 +569,9 @@ on the viewport.** The width is the whole panel, on every edge. In a drawer 560p
 left of its rows, and a hairline parts the groups. A group without a heading leaves that column
 empty, so the rows of all groups start at one edge. In a narrower drawer, the heading stands over
 its rows, and a 2px `--border-strong` line parts each group from the group before it. A group
-that holds a `.ui-table` always puts its heading over the table and takes the strong line, because
-the table needs the full width. The table stands on the drawer's ground, in light and in dark.
+that holds a `.ui-table` or a `KeyValueList` with `columns={2}` always puts its heading over its
+content and takes the strong line, because a table and two columns of pairs need the full width.
+Side headings stay the form for one column of pairs. The table stands on the drawer's ground, in light and in dark.
 In a hover table that is not dense or zebra, the default `DataTable`, the first column starts on
 the edge of the group heading. A dense or zebra table keeps its own inset. The value stays beside its label instead of moving to the far
 edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text.

@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.171.0', date: '2026-11-18',
     changes: [
-      ['changed', 'In a drawer 560px wide or more, each `DrawerSection` heading now stands in a 6.5rem column on the left of its rows, and a hairline still parts the groups. In a narrower drawer, and in a group that holds a table, the heading stays over its rows, and a 2px `--border-strong` line now parts the group from the group before it. The Drawers guideline permits both forms. A table in a drawer group now stands on the drawer\u2019s ground, and the first column of a default `DataTable` starts on the heading\u2019s edge. Closes #811.', ['Drawer', 'Guidelines']],
+      ['changed', 'In a drawer 560px wide or more, each `DrawerSection` heading now stands in a 6.5rem column on the left of its rows, and a hairline still parts the groups. In a narrower drawer, and in a group that holds a table or a `KeyValueList` with `columns={2}`, the heading stays over its rows, and a 2px `--border-strong` line now parts the group from the group before it. The Drawers guideline permits both forms. A table in a drawer group now stands on the drawer\u2019s ground, and the first column of a default `DataTable` starts on the heading\u2019s edge. Closes #811.', ['Drawer', 'Guidelines']],
     ],
   },
   {

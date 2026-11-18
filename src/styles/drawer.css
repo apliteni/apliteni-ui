@@ -230,31 +230,31 @@
 /* A drawer --panel-lg wide or more stands each heading in a column beside its rows, and
    the column marks where a group starts, so the hairline is enough between groups. A
    group without a heading leaves the column empty, so every group's rows share one edge.
-   A group that holds a table keeps its heading over the table, which needs the width.
+   A group that holds a table or two-column pairs keeps its heading over them, for the width.
    The two blocks are one form. A side panel measures 559px at 560px, less its 1px edge.
    A top or bottom panel has no side edge, so it measures its full width.
    why: docs/components.md#the-drawer */
 @container ui-drawer (width >= 560px) {
-  .ui-drawer__section:not(:has(.ui-table)) {
+  .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) {
     display: grid;
     grid-template-columns: 6.5rem minmax(0, 1fr);
     column-gap: var(--space-4);
     align-items: baseline;
   }
-  .ui-drawer__section:not(:has(.ui-table)) > .ui-drawer__section-title { margin: 0; overflow-wrap: break-word; }
-  .ui-drawer__section:not(:has(.ui-table)) > :not(.ui-drawer__section-title) { grid-column: 2; }
-  .ui-drawer__section + .ui-drawer__section:not(:has(.ui-table)) { border-top: 1px solid var(--border); }
+  .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) > .ui-drawer__section-title { margin: 0; overflow-wrap: break-word; }
+  .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) > :not(.ui-drawer__section-title) { grid-column: 2; }
+  .ui-drawer__section + .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) { border-top: 1px solid var(--border); }
 }
 @container ui-drawer-side (width >= 559px) {
-  .ui-drawer__section:not(:has(.ui-table)) {
+  .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) {
     display: grid;
     grid-template-columns: 6.5rem minmax(0, 1fr);
     column-gap: var(--space-4);
     align-items: baseline;
   }
-  .ui-drawer__section:not(:has(.ui-table)) > .ui-drawer__section-title { margin: 0; overflow-wrap: break-word; }
-  .ui-drawer__section:not(:has(.ui-table)) > :not(.ui-drawer__section-title) { grid-column: 2; }
-  .ui-drawer__section + .ui-drawer__section:not(:has(.ui-table)) { border-top: 1px solid var(--border); }
+  .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) > .ui-drawer__section-title { margin: 0; overflow-wrap: break-word; }
+  .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) > :not(.ui-drawer__section-title) { grid-column: 2; }
+  .ui-drawer__section + .ui-drawer__section:not(:has(.ui-table, .ui-kv--two-columns)) { border-top: 1px solid var(--border); }
 }
 .ui-drawer__rows {
   display: grid;

@@ -78,16 +78,16 @@ type Line = { name: string; amount: string };
 const lines: Line[] = [{ name: 'Annual subscription', amount: '1,000.00' }, { name: 'Tax', amount: '240.00' }];
 const lineColumns: Column<Line>[] = [{ key: 'name', label: 'Item' }, { key: 'amount', label: <>Amount<span className="ui-value__unit">EUR</span></>, num: true }];
 
-// A drawer 560px wide stands each heading beside its rows. The group that holds a table
-// keeps its heading over the table. Below 560px every heading stands over its rows.
+// A drawer 560px wide stands a heading beside one column of pairs. A group of two-column
+// pairs or a table keeps its heading over them. Below 560px every heading stands over its rows.
 export const WideDrawer: StoryObj = {
   render: () => {
     const [open, setOpen] = useState(true);
     return <>
       <Button onClick={() => setOpen(true)}>Open drawer</Button>
       <Drawer open={open} size="lg" title="Invoice details" onClose={() => setOpen(false)}>
-        <DrawerSection title="Invoice"><KeyValueList rows={rows} /></DrawerSection>
-        <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} /></DrawerSection>
+        <DrawerSection title="Invoice"><KeyValueList rows={rows} columns={2} /></DrawerSection>
+        <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} columns={2} /></DrawerSection>
         {/* No filter bar: the invoice holds two lines, and no more than 10. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
         <DrawerSection title="Lines"><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} scrollLabel="Lines" /></DrawerSection>
       </Drawer>

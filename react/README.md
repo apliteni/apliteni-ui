@@ -414,8 +414,10 @@ Set `redacted` on a row to display “Hidden” with an eye-off icon without ren
 the value. Below 560px, each label appears above its value, and the layout
 changes to one column.
 
-DrawerSection groups content under a heading and adds a hairline between adjacent
-sections. Its `headingLevel` defaults to 3. Import both the kit CSS and the React
+DrawerSection groups content under a heading and adds a line between adjacent
+sections. In a drawer 560px wide or more, the heading stands beside one column of
+pairs. It stands over two-column pairs and over a table, which need the width.
+Its `headingLevel` defaults to 3. Import both the kit CSS and the React
 CSS. Use a table for figures that readers need to compare down a column.
 
 ```tsx

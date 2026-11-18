@@ -189,6 +189,7 @@ const sectionsAt = (width: number, theme: string, edge = 'right') => {
   const { container } = render(<div className={`ui-drawer ui-drawer--${edge} ui-drawer--lg is-open`}><div className="ui-drawer__panel"><div className="ui-drawer__body">
     <DrawerSection title="Payment"><KeyValueList rows={rows} /></DrawerSection>
     <DrawerSection><KeyValueList rows={rows} /></DrawerSection>
+    <DrawerSection title="Totals"><KeyValueList rows={[...rows, ...rows]} columns={2} /></DrawerSection>
     <DrawerSection title="Lines"><table className="ui-table ui-table--hover"><thead><tr><th>Item</th></tr></thead><tbody><tr><td>Fee</td></tr></tbody></table></DrawerSection>
   </div></div></div>);
   const panel = container.querySelector('.ui-drawer__panel')!;
@@ -239,10 +240,11 @@ const hangOf = (table: Element, style: HTMLStyleElement) => {
 };
 const TABLE = { ground: true, hang: ['-7px', '7px'], hoverStep: true };
 
-it.each(['light', 'dark'])('puts each heading beside its rows in a 560px drawer, and over a table, in %s', theme => {
+it.each(['light', 'dark'])('puts each heading beside its rows in a 560px drawer, and over two-column pairs or a table, in %s', theme => {
   expect(sectionsAt(560, theme)).toEqual([
     { side: true, gap: '0px', line: false },
     { side: true, gap: null, line: '1px hairline' },
+    { side: false, gap: '8px', line: '2px strong' },
     { side: false, gap: '8px', line: '2px strong', ...TABLE },
   ]);
 });
@@ -251,6 +253,7 @@ it.each(['light', 'dark'])('puts each heading over its rows with a strong line i
   expect(sectionsAt(420, theme)).toEqual([
     { side: false, gap: '8px', line: false },
     { side: false, gap: null, line: '2px strong' },
+    { side: false, gap: '8px', line: '2px strong' },
     { side: false, gap: '8px', line: '2px strong', ...TABLE },
   ]);
 });
@@ -258,7 +261,7 @@ it.each(['light', 'dark'])('puts each heading over its rows with a strong line i
 // A side panel's 1px edge sits inside its width, and a top or bottom panel has none.
 it.each(['right', 'left', 'top', 'bottom'].flatMap(edge => [[edge, 559, false], [edge, 560, true]] as const))(
   'puts a heading beside its rows in a %s drawer %ipx wide: %s', (edge, width, side) => {
-    expect(sectionsAt(width, 'light', edge).map(section => section.side)).toEqual([side, side, false]);
+    expect(sectionsAt(width, 'light', edge).map(section => section.side)).toEqual([side, side, false, false]);
   });
 
 // Keep units readable, on the Dense tables page: the unit stands once, smaller, in the
