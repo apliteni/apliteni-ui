@@ -72,13 +72,13 @@ const fileName = () => `<span class="ui-drop__name" title="${NAME}">`
   + `<span class="ui-drop__ext">${NAME.slice(NAME.lastIndexOf('.'))}</span></span>`;
 
 /**
- * The row once a file is in hand, as a stack: the name over the facts over the
- * track. A refused file drops its size, as the component does.
+ * The row once a file is in hand, as one line: the name, then the size and the
+ * status or the track, then the actions. A refused file drops its size, as the
+ * component does.
  */
-const fileRow = ({ facts = '', track = '', failed = false, acts = '' } = {}) =>
+const fileRow = ({ facts = '', failed = false, acts = '' } = {}) =>
   `<div class="ui-drop__row"><div class="ui-drop__file${failed ? ' ui-drop__file--failed' : ''}">
-  <div class="ui-drop__line">${fileName()}${acts}</div>
-  ${facts ? `<div class="ui-drop__facts${failed ? ' ui-drop__error' : ''}">${facts}</div>` : ''}${track}</div></div>`;
+  <div class="ui-drop__line">${fileName()}${facts}</div>${acts}</div></div>`;
 
 /** Three statements already received, so a row has the list it feeds above it. */
 const RECEIVED = [['statement-07.pdf', '241 KB'], ['statement-06.pdf', '236 KB']];
@@ -114,8 +114,7 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'in-the-row',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow({
-      facts: '<span class="ui-drop__size">248 KB</span>',
-      track: bar(40),
+      facts: `<span class="ui-drop__size">248 KB</span>${bar(40)}`,
       acts: actions(removeBtn()),
     })}</div>`),
     dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>

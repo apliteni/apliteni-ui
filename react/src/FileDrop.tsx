@@ -143,42 +143,38 @@ export function FileDrop({
     <div className="ui-drop__row">
       {file
         ? <div className={cx('ui-drop__file', status === 'error' && 'ui-drop__file--failed')}>
-          {/* The name tier. It keeps the actions on its own line at every width:
-              the name truncates for them rather than anything leaving the row. */}
+          {/* The name's line: the name, the size, and the status or the track, at the
+              resting row's height. Only a refused file's reason may take a second line,
+              and only when the full name leaves it no room. */}
           <div className="ui-drop__line">
             <span className="ui-drop__name" title={file.name}>
               <span className="ui-drop__stem">{stem}</span><span className="ui-drop__ext">{ext}</span>
             </span>
-            {(onRemove || (status === 'error' && onRetry)) && <span className="ui-drop__actions">
-              {status === 'error' && onRetry
-                && <Button size="sm" icon="refresh" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
-              {/* Both actions carry their word. `x` is on the kit's icon-only
-                  list for close and dismiss, and taking a file off a row is
-                  neither: the row stays and the file leaves it. Remove stays
-                  plain beside Retry's glyph: a dismissing action is not the
-                  committing one's peer. why: guidelines/button-labels.md */}
-              {onRemove && <Button variant="ghost" size="sm"
-                onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
-            </span>}
-          </div>
-          {/* The facts tier: the size while it uploads, the message when it is
-              refused. A refused file drops its size — only one of the two says
-              what to do next. */}
-          {(showSize || showWord) && <div
-            className={cx('ui-drop__facts', status === 'error' && 'ui-drop__error')}
-            role={status === 'error' ? 'alert' : undefined}>
+            {/* A refused file drops its size: only the reason says what to do next. */}
             {showSize && <span className="ui-drop__size">{file.size}</span>}
-            {showWord && <span className="ui-drop__state">
+            {showWord && <span className={cx('ui-drop__state', status === 'error' && 'ui-drop__error')}
+              role={status === 'error' ? 'alert' : undefined}>
               <Icon name={MARKS[status]} />
               <span className="ui-drop__word" title={word}>{word}</span>
             </span>}
-          </div>}
-          {/* The track is the status while it is measurable, so it runs the full
-              width and carries the word in its own accessible name. */}
-          {hasBar && <span className="ui-drop__bar"
-            role="progressbar" aria-label={`${word} ${file.name}`}
-            aria-valuenow={file.progress} aria-valuemin={0} aria-valuemax={100}>
-            <span style={{ width: `${file.progress}%` }} />
+            {/* The track is the status while it is measurable, so it fills the free
+                room on the line and carries the word in its own accessible name. */}
+            {hasBar && <span className="ui-drop__bar"
+              role="progressbar" aria-label={`${word} ${file.name}`}
+              aria-valuenow={file.progress} aria-valuemin={0} aria-valuemax={100}>
+              <span style={{ width: `${file.progress}%` }} />
+            </span>}
+          </div>
+          {(onRemove || (status === 'error' && onRetry)) && <span className="ui-drop__actions">
+            {status === 'error' && onRetry
+              && <Button size="sm" icon="refresh" onClick={onRetry} disabled={disabled}>{retryLabel}</Button>}
+            {/* Both actions carry their word. `x` is on the kit's icon-only
+                list for close and dismiss, and taking a file off a row is
+                neither: the row stays and the file leaves it. Remove stays
+                plain beside Retry's glyph: a dismissing action is not the
+                committing one's peer. why: guidelines/button-labels.md */}
+            {onRemove && <Button variant="ghost" size="sm"
+              onClick={onRemove} disabled={disabled}>{removeLabel}</Button>}
           </span>}
         </div>
         : <>

@@ -16,46 +16,66 @@
   font-size: var(--text-sm);
   color: var(--text);
   overflow-wrap: anywhere;
+  /* The size query below reads the row's own width, not the window's. */
+  container-type: inline-size;
 }
 
 .ui-drop__note { margin: 0; }
 
-/* The file in hand is a stack, not a line: the name owns the top tier, what the
-   page has a rule about sits under it, and the track runs the width below both.
-   One line asked to carry all three truncates the name to nothing at 320. */
-.ui-drop__file { display: grid; flex: 1 1 auto; gap: var(--space-2); min-width: 0; }
+/* The file in hand is one line at the resting row's height: the name, then what
+   the page has a rule about, then the actions. A file arriving moves nothing
+   under the row. */
+.ui-drop__file { display: flex; flex: 1 1 auto; align-items: flex-start; gap: var(--space-3); min-width: 0; }
 
-/* The name tier. Never wraps: the actions stay on the name's line at every
-   width, and the name gives way to them by truncating. */
-.ui-drop__line { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
+/* The name's line: the name, the size, and the status or the track. It never
+   wraps while the file uploads, so the name gives way by truncating. */
+.ui-drop__line { display: flex; flex: 1 1 0; flex-wrap: nowrap; align-items: center; gap: var(--space-2) var(--space-3); min-width: 0; }
+
+/* A refused file's reason stands on the name's line while the full name and the
+   reason fit beside each other. When they do not, the reason takes a line of its
+   own under the name, and only then does the row grow. */
+.ui-drop__file--failed .ui-drop__line { flex-wrap: wrap; }
 
 /* The extension is the half that says what kind of file this is, so the stem
-   gives way and the tail never does — `frankfurt-settlement-state….pdf`, the
-   way Finder, Drive and Dropbox cut a name. */
-.ui-drop__name { display: flex; flex: 1 1 auto; min-width: var(--space-10); color: var(--strong); font-weight: var(--weight-medium); }
+   gives way and the tail never does: `frankfurt-settlement-state….pdf`, the
+   way Finder, Drive and Dropbox cut a name. The name gives way before anything
+   else on its line, and it is as tall as the actions, so the actions close the
+   name's line when the reason sits under it. */
+.ui-drop__name { display: flex; flex: 0 999 auto; align-items: center; min-width: var(--space-10); min-height: var(--space-8); color: var(--strong); font-weight: var(--weight-medium); }
 .ui-drop__stem { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ui-drop__ext { flex: none; }
+.ui-drop__ext { flex: none; white-space: nowrap; }
 
-/* The facts tier: the size while it uploads, the message when it fails. Never
-   wraps either — a second tier of text here would be a third tier on the row. */
-.ui-drop__facts { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--space-3); min-width: 0; }
 .ui-drop__size { flex: none; white-space: nowrap; }
 .ui-drop__word { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; min-width: 0; }
 
+/* At a row of 352px or less, the size would cut the name to a few letters, so
+   it leaves the line. A screen reader still reads it, in the row's order. */
+@container (width <= 352px) {
+  .ui-drop__size { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
 /* A status the track does not already draw is a circled mark and a word,
-   because colour alone is not a status. */
-.ui-drop__state { display: inline-flex; flex: 0 1 auto; align-items: center; gap: var(--space-2); min-width: 0; }
+   because colour alone is not a status. It keeps its width while the name can
+   still give way, so it never shrinks first: it is cut only past the name's
+   own floor and the gap beside it. */
+.ui-drop__state { display: inline-flex; flex: none; align-items: center; gap: var(--space-2); min-width: 0; max-width: calc(100% - var(--space-10) - var(--space-3)); }
+
+/* A reason under the name has the row to itself, so it runs under the actions
+   too, as wide as the row. */
+.ui-drop__file--failed .ui-drop__state { max-width: 100cqw; }
 .ui-drop__state svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-drop__error { color: var(--pink); }
 
 /* Closes the name's line on the edge the content ends on, in every state. */
 .ui-drop__actions { display: flex; flex: none; align-items: stretch; gap: var(--space-2); margin-left: auto; } /* stretch: a small button sizes to its content, so a glyph and a bare label differ by 1px. #768 */
 
-/* The width of the row it reports on, so 40% reads as 40% rather than as a dash.
+/* The track fills the room the name and the size leave on the line, and keeps
+   a length that still reads as a share of a whole when the name is cut.
    The ground is the kit's token for sunken tracks; --surface-3 was invisible. */
 .ui-drop__bar {
   display: block;
-  width: 100%;
+  flex: 1 1 0;
+  min-width: var(--space-12);
   height: 6px;
   border-radius: var(--radius-pill);
   background: var(--surface-2); /* code-bg: inherit — a progress track holds no focus target. */
