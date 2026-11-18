@@ -119,7 +119,7 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   assert.equal(
     PARENTHESISED.length, 88,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'six layout rail rules, four nav rules, fifty table rules, two of them the drawer group’s row hover (#811), eight drawer section rules that keep a heading over a table or two-column pairs (#811), four finance composition rules, two invoice showcase rules, two tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule and five token rules, two of them the drawer group’s chip hand-off (#811)',
+    + 'six layout rail rules, four nav rules, fifty table rules, two of them the drawer group’s row hover (#811), eight drawer section rules that keep a heading over a table or two-column pairs (#811), four finance composition rules, two invoice showcase rules, two tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
