@@ -31,14 +31,15 @@ const SAVED_VIEWS = ['All rows', 'Unclassified', 'This month'];
 
 // Three categories, three groups. --space-6 between them against the filter
 // bar's own --space-2 inside it, so the filter bar wrapping on a phone still
-// reads as one group wrapping. The views take the plain strip: the underline
+// reads as one group wrapping. The split toolbar puts Export at the row's end
+// and gives it the chips' height. The views take the plain strip: the underline
 // appearance is for a column switch over one dataset.
 const CategoryDo = () => <Stage>
   <div style={{ display: 'grid', gap: 'var(--space-6)', justifyItems: 'start' }}>
-    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-6)', width: '100%' }}>
-      <FilterBar filters={[{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }]}
-        onRemove={noop} onClear={noop} onChange={noop} />
-      <span style={{ marginLeft: 'auto' }}><Button size="sm">Export</Button></span>
+    <div className="ui-toolbar ui-toolbar--split" style={{ width: '100%' }}>
+      <div><FilterBar filters={[{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }]}
+        onRemove={noop} onClear={noop} onChange={noop} /></div>
+      <Button size="sm">Export</Button>
     </div>
     <Segmented options={['Overview', 'Performance'].map(label => ({ label, value: label }))} value="Overview"
       onChange={noop} label="Dataset view" />
