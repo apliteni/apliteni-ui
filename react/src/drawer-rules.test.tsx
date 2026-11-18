@@ -1,4 +1,4 @@
-// Drawer separators without borders around content, on the React stories. The React
+// Drawer heading lines without borders around content, on the React stories. The React
 // half of stories/drawer-rules.test.js (#429), over the same reading in
 // stories/lib/drawer-rules.js. Every React story is mounted for real, so a drawer that
 // is open portals into the document and is measured with the rest; a guideline's static
@@ -28,7 +28,8 @@ const THEMES = ['dark', 'light'];
 // prints once a change is meant. The shell draws the same drawer in every story that has a
 // shell, so one of them stands for all.
 // 15 and 10: the panel-origin picture draws one drawer on each side (#790).
-const EXPECTED = { subjects: 15, donts: 10 };
+// 16: the KeyValueList Wide Drawer story (#811).
+const EXPECTED = { subjects: 16, donts: 10 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);
@@ -114,7 +115,7 @@ for (const theme of THEMES) {
       expect(subjects.flatMap((s) => [...s.unframed, ...s.strayEdges].map((e) => `${s.where}  ${e}`))).toEqual([]);
     });
 
-    it('one line parts each group from the group above it', () => {
+    it('each group heading stands on one line', () => {
       expect(subjects.flatMap((s) => s.unparted.map((p) => `${s.where}  ${p}`))).toEqual([]);
     });
 

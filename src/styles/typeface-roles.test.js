@@ -87,8 +87,9 @@ const familyDecls = () => {
 };
 
 // Update the family declaration count with a reason for each change. 54 to 52: the monospace
-// face left `.ui-table__code` and `.ui-identity__symbol`.
-const EXPECTED_SUBJECTS = 52;
+// face left `.ui-table__code` and `.ui-identity__symbol`. 52 to 53: a drawer's lead figure,
+// `.ui-drawer__figure-value`, takes the display face as a readout (#811).
+const EXPECTED_SUBJECTS = 53;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

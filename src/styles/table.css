@@ -252,6 +252,8 @@
    chip's hand-off travels with it, so an identifier in a cell keeps the page rather than
    the card the cell is now painted with. why: src/tokens/tokens.css */
 .ui-card { --table-bg: var(--surface); --table-code-bg: var(--bg); }
+/* A drawer group is a reading surface in the same way, so its table takes the drawer's ground. */
+.ui-drawer .ui-drawer__section { --table-bg: var(--drawer-surface); --table-code-bg: var(--bg); }
 
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); }
@@ -606,6 +608,34 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-6); }
 /* In a frame, the side band holds space-1 of the card's text edge. */
 .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-6) - var(--space-1)); }
+/* In a drawer group the table hangs out by its end-cell inset, into the body's padding, so
+   the first column starts on the edge of the group heading and the drawer title. */
+.ui-drawer .ui-drawer__section > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) {
+  width: calc(100% + 2 * var(--cell-edge));
+  max-width: none;
+  margin-inline: calc(-1 * var(--cell-edge));
+}
+/* A table in a drawer group takes the drawer body's 13px text. Its head is set as a group
+   heading is, semibold in strong ink on the same hairline, so the two read as one kind of
+   line. Its rows are held apart by space, as the drawer's pairs are, with no line between.
+   A hover table keeps its own row floor, because its rows are targets.
+   why: docs/components.md#the-drawer */
+.ui-drawer .ui-drawer__section .ui-table thead th {
+  padding-bottom: var(--space-2);
+  font-weight: var(--weight-semibold);
+  color: var(--strong);
+}
+.ui-drawer .ui-drawer__section .ui-table :is(tbody, tfoot) :is(td, th) {
+  font-size: var(--text-sm);
+  border-bottom: 0;
+}
+.ui-drawer .ui-drawer__section .ui-table:not(.ui-table--hover) :is(tbody, tfoot) :is(td, th) { padding-block: var(--space-2); }
+.ui-drawer .ui-drawer__section .ui-table:not(.ui-table--hover) tbody tr:first-child > :is(td, th) { padding-top: var(--space-3); }
+/* --surface-3 barely steps off the raised drawer ground in dark, so a hovered row there takes
+   --surface, as a menu item does. Light keeps the grey. The drawer adds no weight, so a
+   checked row keeps its own stronger wash under the pointer. */
+:where(.ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface); }
+:where(:root[data-theme="light"] .ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface-3); }
 
 /* On a phone the cells pad by space-3 across and a card's end cells by space-4. A wide
    table scrolls under a finger, so the frame shows no scrollbar. 560px is the kit's phone
