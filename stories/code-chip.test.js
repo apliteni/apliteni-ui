@@ -298,7 +298,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 38, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 40, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811). A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
@@ -317,7 +317,8 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
     assert.ok(colourOf(paint, tokensFor('light')), `${selector} has no readable fill`);
   }
-  assert.equal(contexts.length, 4, 'a container re-points a ground token; say what a chip inside it takes');
+  // 5: a drawer group re-points --table-bg and --table-code-bg to the drawer's ground (#811).
+  assert.equal(contexts.length, 5, 'a container re-points a ground variable; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
   for (const { file, selector } of grounds) {
     assert.ok(pickFor(selector), `${file}: ${selector} paints a ground and never hands an inline code chip a surface`);
@@ -438,8 +439,13 @@ const blockGrounds = [...new Set(handOffs.filter(({ selector }) => !selector.inc
  * tab row's own value, and at its darkest point it sits under the outer 1-2 px of text.
  * Keywords, flags and URLs then fall below 4.5:1. The owner kept the approved 13% and
  * recorded the gap on #800. LIMIT: these are the shade's peak, so text further in sees less
- * shade and a higher ratio. Every flat pair and every dark pair clears AA. */
+ * shade and a higher ratio. Every flat pair clears AA.
+ * The one dark pair is a drawer group (#811). There --table-bg is the raised drawer ground,
+ * lighter than a card in dark, so a keyword under the dark shade's peak falls to 4.13. Only
+ * a code block in a selected row of a drawer table stands on that ground. LIMIT: the same
+ * peak, so text further in clears more. Every other dark pair clears AA. */
 const ACCEPTED = [
+  'dark inside .ui-drawer .ui-drawer__section var(--table-bg) shaded .k 4.13',
   'light the page var(--bg) shaded .k 4.15',
   'light the page var(--bg) shaded .f 4.36',
   'light the page var(--bg) shaded .u 4.36',
@@ -464,6 +470,12 @@ const ACCEPTED = [
   'light inside .ui-card var(--table-code-bg) shaded .k 4.15',
   'light inside .ui-card var(--table-code-bg) shaded .f 4.36',
   'light inside .ui-card var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .k 4.15',
+  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .f 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .u 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .k 4.15',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .f 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .u 4.36',
 ];
 
 /** Every ink below 4.5:1, flat and under the shade's peak, for these code.css rules. */

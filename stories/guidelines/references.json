@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:257",
+    "ref": "src/styles/table.css:259",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:317",
+    "ref": "src/styles/table.css:319",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -398,8 +398,8 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:207",
-    "pattern": ".ui-drawer__section + .ui-drawer__section {"
+    "ref": "src/styles/drawer.css:210",
+    "pattern": ".ui-drawer__section-title {"
    }
   ],
   "rows": [
@@ -408,7 +408,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:245",
+    "ref": "src/styles/drawer.css:267",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -788,7 +788,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:258",
+    "ref": "src/styles/drawer.css:280",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -1125,7 +1125,7 @@
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:288",
+    "ref": "src/styles/table.css:290",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {

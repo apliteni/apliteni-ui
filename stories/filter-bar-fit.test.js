@@ -844,10 +844,11 @@ test('every table a story draws has a search field above it, or the stated excep
   assert.ok(files.length >= 90, `found ${files.length} story files`);
   assert.ok(count >= 40, `found ${count} table sites`);
   assert.deepStrictEqual(missing, [], 'a table with no filter bar or no search field');
-  // The exception is for the document review's two tables, the skeleton that holds the sheet's place
-  // and a chart's Table view, and no other.
+  // The exception is for the document review's two tables, the skeleton that holds the sheet's place,
+  // a chart's Table view and the two invoice lines in the wide drawer story, and no other.
   assert.deepStrictEqual(excepted.map((at) => at.replace(/:\d+/, '')),
     ['react/src/DocumentReview.stories.tsx table', 'react/src/DocumentReview.stories.tsx SkeletonTable', 'react/src/DocumentReview.stories.tsx table',
+      'react/src/KeyValueList.stories.tsx DataTable',
       'stories/guidelines/DashboardsAndReports.stories.tsx table']);
 });
 

@@ -36,21 +36,21 @@
 
 **Why:** The drawer already provides the edge and raised surface, so cards add unnecessary boxes.
 
-**Do:** Use three groups, with a heading over each group’s rows and one line between groups.
+**Do:** Lead with the key figure, then put a heading over each group.
 
-**Don't:** Put each group in a card inside the drawer.
+**Don't:** Put each group in a card.
 
 ## Header and group dividers
 
 <!-- rule: three-lines -->
 
-**Rule:** Add lines below the header and between groups. Leave the footer unfilled and without a rule.
+**Rule:** Add lines under the header and each group heading. Leave the footer unfilled and without a rule.
 
-**Why:** The header line marks the scrolling body; group lines separate content, and actions share the panel surface.
+**Why:** The header line marks the scrolling body, heading lines match table heads, and actions share the panel surface.
 
-**Do:** Separate the header and groups.
+**Do:** Hold groups apart with space.
 
-**Don't:** Add dividers between every row.
+**Don't:** Add dividers between groups or rows.
 
 ## Spaced label rows
 

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it } from 'vitest';
 import axe from 'axe-core';
@@ -6,14 +6,19 @@ import { readFileSync } from 'node:fs';
 import { Drawer } from './Drawer';
 import { Modal } from './Modal';
 // @ts-expect-error -- shared CSS token resolver is JavaScript.
-import { tokensFor, substitute } from '../../stories/lib/contrast.js';
+import { tokensFor, substitute, kitCssFor, parseColour, ratio, desugar } from '../../stories/lib/contrast.js';
+// @ts-expect-error -- shared cascade reader is JavaScript.
+import { specificity, selectorList, sheetText } from '../../stories/lib/focus-walk.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
+import { WideDrawer } from './KeyValueList.stories';
+import type { ReactElement } from 'react';
 import { Dropdown } from './Dropdown';
 import { SelectField, TextField } from './Field';
 
 afterEach(() => {
   cleanup();
   document.head.querySelectorAll('style[data-kv-test]').forEach(style => style.remove());
+  delete document.documentElement.dataset.theme;
 });
 
 it('groups each term and definition without a drawer list class', () => {
@@ -155,6 +160,144 @@ it.each(['light', 'dark'])('keeps each field label visible when a drawer value h
   const labels = [...container.querySelectorAll('.ui-field__label')];
   expect(labels.map(label => label.textContent)).toEqual(['From', 'To', 'Note']);
   expect(labels.map(label => getComputedStyle(label).position)).toEqual(['static', 'static', 'absolute']);
+});
+
+// A path in a variable: Vite rewrites `new URL('<literal>', import.meta.url)` to a served URL.
+const KV_CSS = './KeyValueList.css';
+const kvSheet = () => readFileSync(new URL(KV_CSS, import.meta.url), 'utf8');
+// The invoice drawer of the Wide Drawer story, read in jsdom with the whole kit sheet: what
+// parts the groups, the lead figure's type, and the table's type, lines and ground. Where
+// each part lands in pixels is the browser capture's to show.
+const drawerAt = (theme: string) => {
+  const palette = tokensFor(theme);
+  // The light theme's own overrides key on the root's theme, as in the browser.
+  document.documentElement.dataset.theme = theme;
+  const style = document.createElement('style');
+  style.dataset.kvTest = '';
+  style.textContent = `${kitCssFor(theme).css}\n${substitute(kvSheet(), palette)}`;
+  document.head.appendChild(style);
+  const rows = [{ label: 'Number', redacted: true }, { label: 'Note' }];
+  const { container } = render(<div className="ui-drawer ui-drawer--right ui-drawer--lg is-open"><div className="ui-drawer__panel"><div className="ui-drawer__body">
+    <DrawerSection><dl className="ui-drawer__figure"><dt>Total</dt><dd><span className="ui-drawer__figure-value">€ 1,240.00</span><span className="ui-badge">Posted</span></dd></dl></DrawerSection>
+    <DrawerSection><table className="ui-table"><thead><tr><th>Item</th></tr></thead><tbody><tr><td>Fee</td></tr><tr><td>Tax</td></tr></tbody></table></DrawerSection>
+    <DrawerSection title="Account"><KeyValueList rows={rows} columns={2} /></DrawerSection>
+    <DrawerSection><table className="ui-table ui-table--hover"><tbody>
+      <tr><td>Fee</td><td className="ui-table__selection"><input type="checkbox" aria-label="Select Fee" /></td></tr>
+      <tr><td>Tax</td><td className="ui-table__selection"><input type="checkbox" aria-label="Select Tax" defaultChecked /></td></tr>
+    </tbody></table></DrawerSection>
+  </div></div></div>);
+  const ink = (name: string) => {
+    const probe = document.createElement('i');
+    probe.style.color = substitute(`var(${name})`, palette);
+    container.appendChild(probe);
+    return getComputedStyle(probe).color;
+  };
+  const panel = container.querySelector('.ui-drawer__panel')!;
+  const line = (el: Element, side: 'Top' | 'Bottom') => {
+    const cs = getComputedStyle(el);
+    return cs[`border${side}Style`] === 'solid' && parseFloat(cs[`border${side}Width`]) > 0
+      && `${cs[`border${side}Width`]} ${cs[`border${side}Color`] === ink('--border') ? 'hairline' : cs[`border${side}Color`]}`;
+  };
+  const cs = (selector: string) => getComputedStyle(container.querySelector(selector)!);
+  const [table, hover] = [...container.querySelectorAll('.ui-table')];
+  return {
+    groups: [...container.querySelectorAll('.ui-drawer__section')].map(section => ({ gap: getComputedStyle(section).marginTop || '0px', line: line(section, 'Top') })),
+    heading: { line: line(container.querySelector('.ui-drawer__section-title')!, 'Bottom'), pad: cs('.ui-drawer__section-title').paddingBottom },
+    figure: {
+      label: [cs('.ui-drawer__figure > dt').fontSize, cs('.ui-drawer__figure > dt').color === ink('--text')],
+      value: [cs('.ui-drawer__figure-value').fontSize, cs('.ui-drawer__figure-value').fontWeight, cs('.ui-drawer__figure-value').whiteSpace, cs('.ui-drawer__figure-value').color === ink('--strong')],
+      row: [cs('.ui-drawer__figure > dd').display, cs('.ui-drawer__figure > dd').alignItems],
+    },
+    table: {
+      head: [line(table.querySelector('th')!, 'Bottom'), cs('.ui-table th').fontSize, cs('.ui-table th').fontWeight, cs('.ui-table th').color === ink('--strong')],
+      cells: [...table.querySelectorAll('td')].map(td => [getComputedStyle(td).fontSize, getComputedStyle(td).paddingTop, getComputedStyle(td).paddingBottom, line(td, 'Bottom')]),
+      ground: [table, hover].map(t => getComputedStyle(t).backgroundColor === getComputedStyle(panel).backgroundColor),
+    },
+    // A hover table keeps its row floor, and hangs out by its end-cell inset.
+    hover: { cell: [getComputedStyle(hover.querySelector('td')!).fontSize, line(hover.querySelector('td')!, 'Bottom')], hang: hangOf(hover, style), hoverStep: hoverStep(hover, panel) },
+    selected: selectedFill(hover.querySelectorAll('tbody tr')[1] as HTMLElement),
+  };
+};
+// The sheet is desugared, so a state attribute stands for :hover. 1.1:1 is the floor: a
+// card's hovered row steps 1.17:1 from the card in dark, and --surface-3 on the drawer 1.04:1.
+const hoverStep = (table: Element, panel: Element) => {
+  const row = table.querySelector('tbody tr') as HTMLElement;
+  row.dataset.uiState = 'hover';
+  const step = ratio(parseColour(getComputedStyle(row.querySelector('td')!).backgroundColor)!, parseColour(getComputedStyle(panel).backgroundColor)!);
+  delete row.dataset.uiState;
+  return step >= 1.1;
+};
+type Fill = { one: string; fill: string };
+// A checked row keeps its accent wash at rest and takes the stronger wash under the pointer.
+// JSDOM ranks a `:has()` rule above an equal one, so the winner is ranked here, by specificity
+// and then by order in the table sheet. LIMIT: table.css only, with each at-rule's condition
+// taken as true, and `background` and `background-color` read as one property.
+const selectedFill = (row: HTMLElement) => {
+  const sheet = sheetText(desugar(readFileSync(new URL(TABLE_CSS, import.meta.url), 'utf8')));
+  const rules: Fill[] = [...sheet.matchAll(/([^{}]+)\{([^{}]*)\}/g)].flatMap(([, selector, body]: string[]) => {
+    const fill = /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body);
+    return fill ? selectorList(selector).map((one: string) => ({ one: one.trim(), fill: fill[1].trim() })) : [];
+  });
+  const cell = row.querySelector('td')!;
+  const winner = () => rules.filter(({ one }) => cell.matches(one)).reduce((best: Fill | null, rule) => {
+    if (!best) return rule;
+    const [a, b]: number[][] = [specificity(rule.one), specificity(best.one)];
+    const at = a.findIndex((n, i) => n !== b[i]);
+    return at === -1 || a[at] > b[at] ? rule : best;
+  }, null)?.fill;
+  const rest = winner();
+  row.dataset.uiState = 'hover';
+  const hovered = winner();
+  delete row.dataset.uiState;
+  return { rest, hovered };
+};
+// The contrast resolver gives a variable one value per element context, so it misreads a
+// variable that a table declares and uses on itself. Here the end-cell inset is one marked
+// length, so the table must hang out by the length that pads its first cell.
+const TABLE_CSS = '../../src/styles/table.css';
+const hangOf = (table: Element, style: HTMLStyleElement) => {
+  const resolved = style.textContent;
+  style.textContent = readFileSync(new URL(TABLE_CSS, import.meta.url), 'utf8').replaceAll('var(--cell-edge)', '7px');
+  const hang = [getComputedStyle(table).marginLeft, getComputedStyle(table.querySelector('td')!).paddingLeft];
+  style.textContent = resolved;
+  return hang;
+};
+
+it.each(['light', 'dark'])('parts drawer groups by space, stands a heading on a hairline, and sets a table in the drawer text, in %s', theme => {
+  expect(drawerAt(theme)).toEqual({
+    groups: [{ gap: '0px', line: false }, { gap: '32px', line: false }, { gap: '32px', line: false }, { gap: '32px', line: false }],
+    heading: { line: '1px hairline', pad: '8px' },
+    figure: { label: ['13px', true], value: ['22px', '600', 'nowrap', true], row: ['flex', 'center'] },
+    table: {
+      head: ['1px hairline', '13px', '600', true],
+      cells: [['13px', '12px', '8px', false], ['13px', '8px', '8px', false]],
+      ground: [true, true],
+    },
+    hover: { cell: ['13px', false], hang: ['-7px', '7px'], hoverStep: true },
+    selected: {
+      rest: 'color-mix(in srgb, var(--accent) var(--card-tint), var(--table-bg))',
+      hovered: 'color-mix(in srgb, var(--accent) var(--card-tint-hover), var(--table-bg))',
+    },
+  });
+});
+
+// The invoice drawer the owner chose: the reference in the title, a header button, the total
+// first, the lines with no heading of their own, then the account in two pairs to a row.
+// Keep units readable, on the Dense tables page: the unit stands once, smaller, in the
+// column heading, and each figure is the number alone.
+it('builds the wide drawer story as the invoice statement', () => {
+  const Story = (WideDrawer as { render: () => ReactElement }).render;
+  render(<Story />);
+  const drawer = screen.getByRole('dialog', { name: 'Invoice INV-1001' });
+  expect(within(drawer).getByRole('link', { name: 'View invoice' }).closest('.ui-drawer__actions')).not.toBeNull();
+  expect([...drawer.querySelectorAll('.ui-drawer__section')].map(section => section.querySelector('.ui-drawer__figure, .ui-table, .ui-kv')!.className.split(' ')[0])).toEqual(['ui-drawer__figure', 'ui-table', 'ui-kv']);
+  expect(within(drawer).getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual(['Account']);
+  // The lines have no heading on screen, so a screen reader takes their name from a hidden caption.
+  expect(within(drawer).getByRole('table', { name: 'Lines' }).querySelector('caption')).toHaveClass('ui-sr');
+  expect(drawer.querySelector('.ui-drawer__figure-value')).toHaveTextContent('€ 1,240.00');
+  expect(drawer.querySelector('.ui-kv')).toHaveClass('ui-kv--two-columns');
+  expect(screen.getByRole('columnheader', { name: /Amount/ }).querySelector('.ui-value__unit')).toHaveTextContent('EUR');
+  expect([...document.querySelectorAll('tbody td.ui-table__num')].map(cell => cell.textContent)).toEqual(['1,000.00', '240.00']);
 });
 
 it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', theme => {
