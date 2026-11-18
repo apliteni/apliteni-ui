@@ -94,7 +94,7 @@ export const WideDrawer: StoryObj = {
           </dl>
         </DrawerSection>
         {/* No filter bar: the invoice holds two lines, and no more than 10. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
-        <DrawerSection><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} hover={false} scrollLabel="Lines" /></DrawerSection>
+        <DrawerSection><DataTable columns={lineColumns} rows={lines} pager={false} selectable={false} hover={false} caption="Lines" /></DrawerSection>
         <DrawerSection title="Account"><KeyValueList rows={[{ label: 'Number', redacted: true }, { label: 'Note' }]} columns={2} /></DrawerSection>
       </Drawer>
     </>;

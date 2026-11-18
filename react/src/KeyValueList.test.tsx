@@ -292,6 +292,8 @@ it('builds the wide drawer story as the invoice statement', () => {
   expect(within(drawer).getByRole('link', { name: 'View invoice' }).closest('.ui-drawer__actions')).not.toBeNull();
   expect([...drawer.querySelectorAll('.ui-drawer__section')].map(section => section.querySelector('.ui-drawer__figure, .ui-table, .ui-kv')!.className.split(' ')[0])).toEqual(['ui-drawer__figure', 'ui-table', 'ui-kv']);
   expect(within(drawer).getAllByRole('heading', { level: 3 }).map(h => h.textContent)).toEqual(['Account']);
+  // The lines have no heading on screen, so a screen reader takes their name from a hidden caption.
+  expect(within(drawer).getByRole('table', { name: 'Lines' }).querySelector('caption')).toHaveClass('ui-sr');
   expect(drawer.querySelector('.ui-drawer__figure-value')).toHaveTextContent('€ 1,240.00');
   expect(drawer.querySelector('.ui-kv')).toHaveClass('ui-kv--two-columns');
   expect(screen.getByRole('columnheader', { name: /Amount/ }).querySelector('.ui-value__unit')).toHaveTextContent('EUR');
