@@ -47,10 +47,10 @@ const MiniTable = ({ dense, brief = false, failed = false }: { dense: boolean; b
   <tbody><tr><td>1162</td>{!brief && <td>2026-06-30</td>}<td className="ui-table__num">14,942.27</td><td>{failed ? <Badge variant="danger">Failed</Badge> : <Badge variant="success">Paid</Badge>}</td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
-  <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
-  <Card title="Payouts"><MiniTable dense /></Card>
-  <RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
-  <Card title="Invoices"><MiniTable dense={second} /></Card>
+  <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
+  <Card title="Payouts"><MiniTable dense /></Card></div>
+  <div className="ui-card-stack"><RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
+  <Card title="Invoices"><MiniTable dense={second} /></Card></div>
 </div></Stage>;
 
 // Which column the page takes, drawn to scale.

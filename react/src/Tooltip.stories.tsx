@@ -68,7 +68,7 @@ const PAYEES = [
 function InTable() {
   const { bar, shown } = useTableFilters(PAYEES, { search: 'Search payees', placeholder: 'Payee', label: 'Payee filters', text: (r) => r.name, facets: [] });
   return <div className="ui-card-stack">
-    <Card>{bar}</Card>
+    {bar}
     <Card title="Payees">
       <DataTable selectable={false} pager={false} density="dense" pinnedIdentity rows={shown} scrollLabel="Payees"
         columns={[

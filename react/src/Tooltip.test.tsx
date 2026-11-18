@@ -118,11 +118,13 @@ it('names no tab stop and no description for a control that names itself', async
   expect(tip).toHaveClass('is-open');
 });
 
-it('dismisses a hover-only tooltip with Escape', () => {
+it('dismisses a hover-only tooltip with Escape, and keyboard focus on the mark shows it again', () => {
   const { trigger, tip } = mount();
   hover(trigger);
   fireEvent.keyDown(document, { key: 'Escape' });
   expect(tip).not.toHaveClass('is-open');
+  act(() => trigger.focus());
+  expect(tip).toHaveClass('is-open');
 });
 
 it('toggles on touch, ignoring the following compatibility mouse and focus events', () => {

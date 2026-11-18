@@ -20,7 +20,9 @@
  * Its limits: one engine, Chromium; the light theme only, because a theme changes
  * paint, not geometry; keyboard focus opens each readout, so a hover and a tap are not
  * measured here; a readout that is not visible when its story loads is not reached; the
- * cover check samples nine points, so a cover that misses all nine is not found.
+ * cover check samples nine points, so a cover that misses all nine is not found; the
+ * mark is focused when it is shut and when it is open, so a change that focus alone
+ * makes, such as the room of its ring, is not measured here.
  * CI runs the source half only. Report the browser half's output in the pull request.
  */
 import test from 'node:test';
@@ -140,16 +142,21 @@ async function measureStory(browser, lib, port, story, width, mutation) {
     }
     await page.evaluate(() => document.fonts.ready);
     const marks = await page.evaluate(MARKS);
-    for (const i of marks) {
-      // Shut: a mark a story focused gets no second focus event, so blur it first.
+    const focusOpens = async (i) => {
+      // A mark a story focused gets no second focus event, so blur it first.
       await page.evaluate(() => document.activeElement?.blur());
+      await page.evaluate(FOCUS, i);
+      return page.waitForFunction(() => document.querySelector('.ui-tip.is-open'), null, { timeout: 5000 })
+        .then(() => true, () => false);
+    };
+    for (const i of marks) {
+      // Shut and open are both measured with the mark focused, so its ring's room is in
+      // both and only the readout differs. Escape shuts the readout and keeps the focus.
+      if (!await focusOpens(i)) { problems.push(`${story.label} at ${width}px, mark ${i}: focus opened no readout`); continue; }
       await page.keyboard.press('Escape');
       await page.waitForFunction(() => !document.querySelector('.ui-tip.is-open'));
       const shut = await page.evaluate(SIZES, i);
-      await page.evaluate(FOCUS, i);
-      const opened = await page.waitForFunction(() => document.querySelector('.ui-tip.is-open'), null, { timeout: 5000 })
-        .then(() => true, () => false);
-      if (!opened) { problems.push(`${story.label} at ${width}px, mark ${i}: focus opened no readout`); continue; }
+      if (!await focusOpens(i)) { problems.push(`${story.label} at ${width}px, mark ${i}: focus after Escape opened no readout`); continue; }
       // The readout fades in: hit-test the box it rests in, not a frame of the fade.
       await page.evaluate(() => Promise.all(document.querySelector('.ui-tip.is-open').getAnimations().map((a) => a.finished)));
       const hit = await page.evaluate(CUT);

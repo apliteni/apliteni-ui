@@ -35,7 +35,7 @@ export const Busy: StoryObj = {
     const { bar } = usePayoutFilters();
     return (
       <div style={{ maxWidth: 560 }}><div className="ui-card-stack">
-        <Card>{bar}</Card>
+        {bar}
         <Card title="Payouts">
           <BusyRegion busy label="Loading 3 payouts…" placeholder={<SkeletonTable rows={3} cols={3} />} />
         </Card>
@@ -89,7 +89,7 @@ export const Transition: StoryObj = {
         </div>
         {/* A reader who cannot see payouts has no table to filter. */}
         <div className="ui-card-stack">
-        {state !== 'denied' && <Card>{bar}</Card>}
+        {state !== 'denied' && bar}
         <Card title="Payouts">
           <BusyRegion
             busy={state === 'busy'}

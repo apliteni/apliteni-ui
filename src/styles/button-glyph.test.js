@@ -1,4 +1,4 @@
-// What button.css gives a button's glyphs at each size, and a link button on hover, on the React Button's markup.
+// What button.css gives a button's glyphs at each size, a link button on hover and an sm button's height, on the React Button's markup.
 // The cascade is resolved in JSDOM; nothing is laid out.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -70,4 +70,31 @@ test('a hovered link button underlines its label once, at the label offset', asy
   // makes 0.2em read 3.1px rather than the 3.2px a 16px default would give.
   assert.equal(found.offset, '3.1px', 'the underline sits 0.2em under the label');
   assert.equal(found.color, 'rgb(255, 255, 255)');
+});
+
+// An sm button and a pill dropdown trigger stand level at 32px. #814
+// Limit: the trigger's line is IBM Plex Sans's normal line, 1.3 of its size (ascender
+// 1025 and descender 275 per 1000). A fallback face draws another line, and nothing here
+// lays it out.
+test('an sm button is 32px tall with or without a glyph, level with a pill trigger', async () => {
+  for (const icon of [undefined, 'copy']) {
+    const html = await markup(({ h, kit }) => h(kit.Button, { size: 'sm', icon }, 'Export'));
+    const dom = new JSDOM(`<style>${css}</style>${html}`);
+    try {
+      assert.equal(dom.window.getComputedStyle(dom.window.document.querySelector('.ui-btn')).minHeight, '32px', `glyph ${icon}`);
+    } finally {
+      dom.window.close();
+    }
+  }
+  const dropdown = substitute(readFileSync(new URL('./dropdown.css', import.meta.url), 'utf8'), tokensFor('dark', 'default'));
+  const dom = new JSDOM(`<style>${dropdown}</style><button class="ui-dropdown__trigger">All</button>`);
+  try {
+    const s = dom.window.getComputedStyle(dom.window.document.querySelector('button'));
+    const px = (v) => parseFloat(v);
+    const drawn = px(s.paddingTop) + px(s.paddingBottom) + px(s.borderTopWidth) + px(s.borderBottomWidth)
+      + Math.round(px(s.fontSize) * 1.3);
+    assert.equal(drawn, 32, `trigger: ${s.paddingTop} padding, ${s.fontSize} type`);
+  } finally {
+    dom.window.close();
+  }
 });

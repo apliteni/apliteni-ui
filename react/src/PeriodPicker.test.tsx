@@ -84,10 +84,11 @@ it('puts the ledger heading outside its card and keeps comparison copy off the r
   const { container } = render(Default.render());
   const heading = screen.getByRole('heading', { name: 'Ledger' });
   expect(heading.closest('.ui-card')).toBeNull();
-  // The filter bar's card and the ledger's card follow the heading as one stack.
+  // The filter bar, on the page with no card of its own, and the ledger's card follow
+  // the heading as one stack. rev_136bd26bc559/d24
   const stack = heading.nextElementSibling!;
   expect(stack).toHaveClass('ui-card-stack');
-  expect([...stack.children].map((card) => card.className)).toEqual(['ui-card', 'ui-card']);
+  expect([...stack.children].map((part) => part.className)).toEqual(['ui-toolbar', 'ui-card']);
   expect(stack.lastElementChild).toBe(container.querySelector('table')!.closest('.ui-card'));
   expect(document.querySelector('[id^=period-basis]')).toHaveClass('ui-sr');
 });

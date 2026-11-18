@@ -6,6 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.172.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'The smallest text step, `--text-xs`, is now 12px, not 11px. Badges, pills, key caps, tooltips, units, counts, dropdown descriptions and chart ticks get text 1px larger, and a badge is about 1.6px taller. If your layout needs 11px text, set that size in your own CSS, because the kit has no smaller step. Part of #814.', ['Badge', 'Tooltip', 'Dropdown', 'Chart', 'Command palette']],
+      ['changed', 'Each kit text size is now one step of the `--text-*` scale, with no pixel offset, so a host that changes a step moves every part on it. Small buttons, dropdown triggers and rows, segments, callouts and footer links are 13px. Tabs and nav sub-items are 14.5px, drawer, modal and compact success titles are 15.5px, and the title of the centred entry card and the page title on a phone are 22px. Part of #814.', ['Button', 'Dropdown', 'Segmented', 'Tabs', 'Navigation', 'Drawer', 'Modal', 'AppShell']],
+      ['changed', 'A small `Button` is now 32px tall, with or without a glyph, level with a dropdown trigger. An icon-only small button is 32×32px. A small `Segmented` control keeps its 24px box with 13px text, and inline code is never smaller than 12px. Part of #814.', ['Button', 'Segmented']],
+      ['changed', 'A filter bar now stands on the page directly above its table card, with no card of its own. If your screen puts a filter bar on a card, you can remove that card. Keep its search field live there. Part of #814.', ['FilterBar', 'SearchField']],
+      ['changed', 'A filter bar on the page now sits 8px above the table card it filters, not 12px, and 20px on a touch phone. This applies in the page body, `.ui-card-stack` and `.ui-stack`. Part of #814.', ['FilterBar', 'AppShell']],
+    ],
+  },
+  {
     v: '0.170.0', date: '2026-11-17',
     changes: [
       ['changed', 'A badge in a table cell is now 19px high, not 24px. A dense row stays 38px, and a badge outside a table does not change. Part of #814.', ['Badge', 'Table']],

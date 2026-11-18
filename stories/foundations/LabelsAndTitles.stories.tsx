@@ -64,7 +64,7 @@ export const InAPage: StoryObj = {
           <Kpi label="Invoices waiting" value="14" chip={<Badge variant="danger">3 overdue</Badge>} />
         </div>
       </div>
-      <Card>{bar}</Card>
+      {bar}
       <Card title="Monthly cashflow" sub="Income and expenses by month, all entities."><Ledger rows={shown} /></Card>
     </div>
   </div>;

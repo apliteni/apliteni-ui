@@ -30,7 +30,7 @@
   gap: 8px;
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: calc(var(--text-sm) - 0.5px);
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text);
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
@@ -40,7 +40,9 @@
      why: docs/foundations.md#colour-and-contrast */
   border: 1px solid var(--control-edge);
   border-radius: var(--radius-pill);
-  padding: 7px 11px 7px 13px;
+  /* A 13px line is 17px tall, so this block padding and the edge hold the pill at 32px,
+     level with an sm button. #814 */
+  padding: 6.5px 11px 6.5px 13px;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 /* The hover edge steps aside under the band: an accent edge one pixel inside an
@@ -350,7 +352,7 @@
    why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ui-dropdown__label { font-family: var(--font-sans); font-size: calc(var(--text-sm) - 0.5px); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+.ui-dropdown__label { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
 .ui-dropdown__ic { display: inline-flex; flex: none; /* muted-ink: glyph — option icon */ color: var(--muted); }
 .ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
@@ -398,7 +400,7 @@
    tick centre on the label line, not on the middle of the two lines. The badge
    subtracts its own line and its block padding (#798). */
 .ui-dropdown__item:has(> .ui-dropdown__main > .ui-dropdown__desc) {
-  --ui-dropdown-line: calc((var(--text-sm) - 0.5px) * var(--leading-normal));
+  --ui-dropdown-line: calc(var(--text-sm) * var(--leading-normal));
   align-items: flex-start;
 }
 .ui-dropdown__item:has(> .ui-dropdown__main > .ui-dropdown__desc) > :is(.ui-dropdown__ic, .ui-dropdown__tick, .ui-dropdown__more) { height: var(--ui-dropdown-line); align-items: center; }
@@ -477,7 +479,7 @@
 .ui-dropdown__search-input {
   width: 100%;
   font: inherit;
-  font-size: calc(var(--text-sm) - 0.5px);
+  font-size: var(--text-sm);
   color: var(--strong);
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
@@ -521,7 +523,7 @@
    anything matches, so it takes no room. */
 .ui-dropdown__none { display: flex; flex-direction: column; gap: 3px; padding: 14px 12px 10px; text-align: center; }
 .ui-dropdown__none:empty { display: none; }
-.ui-dropdown__none-title { font-size: calc(var(--text-sm) - 0.5px); font-weight: 600; color: var(--strong); }
+.ui-dropdown__none-title { font-size: var(--text-sm); font-weight: 600; color: var(--strong); }
 .ui-dropdown__none-hint { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
 
 .ui-dropdown__badge.is-state {

@@ -55,7 +55,7 @@
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --text-xs:   11px;
+  --text-xs:   12px;
   --text-sm:   13px;
   --text-base: 14.5px;
   --text-md:   15.5px;
@@ -459,7 +459,7 @@
   --glow-cyan: rgba(12, 143, 168, 0.1);
   --glow-pink: rgba(169, 45, 89, 0.1);   /* an exact tint of --pink above */
 
-  /* Solid chip pairs for the light app. Each ink is deepened past its signal hue so 11px
+  /* Solid chip pairs for the light app. Each ink is deepened past its signal hue so 12px
      chip text clears WCAG AA on its own pale fill, and on the soft toast's wash, which
      #131 gave the same ink. Three came down again at #295 with the page; danger did not
      need to. */

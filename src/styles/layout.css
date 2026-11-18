@@ -151,7 +151,7 @@
 }
 /* The mark is the Avatar part in the reader's hue, filling this box like the top bar's. */
 .ui-app__av > .ui-avatar { --ui-avatar-size: 100%; }
-.ui-app__who { font-size: calc(var(--text-sm) - 0.5px); line-height: 1.3; min-width: 0; }
+.ui-app__who { font-size: var(--text-sm); line-height: 1.3; min-width: 0; }
 .ui-app__who b { display: block; color: var(--strong); font-weight: var(--weight-semibold); }
 /* nowrap is what makes the ellipsis fire — without it the address wraps, and
    the rail column is max-content, so a long one widens the rail instead. */
@@ -185,7 +185,7 @@
    time it is open it is no longer inside the rail that drew it.
    why: docs/components.md#the-dropdown-panel */
 .ui-app__user-panel .ui-dropdown__head { display: flex; flex-direction: column; gap: 2px; }
-.ui-app__user-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: calc(var(--text-sm) - 0.5px); font-weight: var(--weight-semibold); }
+.ui-app__user-panel .ui-dropdown__head b { display: block; color: var(--strong); font-size: var(--text-sm); font-weight: var(--weight-semibold); }
 /* The address wraps rather than truncating: nothing bounds this line, so
    `text-overflow` would have nothing to fire against — the inert pair
    .ui-app__who's own comment warns about. `anywhere` keeps an address with no
@@ -410,7 +410,7 @@
   letter-spacing: var(--tracking-tight);
   margin-bottom: 8px;
 }
-.ui-app__sub { color: var(--text); font-size: calc(var(--text-base) + 0.5px); line-height: 1.6; max-width: var(--prose-body); margin-bottom: var(--space-8); }
+.ui-app__sub { color: var(--text); font-size: var(--text-base); line-height: 1.6; max-width: var(--prose-body); margin-bottom: var(--space-8); }
 /* A page may open on its title alone; then the title carries the head's step. */
 .ui-app__main > h1:not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-8); }
 /* Page tools stand at the end of the title row, and the lede goes under the whole row.
@@ -439,10 +439,13 @@
    attribute, ~20 characters) from setting a floor well above the basis. */
 .ui-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
 /* A control row belongs to the block it narrows rather than standing beside it,
-   so it sits closer than .ui-app__body's gap between two blocks that are each
-   their own subject. Not on the last row: there the gap is the page's bottom
-   and nothing is being narrowed. why: Artur's review of the Finance report, #505 */
-.ui-app__body > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-3) - var(--space-5)); }
+   so it sits one inner gap above that block, closer than the stack's gap between
+   two blocks that are each their own subject. Both page stacks, so a filter bar
+   on the page meets its table card at the same distance. Not on the last row:
+   there the gap is the page's bottom and nothing is being narrowed. tap-zone.css
+   widens it on a touch phone. why: docs/foundations.md#spacing-and-rhythm */
+:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
+.ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 /* A row that offers the block two unrelated things — what to narrow it by, and
@@ -527,7 +530,7 @@
   .ui-app__drawer .ui-nav__item,
   .ui-app__drawer .ui-app__user-trigger { min-height: 44px; }
   .ui-app__main { padding: 28px var(--space-4) 56px; }
-  .ui-app__main h1 { font-size: calc(var(--text-xl) + 3px); }
+  .ui-app__main h1 { font-size: var(--text-xl); }
   /* A settings row is label-beside-control, and below this step any control that does
      not fit beside its label drops under it. A row that holds a choice wraps this way at
      every width, in card.css. Scoped to the shell, because a card row outside a shell
@@ -593,12 +596,12 @@
   padding: 38px 36px 32px;
 }
 .ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
-.ui-auth__brand span { font-size: calc(var(--text-base) + 0.5px); font-weight: 600; color: var(--strong); }
-.ui-auth__title { color: var(--strong); font-size: calc(var(--text-xl) + 2px); font-weight: 600; letter-spacing: -0.01em; margin-bottom: 7px; }
+.ui-auth__brand span { font-size: var(--text-md); font-weight: 600; color: var(--strong); }
+.ui-auth__title { color: var(--strong); font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.01em; margin-bottom: 7px; }
 .ui-auth__sub { color: var(--text); font-size: var(--text-base); line-height: 1.55; margin-bottom: 26px; }
 .ui-auth__foot { margin-top: 24px; text-align: center; font-size: var(--text-sm); color: var(--text); }
 .ui-auth__foot a { color: var(--accent); }
-.ui-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--text); font-size: calc(var(--text-xs) + 1px); }
+.ui-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--text); font-size: var(--text-xs); }
 .ui-divider::before, .ui-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
 /* App scope grant list (OAuth consent) */
@@ -613,7 +616,7 @@
   color: var(--accent);
 }
 .ui-scope__icon svg { width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-.ui-scope__t { color: var(--strong); font-size: calc(var(--text-base) - 0.5px); font-weight: 500; }
+.ui-scope__t { color: var(--strong); font-size: var(--text-base); font-weight: 500; }
 .ui-scope__d { color: var(--text); font-size: var(--text-sm); margin-top: 2px; line-height: 1.5; }
 
 /* -- Landing hero -------------------------------------------------------- */
@@ -627,7 +630,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: calc(var(--text-xs) + 1px);
+  font-size: var(--text-xs);
   letter-spacing: 0.06em;
   color: var(--purple-mid);
   background: var(--glow-purple); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
@@ -680,12 +683,12 @@
   margin-bottom: 16px;
 }
 .ui-feature__icon svg { width: 25px; height: 25px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-.ui-feature h3 { color: var(--strong); font-size: calc(var(--text-lg) - 1px); font-weight: 600; margin-bottom: 7px; }
+.ui-feature h3 { color: var(--strong); font-size: var(--text-lg); font-weight: 600; margin-bottom: 7px; }
 .ui-feature p { color: var(--text); font-size: var(--text-base); line-height: 1.6; }
 
 .ui-section-head { text-align: center; max-width: var(--panel-lg); margin: 0 auto clamp(40px, 6vh, 64px); }
 .ui-section-head h2 { color: var(--strong); font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin-bottom: 14px; }
-.ui-section-head p { color: var(--text); font-size: calc(var(--text-lg) - 1px); line-height: 1.6; }
+.ui-section-head p { color: var(--text); font-size: var(--text-lg); line-height: 1.6; }
 
 /* Forced colours replace every author background, so a selected item takes the system
    pair as its fill. `forced-color-adjust: none` is what keeps the pair from sitting on

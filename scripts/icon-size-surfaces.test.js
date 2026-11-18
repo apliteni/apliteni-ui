@@ -366,13 +366,11 @@ test('the breaking badge icon is sized by the changelog page, in the state where
       'the badge icon now carries a width attribute, so the reset skips it and this rule is moot');
 
     /* The badge is measured with its font-size forced, and that is not a detail.
-     * src/styles/badge.css sets .ui-badge { font-size: 10px }, so the reset's
-     * 1.1em computes to exactly 11px on this element — the same number the
-     * changelog asks for. Read as it renders, a reset that had taken the rule
-     * over would produce an identical measurement and this test would pass
-     * through the regression it exists to catch. Forcing the em basis does not
-     * touch which rules match; it only pulls the two candidates apart, so a
-     * reset that won reads 110px. */
+     * The badge's own size once made the reset's 1.1em compute to exactly 11px,
+     * the same number the changelog asks for, so a reset that had taken the rule
+     * over measured the same. The badge text is 12px now (#814), and the em
+     * basis stays forced so the two candidates can never meet again. Forcing it
+     * does not touch which rules match; a reset that won reads 110px. */
     badge.style.fontSize = '100px';
     for (const dim of DIMS) {
       assert.equal(getComputedStyle(svg).getPropertyValue(dim), '11px',

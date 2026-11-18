@@ -631,6 +631,12 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       + 'selector that stopped matching, not a kit that got smaller.',
     );
 
+    // A control below the rig's page cap has no reach, so a story cut there is unmeasured.
+    assert.deepEqual(
+      [...before.rows, ...after.rows].filter((r) => r.cut).map((r) => r.story), [],
+      'A story is taller than the rig lays out. Raise VIEW_CAP in stories/lib/tap-zone.js.',
+    );
+
     await t.test('no control is drawn at a different size', () => {
       const moved = B.filter((b, i) => b.drawn[0] !== A[i].drawn[0] || b.drawn[1] !== A[i].drawn[1]);
       assert.deepEqual(
