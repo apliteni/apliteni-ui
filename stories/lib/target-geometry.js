@@ -104,6 +104,30 @@ export const px = (v) => {
   return m ? Number(m[1]) : null;
 };
 
+/**
+ * A length in px from `calc()` and `round()` over px and plain numbers, or null.
+ * A filter chip's trigger fills the chip with one (#822). Limit: no %, em or other unit.
+ */
+export const pxCalc = (v) => {
+  let s = (v || '').trim();
+  if (px(s) != null) return px(s);
+  if (!/^(calc|round)\(/.test(s) || /[^\d.\s()+\-*/a-z,]/.test(s)) return null;
+  const sum = (e) => {
+    const n = e.replace(/(\d)px/g, '$1');
+    if (/[^\d.\s()+\-*/]/.test(n)) return null;
+    try { return Function(`"use strict"; return (${n});`)(); } catch { return null; }
+  };
+  // Innermost first: a calc() with no function inside it, then a round() over plain values.
+  for (let pass = 0; pass < 8 && /(calc|round)\(/.test(s); pass++) {
+    s = s.replace(/calc\(([^()]*)\)/g, (m, e) => { const r = sum(e); return r == null ? m : `${r}px`; })
+      .replace(/round\((?:(up|down|nearest|to-zero),\s*)?([-\d.]+)px,\s*([-\d.]+)px\)/g, (m, how = 'nearest', a, b) => {
+        const f = { up: Math.ceil, down: Math.floor, nearest: Math.round, 'to-zero': Math.trunc }[how];
+        return `${f(Number(a) / Number(b)) * Number(b)}px`;
+      });
+  }
+  return px(s);
+};
+
 /** The nth value of a shorthand, expanded the way CSS expands padding. */
 function side(v, which) {
   const parts = (v || '').trim().split(/\s+/).filter(Boolean);
@@ -183,8 +207,8 @@ export function boxOf(el, cs, glyph) {
 
   const declaredH = px(probe(cs, 'height'));
   const declaredW = px(probe(cs, 'width'));
-  const minH = px(probe(cs, 'min-height'));
-  const minW = px(probe(cs, 'min-width'));
+  const minH = pxCalc(probe(cs, 'min-height'));
+  const minW = pxCalc(probe(cs, 'min-width'));
 
   // Any text ANYWHERE inside, not just a direct child: the kit wraps a button's
   // label in a span often enough that asking for a direct text node reported

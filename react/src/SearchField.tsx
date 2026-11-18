@@ -1,10 +1,13 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 import { icon } from '@apliteni/apliteni-ui';
 
-export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'aria-label'> & {
+export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'aria-label' | 'size'> & {
   /** The control's name. A toolbar search box shows no label, so this is the
       only name it has. */
   ariaLabel: string;
+  /** `sm` is the toolbar above a dense table: 32px with 13px text to a mouse, and
+      the full field on a touch screen. */
+  size?: 'sm';
 };
 
 /**
@@ -20,13 +23,13 @@ export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type
  * why: docs/components.md#react-search-field
  */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
-  { ariaLabel, className, ...props }, ref,
+  { ariaLabel, size, className, ...props }, ref,
 ) {
   // icon() already marks the svg aria-hidden, so the slot adds no name of its
   // own and `ariaLabel` stays the control's whole name.
   return <div className="ui-input-group">
     <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon('search') }} />
     <input ref={ref} {...props} type="search" aria-label={ariaLabel}
-      className={['ui-input', className].filter(Boolean).join(' ')} />
+      className={['ui-input', size === 'sm' && 'ui-input--sm', className].filter(Boolean).join(' ')} />
   </div>;
 });

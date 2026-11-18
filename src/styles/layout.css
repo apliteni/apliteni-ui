@@ -549,6 +549,21 @@
 @media (max-width: 560px) {
   .ui-toolbar--split:has(.ui-filter-bar) > :last-child { min-height: var(--ui-filter-row-h); }
 }
+/* On a touch screen a dropdown trigger alone on a toolbar line takes a chip's height too,
+   not its own 32px, so every control under the full field is one height. #822 */
+@media (pointer: coarse) {
+  .ui-toolbar > .ui-dropdown { min-height: var(--ui-filter-row-h); }
+}
+/* A small search field stops at the width of a small panel, and the free width goes
+   before the last control. A full-size field still takes the free width. At one column
+   each search field takes the line again. rev_f1d664c42a55/d2, #822
+   why: docs/components.md#a-toolbar-at-one-column */
+@media not (pointer: coarse) {
+  .ui-toolbar > .ui-input-group:has(> .ui-input--sm) { max-width: var(--panel-sm); }
+}
+@media (max-width: 560px) {
+  .ui-toolbar > .ui-input-group:has(> .ui-input--sm) { max-width: none; }
+}
 
 /* -- The band's search at one column --------------------------------------- */
 /* The band holds the trigger, the reader's mark and whatever the page puts between
