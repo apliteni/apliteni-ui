@@ -16,6 +16,7 @@ import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error -- shared, independently tested JS modules.
 import { THEMES, CELLS, targetRun, ringCell, disabledCell } from '../../stories/lib/accessibility-walks.js';
+import { pxCalc } from '../../stories/lib/target-geometry.js';
 // @ts-expect-error -- plain JS story module.
 import { TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, TARGET_EXEMPT } from '../../stories/guidelines/_accessibility-floor.js';
 
@@ -116,5 +117,17 @@ describe('disabled: React stories', () => {
     expect(all.filter((f: Any) => !f.repaints && !KNOWN_SAME[f.selector]).map((f: Any) => `${f.theme} ${f.path} — ${f.selector}`)).toEqual([]);
     expect(Object.keys(KNOWN_SAME).filter((sel) => !all.some((f: Any) => !f.repaints && f.selector === sel)), 'it repaints now: take it off the list').toEqual([]);
     expect(all.filter((f: Any) => f.opacity < 1 && f.labelled).map((f: Any) => `${f.theme} ${f.path} — ${f.selector} at opacity ${f.opacity}`)).toEqual([]);
+  });
+});
+
+// A filter chip's trigger fills the chip with a calc() over a round() (#822). Read as
+// nothing, the trigger measured 23.6px. A browser fills it to 30px in a 40px chip.
+// Limit: px and plain numbers only, so a % or em length stays unread.
+describe('target size: the geometry reads a calc() length', () => {
+  it('resolves calc() and round() over px, and nothing else', () => {
+    expect(pxCalc('calc(round(up, calc(2px + 2 * 4px + 1.5 * 17px), 1px) - 2px - 2 * 4px)')).toBe(26);
+    expect(pxCalc('calc(32px - 2px)')).toBe(30);
+    expect(pxCalc('30px')).toBe(30);
+    for (const unread of ['calc(100% - 2px)', 'calc(1em + 2px)', 'calc(2px + alert(1))', 'auto']) expect(pxCalc(unread)).toBeNull();
   });
 });

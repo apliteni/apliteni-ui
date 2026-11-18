@@ -6,10 +6,18 @@
 
 export const RELEASES = [
   {
+    v: '0.177.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField` at both sizes, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
+      ['changed', 'A dropdown in a form is a pill, the same as the text input beside it, and the two stay at one height. A multi-line `TextArea` keeps its 12px corner, because a pill does not fit several lines. Part of #823.', ['Dropdown', 'Field', 'Guidelines']],
+    ],
+  },
+  {
     v: '0.176.0', date: '2026-11-18',
     changes: [
-      ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField`, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
-      ['changed', 'A dropdown in a form is a pill, the same as the text input beside it, and the two stay at one height. A multi-line `TextArea` keeps its 12px corner, because a pill does not fit several lines. Part of #823.', ['Dropdown', 'Field', 'Guidelines']],
+      ['added', '`SearchField` takes `size="sm"` for a toolbar above a dense table: 32px high with 13px text to a mouse, and the full 46px field with 16px text on a touch screen. Its toolbar and filter bar follow it to 32px, and the field stops at 320px. `TextField` and `SelectField` keep one size. Part of #822.', ['SearchField', 'FilterBar']],
+      ['fixed', 'The leading glyph of every field with a glyph sits on the centre of the text and the caret, at every size. It sat 2px low. A dropdown trigger\'s text now shares a baseline with a small button. Part of #826.', ['SearchField', 'TextField', 'Dropdown']],
+      ['fixed', 'On a touch screen, a dropdown trigger in a toolbar is 40px high, level with a filter chip. It stayed 32px. Part of #822.', ['Dropdown']],
     ],
   },
   {

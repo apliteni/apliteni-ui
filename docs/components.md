@@ -941,6 +941,16 @@ A control row directly inside the page body, a `.ui-card-stack` or a `.ui-stack`
 Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
 Every control on a toolbar line takes the line's height, so a button beside a field or a filter chip has the same top and bottom edge. Put a button and a field that share a row in `.ui-toolbar`, and change neither control's size.
 
+**A toolbar that opens with a small search field is a small row.** With a mouse, its filter
+chips, the add control and Clear all stand at 32px, level with the field, a dropdown trigger, a
+small Segmented and a small button. Give the Segmented and the button `size="sm"` yourself. The
+small search field stops at `--panel-sm`, 320px, and the free width goes before the last
+control. A full-size search field still takes the free width. At `560px` and below, each search
+field takes the full line. On a touch screen the row keeps the full height: the field is 46px,
+and a chip, Clear all, a dropdown trigger, the Segmented and the button are 40px on a line
+without the field. At both sizes, the text and the glyphs of the row share one vertical centre,
+within about 1.5px.
+
 ### Segmented strips that outgrow their column
 
 The enabled selected pill uses an accent fill with contrasting label ink in both themes. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
@@ -1116,6 +1126,13 @@ the control's only name**, because no label appears in the row. It declares no C
 toolbar's row rule and the field's focus ring therefore reach it from the kit's stylesheet.
 **There is no clear button**, because the browser paints its own near-black button on the light
 field and white button on the dark one.
+**`size="sm"` is the field above a dense table.** With a mouse it is 32px high with `--text-sm`, the
+text of the dense rows, and the pill corner. Without `size`, the field keeps its full size. At every
+size, the leading glyph sits on the vertical centre of the text and the caret. A `TextField` glyph
+does the same. On a touch screen a
+small field is the full field. Only `SearchField` takes a size: `TextField` and `SelectField` keep
+one size, because a form keeps the full size. See
+[A toolbar at one column](#a-toolbar-at-one-column).
 
 ### React date and month picker
 
