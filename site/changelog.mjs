@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.175.1', date: '2026-11-18',
     changes: [
-      ['docs', 'The components page now says to put a button and a field that share a row in `.ui-toolbar`, so that they have the same top and bottom edge. Part of #825.', ['Toolbar']],
+      ['changed', 'The components page now says to put a button and a field that share a row in `.ui-toolbar`, so that they have the same top and bottom edge. Part of #825.', ['Toolbar']],
     ],
   },
   {
