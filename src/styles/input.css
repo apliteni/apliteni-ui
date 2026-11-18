@@ -27,12 +27,12 @@
      why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill); /* why: docs/foundations.md#control-corners */
   padding: 12px 15px;
   width: 100%;
   transition: border-color var(--dur-med) var(--ease), box-shadow var(--dur-med) var(--ease);
 }
-.ui-textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
+.ui-textarea { resize: vertical; min-height: 96px; line-height: 1.55; border-radius: var(--radius-md); }
 
 .ui-input:hover,
 .ui-textarea:hover,

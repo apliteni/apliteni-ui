@@ -484,7 +484,7 @@
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
@@ -548,12 +548,11 @@
 .ui-field > .ui-dropdown { display: grid; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
-/* In a form the trigger takes the text input's corner, block padding and type, so the
-   two stand at one height. Elsewhere it keeps the pill. #812
+/* In a form the trigger takes the text input's block padding and type, so the two
+   stand at one height. Both are pills, so it keeps its own corner. #812, #823
    why: docs/components.md#forms */
 @property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
-  border-radius: var(--radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base);
   min-inline-size: 0;

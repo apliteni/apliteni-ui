@@ -29,7 +29,7 @@
   font-size: var(--btn-font);
   font-weight: var(--weight-medium);
   line-height: var(--leading-tight);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill); /* why: docs/foundations.md#control-corners */
   padding: var(--btn-pad-y) var(--btn-pad-x);
   min-height: var(--btn-height-md);
   cursor: pointer;
@@ -113,10 +113,10 @@
 .ui-btn--xs { --btn-pad-y: 4.5px; --btn-pad-x: 8px; --btn-font: var(--text-xs); min-width: 24px; min-height: 24px; }
 .ui-btn--xs svg { width: 13px; height: 13px; stroke-width: 2.8; }
 .ui-btn--sm { --btn-pad-y: 6px; --btn-pad-x: 12px; --btn-font: var(--text-sm); min-height: var(--btn-height-sm); }
-.ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); border-radius: var(--radius-md); }
+.ui-btn--lg { --btn-pad-y: 13px; --btn-pad-x: 24px; --btn-font: var(--text-md); }
 
 /* Icon-only */
-.ui-btn--icon { --btn-pad-y: var(--btn-pad-y-md); padding: var(--btn-pad-y-md); border-radius: var(--radius-sm); }
+.ui-btn--icon { --btn-pad-y: var(--btn-pad-y-md); padding: var(--btn-pad-y-md); }
 .ui-btn--icon.ui-btn--xs { --btn-pad-y: 4.5px; padding: 4.5px; }
 .ui-btn--icon.ui-btn--sm { --btn-pad-y: 7px; padding: 7px; }
 

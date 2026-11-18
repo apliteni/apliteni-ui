@@ -97,7 +97,7 @@
 .ui-fbcomposer textarea:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-fbc__foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 20px 18px; }
 
-.ui-fbbtn { font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); border-radius: 10px; padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+.ui-fbbtn { font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-semibold); border-radius: var(--radius-pill); padding: 9px 17px; cursor: pointer; border: 0; transition: filter var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
 .ui-fbbtn.ghost { background: transparent; color: var(--text); }
 .ui-fbbtn.ghost:hover { color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-fbbtn:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }

@@ -1106,6 +1106,16 @@
     "ref": "stories/guidelines/iconography.test.js:256",
     "pattern": "every icon-only control is one the closed list allows"
    }
+  ],
+  "one-shape": [
+   {
+    "ref": "src/styles/button.css:32",
+    "pattern": "border-radius: var(--radius-pill);"
+   },
+   {
+    "ref": "src/styles/control-shape.test.js:82",
+    "pattern": "every control is a pill, except the controls that keep their corner"
+   }
   ]
  },
  "_dashboards-and-reports.js": {

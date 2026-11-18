@@ -5,7 +5,7 @@
    showing through a switched-off box — the complaint behind #505's review. */
 .ui-filter-bar__chip {
   display: inline-flex; align-items: center; min-width: 0; margin: 0;
-  border: 1px solid var(--control-edge); border-radius: var(--radius-sm); padding: var(--space-1);
+  border: 1px solid var(--control-edge); border-radius: var(--radius-pill); padding: var(--space-1);
   /* The chip holds two focus targets of its own — the trigger and the remove
      button — so it is a painted container, not a control that inherits the gap
      outside it. It joins the shared recomposition in tokens.css beside .ui-seg,
@@ -22,7 +22,7 @@
    why: guidelines/accessibility-floor.md#disabled-control-legibility */
 .ui-filter-bar__chip:disabled,
 .ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
-.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
+.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-pill); cursor: pointer; }
 .ui-filter-bar__remove:focus-visible,
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
@@ -152,7 +152,7 @@
 /* Clear all keeps a chip's height when it wraps to a line of its own, so a wider gap
    that moves it to the next line does not change its size. */
 .ui-toolbar .ui-filter-bar [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }

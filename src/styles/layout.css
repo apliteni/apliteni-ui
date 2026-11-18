@@ -365,7 +365,7 @@
      why: docs/foundations.md#elevation */
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   transition: border-color var(--dur-med) var(--ease), color var(--dur-med) var(--ease);
 }

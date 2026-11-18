@@ -86,7 +86,7 @@
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-pill);
   font: inherit;
   transition:
     transform var(--dur-fast) var(--ease),

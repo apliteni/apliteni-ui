@@ -164,7 +164,7 @@ it('draws the phone band\'s controls as bare 40px glyphs and the title on one li
   // #732 (300 and 390 fit with no sideways scroll, every control is 40px square).
   const css = read('./AppShell.css');
   const phone = css.match(/@media \(max-width: 560px\) \{([^]*?)\n\}/)?.[1] ?? '';
-  expect(phone).toMatch(/\.ui-app__search,[^{]*\{[^}]*width: 40px;[^}]*height: 40px;[^}]*border: 0; border-radius: var\(--radius-md\); background: transparent;/);
+  expect(phone).toMatch(/\.ui-app__search,[^{]*\{[^}]*width: 40px;[^}]*height: 40px;[^}]*border: 0; border-radius: var\(--radius-pill\); background: transparent;/);
   expect(phone).toMatch(/\.ui-app__search-ic \{ display: flex; \}/);
   // No gap, so no room across: tap-zone.css's coarse-pointer layer stays on its own 40px
   // control. Measured with elementFromPoint at 300 and 390 on #729; jsdom has no layout.

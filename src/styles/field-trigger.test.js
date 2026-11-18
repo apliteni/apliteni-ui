@@ -80,7 +80,9 @@ function sourceFaults(mutation) {
   const pill = declarations(dropdown, '.ui-dropdown__trigger');
   const out = [];
   if (!field) return [`dropdown.css has no ${TRIGGER} rule`];
-  if (field['border-radius'] !== input['border-radius']) out.push(`radius ${field['border-radius']}, the input's is ${input['border-radius']}`);
+  // Both are pills since #823, so the field trigger may keep the trigger's own corner.
+  const corner = field['border-radius'] ?? pill['border-radius'];
+  if (corner !== input['border-radius']) out.push(`radius ${corner}, the input's is ${input['border-radius']}`);
   const block = (padding) => padding.split(/\s+/)[0];
   if (block(field.padding) !== block(input.padding)) out.push(`block padding ${block(field.padding)}, the input's is ${block(input.padding)}`);
   if (field['font-size'] !== input['font-size']) out.push(`font size ${field['font-size']}, the input's is ${input['font-size']}`);
