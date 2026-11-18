@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.176.0', date: '2026-11-18',
+    changes: [
+      ['added', '`SearchField` takes `size="sm"` for a toolbar above a dense table: 32px high with 13px text to a mouse, and the full 46px field with 16px text on a touch screen. Its toolbar and filter bar follow it to 32px, and the field stops at 320px. `TextField` and `SelectField` keep one size. Part of #822.', ['SearchField', 'FilterBar']],
+      ['fixed', 'The leading glyph of every field with a glyph sits on the centre of the text and the caret, at every size. It sat 2px low. A dropdown trigger\'s text now shares a baseline with a small button. Part of #826.', ['SearchField', 'TextField', 'Dropdown']],
+      ['fixed', 'On a touch screen, a dropdown trigger in a toolbar is 40px high, level with a filter chip. It stayed 32px. Part of #822.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.175.0', date: '2026-11-18',
     changes: [
       ['changed', 'A `FileDrop` row with a file keeps the resting row\'s 32px height while the file uploads and after it lands. The name, the size and the status or the progress track stand on one line, and Remove ends it. Content under the row no longer moves when a file arrives. Part of #820.', ['FileDrop']],
