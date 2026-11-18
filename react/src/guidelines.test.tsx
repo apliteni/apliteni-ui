@@ -305,7 +305,7 @@ describe('guideline pages in React: Motion', () => {
   const page = pages.find(p => p.file.endsWith('/Motion.stories.tsx'))!;
   const brand = read('../../src/tokens/brand.generated.css');
   const brandValue = (name: string) => brand.match(new RegExp(`${name}:\\s*([^;]+);`))![1].trim();
-  const points = (value: string) => value.match(/cubic-bezier\(([^)]+)\)/)![1].split(',').map(Number);
+  const points = (value: string) => value.match(/cubic-bezier\(([^)]+)\)/)![1].match(/[\d.]+/g)!.map(Number);
   const curves: Record<string, number[]> = {
     '--ease': points(brandValue('--easing-ease-in-out')), '--ease-out': points(brandValue('--easing-ease-out')),
     ease: [0.25, 0.1, 0.25, 1],
