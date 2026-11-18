@@ -963,7 +963,7 @@
  "_file-drop.js": {
   "one-row": [
    {
-    "ref": "src/styles/file-drop.css:8",
+    "ref": "src/styles/file-drop.css:11",
     "pattern": ".ui-drop__row {"
    },
    {
@@ -973,31 +973,31 @@
   ],
   "on-drag": [
    {
-    "ref": "src/styles/file-drop.css:67",
+    "ref": "src/styles/file-drop.css:95",
     "pattern": ".ui-drop__target {"
    },
    {
-    "ref": "react/src/FileDrop.tsx:191",
+    "ref": "react/src/FileDrop.tsx:187",
     "pattern": "className=\"ui-drop__target\""
    }
   ],
   "in-the-row": [
    {
-    "ref": "src/styles/file-drop.css:26",
+    "ref": "src/styles/file-drop.css:36",
     "pattern": ".ui-drop__file {"
    },
    {
-    "ref": "react/src/FileDrop.tsx:179",
+    "ref": "react/src/FileDrop.tsx:163",
     "pattern": "role=\"progressbar\""
    }
   ],
   "failure": [
    {
-    "ref": "src/styles/file-drop.css:49",
+    "ref": "src/styles/file-drop.css:75",
     "pattern": ".ui-drop__error"
    },
    {
-    "ref": "react/src/FileDrop.tsx:152",
+    "ref": "react/src/FileDrop.tsx:168",
     "pattern": "status === 'error' && onRetry"
    }
   ],
@@ -1009,13 +1009,13 @@
   ],
   "limits-once": [
    {
-    "ref": "react/src/FileDrop.tsx:187",
+    "ref": "react/src/FileDrop.tsx:183",
     "pattern": "className=\"ui-drop__note\""
    }
   ],
   "which-shape": [
    {
-    "ref": "src/styles/file-drop.css:6",
+    "ref": "src/styles/file-drop.css:11",
     "pattern": ".ui-drop > * + .ui-drop__row"
    },
    {

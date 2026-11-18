@@ -244,6 +244,14 @@ window in a real browser. Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
+## Check the file drop row locally
+
+Before opening a PR that changes `src/styles/file-drop.css` or React `<FileDrop>`, measure the rows
+in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_CHROME=… ROW_HEIGHTS=1 node --test stories/row-height.test.js`
+It also opens every file drop story as Storybook draws it. Report the result in the PR. CI runs
+only this gate's source half.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

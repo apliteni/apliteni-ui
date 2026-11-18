@@ -154,21 +154,35 @@ describe('FileDrop once a file is in hand', () => {
   });
 
   // JSDOM applies no stylesheet, so the half it can check is the markup: the
-  // tiers are there in order and the truncatable text carries its full self in a
-  // title. The declarations that make each tier one line are read from the sheet
-  // here and measured in a browser by stories/row-height.test.js.
-  it('stacks the name over the facts, with the full text in a title', () => {
-    render(<FileDrop file={{ name: 'a-very-long-statement-name-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }} />);
+  // name, the size and the status stand on one line in reading order, and the
+  // truncatable text carries its full self in a title. The declarations that
+  // keep the line at the resting row's height are read from the sheet here, and
+  // the heights are measured in a browser by stories/row-height.test.js.
+  it('puts the name, the size and the status on one line, with the full text in a title', () => {
+    const { rerender } = render(<FileDrop file={{ name: 'statement-2026-08.pdf', size: '248 KB', status: 'uploading', progress: 40 }}
+      onRemove={() => {}} />);
+    const line = () => document.querySelector('.ui-drop__line') as HTMLElement;
+    expect([...line().children].map((c) => c.className))
+      .toEqual(['ui-drop__name', 'ui-drop__size', 'ui-drop__bar']);
+    rerender(<FileDrop file={{ name: 'statement-2026-08.pdf', size: '248 KB', status: 'done' }} onRemove={() => {}} />);
+    expect([...line().children].map((c) => c.className))
+      .toEqual(['ui-drop__name', 'ui-drop__size', 'ui-drop__state']);
+    // A refused file's reason is on the name's line in the markup. The sheet lets
+    // it wrap under the name only when the line is full.
+    rerender(<FileDrop file={{ name: 'a-very-long-statement-name-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }} />);
     expect(name()).toHaveAttribute('title', 'a-very-long-statement-name-2026-08.pdf');
     expect(screen.getByText('Larger than 10 MB')).toHaveAttribute('title', 'Larger than 10 MB');
-    expect([...document.querySelector('.ui-drop__file')!.children].map((c) => c.className))
-      .toEqual(['ui-drop__line', 'ui-drop__facts ui-drop__error']);
+    expect([...line().children].map((c) => c.className))
+      .toEqual(['ui-drop__name', 'ui-drop__state ui-drop__error']);
+    expect(document.querySelector('.ui-drop__file')!.children).toHaveLength(1);
 
     const css = readRepo('../../src/styles/file-drop.css');
-    expect(/\.ui-drop__file\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/display:\s*grid/);
-    expect(/\.ui-drop__line\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/flex-wrap:\s*nowrap/);
-    expect(/\.ui-drop__stem\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/text-overflow:\s*ellipsis/);
-    expect(/\.ui-drop__ext\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/flex:\s*none/);
+    const rule = (selector: string) => new RegExp(`(?:^|\\n)${selector.replace(/[.]/g, '\\.')}\\s*\\{([^}]*)\\}`).exec(css)?.[1] ?? '';
+    expect(rule('.ui-drop__line')).toMatch(/flex-wrap:\s*nowrap/);
+    expect(rule('.ui-drop__file--failed .ui-drop__line')).toMatch(/flex-wrap:\s*wrap/);
+    expect(rule('.ui-drop__name')).toMatch(/min-height:\s*var\(--space-8\)/);
+    expect(rule('.ui-drop__stem')).toMatch(/text-overflow:\s*ellipsis/);
+    expect(rule('.ui-drop__ext')).toMatch(/flex:\s*none/);
   });
 
   it('closes the name line with its actions, at the size the resting row already uses', () => {
@@ -177,8 +191,11 @@ describe('FileDrop once a file is in hand', () => {
     rerender(<FileDrop file={{ name: 'statement-2026-08.pdf', status: 'error', error: 'Larger than 10 MB' }}
       onRetry={() => {}} onRemove={() => {}} />);
     const actions = document.querySelector('.ui-drop__actions') as HTMLElement;
-    // On the name's line, not under it: that is what keeps the facts tier whole.
-    expect(actions.parentElement).toHaveClass('ui-drop__line');
+    // After the name's line, last in the file: Remove ends the line, and a reason
+    // that wraps goes under the name, not under the actions.
+    expect(actions.parentElement).toHaveClass('ui-drop__file');
+    expect(actions.previousElementSibling).toHaveClass('ui-drop__line');
+    expect(actions.nextElementSibling).toBeNull();
     // Both actions carry their word. `x` is on the kit's icon-only list for
     // close and dismiss, and taking a file off a row is neither, so remove is
     // the kit's small text button and nothing in the row is wordless.
@@ -193,19 +210,22 @@ describe('FileDrop once a file is in hand', () => {
     }
   });
 
-  it('names a failed line, and drops nothing from it at any width', () => {
+  it('names a failed line, drops its size, and lets only the size leave a narrow row', () => {
     render(<FileDrop file={{ name: 'statement-2026-08.pdf', size: '248 KB', status: 'error', error: 'Larger than 10 MB' }} />);
     expect(document.querySelector('.ui-drop__file')).toHaveClass('ui-drop__file--failed');
     expect(name()).toBeVisible();
-    // A refused file drops its size: the tier has room for the message or the
-    // size, and only one of them says what to do next.
+    // A refused file drops its size: only the reason says what to do next.
     expect(screen.queryByText('248 KB')).toBeNull();
 
-    // One layout at every width. The row truncates its name rather than moving
-    // anything, so the sheet names no breakpoint and hides nothing; the heights
-    // are measured in a browser by stories/row-height.test.js.
+    // One query, on the row's own width: at 352px or less the size leaves the
+    // line, and a screen reader still reads it. Nothing else leaves at any width.
+    // The browser measures it in stories/row-height.test.js.
     const css = readRepo('../../src/styles/file-drop.css');
-    expect(css).not.toMatch(/@container/);
+    expect(/(?:^|\n)\.ui-drop__row\s*\{([^}]*)\}/.exec(css)?.[1]).toMatch(/container-type:\s*inline-size/);
+    const queries = [...css.matchAll(/@container\s*([^{]*)\{\s*([^{]*)\{([^}]*)\}\s*\}/g)];
+    expect(queries.map(([, when, selector]) => `${when.trim()} ${selector.trim()}`))
+      .toEqual(['(width <= 352px) .ui-drop__size']);
+    expect(queries[0][3]).toMatch(/clip-path:\s*inset\(50%\)/);
     expect(css).not.toMatch(/display:\s*none/);
   });
 

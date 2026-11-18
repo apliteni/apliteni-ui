@@ -56,6 +56,31 @@ export const Failed: StoryObj = {
     onRetry={() => {}} onRemove={() => {}} /></Card>,
 };
 
+/** A name too long for the line: the stem is cut first, and the extension stays. */
+const LONG = 'frankfurt-settlement-statement-2026-08-corrected-after-the-audit-final.pdf';
+
+export const UploadingLongName: StoryObj = {
+  render: () => <Card>
+    <FileDrop file={{ name: LONG, size: '9.6 MB', status: 'uploading', progress: 40 }} onRemove={() => {}} />
+  </Card>,
+};
+
+/** The reason moves under the name only when the full name leaves it no room on the line. */
+export const FailedLongName: StoryObj = {
+  render: () => <Card><FileDrop
+    file={{ name: LONG, size: '9.6 MB', status: 'error', error: 'Larger than 10 MB' }}
+    onRetry={() => {}} onRemove={() => {}} /></Card>,
+};
+
+/** The live row with a file, then the same row while the account cannot receive files. */
+export const DisabledWithFile: StoryObj = {
+  render: () => <Card>
+    <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} />
+    <p style={{ marginTop: 'var(--space-5)' }}>While the account cannot receive files:</p>
+    <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} disabled />
+  </Card>,
+};
+
 /** The live row, then the same row while the account cannot receive files. */
 export const Disabled: StoryObj = {
   render: () => <Card>

@@ -1153,9 +1153,14 @@ a chosen or dropped file through `onFile` and renders the `file` you provide. **
 `status` is uploading**, so the kit never reports success unless you claim it. **A status the
 row draws includes a circled mark and a word**, because colour alone does not show status. When
 `progress` is provided, the track shows the status instead. `Remove` and `Retry` appear only
-when you provide `onRemove` and `onRetry`. **No tier ever takes a second line:** the name
-truncates its stem but keeps its extension. The full name is in a `title`. **One layout serves
-every width.** **The drop target is painted only while a file is over the region. It covers
+when you provide `onRemove` and `onRetry`. **A file keeps the resting row's 32px height:** the
+name, the size, and the status or the track stand on one line, and `Remove` ends it. The track
+fills the free room on the line. The name gives way first: it truncates its stem but keeps its
+extension, and the full name is in a `title`. **One layout serves every width.** In a row of
+352px or less, the size leaves the line, and a screen reader still reads it. A refused file
+shows its reason on the name's line. When the full name and the reason do not fit there, the
+reason moves under the name and the row grows by one line, to 61px. In a parent that sizes to its
+content, `FileDrop` is 420px wide, or narrower when the parent has less room. **The drop target is painted only while a file is over the region. It covers
 that region instead of joining it**, so the row stays in place while the reader aims. Children
 render above the row inside the same region. This lets one panel, or a whole page, become the
 target. A disabled drop never calls `preventDefault` on `dragover`, so it does not declare

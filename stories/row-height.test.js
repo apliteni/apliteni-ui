@@ -1,15 +1,20 @@
-/* Rule: a file drop's row is a stack of one-line tiers — the name over the facts
- * over the track — and no tier takes a second line. The name gives way by
- * truncating its stem; the extension never does.
+/* Rule: a file drop's row keeps the resting row's height when a file arrives.
+ * The name, the size and the status or the track stand on one line, and the
+ * actions end it. The name gives way first by truncating its stem; the
+ * extension never does. At a row of 352px or less the size leaves the line. A
+ * refused file's reason stands on the name's line, and moves under the name
+ * only when the line is full.
  *
  * Two halves, the shape stories/tap-zone.test.js uses: the source half reads the
- * sheet in CI with a mutation per declaration and holds the shortfall ledger,
- * and the browser half measures, off unless ROW_HEIGHTS=1 because Playwright is
- * deliberately not a dependency. That half loads IBM Plex Sans and measures in
- * both containers the kit documents a row into; #566's review found it doing
- * neither, and a name line is as wide as the font drawing it.
+ * sheet in CI with a mutation per declaration, and the browser half measures,
+ * off unless ROW_HEIGHTS=1 because Playwright is deliberately not a dependency.
+ * That half loads IBM Plex Sans and measures in both containers the kit
+ * documents a row into, because a name line is as wide as the font drawing it.
+ * It also measures every file drop story where Storybook draws it, in a card
+ * that sizes to its content.
  *
- *   ROW_HEIGHTS=1 node --test stories/row-height.test.js
+ *   npm run build-storybook
+ *   UI_PLAYWRIGHT=… UI_CHROME=… ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
  * why: docs/components.md#react-file-drop
  */
@@ -18,6 +23,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
+import { env } from 'node:process';
 import { kitStylesheet, storySubjects, playwright } from './lib/tap-zone.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -37,12 +44,40 @@ const ruleFor = (css, selector) =>
  */
 const CLAIMS = [
   {
-    selector: '.ui-drop__file', prop: 'display', pattern: /display:\s*grid/,
-    why: 'the file is not a stack, so its tiers are whatever a flex line makes of them',
+    selector: '.ui-drop__row', prop: 'min-height', pattern: /min-height:\s*var\(--space-8\)/,
+    why: 'the row carries no height floor, so it is whatever its own line box comes to',
+  },
+  {
+    selector: '.ui-drop__row', prop: 'container-type', pattern: /container-type:\s*inline-size/,
+    why: 'the row is no size container, so the size query reads nothing and the size never leaves a narrow row',
+  },
+  {
+    selector: '.ui-drop__row', prop: 'contain-intrinsic-inline-size', pattern: /contain-intrinsic-inline-size:\s*var\(--panel-md\)/,
+    why: 'the size container gives the row no width of its own, so a parent that sizes to its content collapses it to 0px',
+  },
+  {
+    selector: '.ui-drop:not(.ui-drop--area)', prop: 'grid-template-columns', pattern: /grid-template-columns:\s*minmax\(0, 1fr\)/,
+    why: 'the row cannot ask for less than its stated width, so a parent with less room than that overflows',
+  },
+  {
+    selector: '.ui-drop__file', prop: 'align-items', pattern: /align-items:\s*flex-start/,
+    why: 'the actions centre on a refused row of two lines instead of closing the name\'s line',
   },
   {
     selector: '.ui-drop__line', prop: 'flex-wrap', pattern: /flex-wrap:\s*nowrap/,
-    why: 'the name line may wrap, so the actions can drop below the name instead of the name truncating',
+    why: 'the name\'s line may wrap while the file uploads, so the size or the track drops under the name',
+  },
+  {
+    selector: '.ui-drop__file--failed .ui-drop__line', prop: 'flex-wrap', pattern: /flex-wrap:\s*wrap/,
+    why: 'a refused file\'s reason cannot move under the name, so a full line cuts the reason instead',
+  },
+  {
+    selector: '.ui-drop__name', prop: 'flex', pattern: /flex:\s*0 999 auto/,
+    why: 'the name no longer gives way first, so the status word or the track is cut before the name',
+  },
+  {
+    selector: '.ui-drop__name', prop: 'min-height', pattern: /min-height:\s*var\(--space-8\)/,
+    why: 'the name\'s line is shorter than the actions, so a reason under the name sits beside them',
   },
   {
     selector: '.ui-drop__stem', prop: 'text-overflow', pattern: /text-overflow:\s*ellipsis/,
@@ -57,16 +92,16 @@ const CLAIMS = [
     why: 'the extension can shrink, so a cut name stops saying what kind of file it is',
   },
   {
-    selector: '.ui-drop__facts', prop: 'flex-wrap', pattern: /flex-wrap:\s*nowrap/,
-    why: 'the facts tier may wrap, so the size and the status stack into a tier of their own',
+    selector: '.ui-drop__state', prop: 'flex', pattern: /flex:\s*none/,
+    why: 'the status word shrinks beside the name, so it is cut while the name still has room to give',
   },
   {
-    selector: '.ui-drop__bar', prop: 'width', pattern: /width:\s*100%/,
-    why: 'the track no longer runs the row, so 40% reads as a dash instead of as progress',
+    selector: '.ui-drop__file--failed .ui-drop__state', prop: 'max-width', pattern: /max-width:\s*100cqw/,
+    why: 'a reason under the name keeps the name\'s narrow column, so it is cut under empty room',
   },
   {
-    selector: '.ui-drop__row', prop: 'min-height', pattern: /min-height:\s*var\(--space-8\)/,
-    why: 'the resting row carries no height floor, so it is whatever its own line box comes to',
+    selector: '.ui-drop__bar', prop: 'flex', pattern: /flex:\s*1 1 0/,
+    why: 'the track no longer fills the free room on the line',
   },
 ];
 
@@ -79,12 +114,12 @@ const faults = (css) => CLAIMS
 /** The same declaration removed from that rule, and only from that rule. */
 const without = (css, { selector, prop }) => {
   const body = ruleFor(css, selector);
-  const stripped = body.replace(new RegExp(`\\s*${escape(prop)}\\s*:[^;}]*;?`), '');
+  const stripped = body.replace(new RegExp(`(^|;)\\s*${escape(prop)}\\s*:[^;}]*;?`), '$1');
   return css.replace(`${selector} {${body}}`, `${selector} {${stripped}}`);
 };
 
 test('the sheet declares every layout claim the browser half measures', () => {
-  assert.ok(CLAIMS.length === 8, `${CLAIMS.length} claims; the count is what says one was not dropped`);
+  assert.ok(CLAIMS.length === 15, `${CLAIMS.length} claims; the count is what says one was not dropped`);
   assert.deepEqual(faults(CSS), [], `${SHEET}: a layout claim the measurement depends on is not declared`);
 });
 
@@ -98,160 +133,43 @@ test('the gate rejects the sheet with any one claim removed', () => {
   }
 });
 
-test('no width removes anything from the row', () => {
-  // Option A needs no reflow: the name truncates for the actions, so nothing is
-  // hidden, dropped or moved at a breakpoint. A container query here would be a
-  // second layout the measurement below does not cover.
-  assert.doesNotMatch(CSS, /@container/,
-    `${SHEET}: a container query is back, so the row has a second layout this gate does not measure`);
-  assert.doesNotMatch(CSS, /display:\s*none/,
-    `${SHEET}: something is hidden at some width; the row's rule is that nothing leaves it`);
-});
+/** Every container query in a sheet: its condition, its selector and its body. */
+const queries = (css) => [...css.matchAll(/@container\s*([^{]*)\{\s*([^{]*)\{([^}]*)\}\s*\}/g)]
+  .map(([, when, selector, body]) => ({ when: when.trim(), selector: selector.trim(), body }));
 
-/* -- The measured shortfall ------------------------------------------------- */
-
-/* The rows that fall short of the 150px floor, with the width each one measured.
- * No second floor has been chosen, so a measurement with its cause beside it
- * stands in for one — the shape stories/contrast.test.js uses for an accepted
- * contrast failure.
- *
- * TODO(#566): Artur decides what a failed upload's name may be cut to in a
- * narrow panel, and nothing here anticipates him. The gate fails if a row loses
- * another pixel, leaves this list or joins it. Do not raise a number to re-green
- * a regression. Written by hand; there is no regenerator.
- */
-const SHORTFALLS = [
-  {
-    id: 'A',
-    count: 4,
-    rows: {
-      'react:failed-long panel@360': 127,
-      'react:failed-long plain@320': 119,
-      'react:failed-long panel@320': 87,
-      'react:failed panel@320': 87,
-    },
-    why: 'A failed upload carries Retry and Remove on the name\'s line, and what the stem gets is '
-      + 'the line less those two buttons with the space between them (165px), less the extension, '
-      + 'which is 24px and will not shrink, less the name\'s own gap (12px). The 150px floor '
-      + 'therefore needs a 351px line, which 1280 and 390 have and the four rows above do not: a '
-      + 'panel at 360 gives 328, a plain row at 320 gives 320, and a panel at 320 gives 288. '
-      + 'Reaching the floor means wrapping the actions under the name, which is the layout #541 '
-      + 'rejected, or dropping Remove\'s word, which is what #566 rejected, because `x` is the '
-      + 'kit\'s glyph for close and dismiss and taking a file off a row is neither. The last row '
-      + 'is the one to read twice: its name is `statement-2026-08.pdf` and not a long one at all, '
-      + 'so in a panel at 320 an ordinary failed upload is cut too. Limitation: those rows show '
-      + 'eleven to eighteen characters of the stem, so the reader identifies the file by its '
-      + 'extension and by the `title` the markup carries rather than by what is on screen. Every '
-      + 'other row, container and width clears the floor, and the extension is never cut anywhere.',
-  },
-  {
-    id: 'B',
-    count: 2,
-    rows: {
-      'react-file-drop--failed panel@390': 107,
-      'react-file-drop--failed plain@360': 109,
-    },
-    why: 'The File drop story draws its row on the kit\'s card, because a form goes on a card '
-      + '(#568), and since #724 this gate measures every served story as it renders, card '
-      + 'included. The ledger was not measured again after #724, so these two cells were missing '
-      + 'from it until #814. The card takes 25px of inset on each side, so the story\'s row gets '
-      + '50px less line than the bare component in the same container, and A\'s arithmetic '
-      + 'applies: under a 351px line a failed upload\'s name is cut below the floor. Two story '
-      + 'cells fall there and are wide enough to be asked: a panel at 390, which is a card inside '
-      + 'a panel, and a plain row at 360, which is the card on a phone. The narrower story cells '
-      + 'are under the smallest panel and are not asked. The cause is A\'s, so #566 decides both. '
-      + 'Limitation: the same as A, the name is cut and the extension and the `title` identify the file.',
-  },
-];
-
-/** The cell a measured row was taken in: subject, container and width together,
- *  because the same subject gets a different line in each. */
-const cellOf = (row) => `${row.id} ${row.container}@${row.width}`;
-
-/** The ledger entry a shortfall falls in, or none. Kept apart from the measuring
- *  so the matching is testable without a browser. */
-export const bucketFor = (row, ledger = SHORTFALLS) =>
-  ledger.find((e) => cellOf(row) in e.rows) ?? null;
-
-/** Every shortfall the ledger does not account for, and every way an accounted
- *  one has moved. One expression, so the gate and the test below run the same code. */
-export const ledgerFaults = (shortfalls, ledger = SHORTFALLS) => {
+/** What a sheet removes from the row at some width, as faults. */
+const narrowFaults = (css) => {
   const out = [];
-  const hits = new Map();
-  for (const row of shortfalls) {
-    const cell = cellOf(row);
-    const entry = bucketFor(row, ledger);
-    if (!entry) {
-      out.push(`${cell}: a truncated name got ${row.stemWidth}px beside ${row.wordedActions} `
-        + 'worded action(s) and no ledger entry accounts for it');
-      continue;
-    }
-    hits.set(cell, (hits.get(cell) ?? 0) + 1);
-    if (row.stemWidth < entry.rows[cell]) {
-      out.push(`${cell} fell to ${row.stemWidth}px; shortfall ${entry.id} recorded `
-        + `${entry.rows[cell]}px. Explain the cause by hand before moving the number`);
-    }
-  }
-  for (const entry of ledger) {
-    const cells = Object.keys(entry.rows);
-    if (cells.length !== entry.count) {
-      out.push(`shortfall ${entry.id} records ${cells.length} row(s); its count says ${entry.count}`);
-    }
-    for (const cell of cells) {
-      const n = hits.get(cell) ?? 0;
-      if (n !== 1) {
-        out.push(`shortfall ${entry.id} records ${cell}, which ${n} measured row(s) matched. `
-          + 'It accounts for one row per cell: a cell that stopped falling short leaves the ledger');
-      }
-    }
-  }
+  const found = queries(css);
+  const sizeQuery = found.filter((q) => q.when === '(width <= 352px)' && q.selector === '.ui-drop__size');
+  if (sizeQuery.length !== 1) out.push('the size does not leave a row of 352px or less');
+  else if (!/clip-path:\s*inset\(50%\)/.test(sizeQuery[0].body)) out.push('the size leaves the screen reader as well as the line');
+  for (const q of found.filter((x) => !sizeQuery.includes(x))) out.push(`${q.when} also changes ${q.selector}`);
+  if (/display:\s*none/.test(css)) out.push('something is hidden with display: none');
   return out;
 };
 
-test('the shortfall ledger is not empty and every entry carries a hand-written why', () => {
-  assert.ok(SHORTFALLS.length >= 1, 'an emptied ledger would make the gate below vacuous');
-  for (const e of SHORTFALLS) {
-    assert.ok(typeof e.why === 'string' && e.why.trim().length > 0,
-      `shortfall ${e.id}: explain the cause and the accepted limitation in why`);
-    for (const [cell, px] of Object.entries(e.rows)) {
-      assert.doesNotMatch(e.why, new RegExp(`\\b${px}\\s*px`),
-        `shortfall ${e.id}'s why quotes ${px}px, the width it records for ${cell}. A measured `
-        + 'width lives in `rows`, which is asserted, so a prose copy of it cannot drift');
-    }
-  }
-});
-
-test('the shortfall ledger rejects a row it does not account for', () => {
-  const entry = { id: 'T', count: 1, rows: { 'x:one panel@320': 80 }, why: 'test' };
-  const held = { id: 'x:one', container: 'panel', width: 320, stemWidth: 80, wordedActions: 2 };
-  assert.deepEqual(ledgerFaults([held], [entry]), [], 'the ledger rejected the row it records');
-  // A row in another container, at another width, or from another subject is a
-  // different case and has to be explained before it passes.
-  for (const moved of [{ container: 'plain' }, { width: 390 }, { id: 'x:two' }]) {
-    assert.ok(ledgerFaults([{ ...held, ...moved }], [entry]).length > 0,
-      `the ledger accounted for a row moved by ${Object.keys(moved)[0]}`);
-  }
-  // A row that got worse, a recorded cell nothing reached, a cell two rows
-  // reached, and an entry whose count no longer matches what it lists.
-  assert.ok(ledgerFaults([{ ...held, stemWidth: 79 }], [entry]).length > 0,
-    'the ledger passed a row below the width it recorded');
-  assert.ok(ledgerFaults([], [entry]).length > 0, 'the ledger passed a cell that matched nothing');
-  assert.ok(ledgerFaults([held, held], [entry]).length > 0,
-    'the ledger passed two rows in a cell it accounts for once');
-  assert.ok(ledgerFaults([held], [{ ...entry, count: 2 }]).length > 0,
-    'the ledger passed an entry that lists fewer rows than it counts');
-  // And the real ledger's own arithmetic holds: its count is what it lists.
-  for (const e of SHORTFALLS) {
-    assert.equal(Object.keys(e.rows).length, e.count,
-      `shortfall ${e.id} lists ${Object.keys(e.rows).length} rows and counts ${e.count}`);
-  }
+test('only the size leaves the line, and only at a row of 352px or less', () => {
+  // One query, on the row's own width, and it hides the size from sight only.
+  // Any other query would be a layout the measurement below does not cover.
+  assert.deepEqual(narrowFaults(CSS), [], `${SHEET}: the narrow row changed`);
+  const query = CSS.slice(CSS.indexOf('@container'));
+  const block = query.slice(0, query.indexOf('}\n}') + 3);
+  assert.ok(narrowFaults(CSS.replace(block, '')).length > 0, 'the gate passed a sheet with the size query removed');
+  assert.ok(narrowFaults(CSS.replace('(width <= 352px)', '(width <= 400px)')).length > 0,
+    'the gate passed a size query at another width');
+  assert.ok(narrowFaults(CSS.replace('clip-path: inset(50%);', 'display: none;')).length > 0,
+    'the gate passed a size hidden from a screen reader');
+  assert.ok(narrowFaults(`${CSS}\n@container (width <= 352px) {\n  .ui-drop__word { display: none; }\n}\n`).length > 0,
+    'the gate passed a second thing leaving the narrow row');
 });
 
 /* -- The browser half ------------------------------------------------------- */
 
-/* Limits: react/dist, not the source; one engine, one theme; heights, widths and
-   line counts, not colour, not the focus ring, not whether a truncated stem
-   reads. Tier counts are a recorded table, reviewed by hand when they move. */
+/* Limits: react/dist, not the source; one engine, one theme, a mouse pointer, so
+   the touch tap zones are stories/tap-zone.test.js's; heights, widths and
+   positions, not colour, not the focus ring, not whether a truncated stem reads.
+   Heights are a recorded table, reviewed by hand when they move. */
 const RUN = process.env.ROW_HEIGHTS === '1';
 const WIDTHS = [1280, 390, 360, 320];
 const LINE = 24; // one line of --text-sm, with slack; two lines cannot fit under it.
@@ -284,9 +202,8 @@ const CONTAINERS = [
 const PANEL_CSS = '.rh-panel { padding: var(--space-4); background: var(--surface);'
   + ' border-radius: var(--radius-md); box-shadow: inset 0 0 0 1px var(--border); }';
 
-/** The name that fits no width here, which is the case the stack exists for.
- *  Long enough to be cut at 320 in both states, including the uploading one,
- *  where only the remove button shares its line. */
+/** The name that fits no width here. Long enough to be cut at 320 in both
+ *  states, including the uploading one, where only Remove shares its line. */
 const LONG = 'frankfurt-settlement-statement-2026-08-final-revision-two-signed.pdf';
 
 /**
@@ -327,7 +244,8 @@ async function reactSubjects() {
     'react:starting': { file, onRemove: noop },
     'react:done': { file: { ...file, status: 'done' }, onRemove: noop },
     'react:failed': { file: { ...file, status: 'error', error: 'Larger than 10 MB' }, onRetry: noop, onRemove: noop },
-    // The two states the stack is for, with a name no width here can hold.
+    'react:disabled-file': { file: { ...file, status: 'uploading', progress: 40 }, onRemove: noop, disabled: true },
+    // The two states that cut the name, with a name no width here can hold.
     'react:uploading-long': { file: { ...file, name: LONG, status: 'uploading', progress: 40 }, onRemove: noop },
     'react:failed-long': { file: { ...file, name: LONG, status: 'error', error: 'Larger than 10 MB' }, onRetry: noop, onRemove: noop },
   };
@@ -348,7 +266,7 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   const react = await reactSubjects();
   const subjects = [...fileDrop, ...react];
   const sheet = kitStylesheet() + '\n' + readFileSync(path.join(root, 'react/dist/index.css'), 'utf8');
-  const browser = await pw.chromium.launch();
+  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME });
   const found = [];
   const fonts = [];
   try {
@@ -409,35 +327,37 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
             const box = (el) => (el ? el.getBoundingClientRect() : null);
             const round = (n) => Math.round(n * 100) / 100;
             return [...document.querySelectorAll('.ui-drop__row')].map((row) => {
-              const stack = row.querySelector('.ui-drop__file');
-              const line = row.querySelector('.ui-drop__line');
-              const facts = row.querySelector('.ui-drop__facts');
-              const bar = row.querySelector('.ui-drop__bar');
+              const file = row.querySelector('.ui-drop__file');
+              const name = row.querySelector('.ui-drop__name');
               const stem = row.querySelector('.ui-drop__stem');
               const ext = row.querySelector('.ui-drop__ext');
+              const size = row.querySelector('.ui-drop__size');
+              const state = row.querySelector('.ui-drop__state');
+              const word = row.querySelector('.ui-drop__word');
+              const bar = row.querySelector('.ui-drop__bar');
               const acts = row.querySelector('.ui-drop__actions');
+              const r = box(row);
               return {
-                kind: stack ? 'file' : 'rest',
-                height: round(box(row).height),
-                // Every tier the stack holds, and how tall each one came out.
-                tiers: stack ? [...stack.children].length : null,
-                lineHeight: line ? round(box(line).height) : null,
-                factsHeight: facts ? round(box(facts).height) : null,
-                // The track against the stack it reports on: full width, or not.
-                barWidth: bar ? round(box(bar).width) : null,
-                stackWidth: stack ? round(box(stack).width) : null,
-                // What the name actually got, and whether its tail survived.
-                stemWidth: stem ? round(box(stem).width) : null,
+                kind: file ? 'file' : 'rest',
+                failed: Boolean(file?.classList.contains('ui-drop__file--failed')),
+                height: round(r.height),
+                rowWidth: round(r.width),
+                nameWidth: name ? round(box(name).width) : null,
                 stemClipped: stem ? stem.scrollWidth > Math.ceil(box(stem).width) : null,
                 extText: ext ? ext.textContent : null,
-                extWidth: ext ? round(box(ext).width) : null,
                 extClipped: ext ? ext.scrollWidth > Math.ceil(box(ext).width) : null,
-                // What the name is sharing its line with. A button carrying words
-                // is several times the width of a wordless one, and the floor
-                // below is what is left of the line after them.
-                wordedActions: acts
-                  ? [...acts.children].filter((b) => /[A-Za-z]{2,}/.test(b.textContent || '')).length : 0,
-                actionsWidth: acts ? round(box(acts).width) : null,
+                // A size that left the line is one pixel wide, for a screen reader.
+                sizeShown: size ? box(size).width > 1 : null,
+                // The status or the reason: on the name's line, or under it.
+                stateUnder: state && name ? box(state).top >= box(name).bottom : null,
+                stateRight: state ? round(box(state).right) : null,
+                wordClipped: word ? word.scrollWidth > word.clientWidth : null,
+                // The track against the room the line leaves it.
+                barWidth: bar ? round(box(bar).width) : null,
+                barGap: bar && acts ? round(box(acts).left - box(bar).right) : null,
+                actsLeft: acts ? round(box(acts).left) : null,
+                actsGap: acts ? round(r.right - box(acts).right) : null,
+                actsTop: acts ? round(box(acts).top - r.top) : null,
               };
             });
           }, { html: container.frame(s.html) });
@@ -481,76 +401,99 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   assert.ok(found.length >= subjects.length * cells.length,
     `measured ${found.length} rows over ${subjects.length} subjects`);
   assert.ok(found.some((r) => r.kind === 'file'), 'not one row carried a file — this gate measured nothing');
-  assert.equal(react.length, 7, 'the React state count moved; the count is what says one was not dropped');
+  assert.equal(react.length, 8, 'the React state count moved; the count is what says one was not dropped');
   assert.equal(CONTAINERS.length, 2, 'a documented container was dropped; the count is what says so');
   t.diagnostic(`row-height: ${found.length} rows over ${subjects.length} subjects, `
     + `${CONTAINERS.map((c) => c.id).join('/')} at ${WIDTHS.join(', ')}, with ${SANS} loaded`);
-  for (const r of found.filter((x) => x.kind === 'file')) {
-    t.diagnostic(`  ${r.id} ${r.container}@${r.width}: ${r.height}px, ${r.tiers} tiers, row ${r.stackWidth}px, `
-      + `name ${r.stemWidth}px${r.stemClipped ? ' (cut)' : ''}, ext ${r.extWidth}px, `
-      + `${r.wordedActions} worded action(s) in ${r.actionsWidth}px`);
+  const files = found.filter((x) => x.kind === 'file');
+  for (const r of files.filter((x) => x.id.startsWith('react:'))) {
+    t.diagnostic(`  ${r.id} ${r.container}@${r.width}: ${r.height}px, row ${r.rowWidth}px, `
+      + `name ${r.nameWidth}px${r.stemClipped ? ' (cut)' : ''}, size ${r.sizeShown ?? '-'}, `
+      + `reason under ${r.stateUnder ?? '-'}, track ${r.barWidth ?? '-'}px`);
   }
-  for (const width of WIDTHS) {
+
+  // The resting row's height, in every state but a refused one, in every
+  // container at every width: a file arriving, uploading and landing moves
+  // nothing under the row. A resting row whose note wraps under its button is
+  // taller, and the file row is not asked to match it.
+  const ROW = 32;
+  const moved = files.filter((r) => !r.failed && r.height !== ROW)
+    .map((r) => `${r.id} ${r.container}@${r.width}: ${r.height}px`);
+  assert.deepEqual(moved, [], `a file row is not the resting row's ${ROW}px`);
+  const resting = found.filter((r) => r.kind === 'rest' && r.width === 1280);
+  assert.ok(resting.length > 0, 'no resting row was measured at 1280');
+  assert.deepEqual([...new Set(resting.map((r) => r.height))], [ROW],
+    `at 1280 the resting rows measure ${[...new Set(resting.map((r) => r.height))].join(', ')} — ${ROW} was the claim`);
+
+  // A refused row is the resting row's height while its reason stands on the
+  // name's line, and one reason line taller when the reason moves under the name.
+  // The taller row only ever holds a reason under the name.
+  const UNDER = 61.05;
+  const refused = files.filter((r) => r.failed && r.stateUnder !== null);
+  assert.ok(refused.some((r) => r.stateUnder) && refused.some((r) => !r.stateUnder),
+    'no refused row was measured both with the reason on the line and under it');
+  const wrong = refused.filter((r) => r.height !== (r.stateUnder ? UNDER : ROW))
+    .map((r) => `${r.id} ${r.container}@${r.width}: ${r.height}px with the reason ${r.stateUnder ? 'under' : 'on'} the line`);
+  assert.deepEqual(wrong, [], 'a refused row is not the height its reason\'s place gives it');
+
+  // The reason moves under the name only when the line is full: a reason under
+  // the name would not have fitted between the full name and the actions.
+  // The recorded cells are the React states; a change is reviewed by hand.
+  const REFUSED = {
+    'react:failed': { plain: [32, UNDER, UNDER, UNDER], panel: [32, UNDER, UNDER, UNDER] },
+    // The long name and its reason still fit beside each other in a 1280px row.
+    'react:failed-long': { plain: [32, UNDER, UNDER, UNDER], panel: [32, UNDER, UNDER, UNDER] },
+  };
+  for (const [id, cells] of Object.entries(REFUSED)) {
     for (const c of CONTAINERS) {
-      const rest = [...new Set(found
-        .filter((r) => r.kind === 'rest' && r.width === width && r.container === c.id)
-        .map((r) => r.height))];
-      t.diagnostic(`  resting ${c.id}@${width}: ${rest.join(', ')}px`);
+      const seen = WIDTHS.map((w) => found.find((r) => r.id === id && r.container === c.id && r.width === w)?.height);
+      assert.deepEqual(seen, cells[c.id], `${id} in the ${c.id} at ${WIDTHS.join(', ')}`);
     }
   }
 
-  // No tier takes two lines. This is the whole claim: the row grows by tiers it
-  // was given, never by a tier wrapping inside itself.
-  const wrapped = found.flatMap((r) => [
-    r.lineHeight !== null && r.lineHeight > LINE + 8 ? `${r.id} ${r.container}@${r.width}: the name line is ${r.lineHeight}px` : null,
-    r.factsHeight !== null && r.factsHeight > LINE ? `${r.id} ${r.container}@${r.width}: the facts tier is ${r.factsHeight}px` : null,
-  ].filter(Boolean));
-  assert.deepEqual(wrapped, [], 'a tier of the file row took a second line');
+  // Remove ends the line: the actions close on the row's end, at the top of the
+  // row, in every state.
+  const loose = files.filter((r) => r.actsGap !== null && (Math.abs(r.actsGap) > 1 || Math.abs(r.actsTop) > 1))
+    .map((r) => `${r.id} ${r.container}@${r.width}: ${r.actsGap}px from the end, ${r.actsTop}px from the top`);
+  assert.deepEqual(loose, [], 'the actions do not end the name\'s line');
 
-  // The extension never gives way: a row cut to `frankfurt-settlement-state…`
-  // has stopped saying what kind of file it is holding.
-  const cutTail = found.filter((r) => r.extClipped)
+  // The size leaves the line at a row of 352px or less, and only there.
+  const sized = files.filter((r) => r.sizeShown !== null);
+  assert.ok(sized.some((r) => r.sizeShown) && sized.some((r) => !r.sizeShown),
+    'the size was not measured both on the line and off it');
+  const SIZE_OFF = 352;
+  const misplaced = sized.filter((r) => r.sizeShown !== r.rowWidth > SIZE_OFF)
+    .map((r) => `${r.id} ${r.container}@${r.width}: a ${r.rowWidth}px row ${r.sizeShown ? 'shows' : 'hides'} the size`);
+  assert.deepEqual(misplaced, [], `the size does not leave the line at ${SIZE_OFF}px exactly`);
+
+  // The name gives way first. It keeps its floor and its extension, and no
+  // status word or reason is cut in the React states, whose words are short.
+  const cutTail = files.filter((r) => r.extClipped)
     .map((r) => `${r.id} ${r.container}@${r.width}: the extension "${r.extText}" is clipped`);
   assert.deepEqual(cutTail, [], 'the file extension was truncated along with the stem');
+  const NAME_FLOOR = 40; // --space-10
+  const thin = files.filter((r) => r.nameWidth !== null && r.nameWidth < NAME_FLOOR)
+    .map((r) => `${r.id} ${r.container}@${r.width}: the name is ${r.nameWidth}px`);
+  assert.deepEqual(thin, [], `a name was cut under its ${NAME_FLOOR}px floor`);
+  const cutWord = files.filter((r) => r.id.startsWith('react:') && r.wordClipped)
+    .map((r) => `${r.id} ${r.container}@${r.width}`);
+  assert.deepEqual(cutWord, [], 'a status word or a reason was cut while the name could still give way');
+  assert.ok(files.some((r) => r.id.startsWith('react:') && r.stemClipped && r.width === 320),
+    'no name was cut at 320, so the order in which the line gives way was asserted against nothing');
 
-  // The track reports on the row's own width, within the rounding a border-box
-  // measurement leaves.
-  const stubs = found.filter((r) => r.barWidth !== null && Math.abs(r.barWidth - r.stackWidth) > 1)
-    .map((r) => `${r.id} ${r.container}@${r.width}: track ${r.barWidth}px in a ${r.stackWidth}px stack`);
-  assert.deepEqual(stubs, [], 'a progress track is not the width of the row it reports on');
-
-  // What the stack buys, measured. Two conditions narrow it to the claim: a name
-  // that fits takes its own width, so the floor is asked only of a name actually
-  // being cut; and it is asked only of a row at least as wide as the kit's
-  // smallest panel less its padding, because a guideline specimen nests its
-  // frame and panel inside Storybook's stage and is narrower than any container
-  // measured here.
-  //
-  // One floor, and it is the one that holds: 150px for a name being cut beside
-  // at most one worded action. A row carrying two does not reach it and cannot —
-  // the arithmetic is in SHORTFALLS above — so those rows are held to what they
-  // measure, by that ledger, until #566 decides what they are owed.
-  const FLOOR = 150;
+  // The track fills the room the line leaves, up to the gap before the actions,
+  // and keeps its floor when the name is cut. It is asked only of a row at least
+  // as wide as the kit's smallest panel less its padding: a guideline specimen
+  // nests its frame and panel inside Storybook's stage and is narrower than that.
+  const TRACK_FLOOR = 48; // --space-12
+  const GAP = 12; // --space-3
   const PANEL = 280; // --panel-sm (320px) less a panel's --space-4 on each side.
-  const cut = found.filter((r) => r.stemClipped && r.stackWidth >= PANEL);
-  const starved = cut
-    .filter((r) => r.wordedActions < 2 && r.stemWidth < FLOOR)
-    .map((r) => `${r.id} ${r.container}@${r.width}: a truncated name got ${r.stemWidth}px of a `
-      + `${r.stackWidth}px row beside ${r.wordedActions} worded action(s), under the ${FLOOR}px floor`);
-  assert.deepEqual(starved, [], 'a file name was cut below the floor the stack exists to hold');
-  // The floor has to be asked of something, or it is dead.
-  assert.ok(cut.some((r) => r.wordedActions < 2),
-    `no truncated name was measured in a panel-width row with one worded action, so the ${FLOOR}px `
-    + 'floor was asserted against nothing');
-
-  // And every two-action row that falls short is one the ledger already explains,
-  // at the width it recorded. A new one, a wider spread, or another pixel lost
-  // fails here rather than being re-recorded.
-  const shortfalls = cut.filter((r) => r.wordedActions >= 2 && r.stemWidth < FLOOR);
-  assert.deepEqual(ledgerFaults(shortfalls), [],
-    'the measured shortfall moved; read SHORTFALLS and explain the cause by hand');
-  assert.ok(shortfalls.length > 0,
-    `every two-action row now clears ${FLOOR}px — empty SHORTFALLS and close #566 with one floor`);
+  assert.ok(files.some((r) => r.barWidth !== null && r.rowWidth >= PANEL && r.rowWidth < 300),
+    'no track was measured in a row near the smallest panel, so its floor was asserted against nothing');
+  const stubs = files.filter((r) => r.barWidth !== null && r.rowWidth >= PANEL
+    && (r.barWidth < TRACK_FLOOR - 0.5 || (r.barGap !== null && Math.abs(r.barGap - GAP) > 1)))
+    .map((r) => `${r.id} ${r.container}@${r.width}: track ${r.barWidth}px, ${r.barGap}px before the actions`);
+  assert.deepEqual(stubs, [], 'a progress track does not fill the free room on its line');
 
   // And the cut is real where it is claimed: a name too long for 320 truncates
   // rather than carrying the row out of the panel.
@@ -558,38 +501,108 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   assert.equal(long.length, 2 * CONTAINERS.length, `${long.length} long-name rows at 320, not ${2 * CONTAINERS.length}`);
   assert.deepEqual(long.filter((r) => !r.stemClipped).map((r) => `${r.id} in the ${r.container}`), [],
     'a name that cannot fit 320 was not truncated, so something else gave way');
+});
 
-  // A resting row is still the kit's small-control row wherever its note fits
-  // beside its button, so the row does not step when a file arrives on it.
-  const resting = found.filter((r) => r.kind === 'rest' && r.width === 1280);
-  assert.ok(resting.length > 0, 'no resting row was measured at 1280');
-  assert.deepEqual([...new Set(resting.map((r) => r.height))], [32],
-    `at 1280 the resting rows measure ${[...new Set(resting.map((r) => r.height))].join(', ')} — 32 was the claim`);
+/* -- The stories where Storybook draws them --------------------------------- */
 
-  // The tiers and the height, per state, and the same in every container at
-  // every width — which is what one layout at every width means. A state that
-  // gains or loses a tier, or changes height, is a design change, so it fails
-  // here and is reviewed by hand rather than re-recorded. The name tier is as
-  // tall as its tallest small button. #697 gave a button's label a 1.2 line
-  // height, so the text button grew from 26.5 to 29px and these heights rose
-  // 2.5px; nobody measured again, so this half failed on main until #814.
-  // #814 makes a small button 32px: +3 where a text button is the tallest,
-  // and +2 in a failed row, whose 30px icon button gains a pixel of padding
-  // on each side.
-  const STATES = {
-    'react:uploading': { tiers: 3, height: 75.05 }, // name, size, track
-    'react:uploading-long': { tiers: 3, height: 75.05 },
-    'react:starting': { tiers: 2, height: 61.05 }, // name, then the word the absent track cannot carry
-    'react:done': { tiers: 2, height: 61.05 },
-    'react:failed': { tiers: 2, height: 61.05 }, // name, then the message
-    'react:failed-long': { tiers: 2, height: 61.05 },
-  };
-  for (const [id, { tiers, height }] of Object.entries(STATES)) {
-    const seen = found.filter((r) => r.id === id);
-    assert.equal(seen.length, cells.length, `${id} was measured ${seen.length} times, not ${cells.length}`);
-    assert.deepEqual([...new Set(seen.map((r) => r.tiers))], [tiers],
-      `${id} draws ${[...new Set(seen.map((r) => r.tiers))].join(', ')} tiers, not ${tiers}`);
-    assert.deepEqual([...new Set(seen.map((r) => r.height))], [height],
-      `${id} measures ${[...new Set(seen.map((r) => r.height))].join(', ')}px — ${height} was the claim`);
+/* Limits: the built Storybook, one engine, the light theme. The card in each
+   story sizes to its content in the centred layout, so these rows stand at the
+   row's stated width, or narrower when the window is. Rows in a parent of a
+   set width are the measurement above. */
+const STORY_WIDTH = 420; // --panel-md, the width a row asks of such a parent.
+
+/**
+ * Every file drop story, measured where it stands: no markup is copied out, so
+ * the story's own card is the parent. #820's first review found the rows of
+ * that card at 0px, with Retry and Remove outside a 50px card.
+ */
+async function storyRows(pw) {
+  const built = path.join(root, 'storybook-static');
+  const index = JSON.parse(readFileSync(path.join(built, 'index.json'), 'utf8'));
+  const ids = Object.keys(index.entries)
+    .filter((id) => /^(react-file-drop|guidelines-file-drop)--/.test(id) && index.entries[id].type === 'story');
+  const serve = spawn(process.execPath, [path.join(root, 'scripts/evidence/serve.mjs'), built],
+    { stdio: ['ignore', 'pipe', 'inherit'] });
+  const port = await new Promise((resolve, reject) => {
+    serve.stdout.once('data', (d) => resolve(Number(String(d).trim())));
+    serve.once('error', reject);
+  });
+  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME });
+  const rows = [];
+  try {
+    for (const width of WIDTHS) {
+      const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: 1 });
+      for (const id of ids) {
+        await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=theme:light`, { waitUntil: 'load' });
+        await page.waitForSelector('#storybook-root > *', { state: 'attached' });
+        await page.evaluate(() => document.fonts.ready);
+        const found = await page.evaluate(() => {
+          const sideways = document.documentElement.scrollWidth - window.innerWidth;
+          return [...document.querySelectorAll('.ui-drop__row')].map((row) => {
+            const r = row.getBoundingClientRect();
+            const outside = [...row.querySelectorAll('.ui-drop__name, .ui-drop__state, .ui-drop__bar, .ui-drop__actions, .ui-btn')]
+              .map((el) => ({ cls: el.className.split(' ')[0], b: el.getBoundingClientRect() }))
+              .filter(({ b }) => b.left < r.left - 1 || b.right > r.right + 1)
+              .map(({ cls, b }) => `${cls} at ${Math.round(b.left - r.left)}..${Math.round(b.right - r.left)}`);
+            const state = row.querySelector('.ui-drop__state');
+            const word = row.querySelector('.ui-drop__word');
+            return {
+              width: Math.round(r.width * 100) / 100,
+              height: Math.round(r.height * 100) / 100,
+              failed: Boolean(row.querySelector('.ui-drop__file--failed')),
+              file: Boolean(row.querySelector('.ui-drop__file')),
+              reasonShown: state ? state.getBoundingClientRect().width > 0 && !(word && word.scrollWidth > word.clientWidth) : null,
+              outside,
+              sideways,
+            };
+          });
+        });
+        rows.push({ id, width, found });
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+    serve.kill();
+  }
+  return { ids, rows };
+}
+
+test('every file drop story holds its rows where Storybook draws it', { skip: !RUN && 'set ROW_HEIGHTS=1' }, async (t) => {
+  const pw = await playwright();
+  assert.ok(pw, 'ROW_HEIGHTS=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const { ids, rows } = await storyRows(pw);
+  assert.ok(ids.length >= 16, `${ids.length} file drop stories; the React gallery and the guideline page hold more`);
+  assert.equal(rows.length, ids.length * WIDTHS.length, 'a story was not measured at every width');
+
+  // The drop area and the page target draw an empty state, not a row.
+  const NO_ROW = ['react-file-drop--area', 'react-file-drop--area-dragging', 'react-file-drop--page-dragging'];
+  const empty = [...new Set(rows.filter((s) => !s.found.length).map((s) => s.id))];
+  assert.deepEqual(empty, NO_ROW, 'the stories that draw no row moved, so a row went unmeasured or a list went stale');
+
+  // No row collapses, no part runs outside its row, and no story scrolls the page.
+  const broken = rows.flatMap((s) => s.found
+    .filter((r) => r.width < 120 || r.outside.length)
+    .map((r) => `${s.id}@${s.width}: a ${r.width}px row${r.outside.length ? `, ${r.outside.join(', ')} outside it` : ''}`));
+  assert.deepEqual(broken, [], 'a story collapsed a file drop row, or a part runs outside its row');
+  const sideways = rows.filter((s) => s.found.some((r) => r.sideways > 0)).map((s) => `${s.id}@${s.width}`);
+  assert.deepEqual(sideways, [], 'a file drop story scrolls the page sideways');
+
+  // The React gallery's lone rows take the stated width while the window has
+  // room for it, and less only when it has not. Every file row keeps the
+  // resting row's 32px, but a refused row with its reason under the name, which
+  // is one reason line taller. The reason is whole.
+  const lone = rows.filter((s) => s.id.startsWith('react-file-drop--') && s.found.length === 1);
+  assert.ok(lone.some((s) => s.width === 1280), 'no lone React row was measured at 1280');
+  const wide = lone.filter((s) => s.width === 1280 && s.found[0].width !== STORY_WIDTH)
+    .map((s) => `${s.id}: ${s.found[0].width}px`);
+  assert.deepEqual(wide, [], `a lone row at 1280 does not take the stated ${STORY_WIDTH}px`);
+  const tall = rows.flatMap((s) => s.found.filter((r) => r.file
+    && r.height !== (r.failed && r.height > 32 ? 61.05 : 32)).map((r) => `${s.id}@${s.width}: ${r.height}px`));
+  assert.deepEqual(tall, [], 'a file row in a story is neither 32px nor, refused, 61.05px');
+  const cut = rows.flatMap((s) => s.found.filter((r) => r.failed && !r.reasonShown).map(() => `${s.id}@${s.width}`));
+  assert.deepEqual(cut, [], 'a refused row in a story cuts or hides its reason');
+  for (const s of rows.filter((x) => x.id === 'react-file-drop--failed')) {
+    t.diagnostic(`  ${s.id}@${s.width}: ${s.found.map((r) => `${r.width}x${r.height}`).join(', ')}`);
   }
 });

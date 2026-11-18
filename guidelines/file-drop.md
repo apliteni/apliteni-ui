@@ -10,9 +10,9 @@
 
 **Do:** Put an Upload button and “PDF or CSV, up to 10 MB” on one line above the list they feed.
 
-**Don't:** Draw a tall dashed box with a glyph, an invitation and a button stacked inside it.
+**Don't:** Draw a tall dashed box that stacks a glyph, an invitation and a button.
 
-**Except:** A page that exists to receive one file may use the field-sized picker, which has its own label. An empty page may show a dashed drop area until the first file arrives.
+**Except:** A page that only receives one file may use the labelled field-sized picker. An empty page may show a dashed drop area until the first file arrives.
 
 ## Paint the target only while a file is over it
 
@@ -22,7 +22,7 @@
 
 **Why:** A target drawn before there is a file to catch covers content the reader still needs.
 
-**Do:** Cover the panel that accepts the file the moment the file crosses it.
+**Do:** Cover the accepting panel as the file crosses it.
 
 **Don't:** Cover the whole window when one panel accepts the file.
 
@@ -32,25 +32,29 @@
 
 <!-- rule: in-the-row -->
 
-**Rule:** After the drop, the file's name, size and progress take the place the button was in, with remove on the name's line.
+**Rule:** After the drop, the file's name, size and progress stand on one line where the button was, and remove ends it.
 
-**Why:** A row that changes in place keeps the page still during the upload.
+**Why:** A row that keeps its height keeps the page still during the upload.
 
-**Do:** Put remove at the end of the name's line, the size under it, and the progress track below both.
+**Do:** Put the name, the size and a track filling the free room on one line, then remove.
 
-**Don't:** Push the list down with a progress card, or open a dialog over the page.
+**Don't:** Put the size or track under the name, or push the list down with a progress card.
+
+**Except:** A narrow row drops the size, and cuts the name first but keeps its extension.
 
 ## Fail in place
 
 <!-- rule: failure -->
 
-**Rule:** A refused file keeps its place, says what it did wrong under its name, and offers Retry beside Remove.
+**Rule:** A refused file keeps its place, says what went wrong on its name's line, and offers Retry beside Remove.
 
 **Why:** A row that drops the file sends the reader back to choosing one.
 
-**Do:** Keep the name on its line and say “Larger than 10 MB” under it, with Retry.
+**Do:** Say “Larger than 10 MB” beside the name, with Retry.
 
-**Don't:** Replace the row with “Upload failed”, losing both the file and the retry.
+**Except:** A reason that does not fit beside the name moves under it.
+
+**Don't:** Replace the row with “Upload failed”, losing the file and the retry.
 
 ## Offer a button, not only a drag
 
@@ -60,7 +64,7 @@
 
 **Why:** A keyboard cannot drag a file.
 
-**Do:** Make the Upload button the control, reachable by keyboard and showing the focus ring.
+**Do:** Make Upload the control, reachable by keyboard, with the focus ring.
 
 **Don't:** Write “Drag a file here” with nothing to press.
 
@@ -72,7 +76,7 @@
 
 **Why:** Repeated limits teach the reader to skip them.
 
-**Do:** Write “PDF or CSV, up to 10 MB” beside the button, and let a failure say what this file did wrong.
+**Do:** Write “PDF or CSV, up to 10 MB” beside the button, and let a failure name this file's fault.
 
 **Don't:** Repeat the limits under the button, in a tooltip and again in the error.
 
@@ -86,4 +90,4 @@
 
 **Do:** Take a statement into the row under the statements it joins.
 
-**Don't:** Open a dialog for one file that the row behind it could have taken.
+**Don't:** Open a dialog for one file the row could take.
