@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.174.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'Drawer groups now stand 32px apart with no line between them, and each `DrawerSection` heading stands on a 1px line, the same line as a table head. If your drawer relied on the line between groups, a group without a heading now has no line. Closes #811.', ['Drawer', 'Guidelines']],
+      ['added', 'A drawer can lead with its key figure: `.ui-drawer__figure` is a label over a 22px value, with a status badge beside it. Put it in a `DrawerSection` with no title, as the first group. Part of #811.', ['Drawer']],
+      ['changed', 'A table in a drawer group now takes the drawer\u2019s 13px text and stands on the drawer\u2019s ground. Its head is semibold, and its rows have no lines between them. A hover table keeps its row height. Part of #811.', ['Drawer', 'DataTable']],
+    ],
+  },
+  {
     v: '0.172.0', date: '2026-11-18',
     changes: [
       ['changed', 'The smallest text step, `--text-xs`, is now 12px, not 11px. Badges, pills, key caps, tooltips, units, counts, dropdown descriptions and chart ticks get text 1px larger, and a badge is about 1.6px taller. If your layout needs 11px text, set that size in your own CSS, because the kit has no smaller step. Part of #814.', ['Badge', 'Tooltip', 'Dropdown', 'Chart', 'Command palette']],
