@@ -20,7 +20,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { markup } from './lib/react-markup.js';
-import { desugar, substitute, tokensFor } from './lib/contrast.js';
+import { desugar, outlineBare, shadowQuiet, substitute, tokensFor } from './lib/contrast.js';
 
 // The React Snippet in all four shapes, each holding a composed link and a composed
 // keyboard stop in its code region.
@@ -29,8 +29,10 @@ const SNIPPETS = (await Promise.all([false, true].flatMap(reveal => [true, false
     h('a', { href: '#example' }, 'Example'), h('span', { tabIndex: 0 }, 'flag'))))))).join('');
 
 const source = ['base', 'code'].map(name => readFileSync(new URL(`../src/styles/${name}.css`, import.meta.url), 'utf8')).join('\n');
-/** Nothing a reader can see on this property. JSDOM leaves an undeclared shorthand empty. */
-const bare = value => ['', 'none'].includes(value);
+/** Nothing a reader can see where an outline would be. */
+const bare = outlineBare;
+/** No box-shadow layer at all. */
+const noShadow = shadowQuiet;
 
 function check(css, theme, accent) {
   const vars = tokensFor(theme, accent);
@@ -45,7 +47,7 @@ function check(css, theme, accent) {
   const expected = win.getComputedStyle(reference);
   // The band itself, read off a control that takes it plainly, so every assertion below
   // compares against what the kit actually draws rather than against a literal.
-  assert.ok(!bare(expected.outline), 'the reference control draws no band at all');
+  assert.ok(!bare(expected), 'the reference control draws no band at all');
   assert.match(expected.outline, /(?:^|\s)2px(?:\s|$)/, 'the band is no longer 2px of solid ink');
   assert.doesNotMatch(expected.outline, /transparent/, 'the band is a visible outline, not a stand-in');
 
@@ -57,23 +59,23 @@ function check(css, theme, accent) {
     const style = win.getComputedStyle(target);
     const cardStyle = win.getComputedStyle(card);
     if (target.tagName === 'PRE') {
-      assert.equal(style.outline, 'none', 'the code region paints no band of its own');
+      assert.ok(bare(style), 'the code region paints no band of its own');
       assert.equal(cardStyle.outline, expected.outline, 'the card carries the code band');
       // JSDOM leaves an undeclared shorthand empty and does not expand longhands.
       assert.ok(['', '0', '0px'].includes(style.borderRadius), 'the pre is square, which is why it cannot carry the band');
       assert.ok(Number.parseFloat(cardStyle.borderRadius) > 0, 'the card the band follows is rounded');
-      assert.equal([target, card].filter(el => !bare(win.getComputedStyle(el).outline)).length, 1,
+      assert.equal([target, card].filter(el => !bare(win.getComputedStyle(el))).length, 1,
         'one focused code region draws one indicator, not two');
     } else {
       assert.equal(style.outline, expected.outline, `${target.tagName} uses the shared band`);
-      assert.ok(bare(cardStyle.outline), 'only the code region hands its band to the card');
+      assert.ok(bare(cardStyle), 'only the code region hands its band to the card');
     }
     // Nothing writes a focus box-shadow any more: the band left that property in #578, so
     // anything there while a control has focus is a second indicator.
-    assert.ok(bare(style.boxShadow), `${target.tagName} paints a box-shadow beside the band`);
+    assert.ok(noShadow(style), `${target.tagName} paints a box-shadow beside the band`);
     target.removeAttribute('data-ui-state');
-    assert.ok(bare(win.getComputedStyle(target).outline), 'band is keyboard-focus only');
-    assert.ok(bare(win.getComputedStyle(card).outline), 'the card band is keyboard-focus only');
+    assert.ok(bare(win.getComputedStyle(target)), 'band is keyboard-focus only');
+    assert.ok(bare(win.getComputedStyle(card)), 'the card band is keyboard-focus only');
   }
   for (const root of win.document.querySelectorAll('.ui-snippet')) {
     assert.equal(win.getComputedStyle(root).overflow, 'hidden', 'the card still clips its code');

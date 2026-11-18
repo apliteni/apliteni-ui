@@ -45,14 +45,6 @@
   clip-path: inset(-100vmax var(--toast-card-clip, -100vmax) var(--toast-card-clip, -100vmax));
   transition: translate var(--dur-med) var(--ease), scale var(--dur-med) var(--ease);
 }
-/* A box shorter than the notice cuts it at the bottom, so the content stays on
-   the top edge instead of centring on a card that overflows. Auto margins
-   centre a notice that fits and start-align one that does not. */
-.ui-toast-stack--collapsed > .ui-toast > .ui-toast__icon,
-.ui-toast-stack--collapsed > .ui-toast > .ui-toast__body,
-.ui-toast-stack--collapsed > .ui-toast > .ui-toast__action { margin-block: auto; }
-.ui-toast-stack--collapsed:hover > .ui-toast > *,
-.ui-toast-stack--collapsed:focus-within > .ui-toast > * { margin-block: 0; }
 .ui-toast-stack--collapsed:hover, .ui-toast-stack--collapsed:focus-within {
   height: var(--toast-fan-height, auto);
 }

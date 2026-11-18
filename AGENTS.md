@@ -98,10 +98,10 @@ gate's source half.
 ## Check the disabled field paint locally
 
 Before opening a PR that changes a field's or a button's disabled paint, or
-`src/styles/input.css`, measure it in a real browser — the source half only emulates the one
-declaration Chromium fades a disabled select with:
-`UI_PLAYWRIGHT=… UI_CHROME=… FIELD_PAINT=1 node --test stories/field-ground.test.js`
-Report the result in the PR. CI runs only this gate's source half.
+`src/styles/input.css`, run `npm test -w react -- field-ground` and measure the disabled paint
+by hand in a real browser. Report both results in the PR. The browser half,
+`stories/field-ground.test.js`, went with the vanilla galleries in #724, so no gate now reads
+how Chromium fades a disabled select. `react/src/field-ground.test.tsx` reads the cascade in JSDOM.
 
 ## Check the motion helpers' missing-element guard locally
 
@@ -126,6 +126,13 @@ the column in a real browser — the source half reads declarations, not layout:
 `SELECTION_WIDTH=1 UI_PLAYWRIGHT=… node --test src/styles/table-selection-width.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
+## Check the table's top alignment locally
+
+Before opening a PR that changes a cell's `vertical-align` in `src/styles/table.css` or the
+`.rx-sort` alignment in `react/src/DataTable.css`, measure the first lines in a real browser:
+`TOP_ALIGN=1 UI_PLAYWRIGHT=… node --test src/styles/table-top-align.test.js`
+Report the result in the PR. CI runs only the source half, in the table and DataTable tests.
+
 ## Check the partial dash locally
 
 Before opening a PR that changes the `:indeterminate::after` rule in `src/styles/input.css`, measure the dash
@@ -133,12 +140,20 @@ in a real browser:
 `DASH_CENTRE=1 UI_PLAYWRIGHT=… node --test src/styles/check-partial.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
-## Check the table edge shade locally
+## Check the phone table frame locally
 
-Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` edge-shade rules,
-measure both edges in a real browser — the source half only reads selectors, not paint.
+Before opening a PR that changes `src/styles/table.css`'s `.ui-table-scroll` rules, measure the
+phone frames in a real browser. The source half only checks that the frame paints no shade.
 Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… EDGE_SHADE=1 node --test stories/table-edge-shade.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
+## Check the code block's edge shade locally
+
+Before opening a PR that changes `.ui-snippet` rules in `src/styles/code.css`, measure the block
+in a real browser. The source half only reads the declarations. Run `npm run build-storybook`
+first, then:
+`UI_PLAYWRIGHT=… UI_CHROME=… SNIPPET_SHADE=1 node --test stories/snippet-shade.test.js`
 Report the result in the PR. CI runs only this gate's source half.
 
 ## Documentation
@@ -221,6 +236,21 @@ Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the sh
 `--ui-app-top`, measure the rows in a real browser:
 `UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
 Report the result in the PR. CI skips this check because Playwright is not a dependency.
+
+## Check the phone account window locally
+
+Before opening a PR that changes the 560px rules of `react/src/AccountWindow.css`, measure the
+window in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
+## Check the file drop row locally
+
+Before opening a PR that changes `src/styles/file-drop.css` or React `<FileDrop>`, measure the rows
+in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_CHROME=… ROW_HEIGHTS=1 node --test stories/row-height.test.js`
+It also opens every file drop story as Storybook draws it. Report the result in the PR. CI runs
+only this gate's source half.
 
 ## Changes
 

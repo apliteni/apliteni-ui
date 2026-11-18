@@ -18,7 +18,7 @@
 
 **Rule:** Open the readout above the mark; place it below only when space above is clipped and below has more room.
 
-**Why:** This keeps the mark and pointer approach clear while keeping the readout on-screen.
+**Why:** It keeps the mark and pointer approach clear and the readout on-screen.
 
 **Do:** Open a readout below a tall bar near the top of a clipping region.
 
@@ -28,15 +28,15 @@
 
 <!-- rule: contents -->
 
-**Rule:** Name the point, show its value, and include no more than one comparison.
+**Rule:** Name the point, show its value, and give at most one comparison.
 
-**Why:** Short readouts stay readable and do not cover nearby marks.
+**Why:** Short readouts stay readable and clear of nearby marks.
 
 **Do:** Use three short lines: point, value, one comparison.
 
 **Don't:** Wrap long text or place controls in the readout.
 
-**Except:** Match the page’s currency and precision.
+**Except:** Match the page’s currency and precision. A readout that shows the full text of a cut cell wraps.
 
 ## Tap to open or close
 
@@ -46,11 +46,11 @@
 
 **Why:** Hover is not readable under a finger.
 
-**Do:** Tap another mark to move the readout, or tap the same mark or anywhere else to close it.
+**Do:** Tap another mark to move the readout. Tap the same mark or anywhere else to close it.
 
 **Don't:** Require a hover gesture on a touch screen.
 
-**Except:** The opening tap blocks the mark’s click but still reaches page listeners; the tap that closes the readout may also drill down.
+**Except:** The opening tap blocks the mark’s click but reaches page listeners. The closing tap may also drill down.
 
 ## Provide another access method
 
@@ -60,8 +60,8 @@
 
 **Why:** Pointer, focus, and tap must all support access, and Escape must dismiss the readout.
 
-**Do:** Let focus or tap open the readout, and provide the leading figure plus a table or labelled series summary.
+**Do:** Let focus or tap open the readout. Give the leading figure and a table or labelled series summary.
 
-**Don't:** Require pointing at one of 365 daily points to find its value.
+**Don't:** Require pointing at one of 365 daily points for its value.
 
-**Except:** Touch-screen focus without a tap must support screen-reader arrival; pointer detection must support laptop mouse hover, finger or pen tap, and keyboard focus restoration. Whether chart marks should be tab stops remains undecided; the kit adds none.
+**Except:** Touch-screen focus without a tap must support screen-reader arrival; pointer detection must support laptop mouse hover, finger or pen tap, and keyboard focus restoration. Tab stops on chart marks remain undecided; the kit adds none.

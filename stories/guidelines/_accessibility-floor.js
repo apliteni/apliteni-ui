@@ -66,10 +66,13 @@ export const FIELD_MIN = 16;
 // Same device as the GLYPH_FLOOR ratchet in stories/signal-contrast.test.js.
 //
 // RING_FLOOR sits ABOVE its bar, which is the point: #218 made --ring opaque
-// and the worst cell now measures 4.22, so the ratchet is the warning that
+// and the worst cell measured 4.22 until #799, so the ratchet is the warning that
 // fires while the ring is still legal rather than once it is not. It was 1.5
 // while the ring failed everywhere and a ledger held the gate open.
-export const RING_FLOOR = 4.22;
+// It moved DOWN at #799: the danger Callout's action slot puts the ring on the
+// danger wash in dark, at 3.81 (default), 3.95 (phoenix) and 3.99 (ocean). The
+// ring still clears its 3:1 bar. The coordinator decided this for #799.
+export const RING_FLOOR = 3.81;
 // DISABLED_FLOOR sits well above its bar for the same reason RING_FLOOR does.
 // It was 1.48 while a ledger held the gate open — #220 took the opacity out of
 // every disabled rule that has a label under it and gave the state a paint of
@@ -267,6 +270,9 @@ export const SPEC_CSS = `
     .gl-measure { display: block; margin: 0; max-width: none;
       padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
     .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); }
+    /* !important beats the kit's own coarse-pointer 16px, so a phone sees the pair too. */
+    .gl-touch--16 .ui-input { font-size: 16px !important; }
+    .gl-touch--14 .ui-input { font-size: 14px !important; }
   </style>`;
 
 

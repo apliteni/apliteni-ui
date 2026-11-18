@@ -149,20 +149,28 @@ const outranks = (a, b) => a.some((n, i) => n !== b[i] && n > b[i] && a.slice(0,
 /** Specificity as (ids, classes, types). `:where()` contributes nothing; `:not()` and
  *  `:is()` contribute their MOST SPECIFIC argument, so a list inside either is resolved
  *  branch by branch rather than counted whole — `:is(a:not([class]), a.ui-identity)` is
- *  one class and one type, not both branches added together. Innermost first, because the
- *  argument pattern matches no nested parentheses. */
+ *  one class and one type, not both branches added together. An argument is read to its
+ *  balancing parenthesis, so `:where(.a:not(.b))` nests as the browser nests it. */
 const specificity = (selector) => {
-  let flat = selector;
-  while (/:where\(/.test(flat)) flat = flat.replace(/:where\(([^()]*)\)/, "");
-  while (/:(?:not|is)\(/.test(flat)) {
-    flat = flat.replace(/:(?:not|is)\(([^()]*)\)/, (_, argument) => {
-      const branches = selectorParts(argument);
-      let best = "";
-      for (const branch of branches) if (!best || outranks(countOf(branch), countOf(best))) best = branch;
-      return ` ${best} `;
-    });
+  const extra = [0, 0, 0];
+  let flat = "";
+  let rest = selector;
+  for (let at; (at = rest.search(/:(?:where|not|is)\(/)) !== -1;) {
+    const open = rest.indexOf("(", at);
+    let close = open;
+    for (let depth = 0; close < rest.length; close += 1) {
+      if (rest[close] === "(") depth += 1;
+      if (rest[close] === ")" && --depth === 0) break;
+    }
+    if (rest.slice(at + 1, open) !== "where") {
+      const best = selectorParts(rest.slice(open + 1, close)).map(specificity)
+        .reduce((a, b) => (outranks(b, a) ? b : a));
+      best.forEach((n, i) => { extra[i] += n; });
+    }
+    flat += `${rest.slice(0, at)} `;
+    rest = rest.slice(close + 1);
   }
-  return countOf(flat);
+  return countOf(flat + rest).map((n, i) => n + extra[i]);
 };
 
 /** The value the cascade leaves on `property` for this element, in the states `on`. Rules that
@@ -558,7 +566,13 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, "");
  *  that had given its sides up against a link that had not. Read as left/right, which is
  *  what start/end come to in the kit's own direction. */
 const sidesOf = (property, value) => {
-  const parts = value.trim().split(/\s+/);
+  // Split on the spaces outside brackets, so a `calc()` side stays one side.
+  const parts = [""];
+  let depth = 0;
+  for (const char of value.trim()) {
+    depth += char === "(" ? 1 : char === ")" ? -1 : 0;
+    if (/\s/.test(char) && depth === 0) { if (parts.at(-1)) parts.push(""); } else parts[parts.length - 1] += char;
+  }
   if (property === "padding") {
     const [top, right = top, bottom = top, left = right] = parts;
     return { "padding-top": top, "padding-right": right, "padding-bottom": bottom, "padding-left": left };
@@ -607,6 +621,15 @@ const CELL = /^(\.ui-table(?:--[a-z]+)?) td(?::(?:first|last)-child)?$/;
 /** The table classes the sheet pads a body cell under, the base table included. */
 const tableClasses = (css) => [...new Set(paddingRules(css).map((part) => CELL.exec(part)?.[1]).filter(Boolean))];
 
+const ROW_TABLE = ".ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)";
+
+/** The row table and each density the sheet pads it with, as class chains. */
+const rowTables = (css) => [...new Set(paddingRules(css)
+  .filter((part) => part.startsWith(ROW_TABLE))
+  .map((part) => /^(\.ui-table--[a-z]+)?/.exec(part.slice(ROW_TABLE.length))[1] ?? ""))]
+  .map((density) => `.ui-table--hover${density}`)
+  .sort((a, b) => a.length - b.length);
+
 const PLAIN = "<td>1.00</td>";
 const MARKED = '<td class="ui-table__linked"><a href="#">1162</a></td>';
 /** Where in a three-cell row the marked cell stands. */
@@ -616,7 +639,7 @@ const POSITIONS = [["the first cell", 0], ["a middle cell", 1], ["the last cell"
  *  holding a link and nothing else. `marked: -1` is the row nobody marked, which is what
  *  the cell's own padding is read from. */
 const rowOf = (tableClass, marked) => {
-  const table = tableClass === ".ui-table" ? "ui-table" : `ui-table ${tableClass.slice(1)}`;
+  const table = ["ui-table", ...tableClass.split(".").filter((name) => name && name !== "ui-table")].join(" ");
   const cells = [0, 1, 2].map((index) => (index === marked ? MARKED : PLAIN));
   const dom = new JSDOM(`<table class="${table}"><tbody><tr>${cells.join("")}</tr></tbody></table>`);
   return dom.window.document;
@@ -640,8 +663,16 @@ test("a filled cell link is padded with exactly what its cell gave up, wherever 
     "the table classes that pad a body cell have changed; every one of them needs a fill "
       + "padding to match, so update this list with the rules",
   );
+  // The row table pads its cells under a compound selector, a hover table that is neither
+  // dense nor zebra, so it is found by that selector and read with each density it pads.
+  const rows = rowTables(SHEETS);
+  assert.deepEqual(
+    rows,
+    [".ui-table--hover", ".ui-table--hover.ui-table--compact", ".ui-table--hover.ui-table--comfortable"],
+    "the row table's densities have changed; update this list with the rules",
+  );
 
-  for (const tableClass of classes) {
+  for (const tableClass of [...classes, ...rows]) {
     for (const [where, index] of POSITIONS) {
       const cell = rowOf(tableClass, -1).querySelectorAll("td")[index];
       const link = rowOf(tableClass, index).querySelectorAll("td")[index].querySelector("a");
@@ -828,3 +859,29 @@ test('the bottom focus band stays painted across pinned cells while scrolling',
       }
     } finally { await browser.close(); }
   });
+
+// A later cell's filled link starts its name at the cell's edge, so the inward band crossed the
+// first letter. While focused it takes --space-2 of clear edge before the name, lent back by
+// the margin, and it drops the text link's side room, which would move the name. The first
+// cell keeps the room its padding already gives. why: #814 (rev_136bd26bc559/d22).
+// Limits: it reads the declarations; the PR's captures show where the band lands.
+const FILLED = ":is(a:not([class]), a.ui-identity):only-child:focus-visible";
+const focusBody = (css, selector) => [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .find(([, found]) => found.trim() === selector)?.[2];
+const bandRoom = (css) => {
+  const band = focusBody(css, `.ui-table td.ui-table__linked > ${FILLED}`) ?? "";
+  const later = focusBody(css, `.ui-table td.ui-table__linked:not(:first-child) > ${FILLED}`) ?? "";
+  const edge = /border-inline-start:\s*(var\(--space-2\))\s+solid\s+transparent\s*;/.exec(later)?.[1];
+  return /margin-inline:\s*0\s*;/.test(band)
+    && Boolean(edge)
+    && new RegExp(`margin-inline-start:\\s*calc\\(-1 \\* ${edge.replace(/[()]/g, "\\$&")}\\)\\s*;`).test(later)
+    && /width:\s*auto\s*;/.test(later);
+};
+
+test("a focused link in a later cell takes room before its name and moves no word", () => {
+  assert.ok(bandRoom(SHEETS), "the band crosses the first letter, or its room moves the name");
+  // Rejection: room that the margin does not give back moves the name on focus.
+  const pushed = SHEETS.replace("margin-inline-start: calc(-1 * var(--space-2));", "");
+  assert.notEqual(pushed, SHEETS, "the margin must be there to be removed");
+  assert.equal(bandRoom(pushed), false, "room that is not lent back must be caught");
+});

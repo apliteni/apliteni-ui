@@ -21,8 +21,8 @@
  *    ships no browser. Source-over in sRGB is what Chrome does, and it is checked against
  *    rendered pixels rather than asserted — the producer is scripts/evidence/code-chip.mjs,
  *    which samples its fixtures in a browser. This source gate does not establish
- *    agreement with pixels for every discovered composition. The ink belongs to
- *    stories/contrast-dark.test.js and stories/contrast-light.test.js.
+ *    agreement with pixels for every discovered composition. The chip's ink belongs to the
+ *    React contrast walk; the code block's inks are measured at the end of this file.
  *  - The callout wash subjects take CALLER markup: `callout()` and the success
  *    panel hand their body straight through, so a chip inside one is ordinary product
  *    markup. The composer's own `__done` and `__err` panels are washes too and are not
@@ -160,7 +160,10 @@ const paintedAliases = new Set(sheets
   .filter((rule) => HANDS_NOTHING_ON.test(rule.raw))
   .map((rule) => paintOf(rule.body))
   .filter((paint) => paint && /^var\(\s*--[\w-]+\s*\)$/.test(paint))
-  .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1]));
+  .map((paint) => /^var\(\s*(--[\w-]+)/.exec(paint)[1])
+  // A code block paints the chip's hand-off (#800). A rule that declares --code-bg hands a
+  // chip a surface and paints nothing, so it is not a variant of the block.
+  .filter((name) => name !== '--code-bg'));
 const aliased = sheets.flatMap((rule) => {
   if (isRoot(rule) || paintOf(rule.body)) return [];
   return [...own(rule)]
@@ -258,6 +261,19 @@ const LEDGER = [{
     + 'against: a grey chip (#455), an edge (#490) or a second accent signal on the one '
     + 'card whose subject IS the accent. What a tinted card carries is a short status line, '
     + 'not reference prose with identifiers in it.',
+}, {
+  id: 'B',
+  selectors: ['.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th)'],
+  themes: ['light'],
+  worst: 1.084,
+  why: 'A selected row in LIGHT takes the tinted card\'s strength, --card-tint 5% (#814, '
+    + 'rev_136bd26bc559/d23): the owner found the 9% wash too strong beside the checked box. '
+    + 'The row lands at #f8f5fc, so the white chip it is handed measures 1.079-1.083 in the four '
+    + 'contexts, under the 1.1 floor. Measured by hand under the other accents too: 1.080 '
+    + 'phoenix, 1.079 ocean, 1.076 emerald, so the limit holds for every accent and this gate '
+    + 'reads only the default. The same row under the pointer takes 8% and clears the floor at '
+    + '1.126 or more, and dark keeps 9%. Not closed here because the only cure is the stronger '
+    + 'wash the owner refused. The chip keeps its white surface, so its ink pair does not change.',
 }];
 
 const accepts = (finding) => LEDGER.some((entry) => entry.themes.includes(finding.theme)
@@ -282,7 +298,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 36, 'painted-ground discovery changed; the branch-added .ui-card__page hands an inline code chip var(--bg) in tokens.css. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 40, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811). A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
@@ -301,7 +317,8 @@ test('the chip gate discovers every ground, wash, context and theme', () => {
     assert.ok(pickFor(selector), `${selector} is a wash a caller can write a chip inside and never hands it a surface`);
     assert.ok(colourOf(paint, tokensFor('light')), `${selector} has no readable fill`);
   }
-  assert.equal(contexts.length, 4, 'a container re-points a ground token; say what a chip inside it takes');
+  // 5: a drawer group re-points --table-bg and --table-code-bg to the drawer's ground (#811).
+  assert.equal(contexts.length, 5, 'a container re-points a ground variable; say what a chip inside it takes');
   assert.ok(grounds.some(({ selector }) => selector === ':root'), 'the page is a painted ground and is measured with the rest');
   for (const { file, selector } of grounds) {
     assert.ok(pickFor(selector), `${file}: ${selector} paints a ground and never hands an inline code chip a surface`);
@@ -361,4 +378,170 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
   const recipe = rulesIn('src/tokens/tokens.css').find((r) => own(r).get('--code-bg') === 'var(--bg)');
   assert.ok(!selectorsOf(recipe.selector).includes('.ui-code'),
     'the chip cannot be in the hand-off list: it would hand the page to itself and paint the page everywhere');
+});
+
+/* A code block reads the same hand-off (#800): it paints the surface its container is not
+ * on. Its scroll shade is a gradient, which the React contrast walk cannot sample, so this
+ * measures the block's inks here instead, on every surface the hand-off can give and under
+ * the shade's peak. Each ink is the WINNING `color` for its theme and token class: theme
+ * prefix, specificity, then source order, as the cascade picks it. Every colour rule in the
+ * sheet is a code ink, the header or the chip. Any other shape fails the gate, so no ink escapes it.
+ * LIMITS: flat colours from the sheets, the default accent, the shade at its darkest point
+ * only. It reads code.css alone, so a rule in another sheet is not seen. The reveal block
+ * paints its own ground and is not measured. */
+const codeRules = rulesIn('src/styles/code.css');
+const INK_SELECTOR = /^(?:(?::where\(:root\[data-theme="(?<zero>dark|light)"\]\)|:root\[data-theme="(?<theme>dark|light)"\]) )?\.ui-snippet(?<scope>:not\(\.ui-snippet--reveal\)|--reveal)? pre(?: (?:\.(?<leaf>[\w-]+)|:is\((?<list>\.[\w-]+(?:, ?\.[\w-]+)*)\)))?$/;
+/** The last `color` a body declares, or nothing. */
+const colourIn = (body) => [...body.matchAll(/(?:^|;)\s*color\s*:\s*([^;]+)/g)].at(-1)?.[1].trim();
+const THEME_PREFIX = '(?:(?::where\\(:root\\[data-theme="(?:dark|light)"\\]\\)|:root\\[data-theme="(?:dark|light)"\\]) )?';
+/** The bar, its label or the copy button as the subject. The code is the bar's sibling, so these never reach it. */
+const HEADER_SELECTOR = new RegExp(`^${THEME_PREFIX}(?:\\.ui-snippet(?::not\\(\\.ui-snippet--reveal\\)|--reveal)? )?`
+  + '\\.ui-snippet__(?:bar(?: > span)?|copy(?::hover|:focus-visible)?)$');
+/** The inline chip, which sits in prose and never in a block. */
+const CHIP_SELECTOR = /^\.ui-code$/;
+/** A selector that can reach the block's code: every colour selector in the sheet that is not the header or the chip. */
+const reachesCode = (selector) => !HEADER_SELECTOR.test(selector) && !CHIP_SELECTOR.test(selector);
+/** Each theme's winning ink for the block text and each token class, read from these rules. */
+const inksFrom = (rules) => {
+  const claims = [];
+  rules.forEach((rule, order) => {
+    const colour = colourIn(rule.body);
+    if (!colour) return;
+    for (const selector of selectorsOf(rule.selector).filter(reachesCode)) {
+      const match = INK_SELECTOR.exec(selector);
+      if (!match) throw new Error(`${rule.file}: "${selector}" colours the code block in a shape the ink gate cannot read; write it in a known shape or teach the gate`);
+      if (/!important/.test(colour)) throw new Error(`${rule.file}: "${selector}" colours the code block with !important, which the ink gate cannot rank`);
+      const { zero, theme, scope, leaf, list } = match.groups;
+      if (scope === '--reveal') continue;
+      // Specificity as a number: classes, attributes and pseudo-classes count ten, a type one.
+      // `:where()` counts nothing; `:root[data-theme]` counts two; `:is()` counts its one class.
+      const weight = (theme ? 20 : 0) + 10 + (scope ? 10 : 0) + 1 + (leaf || list ? 10 : 0);
+      for (const target of leaf ? [`.${leaf}`] : list ? selectorsOf(list) : ['text']) {
+        claims.push({ themes: theme || zero ? [theme || zero] : THEMES, target, weight, order, colour });
+      }
+    }
+  });
+  return new Map(THEMES.map((theme) => {
+    const winner = (target) => claims.filter((claim) => claim.themes.includes(theme) && claim.target === target)
+      .sort((a, b) => a.weight - b.weight || a.order - b.order).at(-1)?.colour;
+    const targets = [...new Set(claims.map(({ target }) => target))];
+    // A token class with no rule of its own inherits the block's text ink.
+    return [theme, new Map(targets.map((target) => [target, winner(target) ?? winner('text')]))];
+  }));
+};
+const edgeOf = (theme) => codeRules.filter((rule) => (theme === 'light'
+  ? rule.selector === ':root[data-theme="light"] .ui-snippet pre' : rule.selector === '.ui-snippet pre'))
+  .map((rule) => own(rule).get('--ui-snippet-edge')).find(Boolean);
+const blockGrounds = [...new Set(handOffs.filter(({ selector }) => !selector.includes('--reveal'))
+  .map(({ pick }) => pick))];
+
+/* Accepted failures, written by hand. Cause: the light edge shade is 13% --shadow-ink, the
+ * tab row's own value, and at its darkest point it sits under the outer 1-2 px of text.
+ * Keywords, flags and URLs then fall below 4.5:1. The owner kept the approved 13% and
+ * recorded the gap on #800. LIMIT: these are the shade's peak, so text further in sees less
+ * shade and a higher ratio. Every flat pair clears AA.
+ * The one dark pair is a drawer group (#811). There --table-bg is the raised drawer ground,
+ * lighter than a card in dark, so a keyword under the dark shade's peak falls to 4.13. Only
+ * a code block in a selected row of a drawer table stands on that ground. LIMIT: the same
+ * peak, so text further in clears more. Every other dark pair clears AA. */
+const ACCEPTED = [
+  'dark inside .ui-drawer .ui-drawer__section var(--table-bg) shaded .k 4.13',
+  'light the page var(--bg) shaded .k 4.15',
+  'light the page var(--bg) shaded .f 4.36',
+  'light the page var(--bg) shaded .u 4.36',
+  'light the page var(--table-code-bg) shaded .k 4.15',
+  'light the page var(--table-code-bg) shaded .f 4.36',
+  'light the page var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .k 4.15',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .f 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .u 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .k 3.91',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .f 4.10',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .u 4.10',
+  'light inside .ui-card__page var(--bg) shaded .k 4.15',
+  'light inside .ui-card__page var(--bg) shaded .f 4.36',
+  'light inside .ui-card__page var(--bg) shaded .u 4.36',
+  'light inside .ui-card__page var(--table-code-bg) shaded .k 4.15',
+  'light inside .ui-card__page var(--table-code-bg) shaded .f 4.36',
+  'light inside .ui-card__page var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-card var(--bg) shaded .k 4.15',
+  'light inside .ui-card var(--bg) shaded .f 4.36',
+  'light inside .ui-card var(--bg) shaded .u 4.36',
+  'light inside .ui-card var(--table-code-bg) shaded .k 4.15',
+  'light inside .ui-card var(--table-code-bg) shaded .f 4.36',
+  'light inside .ui-card var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .k 4.15',
+  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .f 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .u 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .k 4.15',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .f 4.36',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .u 4.36',
+];
+
+/** Every ink below 4.5:1, flat and under the shade's peak, for these code.css rules. */
+const lowInks = (rules) => {
+  const inks = inksFrom(rules);
+  const low = [];
+  for (const theme of THEMES) {
+    const edge = edgeOf(theme);
+    assert.ok(edge, `the block's shade colour is unreadable in ${theme}`);
+    for (const { where, overrides } of contexts) {
+      const vars = varsFor(theme, overrides);
+      for (const pick of blockGrounds) {
+        const flat = colourOf(pick, vars);
+        assert.ok(flat, `${pick} is unreadable in ${theme}, ${where}`);
+        for (const [under, ground] of [['flat', flat], ['shaded', composite(colourOf(edge, vars), flat)]]) {
+          for (const [leaf, ink] of inks.get(theme)) {
+            const value = ratio(composite(colourOf(ink, vars), ground), ground);
+            if (value < 4.5) low.push(`${theme} ${where} ${pick} ${under} ${leaf} ${value.toFixed(2)}`);
+          }
+        }
+      }
+    }
+  }
+  return low;
+};
+
+test('a code block\'s inks clear AA on every surface it is handed, except the recorded shade peaks', () => {
+  const inks = inksFrom(codeRules);
+  for (const theme of THEMES) {
+    assert.deepEqual([...inks.get(theme).keys()].sort(), ['.c', '.f', '.k', '.s', '.u', 'text'],
+      `code ink discovery changed in ${theme}; measure the new token class here`);
+  }
+  // The chip inks win over the older --green and --cyan rules on the plain block.
+  assert.equal(inks.get('light').get('.s'), 'var(--chip-success-ink)');
+  assert.equal(inks.get('light').get('.f'), 'var(--chip-info-ink)');
+  assert.equal(blockGrounds.length, 5, 'a hand-off gives a code block a new surface; it is measured below');
+  assert.deepEqual(lowInks(codeRules), ACCEPTED, 'a code ink misses 4.5:1, or an accepted failure moved or cleared');
+});
+
+test('the code ink gate takes the winning ink per theme and refuses a shape it cannot read', () => {
+  const rule = (selector, body) => ({ file: 'mutation', selector, body, raw: `${selector} { ${body} }` });
+  // The review's mutation: a light-only rule that out-ranks the plain one. A reader that
+  // skipped it, or took the first rule, stayed green.
+  const themed = lowInks([...codeRules,
+    rule(':root[data-theme="light"] .ui-snippet:not(.ui-snippet--reveal) pre .s', 'color: var(--bg);')]);
+  assert.ok(themed.some((row) => /^light .* \.s 1\.00$/.test(row)), 'a light-only ink rule is not measured');
+  assert.ok(!themed.some((row) => /^dark .* \.s /.test(row)), 'a light-only ink rule leaked into dark');
+  // A weaker rule later in the sheet loses to the stronger one, as the cascade has it.
+  assert.deepEqual(lowInks([...codeRules, rule('.ui-snippet pre .s', 'color: var(--bg);')]), ACCEPTED,
+    'a rule the cascade loses was measured as the winner');
+  // A :where() theme rule weighs nothing, so it wins only by source order over an equal weight.
+  const zero = inksFrom([...codeRules, rule(':where(:root[data-theme="dark"]) .ui-snippet pre .c', 'color: var(--bg);')]);
+  assert.equal(zero.get('dark').get('.c'), 'var(--bg)');
+  assert.equal(zero.get('light').get('.c'), 'var(--text)');
+  for (const selector of ['.ui-snippet > pre .s', '.ui-snippet pre span.s', '.ui-snippet .k', 'pre .u',
+    'html[data-theme="light"] .ui-snippet pre .k', '.ui-snippet:not(.ui-snippet--reveal) pre :is(.f, .u, span)',
+    // The second review's mutation: the bar's name let a route to the code past the gate.
+    ':root[data-theme="light"] .ui-snippet__bar + pre .s', '.ui-snippet__bar ~ pre .s', '.ui-snippet__bar + pre',
+    '.ui-snippet .ui-snippet__bar + pre :is(.s)', '.ui-snippet__bar > span ~ pre', '.ui-snippet__bar ~ * .s', '.s']) {
+    assert.throws(() => inksFrom([...codeRules, rule(selector, 'color: var(--bg);')]), /shape the ink gate cannot read/,
+      `${selector} colours the code and the gate let it through`);
+  }
+  assert.throws(() => inksFrom([...codeRules, rule('.ui-snippet pre .s', 'color: var(--bg) !important;')]), /!important/);
+  // The bar, its label and the copy button are not code, and the reveal block is not measured.
+  assert.doesNotThrow(() => inksFrom([...codeRules, rule('.ui-snippet__bar > span', 'color: var(--bg);'),
+    rule(':root[data-theme="light"] .ui-snippet__bar', 'color: var(--bg);'),
+    rule('.ui-snippet:not(.ui-snippet--reveal) .ui-snippet__copy:focus-visible', 'color: var(--bg);'),
+    rule('.ui-snippet--reveal pre .s', 'color: var(--bg);')]));
 });

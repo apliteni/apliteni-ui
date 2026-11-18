@@ -1,11 +1,14 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
-import { GuidelinePage } from '../_guideline';
-import { BackLink } from '../../react/src/BackLink';
+import { DrawerPicture, GuidelinePage } from '../_guideline';
+import { Avatar } from '../../react/src/primitives/Avatar';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
+import { Icon } from '../../react/src/primitives/Icon';
+import { BackLink } from '../../react/src/BackLink';
+import { KeyValueList } from '../../react/src/KeyValueList';
 import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -36,17 +39,18 @@ const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
   <div className={`tp-stack${over ? ' tp-stack--over' : ''}`}>{Array.from({ length: n }, (_, i) => <div key={i} className="tp-card" />)}</div>
 </Stage>;
 
-// One density per page. Each table keeps its filter bar directly above it.
+// One density per page. Each long table keeps its filter bar directly above it.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
-const MiniTable = ({ dense }: { dense: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
-  <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
-  <tbody><tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr></tbody>
+// Brief drops Arrival so a table inside a card fits a 390px phone.
+const MiniTable = ({ dense, brief = false, failed = false }: { dense: boolean; brief?: boolean; failed?: boolean }) => <table className={`ui-table ui-table--zebra${dense ? ' ui-table--dense' : ''}`}>
+  <thead><tr><th>ID</th>{!brief && <th>Arrival</th>}<th className="ui-table__num">Net</th><th>Status</th></tr></thead>
+  <tbody><tr><td>1162</td>{!brief && <td>2026-06-30</td>}<td className="ui-table__num">14,942.27</td><td>{failed ? <Badge variant="danger">Failed</Badge> : <Badge variant="success">Paid</Badge>}</td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
-  <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
-  <Card title="Payouts"><MiniTable dense /></Card>
-  <RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
-  <Card title="Invoices"><MiniTable dense={second} /></Card>
+  <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
+  <Card title="Payouts"><MiniTable dense /></Card></div>
+  <div className="ui-card-stack"><RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
+  <Card title="Invoices"><MiniTable dense={second} /></Card></div>
 </div></Stage>;
 
 // Which column the page takes, drawn to scale.
@@ -60,56 +64,65 @@ const Frame = ({ centered, over }: { centered: boolean; over: boolean }) => <Sta
   </div>
 </div></Stage>;
 
-// One shell on two pages: the don't moves search and the reader's menu on the second.
-const Shell = ({ name, moved = false }: { name: string; moved?: boolean }) => <div className="tp-shell">
-  <div className="tp-lay" aria-hidden="true">
-    <div className="tp-lay__rail" />
-    <div className="tp-lay__well">
-      <div className="tp-lay__bar tp-lay__bar--parts">{moved
-        ? <><div className="tp-lay__me" /><div className="tp-lay__search" /></>
-        : <><div className="tp-lay__search" /><div className="tp-lay__me" /></>}</div>
-      <div className="tp-lay__col">{Array.from({ length: 4 }, (_, i) => <div key={i} className="tp-lay__ln" />)}</div>
-    </div>
-  </div>
-  <span className="tp-shell__name">{name}</span>
+// The shell's band on two pages: search at the start, the reader's menu at the end.
+const Bar = ({ moved }: { moved: boolean }) => {
+  const search = <button type="button" className="ui-app__search">
+    <span className="ui-app__search-ic"><Icon name="search" /></span>
+    <span className="ui-app__search-txt">Search</span><kbd className="ui-cmdk__key">⌘K</kbd>
+  </button>;
+  const menu = <Avatar personKey="dana@example.com" name="Dana Reyes" size={32} />;
+  return <div className="ui-app__bar tp-bar">
+    {moved ? <>{menu}<span className="ui-app__bar-gap" />{search}</> : <>{search}<span className="ui-app__bar-gap" />{menu}</>}
+  </div>;
+};
+const Shells = ({ moved }: { moved: boolean }) => <div className="tp-rows">
+  {['Payouts', 'Invoices'].map((title, i) => <div key={title} className="gl-stage tp-screen">
+    <Bar moved={moved && i === 1} />
+    <div className="ui-app__main tp-head"><h1>{title}</h1></div>
+  </div>)}
 </div>;
-const Shells = ({ moved = false }: { moved?: boolean }) =>
-  <Stage><div className="tp-shells"><Shell name="Payouts" /><Shell name="Invoices" moved={moved} /></div></Stage>;
 
-// The head in reading order, or with the filters lifted above the title.
-const PAYOUT_FILTERS = <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />;
-const Title = ({ lede = 'Payouts arrive within three business days.' }: { lede?: string }) => <>
-  <h2 className="tp-title">Payouts</h2><p className="tp-lede">{lede}</p>
-</>;
-const Head = ({ lifted = false }: { lifted?: boolean }) => <Stage><div className="tp-rows">
-  <div className="tp-head"><BackLink href="#" label="Finance" />{lifted ? null : <Title />}</div>
-  {lifted ? <>{PAYOUT_FILTERS}<div className="tp-head"><Title /></div></> : PAYOUT_FILTERS}
+// A page head with the shell's own classes, in the order given.
+const Head = ({ parts }: { parts: ('back' | 'title' | 'sub' | 'filters')[] }) => <Stage><div className="ui-app__main tp-head">
+  {parts.map(part => part === 'back' ? <BackLink key={part} href="#" label="Payouts" />
+    : part === 'title' ? <h1 key={part}>Payout 1162</h1>
+    : part === 'sub' ? <p key={part} className="ui-app__sub">Transactions settled in this payout.</p>
+    : <RestingFilters key={part} search="Search transactions" placeholder="ID" label="Transaction filters" chips={STATUS} />)}
 </div></Stage>;
 
-// The same page at rest, and with a dialog that opened itself on load.
-const Resting = ({ covered = false }: { covered?: boolean }) => <Stage><div className="tp-rest">
-  <div className="tp-rows">
-    <div className="tp-head"><Title /></div>
-    <div className="tp-acts"><Button variant="secondary">What’s new</Button></div>
+// One h1 with cards under it, or a second h1 that splits the page in two.
+const Titles = ({ twice }: { twice: boolean }) => <Stage><div className="ui-app__main tp-head"><h1>Payouts</h1>
+  {twice ? <div className="tp-rows"><MiniTable dense={false} brief /><h1>Failed payouts</h1><MiniTable dense={false} brief failed /></div>
+    : <div className="tp-rows">
+      <Card title="Last 7 days"><MiniTable dense={false} brief /></Card>
+      <Card title="Failed this week"><MiniTable dense={false} brief failed /></Card>
+    </div>}
+</div></Stage>;
+
+const Lede = ({ sub }: { sub: string }) => <Stage><div className="ui-app__main tp-head"><h1>Payouts</h1>
+  <p className="ui-app__sub">{sub}</p><Card title="Last 7 days"><MiniTable dense={false} brief /></Card>
+</div></Stage>;
+
+// The page as it first paints, with or without a drawer already over it.
+const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="gl-stage tp-rest">
+  <div className="ui-app__main tp-head">
+    <div className="ui-app__title-row"><h1>Payouts</h1>
+      <div className="ui-app__tools"><Button variant="primary" icon="plus">New payout</Button></div></div>
+    <MiniTable dense={false} brief />
   </div>
-  {covered && <div className="tp-rest__scrim"><div className="rx-modal" role="group" aria-label="What’s new">
-    <div className="rx-modal__head"><h2 className="rx-modal__title">What’s new</h2>
-      <Button variant="ghost" size="sm" iconOnly icon="x" aria-label="Close" /></div>
-    <div className="rx-modal__body"><p>Payout filters now keep your last search.</p></div>
-  </div></div>}
-</div></Stage>;
+  {open && <DrawerPicture title="Payout 1162">
+    <KeyValueList rows={[{ label: 'Net', value: '14,942.27' }, { label: 'Status', value: 'Paid' }]} />
+  </DrawerPicture>}
+</div></>;
 
 // The rules a designer decides, in the order a page is read. Which line of the kit
 // holds each of them is the RULE_TO_CODE table in stories/guidelines/the-page.test.js.
 const specimens = [
-  { id: 'layout', do: () => <Shells />, dont: () => <Shells moved /> },
+  { id: 'layout', do: () => <Shells moved={false} />, dont: () => <Shells moved /> },
   { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
-  { id: 'head', do: () => <Head />, dont: () => <Head lifted /> },
-  { id: 'one-h1',
-    do: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={2} text="Last 7 days" />
-      <Out rank={2} text="Failed this week" /></div></Stage>,
-    dont: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={1} text="Failed this week" bad />
-      <Out rank={2} text="Last 7 days" /></div></Stage> },
+  { id: 'head', do: () => <Head parts={['back', 'title', 'sub', 'filters']} />,
+    dont: () => <Head parts={['back', 'filters', 'title', 'sub']} /> },
+  { id: 'one-h1', do: () => <Titles twice={false} />, dont: () => <Titles twice /> },
   { id: 'outline',
     do: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={2} text="Last 7 days" />
       <Out rank={2} text="Payouts" /><Out rank={3} text="Failed this week" /></div></Stage>,
@@ -117,10 +130,10 @@ const specimens = [
       <Out rank={3} text="Payouts" bad /><Out rank={4} text="Failed this week" bad /></div></Stage> },
   { id: 'one-primary', do: () => <Agents />, dont: () => <Agents all /> },
   { id: 'stacking', do: () => <Stack n={LIMITS.cards} />, dont: () => <Stack n={12} over /> },
-  { id: 'at-rest', do: () => <Resting />, dont: () => <Resting covered /> },
+  { id: 'at-rest', do: () => <AtLoad open={false} />, dont: () => <AtLoad open /> },
   { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
-  { id: 'lede', do: () => <Stage><div className="tp-head"><Title /></div></Stage>,
-    dont: () => <Stage><div className="tp-head"><Title lede="This is the payouts page." /></div></Stage> },
+  { id: 'lede', do: () => <Lede sub="Payouts arrive within three business days." />,
+    dont: () => <Lede sub="This is the payouts page." /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/The page', parameters: { layout: 'fullscreen' } };

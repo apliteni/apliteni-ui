@@ -62,7 +62,7 @@
 
 **Don't:** Unavailable keeps the live paint, so only the cursor reports the state.
 
-**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone. Where the browser fades a control for you, as Chromium does a disabled select, reset that fade: it takes the edge and the words down together, and the words are what a reader still has to read.
+**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone. Where the browser fades a control for you, as Chromium does a disabled select, reset that fade: it takes the edge and the words down together, and a reader still has to read the words.
 
 ## Touch field text
 
@@ -70,7 +70,7 @@
 
 **Rule:** Set coarse-pointer field text to 16px without scaling it down.
 
-**Why:** iOS Safari zooms into a field under 16px and does not zoom out. There is no specimen pair because the size answers to the pointer rather than the width, so both halves would draw the desktop size.
+**Why:** iOS Safari zooms into a field under 16px and does not zoom out.
 
 **Do:** Real 16px text in the field itself.
 
@@ -84,7 +84,7 @@
 
 **Rule:** Keep body text close to 7:1 at every size, not merely at 4.5:1.
 
-**Why:** Stronger contrast supports comfortable reading at every size. There is no specimen pair because a pale example would break this rule in front of the reader.
+**Why:** Stronger contrast supports comfortable reading at every size.
 
 **Do:** Body ink at every size, with size, weight and spacing carrying the hierarchy.
 
@@ -98,11 +98,11 @@
 
 **Why:** Colour alone is not reliably distinguishable.
 
-**Do:** The word carries the status; the tone fill agrees with it.
+**Do:** The word carries the status. The tone agrees with it, as a fill or as ink.
 
 **Don't:** A tone fill with the word taken out of it.
 
-**Except:** A status badge needs no glyph or dot. A callout or toast keeps its glyph, because its words sit in a sentence rather than in a fill.
+**Except:** A status badge needs no glyph or dot. A callout or toast keeps its glyph, because its words sit in a sentence, not a fill.
 
 ## Measurable pairs
 
@@ -110,7 +110,7 @@
 
 **Rule:** Keep text on opaque grounds so its contrast can be measured.
 
-**Why:** A gradient, filter or translucent layer puts the ink on more than one ground, so no single pair can be read off it.
+**Why:** A gradient, filter or translucent layer puts the ink on more than one ground, so no single pair measures it.
 
 **Do:** One opaque ground under the whole sentence.
 
@@ -122,7 +122,7 @@
 
 **Rule:** Build keyboard behaviour before pointer behaviour and styling.
 
-**Why:** Keyboard access defines the interaction before visual polish. There is no specimen pair because this is an order of work: both halves look the same once they are finished.
+**Why:** Keyboard access defines the interaction before visual polish.
 
 **Do:** Focus, order and keyboard actions working before anything is styled.
 

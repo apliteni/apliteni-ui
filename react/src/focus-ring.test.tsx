@@ -28,7 +28,7 @@ import type { ReactElement } from 'react';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 import { STYLE_FILES } from '../../stories/lib/contrast.js';
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
-import { focusRules, judgeStops, failures, keyboardStops, ringRulesFor, scrollingSelectors, sheetText } from '../../stories/lib/focus-walk.js';
+import { focusRules, judgeStops, failures, ringRulesFor, scrollingSelectors, sheetText } from '../../stories/lib/focus-walk.js';
 
 /**
  * The repository root, found by climbing from the working directory rather than
@@ -104,6 +104,9 @@ document.head.appendChild(styleEl);
 afterEach(cleanup);
 
 const counts = { stories: 0, stops: 0, exempted: 0 };
+// The selectors of EXEMPT that at least one story renders, collected in the one
+// pass below so the anti-vacuity check does not mount every story a second time.
+const matchedExempt = new Set<string>();
 
 describe('focus ring: React stories', () => {
   for (const story of found) {
@@ -121,6 +124,9 @@ describe('focus ring: React stories', () => {
       counts.stories += 1;
       counts.stops += stops.length;
       counts.exempted += stops.filter(exempt).length;
+      for (const { selector } of EXEMPT) {
+        if (stops.some((stop) => stop.el.matches(selector))) matchedExempt.add(selector);
+      }
       expect(failures(stops, exempt), `${story.id} draws something other than the shared ring`).toEqual([]);
     });
   }
@@ -137,15 +143,8 @@ describe('focus ring: React stories', () => {
   });
 
   it('every exemption still names a control this workspace renders', () => {
-    render(<div />);
     for (const { selector, why } of EXEMPT) {
-      const anywhere = found.some((story) => {
-        cleanup();
-        const Story = () => story.render!(story.args, { globals: { theme: 'dark', accent: 'default' }, args: story.args });
-        render(<Story />);
-        return keyboardStops(document.body).some((el: HTMLElement) => el.matches(selector));
-      });
-      expect(anywhere, `${selector} is exempt ("${why}") but nothing renders one — drop the entry`).toBe(true);
+      expect(matchedExempt.has(selector), `${selector} is exempt ("${why}") but nothing renders one — drop the entry`).toBe(true);
     }
   });
 

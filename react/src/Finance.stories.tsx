@@ -4,7 +4,6 @@ import { NumericValue, DeltaValue, RowIdentity } from './TableValues';
 import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 import { Segmented } from './Segmented';
 import { SearchField } from './SearchField';
-import { Card } from './primitives/Card';
 import { useTableFilters } from '../../stories/_table-filters';
 import './FinanceComposition.css';
 export default { title: 'Components/Finance composition', parameters: { layout: 'fullscreen' } };
@@ -21,12 +20,12 @@ function Example() {
   const [filters, setFilters] = useState<Filter[]>([{ ...catalogue[0], value: 'All sectors' }]);
   const [query, setQuery] = useState('');
   return <main className="ui-app__main ui-app__main--wide finance-comparison"><header className="finance-comparison__head"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Changes since the previous close.</p></header>
-    <div className="finance-comparison__data">
-    <Card pad="sm"><div className="ui-toolbar">
+    <div className="ui-card-stack finance-comparison__data">
+    <div className="ui-toolbar">
     <SearchField ariaLabel="Search companies" placeholder="Company" value={query} onChange={e => setQuery(e.currentTarget.value)} />
     <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}
       onAdd={(id, value) => { const entry = catalogue.find(f => f.id === id); if (entry) setFilters(current => [...current, { ...entry, value: value || '' }]); }} />
-    </div></Card>
+    </div>
     <div className="ui-card ui-card--fit finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     <DataTable rows={rows.filter(r => r.name.toLowerCase().includes(query.trim().toLowerCase()) && filters.every(f => !f.value || f.value === (f.id === 'sector' ? 'All sectors' : 'All markets') || r[f.id as 'sector' | 'market'] === f.value))} pageSize={20} empty="No companies match these filters." selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"
       columns={[{ key: 'name', label: 'Company', linked: true, render: r => <a href="#company">{r.name}</a> }, ...(view === 'overview' ? [{ key: 'price' as const, label: 'Price', num: true, sortable: true, render: (r: {price: number}) => <NumericValue value={r.price.toFixed(2)} unit="USD" /> }] : []), { key: 'change', label: 'Daily change', num: true, render: r => <DeltaValue value={`${r.change > 0 ? '+' : r.change < 0 ? '−' : ''}${Math.abs(r.change).toFixed(2)}%`} tone={r.change > 0 ? 'success' : r.change < 0 ? 'danger' : undefined} basisId="react-finance-basis" /> }]} /></div>
@@ -46,7 +45,7 @@ function SelectableExample() {
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
     <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll to compare values while keeping company selection in view.</p>
     <div className="ui-card-stack">
-    <Card>{bar}</Card>
+    {bar}
     <DataTable rows={shown} selected={selected} empty="No companies match" onToggle={name => setSelected(current => {
       const next = new Set(current); if (next.has(name)) next.delete(name); else next.add(name); return next;
     })} onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))}

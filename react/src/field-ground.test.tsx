@@ -1,6 +1,7 @@
 // Rule: a field this workspace's catalogue renders is shown on a painted surface,
-// never on the page ground. The React half; stories/field-ground.test.js is the
-// other, over the same reading in stories/lib/field-ground.js.
+// never on the page ground. One exception: a filter bar's live search field stands
+// on the page above its table card (rev_136bd26bc559/d24), and its edge there is
+// recorded below. The reading is in stories/lib/field-ground.js.
 //
 // Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that." #556 moved
@@ -13,9 +14,7 @@
 //  - Every *.stories.tsx under react/src, which is the whole published catalogue,
 //    and the foundation and showcase pages under stories/. Not stories/guidelines/: as
 //    on the vanilla side, a guideline page's specimens stand on its own stage, and that
-//    ground is the page's decision rather than this one's. Nor the Empty states
-//    showcase, whose search toolbar stands on the finance page's own ground, which the
-//    vanilla walk also leaves to that page.
+//    ground is the page's decision rather than this one's.
 //    A vanilla gallery is the other gate's subject and is not reached from here.
 //  - Winning declarations in JSDOM, not pixels: a rule inside a media query is
 //    unmeasured, and so is anything that depends on layout.
@@ -28,7 +27,7 @@
 //    decorator paints is therefore unmeasured, which is why #568 put the kit's Card
 //    inside each render instead, File drop's included: the card is the story.
 //  - The `fade` in the shared reading is not asserted here: nothing installs a
-//    user-agent sheet, so every control reads 1. FIELD_PAINT=1 owns that.
+//    user-agent sheet, so every control reads 1. No gate measures it since #724.
 //  - Storybook's own `args` rendering is reproduced, not the real renderer: a story
 //    with no render fn is mounted as `<component {...args} />`, which is what CSF3
 //    does with one. A loader, a play fn and the argTypes machinery are not run, so a
@@ -72,8 +71,20 @@ const THEMES = ['dark', 'light'] as const;
 // stories and the Finance comparison.
 // Then three from the AccountWindow story (#736): the Profile section's two text fields and
 // its select. The other sections mount only when a reader opens them.
+// Then four search fields from the DataTable members stories (#770), one above each
+// of the four tables.
+// Then the band's search field in the AppShell PhoneMenu story (#790).
+// Then sixteen checkboxes from the AccountWindow Long section story (#795), four in
+// each of its four groups.
+// Then the payouts search field in the four Sign In session stories, and the email
+// and password fields in the Sign In Default and Provider error stories (#799).
+// Then the text input in the Form Row and Form Row Long Value stories (#812).
+// Then the transfers search field in the DataTable ledgers Status Words story, and the
+// payees search field in the Tooltip In Table Cell story (#814).
+// Then the Empty states showcase's search field, walked since a filter bar may stand
+// on the page (#814).
 // Move this count with the specimens.
-const FIELD_COUNT = 150;
+const FIELD_COUNT = 182;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -83,10 +94,18 @@ const DISABLED: Record<string, unknown> = {
   light: { ground: '#ffffff', fill: '#ffffff', border: '#e4e7ee', edge: 1.24, ink: 6.11 },
 };
 
+// A filter bar's live search field on the page ground, measured by the test below.
+// The owner chose the page for the bar with these numbers in front of them:
+// rev_136bd26bc559/d24. A token move changes a number here, and a person decides again.
+const FILTER_BAR: Record<string, unknown> = {
+  dark: { ground: '#0e0d14', fill: '#211e2d', border: '#332f45', edge: 1.5, ink: 16.3 },
+  light: { ground: '#f2f3f6', fill: '#ffffff', border: '#cdd2dc', edge: 1.37, ink: 19.3 },
+};
+
 type Theme = (typeof THEMES)[number];
 
 type Reading = {
-  story: string; path: string; leaf: string; disabled: boolean; onPage: boolean;
+  story: string; path: string; leaf: string; disabled: boolean; filterBar: boolean; onPage: boolean;
   ground: string; fill: string | null; border: string | null;
   edge: number | null; ink: number | null;
 };
@@ -129,10 +148,10 @@ type Discovered = {
   args: Record<string, unknown>;
 };
 
-// The glob a11y.test.tsx and .storybook/main.js use, less the guideline pages and one showcase
+// The glob a11y.test.tsx and .storybook/main.js use, less the guideline pages
 // (see the limits above), so a new story file is in the gate the moment it exists.
 // Subjects are discovered, not listed.
-const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx', '!../../stories/guidelines/**', '!../../stories/apps/EmptyStates.stories.tsx'], { eager: true });
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx', '!../../stories/guidelines/**'], { eager: true });
 const files = Object.keys(modules).sort();
 
 /**
@@ -282,7 +301,7 @@ describe('field ground: React coverage', () => {
   // matching, or a story that stopped rendering its field, would otherwise leave
   // the gate green over nothing. Move the number with the specimens that moved.
   //
-  // Fields 41, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
+  // Fields 43, Switch & Checkbox 16, Pagination 5, SearchField 4, Modal 3,
   // Drawer 2, DataTable 1, File drop 1.
   it('found the fields the catalogue renders, in both themes', () => {
     for (const theme of THEMES) {
@@ -354,10 +373,33 @@ describe('field ground: React coverage', () => {
     }
   });
 
+  /* The one field the rule lets stand on the page: a filter bar's live search field.
+   * Its edge is recorded rather than held to a bar, as the disabled field's is above,
+   * and there has to be one, or the exception is a hole nobody measures. A filter bar
+   * in a card fails: the bar stands on the page above its table card (#814). Limit: it
+   * finds a bar only by a search field in the bar, so a bar of chips alone is not read. */
+  it('reads a filter bar search field on the page, and records its edge there', () => {
+    for (const theme of THEMES) {
+      const bars = readings[theme].filter((f) => f.filterBar && f.onPage);
+      expect(bars.length, `${theme}: no filter bar search field stood on the page`).toBeGreaterThan(0);
+      expect(readings[theme].filter((f) => f.filterBar && !f.onPage).map((f) => `${f.story} → ${f.path}`),
+        `${theme}: a filter bar sits in a card, not on the page`).toEqual([]);
+      for (const f of bars) {
+        expect(f.disabled, `${theme}: ${f.story} → a disabled filter bar field on the page`).toBe(false);
+        expect({ ground: f.ground, fill: f.fill, border: f.border, edge: f.edge, ink: f.ink },
+          `${theme}: the filter bar field's reading moved — review it by hand`)
+          .toEqual(FILTER_BAR[theme]);
+      }
+    }
+  });
+
   it('rejects a field left on the page ground', () => {
     expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', onPage: false }])).toEqual([]);
     expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', onPage: true }]))
       .toEqual(['fx:A → div > input.ui-input']);
+    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', onPage: true, filterBar: true }])).toEqual([]);
+    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', onPage: true, filterBar: true, disabled: true }]))
+      .toEqual(['fx:A → input.ui-input']);
   });
 });
 
@@ -412,6 +454,25 @@ describe('field ground: React discovery, held to its claim', () => {
     expect(mine.length, "the forwardRef component's field was not measured").toBe(1);
     expect(stranded(mine), 'the gate did not reject the bare forwardRef field')
       .toEqual([`${story.id} → ${mine[0].path}`]);
+  });
+
+  // The exception is the filter bar's live search field, by its place and nothing else:
+  // the same field disabled, or alone on the page, or a text field in the bar, is still
+  // stranded. rev_136bd26bc559/d24
+  // One test per case: four cases in one test overran the 5000ms timeout.
+  it.each<[string, () => ReactElement, boolean]>([
+    ['InBar', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" /></div>, false],
+    ['InBarDisabled', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" disabled /></div>, true],
+    ['Alone', () => <SearchField ariaLabel="Search payouts" />, true],
+    ['TextInBar', () => <div className="ui-toolbar"><input className="ui-input" aria-label="Reference" /></div>, true],
+  ])('lets only a live search field in a filter bar stand on the page: %s', (name, render, rejected) => {
+    const story = one({ default: {}, [name]: render });
+    for (const theme of THEMES) {
+      const mine = measure(story, theme);
+      expect(mine.length, `${name} [${theme}]: the field was not measured`).toBe(1);
+      expect(mine[0].onPage, `${name} [${theme}]: the field did not read the page ground`).toBe(true);
+      expect(stranded(mine).length, `${name} [${theme}]: ${rejected ? 'passed' : 'rejected'}`).toBe(rejected ? 1 : 0);
+    }
   });
 
   // The other half of the same rule: what the fallback truly cannot render is

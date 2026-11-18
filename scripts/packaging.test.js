@@ -536,6 +536,7 @@ test('the packed React CSS includes the tooltip panel and its states', () => {
   assert.equal(panels.length, 1, 'react/css must contain one .ui-tip rule');
   assert.match(panels[0][1], /visibility:\s*hidden/, 'closed tooltips must be hidden');
   assert.match(panels[0][1], /position:\s*absolute/, 'tooltips must not change layout');
+  assert.match(css, /\.ui-tip:not\(\.is-open\)\s*\{[^}]*display:\s*none/, 'closed tooltips must have no box');
   assert.match(css, /\.ui-tip\.is-open\s*\{[^}]*visibility:\s*visible/);
   assert.match(css, /\.ui-tip\.is-below\s*\{/);
 });

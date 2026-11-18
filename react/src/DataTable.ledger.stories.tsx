@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { DataTable, type Column } from './DataTable';
 import { Badge } from './primitives/Badge';
 import { Button } from './primitives/Button';
@@ -11,8 +11,9 @@ import { useTableFilters } from '../../stories/_table-filters';
 export default { title: 'React/DataTable ledgers' };
 
 const page = (children: ReactNode, width: number | string = 720) => <div style={{ maxWidth: width }}>{children}</div>;
-// Every table has its filter bar directly above it, on its own card. why: guidelines/dense-tables.md
-const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack"><Card>{bar}</Card>{table}</div>;
+// Each long table has its filter bar directly above it, on the page with no card of its own.
+// why: guidelines/dense-tables.md
+const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack">{bar}{table}</div>;
 const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 
 type Payout = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
@@ -47,6 +48,46 @@ export const FinanceData = {
       <Card title={titled('key', 'Payouts')}>
         <DataTable columns={payoutColumns} rows={shown} selectable={false} pager={false} empty="No payouts match"
           density="dense" zebra pinnedIdentity scrollLabel="Payouts, scroll for more columns" rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
+      </Card>), 1040,
+    );
+  },
+};
+
+// A badge gives the status of the record, and an ink word gives a second status in the same
+// row (#814). Two rows are selected, so the words also stand on the selected wash.
+type Transfer = { name: string; date: string; amount: string; tone: string; status: string; matchTone: string; match: string };
+const TRANSFERS: Transfer[] = [
+  ['Kestrel Print Co.', '2026-10-02', '4,800.00', 'success', 'Paid', 'success', 'Matched'],
+  ['Orchard Lane Café', '2026-10-04', '612.40', 'pending', 'Scheduled', 'warn', 'Review'],
+  ['Harbor Freight Lines', '2026-10-07', '1,240.00', 'danger', 'Failed', 'danger', 'Unmatched'],
+  ['Juniper Studio', '2026-10-09', '960.00', 'neutral', 'Draft', 'neutral', 'Not sent'],
+  ['Meridian Coastal Logistics', '2026-10-12', '2,305.75', 'info', 'Imported', 'info', 'Imported'],
+].map(([name, date, amount, tone, status, matchTone, match]) => ({ name, date, amount, tone, status, matchTone, match }));
+const transferColumns: Column<Transfer>[] = [
+  { key: 'name', label: 'Payee', linked: true, render: (r) => <a href="#payee">{r.name}</a> },
+  { key: 'date', label: 'Date' },
+  { key: 'amount', label: 'Amount (EUR)', num: true, render: (r) => <NumericValue value={r.amount} /> },
+  { key: 'status', label: 'Status', render: (r) => <Badge variant={r.tone}>{r.status}</Badge> },
+  { key: 'match', label: 'Bank match', render: (r) => <span className={`ui-status--${r.matchTone}`}>{r.match}</span> },
+];
+
+export const StatusWords = {
+  // A centred canvas sizes the story to its widest row. Padded gives the bar and table the view's width.
+  parameters: { layout: 'padded' },
+  render: function Render() {
+    const [sel, setSel] = useState(new Set(['Orchard Lane Café', 'Harbor Freight Lines']));
+    const { bar, shown } = useTableFilters(TRANSFERS, {
+      search: 'Search transfers', placeholder: 'Payee', label: 'Transfer filters', text: (r) => r.name,
+      facets: [{ id: 'match', label: 'Bank match', any: 'Any match', of: (r) => r.match }],
+    });
+    const toggle = (names: string[]) => setSel((s) => {
+      const x = new Set(s); const all = names.every((n) => x.has(n));
+      names.forEach((n) => (all ? x.delete(n) : x.add(n))); return x;
+    });
+    return page(filtered(bar,
+      <Card title={titled('wallet', 'Transfers')}>
+        <DataTable columns={transferColumns} rows={shown} pager={false} empty="No transfers match" scrollLabel="Transfers"
+          selected={sel} onToggle={(n) => toggle([n])} onTogglePage={toggle} />
       </Card>), 1040,
     );
   },

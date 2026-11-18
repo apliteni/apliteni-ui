@@ -30,7 +30,7 @@ test('measured in a browser, four widths and both themes', {
 }, async (t) => {
   const lib = await import('./lib/dropdown-contain.js');
   const {
-    WIDTHS, THEMES, serve, reactPass, indexed, panels, outside, where, TRANSLATE_OFF,
+    WIDTHS, THEMES, serve, reactPass, indexed, panels, outside, where, SHIFT_OFF,
     reactEdgeCases, broken, whereCase, WRAP_OFF, NO_MUTATION_OBSERVER,
     NO_SCROLL_LISTENER, LONG_LABEL, NO_CHARACTER_DATA, NO_MOTION_END, playwright,
   } = lib;
@@ -147,13 +147,13 @@ test('measured in a browser, four widths and both themes', {
     });
 
     await t.test('a panel moved by nothing is rejected', async () => {
-      // `translate` is where the in-place fit writes its answer. Refusing it is
+      // The side margins are where the in-place fit writes its answer. Refusing it is
       // the placement #572 reported.
       const pass = await reactPass(browser, server.port, {
-        width: 375, theme: 'dark', ids, mutation: TRANSLATE_OFF,
+        width: 375, theme: 'dark', ids, mutation: SHIFT_OFF,
       });
       const caught = outside(panels(pass.rows)).length;
-      console.log(`translate refused: ${caught} panels outside`);
+      console.log(`shift refused: ${caught} panels outside`);
       assert.ok(
         caught > 0,
         `${caught} panels were outside the view with the fit's own answer refused. Then this `

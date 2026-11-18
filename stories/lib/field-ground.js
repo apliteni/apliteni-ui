@@ -1,11 +1,9 @@
-// What ground a field sits on, read rather than assumed — shared by the two gates
-// over it, stories/field-ground.test.js and react/src/field-ground.test.tsx.
+// What ground a field sits on, read rather than assumed — read by the gate over it,
+// react/src/field-ground.test.tsx. The vanilla gate went with the galleries in #724.
 //
-// Both ask the same question of a field: is the ground under it the page's own, or
-// a surface somebody painted for it. Only the mounting differs — the vanilla gate
-// calls a render fn for an HTML string, the React one mounts a component tree —
-// which is why the walks are per workspace and this reading is not.
-// Share the calculation but check each workspace separately.
+// It asks one question of a field: is the ground under it the page's own, or a
+// surface somebody painted for it. The walk stays in the gate and this reading does
+// not, so a second workspace can share the calculation and keep its own walk.
 //
 // Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that."
@@ -22,6 +20,15 @@ import {
  * over a control the other measures.
  */
 export const FIELD = '.ui-input, .ui-select, .ui-textarea, .ui-check input, .ui-switch__track';
+
+/**
+ * The one field that may stand on the page ground: the search field of a filter bar,
+ * which stands on the page directly above its table card with no card of its own.
+ * Owner decision rev_136bd26bc559/d24. Only a live field: a disabled one on the page
+ * measures 1.12:1 in light, which is the failure #551 named. The bar's pill triggers
+ * are not in FIELD, so this gate does not read them.
+ */
+export const FILTER_BAR_FIELD = '.ui-toolbar > .ui-input-group > input.ui-input[type="search"]';
 
 export const hex = (colour) => `#${colour.slice(0, 3).map((n) => Math.round(n).toString(16).padStart(2, '0')).join('')}`;
 export const same = (a, b) => hex(a) === hex(b);
@@ -61,6 +68,7 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
     path,
     leaf: path.split(' > ').pop(),
     disabled: el.disabled === true || el.hasAttribute('disabled'),
+    filterBar: el.matches(FILTER_BAR_FIELD),
     onPage: same(ground, page),
     groundRgb: ground,
     fade: Number.isFinite(fade) ? fade : 1,
@@ -76,4 +84,5 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
  * The problem lines a set of readings produces. One expression, so each gate's
  * claim and its mutation run the same code rather than two spellings of it.
  */
-export const stranded = (fields) => fields.filter((f) => f.onPage).map((f) => `${f.story} → ${f.path}`);
+export const stranded = (fields) => fields.filter((f) => f.onPage && !(f.filterBar && !f.disabled))
+  .map((f) => `${f.story} → ${f.path}`);

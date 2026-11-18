@@ -143,7 +143,7 @@
 .ui-drawer__title {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: calc(var(--text-base) + 0.5px);
+  font-size: var(--text-md);
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--strong);
@@ -198,21 +198,19 @@
 }
 
 /* -- Groups and rows ------------------------------------------------------- */
-/* drawerSection(): a heading over label/value rows. The value sits beside its
+/* DrawerSection: a heading over label/value rows. The value sits beside its
    label rather than at the far edge, so nothing has to lead the eye across the
-   panel, and rows are held apart by space alone. Group from group is the one
-   division inside the body worth a line; the body's padding insets it, so it
-   parts the groups without cutting the panel in two.
+   panel, and rows are held apart by space alone. Groups stand apart by space too.
+   The one line inside the body stands under each group heading, the same hairline
+   as a table head, so a heading and a table head read as one kind of line.
    why: docs/components.md#the-drawer */
-.ui-drawer__section + .ui-drawer__section {
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--border);
-}
+.ui-drawer__section + .ui-drawer__section { margin-top: var(--space-8); }
 /* An h3, and it opts out of the display face for the reason .ui-drawer__title does.
    why: docs/foundations.md#typefaces */
 .ui-drawer__section-title {
   margin: 0 0 var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
   /* Semibold, and so outside the rank table, which has nothing at this size and
@@ -220,6 +218,30 @@
      under it in size and weight both, and differ from them by colour alone. */
   font-weight: var(--weight-semibold);
   color: var(--strong);
+}
+/* The record's lead figure: a <dl> of one label over its value, with a status badge
+   beside the value. It stands in a group with no heading, before the other groups.
+   why: docs/components.md#the-drawer */
+.ui-drawer__figure { margin: 0; }
+.ui-drawer__figure > dt { color: var(--text); }
+.ui-drawer__figure > dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: var(--space-1) 0 0;
+}
+/* A figure is never broken across lines: `€` stays with its digits. */
+.ui-drawer__figure-value {
+  color: var(--strong);
+  /* display: readout — a key figure is read as a number at a glance, not as a line of prose */
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .ui-drawer__rows {
   display: grid;

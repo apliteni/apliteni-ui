@@ -98,6 +98,8 @@
 
 **Don't:** Open one automatically when the page loads.
 
+**Except:** When a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was.
+
 ## Keep table density consistent
 
 <!-- rule: density -->

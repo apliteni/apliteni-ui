@@ -171,7 +171,7 @@ function Example({ busy = false }: { busy?: boolean }) {
           <section aria-labelledby="ledger-heading" style={layout.control}>
             <h2 id="ledger-heading" className="ui-card__title" style={{ margin: 0 }}>Ledger</h2>
             <div className="ui-card-stack">
-            <Card>{bar}</Card>
+            {bar}
             <Card>
               {/* The kit keeps categories pinned and scrolls the rest (#581). */}
               {pending(`Loading ${selected.name} ledger…`, <SkeletonTable rows={4} cols={4} />,

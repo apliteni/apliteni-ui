@@ -24,7 +24,26 @@ const SHEET = readFileSync(path.join(process.cwd(), 'src/DocumentReview.css'), '
  * zoom and every contrast pair are checked in the browser captures on #385, not here. */
 
 const { Default } = composeStories(stories);
-afterEach(() => { cleanup(); document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/'; });
+// jsdom 31 resolves var() in computed styles, so the weight tokens the showcase
+// declares are loaded here or every var(--weight-*) falls back to the initial 400
+// and the cascade cannot tell the ranks apart. The values match src/tokens/tokens.css.
+const WEIGHT_TOKENS = {
+  '--weight-normal': '400',
+  '--weight-medium': '500',
+  '--weight-semibold': '600',
+} as const;
+beforeEach(() => {
+  for (const [name, value] of Object.entries(WEIGHT_TOKENS)) {
+    document.documentElement.style.setProperty(name, value);
+  }
+});
+afterEach(() => {
+  cleanup();
+  document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/';
+  for (const name of Object.keys(WEIGHT_TOKENS)) {
+    document.documentElement.style.removeProperty(name);
+  }
+});
 
 const actions = () => within(document.querySelector('.doc-flow__actions') as HTMLElement);
 const status = () => document.querySelector('.ui-busy .ui-sr') as HTMLElement;
@@ -154,24 +173,59 @@ describe('document review flow', () => {
     expect(extracted.textContent).not.toContain('€');
   });
 
-  // The kit's weight tokens, in rank order. The showcase declares a weight on every
-  // label and every value in the leading pane rather than inheriting one, because the
-  // kit stylesheet is not loaded here: an inherited weight reads as '' and a gate that
-  // scores '' as "body" cannot tell a body label from the medium one `.ui-table th`
-  // actually paints — which is how the inverted amounts table passed the first version
-  // of this gate.
+  // The kit's weight tokens, in rank order, resolved by getComputedStyle through the
+  // tokens loaded in beforeEach. The showcase declares a weight on every label and
+  // every value in the leading pane rather than inheriting one, because the kit
+  // stylesheet is not loaded here: an inherited weight reads as the body weight
+  // `.ui-table th` actually paints, which is how the inverted amounts table passed
+  // the first version of this gate.
+  const declaresWeight = (el: Element): boolean => {
+    if ((el as HTMLElement).style?.fontWeight) return true;
+    const walk = (rules: CSSRuleList): boolean => {
+      for (const rule of [...rules]) {
+        if ('selectorText' in rule && 'style' in rule) {
+          if (rule.style.getPropertyValue('font-weight') && el.matches(rule.selectorText)) return true;
+        } else if ('cssRules' in rule) {
+          if (walk((rule as CSSGroupingRule).cssRules)) return true;
+        }
+      }
+      return false;
+    };
+    return [...document.styleSheets].some((sheet) => walk(sheet.cssRules));
+  };
   const RANK: Record<string, number> = {
-    'var(--weight-normal)': 400,
-    'var(--weight-medium)': 500,
-    'var(--weight-semibold)': 600,
+    '400': 400,
+    '500': 500,
+    '600': 600,
+  };
+  /** The value a matching rule declares for one property, in source order. jsdom 31
+   * resolves var() in computed styles, so this reads the declaration, not the resolved
+   * value; the width and grid checks below hold what the showcase writes. It reads
+   * base rules only: breakpoint overrides are measured in the #385 captures. */
+  const declaredValue = (el: Element | null, property: string): string => {
+    let declared = '';
+    const visit = (rules: CSSRuleList) => {
+      for (const rule of [...rules]) {
+        if ('selectorText' in rule && 'style' in rule) {
+          if (!(el as HTMLElement).matches(rule.selectorText)) continue;
+          const value = rule.style.getPropertyValue(property);
+          if (value) declared = value;
+        } else if ('cssRules' in rule) {
+          if ('media' in rule) continue; // jsdom 31 ships no matchMedia to judge these
+          visit((rule as CSSGroupingRule).cssRules);
+        }
+      }
+    };
+    for (const sheet of [...document.styleSheets]) visit(sheet.cssRules);
+    return declared;
   };
   const rank = (el: Element | null, what: string) => {
-    const declared = getComputedStyle(el as HTMLElement).fontWeight;
-    if (!(declared in RANK)) {
-      throw new Error(`${what} carries no weight this showcase declares (${declared || 'nothing'}); `
+    const weight = getComputedStyle(el as HTMLElement).fontWeight;
+    if (!(weight in RANK) || !declaresWeight(el as HTMLElement)) {
+      throw new Error(`${what} carries no weight this showcase declares (${weight || 'nothing'}); `
         + 'the leading pane must state its own ranking, not inherit one.');
     }
-    return RANK[declared];
+    return RANK[weight];
   };
 
   it('gives the values that get saved more emphasis than the document they came from', () => {
@@ -251,9 +305,9 @@ describe('document review flow', () => {
     // The preview is quieter by being narrower, not by being scaled down: the sheet's
     // own page width is the panel it sits in, so Fit lands near 1:1.
     const sheet = container.querySelector('.doc-flow__sheet') as HTMLElement;
-    expect(getComputedStyle(sheet).width).toBe('var(--panel-md)');
+    expect(declaredValue(sheet, 'width')).toBe('var(--panel-md)');
     const panes_ = container.querySelector('.doc-flow__panes') as HTMLElement;
-    expect(getComputedStyle(panes_).gridTemplateColumns).toBe('minmax(0, 1fr) var(--panel-md)');
+    expect(declaredValue(panes_, 'grid-template-columns')).toBe('minmax(0, 1fr) var(--panel-md)');
   });
 
   // The showcase paints the accent as ink on one name. This holds that it paints no line

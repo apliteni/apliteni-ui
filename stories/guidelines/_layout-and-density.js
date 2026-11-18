@@ -33,7 +33,9 @@ export const SPEC_CSS = `
        a 420px cell, so these are drawn to scale instead — the ratio is true,
        the pixels are not, and the caption says so. */
     .gl-scale { display: flex; flex-direction: column; gap: var(--space-3); }
-    .gl-bar { display: flex; align-items: center; gap: var(--space-3); }
+    /* The label sits above its bar: beside a full-width bar it left the stage. */
+    .gl-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-1) var(--space-3); }
+    .gl-bar__t { order: -1; flex-basis: 100%; }
     .gl-bar__fill { height: 22px; border-radius: var(--radius-xs); flex: none;
       background: var(--surface-3); box-shadow: inset 0 0 0 1px var(--border); }
     .gl-bar__fill--tok { background: var(--glow-purple); box-shadow: inset 0 0 0 1px var(--accent); }

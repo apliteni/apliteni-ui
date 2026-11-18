@@ -50,7 +50,9 @@ export type DataTableProps<T> = {
   footer?: ReactNode;
   /** A caption read by assistive technology only. */
   caption?: string;
-  dense?: boolean; density?: 'default' | 'dense' | 'compact'; stickyHeader?: boolean; pinnedIdentity?: boolean; scrollLabel?: string; empty?: ReactNode;
+  dense?: boolean; density?: 'default' | 'dense' | 'compact' | 'comfortable'; stickyHeader?: boolean;
+  /** `true` pins column 0. A column key pins that column, so a date can stand before the pinned identity. */
+  pinnedIdentity?: boolean | (keyof T & string); scrollLabel?: string; empty?: ReactNode;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */
   pager?: boolean;
@@ -68,6 +70,11 @@ export type DataTableProps<T> = {
 );
 
 const CELL_CLASS = { title: 'ui-table__title', code: 'ui-table__code', long: 'ui-table__long', strong: 'ui-table__num--strong', act: 'ui-table__act' } as const;
+
+// `true` pins column 0, as it always has. A key pins the column that carries it,
+// so a date can stand before the pinned identity. why: docs/components.md#react-tables
+const pinnedColumn = <T,>(pinnedIdentity: boolean | (keyof T & string) | undefined, key: keyof T & string, index: number) =>
+  pinnedIdentity === true ? index === 0 : pinnedIdentity === key;
 
 // The absence of a sort, as a value: the order is whatever the rows arrived in.
 const NO_SORT = { key: undefined, dir: -1 } as const;
@@ -197,7 +204,7 @@ export function DataTable<T extends { name: string }>({
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
       <Wrap {...(scrollable ? { className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: 0 } : {})}>
-      <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}
         <thead>
@@ -213,7 +220,7 @@ export function DataTable<T extends { name: string }>({
               // role="button" ON the <th>, which threw away the columnheader role and put
               // aria-sort on a role that forbids it.
               <th key={c.key} scope="col"
-                className={[pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
+                className={[pinnedColumn(pinnedIdentity, c.key, columnIndex) && 'ui-table__identity', c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
                 // External sorting can select a column without an interactive header.
                 // A table whose page is controlled and whose sort is not knows
                 // no order to report: "none" would be a claim of its own, and
@@ -246,7 +253,7 @@ export function DataTable<T extends { name: string }>({
                 const Cell = c.rowHeader ? 'th' : 'td';
                 return (
                   <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined}
-                    className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedIdentity && columnIndex === 0 && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
+                    className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedColumn(pinnedIdentity, c.key, columnIndex) && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
                     {c.render ? c.render(r) : String(r[c.key])}
                   </Cell>
                 );

@@ -438,29 +438,24 @@ function refuseMisreadRepeats(css, name) {
 }
 
 export function foldLogicalDims(sheet, name) {
-  for (const rule of everyRule(sheet)) {
-    /* The mapping above is the horizontal-writing-mode one. Nothing in this
-     * repo declares writing-mode, and the moment something does, `inline-size`
-     * may be the vertical axis and folding it onto `width` measures the wrong
-     * contest — quietly, and in the direction that passes. */
-    const mode = rule.style?.getPropertyValue('writing-mode');
-    if (turnsTheAxes(mode)) throw new Error(writingModeRefusal(name, `"${rule.selectorText}" declares `
-      + `writing-mode: ${mode}`));
-  }
-  /* And the same question of the sheet's raw text: jsdom drops
-   * `-webkit-writing-mode` outright, so the loop above sees nothing, while every
-   * browser honouring the prefixed spelling turns the axes exactly as the
-   * unprefixed one does. Every declaration is checked rather than the first —
-   * `horizontal-tb` on <html> is allowed and would otherwise answer for every
-   * later declaration in the file.
+  /* The mapping above is the horizontal-writing-mode one. Nothing in this
+   * repo declares writing-mode, and the moment something does, `inline-size`
+   * may be the vertical axis and folding it onto `width` measures the wrong
+   * contest — quietly, and in the direction that passes. Read the file, not
+   * the CSSOM: jsdom 31 expands `all: unset` into a `writing-mode: unset`
+   * longhand the file never wrote, and that reset resolves to horizontal-tb
+   * here, while a real declaration turns the axes exactly as written. The
+   * prefixed spelling is read the same way because jsdom drops it outright.
+   * Every declaration is checked rather than the first — `horizontal-tb` on
+   * <html> is allowed and would otherwise answer for every later declaration.
    * Match CSS and HTML case rules without changing class names. */
   const raw = rawTextOf(sheet, name);
-  const prefixed = [...blankStrings(raw)
-    .matchAll(/(?:^|[;{\s])(-[a-z]+-writing-mode)\s*:\s*([^;}]*)/gi)]
-    .find((m) => turnsTheAxes(m[2]));
-  if (prefixed) {
-    throw new Error(writingModeRefusal(name, `a rule declares ${prefixed[1]}: `
-      + `${prefixed[2].trim()}, which jsdom parses away before this gate can read it`));
+  const written = [...blankStrings(raw)
+    .matchAll(/(?:^|[;{\s}])((-[a-z]+-)?writing-mode)\s*:\s*([^;}]*)/gi)]
+    .find((m) => turnsTheAxes(m[3]));
+  if (written) {
+    throw new Error(writingModeRefusal(name, `a rule declares ${written[1]}: `
+      + `${written[3].trim()}, which this gate reads off the file rather than the CSSOM`));
   }
   refuseMisreadRepeats(raw, name);
   for (const rule of sheet.cssRules) {
@@ -753,13 +748,14 @@ function standsWhereCssWouldBe(text) {
 }
 
 /* Whether every statement in this text is an at-rule — which tells a block the
- * CSSOM modelled nothing of from a block it could not read. `@property` and
- * `@charset` reach the CSSOM as no rule at all, so a block holding one of them
- * and nothing else parses to zero rules exactly as an empty block does, and both
- * are CSS a browser honours. Every other at-rule this repo could write becomes a
- * rule and never reaches the caller's question. An at-rule nobody closed is
- * answered no, as is anything that is not an at-rule — the concatenated
- * `' + CSS + '` the caller's refusal exists for. */
+ * CSSOM modelled nothing of from a block it could not read. `@charset` and
+ * at-rules cssom does not model, such as `@color-profile`, reach the CSSOM as
+ * no rule at all, so a block holding one of them and nothing else parses to
+ * zero rules exactly as an empty block does, and both are CSS a browser
+ * honours. Every other at-rule this repo could write becomes a rule and never
+ * reaches the caller's question. An at-rule nobody closed is answered no, as is
+ * anything that is not an at-rule — the concatenated `' + CSS + '` the caller's
+ * refusal exists for. */
 function onlyAtRules(text) {
   let i = 0;
   for (;;) {
@@ -1089,9 +1085,9 @@ export function resolve(getComputedStyle, el, dim, value) {
 
 /* What this element computes to with `rule`'s own declaration of `dim` taken
  * away, the rule put back before returning — how a gate proves its comparison
- * was capable of failing. .ui-badge declares 11px and the reset's 1.1em over
- * badge.css's font-size: 10px is also 11px, so that assertion agreed with the
- * winner and the loser alike.
+ * was capable of failing. The badge icon's rule declares 11px, and the reset's 1.1em
+ * once also computed to 11px on the badge, so that assertion agreed with the winner
+ * and the loser alike.
  *
  * It only works because resolve() ran first: jsdom throws its computed-style
  * cache away when the DOM changes, never when a declaration inside a rule does,

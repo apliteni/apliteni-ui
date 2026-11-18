@@ -753,8 +753,11 @@ test('the check accepts the shape the add menu is actually written with', () => 
 });
 
 /* Rule: every table a story draws has a filter bar with a search field, or sits
- * under the stated exception for a table that compares one document line by line.
- * why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+ * under a stated exception. The guideline frees a table that never holds more than
+ * 10 rows, but a story's few demo rows stand for a long table, so the sweep still
+ * asks for the bar. A short table cites the exception, and the closed list below
+ * names it.
+ * why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar
  *
  * WHAT THIS SWEEP DOES NOT REACH:
  *   - Order: it does not read that the bar sits directly above its table. A
@@ -769,7 +772,7 @@ test('the check accepts the shape the add menu is actually written with', () => 
  *     tests check that the rows follow the field. */
 const SEARCH = /<SearchField\b|useTableFilters\(|<RestingFilters\b/;
 const TABLE = /<(table|DataTable|SkeletonTable)\b/g;
-const EXCEPTION = 'guidelines/dense-tables.md#give-every-table-its-filter-bar';
+const EXCEPTION = 'guidelines/dense-tables.md#give-a-long-table-its-filter-bar';
 
 /** Every story file of both workspaces, as [path, source]. */
 function storyFiles() {
@@ -841,10 +844,11 @@ test('every table a story draws has a search field above it, or the stated excep
   assert.ok(files.length >= 90, `found ${files.length} story files`);
   assert.ok(count >= 40, `found ${count} table sites`);
   assert.deepStrictEqual(missing, [], 'a table with no filter bar or no search field');
-  // The exception is for the document review's two tables, the skeleton that holds the sheet's place
-  // and a chart's Table view, and no other.
+  // The exception is for the document review's two tables, the skeleton that holds the sheet's place,
+  // a chart's Table view and the two invoice lines in the wide drawer story, and no other.
   assert.deepStrictEqual(excepted.map((at) => at.replace(/:\d+/, '')),
     ['react/src/DocumentReview.stories.tsx table', 'react/src/DocumentReview.stories.tsx SkeletonTable', 'react/src/DocumentReview.stories.tsx table',
+      'react/src/KeyValueList.stories.tsx DataTable',
       'stories/guidelines/DashboardsAndReports.stories.tsx table']);
 });
 

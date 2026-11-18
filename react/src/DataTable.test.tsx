@@ -239,6 +239,12 @@ it('asks its owner for the first page when a header changes the sort', async () 
   expect(seen).toEqual([1]);
 });
 
+// The row heights are CSS that jsdom does not lay out, so this holds the class each density sets.
+it.each([['compact', 'ui-table--compact'], ['comfortable', 'ui-table--comfortable']] as const)('sets the %s rows class', (density, name) => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} density={density} />);
+  expect(screen.getByRole('table')).toHaveClass('ui-table', 'ui-table--hover', name);
+});
+
 it('renders no pager at all when the consumer supplies its own', () => {
   render(<DataTable columns={columns} rows={rows} pageSize={2} selectable={false} pager={false} />);
   expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
@@ -591,6 +597,29 @@ it('keeps a pinned sortable header a label that can give way and a caret that ca
   expect(button.querySelector('svg')).toHaveClass('rx-caret');
 });
 
+// #814: `pinnedIdentity` may name a column key, so a date can stand before the
+// pinned identity. `true` keeps column 0; a key pins only the column it names.
+it('pins the column a key names when a date stands before it', () => {
+  type Ledger = { date: string; name: string; clicks: number };
+  const ledgerColumns: Column<Ledger>[] = [
+    { key: 'date', label: 'Date' },
+    { key: 'name', label: 'Name' },
+    { key: 'clicks', label: 'Clicks', num: true },
+  ];
+  const ledgerRows: Ledger[] = [{ date: '2026-09', name: 'A', clicks: 10 }];
+  render(<DataTable columns={ledgerColumns} rows={ledgerRows} pager={false}
+    pinnedIdentity="name" stickyHeader scrollLabel="Ledger" />);
+  // Selectable by default: selection, date, name, clicks.
+  const nameHeader = screen.getByRole('columnheader', { name: 'Name' });
+  const dateHeader = screen.getByRole('columnheader', { name: 'Date' });
+  expect(nameHeader).toHaveClass('ui-table__identity');
+  expect(dateHeader).not.toHaveClass('ui-table__identity');
+  const cells = within(screen.getAllByRole('row')[1]).getAllByRole('cell');
+  expect(cells[2]).toHaveClass('ui-table__identity');
+  expect(cells[1]).not.toHaveClass('ui-table__identity');
+  expect(cells[0]).not.toHaveClass('ui-table__identity');
+});
+
 // The kit gate (src/styles/table-identity.test.js) holds the cell's side of #500:
 // a control in a pinned identity cell is capped, never clipped. This holds the half
 // that lives here — with the label unable to give way, its 231px of text runs over
@@ -610,7 +639,10 @@ it('gives the sortable label the rules that let it give way, and the caret none 
         .filter(rule => 'selectorText' in rule && selector.matches((rule as CSSStyleRule).selectorText))
         .flatMap(rule => Array.from((rule as CSSStyleRule).style).map(p => [p, (rule as CSSStyleRule).style.getPropertyValue(p)])));
     const onLabel = declarations(label);
-    expect(onLabel['overflow']).toBe('hidden');
+    // jsdom 31 expands the `overflow` shorthand into its longhands when a rule's
+    // declarations are iterated, so the pair is asserted here.
+    expect(onLabel['overflow-x']).toBe('hidden');
+    expect(onLabel['overflow-y']).toBe('hidden');
     expect(onLabel['text-overflow']).toBe('ellipsis');
     expect(onLabel['min-width']).toBe('0px');
     const onButton = declarations(label.parentElement!);
@@ -620,6 +652,27 @@ it('gives the sortable label the rules that let it give way, and the caret none 
     expect(declarations(caret)['flex-shrink']).toBe('0');
     expect(declarations(caret)['overflow']).toBeUndefined();
   } finally { style.remove(); }
+});
+
+// A wrapped header keeps its sort mark on the first line, beside the start of the label (#806).
+// Limits: jsdom resolves the cascade, not layout, so this proves the button's declaration.
+// The mark's position is measured in Chromium by src/styles/table-top-align.test.js.
+it('holds the sort mark on the first line of a wrapped header', () => {
+  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);
+  const buttons = within(screen.getAllByRole('row')[0]).getAllByRole('button');
+  expect(buttons).toHaveLength(2);
+  const css = readFileSync(join(dirname(expect.getState().testPath!), 'DataTable.css'), 'utf8');
+  const alignOf = (sheet: string) => {
+    const style = document.createElement('style');
+    style.textContent = sheet;
+    document.head.append(style);
+    try { return buttons.map(button => getComputedStyle(button).alignItems); } finally { style.remove(); }
+  };
+  expect(alignOf(css)).toEqual(['flex-start', 'flex-start']);
+  // The check rejects the mark centred on the whole label again.
+  const centred = css.replace('align-items: flex-start;', 'align-items: center;');
+  expect(centred).not.toBe(css);
+  expect(alignOf(centred)).toEqual(['center', 'center']);
 });
 
 it('disables the chevron transition under reduced motion', () => {

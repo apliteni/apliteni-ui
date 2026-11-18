@@ -86,8 +86,10 @@
    ground the rail stands on, so layout.css takes it the next rung where the rail
    is itself --surface. #475 r33/r34. why: docs/components.md#the-page-shell */
 
-.ui-nav__item:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
-.ui-nav__item.is-active:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* Drawn inward: rows stand 2px apart, so an outward band crossed into the next row.
+   why: docs/foundations.md#the-focus-ring */
+.ui-nav__item:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+.ui-nav__item.is-active:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 .ui-nav__ic { display: inline-flex; flex: none; }
 .ui-nav__ic svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2.2; opacity: 0.72; }
@@ -181,7 +183,7 @@
   --m-dist: var(--space-1);
   animation: m-slide-down var(--dur-fast) var(--ease-out) both;
 }
-.ui-nav__item--sub { font-size: calc(var(--text-base) - 0.5px); padding: 7px 12px; }
+.ui-nav__item--sub { font-size: var(--text-base); padding: 7px 12px; }
 /* A nested current row takes the plate whole, like a top-level one. It used to
    take neither half — the bar hung back onto the guide hairline and the plate's
    own hairline was switched off so the two would not stack — and a fill with no
@@ -343,7 +345,7 @@
   padding: 11px 14px;
   color: var(--text);
   text-decoration: none;
-  font-size: calc(var(--text-base) - 0.5px);
+  font-size: var(--text-base);
   font-weight: 500;
   border-radius: 10px 10px 0 0;
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);

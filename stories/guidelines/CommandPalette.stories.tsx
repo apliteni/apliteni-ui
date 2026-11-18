@@ -21,9 +21,14 @@ const Glyph = ({ name, className }: { name: string; className: string }) =>
 const keysOf = (shortcut?: string | string[]) => (shortcut == null ? [] : Array.isArray(shortcut) ? shortcut : [shortcut]);
 const refused = (item: Row) => Boolean(item.disabled || (item.danger && !item.confirm));
 
-const Palette = ({ groups, query = '', rank = true }: { groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean }) => {
+// `activeId` holds a row lit as a key left it, and `note` says what a still picture
+// cannot: the key that was pressed, or what a screen reader heard.
+const Palette = ({ groups, query = '', rank = true, activeId, note }: {
+  groups: { label?: string; items: Row[] }[]; query?: string; rank?: boolean; activeId?: string; note?: (count: number) => string;
+}) => {
   const shown = (rank ? rankGroups(groups, query) as CommandGroup[] : groups).filter(g => g.items.length) as { label?: string; items: Row[] }[];
-  const active = shown.flatMap(g => g.items).find(item => !refused(item));
+  const rows = shown.flatMap(g => g.items);
+  const active = rows.find(item => (activeId ? item.id === activeId : !refused(item)));
   return <div className="gc-stage"><div className="ui-cmdk is-open">
     <div className="ui-cmdk__scrim" />
     <div className="ui-cmdk__panel" role="group" aria-label="Command palette">
@@ -55,7 +60,7 @@ const Palette = ({ groups, query = '', rank = true }: { groups: { label?: string
       </div>
       <p className="ui-cmdk__empty" hidden={shown.length > 0}>No matches</p>
     </div>
-  </div></div>;
+  </div>{note && <div className="gl-cursor">{note(rows.length)}</div>}</div>;
 };
 
 // One product's list, so a reader comparing two specimens is comparing the rule
@@ -98,8 +103,15 @@ const specimens = [
       { id: 'invite', label: 'Invite a teammate', description: 'They get a read-only seat', icon: 'user' },
       { id: 'new-invoice', label: 'New invoice', description: 'Draft one for a client', icon: 'plus' },
     ] }]} /> },
-  { id: 'keyboard' },
-  { id: 'say-it' },
+  { id: 'keyboard',
+    do: () => <Palette groups={GROUPED} note={() => 'Down pressed on INV-4809, the last row, wrapped to New invoice'} />,
+    // Home taken by the list: the first row lights, and the caret the reader
+    // asked for never moves to the start of "invoice".
+    dont: () => <Palette groups={GROUPED} query="invoice" note={() => 'Home pressed: the first row lit, the caret stayed at the end'} /> },
+  { id: 'say-it',
+    do: () => <Palette groups={GROUPED} query="inv" note={(n) => `Focus stays in the text box. Screen reader hears: ${n} results`} />,
+    dont: () => <Palette groups={GROUPED} query="inv" activeId="inv-4812"
+      note={(n) => `Focus moved to INV-4812, and each letter rereads all ${n} rows`} /> },
   { id: 'ask-first',
     do: () => <Palette groups={[{ label: 'Danger zone', items: [
       { id: 'del', label: 'Delete workspace…', description: 'Nebula · 42 API keys', icon: 'trash', danger: true, confirm: true },

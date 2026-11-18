@@ -72,13 +72,13 @@ const fileName = () => `<span class="ui-drop__name" title="${NAME}">`
   + `<span class="ui-drop__ext">${NAME.slice(NAME.lastIndexOf('.'))}</span></span>`;
 
 /**
- * The row once a file is in hand, as a stack: the name over the facts over the
- * track. A refused file drops its size, as the component does.
+ * The row once a file is in hand, as one line: the name, then the size and the
+ * status or the track, then the actions. A refused file drops its size, as the
+ * component does.
  */
-const fileRow = ({ facts = '', track = '', failed = false, acts = '' } = {}) =>
+const fileRow = ({ facts = '', failed = false, acts = '' } = {}) =>
   `<div class="ui-drop__row"><div class="ui-drop__file${failed ? ' ui-drop__file--failed' : ''}">
-  <div class="ui-drop__line">${fileName()}${acts}</div>
-  ${facts ? `<div class="ui-drop__facts${failed ? ' ui-drop__error' : ''}">${facts}</div>` : ''}${track}</div></div>`;
+  <div class="ui-drop__line">${fileName()}${facts}</div>${acts}</div></div>`;
 
 /** Three statements already received, so a row has the list it feeds above it. */
 const RECEIVED = [['statement-07.pdf', '241 KB'], ['statement-06.pdf', '236 KB']];
@@ -114,8 +114,7 @@ export const RULES = withSpecimens(content.rules, [
   {
     id: 'in-the-row',
     doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow({
-      facts: '<span class="ui-drop__size">248 KB</span>',
-      track: bar(40),
+      facts: `<span class="ui-drop__size">248 KB</span>${bar(40)}`,
       acts: actions(removeBtn()),
     })}</div>`),
     dontHtml: () => panel(`<div class="ui-drop">${restRow()}</div>
@@ -144,5 +143,21 @@ export const RULES = withSpecimens(content.rules, [
       <p class="gf-repeat">${NOTE}</p>
       <p class="gf-repeat">${state(NOTE, 'error')}</p>`),
   },
-  { id: 'which-shape' },
+  {
+    id: 'which-shape',
+    doHtml: () => panel(`${rows()}<div class="ui-drop">${fileRow({
+      facts: state('Received'),
+      acts: actions(removeBtn()),
+    })}</div>`),
+    // The dialog asks nothing the row could not: one file, then Upload. It is
+    // the React Modal's own markup, held open in the page flow.
+    dontHtml: () => `<div class="gl-stage gl-stage--confirm"><div class="rx-modal" role="group" aria-label="Upload statement">
+      <div class="rx-modal__head"><h2 class="rx-modal__title">Upload statement</h2>${btn('Close', { variant: 'ghost', glyph: 'x', iconOnly: true })}</div>
+      <div class="rx-modal__body"><div class="ui-drop">${fileRow({
+        facts: '<span class="ui-drop__size">248 KB</span>',
+        acts: actions(removeBtn()),
+      })}</div></div>
+      <div class="rx-modal__foot">${btn('Cancel', { size: 'md', variant: 'ghost' })}${btn('Upload', { size: 'md', variant: 'primary' })}</div>
+    </div></div>`,
+  },
 ]);

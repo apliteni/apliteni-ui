@@ -11,11 +11,10 @@ import path from 'node:path';
 const TEST_BUDGET_MS = 5_000;
 const FILE_BUDGET_MS = 60_000;
 /* The files whose tests drive a real browser, each only under its own flag: tap-zone under
- * TAP_ZONES=1, field-ground under FIELD_PAINT=1, row-height under ROW_HEIGHTS=1. They are the
- * three that reach for UI_PLAYWRIGHT. why: AGENTS.md#verification */
+ * TAP_ZONES=1, row-height under ROW_HEIGHTS=1. The field-ground browser half went with the
+ * vanilla galleries in #724. why: AGENTS.md#verification */
 const BROWSER_FILES = new Set([
   'stories/tap-zone.test.js',
-  'stories/field-ground.test.js',
   'stories/row-height.test.js',
 ]);
 const BROWSER_BUDGET_MS = 10_000;

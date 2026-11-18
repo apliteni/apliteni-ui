@@ -11,26 +11,36 @@ const TIP_GAP = 8;
  * Flip only when that side is short and the other side has more room. Room is
  * measured inside the viewport and inside every ancestor whose overflow clips.
  * It then slides along the mark's edge to stay inside that box, no further than
- * it has to.
+ * it has to. A readout in the top layer, an open popover, is placed in the view's
+ * coordinates. No ancestor can cut it there, so an ancestor too small to hold it
+ * beside the mark, such as a cut table cell, does not bound it.
  *
- * `host` must be the box the readout is positioned in: the three custom
+ * Otherwise `host` must be the box the readout is positioned in: the three custom
  * properties below are written in its coordinates. `bound` narrows the
  * measurement to one element, for a part that keeps its readout inside itself.
  * why: docs/components.md#the-hover-readout
  */
 export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element, placement: 'top' | 'bottom' = 'top'): void {
   const mrect = mark.getBoundingClientRect();
-  const rect = host.getBoundingClientRect();
   const view = host.ownerDocument.documentElement;
+  const declared = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap'));
+  const gap = Number.isFinite(declared) ? declared : TIP_GAP;
   const clip = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
+  const layered = typeof tip.showPopover === 'function' && tip.matches(':popover-open');
   for (let el: HTMLElement | null = host; el && el !== host.ownerDocument.body; el = el.parentElement) {
     const style = getComputedStyle(el);
-    if (![style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) continue;
-    const bounds = el.getBoundingClientRect();
-    clip.top = Math.max(clip.top, bounds.top);
-    clip.left = Math.max(clip.left, bounds.left);
-    clip.right = Math.min(clip.right, bounds.right);
-    clip.bottom = Math.min(clip.bottom, bounds.bottom);
+    // Overflow does not apply to an inline box.
+    if (style.display === 'inline' || ![style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) continue;
+    // In the top layer, an ancestor too small to hold the readout cannot cut it.
+    if (layered && (el.clientWidth < tip.offsetWidth || el.clientHeight < mrect.height + gap + tip.offsetHeight)) continue;
+    // The padding box clips, inside the border and a scroll bar.
+    const edge = el.getBoundingClientRect();
+    const top = edge.top + el.clientTop;
+    const left = edge.left + el.clientLeft;
+    clip.top = Math.max(clip.top, top);
+    clip.left = Math.max(clip.left, left);
+    clip.right = Math.min(clip.right, left + el.clientWidth);
+    clip.bottom = Math.min(clip.bottom, top + el.clientHeight);
   }
   if (bound) {
     const edge = bound.getBoundingClientRect();
@@ -39,8 +49,6 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bou
     clip.right = Math.min(clip.right, edge.right);
     clip.bottom = Math.min(clip.bottom, edge.bottom);
   }
-  const declared = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap'));
-  const gap = Number.isFinite(declared) ? declared : TIP_GAP;
   const above = mrect.top - clip.top;
   const below = clip.bottom - mrect.bottom;
   const prefersBelow = placement === 'bottom';
@@ -52,7 +60,10 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bou
   const centre = mrect.left + mrect.width / 2;
   const ideal = centre - tip.offsetWidth / 2;
   const left = Math.max(clip.left, Math.min(ideal, clip.right - tip.offsetWidth));
-  tip.style.setProperty('--ui-tip-x', `${centre - rect.left - host.clientLeft + host.scrollLeft}px`);
-  tip.style.setProperty('--ui-tip-y', `${(isBelow ? mrect.bottom : mrect.top) - rect.top - host.clientTop + host.scrollTop}px`);
+  const y = isBelow ? mrect.bottom : mrect.top;
+  // The view's coordinates in the top layer, the host's otherwise.
+  const rect = layered ? null : host.getBoundingClientRect();
+  tip.style.setProperty('--ui-tip-x', `${rect ? centre - rect.left - host.clientLeft + host.scrollLeft : centre}px`);
+  tip.style.setProperty('--ui-tip-y', `${rect ? y - rect.top - host.clientTop + host.scrollTop : y}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
 }

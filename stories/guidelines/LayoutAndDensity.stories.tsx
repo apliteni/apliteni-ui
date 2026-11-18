@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
 import { Card } from '../../react/src/primitives/Card';
+import { Snippet } from '../../react/src/Snippet';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -24,17 +25,25 @@ const Bar = ({ label, pct, tok = false }: { label: string; pct: number; tok?: bo
   <span className="gl-bar__t">{label}</span>
 </div>;
 
+// A media query and a box width are code decisions, so those halves show the code.
+const Code = ({ code }: { code: string }) => <Snippet label="CSS" code={code} copy={false} />;
+const Widths = ({ second }: { second: string }) => <Stage><div className="gl-scale">
+  <Bar label="page: --container" pct={100} tok /><Bar label={second} pct={76.8} tok /></div></Stage>;
+const BOXES_DO = '.panel { width: var(--panel-md); } /* 420px */\n.panel p { max-width: var(--prose-body); }';
+const BOXES_DONT = '.panel p { max-width: var(--panel-md); }\n.panel { max-width: 62ch; } /* h3 and p inside */';
+
 const specimens = [
   { id: 'container',
     do: () => <Stage><div className="gl-scale"><Bar label="--container" pct={100} tok /><Bar label="--measure" pct={76.8} tok /></div></Stage>,
     dont: () => <Stage><div className="gl-scale"><Bar label="1180px" pct={100} /><Bar label="1120px" pct={94.9} />
       <Bar label="1080px" pct={91.5} /><Bar label="860px" pct={72.9} /></div></Stage> },
-  { id: 'measure' },
+  { id: 'measure', do: () => <Widths second="reading column: --measure" />, dont: () => <Widths second="page: --measure" /> },
   { id: 'density',
     do: () => <Stage><Card title="Last 7 days"><Rows /></Card></Stage>,
     dont: () => <Stage><Card title="Last 7 days"><Rows mod="gl-rows--hand" /></Card></Stage> },
-  { id: 'below-the-page' },
-  { id: 'breakpoints' },
+  { id: 'below-the-page', do: () => <Code code={BOXES_DO} />, dont: () => <Code code={BOXES_DONT} /> },
+  { id: 'breakpoints', do: () => <Code code={'@media (max-width: 860px) { … }'} />,
+    dont: () => <Code code={'@media (max-width: var(--panel-lg)) { … }\n@media (max-width: 1024px) { … }'} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Layout and density', parameters: { layout: 'fullscreen' } };

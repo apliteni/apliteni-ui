@@ -228,7 +228,7 @@ losing both ends to a clip. There is one limit: a folded rail flush with a page'
 Every guarantee above still applies. The band stands beside the rail. It does not span the top
 of both. **The rail holds the shell's own controls:** the fold's control in its head, beside the
 mark, the theme switch above the reader's block, and the reader's block at its foot. The band
-control stands under the head (#732, `react/src/AppShell.tsx:191` `ui-react-app__control`). **The band carries the search
+control stands under the head (#732, `react/src/AppShell.tsx:195` `ui-react-app__control`). **The band carries the search
 field and nothing else** above 720px. At 720px and below it carries the mark, the page title on one
 line, the search trigger and the menu button (`react/src/AppShell.css:97` `@media (max-width: 720px)`). It is a `<header>`
 outside the navigation landmark. The field is the palette's own trigger, drawn as a field, with
@@ -328,6 +328,7 @@ page before anything is clicked. A panel adds nothing to the page's scrollable w
 `--ui-dropdown-edge` is the gap a panel keeps from the edge of the view. Set it to 0 for a panel
 flush with the edge, or wider for more room. A view that cannot afford the gap on both sides halves
 it. At 720px and below the gap is the page margin, 16px, so a panel lines up with the page's text.
+Where a phone's safe area is wider than 16px, the gap is the safe area.
 
 **A panel has a floor and a ceiling.** The floor is the kit's 240px, which is what makes a list of
 rows readable. The ceiling is the view less that gap at each side. The floor wins where the two
@@ -562,13 +563,24 @@ must have a search field is a rule rather than a recommendation:
 
 A drawer is a panel against one edge of the screen. It appears over a scrim. It lets the reader
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
-by card:** `drawerSection()` puts a heading above a `<dl>` of label and value pairs. A screen reader
-then hears each label with its value. The value stays beside its label instead of moving to the far
+by card:** `DrawerSection` puts a heading over a `<dl>` of label and value pairs. A screen reader
+then hears each label with its value. **Groups stand 32px apart, with no line between them.**
+Each group heading stands on a 1px `--border` line, the same line as a table head. **A record can
+lead with its key figure:** put a `<dl class="ui-drawer__figure">` in a group with no heading, as
+the first group. Its `<dt>` is the label, and its `<dd>` holds a `.ui-drawer__figure-value`, set at
+22px (`--text-xl`), with a status badge beside it. The figure never breaks across lines.
+**A table in a drawer group takes the drawer's 13px text.** Its head is semibold in strong ink, as
+a group heading is. Its rows have no lines between them. A table that is not a hover table holds
+its rows 8px apart. A hover table keeps its own row height, because its rows are targets. The
+table stands on the drawer's ground, in light and in dark. Its first and last columns start and
+end on the edges of the drawer's other text. A dense or zebra table keeps its own inset.
+The value stays beside its label instead of moving to the far
 edge of the panel. A row whose value is a field or a dropdown lines its label up with the control's first line of text.
 This alignment happens by itself. There is no setting for it.
 Nothing inside a drawer draws a card, a row rule or an `<hr>`. Actions stay
 outside the scrolling body. **It moves on open and on close**, and both movements are instant when
-reduced motion is enabled. For when a flow should use a drawer or a page:
+reduced motion is enabled. **An Escape a tooltip or a picker already handled closes only that
+overlay, and the next Escape closes the drawer.** For when a flow should use a drawer or a page:
 [Drawer](../guidelines/drawer.md).
 
 ### The modal
@@ -588,8 +600,9 @@ above and below it on a short one. The rail is the page ground, with the reader'
 and email at its top. Only the open section's row carries the accent. Each rail row is a button
 with `aria-current`, because a section is a place in the window and not a route. The pane remounts
 when the section changes, so a half-filled form does not follow the reader. At 560px and below
-the window fills the screen, and the sections become tabs under the reader. They act as the
-`Tabs` panel tabs do: one Tab stop, the arrow keys, Home and End, and the open tab scrolled into
+the window floats with a gap on each side, clear of the notch and the home bar. It is as tall as
+its content, up to the screen height, and a long section scrolls inside it. The sections become
+tabs under the reader. They act as the `Tabs` panel tabs do: one Tab stop, the arrow keys, Home and End, and the open tab scrolled into
 view. Pass `section` and `onSectionChange` to control the open section, or `defaultSection` to
 leave it to the window.
 
@@ -597,10 +610,12 @@ leave it to the window.
 
 `tooltip()` is the readout that a surface shows while a pointer rests on one of its marks. It is an
 overlay. That is the guarantee: **showing, filling or moving a readout never changes the size or
-the place of anything else on the page.** There is one element per host. It is placed absolutely
+the place of anything else on the page.** A closed readout has no box, so it cannot widen a
+scroll region that holds it. There is one element per host. It is placed absolutely
 and takes no pointer events. `.ui-tip-host` marks the box it is placed against. The readout flips
 or slides only as far as needed to stay inside the viewport and every ancestor whose overflow
-clips. **What it says is text**, written with `textContent` and never parsed. Focus on a mark shows
+clips. **What it says is text**, written with `textContent` and never parsed. The text wraps inside
+the readout's box, also in a table cell that keeps its text on one line. Focus on a mark shows
 the readout and describes the mark through `aria-describedby`. **Escape dismisses every readout
 the kit is showing**. **Under a coarse pointer the tap is the switch**, and the opening tap is
 captured. This means a chart that drills down on a bar does not drill down on the tap that asked
@@ -612,10 +627,23 @@ what the bar says. No value may be reachable only by hovering. See
 React `Tooltip` shows a label, a value and an optional detail.
 `text` is still a shorthand for `label`. Empty parts are hidden.
 The focusable trigger provides the readout as its accessible description. Escape keeps focus on the trigger.
-The panel does not change the layout or intercept pointer events. Reduced motion removes the fade.
+**Escape closes only the readout; the next Escape reaches the dialog around it.**
+The panel does not change the layout or intercept pointer events.
 
-`placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
-and viewport bounds, and updates its position on scroll and resize.
+**A pointer opens the readout after it rests for 300ms, and the readout closes at once when the
+pointer leaves.** A pointer that leaves within 300ms opens nothing. **Within 300ms after a readout
+closes, the next one opens at once**, so a pointer that moves along a row of icon buttons reads
+each word without a new wait. **Keyboard focus opens the readout at once.** A mouse press that
+focuses the trigger waits for the hover.
+
+`control` is for a child that is one control and names itself, such as an icon button with an
+`aria-label`. The readout shows its word on hover and focus. It adds no tab stop and no
+description, and it is hidden from assistive technology, because the control's name already says it.
+
+`placement` selects the preferred top or bottom side. **The open readout sits in the top layer**,
+over a sticky table cell and over a cut one. It stays within the viewport and within each clipping
+ancestor that can hold it beside its mark, and updates its position on scroll and resize. A browser
+with no popover support keeps it in its host, within every clipping ancestor.
 
 ### Pagination
 
@@ -645,7 +673,8 @@ window's. In a flex row or an `auto` grid track, you give it one:
 | Open | 66rem | 50rem | 32rem | 15rem |
 
 Below 14rem, band and tile values use the next smaller type rank. Open values step down below 15rem.
-Longer values remain the caller's responsibility.
+Longer values remain the caller's responsibility. Totals that are the sum of a list go in the
+table's footer rows, not in a stat band.
 
 A band can use `basisId` to reference comparison text before the figures. An explicit `basis` takes precedence.
 When a period control already states the window, omit a caption that repeats it, including for totals without changes.
@@ -665,20 +694,46 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill.
-Keyboard focus keeps its ring, and a landed row keeps its own mark. `compact` sets a 33px minimum row, but larger or wrapped content makes the row
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. On a dense hover table, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends. A dense table marks a selected row with its check box only, with no wash, because a round hover with selected rows looks bad.
+Keyboard focus keeps its ring, and a landed row keeps its own mark. On a zebra or dense table, `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
 pinned column draws its divider only where the region can actually scroll:** at a width where
-every column fits, the line divides nothing, so it is not drawn. **The region shows a soft shade
-on whichever edge still has columns behind it, and none on an edge that has been reached** —
-darker on a light ground, lighter on a dark one. Both are CSS alone, so vanilla and React tables
-carry them alike, and neither reaches the focus ring. An engine that cannot report a scroll state
-keeps the divider at every width. **A link
+every column fits, the line divides nothing, so it is not drawn. **The region draws no shade at
+its edges.** The divider is CSS alone, so vanilla and React tables carry it alike, and it does not
+reach the focus ring. An engine that cannot report a scroll state keeps the divider at every
+width. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
+In a cell after the first, the band keeps 8px of room before the name, and the name does not move.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
-explicit judgement. **Colour never supplies the sign.**
+explicit judgement. **Colour never supplies the sign.** **Every body and header cell aligns its
+content to the top**, so when one cell wraps, the other values stay level with its first line. A
+React sort mark stands on the first line of a wrapped label. A badge, a logo, a selection box or
+an icon button in a cell stays level with the text beside it. A badge in a cell is 19px high,
+against 24px elsewhere, and never makes its row taller.
+
+Use a badge for the status of the record. Use an ink word for a second status in the same row.
+`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a word the ink of
+its tone with no fill. Each one is at least 4.5:1 on a plain or a selected row, in both themes
+and under every accent. In light, warn, info and danger take a deeper ink than their badge, so
+they are at least 7:1 on a plain row, a selected row and a selected row under the pointer.
+
+**A hover table that is neither zebra nor dense is a row table.** Its body rows have no lines
+and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
+56px with `comfortable`**, and larger or wrapped content makes it taller. The space above a
+row's first line centres that line in this height, so a one-line row looks centred. Hover gives the row a
+neutral fill, and a checked selection box gives it an accent wash at a tinted card's strength: 5% in
+light and 8% under the pointer, 9% in dark and 12% under the pointer. Both fills are square, and the
+first and last content sit 12px inside them. The name
+in the first column takes the strongest ink. **`.ui-table__sub` puts a second value under the
+first**, such as an email under a name, in full ink at a smaller size. An act cell that holds icon
+buttons is as wide as its buttons, and they are 32px, so the row keeps its height. In a card, the
+table reaches the card's edges and its end cells keep the card's text edge. A scroll frame in a
+card keeps a 4px band at each side and above the header for its focus ring, so a row fill stops
+4px inside the card's edges. The header gives that top band back, so the table keeps its place, and
+the header follows the ring's rounded corners. The band shows no line at rest, and the frame adds no
+room below the table.
 
 A cell can group its reference and status with `.ui-table__pair`. They stack when the cell cannot fit them side by side.
 A landed row's `.is-target` mark shows on pointer arrival as well as keyboard focus, and it outlives focus, so arrival and focus show together and stay distinguishable.
@@ -696,7 +751,8 @@ composed into a cell.
 
 **Below 720px a pinned identity cell keeps its content on one line**, capped at
 `--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
-`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
+`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. A table with a
+selection column leaves less room on a phone. Lower the cap there. The whole text stays in
 the markup, so the accessible name is unchanged and the company link remains the disclosure. The
 decorative logo is not drawn there. A sub-line stays running text, which is a rule in
 [Dense tables](../guidelines/dense-tables.md). **Focusing a link inside a sub-line draws the band
@@ -705,9 +761,10 @@ its right side.
 
 **On a phone, a table stays a table.** No kit table lays its rows out as blocks. A table wider
 than the screen scrolls sideways inside its frame, and the page does not scroll. A pinned identity
-column stays at the frame's left edge on the table's own surface, so it follows the theme. While
-columns sit under it, a soft shade from the edge token falls to its right. At the left edge there
-is no shade. This is a rule in [Dense tables](../guidelines/dense-tables.md).
+column stays at the frame's left edge on the table's own surface, so it follows the theme.
+**Below 560px the frame shows no scrollbar**, because a finger scrolls it. **A screen-reader label
+in the table stays inside the frame**, so it cannot widen the page. This is a rule in
+[Dense tables](../guidelines/dense-tables.md).
 
 `FilterBar` is controlled by you. Selections, removal, and clear-all request changes. They never
 change the filters you supplied. Given `add` and `onAdd` it also draws the way to add one; see
@@ -746,7 +803,7 @@ and Escape closes the top overlay. Tab is trapped in the panel. Home and End sta
 caret, which is what the ARIA combobox pattern gives them for, and Ctrl+K inside another text
 box is left alone, because it is kill-to-end-of-line there — Cmd+K still opens from one.
 **Focus opens in the text box and never leaves it while the palette is open**, over an inert page.
-The search row shows the accent ring inside its edges while the text box has keyboard focus, and its divider hides under the ring.
+The search row shows the accent ring inside its edges while the text box has keyboard focus. The ring follows the panel's top corners, and the divider hides under the ring.
 **It opens empty**, and **it paints one step above the drawer and one below the confirm**. A
 confirm opened by a row appears over both and answers the first Escape.
 
@@ -814,6 +871,38 @@ to fit its label at `--text-xs`. Other sizes keep their 16px glyph at stroke-wid
 dots fit inside the smaller target. The size does not change the variant's colour or its
 interaction states.
 
+### Hold to confirm
+
+Use React `<Button hold>` for one primary or danger action that the user cannot undo, such as
+a send to many people or the deletion of a workspace. Do not use it for an action that the user
+can undo, for a routine save or for a form submit. Use a plain button for those. A link takes no
+`hold`.
+
+```tsx
+<Button hold variant="danger" onConfirm={deleteWorkspace}>Delete workspace</Button>
+```
+
+Put the action in `onConfirm`. The button calls only `onConfirm`. A click does not call
+`onClick`, and the button never submits its form.
+
+**What the user sees.** The user presses the button and holds it for 1000 ms. A fill grows from
+the start edge. A primary button fills with `--accent`. A danger button stays quiet at rest and
+shows `--pink` only while it is hovered, focused or held. If the user releases before the end,
+the fill goes back to empty and nothing happens. A press shorter than 300 ms shows "Hold to
+confirm" above the button. A slide off the button does not stop the hold. Under reduced motion
+the fill moves in four 250 ms steps, and the hold still takes 1000 ms. A busy or disabled button
+does not hold.
+
+**Keyboard and screen reader.** Enter or Space held for 1000 ms confirms, the same as a pointer.
+Two presses within 3000 ms also confirm. This is the path for a screen reader user. The button
+gives the description "Hold to confirm, or press twice." after any `aria-describedby` of your
+own.
+
+**Room on the screen.** The hint shows over the content above the button, so the button does
+not move. Leave room for one line above the button. An ancestor with `overflow: hidden` clips
+the hint. If a result replaces the button after the confirm, give the result the focus. Give
+its row a minimum height of `--btn-height-md`, so the row keeps the height of an md button.
+
 ### Code highlighting
 
 `hlCode(raw, lang)` returns highlighted HTML. `codeTokens(raw, lang)` returns the same tokens as
@@ -828,10 +917,13 @@ meanings per language:
 | `json` | a property key | a string value | a number, `true`, `false`, `null` | — | — |
 | `ts` | a keyword | a string or template | a number or literal | — | a `//` or `/* */` comment |
 
-They colour short snippets, not arbitrary programs. Three of the five miss WCAG AA on the light
-card. They are recorded as debt, not presented as compliant: `.f` and `.u` at 3.81:1 and `.s` at
-4.45:1. **The copy button is icon-only in both faces**, with `copyLabel` as its accessible name
-and `title`. **Confirming a copy does not change the control's size or its name**: the glyph
+They colour short snippets, not arbitrary programs. All five clear WCAG AA in both themes, on
+every ground a code block can take. **In a card, a code block paints the page ground**, as an
+inline chip does, and a line divides its label row from the code. When more code lies past an
+edge, a shade marks that edge. In light, keywords, flags and URLs fall below AA where that
+shade is darkest: 4.15:1 and 4.36:1, and 3.91:1 and 4.10:1 in a table scroll. This is recorded
+debt. The reveal block keeps its own look. **The copy button is
+icon-only in both faces**, with `copyLabel` as its accessible name and `title`. **Confirming a copy does not change the control's size or its name**: the glyph
 swaps inside the same box, and the word goes to a hidden live region. Snippet descendants use
 the shared ring, except the browser-focusable code region. A `<pre>` sits flush with its card and
 has no radius, so **the card paints that ring instead**.
@@ -845,7 +937,7 @@ floor. So at that width the field uses `flex-basis: 100%`. It takes the full lin
 of the row wraps below it.
 
 A title without an introduction keeps a 32px gap before the page body.
-A control row directly inside the body sits 8px closer to the block it controls.
+A control row directly inside the page body, a `.ui-card-stack` or a `.ui-stack` sits one inner gap, 8px, above the block it controls. On a touch phone below `560px`, that gap is 20px.
 Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
 
 ### Segmented strips that outgrow their column
@@ -908,8 +1000,10 @@ vanilla sections above.
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
 A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
-`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`,
-`stickyHeader` and `pinnedIdentity`. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
+`DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
+(`dense`, `compact` or `comfortable`),
+`stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,
+so a date can stand before the pinned identity. `rowState` marks a row `target` or `dead`, `footer` takes totals rows
 and `caption` names the table for assistive technology. A `dead` row is muted and shows its state as a word,
 with no strike line. `stack` is deprecated and ignored: a phone table scrolls sideways like any other. A table that does not scroll is the card's own child, so a dense table reaches the card's text edge.
 Its pager follows the measured table width and wraps when necessary.
@@ -1026,7 +1120,9 @@ field and white button on the dark one.
 
 `DatePicker` picks one month, a range of months, one date or a range of dates. At its ordinary
 width, it uses the dropdown's shell and adds only the grid inside it. The panel is a `dialog`,
-because a calendar is a grid and a listbox may own only options. The panel is `inert` while closed.
+because a calendar is a grid and a listbox may own only options. The panel is `inert` while closed,
+and a shut panel carries `data-dd-shut`, as a shut Dropdown does. **Escape closes only the calendar,
+wherever focus is in the picker, and the next Escape closes the dialog around it.**
 
 **The grain and the span are two questions, not one:** `month` and `day` pick a single period.
 `range` and `day-range` pick a start and an end in the same two presses. Periods are ISO strings in
@@ -1057,9 +1153,14 @@ a chosen or dropped file through `onFile` and renders the `file` you provide. **
 `status` is uploading**, so the kit never reports success unless you claim it. **A status the
 row draws includes a circled mark and a word**, because colour alone does not show status. When
 `progress` is provided, the track shows the status instead. `Remove` and `Retry` appear only
-when you provide `onRemove` and `onRetry`. **No tier ever takes a second line:** the name
-truncates its stem but keeps its extension. The full name is in a `title`. **One layout serves
-every width.** **The drop target is painted only while a file is over the region. It covers
+when you provide `onRemove` and `onRetry`. **A file keeps the resting row's 32px height:** the
+name, the size, and the status or the track stand on one line, and `Remove` ends it. The track
+fills the free room on the line. The name gives way first: it truncates its stem but keeps its
+extension, and the full name is in a `title`. **One layout serves every width.** In a row of
+352px or less, the size leaves the line, and a screen reader still reads it. A refused file
+shows its reason on the name's line. When the full name and the reason do not fit there, the
+reason moves under the name and the row grows by one line, to 61px. In a parent that sizes to its
+content, `FileDrop` is 420px wide, or narrower when the parent has less room. **The drop target is painted only while a file is over the region. It covers
 that region instead of joining it**, so the row stays in place while the reader aims. Children
 render above the row inside the same region. This lets one panel, or a whole page, become the
 target. A disabled drop never calls `preventDefault` on `dragover`, so it does not declare
@@ -1245,8 +1346,11 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   or `onSelect` to open something in place.
   The existing band layout stays the default. The longest matching section
   path wins. **At 720px and below, a menu button and the brand mark on the band replace the
-  rail:** the button opens the full section list in the left drawer, and the page takes the full
-  width. A press on a section, Escape or a wider window closes the drawer, and focus returns to
+  rail:** the button opens the full section list in a drawer, and the page takes the full
+  width. **The drawer opens from the side of its menu button:** the right in the topbar
+  layout, where the button ends the band, and the left in the rail layout. Set `drawerSide`
+  to `'left'` or `'right'` to choose the side in either layout (#790,
+  `react/src/AppShell.tsx:185` `side={drawerSide ?? 'left'}`). A press on a section, Escape or a wider window closes the drawer, and focus returns to
   the button. **A shell whose list has nowhere to go — one section and no back
   link — draws no rail, no fold control and no menu button;** the brand lockup moves to the band
   and the section stays in the command palette. One section under a child page is a destination,
@@ -1258,13 +1362,13 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   theme is a row of the account menu** (#732). The rail keeps the fold's control
   in its head, `bandControl` under the head, then the sections and the account at its foot. A
   folded rail keeps the account mark, and makes `bandControl` inert. The drawer puts
-  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:229` `{accountBlock(true, true)}`).
+  `bandControl` above the sections, and the account in its footer (`react/src/AppShell.tsx:233` `{accountBlock(true, true)}`).
   **`headControl` is one glyph control in the sidebar head, before the fold button** (#732). It
   is drawn as the fold is: a plain glyph with no border and no fill, the fold's size, ink and
   hover (`react/src/AppShell.css:56` `.ui-react-app__head-control > :is(button, a)`). A folded
   rail moves it out of the head row onto the glyph column, one rail gap under the head, and it
   stays usable. The drawer puts it in the panel's head, before the close button, as a 40px tap
-  target (`react/src/AppShell.tsx:229` `headerActions={headSlot}`). `Drawer` takes
+  target (`react/src/AppShell.tsx:233` `headerActions={headSlot}`). `Drawer` takes
   `headerActions` for controls between its title and its close button. A shell with no sidebar
   puts `headControl` on the band after `bandControl`.
   **The Theme row opens a submenu of Auto, Light and Dark** (#736). The row shows the current
@@ -1292,7 +1396,13 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
-  disabled one uses the same paint as every other disabled control in the kit.**
+  disabled one uses the same paint as every other disabled control in the kit.** A resting box
+  has a field's fill and an edge of at least 3:1 on the page, a card, a menu and a hovered row.
+  It measures 5.36:1 or more in light and 5.38:1 or more in dark. **A checked or partial box is a
+  light tint of the accent with an accent edge and an accent mark, not a solid accent block.** A
+  checked radio uses the same paint. Under every accent, the edge measures 5.74:1 or more in light
+  and 4.61:1 or more in dark on a card and on a selected or hovered selected row. The mark measures
+  5.23:1 or more on the tint in light and 4.46:1 or more in dark.
 - **A checkbox whose `indeterminate` property is true shows the checked fill with a short dash**
   in place of the tick. **`DataTable`'s selection boxes use the kit box and show the dash when some,
   but not all, rows on the page are selected.** **A selection column takes the width of its box in
@@ -1308,7 +1418,8 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   and follows the OS otherwise. It sets `data-theme-choice` and the resolved `data-theme` on
   `html` and exports `THEME_INIT_SCRIPT` for a head script.
 - **`Tooltip`** renders the vanilla host, panel and label classes. Escape keeps focus on the
-  trigger.
+  trigger. A hover opens it after 300ms and keyboard focus at once; see
+  [The React tooltip](#the-react-tooltip).
 - **`Pill`** and **`StatusDot`** add no interactive role and create no live region. Visible
   status text belongs beside the dot.
 - **`SuccessPanel`** is the inline confirmation. **`SuccessCheck`** is the bare shared mark.
@@ -1324,8 +1435,8 @@ This is stated so nobody has to discover it by trying:
 
 - **No build step**, whose consequence is
   [breakpoints as literals](foundations.md#breakpoints).
-- **No density system.** `.ui-table--dense`, `.ui-table--compact` and `.ui-cmdk--roomy` are the
-  only density modifiers, and each is local to its component.
+- **No density system.** `.ui-table--dense`, `.ui-table--compact`, `.ui-table--comfortable` and
+  `.ui-cmdk--roomy` are the only density modifiers, and each is local to its component.
 - **No container scale.** There is one `--container`, not a narrow/wide set.
 - **No second bar for a control's glyph.** 1.5 CSS px is the line for every stroked mark.
 - **No charts.** A stat band's trend is a slot for your `<svg>`.
@@ -1372,9 +1483,20 @@ asterisk. **A `dropdown()` inside `field()` is wired through its trigger button*
 dropdown's `id` sits on a wrapper that a label cannot name. The label and then the chosen value name
 the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
 label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
-placeholder is not a name. Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
+placeholder is not a name. **In a field, a dropdown trigger has the shape of a text input.** It
+takes the input's corner, its top and bottom padding and its type size, so the two have the same
+height. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
+fixed 16px, as the input's is, also when the host changes `--text-base`. A long value stays on
+one line, starts at the left and ends with an ellipsis, as in a select, so the trigger keeps the
+input's height at every value length. A person mark stands as far from the left edge as from the
+top and bottom edges. A date picker in a field does the same. Outside a field, for example in a
+filter bar, a toolbar or the topbar, the trigger keeps the pill.
+Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
-[Colour and contrast](foundations.md#colour-and-contrast).
+[Colour and contrast](foundations.md#colour-and-contrast). **A filter bar is the one exception.**
+It stands on the page directly above its table card, with no card of its own. On the page ground,
+the edge of its search field measures 1.37:1 in light and 1.50:1 in dark. Keep that search field
+live on the page, because a field that is off measures 1.12:1 there.
 
 ### Segmented or tabs?
 

@@ -131,6 +131,7 @@ const OWED = {
   // face moves this gate's expectation with it instead of past it.
   'font-family': TOKENS.get('--font-sans'),
   'font-size': TOKENS.get('--text-base'),
+  'text-align': 'left',
 };
 
 // ---- 1. every tag resolves to the same row -------------------------------
@@ -179,29 +180,7 @@ test('removing the reset turns this gate red', () => {
 
 // ---- the ledger: what this gate does not reach ---------------------------
 
-test('the ledger is still accurate — jsdom has not started modelling these', () => {
-  // (a) text-align. jsdom pins `center` onto a <button> above any author rule,
-  //     whatever its specificity and whatever the source order, so the one
-  //     property a browser and jsdom agree a button carries is the one property
-  //     this file cannot gate on a button. Measured in Chrome 150 instead:
-  //     `center` before the reset, `left` after. The declaration is checked
-  //     where it can be — on the two tags jsdom cascades correctly, and in the
-  //     rule all three share.
-  for (const tag of ['div', 'a']) {
-    assert.equal(row(tag).css('text-align'), 'left',
-      `a <${tag}> row is not left-aligned — the shared declaration is gone or overridden`);
-  }
-  const r = row('button');
-  const sheet = r.window.document.styleSheets[0];
-  const item = [...sheet.cssRules].find((x) => x.selectorText === '.ui-dropdown__item');
-  assert.ok(item, '.ui-dropdown__item is not a rule of its own any more — this gate reads it by name');
-  assert.equal(item.style.getPropertyValue('text-align'), 'left',
-    '.ui-dropdown__item no longer declares text-align. A <button> centres its own caption, and '
-    + 'jsdom cannot be made to show it, so this declaration is held by name or not at all.');
-  assert.equal(r.css('text-align'), 'center',
-    'jsdom now cascades text-align onto a <button> correctly — move the property into OWED above '
-    + 'and delete this note, the gate can hold it properly at last');
-
+test('the ledger is still accurate — jsdom has still not modelled appearance', () => {
   // (b) appearance. A <button> keeps `appearance: auto` where a <div> has
   //     `none`, and no declaration here changes that. It paints nothing once
   //     the background and border are authored — before and after screenshots

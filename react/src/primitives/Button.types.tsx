@@ -35,3 +35,9 @@ export const WithButtonRef = () => <Button ref={createRef<HTMLButtonElement>()}>
 export const WithLinkRef = () => <Button href="/reports" ref={createRef<HTMLAnchorElement>()}>Reports</Button>;
 // @ts-expect-error variant is a closed set, not an arbitrary string
 export const BadVariant = () => <Button variant="fuchsia">No</Button>;
+
+// case: hold-on-a-button-only
+// Hold confirms through onConfirm on a button root. A link navigates, so it has no hold.
+export const Hold = () => <Button hold onConfirm={() => {}} variant="danger">Delete workspace</Button>;
+// @ts-expect-error a link cannot hold to confirm
+export const HoldLink = () => <Button href="/reports" hold>Reports</Button>;

@@ -19,13 +19,20 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
-import { effectiveBackground, ratio } from './lib/contrast.js';
+import { effectiveBackground, parseColour, ratio } from './lib/contrast.js';
 import { markup } from './lib/react-markup.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '..');
 const read = (p) => readFileSync(path.join(root, p), 'utf8');
+
+/** An `outline` shorthand as its three parts, with the colour normalised so the
+ * token's hex and jsdom 31's rgb() serialisation compare equal. */
+const outlineParts = (value) => {
+  const parts = String(value).trim().split(/\s+/);
+  return { width: parts[0], style: parts[1], colour: parseColour(parts.slice(2).join(' ')) };
+};
 
 // The rail and the tab row are the React SidebarNav and NavTabs, rendered to static
 // markup (stories/lib/react-markup.js); the rules under test are the kit's CSS.
@@ -276,7 +283,7 @@ test('the current row is a plate with a measurable step, and the pointer stays q
         );
         // JSDOM leaves a property no rule writes as the empty string, so "nothing
         // is drawn" is the empty value or the keyword, and anything else is paint.
-        const unpainted = (value) => value === '' || value === 'none';
+        const unpainted = (value) => ['', 'none', 'currentcolor none'].includes(value);
         assert.ok(
           unpainted(r.css(sel, 'boxShadow')),
           `${what} current row resolves box-shadow ${r.css(sel, 'boxShadow')} at rest in `
@@ -468,8 +475,8 @@ for (const [theme, accent] of THEMES) {
       'the ACTIVE NESTED row': ACTIVE_SUB,
     };
     for (const [what, sel] of Object.entries(rows)) {
-      assert.equal(
-        r.inState(sel, 'focus-visible', 'outline'), ring,
+      assert.deepEqual(
+        outlineParts(r.inState(sel, 'focus-visible', 'outline')), outlineParts(ring),
         `${what} (${sel}) shows no focus ring when keyboard-focused in ${theme}/${accent} — `
         + 'WCAG 2.4.7. A later rule of equal specificity is cancelling '
         + '.ui-nav__item.is-active:focus-visible; resolve the conflict, do not stack another override.',

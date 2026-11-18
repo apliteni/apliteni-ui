@@ -89,7 +89,7 @@
 
 **Rule:** In forced colours, fill a selected item with the highlight colour and its label with the highlight text colour.
 
-**Why:** The mode replaces author backgrounds. A specimen cannot switch it on, so this rule draws no pair.
+**Why:** The mode replaces author backgrounds.
 
 **Do:** Ring a focused selected item in the page text colour.
 

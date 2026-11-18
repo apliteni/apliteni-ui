@@ -141,16 +141,18 @@
   height: 19px;
   flex: none;
   margin-top: 1px;
-  border: 1.5px solid var(--border-strong);
+  /* A field's fill and a --muted edge: the edge clears the 3:1 control floor on every ground a box
+     stands on, and a grey fill read as disabled. Decided on #814 (rev_136bd26bc559/d21). */
+  border: 1.5px solid var(--muted);
   border-radius: var(--radius-xs);
-  background: var(--surface-2); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   cursor: pointer;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
 }
-/* In a cell there is no label line to sit beside, so the box centres on the row's
-   text instead of dropping 1px to meet a label's first line. */
-.ui-table__selection input[type="checkbox"] { margin-top: 0; vertical-align: middle; }
+/* In a cell there is no label line to sit beside, so the box centres on the cell's first
+   line instead of dropping 1px to meet a label's first line. */
+.ui-table__selection input[type="checkbox"] { margin-block: calc((var(--ui-cell-line) - 19px) / 2); vertical-align: top; }
 /* The target, not the ink. The box above is drawn at 19x19 because that is what
    sits beside a 15px label without shouting; WCAG 2.5.8 wants 24 CSS px of
    pointer target, which is a different question. This overlay answers it and
@@ -179,15 +181,18 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .ui-check input:enabled:hover:not(:focus-visible),
 .ui-table__selection input[type="checkbox"]:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
+/* On: a tint of the accent with an accent edge and mark, not a solid accent block, so a
+   column of checked rows stays quiet. The mark reads 3:1 on the tint under every accent in
+   both themes, so neither theme needs its own ink. Decision rev_813ccb2322b5/d27. #814 */
 .ui-check input:checked,
-.ui-table__selection input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+.ui-table__selection input[type="checkbox"]:checked { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-color: var(--accent); /* code-bg: inherit — control paint inside the box; no chip is written in it. */ }
 .ui-check input[type="checkbox"]:checked::after,
 .ui-table__selection input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   left: 5px; top: 1.5px;
   width: 5px; height: 10px;
-  border: solid var(--accent-contrast);
+  border: solid var(--accent);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg); /* motion: still — the turn is the tick's shape, not travel; it lands with the box's fill, which transitions */
 }
@@ -196,12 +201,12 @@
   position: absolute;
   inset: 4px;
   border-radius: 50%;
-  background: var(--accent-contrast);
+  background: var(--accent);
 }
 .ui-check input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* Off. `.ui-check` had no disabled rule at all until #429 put a disabled checkbox
-   on screen: the box kept --surface-2 and --border-strong, its words kept --text,
+   on screen: the box kept its resting fill and edge, its words kept --text,
    and it was the word "unavailable" in the label that carried the state. The same
    flat pair the fields and the buttons take (#220, #273) — a paint on the box and
    quiet ink on the words, never an `opacity`, which drags label and box toward the
@@ -219,13 +224,13 @@
 .ui-check input[type="checkbox"]:disabled:checked::after,
 .ui-table__selection input[type="checkbox"]:disabled:checked::after { border-color: var(--disabled-surface); }
 .ui-check input[type="radio"]:disabled:checked::after { background: var(--disabled-surface); /* code-bg: inherit — the mark inside the box; the box carries the focus indicator. */ }
-/* Partial: some of a group is on, not all. The checked box's fill with a level
+/* Partial: some of a group is on, not all. The checked box's tint with a level
    dash where the tick would be, so the box still reads as "on" from across a table
    and the dash alone says "not all". It wins over a tick when both are set, as the
    browser's own box does. Drawn with a border, not a background, so forced colours
    keeps the dash. #619 */
 .ui-check input[type="checkbox"]:indeterminate,
-.ui-table__selection input[type="checkbox"]:indeterminate { background: var(--accent); border-color: var(--accent); }
+.ui-table__selection input[type="checkbox"]:indeterminate { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-color: var(--accent); /* code-bg: inherit — control paint inside the box; no chip is written in it. */ }
 .ui-check input[type="checkbox"]:indeterminate::after,
 .ui-table__selection input[type="checkbox"]:indeterminate::after {
   content: "";
@@ -233,15 +238,10 @@
   inset: 0;
   margin: auto;
   width: 11px; height: 0; /* odd, so the 17px padding box splits into equal gaps */
-  border: solid var(--accent-contrast);
+  border: solid var(--accent);
   border-width: 2px 0 0;
   transform: none;
 }
-/* White ink falls below 3:1 on the lighter dark-theme accents, so the tick, the dash and
-   the radio's dot take the ink a selected Segmented pill takes there. */
-:where(:root[data-theme="dark"]) .ui-check input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after,
-:where(:root[data-theme="dark"]) .ui-table__selection input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after { border-color: var(--signal-contrast); }
-:where(:root[data-theme="dark"]) .ui-check input[type="radio"]:enabled:checked::after { background: var(--signal-contrast); }
 .ui-check input[type="checkbox"]:disabled:indeterminate,
 .ui-table__selection input[type="checkbox"]:disabled:indeterminate { background: var(--disabled-ink); border-color: var(--disabled-ink); }
 .ui-check input[type="checkbox"]:disabled:indeterminate::after,

@@ -8,6 +8,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FilterBar } from '../../react/src/FilterBar';
+import { Segmented } from '../../react/src/Segmented';
 import { RestingFilters } from '../_table-filters';
 import { Chart, type ChartLookSeries } from '../../react/src/Chart';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -51,7 +52,7 @@ const EXCEPTIONS: [string, string, Tone, string][] = [
   ['PO-1164', '14,082.69', 'pending', 'In transit'],
   ['PO-1159', '2,180.00', 'danger', 'Unmatched'],
 ];
-const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters search="Search exceptions" placeholder="Reference"
+const Attention = ({ onward = true }: { onward?: boolean }) => <div className="ui-card-stack"><RestingFilters search="Search exceptions" placeholder="Reference"
   label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'In transit', 'Unmatched'] }]} />
 <Card title="Needs a decision">
   <table className="ui-table ui-table--dense">
@@ -61,8 +62,8 @@ const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters
       <td className="ui-table__num ui-table__num--strong">{net}</td>
     </tr>)}</tbody>
   </table>
-</Card></>;
-// The whole ledger, under the bar every table has.
+</Card></div>;
+// The whole ledger, under the bar every long table has.
 const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
   chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
 
@@ -75,7 +76,7 @@ const MonthChart = () => <div className="gd-chart">
   <div className="gd-chart__months ui-stat__label" aria-hidden="true">{MONTHS.map(month => <span key={month}>{month}</span>)}</div>
 </div>;
 const MonthTable = () => (
-  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-every-table-its-filter-bar
+  // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar
   <table className="ui-table ui-table--dense">
     <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
     <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
@@ -140,24 +141,36 @@ const FILTERS = [
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
+// A wrapper, so the stage's column does not stretch the control across the cell.
+const Period = () => <div><Segmented label="Period" size="sm" value="1Y" onChange={noop}
+  options={['1M', '3M', '1Y'].map(label => ({ label, value: label }))} /></div>;
+
 const specimens = [
-  { id: 'fast-glance' },
+  // The figures are a year, so the period control stands on 1Y. The Don't puts
+  // three blocks between the figures and the exceptions, and the note says where
+  // the first screen ends, which a picture in a page cannot.
+  { id: 'fast-glance',
+    do: () => <Stage><Period /><Cashflow id="gd-fast-do" /><Attention /></Stage>,
+    dont: () => <Stage><Period /><Cashflow id="gd-fast-dont" /><MonthBlock view="chart" />
+      <LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
+      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend />
+      <div className="gl-cursor">The first screen has ended. The exceptions start here</div><Attention /></Stage> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
-    dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
+    dont: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></div></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></Stage>,
+    do: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></div></Stage>,
     dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
       { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on
   // the ledger, and the filters narrow it. The Don't carries the period in its
   // title, which is what "fixed by whoever built the page" looks like on a screen.
   { id: 'report-offers',
-    do: () => <Stage><div className="ui-toolbar ui-toolbar--split">
+    do: () => <Stage><div className="ui-card-stack"><div className="ui-toolbar ui-toolbar--split">
       <FilterBar filters={FILTERS} label="Payout filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Export rows</Button>
-    </div><Card title="Payouts"><LedgerTable /></Card></Stage>,
+    </div><Card title="Payouts"><LedgerTable /></Card></div></Stage>,
     dont: () => <Stage><Card title="Payouts, 2026"><LedgerTable /></Card></Stage> },
   // "Download PDF" does not start with "Export", so export-at-the-row-end does not count this row.
   { id: 'export-icon',

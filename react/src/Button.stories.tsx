@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from './primitives/Button';
+import { Card } from './primitives/Card';
+import { Dropdown } from './Dropdown';
 
 const meta: Meta = { title: 'React/Button', parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -40,3 +42,38 @@ function BusyExample() {
   </>);
 }
 export const BusyTransition: StoryObj = { render: () => <BusyExample /> };
+
+// The hint rises above the button, so the specimen leaves room for it.
+// The result takes the button's place and the focus, so focus is not lost with the button.
+function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; label: string; done: string }) {
+  const [confirmed, setConfirmed] = useState(false);
+  const result = useRef<HTMLSpanElement>(null);
+  useEffect(() => { if (confirmed) result.current?.focus(); }, [confirmed]);
+  return canvas(<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingTop: 'var(--space-8)' }}>
+    {confirmed
+      // The success sentence's type, centred in the height of the md button it replaces.
+      ? <div style={{ display: 'flex', alignItems: 'center', minHeight: 'var(--btn-height-md)' }}>
+        <span ref={result} className="ui-sx__count-text" role="status" tabIndex={-1}>{done}</span>
+      </div>
+      : <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>}
+  </div>);
+}
+export const HoldPrimary: StoryObj = {
+  name: 'Hold to confirm (primary)',
+  render: () => <HoldExample variant="primary" label="Send to 12 people" done="Sent to 12 people." />,
+};
+export const HoldDanger: StoryObj = {
+  name: 'Hold to confirm (danger)',
+  render: () => <HoldExample variant="danger" label="Delete workspace" done="Workspace deleted." />,
+};
+
+// A small button and a dropdown trigger in one form row share one height and one
+// middle line. rev_5b88086f1604/d15
+const PERIODS = [{ label: 'This month', value: 'month' }, { label: 'This quarter', value: 'quarter' }];
+export const BesideTrigger: StoryObj = {
+  name: 'Small, beside a dropdown trigger',
+  render: () => canvas(<Card title="Export payouts"><form className="ui-toolbar" onSubmit={(e) => e.preventDefault()}>
+    <Dropdown ariaLabel="Period" items={PERIODS} value="This month" selectedValue="month" />
+    <Button size="sm" variant="primary" type="submit">Export</Button>
+  </form></Card>),
+};

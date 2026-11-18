@@ -31,7 +31,7 @@ export const SPEC_CSS = `
     /* The drawer title's own rank and face, so the pair differs by container alone and
        no specimen outranks the rule headings on this page. */
     .gd-page__title { margin: 0; color: var(--strong); font-family: var(--font-sans);
-      font-size: calc(var(--text-base) + 0.5px); font-weight: 600; letter-spacing: 0.01em; }
+      font-size: var(--text-md); font-weight: 600; letter-spacing: 0.01em; }
     .gd-page__intro { margin: 0; color: var(--text); font-size: var(--text-sm); max-width: var(--prose-dense); }
     .gd-page__cols { display: grid; gap: var(--space-6); align-items: start;
       grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }

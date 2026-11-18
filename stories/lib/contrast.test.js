@@ -192,7 +192,14 @@ test('desugar turns state pseudo-classes into attribute selectors of equal weigh
 test('expandAnchors gives a bare `a` rule the :link/:visited forms JSDOM needs', () => {
   // JSDOM ranks its UA sheet's a:link above a same-specificity author `a` rule,
   // so an anchor with an href reads back as the UA blue. See the gate's header.
-  assert.match(expandAnchors('a{color:#9b5dff}'), /a,a:link,a:visited\{/);
+  assert.match(expandAnchors('a{color:#9b5dff}'), /a,:where\(a\):link,:where\(a\):visited\{/);
+  // The forms weigh one class, so a later class rule on a link still wins, as in a browser.
+  const ink = (css) => {
+    const { window } = new JSDOM(`<style>${expandAnchors(css)}</style><a class="k" href="/x">x</a>`, { url: 'http://localhost/' });
+    return window.getComputedStyle(window.document.querySelector('a')).color;
+  };
+  assert.equal(ink('a{color:rgb(1, 1, 1)}'), 'rgb(1, 1, 1)', 'the author rule beats the UA blue');
+  assert.equal(ink('a{color:rgb(1, 1, 1)} .k{color:rgb(2, 2, 2)}'), 'rgb(2, 2, 2)', 'a later class beats the bare `a`');
   assert.equal(expandAnchors('.k a{color:red}'), '.k a{color:red}', 'a descendant `a` is already correct');
 });
 
@@ -570,7 +577,7 @@ test('every state base the kit sheet yields is a selector a browser accepts', ()
       }
     }
   }
-  assert.equal(counted, 276, 'state-base discovery changed: 138 bases per theme, including three link-button states, over two themes. The two light drawer rows (current, hover) added 1 per theme; the phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them; the stacked table target and neutral hover went with the stack layout in #736, and React Toast adds 2 bases per theme; #661 adds 7 per theme: the four field focus rules with a transparent border, the table scroll region focus, and the light hover rows of the dropdown and version menus; its round 1 adds the CommandPalette search row, whose divider goes transparent under the ring; #736 adds 1 per theme: a pinned target row under the pointer keeps its opaque pinned cell; the document viewer of #736 adds 6 per theme: that pinned cell reads --table-bg, so the walk now takes it on the card, the page and the viewer stage, each as the table itself and as its ancestor; #736 removes the breadcrumb link hover, 1 per theme');
+  assert.equal(counted, 320, 'state-base discovery changed: 160 bases per theme, including three link-button states, over two themes. The two light drawer rows (current, hover) added 1 per theme; the phone icon strip and its hover-name rules went in #592, which took 22 bases per theme with them; the stacked table target and neutral hover went with the stack layout in #736, and React Toast adds 2 bases per theme; #661 adds 7 per theme: the four field focus rules with a transparent border, the table scroll region focus, and the light hover rows of the dropdown and version menus; its round 1 adds the CommandPalette search row, whose divider goes transparent under the ring; #736 adds 1 per theme: a pinned target row under the pointer keeps its opaque pinned cell; the document viewer of #736 adds 6 per theme: that pinned cell reads --table-bg, so the walk now takes it on the card, the page and the viewer stage, each as the table itself and as its ancestor; #736 removes the breadcrumb link hover, 1 per theme; #773 adds 2 per theme: the row above a hovered row and the header over a hovered first row drop their line; #776 adds 2 per theme: a hold-to-confirm button does not move under :active, and a held danger button keeps its pink edge under the pointer; the row table of #770 adds 8 per theme: its hover row, and its selected row under the pointer, which reads --table-bg, so the walk takes it as itself, on the card, the page and the viewer stage; #814 adds 4 per theme: a focused text link and the words that open a readout take room, and a filled cell link and a later cell\'s link take the band\'s room before the name; #811 adds 6 per theme: the drawer group’s dark and light row hover, and the pinned row and the selected row under the pointer, which read the drawer group’s --table-bg, so the walk takes each as the table itself and as its ancestor');
   assert.deepEqual(offences, [], `a state base no browser would accept:\n  ${offences.join('\n  ')}`);
   dom.window.close();
 });

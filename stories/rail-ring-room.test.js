@@ -30,6 +30,9 @@
 //   is the only thing that changed: the band is still 2px standing 1px off the border
 //   box, so every number below is the number it was written against. Chrome measured the ring
 //   itself for #575, before and after, at both widths in both themes.
+// - The band, not its offset. A subject is a box that paints the reference band. The
+//   rail rows draw it inward since #789, so the 3px of room asked for here is more than
+//   a row needs. The rule still holds for any box in the rail that draws it outward.
 // - Whether the row takes the ring AT ALL is stories/focus-ring.test.js's question.
 //   This gate reads only the rows that already draw it, and a rail whose rows lost
 //   their ring entirely would leave this one with nothing to measure — which is what

@@ -121,6 +121,10 @@ const contextOf = (el, cap) => ({
  * judged on the winning value, so a rule added to the block is held to the same
  * outcome as the rule beside it — and a property nothing here judges fails the sweep.
  */
+/* How far a focused line's ring reaches past its words: the room a text link takes, the gap
+ * and the ring (#814). Read from the tokens, so the clip margin cannot fall behind them. */
+const RING_REACH = ['--space-1', '--ring-gap-width', '--ring-width']
+  .reduce((sum, name) => sum + lengthPx(tokensFor('light', 'default').get(name), 390), 0);
 const OUTCOME = {
   // The column takes its content, never a share of a table wider than the screen.
   width: (v, { fit }) => ((fit ? v === '1px' : v === '1%') ? null
@@ -151,8 +155,8 @@ const OUTCOME = {
     : (['clip', 'hidden'].includes(v) ? null : `${v} lets text run past the cap`)),
   'overflow-clip-margin': (v, { cell }) => (cell
     ? `the cell has a clip margin of ${v}, so sticky ink can paint over the next column`
-    : (lengthPx(v, 390) >= 4 ? null
-      : `a cut ${v} from the box leaves a focused line no room for its ring`)),
+    : (lengthPx(v, 390) >= RING_REACH ? null
+      : `a cut ${v} from the box leaves a focused line no room for its ring and the room inside it`)),
   'text-overflow': (v, { cell, picture, pictureLine }) => ((picture || pictureLine) && !cell
     ? (v === 'clip' ? null : `${v} promises a cut that a box overflowing in the open never draws`)
     : (v === 'ellipsis' ? null : `${v} cuts text without saying so`)),
@@ -160,11 +164,6 @@ const OUTCOME = {
   display: (v, { decorative }) => (decorative
     ? (v === 'none' ? null : `the logo is back in the narrow column as ${v}`)
     : (v !== 'none' ? null : 'the pinned identity column is not drawn at all')),
-  // A block box is what carries the cut: `text-overflow` is a block container's
-  // property, and the fill's flex box holds its text in an anonymous item no ellipsis
-  // reaches. Measured in Chromium: flex cut "…Holdings Inte" with no ellipsis. #513
-  'align-content': (v) => (v === 'center' ? null
-    : `${v} drops the filled link's line to the top of a row taller than one line`),
   'justify-content': (v) => (v === 'flex-start' ? null
     : `${v} can cut the front of a capped control label`),
   'text-align': (v) => (['start', 'left'].includes(v) ? null
@@ -250,20 +249,36 @@ test('every pinned identity cell is held to the column\'s cap at both phone widt
   for (const width of PHONE_WIDTHS) assert.deepStrictEqual(capProblems(CSS, width), [], `at ${width}`);
 });
 
+/** The white-space half of the "nothing inside the column defeats it" sweep, as a pure
+ *  function of the stylesheet so a mutation is held to the same check. jsdom 31 resolves the
+ *  shorthand's inheritance, so a computed value that is not nowrap is the defect. why: #500. */
+function whiteSpaceProblems(css) {
+  const { document, style, cells } = mountAt(390, '', css);
+  const problems = [];
+  for (const cell of cells) {
+    for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
+      const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
+      const box = style(el);
+      if (box.whiteSpace !== 'nowrap') {
+        problems.push(`${where} wraps at ${box.whiteSpace}`);
+      }
+    }
+  }
+  return problems;
+}
+
 test('at 390 the column fits its region, shows a name and is drawn', () => {
   const { document, style, cells, cap } = mountAt(390);
 
   // The cap's own size, and the cells it has to hold, are required above at both phone
   // widths. What this test adds is that nothing inside the column defeats it.
+  assert.deepStrictEqual(whiteSpaceProblems(CSS), []);
   // The cell AND everything living in it: a rule written on a sub-line's own class
   // hides, unwraps or widens the column just as surely as one written on the cell.
   for (const cell of cells) {
     for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
       const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
-      // JSDOM resolves no inheritance, so an empty value is a property this
-      // stylesheet leaves to the cell above — only a value written here can be wrong.
       const box = style(el);
-      assert.ok(['', 'nowrap'].includes(box.whiteSpace), `${where} wraps at ${box.whiteSpace}`);
       assert.ok((lengthPx(box.minWidth, 390) ?? 0) <= cap, `${where} has a floor past the cap: ${box.minWidth}`);
       assert.notEqual(box.visibility, 'hidden', `${where} is drawn invisible`);
       assert.ok(['', 'static', 'relative', 'sticky'].includes(box.position), `${where} is out of the row at ${box.position}`);
@@ -299,7 +314,7 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(subLinesWithLinks.length, 7, 'the fixture must cover each sub-line link shape');
   for (const subLine of subLinesWithLinks) {
     assert.equal(style(subLine).display, 'block', `#${subLine.id} stopped being running text`);
-    assert.equal(style(subLine).overflowClipMargin, '4px', `#${subLine.id} does not keep the line ring room`);
+    assert.equal(style(subLine).overflowClipMargin, `${RING_REACH}px`, `#${subLine.id} does not keep the line ring room`);
     for (const link of subLine.querySelectorAll('a')) {
       const linkStyle = style(link);
       if (!link.className) assert.equal(linkStyle.display, 'inline', `#${subLine.id} bare link is atomic, so the line cannot cut inside it`);
@@ -311,6 +326,15 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.ok(['hidden', 'clip'].includes(sort.overflow), `a sort button runs past the cap at ${sort.overflow}`);
   assert.equal(style('#svgmark-shape').maxWidth.trim(), 'none', 'an svg mark is capped and distorted');
   assert.equal(style('#imgmark-shape').maxWidth.trim(), 'none', 'an img mark is capped and distorted');
+});
+
+test('the gate rejects a wrapping white-space written on the pinned identity', () => {
+  const mutated = CSS.replace(
+    '  .ui-table--pinned .ui-table__identity > * {\n    overflow: clip;',
+    '  .ui-table--pinned .ui-table__identity > * {\n    white-space: normal;\n    overflow: clip;',
+  );
+  assert.notEqual(mutated, CSS, 'the white-space mutation no longer matches table.css, so it proves nothing');
+  assert.ok(whiteSpaceProblems(mutated).length > 0, 'a written wrapping white-space passed the sweep unnoticed');
 });
 
 const round = (n) => Math.round(n * 100) / 100;
@@ -695,8 +719,9 @@ function fillProblems(css) {
   if (bare.display !== 'block') {
     problems.push(`the bare link is ${bare.display}, and only a block container draws the ellipsis it is promised`);
   }
-  if (bare.alignContent !== 'center') {
-    problems.push(`the bare link aligns its line ${bare.alignContent || 'at the top'}, which the flex box it replaces centred`);
+  // Every cell holds its first line at the top, and the padding above places it (#806).
+  if (!['', 'normal', 'start', 'flex-start'].includes(bare.alignContent || '')) {
+    problems.push(`the bare link aligns its line ${bare.alignContent}, where every other cell holds its first line at the top`);
   }
 
   return problems;
@@ -713,14 +738,15 @@ const FILL_MUTATIONS = [
       + ':has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; height: 1px; }\n', '')],
   // #513's filled-link defect, and the two rules that answer it, each taken away on its own.
   ['the filled bare link left a flex box, whose text no ellipsis shortens',
-    (css) => css.replace('    display: block;\n    align-content: center;\n', '')],
-  ['the block box kept and its line left at the top of the row',
-    (css) => css.replace('    align-content: center;\n', '')],
+    (css) => css.replace('a:not([class]):only-child { display: block; }', 'a:not([class]):only-child { }')],
+  ['the block box kept and its line centred in a row taller than one line',
+    (css) => css.replace('a:not([class]):only-child { display: block; }',
+      'a:not([class]):only-child { display: block; align-content: center; }')],
   ['the fill padded with a step the cell never had',
     (css) => css.replace('.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child '
-      + '{ padding: var(--space-1) var(--space-3); }',
+      + '{ padding: var(--space-2) var(--space-3) var(--space-1); }',
     '.ui-table--compact td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child '
-      + '{ padding: var(--space-2) var(--space-3); }')],
+      + '{ padding: var(--space-1) var(--space-3); }')],
 ];
 
 test('the gate rejects every way the fill reaches a linked identity wrongly', () => {

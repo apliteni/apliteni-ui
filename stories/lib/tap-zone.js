@@ -469,6 +469,9 @@ export const PROBE = ({ html, size, interior, families, within }) => {
  * believes a pass, because a rig that quietly ran as a mouse would report the
  * kit untouched and call that a green.
  */
+/** The tallest page the rig lays out. A control below it has no reach to measure. */
+export const VIEW_CAP = 16000;
+
 export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [] }) {
   const ctx = await browser.newContext({
     viewport: { width, height: 900 },
@@ -495,16 +498,19 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // the fold. Measured with a fixed 900px box, every control on the lower
       // half of a long story reported a reach of exactly its drawn size and no
       // owner at all — a rig artefact that reads identically to a layer that
-      // was never applied.
-      const height = await page.evaluate((html) => {
+      // was never applied. A story taller than the cap is reported as `cut`:
+      // at 6000 a filter bar that the sheet moved across the fold read as a
+      // shrink (#814).
+      const full = await page.evaluate((html) => {
         document.body.innerHTML = html;
-        return Math.min(Math.max(document.documentElement.scrollHeight, 900), 6000);
+        return document.documentElement.scrollHeight;
       }, s.html);
+      const height = Math.min(Math.max(full, 900), VIEW_CAP);
       if (height !== page.viewportSize().height) {
         await page.setViewportSize({ width, height });
       }
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });
-      if (targets.length) rows.push({ story: s.id, targets, height });
+      if (targets.length) rows.push({ story: s.id, targets, height, cut: full > VIEW_CAP });
     }
     return { media, rows };
   } finally {

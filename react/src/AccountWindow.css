@@ -27,7 +27,9 @@
   /* rank: card-title */
   font-size: var(--text-lg); font-weight: var(--weight-semibold); line-height: var(--leading-snug);
   font-family: var(--font-sans); color: var(--strong); }
-.rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8); }
+.rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8);
+  /* The ring's reach outside a control, so a stop that focus scrolls in keeps its whole band. */
+  scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width)); }
 /* The tabs and the rail's close are the phone's. */
 .rx-account__tabs, .rx-account__who > .ui-btn { display: none; }
 .rx-account__tabs { --ui-tabs-ground: var(--bg); }
@@ -35,11 +37,17 @@
 .rx-account__who > .ui-btn { width: calc(var(--space-10) + var(--space-1));
   height: calc(var(--space-10) + var(--space-1)); flex: none; }
 
-/* A floating panel goes edge to edge at 560px. The rail becomes the header: the reader,
- * the close and the sections as tabs, over the pane. why: docs/foundations.md#breakpoints */
+/* At 560px the window floats with a --space-4 gap on each side, or the safe-area inset where
+ * that is wider, and is as tall as its content up to the safe screen height. The rail becomes
+ * the header: the reader, the close and the sections as tabs, over the pane, and only the
+ * pane's body scrolls. why: docs/foundations.md#breakpoints */
 @media (max-width: 560px) {
-  .rx-modal.rx-account { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0;
-    flex-direction: column; }
+  .rx-modal.rx-account { flex-direction: column; height: auto;
+    margin: max(var(--space-4), env(safe-area-inset-top)) max(var(--space-4), env(safe-area-inset-right))
+      max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-4), env(safe-area-inset-left));
+    width: calc(100vw - max(var(--space-4), env(safe-area-inset-left)) - max(var(--space-4), env(safe-area-inset-right)));
+    max-height: calc(100vh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom)));
+    max-height: calc(100dvh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom))); }
   .rx-account__rail { overflow: visible; padding: var(--space-4) var(--space-3); gap: var(--space-2); }
   .rx-account__av > .ui-avatar { --ui-avatar-size: var(--space-8); }
   .rx-account__who { padding: 0 0 0 var(--space-3); }

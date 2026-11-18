@@ -111,7 +111,7 @@ function Preview({ change, empty }: Args) {
     <div ref={block} className={`ui-stack${showExample ? ' m-fade-in' : ''}`}>
       {/* The table's filter bar, directly above it. Without rows there is nothing to
           filter, so the empty state stands alone. why: guidelines/dense-tables.md */}
-      {previewRows.length > 0 && <Card>{bar}</Card>}
+      {previewRows.length > 0 && bar}
       {/* The card carries its own title, so the title and the first column share the
           card's text edge. The table region keeps a stable name of its own. */}
       <Card title={noChanges ? undefined : heading}>

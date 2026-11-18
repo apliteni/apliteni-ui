@@ -199,6 +199,10 @@ const ddUp = (panel) => (ddLifted(panel)
 function ddScrollBox(dd, panel) {
   if (dd.__ddPanel || ddInFilterRow(panel)) return null;
   const view = ddViewOf(panel);
+  // A shut panel still schedules its collapse after its fade, and a test or a page
+  // can tear the document down while the timer waits. A view without getComputedStyle
+  // has no box to measure, so the collapse reads as already done.
+  if (typeof view?.getComputedStyle !== 'function') return null;
   const els = [];
   let top = 0;
   let bottom = view.innerHeight;
@@ -222,6 +226,7 @@ function ddScrollBox(dd, panel) {
  * a body that scrolls across still shows the rest. */
 function ddClipsAcross(box, panel) {
   const view = ddViewOf(panel);
+  if (typeof view?.getComputedStyle !== 'function') return false;
   const p = panel.getBoundingClientRect();
   return box.els.some((at) => {
     const overflow = view.getComputedStyle(at).overflowX;
@@ -345,7 +350,8 @@ function ddPlaceLifted(dd, panel) {
   const other = configured ? below : above;
   const up = mine < Math.min(ddMin(panel), ddContentHeight(panel)) && other > mine ? !configured : configured;
   const s = panel.style;
-  s.translate = '';
+  s.marginLeft = '';
+  s.marginRight = '';
   if (panel.getAttribute('data-dd-lifted') !== (up ? 'up' : 'down')) {
     const held = s.transition;
     s.transition = 'none';
@@ -619,8 +625,10 @@ export const DD_EXIT_SLACK_MS = 50;
 /** The shift a panel is already carrying, the one ddFitViewport() wrote. Taken
  *  off before the next measurement, so asking twice answers the same as asking
  *  once — the fit is measured from where the sheet puts the panel, not from where
- *  the last fit left it. */
-const ddShiftOf = (panel) => parseFloat(panel.style?.translate) || 0;
+ *  the last fit left it. The shift is side margins, not a translate: Chromium 158
+ *  kept the page as wide as a translated panel's old place after a transition
+ *  ended (#812). The far margin gives the room back, so the panel keeps its width. */
+const ddShiftOf = (panel) => parseFloat(panel.style?.marginLeft) || 0;
 
 /** The widest a panel may be: the view it is laid out in, less the keep-out it owes
  *  each edge. It is the bound a PORTALLED panel needs, whose room is the whole view
