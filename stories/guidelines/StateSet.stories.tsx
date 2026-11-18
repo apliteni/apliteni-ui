@@ -19,8 +19,9 @@ const Stage = ({ mod = '', children }: { mod?: string; children: ReactNode }) =>
 
 // `.gl-ring` pins what :focus-visible paints (src/styles/base.css), because a
 // focus band exists only under a live keyboard and cannot be screenshotted.
+// The toolbar gives the button the field's height, so both share one top and bottom edge. #825
 const Ringed = ({ mod = '' }: { mod?: string }) => <div className={`gl-stage gl-ring ${mod}`}>
-  <div className="gl-row">
+  <div className="ui-toolbar">
     <Button variant="primary">Save changes</Button>
     <input className="ui-input" type="text" defaultValue="acme.io/hooks" aria-label="Webhook URL" />
   </div>

@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.175.1', date: '2026-11-18',
+    changes: [
+      ['changed', 'The components page now says to put a button and a field that share a row in `.ui-toolbar`, so that they have the same top and bottom edge. Part of #825.', ['Toolbar']],
+    ],
+  },
+  {
     v: '0.175.0', date: '2026-11-18',
     changes: [
       ['changed', 'A `FileDrop` row with a file keeps the resting row\'s 32px height while the file uploads and after it lands. The name, the size and the status or the progress track stand on one line, and Remove ends it. Content under the row no longer moves when a file arrives. Part of #820.', ['FileDrop']],
