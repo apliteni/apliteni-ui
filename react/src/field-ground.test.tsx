@@ -453,21 +453,19 @@ describe('field ground: React discovery, held to its claim', () => {
   // The exception is the filter bar's live search field, by its place and nothing else:
   // the same field disabled, or alone on the page, or a text field in the bar, is still
   // stranded. rev_136bd26bc559/d24
-  it('lets only a live search field in a filter bar stand on the page', () => {
-    const cases: [string, () => ReactElement, boolean][] = [
-      ['InBar', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" /></div>, false],
-      ['InBarDisabled', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" disabled /></div>, true],
-      ['Alone', () => <SearchField ariaLabel="Search payouts" />, true],
-      ['TextInBar', () => <div className="ui-toolbar"><input className="ui-input" aria-label="Reference" /></div>, true],
-    ];
-    for (const [name, render, rejected] of cases) {
-      const story = one({ default: {}, [name]: render });
-      for (const theme of THEMES) {
-        const mine = measure(story, theme);
-        expect(mine.length, `${name} [${theme}]: the field was not measured`).toBe(1);
-        expect(mine[0].onPage, `${name} [${theme}]: the field did not read the page ground`).toBe(true);
-        expect(stranded(mine).length, `${name} [${theme}]: ${rejected ? 'passed' : 'rejected'}`).toBe(rejected ? 1 : 0);
-      }
+  // One test per case: four cases in one test overran the 5000ms timeout.
+  it.each<[string, () => ReactElement, boolean]>([
+    ['InBar', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" /></div>, false],
+    ['InBarDisabled', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" disabled /></div>, true],
+    ['Alone', () => <SearchField ariaLabel="Search payouts" />, true],
+    ['TextInBar', () => <div className="ui-toolbar"><input className="ui-input" aria-label="Reference" /></div>, true],
+  ])('lets only a live search field in a filter bar stand on the page: %s', (name, render, rejected) => {
+    const story = one({ default: {}, [name]: render });
+    for (const theme of THEMES) {
+      const mine = measure(story, theme);
+      expect(mine.length, `${name} [${theme}]: the field was not measured`).toBe(1);
+      expect(mine[0].onPage, `${name} [${theme}]: the field did not read the page ground`).toBe(true);
+      expect(stranded(mine).length, `${name} [${theme}]: ${rejected ? 'passed' : 'rejected'}`).toBe(rejected ? 1 : 0);
     }
   });
 
