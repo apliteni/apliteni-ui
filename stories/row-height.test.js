@@ -10,8 +10,11 @@
  * off unless ROW_HEIGHTS=1 because Playwright is deliberately not a dependency.
  * That half loads IBM Plex Sans and measures in both containers the kit
  * documents a row into, because a name line is as wide as the font drawing it.
+ * It also measures every file drop story where Storybook draws it, in a card
+ * that sizes to its content.
  *
- *   npm run build-storybook && ROW_HEIGHTS=1 node --test stories/row-height.test.js
+ *   npm run build-storybook
+ *   UI_PLAYWRIGHT=… UI_CHROME=… ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
  * why: docs/components.md#react-file-drop
  */
@@ -20,6 +23,8 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
+import { env } from 'node:process';
 import { kitStylesheet, storySubjects, playwright } from './lib/tap-zone.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -45,6 +50,14 @@ const CLAIMS = [
   {
     selector: '.ui-drop__row', prop: 'container-type', pattern: /container-type:\s*inline-size/,
     why: 'the row is no size container, so the size query reads nothing and the size never leaves a narrow row',
+  },
+  {
+    selector: '.ui-drop__row', prop: 'contain-intrinsic-inline-size', pattern: /contain-intrinsic-inline-size:\s*var\(--panel-md\)/,
+    why: 'the size container gives the row no width of its own, so a parent that sizes to its content collapses it to 0px',
+  },
+  {
+    selector: '.ui-drop:not(.ui-drop--area)', prop: 'grid-template-columns', pattern: /grid-template-columns:\s*minmax\(0, 1fr\)/,
+    why: 'the row cannot ask for less than its stated width, so a parent with less room than that overflows',
   },
   {
     selector: '.ui-drop__file', prop: 'align-items', pattern: /align-items:\s*flex-start/,
@@ -106,7 +119,7 @@ const without = (css, { selector, prop }) => {
 };
 
 test('the sheet declares every layout claim the browser half measures', () => {
-  assert.ok(CLAIMS.length === 13, `${CLAIMS.length} claims; the count is what says one was not dropped`);
+  assert.ok(CLAIMS.length === 15, `${CLAIMS.length} claims; the count is what says one was not dropped`);
   assert.deepEqual(faults(CSS), [], `${SHEET}: a layout claim the measurement depends on is not declared`);
 });
 
@@ -253,7 +266,7 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   const react = await reactSubjects();
   const subjects = [...fileDrop, ...react];
   const sheet = kitStylesheet() + '\n' + readFileSync(path.join(root, 'react/dist/index.css'), 'utf8');
-  const browser = await pw.chromium.launch();
+  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME });
   const found = [];
   const fonts = [];
   try {
@@ -488,4 +501,108 @@ test('measured at 1280, 390, 360 and 320, in a plain row and in a panel', { skip
   assert.equal(long.length, 2 * CONTAINERS.length, `${long.length} long-name rows at 320, not ${2 * CONTAINERS.length}`);
   assert.deepEqual(long.filter((r) => !r.stemClipped).map((r) => `${r.id} in the ${r.container}`), [],
     'a name that cannot fit 320 was not truncated, so something else gave way');
+});
+
+/* -- The stories where Storybook draws them --------------------------------- */
+
+/* Limits: the built Storybook, one engine, the light theme. The card in each
+   story sizes to its content in the centred layout, so these rows stand at the
+   row's stated width, or narrower when the window is. Rows in a parent of a
+   set width are the measurement above. */
+const STORY_WIDTH = 420; // --panel-md, the width a row asks of such a parent.
+
+/**
+ * Every file drop story, measured where it stands: no markup is copied out, so
+ * the story's own card is the parent. #820's first review found the rows of
+ * that card at 0px, with Retry and Remove outside a 50px card.
+ */
+async function storyRows(pw) {
+  const built = path.join(root, 'storybook-static');
+  const index = JSON.parse(readFileSync(path.join(built, 'index.json'), 'utf8'));
+  const ids = Object.keys(index.entries)
+    .filter((id) => /^(react-file-drop|guidelines-file-drop)--/.test(id) && index.entries[id].type === 'story');
+  const serve = spawn(process.execPath, [path.join(root, 'scripts/evidence/serve.mjs'), built],
+    { stdio: ['ignore', 'pipe', 'inherit'] });
+  const port = await new Promise((resolve, reject) => {
+    serve.stdout.once('data', (d) => resolve(Number(String(d).trim())));
+    serve.once('error', reject);
+  });
+  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME });
+  const rows = [];
+  try {
+    for (const width of WIDTHS) {
+      const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor: 1 });
+      for (const id of ids) {
+        await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=theme:light`, { waitUntil: 'load' });
+        await page.waitForSelector('#storybook-root > *', { state: 'attached' });
+        await page.evaluate(() => document.fonts.ready);
+        const found = await page.evaluate(() => {
+          const sideways = document.documentElement.scrollWidth - window.innerWidth;
+          return [...document.querySelectorAll('.ui-drop__row')].map((row) => {
+            const r = row.getBoundingClientRect();
+            const outside = [...row.querySelectorAll('.ui-drop__name, .ui-drop__state, .ui-drop__bar, .ui-drop__actions, .ui-btn')]
+              .map((el) => ({ cls: el.className.split(' ')[0], b: el.getBoundingClientRect() }))
+              .filter(({ b }) => b.left < r.left - 1 || b.right > r.right + 1)
+              .map(({ cls, b }) => `${cls} at ${Math.round(b.left - r.left)}..${Math.round(b.right - r.left)}`);
+            const state = row.querySelector('.ui-drop__state');
+            const word = row.querySelector('.ui-drop__word');
+            return {
+              width: Math.round(r.width * 100) / 100,
+              height: Math.round(r.height * 100) / 100,
+              failed: Boolean(row.querySelector('.ui-drop__file--failed')),
+              file: Boolean(row.querySelector('.ui-drop__file')),
+              reasonShown: state ? state.getBoundingClientRect().width > 0 && !(word && word.scrollWidth > word.clientWidth) : null,
+              outside,
+              sideways,
+            };
+          });
+        });
+        rows.push({ id, width, found });
+      }
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+    serve.kill();
+  }
+  return { ids, rows };
+}
+
+test('every file drop story holds its rows where Storybook draws it', { skip: !RUN && 'set ROW_HEIGHTS=1' }, async (t) => {
+  const pw = await playwright();
+  assert.ok(pw, 'ROW_HEIGHTS=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const { ids, rows } = await storyRows(pw);
+  assert.ok(ids.length >= 16, `${ids.length} file drop stories; the React gallery and the guideline page hold more`);
+  assert.equal(rows.length, ids.length * WIDTHS.length, 'a story was not measured at every width');
+
+  // The drop area and the page target draw an empty state, not a row.
+  const NO_ROW = ['react-file-drop--area', 'react-file-drop--area-dragging', 'react-file-drop--page-dragging'];
+  const empty = [...new Set(rows.filter((s) => !s.found.length).map((s) => s.id))];
+  assert.deepEqual(empty, NO_ROW, 'the stories that draw no row moved, so a row went unmeasured or a list went stale');
+
+  // No row collapses, no part runs outside its row, and no story scrolls the page.
+  const broken = rows.flatMap((s) => s.found
+    .filter((r) => r.width < 120 || r.outside.length)
+    .map((r) => `${s.id}@${s.width}: a ${r.width}px row${r.outside.length ? `, ${r.outside.join(', ')} outside it` : ''}`));
+  assert.deepEqual(broken, [], 'a story collapsed a file drop row, or a part runs outside its row');
+  const sideways = rows.filter((s) => s.found.some((r) => r.sideways > 0)).map((s) => `${s.id}@${s.width}`);
+  assert.deepEqual(sideways, [], 'a file drop story scrolls the page sideways');
+
+  // The React gallery's lone rows take the stated width while the window has
+  // room for it, and less only when it has not. Every file row keeps the
+  // resting row's 32px, but a refused row with its reason under the name, which
+  // is one reason line taller. The reason is whole.
+  const lone = rows.filter((s) => s.id.startsWith('react-file-drop--') && s.found.length === 1);
+  assert.ok(lone.some((s) => s.width === 1280), 'no lone React row was measured at 1280');
+  const wide = lone.filter((s) => s.width === 1280 && s.found[0].width !== STORY_WIDTH)
+    .map((s) => `${s.id}: ${s.found[0].width}px`);
+  assert.deepEqual(wide, [], `a lone row at 1280 does not take the stated ${STORY_WIDTH}px`);
+  const tall = rows.flatMap((s) => s.found.filter((r) => r.file
+    && r.height !== (r.failed && r.height > 32 ? 61.05 : 32)).map((r) => `${s.id}@${s.width}: ${r.height}px`));
+  assert.deepEqual(tall, [], 'a file row in a story is neither 32px nor, refused, 61.05px');
+  const cut = rows.flatMap((s) => s.found.filter((r) => r.failed && !r.reasonShown).map(() => `${s.id}@${s.width}`));
+  assert.deepEqual(cut, [], 'a refused row in a story cuts or hides its reason');
+  for (const s of rows.filter((x) => x.id === 'react-file-drop--failed')) {
+    t.diagnostic(`  ${s.id}@${s.width}: ${s.found.map((r) => `${r.width}x${r.height}`).join(', ')}`);
+  }
 });

@@ -963,7 +963,7 @@
  "_file-drop.js": {
   "one-row": [
    {
-    "ref": "src/styles/file-drop.css:6",
+    "ref": "src/styles/file-drop.css:11",
     "pattern": ".ui-drop__row {"
    },
    {
@@ -973,7 +973,7 @@
   ],
   "on-drag": [
    {
-    "ref": "src/styles/file-drop.css:87",
+    "ref": "src/styles/file-drop.css:95",
     "pattern": ".ui-drop__target {"
    },
    {
@@ -983,7 +983,7 @@
   ],
   "in-the-row": [
    {
-    "ref": "src/styles/file-drop.css:28",
+    "ref": "src/styles/file-drop.css:36",
     "pattern": ".ui-drop__file {"
    },
    {
@@ -993,7 +993,7 @@
   ],
   "failure": [
    {
-    "ref": "src/styles/file-drop.css:67",
+    "ref": "src/styles/file-drop.css:75",
     "pattern": ".ui-drop__error"
    },
    {
@@ -1015,7 +1015,7 @@
   ],
   "which-shape": [
    {
-    "ref": "src/styles/file-drop.css:6",
+    "ref": "src/styles/file-drop.css:11",
     "pattern": ".ui-drop > * + .ui-drop__row"
    },
    {

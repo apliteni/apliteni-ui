@@ -1149,8 +1149,8 @@ fills the free room on the line. The name gives way first: it truncates its stem
 extension, and the full name is in a `title`. **One layout serves every width.** In a row of
 352px or less, the size leaves the line, and a screen reader still reads it. A refused file
 shows its reason on the name's line. When the full name and the reason do not fit there, the
-reason moves under the name and the row grows by one line, to 61px. The row reads its own width,
-so give `FileDrop` a width when its parent sizes to its content. **The drop target is painted only while a file is over the region. It covers
+reason moves under the name and the row grows by one line, to 61px. In a parent that sizes to its
+content, `FileDrop` is 420px wide, or narrower when the parent has less room. **The drop target is painted only while a file is over the region. It covers
 that region instead of joining it**, so the row stays in place while the reader aims. Children
 render above the row inside the same region. This lets one panel, or a whole page, become the
 target. A disabled drop never calls `preventDefault` on `dragover`, so it does not declare

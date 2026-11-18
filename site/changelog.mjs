@@ -10,7 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'A `FileDrop` row with a file keeps the resting row\'s 32px height while the file uploads and after it lands. The name, the size and the status or the progress track stand on one line, and Remove ends it. Content under the row no longer moves when a file arrives. Part of #820.', ['FileDrop']],
       ['changed', 'In a `FileDrop` row of 352px or less, the size leaves the line, and a screen reader still reads it. A refused file shows its reason beside the name, and moves it under the name only when the line is full. The row then grows to 61px. Part of #820.', ['FileDrop']],
-      ['changed', 'A `FileDrop` row reads its own width, so a parent that sizes to its content collapses it. Give `FileDrop` a width in such a parent. Part of #820.', ['FileDrop']],
+      ['changed', 'In a parent that sizes to its content, `FileDrop` is 420px wide, or narrower when the parent has less room. Part of #820.', ['FileDrop']],
     ],
   },
   {
