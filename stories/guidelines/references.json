@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:248",
+    "ref": "src/styles/table.css:257",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:308",
+    "ref": "src/styles/table.css:317",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -34,7 +34,7 @@
     "pattern": ".ui-btn--sm"
    },
    {
-    "ref": "src/styles/input.css:163",
+    "ref": "src/styles/input.css:165",
     "pattern": ".ui-check input::before"
    },
    {
@@ -74,11 +74,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:196",
+    "ref": "src/tokens/tokens.css:198",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:202",
+    "ref": "src/tokens/tokens.css:204",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:214",
+    "ref": "src/tokens/tokens.css:216",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -448,21 +448,21 @@
  "_hover-readouts.js": {
   "overlay": [
    {
-    "ref": "src/styles/tooltip.css:18",
+    "ref": "src/styles/tooltip.css:27",
     "pattern": "position: absolute;"
    },
    {
-    "ref": "src/styles/tooltip.css:60",
+    "ref": "src/styles/tooltip.css:85",
     "pattern": ".ui-tip.is-open { opacity: 1; visibility: visible; }"
    }
   ],
   "above-the-mark": [
    {
-    "ref": "react/src/tip.ts:47",
+    "ref": "react/src/tip.ts:55",
     "pattern": "const flip = prefersBelow"
    },
    {
-    "ref": "react/src/tip.ts:54",
+    "ref": "react/src/tip.ts:62",
     "pattern": "const left = Math.max(clip.left"
    }
   ],
@@ -530,7 +530,7 @@
     "pattern": "stroke-width: 2.1;"
    },
    {
-    "ref": "stories/signal-contrast.test.js:590",
+    "ref": "stories/signal-contrast.test.js:664",
     "pattern": "const barFor = (px) =>"
    }
   ]
@@ -856,7 +856,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:298",
+    "ref": "src/tokens/tokens.css:305",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1109,7 +1109,7 @@
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:279",
+    "ref": "src/styles/table.css:288",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
@@ -1137,7 +1137,7 @@
     "pattern": "ariaLabel?: string;"
    },
    {
-    "ref": "src/styles/badge.css:8",
+    "ref": "src/styles/badge.css:9",
     "pattern": ".ui-badge {"
    }
   ],

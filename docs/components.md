@@ -604,7 +604,8 @@ the place of anything else on the page.** A closed readout has no box, so it can
 scroll region that holds it. There is one element per host. It is placed absolutely
 and takes no pointer events. `.ui-tip-host` marks the box it is placed against. The readout flips
 or slides only as far as needed to stay inside the viewport and every ancestor whose overflow
-clips. **What it says is text**, written with `textContent` and never parsed. Focus on a mark shows
+clips. **What it says is text**, written with `textContent` and never parsed. The text wraps inside
+the readout's box, also in a table cell that keeps its text on one line. Focus on a mark shows
 the readout and describes the mark through `aria-describedby`. **Escape dismisses every readout
 the kit is showing**. **Under a coarse pointer the tap is the switch**, and the opening tap is
 captured. This means a chart that drills down on a bar does not drill down on the tap that asked
@@ -629,8 +630,10 @@ focuses the trigger waits for the hover.
 `aria-label`. The readout shows its word on hover and focus. It adds no tab stop and no
 description, and it is hidden from assistive technology, because the control's name already says it.
 
-`placement` selects the preferred top or bottom side. The readout stays within clipping ancestors
-and viewport bounds, and updates its position on scroll and resize.
+`placement` selects the preferred top or bottom side. **The open readout sits in the top layer**,
+over a sticky table cell and over a cut one. It stays within the viewport and within each clipping
+ancestor that can hold it beside its mark, and updates its position on scroll and resize. A browser
+with no popover support keeps it in its host, within every clipping ancestor.
 
 ### Pagination
 
@@ -660,7 +663,8 @@ window's. In a flex row or an `auto` grid track, you give it one:
 | Open | 66rem | 50rem | 32rem | 15rem |
 
 Below 14rem, band and tile values use the next smaller type rank. Open values step down below 15rem.
-Longer values remain the caller's responsibility.
+Longer values remain the caller's responsibility. Totals that are the sum of a list go in the
+table's footer rows, not in a stat band.
 
 A band can use `basisId` to reference comparison text before the figures. An explicit `basis` takes precedence.
 When a period control already states the window, omit a caption that repeats it, including for totals without changes.
@@ -680,7 +684,7 @@ larger.
 ### Dense financial tables
 
 The table is markup. A named scroll region contains a native `<table>`, and you apply the
-recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. On a dense hover table, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends.
+recipes as classes. Zebra adds no grey stripes. Hover gives a row a quiet neutral fill across the table width. On a dense hover table, the fill has round ends, and the first and last content sit 8px inside it. No row line crosses those ends. A dense table marks a selected row with its check box only, with no wash, because a round hover with selected rows looks bad.
 Keyboard focus keeps its ring, and a landed row keeps its own mark. On a zebra or dense table, `compact` sets a 33px minimum row, but larger or wrapped content makes the row
 taller. **Columns scroll rather than disappear**, while sticky headers and pinned identity cells
 keep opaque backgrounds, the shared focus composition, and their full accessible names. **A
@@ -691,17 +695,26 @@ reach the focus ring. An engine that cannot report a scroll state keeps the divi
 width. **A link
 inside a cell uses the row's ink, gets an underline on hover, and uses the shared ring on
 `:focus-visible`**. The ring surrounds the whole link, including a title-cell link that wraps.
+In a cell after the first, the band keeps 8px of room before the name, and the name does not move.
 `numericValue` distinguishes missing from zero. `deltaValue` prints your sign and uses your
 explicit judgement. **Colour never supplies the sign.** **Every body and header cell aligns its
 content to the top**, so when one cell wraps, the other values stay level with its first line. A
 React sort mark stands on the first line of a wrapped label. A badge, a logo, a selection box or
-an icon button in a cell stays level with the text beside it.
+an icon button in a cell stays level with the text beside it. A badge in a cell is 19px high,
+against 24px elsewhere, and never makes its row taller.
+
+Use a badge for the status of the record. Use an ink word for a second status in the same row.
+`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a word the ink of
+its tone with no fill. Each one is at least 4.5:1 on a plain or a selected row, in both themes
+and under every accent. In light, warn, info and danger take a deeper ink than their badge, so
+they are at least 7:1 on a plain row, a selected row and a selected row under the pointer.
 
 **A hover table that is neither zebra nor dense is a row table.** Its body rows have no lines
 and no column lines, and the head keeps its rule. **A row is 48px tall, 36px with `compact` and
 56px with `comfortable`**, and larger or wrapped content makes it taller. The space above a
 row's first line centres that line in this height, so a one-line row looks centred. Hover gives the row a
-neutral fill, and a checked selection box gives it an accent wash. Both fills are square, and the
+neutral fill, and a checked selection box gives it an accent wash at a tinted card's strength: 5% in
+light and 8% under the pointer, 9% in dark and 12% under the pointer. Both fills are square, and the
 first and last content sit 12px inside them. The name
 in the first column takes the strongest ink. **`.ui-table__sub` puts a second value under the
 first**, such as an email under a name, in full ink at a smaller size. An act cell that holds icon
@@ -728,7 +741,8 @@ composed into a cell.
 
 **Below 720px a pinned identity cell keeps its content on one line**, capped at
 `--ui-table-identity-max` and cut with an ellipsis past the cap. The default cap is
-`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. The whole text stays in
+`min(var(--panel-sm), 50vw)`, and that one property is yours to retune. A table with a
+selection column leaves less room on a phone. Lower the cap there. The whole text stays in
 the markup, so the accessible name is unchanged and the company link remains the disclosure. The
 decorative logo is not drawn there. A sub-line stays running text, which is a rule in
 [Dense tables](../guidelines/dense-tables.md). **Focusing a link inside a sub-line draws the band
@@ -1367,7 +1381,13 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   router-link rendering. **Nesting stops one level deep.** Each row keeps its name and count when
   collapsed.
 - **`Checkbox` and `Switch`** render native inputs inside the existing label classes, and **a
-  disabled one uses the same paint as every other disabled control in the kit.**
+  disabled one uses the same paint as every other disabled control in the kit.** A resting box
+  has a field's fill and an edge of at least 3:1 on the page, a card, a menu and a hovered row.
+  It measures 5.36:1 or more in light and 5.38:1 or more in dark. **A checked or partial box is a
+  light tint of the accent with an accent edge and an accent mark, not a solid accent block.** A
+  checked radio uses the same paint. Under every accent, the edge measures 5.74:1 or more in light
+  and 4.61:1 or more in dark on a card and on a selected or hovered selected row. The mark measures
+  5.23:1 or more on the tint in light and 4.46:1 or more in dark.
 - **A checkbox whose `indeterminate` property is true shows the checked fill with a short dash**
   in place of the tick. **`DataTable`'s selection boxes use the kit box and show the dash when some,
   but not all, rows on the page are selected.** **A selection column takes the width of its box in

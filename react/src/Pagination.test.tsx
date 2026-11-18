@@ -316,13 +316,13 @@ it('declares the page-size scale outright, naming no module a consumer cannot re
 
 // ---- focus at an end: disabled-not-removed, and the recovery it needs --------
 //
-// A control at an end is disabled rather than removed (see the file header of
-// src/components/pagination.js), and a browser blurs a control the moment it
-// becomes disabled: a reader who pressed Next into the last page is left on
-// <body>, and their next Tab starts from the top of the document. jsdom does NOT
-// blur on disable — the dead control keeps focus — so where the browser case
-// matters the tests below blur by hand, exactly as the browser would, and every
-// assertion is on `document.activeElement` either way.
+// A control at an end is disabled rather than removed (see `step` in
+// Pagination.tsx), and a browser blurs a control that becomes disabled: a reader
+// who pressed Next into the last page is left on <body>, and their next Tab
+// starts from the top of the document. jsdom 31 blurs it too, but only at its
+// next rendering update, a timer of about 16ms, so a test cannot know whether
+// that has run. Where the browser case matters the tests below blur by hand,
+// and no assertion depends on that timer.
 
 function EndHarness({ start, loadingFor = 0 }: { start: number; loadingFor?: number }) {
   const [page, setPage] = useState(start);
@@ -375,7 +375,8 @@ it('does the same at the other end, for First and for Prev', async () => {
 it('recovers from Last as well, onto the nearest step that is still live', async () => {
   // Next is dead at the last page too, so the nearest live step from Last is Prev.
   // The body case — what a browser leaves focus on — is driven by hand in the
-  // loading test below; here jsdom keeps focus on the dead control.
+  // loading test below. The pager moves focus in the same act as the press, so
+  // jsdom's later blur of the dead control finds Prev focused and does nothing.
   render(<EndHarness start={20} />);
   const last = named('Last');
   last.focus();
@@ -385,15 +386,17 @@ it('recovers from Last as well, onto the nearest step that is still live', async
 
 it('takes focus nowhere when the pager did not cause the loss', async () => {
   // A parent moving the page is not a press. Focus that sat on Next without
-  // pressing it stays there — even though Next has just gone dead — because
-  // nothing the reader did in the strip asked for a move.
+  // pressing it is not moved by the pager, even though Next has just gone dead,
+  // because nothing the reader did in the strip asked for a move.
   render(<EndHarness start={40} />);
   named('Next').focus();
   // Moved by something else on the page, without focus leaving Next: the
   // outside button's handler is invoked directly rather than clicked.
   await act(async () => { named('Parent jumps to the end').click(); });
   expect(named('Next')).toBeDisabled();
-  expect(document.activeElement).toBe(named('Next'));
+  // Still on the dead Next, or on <body> once jsdom's rendering update has blurred
+  // it, as a browser does. Neither is a move the pager made.
+  expect([named('Next'), document.body]).toContain(document.activeElement);
 
   // And focus somewhere else entirely is never pulled into the strip.
   named('Arrived').focus();

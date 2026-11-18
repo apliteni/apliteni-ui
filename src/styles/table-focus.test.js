@@ -859,3 +859,29 @@ test('the bottom focus band stays painted across pinned cells while scrolling',
       }
     } finally { await browser.close(); }
   });
+
+// A later cell's filled link starts its name at the cell's edge, so the inward band crossed the
+// first letter. While focused it takes --space-2 of clear edge before the name, lent back by
+// the margin, and it drops the text link's side room, which would move the name. The first
+// cell keeps the room its padding already gives. why: #814 (rev_136bd26bc559/d22).
+// Limits: it reads the declarations; the PR's captures show where the band lands.
+const FILLED = ":is(a:not([class]), a.ui-identity):only-child:focus-visible";
+const focusBody = (css, selector) => [...decomment(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .find(([, found]) => found.trim() === selector)?.[2];
+const bandRoom = (css) => {
+  const band = focusBody(css, `.ui-table td.ui-table__linked > ${FILLED}`) ?? "";
+  const later = focusBody(css, `.ui-table td.ui-table__linked:not(:first-child) > ${FILLED}`) ?? "";
+  const edge = /border-inline-start:\s*(var\(--space-2\))\s+solid\s+transparent\s*;/.exec(later)?.[1];
+  return /margin-inline:\s*0\s*;/.test(band)
+    && Boolean(edge)
+    && new RegExp(`margin-inline-start:\\s*calc\\(-1 \\* ${edge.replace(/[()]/g, "\\$&")}\\)\\s*;`).test(later)
+    && /width:\s*auto\s*;/.test(later);
+};
+
+test("a focused link in a later cell takes room before its name and moves no word", () => {
+  assert.ok(bandRoom(SHEETS), "the band crosses the first letter, or its room moves the name");
+  // Rejection: room that the margin does not give back moves the name on focus.
+  const pushed = SHEETS.replace("margin-inline-start: calc(-1 * var(--space-2));", "");
+  assert.notEqual(pushed, SHEETS, "the margin must be there to be removed");
+  assert.equal(bandRoom(pushed), false, "room that is not lent back must be caught");
+});

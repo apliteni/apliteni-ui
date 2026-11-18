@@ -1,11 +1,9 @@
-// What ground a field sits on, read rather than assumed — shared by the two gates
-// over it, stories/field-ground.test.js and react/src/field-ground.test.tsx.
+// What ground a field sits on, read rather than assumed — read by the gate over it,
+// react/src/field-ground.test.tsx. The vanilla gate went with the galleries in #724.
 //
-// Both ask the same question of a field: is the ground under it the page's own, or
-// a surface somebody painted for it. Only the mounting differs — the vanilla gate
-// calls a render fn for an HTML string, the React one mounts a component tree —
-// which is why the walks are per workspace and this reading is not.
-// Share the calculation but check each workspace separately.
+// It asks one question of a field: is the ground under it the page's own, or a
+// surface somebody painted for it. The walk stays in the gate and this reading does
+// not, so a second workspace can share the calculation and keep its own walk.
 //
 // Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that."

@@ -6,12 +6,25 @@
 
 export const RELEASES = [
   {
-    v: '0.171.0', date: '2026-11-17',
+    v: '0.172.0', date: '2026-11-18',
     changes: [
       ['changed', 'The smallest text step, `--text-xs`, is now 12px, not 11px. Badges, pills, key caps, tooltips, units, counts, dropdown descriptions and chart ticks get text 1px larger, and a badge is about 1.6px taller. If your layout needs 11px text, set that size in your own CSS, because the kit has no smaller step. Part of #814.', ['Badge', 'Tooltip', 'Dropdown', 'Chart', 'Command palette']],
       ['changed', 'Each kit text size is now one step of the `--text-*` scale, with no pixel offset, so a host that changes a step moves every part on it. Small buttons, dropdown triggers and rows, segments, callouts and footer links are 13px. Tabs and nav sub-items are 14.5px, drawer, modal and compact success titles are 15.5px, and the title of the centred entry card and the page title on a phone are 22px. Part of #814.', ['Button', 'Dropdown', 'Segmented', 'Tabs', 'Navigation', 'Drawer', 'Modal', 'AppShell']],
       ['changed', 'A small `Button` is now 32px tall, with or without a glyph, level with a dropdown trigger. An icon-only small button is 32×32px. A small `Segmented` control keeps its 24px box with 13px text, and inline code is never smaller than 12px. Part of #814.', ['Button', 'Segmented']],
       ['changed', 'A filter bar now stands on the page directly above its table card, with no card of its own. If your screen puts a filter bar on a card, you can remove that card. Keep its search field live there. Part of #814.', ['FilterBar', 'SearchField']],
+    ],
+  },
+  {
+    v: '0.170.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'A badge in a table cell is now 19px high, not 24px. A dense row stays 38px, and a badge outside a table does not change. Part of #814.', ['Badge', 'Table']],
+      ['added', '`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a status word the ink of its tone with no fill. Use them for a second status beside the badge of a row. In light, warn, info and danger use the new `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink`, which reach 7:1 on a selected row. Part of #814.', ['Badge', 'Table']],
+      ['fixed', 'A hover readout in a table cell now wraps its text inside its box. Before, it took the cell\'s one-line rule, so a long name ran out of the box. Part of #814.', ['Tooltip', 'Table']],
+      ['fixed', 'A React `Tooltip` readout now opens in the browser\'s top layer. A pinned name cell on a phone no longer cuts it, and a sticky table header no longer covers it. A browser with no popover support keeps the old placement. Part of #814.', ['Tooltip', 'Table']],
+      ['changed', 'A resting check box and radio now have a field\'s fill and a `--muted` edge, at 5.36:1 or more on every ground. Before, a grey fill looked disabled and the edge was 1.52:1. Part of #814.', ['Checkbox', 'Table']],
+      ['changed', 'A focused text link, and words that open a hover readout, get a 6px corner and 4px of room at each side. In a table cell after the first, the band keeps 8px before the name. No word moves. Part of #814.', ['Focus', 'Table']],
+      ['changed', 'A selected row\'s accent wash is lighter in light: 5%, and 8% under the pointer, from 9% and 12%. Dark does not change. Part of #814.', ['Table']],
+      ['changed', 'A checked or partial check box, and a checked radio, are now a light accent tint with an accent edge and mark, not a solid accent block. The edge and the mark stay at 4.4:1 or more under every accent in both themes. Part of #814.', ['Checkbox', 'Table']],
     ],
   },
   {

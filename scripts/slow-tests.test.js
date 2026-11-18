@@ -10,6 +10,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
 import slowTests, { SlowTests } from './slow-tests.mjs';
 
 const file = path.resolve('stories/contrast.test.js');
@@ -48,12 +49,17 @@ test('a file given by absolute path still gets its row, and its file budget', as
 });
 
 test('a browser gate gets the browser budget, not the 5s one', async () => {
-  const browser = path.resolve('stories/field-ground.test.js');
+  const browser = path.resolve('stories/tap-zone.test.js');
   const out = await drain(stream([
     { type: 'test:pass', data: { name: 'a paint', file: browser, details: { duration_ms: 7000, type: 'test' } } },
   ]));
   assert.doesNotMatch(out, /over budget\n\s+7\.00s/, '7s is inside the 10s browser budget');
   assert.match(out, /over budget: none/);
+  // A deleted gate left in the list keeps its budget for nothing and hides the gap (#724).
+  const listed = [...readFileSync(new URL('./slow-tests.mjs', import.meta.url), 'utf8')
+    .match(/BROWSER_FILES = new Set\(\[([^\]]*)\]/)[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  assert.ok(listed.length > 0, 'no browser file was read from the list');
+  assert.deepEqual(listed.filter((f) => !existsSync(f)), [], 'a listed browser gate does not exist');
 });
 
 test('a stream that rejects ends in a sentence, not in a thrown reporter', async () => {

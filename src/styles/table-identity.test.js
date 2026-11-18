@@ -121,6 +121,10 @@ const contextOf = (el, cap) => ({
  * judged on the winning value, so a rule added to the block is held to the same
  * outcome as the rule beside it — and a property nothing here judges fails the sweep.
  */
+/* How far a focused line's ring reaches past its words: the room a text link takes, the gap
+ * and the ring (#814). Read from the tokens, so the clip margin cannot fall behind them. */
+const RING_REACH = ['--space-1', '--ring-gap-width', '--ring-width']
+  .reduce((sum, name) => sum + lengthPx(tokensFor('light', 'default').get(name), 390), 0);
 const OUTCOME = {
   // The column takes its content, never a share of a table wider than the screen.
   width: (v, { fit }) => ((fit ? v === '1px' : v === '1%') ? null
@@ -151,8 +155,8 @@ const OUTCOME = {
     : (['clip', 'hidden'].includes(v) ? null : `${v} lets text run past the cap`)),
   'overflow-clip-margin': (v, { cell }) => (cell
     ? `the cell has a clip margin of ${v}, so sticky ink can paint over the next column`
-    : (lengthPx(v, 390) >= 4 ? null
-      : `a cut ${v} from the box leaves a focused line no room for its ring`)),
+    : (lengthPx(v, 390) >= RING_REACH ? null
+      : `a cut ${v} from the box leaves a focused line no room for its ring and the room inside it`)),
   'text-overflow': (v, { cell, picture, pictureLine }) => ((picture || pictureLine) && !cell
     ? (v === 'clip' ? null : `${v} promises a cut that a box overflowing in the open never draws`)
     : (v === 'ellipsis' ? null : `${v} cuts text without saying so`)),
@@ -310,7 +314,7 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(subLinesWithLinks.length, 7, 'the fixture must cover each sub-line link shape');
   for (const subLine of subLinesWithLinks) {
     assert.equal(style(subLine).display, 'block', `#${subLine.id} stopped being running text`);
-    assert.equal(style(subLine).overflowClipMargin, '4px', `#${subLine.id} does not keep the line ring room`);
+    assert.equal(style(subLine).overflowClipMargin, `${RING_REACH}px`, `#${subLine.id} does not keep the line ring room`);
     for (const link of subLine.querySelectorAll('a')) {
       const linkStyle = style(link);
       if (!link.className) assert.equal(linkStyle.display, 'inline', `#${subLine.id} bare link is atomic, so the line cannot cut inside it`);

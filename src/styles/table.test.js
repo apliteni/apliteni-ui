@@ -334,6 +334,40 @@ test('the top-align check rejects a header cell put back in the middle', () => {
   assert.throws(() => checkTopAlign(broken), /: thead th leaves the top/);
 });
 
+// A badge in a cell takes the tight line, so it paints 19px and not 24px (#814). Limits: jsdom
+// resolves the cascade, not layout, so this proves the line height reaches a badge in every
+// modifier's head and body cells, not the painted height. A badge outside a table keeps its own.
+function checkCellBadge(css) {
+  const tight = Number(substitute('var(--leading-tight)', tokensFor('dark', 'default')));
+  // JSDOM hands back the line height in px, so it is read against the badge's font size.
+  const isTight = (style) => Math.abs(parseFloat(style.lineHeight) - tight * parseFloat(style.fontSize)) < 0.01;
+  let measured = 0;
+  for (const modifier of tableModifiers(css)) {
+    const dom = new JSDOM(`<style>${substitute(css, tokensFor('dark', 'default'))}</style>`
+      + `<table class="ui-table ${modifier}"><thead><tr><th><span class="ui-badge">New</span></th></tr></thead>`
+      + '<tbody><tr><td><span class="ui-badge">Paid</span></td></tr></tbody></table><span class="ui-badge" id="outside">Paid</span>');
+    try {
+      const { document, getComputedStyle } = dom.window;
+      for (const badge of document.querySelectorAll('table .ui-badge')) {
+        assert.ok(isTight(getComputedStyle(badge)), `${modifier || 'ui-table'}: a badge in a ${badge.parentElement.localName} keeps a taller line`);
+        measured++;
+      }
+      assert.ok(!isTight(getComputedStyle(document.getElementById('outside'))), 'a badge outside a table took the cell line');
+    } finally { dom.window.close(); }
+  }
+  assert.ok(measured >= 14, `every modifier's head and body badge must be measured, got ${measured}`);
+}
+
+test('a badge in a table cell takes the tight line across table modifiers', () => {
+  checkCellBadge(CSS);
+});
+
+test('the cell-badge check rejects a badge left on the body line', () => {
+  const broken = CSS.replace('.ui-badge { line-height: var(--leading-tight); margin-block:', '.ui-badge { margin-block:');
+  assert.notEqual(broken, CSS, 'mutation must remove the badge line height');
+  assert.throws(() => checkCellBadge(broken), /keeps a taller line/);
+});
+
 // A right-aligned last column ends where its header ends. The base table dropped the cell gap
 // on the header only, so the figures stood 16px in from the header and the table edge. Limit:
 // JSDOM computes padding, not layout, so this holds the inset the edge is made of.
