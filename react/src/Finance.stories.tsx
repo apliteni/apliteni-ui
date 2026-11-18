@@ -20,7 +20,7 @@ function Example() {
   const [filters, setFilters] = useState<Filter[]>([{ ...catalogue[0], value: 'All sectors' }]);
   const [query, setQuery] = useState('');
   return <main className="ui-app__main ui-app__main--wide finance-comparison"><header className="finance-comparison__head"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Changes since the previous close.</p></header>
-    <div className="finance-comparison__data">
+    <div className="ui-card-stack finance-comparison__data">
     <div className="ui-toolbar">
     <SearchField ariaLabel="Search companies" placeholder="Company" value={query} onChange={e => setQuery(e.currentTarget.value)} />
     <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}

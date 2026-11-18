@@ -52,7 +52,7 @@ const EXCEPTIONS: [string, string, Tone, string][] = [
   ['PO-1164', '14,082.69', 'pending', 'In transit'],
   ['PO-1159', '2,180.00', 'danger', 'Unmatched'],
 ];
-const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters search="Search exceptions" placeholder="Reference"
+const Attention = ({ onward = true }: { onward?: boolean }) => <div className="ui-card-stack"><RestingFilters search="Search exceptions" placeholder="Reference"
   label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'In transit', 'Unmatched'] }]} />
 <Card title="Needs a decision">
   <table className="ui-table ui-table--dense">
@@ -62,7 +62,7 @@ const Attention = ({ onward = true }: { onward?: boolean }) => <><RestingFilters
       <td className="ui-table__num ui-table__num--strong">{net}</td>
     </tr>)}</tbody>
   </table>
-</Card></>;
+</Card></div>;
 // The whole ledger, under the bar every long table has.
 const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
   chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
@@ -157,20 +157,20 @@ const specimens = [
       <div className="gl-cursor">The first screen has ended. The exceptions start here</div><Attention /></Stage> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
-    dont: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></Stage> },
+    dont: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></div></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></Stage>,
+    do: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></div></Stage>,
     dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
       { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on
   // the ledger, and the filters narrow it. The Don't carries the period in its
   // title, which is what "fixed by whoever built the page" looks like on a screen.
   { id: 'report-offers',
-    do: () => <Stage><div className="ui-toolbar ui-toolbar--split">
+    do: () => <Stage><div className="ui-card-stack"><div className="ui-toolbar ui-toolbar--split">
       <FilterBar filters={FILTERS} label="Payout filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Export rows</Button>
-    </div><Card title="Payouts"><LedgerTable /></Card></Stage>,
+    </div><Card title="Payouts"><LedgerTable /></Card></div></Stage>,
     dont: () => <Stage><Card title="Payouts, 2026"><LedgerTable /></Card></Stage> },
   // "Download PDF" does not start with "Export", so export-at-the-row-end does not count this row.
   { id: 'export-icon',

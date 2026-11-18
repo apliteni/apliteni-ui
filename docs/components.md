@@ -927,7 +927,7 @@ floor. So at that width the field uses `flex-basis: 100%`. It takes the full lin
 of the row wraps below it.
 
 A title without an introduction keeps a 32px gap before the page body.
-A control row directly inside the body sits 8px closer to the block it controls.
+A control row directly inside the page body, a `.ui-card-stack` or a `.ui-stack` sits one inner gap, 8px, above the block it controls. On a touch phone below `560px`, that gap is 20px.
 Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
 
 ### Segmented strips that outgrow their column

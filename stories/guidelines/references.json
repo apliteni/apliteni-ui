@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:200",
+    "ref": "src/styles/tap-zone.css:205",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -640,7 +640,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:501",
+    "ref": "src/styles/layout.css:504",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -662,6 +662,10 @@
    {
     "ref": "src/tokens/tokens.css:33",
     "pattern": "--space-8: 32px"
+   },
+   {
+    "ref": "src/styles/layout.css:447",
+    "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }"
    }
   ],
   "two-gaps-phone": [
@@ -672,6 +676,10 @@
    {
     "ref": "src/styles/tap-zone.css:143",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
+   },
+   {
+    "ref": "src/styles/tap-zone.css:150",
+    "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5, 20px)) !important; }"
    },
    {
     "ref": "src/styles/tap-zone.css:127",

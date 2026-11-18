@@ -439,10 +439,13 @@
    attribute, ~20 characters) from setting a floor well above the basis. */
 .ui-toolbar { display: flex; flex-wrap: wrap; gap: 10px; }
 /* A control row belongs to the block it narrows rather than standing beside it,
-   so it sits closer than .ui-app__body's gap between two blocks that are each
-   their own subject. Not on the last row: there the gap is the page's bottom
-   and nothing is being narrowed. why: Artur's review of the Finance report, #505 */
-.ui-app__body > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-3) - var(--space-5)); }
+   so it sits one inner gap above that block, closer than the stack's gap between
+   two blocks that are each their own subject. Both page stacks, so a filter bar
+   on the page meets its table card at the same distance. Not on the last row:
+   there the gap is the page's bottom and nothing is being narrowed. tap-zone.css
+   widens it on a touch phone. why: docs/foundations.md#spacing-and-rhythm */
+:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
+.ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 /* A row that offers the block two unrelated things — what to narrow it by, and
