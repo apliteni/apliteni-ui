@@ -181,15 +181,18 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .ui-check input:enabled:hover:not(:focus-visible),
 .ui-table__selection input[type="checkbox"]:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
+/* On: a tint of the accent with an accent edge and mark, not a solid accent block, so a
+   column of checked rows stays quiet. The mark reads 3:1 on the tint under every accent in
+   both themes, so neither theme needs its own ink. Decision rev_813ccb2322b5/d27. #814 */
 .ui-check input:checked,
-.ui-table__selection input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+.ui-table__selection input[type="checkbox"]:checked { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-color: var(--accent); /* code-bg: inherit — control paint inside the box; no chip is written in it. */ }
 .ui-check input[type="checkbox"]:checked::after,
 .ui-table__selection input[type="checkbox"]:checked::after {
   content: "";
   position: absolute;
   left: 5px; top: 1.5px;
   width: 5px; height: 10px;
-  border: solid var(--accent-contrast);
+  border: solid var(--accent);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg); /* motion: still — the turn is the tick's shape, not travel; it lands with the box's fill, which transitions */
 }
@@ -198,7 +201,7 @@
   position: absolute;
   inset: 4px;
   border-radius: 50%;
-  background: var(--accent-contrast);
+  background: var(--accent);
 }
 .ui-check input:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
@@ -221,13 +224,13 @@
 .ui-check input[type="checkbox"]:disabled:checked::after,
 .ui-table__selection input[type="checkbox"]:disabled:checked::after { border-color: var(--disabled-surface); }
 .ui-check input[type="radio"]:disabled:checked::after { background: var(--disabled-surface); /* code-bg: inherit — the mark inside the box; the box carries the focus indicator. */ }
-/* Partial: some of a group is on, not all. The checked box's fill with a level
+/* Partial: some of a group is on, not all. The checked box's tint with a level
    dash where the tick would be, so the box still reads as "on" from across a table
    and the dash alone says "not all". It wins over a tick when both are set, as the
    browser's own box does. Drawn with a border, not a background, so forced colours
    keeps the dash. #619 */
 .ui-check input[type="checkbox"]:indeterminate,
-.ui-table__selection input[type="checkbox"]:indeterminate { background: var(--accent); border-color: var(--accent); }
+.ui-table__selection input[type="checkbox"]:indeterminate { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); border-color: var(--accent); /* code-bg: inherit — control paint inside the box; no chip is written in it. */ }
 .ui-check input[type="checkbox"]:indeterminate::after,
 .ui-table__selection input[type="checkbox"]:indeterminate::after {
   content: "";
@@ -235,15 +238,10 @@
   inset: 0;
   margin: auto;
   width: 11px; height: 0; /* odd, so the 17px padding box splits into equal gaps */
-  border: solid var(--accent-contrast);
+  border: solid var(--accent);
   border-width: 2px 0 0;
   transform: none;
 }
-/* White ink falls below 3:1 on the lighter dark-theme accents, so the tick, the dash and
-   the radio's dot take the ink a selected Segmented pill takes there. */
-:where(:root[data-theme="dark"]) .ui-check input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after,
-:where(:root[data-theme="dark"]) .ui-table__selection input[type="checkbox"]:enabled:is(:checked, :indeterminate)::after { border-color: var(--signal-contrast); }
-:where(:root[data-theme="dark"]) .ui-check input[type="radio"]:enabled:checked::after { background: var(--signal-contrast); }
 .ui-check input[type="checkbox"]:disabled:indeterminate,
 .ui-table__selection input[type="checkbox"]:disabled:indeterminate { background: var(--disabled-ink); border-color: var(--disabled-ink); }
 .ui-check input[type="checkbox"]:disabled:indeterminate::after,

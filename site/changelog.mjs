@@ -15,6 +15,7 @@ export const RELEASES = [
       ['changed', 'A resting check box and radio now have a field\'s fill and a `--muted` edge, at 5.36:1 or more on every ground. Before, a grey fill looked disabled and the edge was 1.52:1. Part of #814.', ['Checkbox', 'Table']],
       ['changed', 'A focused text link, and words that open a hover readout, get a 6px corner and 4px of room at each side. In a table cell after the first, the band keeps 8px before the name. No word moves. Part of #814.', ['Focus', 'Table']],
       ['changed', 'A selected row\'s accent wash is lighter in light: 5%, and 8% under the pointer, from 9% and 12%. Dark does not change. Part of #814.', ['Table']],
+      ['changed', 'A checked or partial check box, and a checked radio, are now a light accent tint with an accent edge and mark, not a solid accent block. The edge and the mark stay at 4.4:1 or more under every accent in both themes. Part of #814.', ['Checkbox', 'Table']],
     ],
   },
   {
