@@ -100,7 +100,9 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 52 -> 49: #736 removes the breadcrumb link, and the stacked table card and its two
   // outset rules.
   // 49 -> 47: #789 moves the two nav row rules to the inward band.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 45: #824 removes the account row's and the version row's own outset rings;
+  // both rows now take the dropdown row's inward band.
+  assert.equal(consumers.length, 45, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -263,7 +265,8 @@ test('a focus rule draws the band and no second accent edge', () => {
   // outset rules.
   // 49 -> 47: #789 moves the nav row to the inward band, so the inward rules are read
   // here too and the row keeps this check.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 45: #824 removes the account row's and the version row's own outset rings.
+  assert.equal(consumers.length, 45, 'ring consumer discovery changed');
   assert.equal(scrollRules.length, 18, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
