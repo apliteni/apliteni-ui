@@ -28,7 +28,7 @@
 //    decorator paints is therefore unmeasured, which is why #568 put the kit's Card
 //    inside each render instead, File drop's included: the card is the story.
 //  - The `fade` in the shared reading is not asserted here: nothing installs a
-//    user-agent sheet, so every control reads 1. FIELD_PAINT=1 owns that.
+//    user-agent sheet, so every control reads 1. No gate measures it since #724.
 //  - Storybook's own `args` rendering is reproduced, not the real renderer: a story
 //    with no render fn is mounted as `<component {...args} />`, which is what CSF3
 //    does with one. A loader, a play fn and the argTypes machinery are not run, so a
