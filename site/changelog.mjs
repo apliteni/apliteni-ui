@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.176.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField`, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
+      ['changed', 'A dropdown in a form is a pill, the same as the text input beside it, and the two stay at one height. A multi-line `TextArea` keeps its 12px corner, because a pill does not fit several lines. Part of #823.', ['Dropdown', 'Field', 'Guidelines']],
+    ],
+  },
+  {
     v: '0.175.0', date: '2026-11-18',
     changes: [
       ['changed', 'A `FileDrop` row with a file keeps the resting row\'s 32px height while the file uploads and after it lands. The name, the size and the status or the progress track stand on one line, and Remove ends it. Content under the row no longer moves when a file arrives. Part of #820.', ['FileDrop']],
