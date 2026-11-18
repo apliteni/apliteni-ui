@@ -23,7 +23,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 // @ts-expect-error -- plain JS story module
 import { LINKS } from '../../stories/guidelines/_overview.js';
 // @ts-expect-error -- plain JS story module
-import { GROUND_CSS } from '../../stories/guidelines/_layout.js';
+import { GROUND_CSS, SPEC_CSS } from '../../stories/guidelines/_layout.js';
 import { ConfirmPicture, TONE_GLYPH } from '../../stories/_guideline';
 
 type Meta_ = { id?: string; title: string };
@@ -122,6 +122,21 @@ describe('guideline pages in React: page layout stays out of the specimens', () 
       <div className="gc"><div className="gl-stage"><h2>Inside</h2></div></div>
     </div>);
     expect(reachingIn(container).problems).toHaveLength(1);
+  });
+});
+
+/* A readout under a specimen wraps at 390px, so its lines need leading and its dot
+ * must sit on the first line. Limit: this reads the declarations, not layout. The
+ * wrap itself was measured in a browser at 390px (#766). */
+describe('guideline pages in React: a readout that wraps', () => {
+  const block = (sel: string) => new RegExp(`${sel} \\{([^}]*)\\}`).exec(SPEC_CSS)?.[1] ?? '';
+  it('keeps its dot centred on the first line', () => {
+    const cursor = block('\\.gl-cursor'), dot = block('\\.gl-cursor::before');
+    expect(cursor, 'no .gl-cursor rule found').not.toBe('');
+    expect(cursor).toMatch(/align-items:\s*flex-start/);
+    const leading = Number(/font:[^;]*\/([\d.]+)\s/.exec(cursor)?.[1]);
+    expect(leading, 'a wrapped readout needs leading').toBeGreaterThan(1);
+    expect(dot).toContain(`margin-top: calc((${leading}em - 7px) / 2)`);
   });
 });
 

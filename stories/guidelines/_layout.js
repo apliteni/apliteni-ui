@@ -32,9 +32,11 @@ export const SPEC_CSS = `
        wherever one is rendered outside this layout. */
     .gl-stage { background: var(--surface); border-radius: var(--radius-lg);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-5); }
-    .gl-cursor { display: inline-flex; align-items: center; gap: 7px; margin-top: var(--space-3);
-      font: 500 11px/1 var(--font-sans); color:var(--text); }
+    /* The dot sits on the first line, so a readout can wrap at phone width. */
+    .gl-cursor { display: inline-flex; align-items: flex-start; gap: 7px; margin-top: var(--space-3);
+      font: 500 11px/1.4 var(--font-sans); color:var(--text); }
     .gl-cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; flex: none;
+      margin-top: calc((1.4em - 7px) / 2);
       background: var(--muted); box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted) 22%, transparent); }
     /* A specimen confirm joins the flow; its scrim would else cover the page. */
     .gl-stage--confirm .ui-confirm { position: static; }

@@ -57,7 +57,7 @@ try {
       if (await rule.count() === 0) {
         throw new Error(heading
           ? `no rule on ${page} headed "${heading}"`
-          : `no rule on ${page} draws a specimen pair — name a heading to crop a text-only rule`);
+          : `no rule on ${page} draws a specimen pair — name a heading to crop a rule without one`);
       }
       await rule.screenshot({ path: path.join(outDir, name('rule')) });
       console.log(`  ${name('rule')}`);
