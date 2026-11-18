@@ -158,3 +158,10 @@ a:focus-visible,
   outline: var(--ring);
   outline-offset: var(--ring-offset);
 }
+/* A text link has no box, so the ring sat on the glyphs with square corners. It takes a corner
+   and room at each side. The margin gives the room back, so no word moves. #814 (rev_136bd26bc559/d22) */
+a:not([class]):focus-visible {
+  border-radius: var(--radius-xs);
+  padding-inline: var(--space-1);
+  margin-inline: calc(-1 * var(--space-1));
+}

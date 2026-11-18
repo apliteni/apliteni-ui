@@ -1,8 +1,6 @@
-/* The rig behind stories/table-edge-shade.test.js: a scrolled table in front of a
- * real browser, read twice — once with the kit's shade and once with it stripped —
- * so the difference the two screenshots disagree on is the shade itself and nothing
- * the fixture's own content happens to paint underneath it. Nothing is asserted
- * here; the gate next door does the asserting. Same shape as stories/lib/tap-zone.js.
+/* The rig behind stories/table-edge-shade.test.js: a PNG reader for screenshots, and
+ * the phone containment reading. Nothing is asserted here. The gate next door does the
+ * asserting. Same shape as stories/lib/tap-zone.js.
  */
 import zlib from 'node:zlib';
 
@@ -85,113 +83,112 @@ export function pixelAt(img, x, y) {
   return [img.data[i], img.data[i + 1], img.data[i + 2]];
 }
 
-/** How much darker `after` reads than `before`, averaged over the three channels.
- *  Negative means `after` reads lighter, which is the dark theme's own direction —
- *  ink has nowhere to go on a near-black page, so the shade is answered by lightening
- *  instead (docs/foundations.md#colour-and-contrast). */
-export const darkening = (before, after) =>
-  ((before[0] - after[0]) + (before[1] - after[1]) + (before[2] - after[2])) / 3;
-
-/** The CSS mutation that answers "what if the shade were not drawn": every mechanism
- *  — the right sticky pseudo, the left one this PR adds, and an engine too old for
- *  either that falls back to the radial pair — reads its colour from this one
- *  custom property, so forcing it transparent takes every one of them out at once
- *  without touching layout. */
-export const STRIP_SHADE = '.ui-table-scroll { --table-edge: transparent !important; }';
-
-const IDS = ['po_1TnpIsGmSZjqJIroiJNJ2tRz', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', 'po_1TmNmjGmSZjqJIro7lHBO3ix'];
-const COLUMNS = Array.from({ length: 6 }, (_, i) => `Payout ID ${i}`);
-
-/** A sticky-header table wide enough that neither edge is ever reached at the
- *  measuring scroll position: unbreakable payout IDs, not a declared width, because
- *  a declared width on `.ui-table` loses to the kit's own `width: 100%` and renders
- *  no overflow at all — the same reason the galleries never write one by hand.
- *  `pinned` pins the first column, as a pinned identity table does, and marks the
- *  second row as the target, whose pinned cell must still hide what scrolls under it. */
-export function fixtureHTML(theme, css, { pinned = false } = {}) {
-  const cell = (tag, text, i) => `<${tag}${pinned && i === 0 ? ' class="ui-table__identity"' : ''}>${text}</${tag}>`;
-  const rows = [0, 1, 2]
-    .map((r) => `<tr${pinned && r === 1 ? ' class="is-target"' : ''}>${COLUMNS.map((_, i) => cell('td', IDS[(r + i) % IDS.length], i)).join('')}</tr>`)
-    .join('');
-  return `<!doctype html><html lang="en" data-theme="${theme}"><head><style>`
-    + 'html,body{margin:0;padding:0}#wrap{width:320px;margin:40px}'
-    + `</style><style>${css}</style></head><body>`
-    + '<div id="wrap"><div class="ui-table-scroll" tabindex="0" style="max-height:140px">'
-    + `<table class="ui-table ui-table--sticky${pinned ? ' ui-table--pinned' : ''}"><thead><tr>${COLUMNS.map((c, i) => cell('th', c, i)).join('')}</tr></thead>`
-    + `<tbody>${rows}</tbody></table></div></div></body></html>`;
-}
-
-/** Scrolled to the middle of its range, so columns remain on both sides and
- *  neither edge has been reached — the state docs/components.md promises a shade
- *  on. Returns the viewport geometry the caller needs to find row and edge pixels. */
-export const CENTER_SCROLL = () => {
-  const el = document.querySelector('.ui-table-scroll');
-  el.scrollLeft = Math.round((el.scrollWidth - el.clientWidth) / 2);
-  return { clientWidth: el.offsetWidth, scrollLeft: el.scrollLeft, scrollWidth: el.scrollWidth };
-};
-
-/** Pixel coordinates of the four readings the gate takes, given the fixture's own
- *  40px margin and the scroller's measured width. 6px in from either edge sits
- *  inside the 12px (--space-3) shade band and outside the scroller's own 4px
- *  (--space-1) side border. 14px and 50px down land on the header row and the top
- *  padding of a body row, clear of any glyph, respectively, for the `max-height:140px` fixture above. */
-export function readingPoints(clientWidth) {
-  const left = 40 + 6;
-  const right = 40 + clientWidth - 6;
-  return {
-    'header left': [left, 40 + 14],
-    'header right': [right, 40 + 14],
-    'body left': [left, 40 + 50],
-    'body right': [right, 40 + 50],
-  };
-}
-
-/** Scrolls the pinned fixture to `to` ('start' or 'middle'), waits two frames so the
- *  scroll-state query has answered, and returns where to read the pinned shade: 3px
- *  right of the pinned column, 3px under the first body row's top, in the padding
- *  clear of any glyph, with the target row's pinned ground and the ground of its next cell. */
-export const PINNED_SCROLL = async (to) => {
-  const el = document.querySelector('.ui-table-scroll');
-  el.scrollLeft = to === 'middle' ? Math.round((el.scrollWidth - el.clientWidth) / 2) : 0;
-  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-  const cell = document.querySelector('tbody .ui-table__identity').getBoundingClientRect();
-  const target = document.querySelector('tr.is-target > .ui-table__identity');
-  const wash = document.querySelector('tr.is-target > td:not(.ui-table__identity)');
-  return {
-    scrollLeft: el.scrollLeft, x: cell.right + 3, y: cell.top + 3,
-    ground: getComputedStyle(target).backgroundColor, wash: getComputedStyle(wash).backgroundColor,
-  };
-};
-
-/** The query the pinned shade waits on, and the two ways to break it: the shade with
- *  no condition, and the shade on the opposite condition. Each throws when the
- *  query is not in the sheet once, so a moved rule cannot pass for a refused one. */
-const PINNED_QUERY = '@container scroll-state(scrollable: left) {';
-export function pinnedShadeMutations(css) {
-  const found = css.split(PINNED_QUERY).length - 1;
-  if (found !== 1) throw new Error(`table-edge-shade: "${PINNED_QUERY}" is in the kit sheet ${found} times, not once`);
-  return {
-    'the condition removed': css.replace(PINNED_QUERY, '@supports (display: block) {'),
-    'the condition reversed': css.replace(PINNED_QUERY, '@container not scroll-state(scrollable: left) {'),
-  };
-}
-
 /** What a page at a phone width reads: how wide the document is against the
  *  viewport, and each table scroll frame's own width and scroll range. */
 export const PHONE_FIT = () => ({
   view: window.innerWidth,
   page: document.documentElement.scrollWidth,
-  frames: [...document.querySelectorAll('.ui-table-scroll')].map((f) => ({ width: f.clientWidth, range: f.scrollWidth - f.clientWidth })),
+  frames: [...document.querySelectorAll('.ui-table-scroll')].map((f) => ({
+    width: f.clientWidth,
+    range: f.scrollWidth - f.clientWidth,
+    spare: f.scrollWidth - Math.ceil(f.querySelector('.ui-table')?.getBoundingClientRect().width ?? f.scrollWidth),
+  })),
 });
 
 /** What is wrong with one PHONE_FIT reading, as lines: a page wider than the screen,
- *  or a frame the table does not scroll inside. */
-export const phoneFitFindings = (fit) => [
+ *  a frame that scrolls past its table, or, where the story must scroll, a frame the
+ *  table does not scroll inside. */
+export const phoneFitFindings = (fit, mustScroll = false) => [
   ...(fit.page > fit.view ? [`the page is ${fit.page}px wide on a ${fit.view}px screen`] : []),
   ...(fit.frames.length ? [] : ['no table scroll frame on the page']),
-  ...fit.frames.filter((f) => f.range <= 0).map((f) => `a ${f.width}px frame has no scroll range`),
+  ...(mustScroll ? fit.frames : []).filter((f) => f.range <= 0).map((f) => `a ${f.width}px frame has no scroll range`),
+  ...fit.frames.filter((f) => f.spare > 1).map((f) => `a frame scrolls ${f.spare}px past its table`),
 ];
 
 /** The mutation the containment check must catch: a frame that does not clip, so
  *  the table widens the page instead of scrolling inside it. */
 export const FRAME_UNCLIPPED = '.ui-table-scroll { overflow: visible !important; }';
+/** A frame whose min-content is its table's, so the table widens the card and the page. */
+export const FRAME_FLOORLESS = '.ui-table-scroll { display: block !important; }';
+
+/** The two #770 defects, put back. A frame under a header that does not stick is not the
+ *  containing block of its screen-reader label, so the label widens the page. A closed
+ *  tooltip keeps its box, so the frame scrolls past its table. */
+export const LABEL_ESCAPES = '.ui-table-scroll, .ui-table-scroll th { position: static !important; }';
+export const CLOSED_TIP_BOX = '.ui-tip:not(.is-open) { display: flex !important; }';
+
+/** A card's table frame, focused by keyboard or at rest: its box, its corner radii,
+ *  its ring colour, the card's ground and the room between the table and the frame's
+ *  bottom edge. Null when the page has no frame directly in a card. */
+export const CARD_FRAME = (focus) => {
+  const f = document.querySelector('.ui-card > .ui-table-scroll');
+  if (!f) return null;
+  if (focus) f.focus({ focusVisible: true });
+  else f.blur();
+  const rgb = (c) => c.match(/[\d.]+/g).slice(0, 3).map(Number);
+  const s = getComputedStyle(f);
+  const b = f.getBoundingClientRect();
+  return {
+    x: b.x + scrollX, y: b.y + scrollY, w: b.width, h: b.height,
+    corners: Object.fromEntries(['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map((k) => [k, parseFloat(s[`border${k}Radius`]) || 0])),
+    focused: f.matches(':focus-visible'),
+    ring: rgb(s.outlineColor),
+    ground: rgb(getComputedStyle(f.parentElement).backgroundColor),
+    below: b.bottom - f.querySelector('.ui-table').getBoundingClientRect().bottom,
+  };
+};
+
+/** What is wrong with a card frame in a full-page screenshot, as lines. Focused, each
+ *  side's ring band must show the ring colour. At rest, the side bands must show the
+ *  card's ground, so no edge line shows. The table must reach the frame's bottom.
+ *  Limits: it samples one line 2px in from each edge, every 2px, and skips each corner's
+ *  radius plus 4px, where the curve leaves the line. Focused, it also samples each
+ *  rounded corner's arc 2px inside the frame's edge, the ring's middle, every 5 degrees,
+ *  so a cell painted square over a corner shows (#782). A corner under 4px is not
+ *  sampled. A tolerance of 40 per channel takes the ring's anti-aliasing and no other
+ *  colour. */
+export function cardFrameFindings(img, frame) {
+  const out = [];
+  if (frame.below > 0.5) out.push(`the frame has ${frame.below}px below its table`);
+  const want = frame.focused ? frame.ring : frame.ground;
+  const near = (p) => p.every((v, i) => Math.abs(v - want[i]) <= (frame.focused ? 40 : 2));
+  const skip = Math.max(...Object.values(frame.corners)) + 4;
+  const along = (from, to) => { const at = []; for (let v = from + skip; v < to - skip; v += 2) at.push(v); return at; };
+  const sides = {
+    left: along(frame.y, frame.y + frame.h).map((y) => [frame.x + 2, y]),
+    right: along(frame.y, frame.y + frame.h).map((y) => [frame.x + frame.w - 2.5, y]),
+    ...(frame.focused ? {
+      top: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + 2]),
+      bottom: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + frame.h - 2.5]),
+    } : {}),
+  };
+  if (frame.focused) {
+    const { x, y, w, h } = frame;
+    const at = { TopLeft: [x, y, -1, -1], TopRight: [x + w, y, 1, -1], BottomLeft: [x, y + h, -1, 1], BottomRight: [x + w, y + h, 1, 1] };
+    for (const [corner, r] of Object.entries(frame.corners)) {
+      if (r < 4) continue;
+      const [cx, cy, dx, dy] = at[corner];
+      const points = [];
+      // The arc's centre is r in from both edges. A pixel's centre is half a pixel past its index.
+      for (let a = 5; a <= 85; a += 5) {
+        const t = (a * Math.PI) / 180;
+        points.push([cx - dx * r + dx * (r - 2) * Math.cos(t) - 0.5, cy - dy * r + dy * (r - 2) * Math.sin(t) - 0.5]);
+      }
+      sides[`the ${corner.replace(/([a-z])([A-Z])/, '$1 $2').toLowerCase()} corner`] = points;
+    }
+  }
+  for (const [side, points] of Object.entries(sides)) {
+    const miss = points.filter(([x, y]) => !near(pixelAt(img, x, y))).length;
+    if (miss) out.push(`${frame.focused ? 'focused' : 'at rest'}, ${side}: ${miss} of ${points.length} samples are not ${frame.focused ? 'the ring' : "the card's ground"}`);
+  }
+  return out;
+}
+
+/** The four defects the card frame check must catch: a frame with no bands, which lets
+ *  the sticky header cover the ring, a frame with no top band, which lets the header
+ *  paint square over the ring's top corners, a band that paints a line at rest, and a
+ *  band below the table. */
+export const FRAME_BANDLESS = '.ui-card > .ui-table-scroll { border-width: 0 !important; }';
+export const FRAME_TOPLESS = '.ui-card > .ui-table-scroll { border-top-width: 0 !important; }';
+export const FRAME_EDGE_LINE = '.ui-card > .ui-table-scroll { border-color: var(--border) !important; }';
+export const FRAME_GAP_BELOW = '.ui-card > .ui-table-scroll { border-bottom-width: var(--space-1) !important; }';

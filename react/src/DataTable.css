@@ -5,7 +5,7 @@
   all: unset;
   cursor: pointer;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   font: inherit;
   color: inherit;
 }

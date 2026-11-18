@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useLayoutEffect, useRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type HTMLAttributes, type RefAttributes, type ReactElement, type ReactNode, type SyntheticEvent, type KeyboardEvent } from 'react';
+import { forwardRef, useEffect, useId, useImperativeHandle, useLayoutEffect, useRef, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type HTMLAttributes, type RefAttributes, type ReactElement, type ReactNode, type SyntheticEvent, type KeyboardEvent } from 'react';
 import { Icon } from './Icon';
 
 type ButtonOptions = {
@@ -16,11 +16,18 @@ type ButtonOptions = {
   completionMessage?: string;
   children?: ReactNode;
 };
-export type NativeButtonProps = ButtonOptions & ButtonHTMLAttributes<HTMLButtonElement> & { href?: never };
-export type ButtonLinkProps = ButtonOptions & AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; disabled?: boolean };
+type HoldOptions = {
+  /** Hold to confirm: a 1 s press, or two presses within 3 s, calls onConfirm. A click never calls onClick. */
+  hold?: boolean;
+  onConfirm?: () => void;
+};
+export type NativeButtonProps = ButtonOptions & HoldOptions & ButtonHTMLAttributes<HTMLButtonElement> & { href?: never };
+export type ButtonLinkProps = ButtonOptions & AnchorHTMLAttributes<HTMLAnchorElement> & {
+  href: string; disabled?: boolean; hold?: never; onConfirm?: never;
+};
 export type ButtonProps = NativeButtonProps | ButtonLinkProps;
 type ButtonElement = HTMLButtonElement | HTMLAnchorElement;
-type RootProps = ButtonOptions & HTMLAttributes<ButtonElement> & {
+type RootProps = ButtonOptions & HoldOptions & HTMLAttributes<ButtonElement> & {
   href?: string; disabled?: boolean; type?: 'button' | 'submit' | 'reset';
 };
 
@@ -55,10 +62,14 @@ function acquireAnnouncer(doc: Document) {
   };
 }
 
+// why: docs/components.md#hold-to-confirm
+const HOLD_MS = 1000, TAP_MS = 300, STEP_MS = 250, TWICE_MS = 3000;
+const HOLD_HELP = 'Hold to confirm, or press twice.';
+
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 export const Button = forwardRef<ButtonElement, RootProps>(function Button({
-  variant = 'secondary', size = 'md', icon, leading, iconRight, iconOnly, block, busy, completionMessage, children,
+  variant = 'secondary', size = 'md', icon, leading, iconRight, iconOnly, block, busy, completionMessage, children, hold, onConfirm,
   type = 'button', href, disabled, className, tabIndex, onAuxClick, onAuxClickCapture, onClick, onClickCapture, onKeyDown, onKeyDownCapture,
   onKeyUp, onKeyUpCapture, ...rest
 }, forwardedRef) {
@@ -87,6 +98,125 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     announcer.current = null;
     previous.current = null;
   }, []);
+  // The hold runs on the element itself: its fill and hint change every frame,
+  // and a re-render for each would replace what the caller renders inside.
+  const holds = hold === true && href === undefined;
+  const holdHelpId = useId();
+  const live = useRef({ busy, disabled, onConfirm });
+  live.current = { busy, disabled, onConfirm };
+  const cancelHold = useRef(() => {});
+  useEffect(() => {
+    const btn = buttonRef.current;
+    if (!holds || !btn) return;
+    let by: 'pointer' | 'key' | null = null, start = 0, frame = 0, armedUntil = 0;
+    let step: ReturnType<typeof setInterval> | undefined, done: ReturnType<typeof setTimeout> | undefined;
+    const reduced = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const paint = (p: number) => btn.style.setProperty('--hold', String(p));
+    const hint = (on: boolean) => btn.toggleAttribute('data-hold-hint', on);
+    // The fill keeps its paint while it drains, also after a release outside the button.
+    const fillEl = btn.querySelector('.ui-btn__hold-fill');
+    let drained: ReturnType<typeof setTimeout> | undefined;
+    const undrain = () => {
+      clearTimeout(drained);
+      btn.removeAttribute('data-hold-drain');
+    };
+    const stop = () => {
+      by = null;
+      cancelAnimationFrame(frame);
+      clearInterval(step);
+      clearTimeout(done);
+    };
+    const confirm = () => {
+      stop();
+      // Empty the fill without its drain: the act is done, not taken back.
+      paint(0);
+      btn.removeAttribute('data-holding');
+      hint(false);
+      live.current.onConfirm?.();
+    };
+    const tick = () => {
+      paint(Math.min(1, (performance.now() - start) / HOLD_MS));
+      frame = requestAnimationFrame(tick);
+    };
+    const begin = (source: 'pointer' | 'key') => {
+      if (by || live.current.busy || live.current.disabled) return;
+      by = source;
+      start = performance.now();
+      hint(false);
+      undrain();
+      btn.setAttribute('data-holding', '');
+      // Reduced motion: four still steps that still add up to the full hold.
+      if (reduced()) {
+        let n = 0;
+        step = setInterval(() => paint(Math.min(4, ++n) / 4), STEP_MS);
+      } else frame = requestAnimationFrame(tick);
+      done = setTimeout(confirm, HOLD_MS);
+    };
+    const end = () => {
+      if (!by) return;
+      const short = performance.now() - start < TAP_MS;
+      stop();
+      btn.setAttribute('data-hold-drain', '');
+      drained = setTimeout(undrain, HOLD_MS);
+      btn.removeAttribute('data-holding');
+      paint(0);
+      if (short) hint(true);
+    };
+    // Busy or disabled during a hold: the hold stops and confirms nothing.
+    cancelHold.current = () => {
+      armedUntil = 0;
+      hint(false);
+      if (!by) return;
+      stop();
+      btn.removeAttribute('data-holding');
+      paint(0);
+    };
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      // Captured, so a slide off the button does not end the hold.
+      btn.setPointerCapture?.(e.pointerId);
+      begin('pointer');
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      if (!e.repeat) begin('key');
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      end();
+    };
+    // A screen reader activates with a bare click: no pointer down and no key down.
+    const onClick = (e: MouseEvent) => {
+      if (e.detail !== 0 || by || live.current.busy || live.current.disabled) return;
+      if (performance.now() < armedUntil) {
+        armedUntil = 0;
+        confirm();
+        return;
+      }
+      armedUntil = performance.now() + TWICE_MS;
+      hint(true);
+    };
+    const onContextMenu = (e: Event) => e.preventDefault();
+    const listeners: [string, (e: never) => void][] = [
+      ['pointerdown', onPointerDown], ['pointerup', end], ['pointercancel', end], ['lostpointercapture', end],
+      ['keydown', onKeyDown], ['keyup', onKeyUp], ['blur', end], ['click', onClick], ['contextmenu', onContextMenu],
+    ];
+    for (const [type, fn] of listeners) btn.addEventListener(type, fn as EventListener);
+    fillEl?.addEventListener('transitionend', undrain);
+    return () => {
+      stop();
+      undrain();
+      cancelHold.current = () => {};
+      fillEl?.removeEventListener('transitionend', undrain);
+      for (const [type, fn] of listeners) btn.removeEventListener(type, fn as EventListener);
+      btn.removeAttribute('data-holding');
+      btn.removeAttribute('data-hold-hint');
+      btn.style.removeProperty('--hold');
+    };
+  }, [holds]);
+  useEffect(() => { if (busy || disabled) cancelHold.current(); }, [busy, disabled]);
   const blockActivation = (event: SyntheticEvent) => {
     if (!busy && !disabled) return false;
     event.preventDefault();
@@ -117,13 +247,16 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
     ? { 'aria-label': fallback, title: rest.title ?? fallback }
     : {};
   const Root = href === undefined ? 'button' : 'a';
+  const describedBy = holds ? cx(rest['aria-describedby'], holdHelpId) : rest['aria-describedby'];
+  const lead = leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />;
   return (
     <Root
       {...rest}
       ref={buttonRef as React.Ref<HTMLButtonElement & HTMLAnchorElement>}
       data-btn-wired=""
       data-btn-ready={!busy && hasBeenBusy.current ? '' : undefined}
-      type={href === undefined ? type : undefined}
+      // A hold button is never a form's default button: Enter in a field would click it.
+      type={href === undefined ? (holds ? 'button' : type) : undefined}
       href={disabled || busy ? undefined : href}
       role={href !== undefined ? 'link' : rest.role}
       tabIndex={href !== undefined && disabled ? -1 : href !== undefined ? tabIndex ?? 0 : tabIndex}
@@ -132,20 +265,36 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
       disabled={href === undefined ? disabled : undefined}
       aria-disabled={disabled || busy ? true : undefined}
       aria-busy={busy ? true : undefined}
+      aria-describedby={describedBy}
+      data-hold={holds ? '' : undefined}
       {...named}
       onAuxClickCapture={event => { if (!blockActivation(event)) onAuxClickCapture?.(event); }}
       onAuxClick={event => { if (!blockActivation(event)) onAuxClick?.(event); }}
       onClickCapture={event => { if (!blockActivation(event)) onClickCapture?.(event); }}
-      onClick={event => { if (!blockActivation(event)) onClick?.(event); }}
+      onClick={event => {
+        if (blockActivation(event)) return;
+        // A hold button confirms only through onConfirm, and never submits its form.
+        if (holds) event.preventDefault();
+        else onClick?.(event);
+      }}
       onKeyDownCapture={event => { if (!blockKey(event)) onKeyDownCapture?.(event); }}
       onKeyDown={event => { if (!blockKey(event)) onKeyDown?.(event); }}
       onKeyUpCapture={event => { if (!blockKey(event)) onKeyUpCapture?.(event); }}
       onKeyUp={event => { if (!blockKey(event)) onKeyUp?.(event); }}
     >
-      {leading != null ? <span aria-hidden="true" style={{ display: 'inline-flex' }}>{leading}</span> : icon && <Icon name={icon} />}
+      {lead}
       {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label" ref={labelRef}>{renderedChildren}</span></span>}
       {iconRight && <Icon name={iconRight} />}
       {busy && <span className="ui-btn__dots" aria-hidden="true"><i /><i /><i /></span>}
+      {holds && <>
+        <span className="ui-btn__hold-fill" aria-hidden="true">
+          {lead}
+          {!iconOnly && renderedChildren != null && <span className="ui-btn__label-slot"><span className="ui-btn__label">{renderedChildren}</span></span>}
+          {iconRight && <Icon name={iconRight} />}
+        </span>
+        <span className="ui-btn__hold-hint" aria-hidden="true">Hold to confirm</span>
+        <span id={holdHelpId} hidden>{HOLD_HELP}</span>
+      </>}
     </Root>
   );
 }) as {

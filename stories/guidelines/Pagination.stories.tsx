@@ -19,6 +19,10 @@ const content = await loadGuideline('pagination.md', new URL('../../guidelines/p
 const TOTAL = 4812;
 const AT = 25;
 
+// What a reader hears after Next, which no picture can show: the note says it.
+const n = (v: number) => v.toLocaleString('en-US');
+const NEXT = `${n(AT * DEFAULT_PAGE_SIZE + 1)}–${n(Math.min((AT + 1) * DEFAULT_PAGE_SIZE, TOTAL))} of ${n(TOTAL)}`;
+
 const Stage = ({ children }: { children: ReactNode }) => <div className="gp-stage">{children}</div>;
 
 // Every specimen is its own <nav> on one page, so each needs an id of its own
@@ -45,7 +49,11 @@ const specimens = [
       <Ghost icon="chevronLeft" disabled>Prev</Ghost><Ghost iconRight="chevronRight" disabled>Next</Ghost></Hand> },
   { id: 'page-turn', do: () => <Pager id="loading-do" pageSizes={PAGE_SIZES} loading />,
     dont: () => <Stage><Skeleton lines={1} width="38%" /></Stage> },
-  { id: 'announce-range' },
+  { id: 'announce-range',
+    do: () => <><Pager id="announce-do" page={AT + 1} pageSizes={PAGE_SIZES} />
+      <div className="gl-cursor">Next pressed, focus stays on Next. Screen reader hears once: {NEXT}</div></>,
+    dont: () => <><Pager id="announce-dont" page={AT + 1} pageSizes={PAGE_SIZES} />
+      <div className="gl-cursor">Screen reader hears {NEXT} three times: the live region, Rows per page and Next</div></> },
   { id: 'page-size', do: () => <Pager id="size-do" pageSizes={PAGE_SIZES} />, dont: () => <Pager id="size-dont" /> },
 ];
 

@@ -10,7 +10,7 @@ export const BLURB = content.blurb;
 // (the measured-pin rule). Two of the three are settled by a standard. The third
 // is settled by this repo, in #220, because no standard settles it. The fourth,
 // added in #294, is a browser's behaviour rather than a standard, and it is
-// pinned in react/src/field-zoom.test.tsx, where the fields are.
+// pinned next door in stories/field-zoom.test.js, where the fields are.
 //
 // Measure behavior instead of matching the source text.
 
@@ -66,10 +66,13 @@ export const FIELD_MIN = 16;
 // Same device as the GLYPH_FLOOR ratchet in stories/signal-contrast.test.js.
 //
 // RING_FLOOR sits ABOVE its bar, which is the point: #218 made --ring opaque
-// and the worst cell now measures 4.22, so the ratchet is the warning that
+// and the worst cell measured 4.22 until #799, so the ratchet is the warning that
 // fires while the ring is still legal rather than once it is not. It was 1.5
 // while the ring failed everywhere and a ledger held the gate open.
-export const RING_FLOOR = 4.22;
+// It moved DOWN at #799: the danger Callout's action slot puts the ring on the
+// danger wash in dark, at 3.81 (default), 3.95 (phoenix) and 3.99 (ocean). The
+// ring still clears its 3:1 bar. The coordinator decided this for #799.
+export const RING_FLOOR = 3.81;
 // DISABLED_FLOOR sits well above its bar for the same reason RING_FLOOR does.
 // It was 1.48 while a ledger held the gate open — #220 took the opacity out of
 // every disabled rule that has a label under it and gave the state a paint of
@@ -267,27 +270,9 @@ export const SPEC_CSS = `
     .gl-measure { display: block; margin: 0; max-width: none;
       padding: var(--space-3); border-radius: var(--radius-md); color: var(--text); }
     .gl-measure--gradient { background: linear-gradient(90deg, var(--surface), color-mix(in srgb, var(--accent) 30%, var(--surface))); }
-
-    /* Field text as a coarse pointer computes it. The Don't keeps 16px and scales
-       the box down to 13px, which iOS still zooms. */
-    .gl-zoom .ui-input { font-size: 16px; }
-    .gl-zoom__scaled { display: block; width: calc(100% / .8125); transform: scale(.8125); transform-origin: left top;
-      margin-bottom: calc(-1 * (1 - .8125) * 3.2em); }
-
-    /* Body ink, with rank carried by size and weight. */
-    .gl-body h3 { font: 600 var(--text-lg)/1.3 var(--font-display); color: var(--strong); margin-bottom: var(--space-2); }
-    .gl-body p { font-size: var(--text-base); line-height: 1.55; color: var(--text); }
-    .gl-body .gl-body__s { font-size: var(--text-sm); margin-top: var(--space-2); }
-    /* The pale half: lines in --muted at heading and body heights, no words. */
-    .gl-pale { display: flex; flex-direction: column; gap: var(--space-2); }
-    .gl-pale span { height: 10px; width: 92%; border-radius: var(--radius-xs); background: var(--muted); }
-    .gl-pale .gl-pale__h { height: 18px; width: 45%; margin-bottom: var(--space-1); }
-    .gl-pale .gl-pale__s { width: 30%; }
-
-    .gl-ring--one { display: contents; }
-    /* The pointer's hover paint, pinned: the fill and edge .ui-btn:hover draws. */
-    .gl-hover.ui-btn { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); color: var(--strong);
-      border-color: var(--accent); }
+    /* !important beats the kit's own coarse-pointer 16px, so a phone sees the pair too. */
+    .gl-touch--16 .ui-input { font-size: 16px !important; }
+    .gl-touch--14 .ui-input { font-size: 14px !important; }
   </style>`;
 
 

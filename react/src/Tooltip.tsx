@@ -1,5 +1,6 @@
 import '../../src/styles/tooltip.css';
 import { placeTip } from './tip';
+import { hoverWait, noteClose } from './tooltipDelay';
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 
 export type TooltipProps = {
@@ -8,6 +9,8 @@ export type TooltipProps = {
   value?: string;
   detail?: string;
   placement?: 'top' | 'bottom';
+  /** The child is one control that names itself, such as an icon button: the readout repeats its name, so it adds no tab stop and no description. */
+  control?: boolean;
   /** Inline content without nested controls. */
   children: ReactNode;
 };
@@ -28,7 +31,9 @@ type DocHandlers = {
 };
 
 const DOC_EVENTS = ['pointerdown', 'pointercancel', 'click', 'keydown', 'touchend'] as const;
-const CAPTURED = new Set<string>(['pointerdown', 'pointercancel']);
+// keydown is captured so an open readout marks Escape before the dialog stack's
+// bubble listener, whatever mounted first. why: docs/components.md#the-drawer
+const CAPTURED = new Set<string>(['pointerdown', 'pointercancel', 'keydown']);
 const wirings = new WeakMap<Document, { members: Set<DocHandlers>; off(): void }>();
 
 function wireDocument(doc: Document, handlers: DocHandlers) {
@@ -62,7 +67,7 @@ const Text = ({ label = '', value = '', detail = '' }: Parts) => <>
   <span className="ui-tip__detail" hidden={!detail}>{detail}</span>
 </>;
 
-export function Tooltip({ text, label = text, value, detail, placement = 'top', children }: TooltipProps) {
+export function Tooltip({ text, label = text, value, detail, placement = 'top', control = false, children }: TooltipProps) {
   const id = useId();
   const host = useRef<HTMLElement | null>(null);
   const trigger = useRef<HTMLSpanElement>(null);
@@ -74,12 +79,26 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
   const dismissed = useRef<Element | null>(null);
   const [mark, setMark] = useState<Element | null>(null);
   const active = useRef<Element | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
   active.current = mark;
   const open = mark !== null;
 
+  function cancel() {
+    clearTimeout(timer.current);
+    timer.current = undefined;
+  }
   function close(reset = false) {
+    cancel();
+    if (active.current) noteClose();
     dismissed.current = reset ? null : active.current;
     setMark(null);
+  }
+  function hover(target: Element | null) {
+    if (!target) { close(true); return; }
+    if (target === active.current || timer.current) return;
+    const wait = hoverWait();
+    if (!wait) { show(target); return; }
+    timer.current = setTimeout(() => { timer.current = undefined; show(target); }, wait);
   }
   function show(target: Element | null) {
     if (target && target !== dismissed.current) {
@@ -102,8 +121,12 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
 
   // Runs after content changes too: the current readout can change size.
   useLayoutEffect(() => {
-    if (!mark) return;
+    // The open readout sits in the top layer, so no clipping or sticky ancestor hides it.
+    const t = tip.current;
+    const layered = typeof t?.showPopover === 'function';
+    if (!mark) { if (layered && t.matches(':popover-open')) t.hidePopover(); return; }
     if (!host.current?.contains(mark)) { close(true); return; }
+    if (layered && !t.matches(':popover-open')) t.showPopover();
     place();
   });
 
@@ -115,7 +138,13 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     ignoreMouseUntil.current = 0;
     pointerKind.current = '';
     pendingClick.current = null;
-    if (event.key === 'Escape') close();
+    if (event.key === 'Escape') {
+      // Mark it handled so the dialog stack lets this Escape pass and closes
+      // only the readout, and only while there is a readout to close.
+      // why: docs/components.md#the-drawer
+      if (active.current) event.preventDefault();
+      close();
+    }
   };
   shared.current.touchend = (event) => {
     if (!host.current?.contains(event.target as Node)) close(true);
@@ -129,6 +158,7 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     if ((pointerKind.current === 'touch' || pointerKind.current === 'pen') && !host.current?.contains(event.target as Node)) close(true);
   };
   useEffect(() => wireDocument(host.current!.ownerDocument, shared.current), []);
+  useEffect(() => cancel, []);
 
   // Only while a readout is open: a capturing scroll listener hears every
   // scroller on the page, and a closed readout has nothing to re-place.
@@ -138,9 +168,13 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     const reposition = () => place();
     view.addEventListener('scroll', reposition, true);
     view.addEventListener('resize', reposition);
+    // A font that loads after the first placement resizes the readout and its mark.
+    const sized = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(reposition) : null;
+    if (sized) [tip.current, active.current].forEach((el) => el && sized.observe(el));
     return () => {
       view.removeEventListener('scroll', reposition, true);
       view.removeEventListener('resize', reposition);
+      sized?.disconnect();
     };
   }, [open, placement]);
 
@@ -148,15 +182,20 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     <span ref={host} className="ui-tip-host" style={{ display: 'inline-block' }}
       onMouseOver={event => {
         if (Date.now() <= ignoreMouseUntil.current) return;
-        const target = markOf(event.target);
-        if (target) show(target); else setMark(null);
+        hover(markOf(event.target));
       }}
       onMouseLeave={() => { if (Date.now() > ignoreMouseUntil.current) close(true); }}
-      onFocus={event => { if (Date.now() > ignoreMouseUntil.current) show(markOf(event.target)); }}
+      // Keyboard focus opens at once, also on a mark whose hover readout Escape dismissed:
+      // focus that arrives is a new act. A mouse press that focuses the mark leaves it to the hover.
+      onFocus={event => {
+        if (Date.now() <= ignoreMouseUntil.current || pointerKind.current === 'mouse') return;
+        dismissed.current = null;
+        show(markOf(event.target));
+      }}
       onBlur={event => { if (!markOf(event.relatedTarget)) close(true); }}
       onPointerOver={event => {
         if (event.pointerType === 'touch' || event.pointerType === 'pen') ignoreMouseUntil.current = Date.now() + 800;
-        else if (event.pointerType === 'mouse') { ignoreMouseUntil.current = 0; show(markOf(event.target)); }
+        else if (event.pointerType === 'mouse') { ignoreMouseUntil.current = 0; hover(markOf(event.target)); }
       }}
       onClickCapture={event => {
         const touched = pendingClick.current;
@@ -165,6 +204,8 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
         const target = markOf(event.target);
         const opening = touched ? touched === 'open' : !!target && target !== mark;
         if (!opening) { if (!touched) close(); return; }
+        // A named control keeps its click, so one pen tap opens the readout and runs the action.
+        if (control) { dismissed.current = null; show(target); return; }
         event.preventDefault();
         event.stopPropagation();
         // Page dismissal listeners still receive the opening tap.
@@ -186,8 +227,10 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
         else { pendingClick.current = 'open'; dismissed.current = null; show(target); }
       }}
     >
-      <span ref={trigger} className="ui-focusable" tabIndex={0} aria-describedby={id}>{children}</span>
-      <span ref={tip} id={id} data-tip="" role="tooltip" className={`ui-tip${open ? ' is-open' : ''}`}>
+      {control
+        ? <span ref={trigger}>{children}</span>
+        : <span ref={trigger} className="ui-focusable" tabIndex={0} aria-describedby={id}>{children}</span>}
+      <span ref={tip} id={id} data-tip="" popover="manual" role="tooltip" aria-hidden={control || undefined} className={`ui-tip${open ? ' is-open' : ''}`}>
         <Text label={label} value={value} detail={detail} />
       </span>
     </span>

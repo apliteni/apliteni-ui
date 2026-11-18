@@ -61,6 +61,16 @@ export const SPEC_CSS = `
     .tp-lay__col--clip { overflow: hidden; }
     .tp-lay__ln--over { width: 150%; flex: none; }
 
+    /* The shell's parts drawn in a cell: the band and the main column keep their
+       own paint, and give up the room and the stickiness a whole window gives them. */
+    .tp-head { padding: 0; max-width: none; }
+    .tp-screen { padding: 0; overflow: hidden; }
+    .tp-screen .tp-head { padding: var(--space-4); }
+    .tp-bar { position: static; height: 52px; padding-inline: var(--space-4); }
+    .tp-rest { position: relative; height: 240px; overflow: hidden; }
+    .tp-rest .ui-drawer { position: absolute; }
+    .tp-rest .ui-drawer__panel { width: 70%; }
+
     .tp-acts { display: flex; gap: var(--space-2); flex-wrap: wrap; }
     .tp-rows { display: flex; flex-direction: column; gap: var(--space-4); }
 

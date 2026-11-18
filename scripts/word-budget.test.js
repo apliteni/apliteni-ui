@@ -41,7 +41,7 @@ const withIntro = (n, ...rules) => {
 };
 
 test('the measurement reaches every guideline page', () => {
-  const files = readdirSync(pages).filter((f) => f.endsWith('.md'));
+  const files = readdirSync(pages).filter((f) => f.endsWith('.md') && f !== 'INDEX.md');
   const measured = measureCollection(pages);
 
   assert.deepStrictEqual(measured.map((m) => m.page).sort(), files.sort(),

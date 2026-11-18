@@ -354,9 +354,9 @@ function InvoiceScreen({ initialState = 'empty', simulate = false }: { initialSt
             there; a ghost button in it carried the control's inset and had to be pulled back
             by a negative margin to share the column's edge.
             why: react/src/DataTable.stories.tsx */}
-        {/* Every table has its filter bar directly above it. why: guidelines/dense-tables.md */}
+        {/* Each long table has its filter bar directly above it. why: guidelines/dense-tables.md */}
         {!!invoices.length && <div className={`ui-card-stack${navigated ? ' m-slide-up' : ''}`}>
-          <Card>{bar}</Card>
+          {bar}
           <DataTable selectable={false} pager={false} stickyHeader pinnedIdentity scrollLabel="Invoices" rows={shown} empty="No invoices match" columns={[
             { key: 'filename', label: 'Invoice', render: row => <a href={`#${row.name}`}>{row.filename}</a> },
             { key: 'status', label: 'Status', render: row => <Badge variant={TONE[row.status]}>{row.status}</Badge> },

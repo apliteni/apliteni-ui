@@ -1,10 +1,11 @@
-// What tooltip.css guarantees about the hover readout, read as text: showing a
+// What tooltip.css guarantees about the hover readout, read as text and as a JSDOM cascade: showing a
 // readout moves nothing on the page. JSDOM has no layout, so the defect this holds
 // is a declaration that puts the readout back into flow. The React Tooltip's own
 // tests drive the placement.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { JSDOM } from 'jsdom';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const CSS = readFileSync(new URL('./tooltip.css', import.meta.url), 'utf8');
@@ -54,13 +55,45 @@ test('the readout is out of flow in every state the sheet gives it', () => {
   }
 });
 
-test('opening the readout changes paint, never a box', () => {
+test('a closed readout has no box, and opening it changes paint, never a size', () => {
+  // A hidden box still counts in its scroller's width, so a closed readout at a
+  // table's last column widened the page (#770).
+  const closed = RULES.find((r) => r.selector.trim() === '.ui-tip:not(.is-open)');
+  assert.ok(closed, 'the sheet has no closed state');
+  assert.equal(decl(closed, 'display'), 'none', 'a closed readout is display: none');
   const open = RULES.find((r) => r.selector.trim() === '.ui-tip.is-open');
   assert.ok(open, 'the sheet has no open state');
   const props = [...open.body.matchAll(/(?:^|;)\s*([\w-]+)\s*:/g)].map((m) => m[1]);
   assert.deepEqual(props.sort(), ['opacity', 'visibility'],
-    'the open state may only change opacity and visibility — a size, a display or a margin in it '
+    'the open state may only change opacity and visibility — a size or a margin in it '
     + 'is a readout that takes up room the moment it appears');
+});
+
+// A readout that shows the full text of a cut cell wraps inside its box (#814). A table cell
+// is one line, and the readout inherited that line and ran out of its box. Limits: JSDOM
+// resolves the cascade, not layout, so this holds the wrap and not where the lines break.
+const TABLE = readFileSync(new URL('./table.css', import.meta.url), 'utf8');
+function readoutWrap(tipCss) {
+  const dom = new JSDOM(`<style>${TABLE}\n${tipCss}</style><table class="ui-table"><tbody><tr>`
+    + '<td id="cell"><span class="ui-tip-host"><a href="#">Meridian Coastal Logistics</a>'
+    + '<span class="ui-tip is-open" role="tooltip">Meridian Coastal Logistics and Cold Storage</span></span></td>'
+    + '</tr></tbody></table>');
+  try {
+    const { document, getComputedStyle } = dom.window;
+    return { cell: getComputedStyle(document.getElementById('cell')).whiteSpace, tip: getComputedStyle(document.querySelector('.ui-tip')).whiteSpace };
+  } finally { dom.window.close(); }
+}
+
+test('a readout in a one-line table cell wraps', () => {
+  const { cell, tip } = readoutWrap(CSS);
+  assert.equal(cell, 'nowrap', 'the table cell is no longer one line, so this proves nothing');
+  assert.equal(tip, 'normal', 'the readout takes the cell\'s one-line rule, so a long name runs out of its box');
+});
+
+test('the readout-wrap check rejects a readout that inherits the cell line', () => {
+  const broken = CSS.replace(/\n\s*white-space: normal;/, '');
+  assert.notEqual(broken, CSS, 'mutation must remove the readout wrap');
+  assert.equal(readoutWrap(broken).tip, 'nowrap');
 });
 
 test('the readout never takes the pointer', () => {

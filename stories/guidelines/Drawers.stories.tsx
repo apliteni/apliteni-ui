@@ -4,9 +4,11 @@ import type { ReactNode } from 'react';
 import { DrawerPicture, GuidelinePage } from '../_guideline';
 import { BackLink } from '../../react/src/BackLink';
 import { Checkbox } from '../../react/src/Checkbox';
+import { SelectField, TextField } from '../../react/src/Field';
 import { DrawerSection, KeyValueList, type KeyValueRow } from '../../react/src/KeyValueList';
 import { Switch } from '../../react/src/Switch';
 import { Button } from '../../react/src/primitives/Button';
+import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -30,6 +32,9 @@ const Frame = ({ title = 'Northwind Payments', footer, children }: { title?: str
   <div className="gd-frame"><DrawerPicture title={title} footer={footer}>{children}</DrawerPicture></div>;
 const Group = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
   <DrawerSection title={title}><KeyValueList rows={rows(pairs)} /></DrawerSection>;
+// The record's key figure, which leads the drawer in a group with no heading.
+const Figure = () => <DrawerSection><dl className="ui-drawer__figure"><dt>Amount</dt>
+  <dd><span className="ui-drawer__figure-value">€ 12,480.50</span><Badge variant="success">Posted</Badge></dd></dl></DrawerSection>;
 const Ruled = ({ pairs }: { pairs: string[][] }) => <>{pairs.map(([k, v]) =>
   <div key={k} className="gd-ruled__row"><span>{k}</span><span>{v}</span></div>)}</>;
 
@@ -61,12 +66,33 @@ const PageDont = () => <Frame title="Member access" footer={<Button variant="pri
     ({ label, value: <UnitSwitch label={label} on={on} /> }))} /></DrawerSection>
 </Frame>;
 
+// A quick edit of the opened record, against a long form of several steps that
+// creates a new one.
+const QuickEdit = () => <Frame footer={<Button variant="primary">Save</Button>}>
+  <Group rows={PAYMENT} />
+  <DrawerSection title="Classify">
+    <SelectField label="Category" defaultValue="payout">
+      <option value="">Choose a category</option><option value="payout">Card payout</option><option value="fee">Fee</option>
+    </SelectField>
+  </DrawerSection>
+</Frame>;
+const BANK = ['Account holder', 'IBAN', 'BIC', 'Bank name', 'Bank address', 'City', 'Postcode', 'Country'];
+const LongForm = () => <Frame title="New supplier" footer={<Button variant="primary">Next</Button>}>
+  <DrawerSection title="Step 2 of 4: bank details">
+    {BANK.map((label) => <TextField key={label} label={label} />)}
+  </DrawerSection>
+</Frame>;
+const Lined = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
+  <DrawerSection title={title}><Ruled pairs={pairs} /></DrawerSection>;
+const footer = <Button variant="primary">Save</Button>;
+
 const specimens = [
-  { id: 'one-record' },
+  { id: 'one-record', do: () => <QuickEdit />, dont: () => <LongForm /> },
   { id: 'drawer-or-page', do: () => <PageDo />, dont: () => <PageDont /> },
-  { id: 'no-cards', do: () => <Frame>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,
-    dont: () => <Frame>{GROUPS.map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },
-  { id: 'three-lines' },
+  { id: 'no-cards', do: () => <Frame><Figure />{GROUPS.slice(1).map((g, i) => <Group key={i} {...g} />)}</Frame>,
+    dont: () => <Frame><Card><Figure /></Card>{GROUPS.slice(1).map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },
+  { id: 'three-lines', do: () => <Frame footer={footer}>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,
+    dont: () => <Frame footer={footer}>{GROUPS.map((g, i) => <Lined key={i} {...g} />)}</Frame> },
   { id: 'rows', do: () => <Frame><Group rows={DETAIL} /></Frame>, dont: () => <Frame><Ruled pairs={DETAIL} /></Frame> },
 ];
 

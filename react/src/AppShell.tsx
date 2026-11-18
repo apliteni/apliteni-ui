@@ -21,6 +21,9 @@ export type AppShellProps = {
   sections: AppShellSection[];
   /** The vanilla rail layout, or the existing band layout. */
   layout?: 'rail' | 'topbar';
+  /** The side the phone menu drawer opens from. By default it is the menu button's side:
+   *  right in the topbar layout, left in the rail layout (#790). */
+  drawerSide?: 'left' | 'right';
   /** Current router pathname; the longest matching section wins. */
   pathname: string;
   title: string;
@@ -60,7 +63,7 @@ export type AppShellProps = {
 
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
-export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar',
+export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
   brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
@@ -179,7 +182,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
     </header>
     {page}
     <Drawer open={menu} onClose={() => setMenu(false)} title={word}
-      side="left" size="sm" footer={<div className="ui-app__drawer">{accountBlock()}</div>}>
+      side={drawerSide ?? 'left'} size="sm" footer={<div className="ui-app__drawer">{accountBlock()}</div>}>
       <div className="ui-app__drawer">{sidebar('Menu sections')}</div>
     </Drawer>
   </div>;
@@ -226,7 +229,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       </header>
       {page}
     </div>
-    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side="left" size="sm" initialFocusRef={firstRow}
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side={drawerSide ?? 'right'} size="sm" initialFocusRef={firstRow}
       headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}

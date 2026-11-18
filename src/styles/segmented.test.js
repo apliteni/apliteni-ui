@@ -118,7 +118,7 @@ test('the underline small tab keeps its floor when the compact pill rule is late
     + `from ${minHeight?.selector}; the underline small tab must keep the 44px floor`,
   );
   assert.equal(padding?.value, 'var(--space-3)', `source-order mutation let ${padding?.selector} set padding`);
-  assert.equal(fontSize?.value, 'calc(var(--text-xs) + 1px)', 'size="sm" still owns the compact type size');
+  assert.equal(fontSize?.value, 'var(--text-sm)', 'size="sm" still owns the compact type size');
 });
 
 test('the chosen tab is a weight step and one bar, and draws no box', () => {

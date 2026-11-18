@@ -55,7 +55,7 @@
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  --text-xs:   11px;
+  --text-xs:   12px;
   --text-sm:   13px;
   --text-base: 14.5px;
   --text-md:   15.5px;
@@ -179,6 +179,8 @@
   /* How much of its own colour a tinted card mixes in. Dark mixes upward off a mid-grey
      card, so it can afford this much. why: docs/foundations.md#elevation */
   --card-tint: 9%;
+  /* A selected row takes the card's tint, and one step more under the pointer. #814 */
+  --card-tint-hover: 12%;
 
   --text: #e9e7f0;
   --strong: #ffffff;
@@ -241,6 +243,11 @@
   --chip-danger-fill: var(--glow-pink);
   --chip-info-ink: var(--cyan);
   --chip-info-fill: var(--glow-cyan);
+  /* Status word ink: a tone word with no fill, read on a table row. Dark keeps the chip
+     ink, which is 7.42:1 or more on every row ground. Light deepens it, see there. */
+  --status-warn-ink: var(--chip-warn-ink);
+  --status-info-ink: var(--chip-info-ink);
+  --status-danger-ink: var(--chip-danger-ink);
   /* The fill of a chip with no status to carry. The themes match on SEPARATION, not on
      alpha — 12% here is 1.22:1 off the card, 15% in light is 1.23:1 — because --muted is
      a light violet-grey in dark and a mid slate in light.
@@ -421,6 +428,7 @@
   /* Light mixes DOWN from white, so tint costs lightness: 5% is the most a card can spend
      and stay above the page. why: docs/foundations.md#elevation */
   --card-tint: 5%;
+  --card-tint-hover: 8%;
 
   --text: #1a1e27;
   --strong: #0c0e13;
@@ -451,7 +459,7 @@
   --glow-cyan: rgba(12, 143, 168, 0.1);
   --glow-pink: rgba(169, 45, 89, 0.1);   /* an exact tint of --pink above */
 
-  /* Solid chip pairs for the light app. Each ink is deepened past its signal hue so 11px
+  /* Solid chip pairs for the light app. Each ink is deepened past its signal hue so 12px
      chip text clears WCAG AA on its own pale fill, and on the soft toast's wash, which
      #131 gave the same ink. Three came down again at #295 with the page; danger did not
      need to. */
@@ -469,6 +477,12 @@
      already occupy. See issue #131. */
   --chip-info-ink: #096a7c;
   --chip-info-fill: #ddeff3;
+  /* A status word has no fill, so a selected row's accent wash is its ground. The chip
+     inks read 4.95 to 6.24:1 there. These reach the 7:1 body aim on a plain, a selected
+     and a selected hover row under every accent. Owner decision on #814. */
+  --status-warn-ink: #684600;
+  --status-info-ink: #025463;
+  --status-danger-ink: #990149;
   /* See the dark block for why the two alphas differ. */
   --chip-neutral-fill: color-mix(in srgb, var(--muted) 13%, transparent);
 
@@ -613,7 +627,6 @@
 .ui-filter-bar__chip,
 .ui-footer--app,
 .ui-seg,
-.ui-snippet,
 .ui-snippet--reveal,
 .ui-sx,
 .ui-table,
@@ -649,6 +662,15 @@
 .ui-table-scroll > .ui-table--hover tbody tr:hover:not(.is-target) > :is(td, th) {
   --code-bg: var(--surface);
 }
+/* The row table hovers on --surface-3, and a chip there keeps the card surface. A selected
+ * row mixes the accent into the table ground, so a chip there keeps that plain ground. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--surface); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th),
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { --code-bg: var(--table-bg); }
+/* A hovered row in a drawer group takes --surface in dark, so a chip there keeps the page.
+   The drawer adds no weight, so a checked row keeps the hand-off above. */
+:where(.ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--bg); }
+:where(:root[data-theme="light"] .ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--surface); }
 .ui-card--accent,
 .ui-card--live,
 .ui-snippet--reveal { --code-bg: var(--surface); }

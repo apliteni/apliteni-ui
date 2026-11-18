@@ -229,7 +229,9 @@ function measure(sheetCss) {
 
 /** What "one chevron, anchored right" means, as a list of faults. */
 // The only anchoring the kit uses; a chevron placed another way needs this widened.
-const ANCHORED = /^right\s+[\d.]+(?:px|rem|em)\s+center$/;
+// jsdom 30.1.3 resolves `right 15px center` to its computed `calc(100% - 15px) 50%`,
+// so both serialisations are the same anchored-right position.
+const ANCHORED = /^(?:right\s+[\d.]+(?:px|rem|em)\s+center|calc\(100%\s*-\s*[\d.]+(?:px|rem|em)\)\s+50%)$/;
 function faultsIn(m) {
   const faults = [];
   const copies = (m.image.match(/url\(/g) ?? []).length;
@@ -283,6 +285,10 @@ const MUTATIONS = [
   {
     why: 'the chevron left at the origin',
     apply: (css) => css.replace(/background-position:\s*right 15px center;/, 'background-position: 0% 0%;'),
+  },
+  {
+    why: 'the chevron centred instead of anchored right',
+    apply: (css) => css.replace(/background-position:\s*right 15px center;/, 'background-position: center center;'),
   },
   {
     // The React half of the package: react/dist/index.css loads ON TOP of the kit's.

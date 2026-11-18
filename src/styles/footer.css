@@ -39,7 +39,7 @@
    footer breaks into columns, so it answers to the row rather than to a
    scale. The one width below the floor the measure gate draws. See #208. */
 .ui-footer__brand { max-width: 300px; }
-.ui-footer .ui-footer__brand .brand { font-size: calc(var(--text-base) + 0.5px); }
+.ui-footer .ui-footer__brand .brand { font-size: var(--text-md); }
 .ui-footer__tagline {
   margin: 12px 0 0;
   font-size: var(--text-sm);
@@ -86,7 +86,7 @@
 }
 .ui-footer__links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 11px; }
 .ui-footer__links a {
-  font-size: calc(var(--text-sm) + 0.5px);
+  font-size: var(--text-sm);
   color: var(--footer-link);
   text-decoration: none;
   transition: color var(--dur-fast) var(--ease);
@@ -123,7 +123,7 @@
   border-top: 1px solid var(--footer-border);
 }
 .ui-footer--app .ui-footer__in { max-width: none; padding: 12px clamp(14px, 2.4vw, 22px); }
-.ui-footer--app .ui-footer__bar { padding-top: 0; border-top: 0; font-size: calc(var(--text-sm) - 0.5px); }
+.ui-footer--app .ui-footer__bar { padding-top: 0; border-top: 0; }
 
 /* Responsive — columns collapse to a stacked layout on narrow screens. Two of
    the kit's three steps, and the second one is the phone step rather than a

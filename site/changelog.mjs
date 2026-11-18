@@ -6,9 +6,182 @@
 
 export const RELEASES = [
   {
-    v: '0.159.0', date: '2026-11-02',
+    v: '0.175.0', date: '2026-11-18',
     changes: [
-      ['changed', 'The Accessibility floor, Colour and theming, Iconography, Labels and titles and Layout and density guidelines draw each rule as a picture.', ['Guidelines']],
+      ['changed', 'A `FileDrop` row with a file keeps the resting row\'s 32px height while the file uploads and after it lands. The name, the size and the status or the progress track stand on one line, and Remove ends it. Content under the row no longer moves when a file arrives. Part of #820.', ['FileDrop']],
+      ['changed', 'In a `FileDrop` row of 352px or less, the size leaves the line, and a screen reader still reads it. A refused file shows its reason beside the name, and moves it under the name only when the line is full. The row then grows to 61px. Part of #820.', ['FileDrop']],
+      ['changed', 'In a parent that sizes to its content, `FileDrop` is 420px wide, or narrower when the parent has less room. Part of #820.', ['FileDrop']],
+    ],
+  },
+  {
+    v: '0.174.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'Drawer groups now stand 32px apart with no line between them, and each `DrawerSection` heading stands on a 1px line, the same line as a table head. If your drawer relied on the line between groups, a group without a heading now has no line. Closes #811.', ['Drawer', 'Guidelines']],
+      ['added', 'A drawer can lead with its key figure: `.ui-drawer__figure` is a label over a 22px value, with a status badge beside it. Put it in a `DrawerSection` with no title, as the first group. Part of #811.', ['Drawer']],
+      ['changed', 'A table in a drawer group now takes the drawer\u2019s 13px text and stands on the drawer\u2019s ground. Its head is semibold, and its rows have no lines between them. A hover table keeps its row height. Part of #811.', ['Drawer', 'DataTable']],
+    ],
+  },
+  {
+    v: '0.172.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'The smallest text step, `--text-xs`, is now 12px, not 11px. Badges, pills, key caps, tooltips, units, counts, dropdown descriptions and chart ticks get text 1px larger, and a badge is about 1.6px taller. If your layout needs 11px text, set that size in your own CSS, because the kit has no smaller step. Part of #814.', ['Badge', 'Tooltip', 'Dropdown', 'Chart', 'Command palette']],
+      ['changed', 'Each kit text size is now one step of the `--text-*` scale, with no pixel offset, so a host that changes a step moves every part on it. Small buttons, dropdown triggers and rows, segments, callouts and footer links are 13px. Tabs and nav sub-items are 14.5px, drawer, modal and compact success titles are 15.5px, and the title of the centred entry card and the page title on a phone are 22px. Part of #814.', ['Button', 'Dropdown', 'Segmented', 'Tabs', 'Navigation', 'Drawer', 'Modal', 'AppShell']],
+      ['changed', 'A small `Button` is now 32px tall, with or without a glyph, level with a dropdown trigger. An icon-only small button is 32×32px. A small `Segmented` control keeps its 24px box with 13px text, and inline code is never smaller than 12px. Part of #814.', ['Button', 'Segmented']],
+      ['changed', 'A filter bar now stands on the page directly above its table card, with no card of its own. If your screen puts a filter bar on a card, you can remove that card. Keep its search field live there. Part of #814.', ['FilterBar', 'SearchField']],
+      ['changed', 'A filter bar on the page now sits 8px above the table card it filters, not 12px, and 20px on a touch phone. This applies in the page body, `.ui-card-stack` and `.ui-stack`. Part of #814.', ['FilterBar', 'AppShell']],
+    ],
+  },
+  {
+    v: '0.170.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'A badge in a table cell is now 19px high, not 24px. A dense row stays 38px, and a badge outside a table does not change. Part of #814.', ['Badge', 'Table']],
+      ['added', '`.ui-status--success`, `--danger`, `--warn`, `--info` and `--neutral` give a status word the ink of its tone with no fill. Use them for a second status beside the badge of a row. In light, warn, info and danger use the new `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink`, which reach 7:1 on a selected row. Part of #814.', ['Badge', 'Table']],
+      ['fixed', 'A hover readout in a table cell now wraps its text inside its box. Before, it took the cell\'s one-line rule, so a long name ran out of the box. Part of #814.', ['Tooltip', 'Table']],
+      ['fixed', 'A React `Tooltip` readout now opens in the browser\'s top layer. A pinned name cell on a phone no longer cuts it, and a sticky table header no longer covers it. A browser with no popover support keeps the old placement. Part of #814.', ['Tooltip', 'Table']],
+      ['changed', 'A resting check box and radio now have a field\'s fill and a `--muted` edge, at 5.36:1 or more on every ground. Before, a grey fill looked disabled and the edge was 1.52:1. Part of #814.', ['Checkbox', 'Table']],
+      ['changed', 'A focused text link, and words that open a hover readout, get a 6px corner and 4px of room at each side. In a table cell after the first, the band keeps 8px before the name. No word moves. Part of #814.', ['Focus', 'Table']],
+      ['changed', 'A selected row\'s accent wash is lighter in light: 5%, and 8% under the pointer, from 9% and 12%. Dark does not change. Part of #814.', ['Table']],
+      ['changed', 'A checked or partial check box, and a checked radio, are now a light accent tint with an accent edge and mark, not a solid accent block. The edge and the mark stay at 4.4:1 or more under every accent in both themes. Part of #814.', ['Checkbox', 'Table']],
+    ],
+  },
+  {
+    v: '0.168.0', date: '2026-11-17',
+    changes: [
+      ['added', 'A `DataTable` `pinnedIdentity` now also takes a column key, so a date or another column can stand before it and the named column stays pinned. `pinnedIdentity: true` still pins column 0. Part of #814.', ['DataTable']],
+      ['fixed', 'Escape over an open `Tooltip` or `DatePicker` calendar now closes only that overlay, and the next Escape closes the `Drawer` or `Modal` around it. Part of #814.', ['Tooltip', 'DatePicker', 'Drawer', 'Modal']],
+      ['fixed', 'A shut `DatePicker` panel now carries `data-dd-shut`, as a shut `Dropdown` does. Part of #814.', ['DatePicker']],
+    ],
+  },
+  {
+    v: '0.167.0', date: '2026-11-17',
+    changes: [
+      ['changed', 'In a form field, a `Dropdown` trigger and a `DatePicker` trigger now have the corner, padding and type size of a text input, so they have the same height as the input beside them. A long value stays on one line and ends with an ellipsis. A trigger outside a field, for example in a filter bar, a toolbar or the topbar, keeps the pill. Closes #812.', ['Dropdown', 'DatePicker']],
+      ['fixed', 'A `Dropdown` or `DatePicker` panel that moves to stay in view no longer leaves the page wider in Chromium 158. The panel now moves by its inline `margin-left` and `margin-right`, not by `translate`, so a host style on those margins is replaced while the panel is moved. Part of #812.', ['Dropdown', 'DatePicker']],
+      ['fixed', 'On a touch phone, a tap on the last pixel of a control in the `AppShell` band, such as a notification bell, no longer changes the theme. A toolbar in a table cell no longer makes its row taller. Part of #812.', ['AppShell', 'Table']],
+    ],
+  },
+  {
+    v: '0.166.0', date: '2026-11-12',
+    changes: [
+      ['changed', 'In a `Toast` and in a `Dropdown` row with a description, the glyph and the trailing parts now align with the first line of text, not with the middle of the block. A one-line toast does not change. Part of #798.', ['Toast', 'Dropdown']],
+      ['added', 'A Notifications guideline page tells when an event goes in the bell, when a notification becomes read, and how to show a failed load. The Notifications showcase now opens each record on its own page with a back link, and Mark all read shows a toast with Undo. Part of #798.', ['Guidelines']],
+      ['changed', 'At 720px and below, a `Dropdown` panel keeps a 16px gap from each screen border, or the phone\'s safe area where that is wider. The Notifications showcase panel no longer fills the phone width. Part of #798.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.165.3', date: '2026-11-12',
+    changes: [
+      ['changed', 'Table and `DataTable` cells now align their content to the top, so the values of a row stay level with the first line of a wrapped cell, and a sort mark stands on the first line of a wrapped label. A one-line row does not move. At the default density, a row with two lines grows by about 6px. The Dense tables guidelines add the Align cells to the top rule. Resolves #806.', ['Table', 'DataTable']],
+    ],
+  },
+  {
+    v: '0.165.2', date: '2026-11-12',
+    changes: [
+      ['changed', 'The development tooling moves to jsdom 31 and vitest 5.1. The kit\'s CSS and components are unchanged.'],
+    ],
+  },
+  {
+    v: '0.165.1', date: '2026-11-12',
+    changes: [
+      ['added', 'Storybook has a Notifications showcase: a bell with its unread count opens a panel of the latest notifications, and its All notifications button opens a list with a detail pane. It shows the empty and error states, the top bar and a phone. The Icon-only controls rule now allows the notifications bell, named by its sentence. Resolves #798.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.165.0', date: '2026-11-12',
+    changes: [
+      ['changed', 'In a card, a `Snippet` code block now paints the page ground, as an inline code chip does, and a line divides its label row from the code. A shade marks an edge with more code past it. In light, strings and flags take the chip inks. Under the darkest part of the light shade, keywords, flags and URLs still fall below WCAG AA. The reveal block and inline code do not change. Resolves #800.', ['Snippet']],
+    ],
+  },
+  {
+    v: '0.164.1', date: '2026-11-10',
+    changes: [
+      ['changed', 'The Page guideline rule Leave pages closed now has one exception: when a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was. Storybook shows it in the Sign In showcase, which now offers Google as the one provider, with an optional email form. It also gains a provider error with a retry, a busy button while the provider answers, and the session-ended dialog. Its email form tells a password manager which field is the email and which is the password. Resolves #799.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.164.0', date: '2026-11-09',
+    changes: [
+      ['changed', 'At 560px and below, the `AccountWindow` now floats with a 16px gap on each side, clear of the notch and the home bar, instead of filling the screen. It is as tall as its section, up to the screen height, and a long section scrolls under the reader and the tabs. When keyboard focus scrolls a control in the section into view, its whole focus ring shows. Resolves #795.', ['AccountWindow']],
+    ],
+  },
+  {
+    v: '0.163.1', date: '2026-11-08',
+    changes: [
+      ['fixed', 'The keyboard focus ring of the `CommandPalette` search row now follows the round top corners of the panel. Before, its top corners were square and the panel clipped them. Resolves #789.', ['CommandPalette']],
+      ['fixed', 'The keyboard focus ring of a navigation row in the `AppShell` rail and phone drawer now stays inside its row. Before, it crossed into the next row, 2px away. Resolves #789.', ['AppShell']],
+    ],
+  },
+  {
+    v: '0.163.0', date: '2026-11-08',
+    changes: [
+      ['changed', 'On a phone, the `AppShell` menu drawer opens from the side of its menu button: from the right in the topbar layout, and from the left in the rail layout as before. A topbar app that wants the old left drawer sets the new `drawerSide="left"`. See #790.', ['AppShell']],
+      ['added', 'The Component choice guideline has a new rule, Open a panel at its control: a drawer, menu or popover opens next to the control that opened it. See #790.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.162.3', date: '2026-11-07',
+    changes: [
+      ['added', 'More rules on the Dense tables, Stat bands, Drawers, Hover readouts, File drop, Going back, The command palette, Pagination, and Dashboards and reports guideline pages now show a Do and a Don\'t picture built from kit parts. Part of #768.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.162.2', date: '2026-11-07',
+    changes: [
+      ['fixed', 'The controls in one row of a `FilterBar`, a split toolbar and a file drop now share one height and one centre line. Before, a status chip sat about 3 px higher than the search field beside it. On a phone, a chip on its own line now grows by less than 1 px to a whole 40 px. Part of #768.', ['FilterBar', 'Toolbar', 'FileDrop']],
+      ['added', 'More rules on the Colour and theming, Accessibility floor, Iconography, Labels and titles, and Layout and density guideline pages now show a Do and a Don\'t picture built from kit parts. Part of #768.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.162.1', date: '2026-11-06',
+    changes: [
+      ['changed', 'The Dense tables guideline now asks for a filter bar only above a table that can hold more than 10 rows. A table that never holds more than 10 rows, such as a list of API tokens, can take no bar. Resolves #785.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.162.0', date: '2026-11-04',
+    changes: [
+      ['changed', 'A hover table that is neither zebra nor dense is now a row table: 48px rows with no row or column lines, a square neutral hover fill across the full width and a square accent wash on a checked row. Its first and last content sit 12px inside the fill, 24px in a card and 16px in a card below 560px. The 8px room and round ends of 0.160.0 stay on a dense hover table. `.ui-table--compact` makes the rows 36px, and the new `.ui-table--comfortable` makes them 56px. `.ui-table__sub` puts a second value, such as an email, under the first. Resolves #770.', ['Table']],
+      ['added', 'React `DataTable` takes `density="comfortable"`. Part of #770.', ['Table']],
+      ['changed', 'A table scroll frame no longer shades its edges, and a pinned column casts no shadow. Below 560px the frame shows no scrollbar. Part of #770.', ['Table']],
+      ['changed', 'React `Tooltip` opens after the pointer rests for 300ms. Within 300ms after a readout closes, the next one opens at once. Keyboard focus opens it at once. The readout fades in and closes at once. The new `control` prop is for a child that is one control and names itself, such as an icon button: the readout adds no tab stop and no description. Part of #770.', ['Tooltip']],
+      ['fixed', 'On a phone, a screen-reader label in a table frame no longer widens the page, and a closed tooltip no longer makes the frame scroll past its table. Part of #770.', ['Table', 'Tooltip']],
+    ],
+  },
+  {
+    v: '0.161.0', date: '2026-11-03',
+    changes: [
+      ['added', 'React `Button` takes `hold` and `onConfirm` for an action that cannot be undone. A 1 s press, or two presses within 3 s, calls `onConfirm`; a plain click calls neither `onClick` nor `onConfirm`. A short press shows "Hold to confirm" above the button, so leave one line of room there. Resolves #776.', ['Button']],
+    ],
+  },
+  {
+    v: '0.160.0', date: '2026-11-03',
+    changes: [
+      ['changed', 'A hover table (`ui-table--hover` without `--zebra`, and React `DataTable` by default) now fills a hovered row across the full table width with round ends. The first and last content sit 8px inside the fill, also in dense and compact tables and in an end action cell. The last column now ends 8px from the table edge. Before, it ended 24px in. No row line crosses the round ends. Resolves #773.', ['Table']],
+      ['changed', 'The Dense tables guideline now allows an inset grey hover fill. It still forbids a grey zebra. Part of #773.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.159.0', date: '2026-11-03',
+    changes: [
+      ['added', 'The package now ships a stylelint config at `@apliteni/apliteni-ui/stylelint`. It refuses raw colours, raw `px`, `rem` or `em` spacing values, and overrides of `.ui-*` kit classes in app styles; a rule is off only with a comment that names the approved exception. Resolves #772.'],
+    ],
+  },
+  {
+    v: '0.158.3', date: '2026-11-03',
+    changes: [
+      ['added', 'The package now ships `guidelines/INDEX.md`, one row per guideline page with the screen parts it covers and when to read it. An agent that builds a screen can read it to find the page. Resolves #771.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.158.2', date: '2026-11-03',
+    changes: [
+      ['fixed', 'A `Dropdown` panel that is torn down while it is still closing no longer throws an unhandled error. Before, the collapse timer could fire after the panel\'s document was gone and throw while measuring the view.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.158.1', date: '2026-11-02',
+    changes: [
+      ['fixed', 'A hovered link button now shows one underline, under its label. Before, the hover added a second underline under the button. The hover still changes the text to the strong ink. Resolves #765.', ['Button']],
     ],
   },
   {

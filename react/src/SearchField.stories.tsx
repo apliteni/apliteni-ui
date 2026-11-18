@@ -70,21 +70,19 @@ export const Toolbar: StoryObj = {
 
     // .ui-app__body is the kit's own column: the page gap, and min-width:0 on
     // each child, which is what lets the table scroll inside its column on a phone.
-    // Toolbar and table each on a card. The search field is a field, and the
-    // toolbar is a layout class that paints nothing, so on the app column's
-    // ground the field sat on --bg. The toolbar stays the input group's direct
-    // parent — `.ui-toolbar > .ui-input-group` is what sizes it — so the card
-    // goes around the toolbar, not inside it.
+    // The toolbar is a filter bar, so it stands on the page above the table card,
+    // with no card of its own. The toolbar stays the input group's direct parent,
+    // because `.ui-toolbar > .ui-input-group` sizes it.
     // react/src/field-ground.test.tsx holds the numbers.
     return <div className="ui-app__body">
-      <Card><div className="ui-toolbar">
+      <div className="ui-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
-      </div></Card>
+      </div>
       {view === 'table'
         ? <Card><DataTable columns={columns} rows={rows} pager={false} selectable={false} stickyHeader
           scrollLabel="Invoices" /></Card>

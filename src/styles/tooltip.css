@@ -5,10 +5,19 @@
  *   .ui-tip        the readout — __label, __value, __detail
  * The readout is an overlay in every state. It is absolutely placed inside its
  * host, so showing it, filling it and moving it change the size of nothing.
+ * The React readout is a manual popover: open, it sits in the top layer and is
+ * fixed to the view, so no ancestor cuts it and no sticky cell covers it.
  * why: docs/components.md#the-hover-readout
  * ========================================================================== */
 
 .ui-tip-host { position: relative; }
+/* Words that open a readout take a text link's ring: a corner and room on each side. The margin
+   lends the side room back, and an inline box's block padding moves no line. #814 (rev_136bd26bc559/d22) */
+.ui-tip-host > .ui-focusable:focus-visible {
+  border-radius: var(--radius-xs);
+  padding: var(--space-1);
+  margin-inline: calc(-1 * var(--space-1));
+}
 
 .ui-tip {
   /* One number for the mark-to-readout distance, read by both placements here
@@ -17,9 +26,11 @@
   --ui-tip-bg: var(--bg-elevated);
   position: absolute;
   top: var(--ui-tip-y, 0px);
-  left: var(--ui-tip-x, 50%);
+  /* The slide is in `left`, not in `translate`: a change of `translate` alone does not lay
+     the box out again, so a scroll region kept the overflow of the readout's last place. */
+  left: calc(var(--ui-tip-x, 50%) + var(--ui-tip-shift, 0px));
   z-index: var(--z-dropdown);
-  translate: calc(-50% + var(--ui-tip-shift, 0px)) calc(-100% - var(--ui-tip-gap));
+  translate: -50% calc(-100% - var(--ui-tip-gap));
   display: flex;
   flex-direction: column;
   width: max-content;
@@ -36,6 +47,9 @@
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: 1.45;
+  /* A host's one-line rule, such as a table cell's, must not reach the readout: the full
+     text of a cut cell wraps inside the box. why: the Hover readouts page, #814 */
+  white-space: normal;
   color: var(--text);
   /* The readout covers the marks beside the one it describes. Were it a hover
      target it would take the pointer, uncover the mark, lose the pointer and
@@ -55,9 +69,25 @@
 
 /* Below the mark: the wiring's flip when above would be clipped, or the
    author's own choice. */
-.ui-tip.is-below { translate: calc(-50% + var(--ui-tip-shift, 0px)) var(--ui-tip-gap); }
+.ui-tip.is-below { translate: -50% var(--ui-tip-gap); }
+
+/* In the top layer: the place above, not the browser's centred popover box. A browser
+   with no popover drops this rule and keeps the readout in its host. */
+.ui-tip:popover-open {
+  position: fixed;
+  right: auto;
+  bottom: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+}
 
 .ui-tip.is-open { opacity: 1; visibility: visible; }
+
+/* A closed readout has no box: a hidden box still widens the scroller that holds
+   it. The open readout fades in from its starting style. */
+.ui-tip:not(.is-open) { display: none; }
+@starting-style { .ui-tip.is-open { opacity: 0; } }
 
 .ui-tip__label { color: var(--text); }
 .ui-tip__value {

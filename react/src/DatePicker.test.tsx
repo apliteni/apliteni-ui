@@ -17,6 +17,7 @@ import {
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
 import { Field } from './Field';
+import { Drawer } from './Drawer';
 
 const TODAY = '2026-09-15';
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
@@ -889,13 +890,13 @@ it('an open popover over the edge of the view is brought back inside it', () => 
   Object.defineProperty(document.documentElement, 'clientWidth', { value: 390, configurable: true });
   spy.mockImplementation(function box(this: Element) {
     const own = this.classList.contains('ui-datepicker__panel');
-    const left = own ? 87 + (parseFloat((this as HTMLElement).style.translate) || 0) : 0;
+    const left = own ? 87 + (parseFloat((this as HTMLElement).style.marginLeft) || 0) : 0;
     const width = own ? 359 : 96;
     return { left, right: left + width, width, top: 0, bottom: 31, height: 31, x: left, y: 0,
       toJSON: () => ({}) } as DOMRect;
   });
   render(<DatePicker today={TODAY} defaultOpen />);
-  expect(panel().style.translate).toBe('-64px');
+  expect(panel().style.marginLeft).toBe('-64px');
   expect(panel().getBoundingClientRect().right).toBe(382);
   spy.mockRestore();
 });
@@ -1005,6 +1006,61 @@ describe('the sheet', () => {
     expect(written, 'the component names its step as a literal this gate can read').not.toBeNull();
     expect(steps).toContain(Number(written![1]));
     expect(Number(written![1])).toBe(Math.min(...steps));
+  });
+});
+
+// #814: a popover calendar is not a dialog, but its Escape is handled and marked before
+// the dialog stack's, so the first Escape closes only the calendar and the next reaches
+// the Drawer, whatever focus the picker holds.
+describe('inside a dialog', () => {
+  it('Escape closes only the calendar, then the drawer', async () => {
+    const user = userEvent.setup();
+    const closeDrawer = vi.fn();
+    render(
+      <Drawer open title="Record" onClose={closeDrawer}>
+        <DatePicker today={TODAY} />
+      </Drawer>,
+    );
+    const open = async () => {
+      await user.click(screen.getByRole('button', { name: 'Select a month' }));
+      expect(isOpen()).toBe(true);
+    };
+
+    // Focus on the trigger: opening leaves it there.
+    await open();
+    await user.keyboard('{Escape}');
+    expect(isOpen()).toBe(false);
+    expect(closeDrawer).not.toHaveBeenCalled();
+
+    // Focus in the grid.
+    await open();
+    cell(/^September 2026/).focus();
+    await user.keyboard('{Escape}');
+    expect(isOpen()).toBe(false);
+    expect(closeDrawer).not.toHaveBeenCalled();
+
+    // Focus elsewhere in the panel: a step button.
+    await open();
+    screen.getByRole('button', { name: /^Next year/ }).focus();
+    await user.keyboard('{Escape}');
+    expect(isOpen()).toBe(false);
+    expect(closeDrawer).not.toHaveBeenCalled();
+
+    // The next Escape reaches the drawer.
+    await user.keyboard('{Escape}');
+    expect(closeDrawer).toHaveBeenCalledTimes(1);
+  });
+
+  // #814: a shut calendar panel carries the same mark a shut Dropdown does.
+  it('a shut panel carries data-dd-shut', () => {
+    vi.useFakeTimers();
+    try {
+      render(<DatePicker today={TODAY} />);
+      vi.advanceTimersByTime(1000);
+      expect(panel()).toHaveAttribute('data-dd-shut');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

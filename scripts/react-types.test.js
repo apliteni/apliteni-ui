@@ -37,10 +37,10 @@ const fixture = path.join(workspace, 'src/primitives/Button.types.tsx');
 const source = path.join(workspace, 'src/primitives/Button.tsx');
 const tsc = createRequire(import.meta.url).resolve('typescript/bin/tsc');
 
-/* The patterns the review measured as broken, and the one that must stay narrow.
+/* The patterns the review measured as broken, and the ones that must stay narrow.
  * Only the regressions have to fail under the mutation. */
 const REGRESSED = ['spread-exported-props', 'component-props-without-href', 'display-name'];
-const CASES = [...REGRESSED, 'narrow-roots-still-narrow'];
+const CASES = [...REGRESSED, 'narrow-roots-still-narrow', 'hold-on-a-button-only'];
 
 /** `// case: <name>` markers, each owning the lines up to the next one. */
 const casesOf = (file) => {

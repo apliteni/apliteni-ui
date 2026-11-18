@@ -26,9 +26,10 @@ const SHEETS = ['base.css', 'layout.css', 'topbar.css', 'nav.css', 'button.css']
 const shellControls = () => [...SHELL.matchAll(/<(a|button)\s[^>]*className="([^"{}]+)"/g)]
   .map((match) => ({ tag: match[1], classes: match[2].split(/\s+/).filter(Boolean) }));
 
-// Rules that paint the kit ring, with the selectors that reach it.
+// Rules that paint the kit ring, outward or inward, with the selectors that reach it.
+// The rail rows take the inward band since #789.
 const ringSelectors = (css) => [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-  .filter(([, , body]) => /outline:\s*var\(--ring\)/.test(body))
+  .filter(([, , body]) => /outline:\s*var\(--ring(?:-scroll)?\)/.test(body))
   .flatMap(([, selector]) => splitSelectorList(selector))
   .filter((part) => part.includes(':focus-visible'));
 
@@ -101,4 +102,29 @@ test('focused fields keep one ring with a transparent border', () => {
     const changed = { ...sheets, [file]: sheets[file].replace('border-color: transparent;', 'border-color: var(--field-edge);') };
     assert.throws(() => checkFieldFocus(changed), /hides its own border ink/);
   }
+});
+
+// Words that take the ring, a text link and the words that open a readout, get a corner and
+// room at each side, and the margin gives the side room back, so focus moves no word.
+// why: #814 (rev_136bd26bc559/d22). Limits: it reads the declarations; that the ring is
+// whole inside a clipped phone cell is measured in the PR's captures.
+const TOOLTIP = readFileSync(path.join(here, 'tooltip.css'), 'utf8');
+const ruleBody = (css, selector) => [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .find(([, found]) => found.trim() === selector)?.[2];
+const roomLentBack = (body) => {
+  const room = /(?:^|;)\s*padding(?:-inline)?:\s*([^;]+);/.exec(body)?.[1].trim();
+  const margin = /margin-inline:\s*([^;]+);/.exec(body)?.[1].trim();
+  return Boolean(room) && margin === `calc(-1 * ${room})` && /border-radius:\s*var\(--radius-xs\)/.test(body);
+};
+
+test('a text link and the words that open a readout take a corner and room that moves no word', () => {
+  for (const [css, selector] of [[SHEETS, 'a:not([class]):focus-visible'], [TOOLTIP, '.ui-tip-host > .ui-focusable:focus-visible']]) {
+    const body = ruleBody(css, selector);
+    assert.ok(body, `${selector} has no rule of its own`);
+    assert.ok(roomLentBack(body), `${selector} takes no corner, or room that its margin does not give back`);
+  }
+  // Rejection: room that is not given back pushes the next word along.
+  assert.equal(roomLentBack('padding-inline: var(--space-1); border-radius: var(--radius-xs);'), false);
+  assert.equal(roomLentBack('padding-inline: var(--space-1); margin-inline: calc(-1 * var(--space-2)); border-radius: var(--radius-xs);'), false);
+  assert.equal(roomLentBack('padding-inline: var(--space-1); margin-inline: calc(-1 * var(--space-1));'), false);
 });

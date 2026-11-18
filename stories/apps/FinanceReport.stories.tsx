@@ -61,17 +61,17 @@ const noop = () => {};
 const periods = (PERIODS as string[]).map(p => ({ label: p, value: p }));
 
 // The export sits at the far end of the row because it acts on the ledger rather than narrowing it. #505
-// The row is the ledger's filter bar, so it sits on a card directly above the ledger. why: guidelines/dense-tables.md
+// The row is the ledger's filter bar, so it stands on the page directly above the ledger. why: guidelines/dense-tables.md
 const Controls = ({ query, onQuery, period, onPeriod, filters, onChange, onRemove, onClear }: {
   query?: string; onQuery: (q: string) => void;
   period: string; onPeriod: (p: string) => void; filters: typeof FILTERS & { value?: string }[];
   onChange: (id: string, value: string | undefined) => void; onRemove: (id: string) => void; onClear: () => void;
-}) => <Card pad="sm"><div className="ui-toolbar ui-toolbar--split">
+}) => <div className="ui-toolbar ui-toolbar--split">
   <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
   <Segmented label="Period" options={periods} value={period} onChange={onPeriod} />
   <div><FilterBar filters={filters} label="Payout filters" clearLabel="Clear all" onChange={onChange} onRemove={onRemove} onClear={onClear} /></div>
   <Button icon="download" iconOnly>Export rows</Button>
-</div></Card>;
+</div>;
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` is what
 // scrolls seven columns of ledger on a phone.

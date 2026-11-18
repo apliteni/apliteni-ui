@@ -44,7 +44,7 @@ The kit has three breakpoints, and every media query it ships uses one of them.
 | ------- | -------------------------------------------------------------------------------------- |
 | `860px` | the page stops holding three tracks — a three-across grid drops to two, a side-by-side pair stacks |
 | `720px` | the shell folds — the app rail becomes an icon strip, link columns halve, a secondary label drops out |
-| `560px` | one column — every remaining grid is a single track, and a floating panel goes edge to edge |
+| `560px` | one column — every remaining grid is a single track, and a floating panel goes edge to edge, except the account window, which keeps a gap on each side |
 
 A step describes a viewport class, not a preference for one surface. The values are written as
 literals because a media query cannot read a custom property, and the kit has no build step to
@@ -87,10 +87,15 @@ The kit uses two families, and the split is based on role:
 - **Neither family is bundled.** Your page loads both. If a family named by a token is not
   loaded, the browser falls back silently.
 
-Component sizes use the `--text-*` scale. A size between two steps uses the nearest step plus a
-fixed pixel offset, so a host override still moves it. The 16px touch-field size is the one
-safety exception. See
-[A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
+**Each component size is one step of the `--text-*` scale, with no offset.** A host that
+changes a step moves every part on it. Three kinds of size stay off the scale:
+
+- A field is 16px on a touch screen. See
+  [A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
+- The landing page's hero title, hero line and section heading are fluid display sizes.
+- Inline code is 0.9 of its sentence, and never smaller than `--text-xs`.
+
+The smallest step, `--text-xs`, is 12px. No kit text is smaller.
 
 ## Labels and titles
 
@@ -109,7 +114,7 @@ sentence case and renders as written. A word that is capitalised in itself stays
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
-On the kit's scale, these are 30, 18, 14.5, 13, 13 and 11px. When two ranks share a size,
+On the kit's scale, these are 30, 18, 14.5, 13, 13 and 12px. When two ranks share a size,
 their weight separates them. `label` and `caption` are both 13px. Words use body ink, including
 labels and captions. See [Text ink](#text-ink).
 
@@ -198,6 +203,11 @@ This stronger aim is a written consumer rule only. The automated badge checks en
 so they would accept the previous success pair at 5.29:1. The other light status pairs
 meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these three grounds.
 
+**A status word has its own ink in light.** A word with no fill stands on a selected row's accent
+wash, so `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink` are deeper than the
+chip inks. They measure at least 7.01:1 on a plain, a selected and a selected hover row under
+every accent. In dark they are the chip inks, at 7.42:1 or more.
+
 **Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
 and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
 Check both before changing muted ink, the neutral fill or a containing surface.
@@ -219,7 +229,8 @@ These fill ratios describe separation, not text contrast.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
   therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1. This is
-  a white box on a grey page. **Put a form on a card.**
+  a white box on a grey page. **Put a form on a card.** A filter bar above a table is the one
+  exception. See [Forms](components.md#forms).
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
@@ -334,6 +345,9 @@ A link that breaks across two lines draws one band per line, because an `outline
 line box it covers. This is the same thing the browser's own outline already did, so a link
 gets no new limit by taking the kit's band instead.
 
+A text link, and words that open a hover readout, get a 6px corner and 4px of room at each side
+inside the band. Focus moves no word, because the margin gives that room back.
+
 ```css
 --ring-width: 2px;
 --ring-color: var(--accent);
@@ -357,8 +371,9 @@ override reaches every control. There is no gap colour to hand down.
 
 **`--ring-scroll` is the indicator a box takes when its own edges are a surface's edges.** It uses
 the same 1px gap and 2px band, but draws them inward. A scroll region inside a surface is one such
-box. A link filling a table cell is another, and so is a line of text inside a cell that clips. You
-need both values, or the band appears outside the box.
+box. A link filling a table cell is another, and so is a line of text inside a cell that clips.
+A navigation rail row takes it too, because the rows stand 2px apart and an outward band covers
+the next row. You need both values, or the band appears outside the box.
 
 **Every focusable control the kit ships draws the band**, including a roving row the keyboard
 reaches with an arrow key rather than Tab. None falls back to the browser's own outline, which

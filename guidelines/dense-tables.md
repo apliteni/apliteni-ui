@@ -8,9 +8,11 @@
 
 **Rule:** Put tables on a white surface in light mode and the base canvas in dark mode.
 
-**Do:** Let the row edge mark hover.
+**Do:** Mark a hovered row with an inset grey fill, with room at both ends.
 
-**Don't:** Add a grey zebra or hover fill.
+**Don't:** Add a grey zebra.
+
+**Except:** A table in a card or drawer group stands on that surface.
 
 ## Choose density without shrinking type
 
@@ -92,13 +94,25 @@
 
 <!-- rule: pinned-identity-sub-lines -->
 
-**Why:** An ellipsis cannot cut a flex or grid box, so the name spills past the cell. No specimen draws it, because the cut needs a phone viewport.
+**Why:** An ellipsis cannot cut a flex or grid box, so the name spills past the cell.
 
 **Rule:** A pinned identity sub-line is running text.
 
 **Do:** Write it as a sentence, with any link inside.
 
 **Don't:** Lay a badge, a control or a picture along it, or make it a flex or grid box.
+
+## Align cells to the top
+
+<!-- rule: top-align -->
+
+**Why:** When one cell wraps, values centred in the taller row no longer sit on the line they belong to.
+
+**Rule:** Align every cell, header and sort mark with the first line of its row.
+
+**Do:** Keep the status and the amount level with the payee's name when a second line follows the name.
+
+**Don't:** Centre the values between the two lines of a taller row.
 
 ## Keep updates stable
 
@@ -112,16 +126,16 @@
 
 **Don't:** Replace the table with a blank state or move focus without telling the reader why.
 
-## Give every table its filter bar
+## Give a long table its filter bar
 
 <!-- rule: filter-bar -->
 
-**Why:** Readers narrow rows before reading them, and look for the bar where other tables put it.
+**Why:** Readers narrow a long table before they read it, and look for the bar where other tables put it.
 
-**Rule:** Put a bar with a search field and column filters directly above every table.
+**Rule:** Put a bar with a search field and column filters directly above a table that can hold more than 10 rows.
 
 **Do:** Search, then a status filter, on the row above the table.
 
 **Don't:** Leave rows that the reader cannot narrow.
 
-**Except:** Two tables take no bar: one that compares a document line by line, where a filter hides lines the reviewer must check, and a chart's Table view, which holds only the chart's points.
+**Except:** Three tables take no bar. One compares a document line by line, where a filter hides lines the reviewer must check. One is a chart's Table view, which holds only the chart's points. One never holds more than 10 rows, such as a list of API tokens, because the reader sees every row at once.

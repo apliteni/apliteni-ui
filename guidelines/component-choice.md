@@ -54,6 +54,20 @@
 
 **Don't:** Give those same list filters tab roles when they have no separate panels.
 
+## Open a panel at its control
+
+<!-- rule: panel-origin -->
+
+**Rule:** A panel opens next to the control that opened it.
+
+**Why:** The eye and pointer are already there; a far-edge drawer looks unrelated to its button.
+
+**Except:** A dialog that asks a question opens in the screen centre.
+
+**Do:** Open a drawer, menu or popover beside its button.
+
+**Don't:** Open that drawer across the page from its button.
+
 ## Group one category at a time
 
 <!-- rule: one-category -->

@@ -51,13 +51,13 @@ function Example(args: Partial<AppShellProps>) {
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args}>
-      {/* Every table has its filter bar directly above it, on a card because a field
-          never stands on the page ground. why: guidelines/dense-tables.md */}
-      <Card><div className="ui-toolbar">
+      {/* Each long table has its filter bar directly above it, on the page with no card
+          of its own. why: docs/components.md#forms */}
+      <div className="ui-toolbar">
         <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <FilterBar filters={[{ ...status, value: state }]} label="Payout filters"
           onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
-      </div></Card>
+      </div>
       <Card title="Payouts this week">
         <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} />
       </Card>
@@ -89,6 +89,13 @@ export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', i
 // edits in a row corrupted. (#486)
 export const Phone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
+
+// The menu drawer opens from the band's end, the side of its menu button (#790).
+export const PhoneMenu: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  play: async ({ canvasElement }) => {
+    await userEvent.click(within(canvasElement).getByRole('button', { name: 'Menu' }));
+    await expect(within(document.body).getByRole('dialog')).toBeVisible();
+  } };
 
 export const PhoneDropdown: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { bandControl: <Dropdown variant="menu" ariaLabel="Workspace" triggerContent="Workspace"

@@ -8,7 +8,8 @@
  * them: #514 was cut for verbosity after review, #566 took two rounds to lose
  * repeated text, and nothing measured the prose.
  *
- * The subject is every `guidelines/*.md` page, discovered from the directory, so
+ * The subject is every `guidelines/*.md` page except `INDEX.md`, the collection
+ * index and not a guideline page, discovered from the directory, so
  * a new page joins the check by existing. The prose is read through the parser
  * the pages are rendered with, so what is counted is what a reader reads: any
  * introduction between the title and the first rule, then each rule's `##`
@@ -60,20 +61,20 @@ export const WORDS_PER_RULE = 60;
  * Maintained by hand. Never regenerated: a figure that rises because a tool
  * wrote it is not a decision anybody made. */
 export const RECORDED = {
-  'accessibility-floor.md': 790,
+  'accessibility-floor.md': 788,
   'account-and-settings.md': 353,
   'command-palette.md': 430,
-  'component-choice.md': 510,
+  'component-choice.md': 570,
   'density-and-accents.md': 408,
-  'drawer.md': 324,
+  'drawer.md': 321,
   'empty-states.md': 91,
-  'file-drop.md': 535,
+  'file-drop.md': 525,
   'going-back.md': 363,
   'hover-readouts.md': 333,
   'iconography.md': 304,
   'layout-and-density.md': 318,
   'state-set.md': 299,
-  'stat-bands.md': 224,
+  'stat-bands.md': 217,
 };
 
 /* A word is a whitespace-separated token holding a letter or a digit, so an em
@@ -163,7 +164,7 @@ export function problemsIn(measured, recorded = RECORDED) {
 /** Every guideline page, measured, worst rate first. */
 export function measureCollection(dir = path.join(root, 'guidelines'), perRule = WORDS_PER_RULE) {
   return readdirSync(dir)
-    .filter((f) => f.endsWith('.md'))
+    .filter((f) => f.endsWith('.md') && f !== 'INDEX.md')
     .map((f) => measure(f, readFileSync(path.join(dir, f), 'utf8'), perRule))
     .sort((a, b) => (b.words / (b.rules || 1)) - (a.words / (a.rules || 1)));
 }
