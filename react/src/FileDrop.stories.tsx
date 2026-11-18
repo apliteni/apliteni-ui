@@ -72,8 +72,11 @@ export const FailedLongName: StoryObj = {
     onRetry={() => {}} onRemove={() => {}} /></Card>,
 };
 
+/** The live row with a file, then the same row while the account cannot receive files. */
 export const DisabledWithFile: StoryObj = {
   render: () => <Card>
+    <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} />
+    <p style={{ marginTop: 'var(--space-5)' }}>While the account cannot receive files:</p>
     <FileDrop file={{ ...STATEMENT, status: 'uploading', progress: 40 }} onRemove={() => {}} disabled />
   </Card>,
 };
