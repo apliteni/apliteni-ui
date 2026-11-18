@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseColour, ratio } from '../../stories/lib/contrast.js';
+import { colourOf, parseColour, ratio, tokensFor } from '../../stories/lib/contrast.js';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -149,6 +149,25 @@ test('the mark inside a marked disabled box stays legible on it, in both themes'
     assert.equal(ratio(mark, fill).toFixed(2), expected[theme],
       `${theme}: the disabled mark's pair moved off the measured token pair`);
   }
+});
+
+/* The resting box, which every live state starts from. Its edge is the control's only
+ * boundary, so it is held to the 3:1 non-text floor on each ground a box stands on: its
+ * own fill, the page, a card, a menu and a hovered row. A grey fill read as off (#814,
+ * rev_136bd26bc559/d21), so the fill is a field's.
+ * Limits: the grounds are a named list, not discovered; a selected row is left out because
+ * a box on it is checked and wears the accent. Disabled paint is held by the tests above. */
+test('the resting box takes a field fill and an edge of 3:1 on every ground, in both themes', () => {
+  const body = declaredIn('.ui-check input');
+  assert.match(body, /background:\s*var\(--field-bg\)/, 'the resting box is not filled as a field');
+  const edge = /border:\s*[\d.]+px\s+solid\s+(var\(--[\w-]+\))/.exec(body);
+  assert.ok(edge, 'the resting box has no solid edge in a custom property');
+  const grounds = ['--field-bg', '--bg', '--surface', '--bg-elevated', '--surface-3'];
+  const low = THEMES.flatMap((theme) => grounds.map((ground) => {
+    const vars = tokensFor(theme);
+    return { theme, ground, step: ratio(colourOf(edge[1], vars), colourOf(`var(${ground})`, vars)) };
+  })).filter(({ step }) => step < 3).map(({ theme, ground, step }) => `${theme} ${ground} ${step.toFixed(2)}`);
+  assert.deepEqual(low, [], `the resting edge ${edge[1]} misses 3:1`);
 });
 
 /* The specimen is the gate's subject. Without it the accessibility-floor walk finds
