@@ -15,7 +15,7 @@
      mark's line box. The bar names the height; every chip keeps it. */
   min-height: var(--ui-filter-row-h);
 }
-.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
+.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); min-height: calc(var(--ui-filter-row-h) - 2px - 2 * var(--space-1)); } /* fills the chip: a fieldset's content does not follow its min-height. #822 */
 /* The chip is the edge the row's other boxes are measured against, so it fades with them:
    off, the chips stayed at full strength and only their ink said so. Two carriers, because
    a bar turned off disables the controls in a nested fieldset and not the fieldset. #518
@@ -134,6 +134,19 @@
    names it too, for the control at the end of a split row. Rounded up to a whole pixel:
    a fractional line moved a scrolled table below it off the pixel its hit test uses. #768 */
 .ui-filter-bar, .ui-toolbar { --ui-filter-row-h: round(up, calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)), 1px); }
+/* A toolbar that opens with a small search field is a small row, and its filter bar
+   follows it to 32px. The chip gives up its block padding so the 24px remove mark still
+   fits. The trigger fills the chip between its two edges, because a min-height on the
+   chip alone leaves the text high: the chip is a fieldset. A touch screen keeps the
+   full field, so it keeps the full row too. #822
+   why: docs/components.md#a-toolbar-at-one-column */
+@media not (pointer: coarse) {
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm),
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar { --ui-filter-row-h: var(--btn-height-sm); }
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar__chip { padding-block: 0; }
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar__chip .ui-dropdown__trigger { min-height: calc(var(--btn-height-sm) - 2px); }
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar__remove { line-height: var(--leading-tight); }
+}
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the

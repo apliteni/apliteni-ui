@@ -139,3 +139,17 @@
 **Don't:** Leave rows that the reader cannot narrow.
 
 **Except:** Three tables take no bar. One compares a document line by line, where a filter hides lines the reviewer must check. One is a chart's Table view, which holds only the chart's points. One never holds more than 10 rows, such as a list of API tokens, because the reader sees every row at once.
+
+## Size the bar to the rows
+
+<!-- rule: control-size -->
+
+**Why:** A full-size field is the largest part of a dense block.
+
+**Rule:** Use small controls above a dense table, and full-size controls in a form.
+
+**Do:** Put a small search field, chips and button above dense rows.
+
+**Don't:** Put a full-size field above dense rows.
+
+**Except:** Tabs keep one size, and a touch screen shows the full field.
