@@ -409,8 +409,9 @@ two-pixel band. A row that reaches the panel edges draws the ring on the panel b
 outside it. The panel has only two choices: **keep the three pixels inside the panel as padding,
 so the ring appears in the padding; or do not clip at the panel edge, so the ring crosses it.**
 If the panel does neither, it cuts off the ring and leaves the reader with two accent bars.
-`.ui-dropdown__panel` uses the first choice. The account menu uses the second, so its ring
-extends two pixels beyond the panel border. This is accepted.
+`.ui-dropdown__panel`, the top bar's version menu and the account menu use the first choice.
+A menu row draws its ring inward, inside its own corner, so the ring never touches the
+panel edge or a divider.
 
 ### A filter row holds its panels
 
@@ -514,6 +515,12 @@ typeface from the place where it was mounted. `dropdown()` emits a `<div>`, or a
 item has `href`. It never emits a `<button>`. A row that must be a real button is
 [one you write yourself](#a-dropdown-row-you-write-yourself). **A destructive row stays quiet
 and turns `--pink` on the way to being pressed**, in both hover and focus.
+
+**Every menu row answers the pointer with a fill and draws no edge.** Only keyboard focus draws
+the band, inside the row and on the row's corner. A row in a menu that you style yourself keeps
+the `.ui-dropdown__item` class, so it takes the same hover, focus and forced-colour rules. A
+menu head that reaches the panel edge keeps a 5px gap above the first row. In forced colours a
+separator stays a visible 1px line.
 
 ### A submenu row
 

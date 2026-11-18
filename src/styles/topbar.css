@@ -216,11 +216,8 @@
 @media (forced-colors: active) {
   .vopt:hover { border: 1px solid Highlight; padding: 9px 12px; }
 }
-/* The row is a keyboard stop: react/src/Dropdown.tsx:758
-   `els[next < 0 ? 0 : next]?.focus()` moves focus onto a `[data-dd-item]` with
-   the arrow keys, and this is one. It takes the ring on its own 10px radius, the
-   same way `.amenu a` above does. #482 */
-.vopt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* The row is a keyboard stop and a `.ui-dropdown__item`, so it takes the kit row's inward
+   ring on its own 10px radius. #482, #824 */
 /* The selected version carries the kit's menu tick, as `.ui-dropdown__tick` does for
    every other menu; the badge keeps its own place beside it. */
 .vopt .vtick { margin-left: 8px; flex: none; display: none; color: var(--accent); margin-top: 1px; }
@@ -378,11 +375,12 @@
 /* `margin` bleeds the head back through the 6px panel padding above, the way
    `.ui-dropdown__panel > .ui-dropdown__head` already does for its own panel:
    the border-bottom hairline reaches the panel's edge instead of stopping a
-   notch short of it. #641's warning.
+   notch short of it. #641's warning. The 5px below is the kit head's own gap, so the first
+   row's fill and ring stand clear of the hairline. #824
    why: docs/components.md#the-dropdown-panel */
 .amenu .ahead {
   padding: 13px 15px;
-  margin: -6px -6px 0;
+  margin: -6px -6px 5px;
   border-bottom: 1px solid var(--border);
   border-radius: 14px 14px 0 0;
   display: flex; align-items: center; gap: 11px;
@@ -398,8 +396,12 @@
    reserve too rather than leaving the start of the list short. #641's danger 2.
    why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; scroll-margin-block: 3px; }
-.amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-.amenu a:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+/* The row is a `.ui-dropdown__item`, so the kit's menu row draws its hover fill, its corner
+   and its inward ring. A pointer draws no edge on a row. #824 */
+@media (forced-colors: active) {
+  /* The kit's hover border is 1px; this padding keeps the row's text still under it. */
+  .amenu a:hover { padding: 9px 14px; }
+}
 .amenu a.cur { color: var(--accent); }
 /* A custom account row keeps the Dropdown's disabled state without its row shape. */
 .amenu a.is-disabled { /* muted-ink: state — unavailable account page */ color: var(--disabled-ink); cursor: not-allowed; pointer-events: none; }

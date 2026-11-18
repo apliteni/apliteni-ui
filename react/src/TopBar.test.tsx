@@ -111,7 +111,7 @@ it('opens the account menu from the avatar, with the reader, the pages and Sign 
   expect(out).toHaveBeenCalledTimes(1);
 });
 
-it('keeps the vanilla account head and one current-page mark', () => {
+it('keeps the account head, one current-page mark and the kit menu row', () => {
   const { container } = render(<AccountMenu name="Ada Lovelace" email="ada@apliteni.com" current="access" defaultOpen />);
   const panel = container.querySelector('.amenu')!;
   expect(panel.querySelector('.ahead .avatar')).toHaveTextContent('AL');
@@ -119,7 +119,8 @@ it('keeps the vanilla account head and one current-page mark', () => {
   expect(panel.querySelector('.ahead .aem')).toHaveTextContent('ada@apliteni.com');
   expect(panel.querySelectorAll('a.cur')).toHaveLength(1);
   expect(within(panel as HTMLElement).getByRole('menuitem', { name: 'Access & agents' })).toHaveClass('cur');
-  expect(panel.querySelectorAll('a.ui-dropdown__item')).toHaveLength(0);
+  // The kit row draws the hover fill and the inward ring, so no row keeps its own (#824).
+  expect(panel.querySelectorAll('a.ui-dropdown__item')).toHaveLength(3);
 });
 it('keeps a disabled account page inert and without a destination', () => {
   const onSelect = vi.fn();

@@ -329,6 +329,17 @@ const PERMITTED_FORCED = {
     why: 'forced colours remove the quiet hover fill. A Highlight border restores pointer feedback, while reduced padding keeps the row and text in place.',
     props: ['border', 'padding'],
   },
+  '.amenu a:hover': {
+    why: 'the account row takes the dropdown row\'s 1px Highlight hover border. Its own wider '
+      + 'padding would outrank the dropdown row\'s reduced padding, so this padding keeps the '
+      + 'row and text in place. It draws no outline. #824',
+    props: ['padding'],
+  },
+  '.ui-dropdown__sep': {
+    why: 'forced colours remove the separator\'s background, so its 1px line comes back as a '
+      + 'border and its height goes to 0 to keep the row in place. It takes no focus. #824',
+    props: ['height', 'border-top'],
+  },
   '.ui-table-scroll': {
     why: 'forced colours repaint transparent borders black. Canvas keeps reserved ring space light so the inward focus band remains distinct.',
     props: ['border-color'],
