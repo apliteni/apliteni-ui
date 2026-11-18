@@ -939,6 +939,7 @@ of the row wraps below it.
 A title without an introduction keeps a 32px gap before the page body.
 A control row directly inside the page body, a `.ui-card-stack` or a `.ui-stack` sits one inner gap, 8px, above the block it controls. On a touch phone below `560px`, that gap is 20px.
 Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
+Every control on a toolbar line takes the line's height, so a button beside a field or a filter chip has the same top and bottom edge. Put a button and a field that share a row in `.ui-toolbar`, and change neither control's size.
 
 **A toolbar that opens with a small search field is a small row.** With a mouse, its filter
 chips, the add control and Clear all stand at 32px, level with the field, a dropdown trigger, a
