@@ -936,7 +936,7 @@ floor. So at that width the field uses `flex-basis: 100%`. It takes the full lin
 of the row wraps below it.
 
 A title without an introduction keeps a 32px gap before the page body.
-A control row directly inside the body sits 8px closer to the block it controls.
+A control row directly inside the page body, a `.ui-card-stack` or a `.ui-stack` sits one inner gap, 8px, above the block it controls. On a touch phone below `560px`, that gap is 20px.
 Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
 
 ### Segmented strips that outgrow their column
@@ -1487,7 +1487,10 @@ top and bottom edges. A date picker in a field does the same. Outside a field, f
 filter bar, a toolbar or the topbar, the trigger keeps the pill.
 Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
-[Colour and contrast](foundations.md#colour-and-contrast).
+[Colour and contrast](foundations.md#colour-and-contrast). **A filter bar is the one exception.**
+It stands on the page directly above its table card, with no card of its own. On the page ground,
+the edge of its search field measures 1.37:1 in light and 1.50:1 in dark. Keep that search field
+live on the page, because a field that is off measures 1.12:1 there.
 
 ### Segmented or tabs?
 

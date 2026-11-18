@@ -39,7 +39,7 @@ function Members({ density, selected }: { density: Density; selected?: Set<strin
   return (
     <div style={{ maxWidth: 760 }}>
       <div className="ui-stack">
-        <Card pad="sm">{bar}</Card>
+        {bar}
         <Card>
           <DataTable columns={columns} rows={shown} density={density} stickyHeader pager={false} empty="No members match"
             {...(selected ? { selected, onToggle: () => {}, onTogglePage: () => {} } : { selectable: false as const })}

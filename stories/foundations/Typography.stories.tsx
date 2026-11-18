@@ -56,7 +56,7 @@ export const Scale: StoryObj = {
       <SpecimenRow size="15.5px" weight={400} label="Body large" sample="The readable long-form version of the strategy." role="sans" />
       <SpecimenRow size="14.5px" weight={400} label="Body" sample="Personal tokens agents use to read the strategy." role="sans" />
       <SpecimenRow size="13px" weight={500} label="Label" sample="Last 30 days" role="sans" />
-      <SpecimenRow size="11px" weight={600} label="Chip" sample="Live" role="sans" />
+      <SpecimenRow size="12px" weight={600} label="Chip" sample="Live" role="sans" />
     </div>
 
     <div style={{ maxWidth: 820 }}>

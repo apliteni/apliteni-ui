@@ -48,11 +48,11 @@ const Agents = ({ loading = false, children }: { loading?: boolean; children?: R
   const rows = AGENTS.filter(([name, , , live]) => (!state || LABEL[live] === state) && name.toLowerCase().includes(term));
   const clear = () => { setQuery(''); setState(''); };
   return <>
-    <Card><div className="ui-toolbar">
+    <div className="ui-toolbar">
       <SearchField ariaLabel="Search agents" placeholder="Agent" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
       <FilterBar filters={[{ ...STATE, value: state }]} label="Agent filters"
         onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
-    </div></Card>
+    </div>
     <Card title="Your agents">
       {loading ? <BusyRegion busy label="Loading your agents…" placeholder={<SkeletonTable rows={3} cols={4} />} />
         : rows.length ? <TokenTable rows={rows} />

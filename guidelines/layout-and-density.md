@@ -51,7 +51,7 @@
 
 **Don't:** Use t-shirt sizes for prose or put `ch` on a wrapper with two font sizes.
 
-**Except:** Put `ch` on the element using its font size. The centred `.ui-section-head` uses `--panel-lg` for its 40px heading and 17px copy. Keep `.ui-footer__brand` at 300px because its flex track controls wrapping.
+**Except:** Put `ch` on the element using its font size. The centred `.ui-section-head` uses `--panel-lg` for its 40px heading and 18px copy. Keep `.ui-footer__brand` at 300px because its flex track controls wrapping.
 
 ## Use the three breakpoints
 

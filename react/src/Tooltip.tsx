@@ -185,8 +185,13 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
         hover(markOf(event.target));
       }}
       onMouseLeave={() => { if (Date.now() > ignoreMouseUntil.current) close(true); }}
-      // Keyboard focus opens at once. A mouse press that focuses the mark leaves it to the hover.
-      onFocus={event => { if (Date.now() > ignoreMouseUntil.current && pointerKind.current !== 'mouse') show(markOf(event.target)); }}
+      // Keyboard focus opens at once, also on a mark whose hover readout Escape dismissed:
+      // focus that arrives is a new act. A mouse press that focuses the mark leaves it to the hover.
+      onFocus={event => {
+        if (Date.now() <= ignoreMouseUntil.current || pointerKind.current === 'mouse') return;
+        dismissed.current = null;
+        show(markOf(event.target));
+      }}
       onBlur={event => { if (!markOf(event.relatedTarget)) close(true); }}
       onPointerOver={event => {
         if (event.pointerType === 'touch' || event.pointerType === 'pen') ignoreMouseUntil.current = Date.now() + 800;

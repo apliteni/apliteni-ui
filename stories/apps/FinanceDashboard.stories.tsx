@@ -41,7 +41,7 @@ const Dashboard = () => {
     <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
     {/* Each long table has its filter bar directly above it. why: guidelines/dense-tables.md */}
-    <Card>{bar}</Card>
+    {bar}
     {/* Each reference opens its payout row in the report. */}
     <Card title="Needs a decision">
       <table className="ui-table ui-table--dense ui-table--hover">

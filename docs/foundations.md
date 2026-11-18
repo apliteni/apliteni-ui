@@ -87,10 +87,15 @@ The kit uses two families, and the split is based on role:
 - **Neither family is bundled.** Your page loads both. If a family named by a token is not
   loaded, the browser falls back silently.
 
-Component sizes use the `--text-*` scale. A size between two steps uses the nearest step plus a
-fixed pixel offset, so a host override still moves it. The 16px touch-field size is the one
-safety exception. See
-[A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
+**Each component size is one step of the `--text-*` scale, with no offset.** A host that
+changes a step moves every part on it. Three kinds of size stay off the scale:
+
+- A field is 16px on a touch screen. See
+  [A field is 16px on a touch screen](#a-field-is-16px-on-a-touch-screen).
+- The landing page's hero title, hero line and section heading are fluid display sizes.
+- Inline code is 0.9 of its sentence, and never smaller than `--text-xs`.
+
+The smallest step, `--text-xs`, is 12px. No kit text is smaller.
 
 ## Labels and titles
 
@@ -109,7 +114,7 @@ sentence case and renders as written. A word that is capitalised in itself stays
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
-On the kit's scale, these are 30, 18, 14.5, 13, 13 and 11px. When two ranks share a size,
+On the kit's scale, these are 30, 18, 14.5, 13, 13 and 12px. When two ranks share a size,
 their weight separates them. `label` and `caption` are both 13px. Words use body ink, including
 labels and captions. See [Text ink](#text-ink).
 
@@ -224,7 +229,8 @@ These fill ratios describe separation, not text contrast.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
   therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1. This is
-  a white box on a grey page. **Put a form on a card.**
+  a white box on a grey page. **Put a form on a card.** A filter bar above a table is the one
+  exception. See [Forms](components.md#forms).
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade.** The kit's disabled field

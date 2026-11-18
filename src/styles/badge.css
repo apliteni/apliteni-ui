@@ -49,7 +49,7 @@
 .ui-status--info { color: var(--status-info-ink); }
 .ui-status--neutral { color: var(--text); }
 
-/* Pill: same shape, sentence case, a touch larger — a metadata chip */
+/* Pill: same shape and size, sentence case — a metadata chip */
 .ui-pill {
   display: inline-flex;
   align-items: center;

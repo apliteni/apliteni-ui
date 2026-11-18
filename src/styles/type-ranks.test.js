@@ -4,7 +4,7 @@
  * What it does not reach:
  * - a label or a caption written without a note. Nothing here decides from a
  *   selector what rank a rule is, so such a rule is outside the ranks.
- * - a later rule that re-sizes a noted one, like the page title's 25px step
+ * - a later rule that re-sizes a noted one, like the page title's --text-xl step
  *   below 720px in layout.css. Overrides are not followed.
  * - a consumer's own scale. This reads the kit's tokens and nobody else's.
  *

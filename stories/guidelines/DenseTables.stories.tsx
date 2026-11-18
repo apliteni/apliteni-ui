@@ -48,7 +48,7 @@ const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Pa
 const Filtered = ({ bar = true, stretch = false, long }: { bar?: boolean; stretch?: boolean; long?: string }) => <Framed bar={bar}>
   {long ? <LongPayouts pagerLabel={long} /> : <Payouts stretch={stretch} />}
 </Framed>;
-const Framed = ({ bar = true, note, children }: { bar?: boolean; note?: string; children: ReactNode }) => <div className="gdt-stage gdt-filtered">
+const Framed = ({ bar = true, note, children }: { bar?: boolean; note?: string; children: ReactNode }) => <div className="gdt-stage gdt-filtered ui-card-stack">
   {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />}
   {children}
   {note && <div className="gl-cursor">{note}</div>}

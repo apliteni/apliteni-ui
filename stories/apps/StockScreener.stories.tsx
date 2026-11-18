@@ -7,7 +7,6 @@ import { SearchField } from '../../react/src/SearchField';
 import { Segmented } from '../../react/src/Segmented';
 import { DeltaValue, NumericValue, RowIdentity } from '../../react/src/TableValues';
 import { Button } from '../../react/src/primitives/Button';
-import { Card } from '../../react/src/primitives/Card';
 import { Sheet } from '../_guideline';
 
 const meta: Meta = { title: 'Showcases/Stock screener', id: 'apps-stock-screener', parameters: { layout: 'fullscreen' } };
@@ -34,8 +33,6 @@ const views = ['Overview', 'Performance', 'Valuation'];
 const headers = ['Company', 'Price', 'Change %', 'Volume', 'Rel. volume', 'Market cap', 'P/E', 'EPS', 'EPS growth', 'Div. yield', 'Revenue', 'Rev. growth', 'Beta', 'Sector', 'Rating'];
 const css = `<style>
 .screener { min-width:0; }
-/* Placement only: every control that filters is inside the bar. why: docs/components.md#a-filter-row-holds-its-panels */
-.screener__filters { margin-bottom:var(--space-2); }
 .screener .ui-table-scroll { --ui-table-height:75vh; margin-top:var(--space-3); }
 .screener .ui-table { min-width:110rem; }
 .screener .ui-identity__name { white-space:nowrap; }
@@ -100,17 +97,22 @@ const Screen = ({ density = 'compact', applied = false, state = 'ready', limit =
     <Sheet css={css} />
     <span hidden id="screener-basis">Fictional demonstration data. Changes versus previous close.</span>
     <section className="screener" onClick={open}>
-      <Card pad="sm" className="screener__filters"><div className="ui-toolbar">
+      {/* The kit stack sets the bar's inner gap above the view switch and the table. */}
+      <div className="ui-card-stack">
+      <div className="ui-toolbar">
         <SearchField ariaLabel="Search companies" placeholder="Company or symbol" value={query} onChange={e => setQuery(e.currentTarget.value)} />
         <FilterBar filters={active} busy={phase === 'refreshing'} add={FILTERS}
           onAdd={(id, value) => setActive(on => [...on, { ...FILTERS.find(f => f.id === id)!, value }])}
           onChange={(id, value) => setActive(on => on.map(f => f.id === id ? { ...f, value } : f))}
           onRemove={id => setActive(on => on.filter(f => f.id !== id))} onClear={() => setActive([])} />
-      </div></Card>
+      </div>
+      <div>
       <Segmented options={views.map(v => ({ label: v, value: v }))} value={view} onChange={setView} appearance="underline" label="Dataset view" />
       <div className="ui-table-scroll" role="region" aria-label="Stock screener, scroll for more columns and rows" tabIndex={0} aria-busy={busy || undefined}>
         <Table data={shown} density={density} view={view} sort={sort} onSort={live ? () => setSort(s => s === 'desc' ? 'asc' : 'desc') : undefined}
           empty={live ? undefined : phase === 'loading' ? 'Loading companies…' : 'No companies available.'} />
+      </div>
+      </div>
       </div>
       {phase === 'error' ? <p role="alert">Could not refresh prices. Existing rows are still shown. <Button size="sm" onClick={() => setPhase('ready')}>Retry refresh</Button></p>
         : phase === 'loading' ? <p role="status">Loading companies…</p> : phase === 'refreshing' ? <p role="status">Refreshing prices…</p> : null}

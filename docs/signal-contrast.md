@@ -11,7 +11,7 @@ holds the current values.
 ## How to read the numbers
 
 - The AA line is 4.5:1, the WCAG 2.2 §1.4.3 threshold for normal text. No specimen here is
-  large text. The largest is 14.5px and the smallest is 11px.
+  large text. The largest is 14.5px and the smallest is 12px.
 - A glyph is held to 3:1, the WCAG 2.2 §1.4.11 threshold for non-text contrast.
 - Each ratio uses the two colours that the cell paints. A wash counts as the flat colour that
   it composites to over its base.
@@ -57,8 +57,8 @@ values. It is why a signal on its own tint is the surface to design against.
 | Ink | Specimen | White (`--surface`) | 5% wash | `--surface-2` | 10% (glow) | 15% wash | 20% wash |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `--pink` #b63361, danger | 14.5px nav row label | 5.78 | 5.37 | 5.35 | 4.98 | 4.58 | 4.23 fails |
-| `--cyan` #0c8fa8, link and info | 11px badge | 3.81 fails | 3.59 fails | 3.53 fails | 3.39 fails | 3.18 fails | 3.00 fails |
-| `--green` #1c8a2c, live and success | 11px pill | 4.45 fails | 4.17 fails | 4.12 fails | 3.91 fails | 3.65 fails | 3.44 fails |
+| `--cyan` #0c8fa8, link and info | 12px badge | 3.81 fails | 3.59 fails | 3.53 fails | 3.39 fails | 3.18 fails | 3.00 fails |
+| `--green` #1c8a2c, live and success | 12px pill | 4.45 fails | 4.17 fails | 4.12 fails | 3.91 fails | 3.65 fails | 3.44 fails |
 
 Cyan and green are short of AA even on plain white. The wash turns a near miss into a clear
 miss.

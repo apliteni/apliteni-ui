@@ -23,7 +23,7 @@
 }
 .ui-seg button {
   font-family: var(--font-sans);
-  font-size: calc(var(--text-sm) + 0.5px);
+  font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   letter-spacing: 0.02em;
   color: var(--text);
@@ -69,7 +69,7 @@
 .ui-seg button:has(> span > svg) { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
 .ui-seg button svg { display: block; width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
-.ui-seg--sm button { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: calc(var(--text-xs) + 1px); }
+.ui-seg--sm button { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-tight); }
 .ui-seg--block { display: flex; align-self: stretch; justify-self: stretch; }
 .ui-seg--block button { flex: 1; }
 

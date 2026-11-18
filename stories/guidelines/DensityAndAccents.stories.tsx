@@ -44,7 +44,7 @@ const PAYOUTS: [string, string, ReactNode][] = [
   ['1160', '2,100.00', <Badge variant="success">Paid</Badge>],
 ];
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['In transit', 'Paid'] }];
-const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
+const Payouts = () => <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
 <div className="gda-table"><div className="ui-card ui-card--pad-sm ui-card--fit">
   <table className="ui-table ui-table--dense ui-table--zebra">
     <caption>Payouts · EUR</caption>
@@ -52,7 +52,7 @@ const Payouts = () => <><RestingFilters search="Search payouts" placeholder="Ref
     <tbody>{PAYOUTS.map(([reference, amount, status]) =>
       <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td><td>{status}</td></tr>)}</tbody>
   </table>
-</div></div></>;
+</div></div></div>;
 const Figures = () => <StatBand variant="tiles" basis="September payouts"
   stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
 

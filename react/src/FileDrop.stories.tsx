@@ -124,7 +124,7 @@ export const PageDragging: StoryObj = {
     });
     return <>
     <div className="ui-card-stack">
-      <Card>{bar}</Card>
+      {bar}
       <Card><DataTable columns={statementColumns} rows={shown} selectable={false} pager={false} empty="No statements match" /></Card>
     </div>
     <div className="ui-drop ui-drop--area ui-drop--page is-dragging" aria-hidden="true">
