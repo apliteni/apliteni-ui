@@ -245,6 +245,13 @@
     --tap-clear-y: var(--tap-gap-bordered);
   }
 
+  /* A value's icon button, such as a copy button: the value before it, the label above
+     and the next row's label below are text, so the layer may reach the floor. #832 */
+  .ui-drawer__row > dd {
+    --tap-clear-x: var(--tap-gap);
+    --tap-clear-y: var(--tap-gap);
+  }
+
   /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
      header spends its column gap on the title. Not the accent picker — its
      swatches are on no carrier list, so opening it bought no reach. */

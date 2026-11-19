@@ -1546,6 +1546,21 @@ describe('in a dialog', () => {
     expect(panel.style.position).toBe('fixed');
   });
 
+  it('places the panel again when the dialog comes to rest after its slide', () => {
+    let bottom = 100;
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+      () => ({ top: bottom - 40, bottom, left: 20, right: 300, width: 280, height: 40, x: 20, y: bottom - 40, toJSON: () => ({}) }) as DOMRect);
+    render(<Modal open title="Edit invoice" onClose={() => {}}>
+      <Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>);
+    const panel = document.querySelector('.ui-datepicker__panel') as HTMLElement;
+    const before = panel.style.top;
+    bottom = 120;
+    document.querySelector('.rx-modal')!.dispatchEvent(new Event('transitionend'));
+    expect(panel.style.top).not.toBe(before);
+    rect.mockRestore();
+  });
+
   it('leaves a panel outside a dialog where its trigger hangs it', () => {
     render(<Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>);
     expect((document.querySelector('.ui-datepicker__panel') as HTMLElement).style.position).toBe('');

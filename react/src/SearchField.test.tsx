@@ -151,8 +151,8 @@ it('takes the small class only from size="sm"', () => {
 it('is 32px with the dense rows\' text to a mouse, and 40px with 16px text on a touch screen', () => {
   const read = declared('input.css', smallRow('sm').querySelector('input')!);
   // A chip's height on touch, with the base 16px text that iOS does not zoom. #832
-  expect(read('min-height')).toEqual([`${FINE} var(--btn-height-sm)`, `${COARSE} 40px`]);
-  expect(read('height')).toEqual([`${COARSE} 40px`]);
+  expect(read('min-height')).toEqual([`${FINE} var(--btn-height-sm)`, `${COARSE} var(--ui-filter-row-h, 40px)`]);
+  expect(read('height')).toEqual([`${COARSE} var(--ui-filter-row-h, 40px)`]);
   expect(read('font-size')).toEqual(['all var(--text-base)', `${FINE} var(--text-sm)`]);
   expect(read('line-height')).toEqual([`${FINE} var(--leading-tight)`]);
   expect(read('border-radius')).toEqual(['all var(--radius-pill)', `${FINE} var(--radius-pill)`]);

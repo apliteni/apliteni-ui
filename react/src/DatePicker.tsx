@@ -335,7 +335,7 @@ export function DatePicker({
       el.style.position = 'fixed';
       // A fixed panel cannot be scrolled to, so it opens above where the room is
       // there, and otherwise scrolls inside the room below.
-      const tall = el.scrollHeight;
+      const tall = el.scrollHeight + el.offsetHeight - el.clientHeight;
       const below = view.innerHeight - r.bottom - gap * 2;
       const up = tall > below && r.top - gap * 2 > below;
       el.style.top = up ? `${Math.max(gap, r.top - gap - Math.min(tall, r.top - gap * 2))}px` : `${r.bottom + gap}px`;
@@ -358,11 +358,18 @@ export function DatePicker({
     if (trigger.current) ro?.observe(trigger.current);
     ro?.observe(el);
     view.addEventListener('resize', fit);
+    // The dialog slides in, so a panel that opens with it is placed again when it comes to rest.
+    // The timer is the way out when no transition runs, as under reduced motion.
+    const dialog = lifted ? el.closest('.rx-modal') : null;
+    dialog?.addEventListener('transitionend', fit);
+    const rest = lifted ? setTimeout(fit, 400) : undefined;
     if (lifted) view.addEventListener('scroll', fit, true);
     return () => {
       ro?.disconnect();
       view.removeEventListener('resize', fit);
       view.removeEventListener('scroll', fit, true);
+      dialog?.removeEventListener('transitionend', fit);
+      clearTimeout(rest);
       if (lifted) for (const k of ['position', 'top', 'left', 'right', 'width', 'max-height', 'overflow-y']) el.style.removeProperty(k);
     };
   }, [open, asSheet, align]);

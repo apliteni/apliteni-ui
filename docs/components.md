@@ -571,7 +571,9 @@ must have a search field is a rule rather than a recommendation:
 A drawer is a panel against one edge of the screen. It appears over a scrim. It lets the reader
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
 by card:** `DrawerSection` puts a heading over a `<dl>` of label and value pairs. A screen reader
-then hears each label with its value. **Groups stand 32px apart, with no line between them.**
+then hears each label with its value. **An icon button at the end of a value, such as a copy
+button, sits on the value's line**, and its row keeps a text row's height. On a phone it reaches
+the 44px tap target. **Groups stand 32px apart, with no line between them.**
 Each group heading stands on a 1px `--border` line, the same line as a table head. **A record can
 lead with its key figure:** put a `<dl class="ui-drawer__figure">` in a group with no heading, as
 the first group. Its `<dt>` is the label, and its `<dd>` holds a `.ui-drawer__figure-value`, set at
@@ -1022,8 +1024,8 @@ two-word name in a pinned column stays on one line. A column takes `cell` for it
 `title`, `code`, `long`, `strong` or `act`. **A column's `width`, such as `'12ch'`, holds while
 the rows reload or are empty**, so the columns do not move when data arrives; longer content still
 widens it. The columns with no `width` share the free room, so set the narrow columns and leave the
-title column unset to keep it the widest. When the set widths add up to more than the table, the columns share the room by
-their content, so the edges can move on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
+title column unset to keep it the widest. When the set widths and a title column's 20 characters add up to more than the table, the
+columns share the room by their content, so the edges can move on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),
 `stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,

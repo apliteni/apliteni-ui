@@ -408,7 +408,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:267",
+    "ref": "src/styles/drawer.css:274",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -788,7 +788,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:280",
+    "ref": "src/styles/drawer.css:287",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]

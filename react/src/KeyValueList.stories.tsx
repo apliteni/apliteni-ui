@@ -24,12 +24,16 @@ export const OneColumn: StoryObj = {
   render: () => <div style={{ maxWidth: 480 }}><KeyValueList rows={rows} /></div>,
 };
 // An identifier copies where it stands, with an icon-only copy button beside it. #832
-export const CopyIdentifier: StoryObj = {
-  render: () => <div style={{ maxWidth: 480 }}><KeyValueList rows={[
-    { label: 'Reference', value: <>INV-1162 <Button variant="ghost" size="sm" icon="copy" iconOnly>Copy INV-1162</Button></> },
+function CopyIdentifierStory() {
+  const [copied, setCopied] = useState(false);
+  // The glyph swaps in the same box for a moment, as the copy button of a code block does.
+  const copy = () => { setCopied(true); setTimeout(() => setCopied(false), 1500); };
+  return <div style={{ maxWidth: 480 }}><KeyValueList rows={[
+    { label: 'Reference', value: <>INV-1162<Button variant="ghost" size="sm" icon={copied ? 'check' : 'copy'} iconOnly onClick={copy}>Copy INV-1162</Button></> },
     { label: 'Amount', value: '€ 1,240.00' },
-  ]} /></div>,
-};
+  ]} /><span className="ui-sr" role="status" aria-live="polite">{copied ? 'Copied' : ''}</span></div>;
+}
+export const CopyIdentifier: StoryObj = { render: () => <CopyIdentifierStory /> };
 export const TwoColumns: StoryObj = {
   render: () => <KeyValueList rows={rows} columns={2} />,
 };

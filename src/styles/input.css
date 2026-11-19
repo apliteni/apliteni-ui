@@ -350,5 +350,5 @@
   }
 }
 @media (pointer: coarse) {
-  .ui-input--sm { height: 40px; min-height: 40px; padding-block: 0; }
+  .ui-input--sm { height: var(--ui-filter-row-h, 40px); min-height: var(--ui-filter-row-h, 40px); padding-block: 0; }
 }
