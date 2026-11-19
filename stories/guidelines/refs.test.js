@@ -303,7 +303,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   }
   // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
-  assert.equal(count, 152, 'update the rule count when adding or removing a rule');
+  // 151: Component choice lost one-category (#832).
+  assert.equal(count, 151, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

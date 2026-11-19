@@ -286,20 +286,6 @@
     "pattern": "className={['ui-nav', 'ui-nav--tabs'"
    }
   ],
-  "one-category": [
-   {
-    "ref": "react/src/FilterBar.tsx:19",
-    "pattern": "export function FilterBar("
-   },
-   {
-    "ref": "src/styles/filter-bar.css:6",
-    "pattern": ".ui-filter-bar__chip {"
-   },
-   {
-    "ref": "react/src/Segmented.tsx:6",
-    "pattern": "export function Segmented("
-   }
-  ],
   "scale": [
    {
     "ref": "react/src/Success.tsx:98",

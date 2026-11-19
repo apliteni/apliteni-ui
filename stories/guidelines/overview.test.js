@@ -96,7 +96,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   const rules = PAGES.reduce((count, page) => count + page.rules.length, 0);
   // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
-  assert.equal(rules, 152);
+  // 151: Component choice lost one-category (#832).
+  assert.equal(rules, 151);
   // Each is named. Dashboards and reports asks every report for an export and
   // the Stock screener has none (#555). The kit has no unread row weight and no
   // dropdown error part (#798). This list empties as each lands.

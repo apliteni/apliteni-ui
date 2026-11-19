@@ -939,7 +939,7 @@ has no radius, so **the card paints that ring instead**.
 
 ### A toolbar at one column
 
-A toolbar above a list opens with a search box, followed by its filters and then its view switch.
+A toolbar above a list opens with a search box, followed by its filters and then its view switch. A create action stands on its own row above the toolbar, at the left.
 `.ui-toolbar` gives its text field a `6rem` flex basis. The row breaks only when the field would
 be squeezed below that size. At `560px`, that basis would become the field's size rather than its
 floor. So at that width the field uses `flex-basis: 100%`. It takes the full line, and the rest

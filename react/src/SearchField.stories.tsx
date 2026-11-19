@@ -133,7 +133,7 @@ export const SmallToolbar: StoryObj = {
         <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" size="sm" value={view} onChange={setView}
-          options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
+          options={[{ label: 'Table', value: 'table', icon: 'table' }, { label: 'Board', value: 'board', icon: 'grid' }]} />
       </div>
       <Card><DataTable columns={columns} rows={rows} density="dense" pager={false} selectable={false} stickyHeader
         scrollLabel="Invoices" /></Card>
