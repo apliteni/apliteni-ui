@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:259",
+    "ref": "src/styles/table.css:263",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:319",
+    "ref": "src/styles/table.css:323",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -620,7 +620,7 @@
     "pattern": "--space-3: 12px"
    },
    {
-    "ref": "src/styles/table.css:97",
+    "ref": "src/styles/table.css:101",
     "pattern": "padding: var(--space-2) var(--space-3)"
    },
    {
@@ -640,7 +640,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:506",
+    "ref": "src/styles/layout.css:507",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -664,11 +664,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:447",
+    "ref": "src/styles/layout.css:448",
     "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }"
    },
    {
-    "ref": "src/styles/layout.css:448",
+    "ref": "src/styles/layout.css:449",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -1127,15 +1127,15 @@
   ],
   "link-to-the-report": [
    {
-    "ref": "src/styles/table.css:122",
+    "ref": "src/styles/table.css:126",
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:141",
+    "ref": "src/styles/table.css:145",
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:290",
+    "ref": "src/styles/table.css:294",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
@@ -1145,7 +1145,7 @@
   ],
   "report-depth": [
    {
-    "ref": "src/styles/table.css:96",
+    "ref": "src/styles/table.css:100",
     "pattern": ".ui-table--dense td"
    }
   ],

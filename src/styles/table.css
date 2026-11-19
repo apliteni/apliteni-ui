@@ -50,6 +50,10 @@
 .ui-table tfoot tr:first-child > :is(th, td) { border-top: 2px solid var(--border-strong); }
 .ui-table tfoot th { text-align: right; }
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
+/* A floor, not a spacing step: a two-word name stays on one line when the table is
+   wider than its frame, so the frame scrolls instead of the title breaking at each word,
+   as a pinned subject column did in #832. A pinned column's own ceiling still wins. */
+.ui-table td.ui-table__title { min-width: min(20ch, var(--ui-table-identity-max, 20ch)); }
 .ui-table th:last-child { padding-right: 0; }
 /* The last body cell ends where its header and the table end. A right-aligned amount in the
    last column stood 16px in from both, because only the header and the action cell dropped

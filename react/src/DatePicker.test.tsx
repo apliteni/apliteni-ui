@@ -917,6 +917,18 @@ describe('the sheet', () => {
     expect(dialog.querySelector('.ui-datepicker__body')).toHaveClass('is-sheet');
   });
 
+  it('takes the title of the Field around it, so the reader knows which date it sets (#832)', () => {
+    render(<Field label="Due date">{({ id }) => (
+      <DatePicker id={id} today={TODAY} sheet defaultValue="2026-08" defaultOpen />
+    )}</Field>);
+    expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Due date' })).toBeInTheDocument();
+  });
+
+  it('keeps the placeholder as its title outside a Field', () => {
+    render(<DatePicker today={TODAY} sheet defaultOpen />);
+    expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Select a month' })).toBeInTheDocument();
+  });
+
   it('makes the page behind it inert, which the popover never did', () => {
     const { container } = render(
       <div><button type="button">Behind</button>

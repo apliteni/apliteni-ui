@@ -1016,8 +1016,12 @@ vanilla sections above.
 ### React tables
 
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
-A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
-`title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
+A `.ui-table__title` cell gives a text column the remaining width. **A title cell is never narrower
+than 20 characters**, or a pinned column's ceiling, so a table wider than its frame scrolls and a
+two-word name in a pinned column stays on one line. A column takes `cell` for it:
+`title`, `code`, `long`, `strong` or `act`. **A column's `width`, such as `'12ch'`, holds while
+the rows reload or are empty**, so the columns do not move when data arrives; longer content still
+widens it. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),
 `stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,
@@ -1165,8 +1169,9 @@ and loses only the tint. **Blocked beats every other state in the paint, and its
 through.** **Hover is the kit's row hover**, not a tint of the accent. **The current period is a
 ring**, a hairline in the accent, and it stands aside while the cell holds focus, so a focused
 current period draws one band and not two. **Nothing is drawn under the grid:** no legend and no per-period
-swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**, and below the phone
-step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
+swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **Inside a `Field`,
+the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
+over the label, and outside a `Field` the placeholder is the title. Below the phone step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
 the steps in [Breakpoints](foundations.md#breakpoints).
 
 ### React file drop
@@ -1363,8 +1368,9 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   account at the rail foot and leaves only Sign out in its menu. It shows no section counts.
   Pass `back` to show the way up from a subpage, above the page title.
   **`tools` puts small tools for the whole page at the end of the title row** (#736), such as
-  a version badge or a `size="sm"` button. The lede stands under the whole row. The tools do
-  not wrap, so keep them to what fits beside a short title on a 390px phone. `actions` keeps
+  a version badge, a period picker or a `size="sm"` button. The lede stands under the whole row.
+  **Tools that do not fit beside the title go under it**, so a period picker and a view action
+  can stay on a 390px phone. `actions` keeps
   the page's buttons in their own row under the title.
   **`accountItems` adds a product's rows, such as Account settings and Support, at the top of
   every account menu,** above the Theme row and Sign out. A row takes `href` to go somewhere,
@@ -1437,7 +1443,12 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
   fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
 - **`Snippet`** displays `code` as plain text, and **copying always writes the original `code`
-  string**, whatever `children` displays.
+  string**, whatever `children` displays. **`Snippet` is a block of code, not the only way to
+  copy.** To copy an identifier where it stands, in a drawer row or a table cell, put an
+  icon-only `Button` with the `copy` glyph beside it, such as
+  `<Button variant="ghost" size="sm" icon="copy" iconOnly>Copy INV-1162</Button>`. Its words
+  become its accessible name and its hover title. Swap the glyph to `check` for a moment after
+  the copy, as `Snippet` does.
 - **`EmptyState`** uses the vanilla markup and CSS, and **the page supplies its own `h1`.**
 - **`ThemeToggle`** cycles through dark, light, auto, then dark. It stores explicit choices
   and follows the OS otherwise. It sets `data-theme-choice` and the resolved `data-theme` on

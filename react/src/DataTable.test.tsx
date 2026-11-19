@@ -993,6 +993,27 @@ describe('the vanilla table hooks', () => {
     expect(container.querySelector('table')).not.toHaveClass('ui-table--hover');
   });
 
+  // #832: a set width lives on a <col>, so it holds while the rows are empty or reloading.
+  // JSDOM does no layout, so this reads the markup only; the browser keeps the width.
+  it('writes a set column width on a col, and draws no colgroup without one', () => {
+    const { container, rerender } = render(<DataTable selectable={false} pager={false} rows={rows}
+      columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'clicks', label: 'Clicks', num: true, width: '12ch' }]} />);
+    const cols = [...container.querySelectorAll('colgroup > col')] as HTMLElement[];
+    expect(cols.map((c) => c.style.width)).toEqual(['', '12ch']);
+    rerender(<DataTable selectable={false} pager={false} rows={[]} columns={[{ key: 'name', label: 'Name' }, { key: 'clicks', label: 'Clicks', width: '12ch' }]} />);
+    expect((container.querySelectorAll('colgroup > col')[1] as HTMLElement).style.width).toBe('12ch');
+    rerender(<DataTable selectable={false} pager={false} rows={rows} columns={columns} />);
+    expect(container.querySelector('colgroup')).toBeNull();
+  });
+
+  it('gives the selection column its own col, so a set width lands on its own column', () => {
+    const { container } = render(<DataTable rows={rows} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}}
+      columns={[{ key: 'name', label: 'Name' }, { key: 'clicks', label: 'Clicks', width: '12ch' }]} />);
+    const cols = [...container.querySelectorAll('colgroup > col')] as HTMLElement[];
+    expect(cols).toHaveLength(3);
+    expect(cols[2].style.width).toBe('12ch');
+  });
+
   it('ignores the deprecated stack prop, so a phone table keeps its columns', () => {
     const { container } = render(<DataTable selectable={false} pager={false} stack rows={rows}
       columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]} />);

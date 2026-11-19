@@ -19,6 +19,11 @@ export type Column<T> = {
   rowHeader?: boolean;
   /** `title` gives the column the remaining width, `code` sets a handle or id in the table's small text, `long` is running text that wraps in a column wide enough to read, `strong` bolds a figure, `act` right-aligns a row action. */
   cell?: 'title' | 'code' | 'long' | 'strong' | 'act';
+  /**
+   * The column's set width, such as `'12ch'` or `'160px'`. The column keeps it while the rows
+   * change, so a reload does not move the columns. Longer content still widens it. #832
+   */
+  width?: string;
 };
 export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =
@@ -207,6 +212,10 @@ export function DataTable<T extends { name: string }>({
       <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}
+        {columns.some((c) => c.width) ? <colgroup>
+          {selectable ? <col /> : null}
+          {columns.map((c) => <col key={c.key} style={c.width ? { width: c.width } : undefined} />)}
+        </colgroup> : null}
         <thead>
           <tr>
             {selectable ? <th scope="col" className="ui-table__selection">

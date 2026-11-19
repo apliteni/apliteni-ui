@@ -201,7 +201,8 @@ const specimens = [
   { id: 'filter-bar', do: () => <Filtered long="Filtered payout pages" />,
     dont: () => <Filtered bar={false} long="Unfiltered payout pages" /> },
   // The same bar at both sizes above the same dense rows. With a mouse the small bar
-  // stands at the rows' rank. A touch screen shows both at full size.
+  // stands at the rows' rank. A touch screen shows both at full size, the search field on
+  // its own line (#832).
   { id: 'control-size', do: () => <Framed><Payouts /></Framed>, dont: () => <Framed size="md"><Payouts /></Framed> },
 ];
 

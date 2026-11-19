@@ -1,11 +1,12 @@
 import {
-  useCallback, useEffect, useMemo, useRef, useState,
+  useCallback, useContext, useEffect, useMemo, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { dropdownRest, dropdownViewportFit } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 import { Drawer } from './Drawer';
 import { useIsoLayoutEffect } from './dialog';
+import { FieldContext } from './fieldContext';
 import './DatePicker.css';
 
 // The kit's date and month picker. It wears the dropdown's shell — the same
@@ -565,6 +566,9 @@ export function DatePicker({
     ? (grain === 'month' ? 'Select a period' : 'Select dates')
     : (grain === 'month' ? 'Select a month' : 'Select a date'));
   const name = ariaLabel || empty;
+  // A sheet covers the field, so its title says which field it belongs to. #832
+  const inField = useContext(FieldContext);
+  const sheetTitle = ariaLabel || (inField && id === inField.id ? inField.label : empty);
 
   /** What a page is called: the year, or the month and year. */
   const pageName = (which: number) => (grain === 'month'
@@ -744,7 +748,7 @@ export function DatePicker({
         // without taking the sheet's affordances left a phone reader with no
         // visible way out and a Tab that walked into the live page behind it.
         // why: guidelines/drawer.md
-        <Drawer open={open} side="bottom" size="md" title={name} onClose={() => setOpen(false)}>
+        <Drawer open={open} side="bottom" size="md" title={sheetTitle} onClose={() => setOpen(false)}>
           {calendar}
         </Drawer>
       ) : (

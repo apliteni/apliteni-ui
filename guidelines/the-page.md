@@ -36,7 +36,7 @@
 
 **Don't:** Put filters above the title.
 
-**Except:** Small tools for the whole page, such as a version badge, stand at the end of the title row.
+**Except:** Small tools for the whole page, such as a version badge, a period picker or a view action, stand at the end of the title row.
 
 ## Use one page title
 

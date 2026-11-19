@@ -58,7 +58,7 @@
 
 **Rule:** Keep units smaller and in body ink.
 
-**Do:** Keep units smaller and in body ink, and explain abbreviations in reachable text.
+**Do:** Explain abbreviations in reachable text.
 
 **Don't:** Hide units in muted text or make readers guess what an abbreviation means.
 
@@ -122,7 +122,7 @@
 
 **Rule:** Keep the table stable while results update.
 
-**Do:** Retain rows while refreshing, report busy state, distinguish no data from no matches and errors, and preserve focus when filters change.
+**Do:** Retain rows and column widths while refreshing, report busy state, distinguish no data from no matches and errors, and preserve focus when filters change.
 
 **Don't:** Replace the table with a blank state or move focus without telling the reader why.
 
@@ -148,8 +148,8 @@
 
 **Rule:** Use small controls above a dense table, and full-size controls in a form.
 
-**Do:** Put a small search field, chips and button above dense rows.
+**Do:** Put a small search field, segmented control, chips and button above dense rows.
 
 **Don't:** Put a full-size field above dense rows.
 
-**Except:** Tabs keep one size, and a touch screen shows the full field.
+**Except:** Tabs keep one size, and touch screens give the full search field its own line.
