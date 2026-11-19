@@ -23,6 +23,13 @@ const rows = [
 export const OneColumn: StoryObj = {
   render: () => <div style={{ maxWidth: 480 }}><KeyValueList rows={rows} /></div>,
 };
+// An identifier copies where it stands, with an icon-only copy button beside it. #832
+export const CopyIdentifier: StoryObj = {
+  render: () => <div style={{ maxWidth: 480 }}><KeyValueList rows={[
+    { label: 'Reference', value: <>INV-1162 <Button variant="ghost" size="sm" icon="copy" iconOnly>Copy INV-1162</Button></> },
+    { label: 'Amount', value: '€ 1,240.00' },
+  ]} /></div>,
+};
 export const TwoColumns: StoryObj = {
   render: () => <KeyValueList rows={rows} columns={2} />,
 };
