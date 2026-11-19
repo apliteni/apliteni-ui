@@ -20,10 +20,11 @@ const CLAUSE_TAIL = ' of the request, unless the bank holds the transfer for rev
 const Row = ({ children }: { children: ReactNode }) => <div className="gl-stage gl-stage--row">{children}</div>;
 
 // One toolbar, drawn twice. The Don't squares the button and the field with the
-// corner they had before #823, beside a dropdown that kept the pill.
+// corner they had before #823, beside a dropdown that kept the pill. Both are the kit's
+// toolbar, so the controls on a line share their edges and only the corners differ.
 const STATUS = [{ label: 'Any status', value: 'any' }, { label: 'Paid', value: 'paid' }, { label: 'Failed', value: 'failed' }];
 const noop = () => {};
-const Toolbar = ({ square = false }: { square?: boolean }) => <div className={`gl-stage gl-stage--row${square ? ' bl-square' : ''}`}>
+const Toolbar = ({ square = false }: { square?: boolean }) => <div className={`gl-stage ui-toolbar${square ? ' bl-square' : ''}`}>
   <SearchField ariaLabel="Search payouts" placeholder="Reference" />
   <Dropdown ariaLabel="Status" value="Paid" selectedValue="paid" items={STATUS} onOpenChange={noop} />
   <Button icon="download">Export CSV</Button>
