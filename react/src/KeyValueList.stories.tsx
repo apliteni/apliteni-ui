@@ -40,7 +40,7 @@ function CopyIdentifierStory() {
     }
   };
   return <div style={{ maxWidth: 480 }}><KeyValueList rows={[
-    { label: 'Reference', value: <>INV-1162<Button variant="ghost" size="sm" icon={status === 'copied' ? 'check' : 'copy'} iconOnly onClick={copy}>Copy INV-1162</Button></> },
+    { label: 'Reference', value: <>INV-1162<Button variant="ghost" size="sm" icon={status !== 'copied' ? 'copy' : 'check'} iconOnly onClick={copy}>Copy INV-1162</Button></> },
     { label: 'Amount', value: '€ 1,240.00' },
   ]} /><span className="ui-sr" role="status" aria-live="polite">{status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}</span></div>;
 }

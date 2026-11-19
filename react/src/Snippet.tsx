@@ -59,7 +59,7 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
             title={copyLabel}
             onClick={handleCopy}
           >
-            <Icon name={status === 'copied' ? 'check' : 'copy'} />
+            <Icon name={status !== 'copied' ? 'copy' : 'check'} />
           </button>
           <span className="ui-sr ui-snippet__status" role="status" aria-live="polite">
             {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}
