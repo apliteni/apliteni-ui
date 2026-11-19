@@ -231,7 +231,7 @@ Report the result in the PR. CI skips this check because Playwright is not a dep
 
 Before opening a PR that changes `src/styles/topbar.css`'s phone rules or the shell offset
 `--ui-app-top`, measure the rows in a real browser:
-`UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/components/topbar.test.js`
+`UI_PLAYWRIGHT=… TOPBAR_ROWS=1 node --test src/styles/topbar-rows.test.js`
 Report the result in the PR. CI skips this check because Playwright is not a dependency.
 
 ## Check the phone account window locally
