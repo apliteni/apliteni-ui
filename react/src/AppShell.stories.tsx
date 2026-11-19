@@ -5,6 +5,7 @@ import { Card } from './primitives/Card';
 import { Badge } from './primitives/Badge';
 import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
+import { DatePicker } from './DatePicker';
 import { Dropdown } from './Dropdown';
 import { FilterBar } from './FilterBar';
 import { SearchField } from './SearchField';
@@ -122,6 +123,12 @@ const accountItems = [{ label: 'Account settings', icon: 'gear' }, { label: 'Sup
 export const PageTools: Story = { render, args: { lede: undefined, tools, accountItems } };
 export const PageToolsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { lede: undefined, tools, accountItems } };
+// A period picker and a view action in the title row. On a phone they go under the title. #832
+const periodTools = <><DatePicker mode="range" ariaLabel="Period" today="2026-09-15" align="end"
+  defaultRange={{ start: '2026-07', end: '2026-09' }} /><Button size="sm" icon="layout">Customize</Button></>;
+export const PeriodTools: Story = { render, args: { lede: undefined, tools: periodTools, accountItems } };
+export const PeriodToolsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { lede: undefined, tools: periodTools, accountItems } };
 
 // The Theme row opens its submenu: beside the menu in the sidebar, in place of the
 // menu's rows in the phone drawer. Enter opens it on the first choice (#736).

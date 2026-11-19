@@ -163,3 +163,16 @@ export const PinnedSortable: StoryObj = {
     </div>;
   },
 };
+
+// Set widths hold while the rows load again, so Try again does not move the columns.
+// The empty table and the loaded one share their column edges. #832
+const sizedColumns: Column<Row>[] = [
+  { ...columns[0], width: '24ch' }, { ...columns[1], width: '12ch' }, { ...columns[2], width: '10ch' },
+];
+export const SetWidths: StoryObj = {
+  parameters: FULL_WIDTH,
+  render: () => <div className="ui-card-stack">
+    <Card title="Loading again"><DataTable columns={sizedColumns} rows={[]} loading selectable={false} pager={false} empty="Loading campaigns" /></Card>
+    <Card title="Loaded"><DataTable columns={sizedColumns} rows={rows} selectable={false} pager={false} /></Card>
+  </div>,
+};

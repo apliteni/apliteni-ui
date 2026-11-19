@@ -11,7 +11,7 @@ export const RELEASES = [
       ['added', 'A `DataTable` column takes `width`, such as `\'12ch\'`. The column keeps that width while its rows reload or are empty, so the columns do not move when data arrives. Part of #832.', ['DataTable']],
       ['fixed', 'A `DatePicker` sheet inside a `Field` takes the field\u2019s label as its title. It showed the placeholder, so a phone reader could not tell which date the open calendar sets. Part of #832.', ['DatePicker', 'Field']],
       ['fixed', 'A `.ui-table__title` cell is never narrower than 20 characters, or a pinned column\u2019s ceiling. In a table wider than its frame, a pinned name broke at every word. Part of #832.', ['DataTable']],
-      ['changed', 'Page `tools` that do not fit beside the title go under it, so a period picker and a view action can stand in the title row on a phone. On a touch screen, a small search field in a `.ui-toolbar` takes its own line. Part of #832.', ['AppShell', 'SearchField']],
+      ['changed', 'Page `tools` that do not fit beside the title go under it, so a period picker and a view action can stand in the title row on a phone. Part of #832.', ['AppShell']],
     ],
   },
   {

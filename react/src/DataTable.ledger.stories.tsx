@@ -181,6 +181,23 @@ const PAYMENTS: Payment[] = [
   { name: 'Orchard Lane Café', date: '9 Oct', amount: '€960.00', note: 'Catering refund after the cancelled workshop. The client asked for a credit note instead of cash.' },
   { name: 'Harbor Freight Lines', date: '12 Oct', amount: '−€2,305.75', note: 'Two pallets to the north warehouse. One arrived late, and the carrier offered a 10% discount.' },
 ];
+// A pinned title column in a table wider than its frame: the name keeps its words on one
+// line and the frame scrolls. #832
+export const PinnedTitle = {
+  render: () => page(
+    <Card title="October payments">
+      <DataTable selectable={false} pager={false} pinnedIdentity="name"
+        scrollLabel="October payments, scroll for more columns" rows={PAYMENTS}
+        columns={[
+          { key: 'name', label: 'Counterparty', cell: 'title' },
+          { key: 'date', label: 'Date' },
+          { key: 'amount', label: 'Amount', num: true },
+          { key: 'note', label: 'Notes', cell: 'long' },
+        ]} />
+    </Card>, 560,
+  ),
+};
+
 // On a phone the table keeps its columns and scrolls sideways in its frame. The pinned
 // counterparty stays in view, and the note wraps at its floor width.
 export const PinnedScroll = {

@@ -595,12 +595,6 @@
 @media (max-width: 560px) {
   .ui-toolbar > .ui-input-group:has(> .ui-input--sm) { max-width: none; }
 }
-/* On a touch screen a small search field keeps the full height for the finger, so it takes
-   the line alone and the small controls stand on the line under it, not beside a taller
-   field. #832 */
-@media (pointer: coarse) {
-  .ui-toolbar > .ui-input-group:has(> .ui-input--sm) { flex-basis: 100%; }
-}
 
 /* -- The band's search at one column --------------------------------------- */
 /* The band holds the trigger, the reader's mark and whatever the page puts between

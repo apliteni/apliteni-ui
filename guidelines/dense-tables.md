@@ -152,4 +152,4 @@
 
 **Don't:** Put a full-size field above dense rows.
 
-**Except:** Tabs keep one size, and touch screens give the full search field its own line.
+**Except:** Tabs keep one size, and a touch screen shows the whole bar at full size.
