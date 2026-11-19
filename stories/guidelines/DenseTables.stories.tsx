@@ -43,13 +43,15 @@ const LongPayouts = ({ pagerLabel }: { pagerLabel: string }) =>
   </div>;
 
 // The same card, with and without the row that narrows it. Every other specimen
-// keeps the row, because a long table has one.
+// keeps the row, because a long table has one. The row is the small one, because it
+// stands above dense rows. Only the Don't of the control size draws the full row.
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid'] }];
 const Filtered = ({ bar = true, stretch = false, long }: { bar?: boolean; stretch?: boolean; long?: string }) => <Framed bar={bar}>
   {long ? <LongPayouts pagerLabel={long} /> : <Payouts stretch={stretch} />}
 </Framed>;
-const Framed = ({ bar = true, size, note, children }: { bar?: boolean; size?: 'sm'; note?: string; children: ReactNode }) => <div className="gdt-stage gdt-filtered ui-card-stack">
-  {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} size={size} />}
+const Framed = ({ bar = true, size = 'sm', note, children }: { bar?: boolean; size?: 'sm' | 'md'; note?: string; children: ReactNode }) => <div className="gdt-stage gdt-filtered ui-card-stack">
+  {bar && <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS}
+    size={size === 'sm' ? 'sm' : undefined} />}
   {children}
   {note && <div className="gl-cursor">{note}</div>}
 </div>;
@@ -200,7 +202,7 @@ const specimens = [
     dont: () => <Filtered bar={false} long="Unfiltered payout pages" /> },
   // The same bar at both sizes above the same dense rows. With a mouse the small bar
   // stands at the rows' rank. A touch screen shows both at full size.
-  { id: 'control-size', do: () => <Framed size="sm"><Payouts /></Framed>, dont: () => <Framed><Payouts /></Framed> },
+  { id: 'control-size', do: () => <Framed><Payouts /></Framed>, dont: () => <Framed size="md"><Payouts /></Framed> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dense tables', parameters: { layout: 'fullscreen' } };
