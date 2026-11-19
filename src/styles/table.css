@@ -545,6 +545,9 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__identity + :is(th, td) { padding-left: var(--space-2); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity { padding-right: calc(var(--cell-gap) / 2); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity + :is(th, td) { padding-left: calc(var(--cell-gap) / 2); }
+/* A link that fills a pinned cell carries the cell's padding, so it gives up the same half. */
+.ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) td.ui-table__identity.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-2); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) td.ui-table__identity.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-right: calc(var(--cell-gap) / 2); }
 /* 16px, so the box's 44px phone tap layer stops at the cell's edge and leaves the next cell's control whole. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):not(.ui-table--pinned) .ui-table__selection { padding-right: var(--space-4); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-block: var(--space-3); }
