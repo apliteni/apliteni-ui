@@ -121,10 +121,11 @@ export const SmallToolbar: StoryObj = {
     const set = (id: string, value?: string) => setChosen((previous) => ({ ...previous, [id]: value ?? '' }));
 
     return <div className="ui-app__body">
+      {/* The create action stands on its own row, above the filters. rev_462a2ac56f32/d12 */}
       <div className="ui-toolbar">
-        {/* The create action leads the row, before the filters, so no control is split off
-            to the row's end. rev_c30e653990c1/d9 */}
         <Button variant="primary" size="sm" icon="plus">New invoice</Button>
+      </div>
+      <div className="ui-toolbar">
         <SearchField size="sm" ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <Dropdown variant="select" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
