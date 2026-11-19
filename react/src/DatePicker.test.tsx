@@ -35,7 +35,8 @@ describe('the trigger', () => {
     render(<Field label="Due">{({ id }) => (
       <DatePicker id={id} today={TODAY} defaultValue={value} />
     )}</Field>);
-    const button = screen.getByRole('button', { name: 'Due' });
+    // The label leads the value it shows, so the name holds the visible text. #832
+    const button = screen.getByRole('button', { name: value ? 'Due, August 2026' : 'Due, Select a month' });
     expect(screen.getByLabelText('Due')).toBe(button);
     await user.click(screen.getByText('Due'));
     expect(button).toHaveFocus();
@@ -85,9 +86,9 @@ describe('the trigger', () => {
     expect(trigger()).not.toHaveAttribute('aria-label');
   });
 
-  it('still takes an explicit ariaLabel over its own text', () => {
+  it('still takes an explicit ariaLabel over its own text, and leads the value with it', () => {
     render(<DatePicker today={TODAY} ariaLabel="Reporting month" defaultValue="2026-08" />);
-    expect(trigger()).toHaveAccessibleName('Reporting month');
+    expect(trigger()).toHaveAccessibleName('Reporting month, August 2026');
   });
 
   it('opens and closes, and gives focus back on Escape', async () => {

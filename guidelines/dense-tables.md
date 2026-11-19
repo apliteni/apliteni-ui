@@ -152,4 +152,4 @@
 
 **Don't:** Put a full-size field above dense rows.
 
-**Except:** Tabs keep one size, and a touch screen shows the whole bar at full size.
+**Except:** Tabs keep one size, and a touch screen shows the full field.

@@ -64,6 +64,8 @@
   min-width: 34px;
   min-height: 34px;
   padding: var(--space-2);
+  /* A button does not inherit the face, so a month showed the browser's own. #832 */
+  font-family: inherit;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   /* One width per digit, so 1 and 11 share a column centre. */

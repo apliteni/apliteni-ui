@@ -569,6 +569,9 @@ export function DatePicker({
   // A sheet covers the field, so its title says which field it belongs to. #832
   const inField = useContext(FieldContext);
   const sheetTitle = ariaLabel || (inField && id === inField.id ? inField.label : empty);
+  // A named trigger also says its value, so a speech user can say what they see. #832
+  const fieldLabel = inField && id === inField.id ? inField.label : '';
+  const triggerName = ariaLabel || fieldLabel ? `${ariaLabel || fieldLabel}, ${shown ?? empty}` : undefined;
 
   /** What a page is called: the year, or the month and year. */
   const pageName = (which: number) => (grain === 'month'
@@ -729,8 +732,8 @@ export function DatePicker({
         id={id}
         aria-haspopup="dialog"
         aria-expanded={open}
-        // The native label or visible text names the trigger unless explicitly overridden.
-        aria-label={ariaLabel || undefined}
+        // Its own text names a bare trigger. A label or an ariaLabel leads the value.
+        aria-label={triggerName}
         disabled={disabled}
         ref={trigger}
         onClick={(e: ReactMouseEvent) => { e.stopPropagation(); setOpen(!open); }}

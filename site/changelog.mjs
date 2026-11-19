@@ -12,6 +12,9 @@ export const RELEASES = [
       ['fixed', 'A `DatePicker` sheet inside a `Field` takes the field\u2019s label as its title. It showed the placeholder, so a phone reader could not tell which date the open calendar sets. Part of #832.', ['DatePicker', 'Field']],
       ['fixed', 'A `.ui-table__title` cell is never narrower than 20 characters, or a pinned column\u2019s ceiling. In a table wider than its frame, a pinned name broke at every word. Part of #832.', ['DataTable']],
       ['changed', 'Page `tools` that do not fit beside the title go under it, so a period picker and a view action can stand in the title row on a phone. Part of #832.', ['AppShell']],
+      ['fixed', 'Page `tools` wrap on the narrowest phone, and on a touch screen each tool reaches the 44px tap target. Part of #832.', ['AppShell']],
+      ['fixed', 'A `DatePicker` trigger with a label or an `ariaLabel` is named with that label and the value it shows, such as “Due date, August 2026”. Its month and day cells take the kit’s font, not the browser’s. Part of #832.', ['DatePicker']],
+      ['fixed', 'In a table with a pinned column, the next column has a gap after the divider. Its text touched the divider. Part of #832.', ['DataTable']],
     ],
   },
   {

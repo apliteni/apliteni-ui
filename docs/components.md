@@ -1021,7 +1021,8 @@ than 20 characters**, or a pinned column's ceiling, so a table wider than its fr
 two-word name in a pinned column stays on one line. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. **A column's `width`, such as `'12ch'`, holds while
 the rows reload or are empty**, so the columns do not move when data arrives; longer content still
-widens it. `rowHeader` renders the column's body cells as `th scope="row"`.
+widens it. When the set widths add up to more than the table, the columns share the room by
+their content, so the edges can move a few pixels on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),
 `stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,
@@ -1171,7 +1172,8 @@ ring**, a hairline in the accent, and it stands aside while the cell holds focus
 current period draws one band and not two. **Nothing is drawn under the grid:** no legend and no per-period
 swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **Inside a `Field`,
 the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
-over the label, and outside a `Field` the placeholder is the title. Below the phone step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
+over the label, and outside a `Field` the placeholder is the title. The trigger's name is
+that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". Below the phone step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
 the steps in [Breakpoints](foundations.md#breakpoints).
 
 ### React file drop
