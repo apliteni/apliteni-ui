@@ -8,14 +8,16 @@
  * each painted button and each field, select, input group, dropdown trigger or
  * filter chip that share a flex row and a line, and compares their edges. A
  * wordless button in such a pair must also be as wide as it is tall, because a
- * row that stretches it to a field's height draws an oval. #831
+ * row that stretches it to a field's height draws an oval. That row is also measured
+ * on a touch screen at 1280. #831
  *
  *   npm run build-storybook
  *   UI_PLAYWRIGHT=… UI_CHROME=… CONTROL_ROWS=1 node --test stories/control-row-edges.test.js
  *
  * WHAT THIS DOES NOT REACH: a ghost or link button, because it paints no edge at
  * rest; a button and a field in a grid or on two lines; a state a story does not
- * render, such as a closed panel; the default accent and the light theme only.
+ * render, such as a closed panel; the default accent and the light theme only; a
+ * story under a touch pointer, because only the fixture row is measured there.
  * The source half, which boxes a toolbar stretches, is filter-bar.test.js.
  *
  * why: docs/components.md#a-toolbar-at-one-column
@@ -79,8 +81,8 @@ async function walk() {
   const serve = spawn(process.execPath, [path.join(root, 'scripts/evidence/serve.mjs'), built], { stdio: ['ignore', 'pipe', 'inherit'] });
   const port = await new Promise((resolve) => serve.stdout.once('data', (d) => resolve(Number(String(d).trim()))));
   const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME });
-  const open = async (id, width) => {
-    const page = await browser.newPage({ viewport: { width, height: 900 } });
+  const open = async (id, width, hasTouch = false) => {
+    const page = await browser.newPage({ viewport: { width, height: 900 }, hasTouch });
     await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story`, { waitUntil: 'load' });
     await page.waitForFunction(() => {
       const r = document.getElementById('storybook-root');
@@ -92,7 +94,7 @@ async function walk() {
   };
   const jobs = WIDTHS.flatMap((width) => ids.map((id) => ({ id, width })));
   const measured = [], problems = [];
-  let fixture;
+  let fixture, coarse;
   try {
     // The mutation, in the same browser and sheet: a hand-made centred row must be
     // refused, and the same two controls in a toolbar must pass. The third row is a
@@ -109,6 +111,19 @@ async function walk() {
     });
     fixture = await page.evaluate(PROBE, '#control-row-fixture');
     await page.close();
+    // The same wordless row on a touch screen, where the field has 16px text. The fine
+    // pointer's rule is the more specific one, so it must not reach this query.
+    const touch = await open(ids[0], 1280, true);
+    coarse = await touch.evaluate(() => matchMedia('(pointer: coarse)').matches);
+    await touch.evaluate(() => {
+      const host = document.createElement('div');
+      host.id = 'control-row-touch';
+      host.innerHTML = '<div class="ui-toolbar"><div class="ui-input-group"><input class="ui-input" aria-label="Search"></div>'
+        + '<button class="ui-btn ui-btn--icon" aria-label="More actions"><svg viewBox="0 0 24 24"></svg></button></div>';
+      document.body.append(host);
+    });
+    fixture.push(...await touch.evaluate(PROBE, '#control-row-touch'));
+    await touch.close();
     let next = 0;
     await Promise.all(Array.from({ length: PAGES }, async () => {
       while (next < jobs.length) {
@@ -126,17 +141,19 @@ async function walk() {
     await browser.close();
     serve.kill();
   }
-  return { ids, fixture, measured, problems };
+  return { ids, fixture, coarse, measured, problems };
 }
 
 test('a button and a field in one row share their top and bottom edges', { skip: !RUN && 'set CONTROL_ROWS=1' }, async (t) => {
-  const { ids, fixture, measured, problems } = await walk();
+  const { ids, fixture, coarse, measured, problems } = await walk();
   t.diagnostic(`${ids.length} stories at ${WIDTHS.join(' and ')}px, ${measured.length} button and field pairs measured`);
 
-  assert.equal(fixture.length, 3, 'the fixture rows were not all measured');
+  assert.equal(fixture.length, 4, 'the fixture rows were not all measured');
+  assert.ok(coarse, 'the touch page does not match (pointer: coarse), so the touch row measured nothing');
   assert.ok(apart(fixture[0]), `the probe passed a centred hand-made row: ${JSON.stringify(fixture[0])}`);
   assert.ok(!apart(fixture[1]), `the probe refused a toolbar row: ${JSON.stringify(fixture[1])}`);
   assert.ok(!apart(fixture[2]) && !oval(fixture[2]), `a wordless button beside a search field is not a circle on its row: ${JSON.stringify(fixture[2])}`);
+  assert.ok(!apart(fixture[3]) && !oval(fixture[3]), `on a touch screen a wordless button beside a search field is not a circle on its row: ${JSON.stringify(fixture[3])}`);
 
   assert.deepEqual(problems, [], 'a story could not be measured');
   // Coverage: the two rows #825 fixed must still be found, at the desktop width.

@@ -558,11 +558,15 @@
   min-width: var(--ui-filter-row-h);
   min-height: var(--ui-filter-row-h);
 }
-.ui-toolbar:has(> .ui-input-group > .ui-input:not(.ui-input--sm), > .ui-input:not(.ui-input--sm)) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
-  font-size: var(--text-base);
-  line-height: normal;
-  min-width: calc(1lh + 26px);
-  min-height: calc(1lh + 26px);
+/* The two pointers have separate queries, because the fine rule's selector is the more
+   specific one and would win on a touch screen too. */
+@media not (pointer: coarse) {
+  .ui-toolbar:has(> .ui-input-group > .ui-input:not(.ui-input--sm), > .ui-input:not(.ui-input--sm)) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
+    font-size: var(--text-base);
+    line-height: normal;
+    min-width: calc(1lh + 26px);
+    min-height: calc(1lh + 26px);
+  }
 }
 @media (pointer: coarse) {
   .ui-toolbar:has(> .ui-input-group > .ui-input, > .ui-input) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
