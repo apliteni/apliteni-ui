@@ -18,6 +18,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
 import { Field } from './Field';
 import { Drawer } from './Drawer';
+import { Modal } from './Modal';
 
 const TODAY = '2026-09-15';
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
@@ -1532,5 +1533,21 @@ describe('the panel is the grid\'s width and no wider', () => {
     const mutant = own.replace(/\n\s*min-width: 0;/, '');
     expect(mutant, 'the declaration this gate mutates was renamed').not.toBe(own);
     expect(unanswered(mutant)).toEqual(['min-width']);
+  });
+});
+
+describe('in a dialog', () => {
+  // JSDOM lays nothing out, so this holds the switch; the placement is measured in a browser.
+  it('lifts the panel out of the dialog body, so the dialog edge does not clip it', () => {
+    render(<Modal open title="Edit invoice" onClose={() => {}}>
+      <Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>);
+    const panel = document.querySelector('.ui-datepicker__panel') as HTMLElement;
+    expect(panel.style.position).toBe('fixed');
+  });
+
+  it('leaves a panel outside a dialog where its trigger hangs it', () => {
+    render(<Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>);
+    expect((document.querySelector('.ui-datepicker__panel') as HTMLElement).style.position).toBe('');
   });
 });

@@ -953,9 +953,9 @@ chips, the add control and Clear all stand at 32px, level with the field, a drop
 small Segmented and a small button. Give the Segmented and the button `size="sm"` yourself. The
 small search field stops at `--panel-sm`, 320px, and the free width goes before the last
 control. A full-size search field still takes the free width. At `560px` and below, each search
-field takes the full line. On a touch screen the row keeps the full height: the field is 46px,
-and a chip, Clear all, a dropdown trigger and the Segmented are 40px on a line without the
-field. A small button is 40px there only at `560px` and below, and wider it keeps 32px. At both sizes, the text and the glyphs of the row share one vertical centre,
+field takes the full line. On a touch screen the row is 40px, a chip's height: the field keeps
+16px text, and a chip, Clear all, a dropdown trigger, the Segmented and the button are 40px on
+every line of the row. At both sizes, the text and the glyphs of the row share one vertical centre,
 within about 1.5px.
 
 ### Segmented strips that outgrow their column
@@ -1143,7 +1143,7 @@ field and white button on the dark one.
 text of the dense rows, and the pill corner. Without `size`, the field keeps its full size. At every
 size, the leading glyph sits on the vertical centre of the text and the caret. A `TextField` glyph
 does the same. On a touch screen a
-small field is the full field. Only `SearchField` takes a size: `TextField` and `SelectField` keep
+small field is 40px with 16px text, because iOS zooms into a field with smaller text. Only `SearchField` takes a size: `TextField` and `SelectField` keep
 one size, because a form keeps the full size. See
 [A toolbar at one column](#a-toolbar-at-one-column).
 
@@ -1174,7 +1174,9 @@ current period draws one band and not two. **Nothing is drawn under the grid:** 
 swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **Inside a `Field`,
 the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
 over the label, and outside a `Field` the placeholder is the title. The trigger's name is
-that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". Below the phone step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
+that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". **In a `Modal`, the open panel draws over the dialog's edge**,
+below the field, or above it where there is more room, and scrolls inside itself when neither
+side holds it. Below the phone step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
 the steps in [Breakpoints](foundations.md#breakpoints).
 
 ### React file drop

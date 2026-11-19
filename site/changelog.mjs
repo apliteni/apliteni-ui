@@ -14,6 +14,8 @@ export const RELEASES = [
       ['changed', 'Page `tools` that do not fit beside the title go under it, so a period picker and a view action can stand in the title row on a phone. Part of #832.', ['AppShell']],
       ['fixed', 'Page `tools` wrap on the narrowest phone, and on a touch screen each tool reaches the 44px tap target. Part of #832.', ['AppShell']],
       ['fixed', 'A `DatePicker` trigger with a label or an `ariaLabel` is named with that label and the value it shows, such as “Due date, August 2026”. Its month and day cells take the kit’s font, not the browser’s. Part of #832.', ['DatePicker']],
+      ['fixed', 'An open `DatePicker` panel in a `Modal` draws over the dialog\u2019s edge, above the field where there is more room. The dialog body cut it off. Part of #832.', ['DatePicker', 'Modal']],
+      ['changed', 'On a touch screen, a small `SearchField` row is 40px high with 16px field text, and its button and `Segmented` match it on every line. It kept the full 46px field. Part of #832.', ['SearchField']],
       ['fixed', 'In a table with a pinned column, the gap after the pinned column now sits on both sides of the divider, so the next column\'s text is clear of it. Part of #832.', ['DataTable']],
     ],
   },

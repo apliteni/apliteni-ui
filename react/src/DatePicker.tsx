@@ -321,7 +321,31 @@ export function DatePicker({
     const el = panel.current;
     const view = el?.ownerDocument?.defaultView;
     if (!el || !view || !open) return;
+    // A dialog scrolls its body and clips at its edge, so there the panel stands
+    // fixed beside its field and draws over the dialog's edge. The open dialog has
+    // no transform, so fixed is the screen's frame. #832
+    const lifted = !asSheet && !!el.closest('.rx-modal');
+    const lift = () => {
+      const root = el.parentElement;
+      if (!lifted || !root) return;
+      const r = root.getBoundingClientRect();
+      const gap = parseFloat(view.getComputedStyle(el).getPropertyValue('--ui-dropdown-gap')) || 0;
+      // In a field the panel is the field's width, which fixed would read off the screen.
+      if (root.parentElement?.classList.contains('ui-field')) el.style.width = `${r.width}px`;
+      el.style.position = 'fixed';
+      // A fixed panel cannot be scrolled to, so it opens above where the room is
+      // there, and otherwise scrolls inside the room below.
+      const tall = el.scrollHeight;
+      const below = view.innerHeight - r.bottom - gap * 2;
+      const up = tall > below && r.top - gap * 2 > below;
+      el.style.top = up ? `${Math.max(gap, r.top - gap - Math.min(tall, r.top - gap * 2))}px` : `${r.bottom + gap}px`;
+      el.style.maxHeight = `${up ? r.top - gap * 2 : below}px`;
+      el.style.overflowY = 'auto';
+      el.style.left = align === 'end' ? 'auto' : `${r.left}px`;
+      el.style.right = align === 'end' ? `${el.ownerDocument.documentElement.clientWidth - r.right}px` : 'auto';
+    };
     const fit = () => {
+      lift();
       let got = dropdownViewportFit(el);
       if (!got) return;
       el.style.setProperty('--ui-dropdown-ceiling', got.max > 0 ? `${got.max}px` : '');
@@ -334,11 +358,14 @@ export function DatePicker({
     if (trigger.current) ro?.observe(trigger.current);
     ro?.observe(el);
     view.addEventListener('resize', fit);
+    if (lifted) view.addEventListener('scroll', fit, true);
     return () => {
       ro?.disconnect();
       view.removeEventListener('resize', fit);
+      view.removeEventListener('scroll', fit, true);
+      if (lifted) for (const k of ['position', 'top', 'left', 'right', 'width', 'max-height', 'overflow-y']) el.style.removeProperty(k);
     };
-  }, [open, asSheet]);
+  }, [open, asSheet, align]);
 
   // Click-outside while it is open as a popover. Escape is the root's own handler
   // below, which marks it handled so a dialog around it lets the first Escape close
