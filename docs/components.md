@@ -954,8 +954,8 @@ small Segmented and a small button. Give the Segmented and the button `size="sm"
 small search field stops at `--panel-sm`, 320px, and the free width goes before the last
 control. A full-size search field still takes the free width. At `560px` and below, each search
 field takes the full line. On a touch screen the row keeps the full height: the field is 46px,
-and a chip, Clear all, a dropdown trigger, the Segmented and the button are 40px on a line
-without the field. At both sizes, the text and the glyphs of the row share one vertical centre,
+and a chip, Clear all, a dropdown trigger and the Segmented are 40px on a line without the
+field. A small button is 40px there only at `560px` and below, and wider it keeps 32px. At both sizes, the text and the glyphs of the row share one vertical centre,
 within about 1.5px.
 
 ### Segmented strips that outgrow their column
@@ -1022,7 +1022,7 @@ two-word name in a pinned column stays on one line. A column takes `cell` for it
 `title`, `code`, `long`, `strong` or `act`. **A column's `width`, such as `'12ch'`, holds while
 the rows reload or are empty**, so the columns do not move when data arrives; longer content still
 widens it. When the set widths add up to more than the table, the columns share the room by
-their content, so the edges can move a few pixels on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
+their content, so the edges can move on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),
 `stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,

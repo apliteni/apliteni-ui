@@ -396,9 +396,6 @@
    why: docs/foundations.md#the-focus-ring */
 .ui-table-scroll:focus-visible .ui-table--sticky thead th { clip-path: inset(calc(var(--ring-gap-width) + var(--ring-width)) 0 0 0); }
 .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
-/* A cell opens with no padding of its own, so the column after the divider gets the
-   cell gap on its left, or its text touches the divider. #832 */
-.ui-table--pinned .ui-table__identity + :is(th, td) { padding-left: var(--space-4); }
 .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
 /* The divider is the pin's edge: it says the column stayed while the rest moved under it.
    Columns that all fit never move, so the line divides nothing and reads as an arbitrary
@@ -541,8 +538,13 @@ a.ui-identity:hover { text-decoration: underline; }
 /* A pinned selection cell keeps its fixed, centred track. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):first-child:not(:where(.ui-table--pinned) .ui-table__selection) { padding-left: var(--cell-edge); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):last-child { padding-right: var(--cell-edge); }
-/* The column after a pinned divider takes the cell gap on its left too. #832 */
-.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity + :is(th, td) { padding-left: var(--cell-gap); }
+/* A cell opens with no padding of its own, so while the divider shows, the column after it
+   takes the cell gap on its left, or its text touches the divider. Columns that all fit
+   hide the divider, and the gap goes with it. #832 */
+@container scroll-state(scrollable: x) {
+  .ui-table--pinned .ui-table__identity + :is(th, td) { padding-left: var(--space-4); }
+  .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity + :is(th, td) { padding-left: var(--cell-gap); }
+}
 /* 16px, so the box's 44px phone tap layer stops at the cell's edge and leaves the next cell's control whole. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):not(.ui-table--pinned) .ui-table__selection { padding-right: var(--space-4); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-block: var(--space-3); }
