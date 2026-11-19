@@ -42,7 +42,7 @@
   min-height: var(--space-8);
   padding: var(--space-1) var(--space-6) var(--space-1) var(--space-2);
   font-size: var(--text-sm);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   background-position: right var(--space-2) center;
 }
 
@@ -110,7 +110,7 @@
   min-height: var(--space-8);
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-sm);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   text-align: center;
 }
 

@@ -73,9 +73,9 @@ test('a hovered link button underlines its label once, at the label offset', asy
 });
 
 // An sm button and a pill dropdown trigger stand level at 32px. #814
-// Limit: the trigger's line is IBM Plex Sans's normal line, 1.3 of its size (ascender
-// 1025 and descender 275 per 1000). A fallback face draws another line, and nothing here
-// lays it out.
+// The trigger's line is the button's tight line since #822. If it is `normal`, this reads
+// IBM Plex Sans's normal line, 1.3 of its size (ascender 1025 and descender 275 per 1000).
+// Limit: nothing here lays the line out, and a fallback face draws another line.
 test('an sm button is 32px tall with or without a glyph, level with a pill trigger', async () => {
   for (const icon of [undefined, 'copy']) {
     const html = await markup(({ h, kit }) => h(kit.Button, { size: 'sm', icon }, 'Export'));
@@ -92,8 +92,8 @@ test('an sm button is 32px tall with or without a glyph, level with a pill trigg
     const s = dom.window.getComputedStyle(dom.window.document.querySelector('button'));
     const px = (v) => parseFloat(v);
     const drawn = px(s.paddingTop) + px(s.paddingBottom) + px(s.borderTopWidth) + px(s.borderBottomWidth)
-      + Math.round(px(s.fontSize) * 1.3);
-    assert.equal(drawn, 32, `trigger: ${s.paddingTop} padding, ${s.fontSize} type`);
+      + (s.lineHeight === 'normal' ? Math.round(px(s.fontSize) * 1.3) : px(s.lineHeight));
+    assert.equal(drawn, 32, `trigger: ${s.paddingTop} padding, ${s.fontSize} type, ${s.lineHeight} line`);
   } finally {
     dom.window.close();
   }

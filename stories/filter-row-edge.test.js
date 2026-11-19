@@ -348,7 +348,7 @@ test('the gate refuses a sheet that brings any of it back', () => {
     ['the chip keeping its live edge when the row is off', (css) => css.replace(/\n\.ui-filter-bar__chip:disabled,\n\.ui-filter-bar:disabled \.ui-filter-bar__chip \{ border-color: var\(--disabled-border\); \}/, '')],
     ['the chip off only by its own state, which a bar turned off does not set', (css) => css.replace('.ui-filter-bar__chip:disabled,\n.ui-filter-bar:disabled .ui-filter-bar__chip {', '.ui-filter-bar__chip:disabled {')],
     ['the chip off only through the bar, which an own disabled chip does not have', (css) => css.replace('.ui-filter-bar__chip:disabled,\n.ui-filter-bar:disabled .ui-filter-bar__chip {', '.ui-filter-bar:disabled .ui-filter-bar__chip {')],
-    ['the chip faded while it is live', (css) => css.replace('border: 1px solid var(--control-edge); border-radius: var(--radius-sm); padding: var(--space-1);', 'border: 1px solid var(--disabled-border); border-radius: var(--radius-sm); padding: var(--space-1);')],
+    ['the chip faded while it is live', (css) => css.replace('border: 1px solid var(--control-edge); border-radius: var(--radius-pill); padding: var(--space-1);', 'border: 1px solid var(--disabled-border); border-radius: var(--radius-pill); padding: var(--space-1);')],
   ];
   for (const [what, mutate] of MUTATIONS) {
     const broken = mutate(SHEET);

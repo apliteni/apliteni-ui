@@ -20,10 +20,14 @@ const PASSED_ON = /^(?:inherit|var\(--[\w-]+-font\))$/;
 // A field trigger matches the zoom net's flat 16px on a touch screen, so a host scale
 // does not move it off the input beside it. #812
 const FIELD_TRIGGER = '.ui-field > .ui-dropdown > .ui-dropdown__trigger';
+// A wordless button beside a full field measures the field's 16px line box on a touch
+// screen, so its circle is the field's height. It shows no text at that size. #831
+const FIELD_CIRCLE = '.ui-toolbar:has(> .ui-input-group > .ui-input, > .ui-input) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm)';
 const KEPT = [
   // iOS zooms into a field under 16px. docs/foundations.md#a-field-is-16px-on-a-touch-screen
   { file: 'field-zoom.css', value: '16px !important' },
   { file: 'dropdown.css', selector: FIELD_TRIGGER, value: '16px' },
+  { file: 'layout.css', selector: FIELD_CIRCLE, value: '16px' },
   // Fluid display type of the landing page.
   { file: 'layout.css', selector: '.ui-hero__title', value: 'clamp(38px, 6.4vw, 66px)' },
   { file: 'layout.css', selector: '.ui-hero__sub', value: 'clamp(16px, 2.1vw, 20px)' },

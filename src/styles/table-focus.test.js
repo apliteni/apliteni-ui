@@ -322,14 +322,14 @@ const SHAPES = [
     at: 0,
     ring: "outset", fill: false,
     // The button's own box, corner and paint, which docs/components.md promises it keeps.
-    box: { display: "inline-flex", "border-radius": "var(--radius-sm)", padding: "var(--btn-pad-y) var(--btn-pad-x)" },
+    box: { display: "inline-flex", "border-radius": "var(--radius-pill)", padding: "var(--btn-pad-y) var(--btn-pad-x)" },
   }),
   shape({
     what: "a button-shaped link in a first cell somebody marked by mistake",
     table: "ui-table ui-table--dense",
     cells: ['<td class="ui-table__linked"><a class="ui-btn ui-btn--primary" href="#">Open</a></td>'],
     ring: "outset", fill: false,
-    box: { display: "inline-flex", "border-radius": "var(--radius-sm)", padding: "var(--btn-pad-y) var(--btn-pad-x)" },
+    box: { display: "inline-flex", "border-radius": "var(--radius-pill)", padding: "var(--btn-pad-y) var(--btn-pad-x)" },
   }),
 ];
 

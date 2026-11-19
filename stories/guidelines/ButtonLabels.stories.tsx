@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import type { ReactNode } from 'react';
 import { GuidelinePage } from '../_guideline';
 import { Button } from '../../react/src/primitives/Button';
+import { Dropdown } from '../../react/src/Dropdown';
+import { SearchField } from '../../react/src/SearchField';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -16,6 +18,18 @@ const CLAUSE_PICK = 'five business days';
 const CLAUSE_TAIL = ' of the request, unless the bank holds the transfer for review.';
 
 const Row = ({ children }: { children: ReactNode }) => <div className="gl-stage gl-stage--row">{children}</div>;
+
+// One toolbar, drawn twice. The Don't squares the button and the field with the
+// corner they had before #823, beside a dropdown that kept the pill. Both are the kit's
+// toolbar, so the controls on a line share their edges and only the corners differ.
+const STATUS = [{ label: 'Any status', value: 'any' }, { label: 'Paid', value: 'paid' }, { label: 'Failed', value: 'failed' }];
+const noop = () => {};
+const Toolbar = ({ square = false }: { square?: boolean }) => <div className={`gl-stage ui-toolbar${square ? ' bl-square' : ''}`}>
+  <SearchField ariaLabel="Search payouts" placeholder="Reference" />
+  <Dropdown ariaLabel="Status" value="Paid" selectedValue="paid" items={STATUS} onOpenChange={noop} />
+  <Button icon="download">Export CSV</Button>
+  <Button icon="moreHorizontal" iconOnly>More actions</Button>
+</div>;
 
 // No destructive action here. A Delete drawn as an ordinary secondary teaches
 // the accent hover that guidelines/destructive-actions.md forbids, and this page
@@ -40,6 +54,7 @@ const specimens = [
       <div className="gl-stage--row"><Button>Add note</Button></div></div>,
     dont: () => <div className="gl-stage gl-clause"><Row><Button size="sm">Add note</Button><Button size="sm">Copy</Button></Row>
       <p>{CLAUSE_HEAD}<span className="ui-fbmark">{CLAUSE_PICK}</span>{CLAUSE_TAIL}</p></div> },
+  { id: 'one-shape', do: () => <Toolbar />, dont: () => <Toolbar square /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Button labels', parameters: { layout: 'fullscreen' } };

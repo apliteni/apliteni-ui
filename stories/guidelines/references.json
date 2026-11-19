@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:462",
+    "ref": "src/styles/dropdown.css:466",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:524",
+    "ref": "src/styles/dropdown.css:528",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -640,7 +640,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:504",
+    "ref": "src/styles/layout.css:506",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -1105,6 +1105,16 @@
    {
     "ref": "stories/guidelines/iconography.test.js:256",
     "pattern": "every icon-only control is one the closed list allows"
+   }
+  ],
+  "one-shape": [
+   {
+    "ref": "src/styles/button.css:32",
+    "pattern": "border-radius: var(--radius-pill);"
+   },
+   {
+    "ref": "src/styles/control-shape.test.js:82",
+    "pattern": "every control is a pill, except the controls that keep their corner"
    }
   ]
  },

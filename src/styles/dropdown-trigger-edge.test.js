@@ -259,11 +259,13 @@ const disabledWinner = (rules, target) => rules
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
 function disabledEdgeFindings(byScope) {
-  return [...byScope].flatMap(([scope, scopedRules]) => {
+  return [...byScope].flatMap(([scope]) => {
     // A trigger receives its own scope and each enclosing suffix scope.
     const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
       .flatMap(([, inherited]) => inherited);
-    const borderless = winner(scopedRules, 'rest')?.edge?.drawn === false;
+    // Read through the inherited rules too: a scope that only sizes a borderless
+    // trigger, such as the small row's chip, is still borderless. #822
+    const borderless = winner(rules, 'rest')?.edge?.drawn === false;
     return DISABLED_TARGETS.flatMap((target) => {
       const won = disabledWinner(rules, target);
       const name = `${scope}: ${target.spelling} ${target.state}`;
@@ -314,9 +316,10 @@ test('no live trigger draws the ink an unavailable one draws, in any state or th
 });
 
 test('an unavailable trigger keeps its off edge or borderless box in every scope', () => {
-  // Six scopes since #812: the trigger in a form field is a scope of its own.
-  assert.equal(BY_SCOPE.size, 6, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 48);
+  // Six scopes since #812: the trigger in a form field is a scope of its own. Seven
+  // since #822: the small row's chip.
+  assert.equal(BY_SCOPE.size, 7, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 56);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
@@ -500,6 +503,9 @@ test('the reading refuses every way the two edges can come back together', () =>
     // Each disabled spelling and state can be broken on its own. This includes
     // the exact reviewer mutation first: native resting disabled used to pass.
     ['.ui-dropdown__trigger:disabled { border-color: var(--control-edge); }', 'off-not-off'],
+    // A scope that inherits a drawn edge is not borderless, so an off state that
+    // takes the edge away is still a finding. #822
+    ['.ui-toolbar .ui-dropdown__trigger:disabled { border: 0; }', 'off-not-off'],
     ['.ui-dropdown__trigger:disabled:hover:not(:focus-visible) { border-color: var(--control-edge); }', 'off-not-off'],
     ['.ui-dropdown__trigger:disabled:focus-visible { border-color: var(--control-edge); }', 'off-not-off'],
     ['.ui-dropdown__trigger:disabled:hover:focus-visible { border-color: var(--control-edge); }', 'off-not-off'],

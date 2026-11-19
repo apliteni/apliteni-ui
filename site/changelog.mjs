@@ -6,6 +6,35 @@
 
 export const RELEASES = [
   {
+    v: '0.177.0', date: '2026-11-18',
+    changes: [
+      ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField` at both sizes, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. In a `.ui-toolbar` beside a full field or a filter bar, it takes the row\u2019s height and stays a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
+      ['changed', 'A dropdown in a form is a pill, the same as the text input beside it, and the two stay at one height. A multi-line `TextArea` keeps its 12px corner, because a pill does not fit several lines. Part of #823.', ['Dropdown', 'Field', 'Guidelines']],
+      ['fixed', 'On a phone, a `Segmented` track before the last control in a `.ui-toolbar--split` row stops at its options\u2019 width. It kept an empty end. Refs #831.', ['Segmented']],
+    ],
+  },
+  {
+    v: '0.176.1', date: '2026-11-18',
+    changes: [
+      ['fixed', 'A pointer on a row of the top bar\'s account menu now shows only a fill, with no square edge. Keyboard focus draws the ring inside the row, on its corner, clear of the divider and the panel edge. The version menu rows take the same ring. Refs #824.', ['TopBar']],
+      ['fixed', 'In forced colours, a menu separator is a visible line again.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.176.0', date: '2026-11-18',
+    changes: [
+      ['added', '`SearchField` takes `size="sm"` for a toolbar above a dense table: 32px high with 13px text to a mouse, and the full 46px field with 16px text on a touch screen. Its toolbar and filter bar follow it to 32px, and the field stops at 320px. `TextField` and `SelectField` keep one size. Part of #822.', ['SearchField', 'FilterBar']],
+      ['fixed', 'The leading glyph of every field with a glyph sits on the centre of the text and the caret, at every size. It sat 2px low. A dropdown trigger\'s text now shares a baseline with a small button. Part of #826.', ['SearchField', 'TextField', 'Dropdown']],
+      ['fixed', 'On a touch screen, a dropdown trigger in a toolbar is 40px high, level with a filter chip. It stayed 32px. Part of #822.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.175.1', date: '2026-11-18',
+    changes: [
+      ['changed', 'The components page now says to put a button and a field that share a row in `.ui-toolbar`, so that they have the same top and bottom edge. Part of #825.', ['Toolbar']],
+    ],
+  },
+  {
     v: '0.175.0', date: '2026-11-18',
     changes: [
       ['changed', 'A `FileDrop` row with a file keeps the resting row\'s 32px height while the file uploads and after it lands. The name, the size and the status or the progress track stand on one line, and Remove ends it. Content under the row no longer moves when a file arrives. Part of #820.', ['FileDrop']],

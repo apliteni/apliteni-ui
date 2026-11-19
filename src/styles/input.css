@@ -27,12 +27,12 @@
      why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill); /* why: docs/foundations.md#control-corners */
   padding: 12px 15px;
   width: 100%;
   transition: border-color var(--dur-med) var(--ease), box-shadow var(--dur-med) var(--ease);
 }
-.ui-textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
+.ui-textarea { resize: vertical; min-height: 96px; line-height: 1.55; border-radius: var(--radius-md); }
 
 .ui-input:hover,
 .ui-textarea:hover,
@@ -98,7 +98,7 @@
   /* muted-ink: glyph — field icon */ color: var(--muted);
   pointer-events: none;
 }
-.ui-input-group__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.2; }
+.ui-input-group__icon svg { display: block; width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.2; } /* block: inline, it sat on the slot's baseline, 2px low, at every size. #822 #826 */
 
 /* The chevron is a data URI, and a data URI cannot read a token: `var()` does not
    substitute inside url() and `currentColor` does not cross into the image's own
@@ -333,3 +333,18 @@
 }
 .ui-switch input:focus-visible + .ui-switch__track { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-switch input:disabled + .ui-switch__track { opacity: 0.5; cursor: not-allowed; }
+
+/* The small field: 32px with the dense rows' 13px text, level with a small button, a
+   dropdown trigger and a small segmented control. Only a fine pointer gets it. A touch
+   screen keeps the full field, because iOS zooms into a field under 16px. The group's
+   42px left padding outranks the side padding here, so the glyph keeps its place. #822
+   why: docs/components.md#react-search-field */
+@media not (pointer: coarse) {
+  .ui-input--sm {
+    font-size: var(--text-sm);
+    line-height: var(--leading-tight);
+    min-height: var(--btn-height-sm);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-pill); /* why: docs/foundations.md#control-corners */
+  }
+}

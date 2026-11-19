@@ -14,7 +14,7 @@ const canvas = (children: React.ReactNode) => <div style={{ padding: 'var(--spac
   <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640 }}>{children}</div>
 </div>;
 const specimen = (label: string, children: React.ReactNode) => <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-  <div style={{ font: '600 11px/1 var(--font-sans)' }}>{label}</div>{children}
+  <div className="ui-eyebrow">{label}</div>{children}
 </div>;
 
 export const BrandIcon: StoryObj = {

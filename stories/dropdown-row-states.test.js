@@ -1,5 +1,7 @@
 // Rule: a dropdown row and a version row show a hover step in both themes with no outline
 // (#595), and a dropdown row draws its focus ring inward so a scrolled row's ring is never clipped (#649).
+// Every menu row in the shipped sheets keeps both, and a bleeding menu head keeps a gap above the
+// first row (#824).
 //
 // Coverage limits:
 // - Source only. It reads the sheet and the token values, and paints nothing. The hover
@@ -12,7 +14,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { tokensFor } from './lib/contrast.js';
 
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
@@ -94,4 +96,93 @@ test('the hover-outline gate fails when a hover rule paints an outline', () => {
     splitSelectorList(head).some((h) => /\.ui-dropdown__item:hover$/.test(h.trim())))
     .some(([, , body]) => /outline/.test(body));
   assert.equal(edged, true);
+});
+
+// #824: the account menu's rows wrote their own hover edge and an outset ring, and the
+// tests above read only dropdown.css, so they never saw it. These read every sheet the
+// package ships. A menu row is found, not listed: a row class (`.ui-dropdown__item`, or
+// one a React `row` adds beside it) or anything inside a panel a React menu names with
+// `panelClass`. Limits: a panel or row class built at run time is not found, and a rule
+// is judged by its last compound only.
+const shipped = () => {
+  const dirs = ['src/styles', 'react/src'];
+  return dirs.flatMap((dir) => readdirSync(dir).filter((f) => f.endsWith('.css'))
+    .map((f) => [`${dir}/${f}`, sheet(`${dir}/${f}`)]));
+};
+const tsx = readdirSync('react/src').filter((f) => f.endsWith('.tsx')).map((f) => readFileSync(`react/src/${f}`, 'utf8')).join('\n');
+const PANELS = ['ui-dropdown__panel', ...new Set([...tsx.matchAll(/panelClass=(?:"|\{`)([\w-]+)/g)].map((m) => m[1]))];
+const ROW_CLASSES = ['ui-dropdown__item', ...new Set([...tsx.matchAll(/\$\{props\.className\} ([\w-]+)/g)].map((m) => m[1]))];
+const flat = (text) => rules(text).flatMap(([, head, body]) => head.trim().startsWith('@') ? flat(body) : [[head, body]]);
+const lastCompound = (sel) => sel.trim().split(/\s*[\s>+~]\s*/).pop();
+const isRow = (sel) => {
+  const last = lastCompound(sel);
+  if (ROW_CLASSES.some((c) => new RegExp(`\\.${c}(?![\\w-])`).test(last))) return true;
+  return PANELS.some((p) => new RegExp(`\\.${p}(?![\\w-])`).test(sel) && !new RegExp(`\\.${p}(?![\\w-])`).test(last));
+};
+/** Each row rule in `sheets` that breaks the row rule, as `file: selector`. */
+const rowFaults = (sheets) => sheets.flatMap(([file, text]) => flat(text).flatMap(([head, body]) =>
+  splitSelectorList(head).map((h) => h.trim()).filter(isRow).flatMap((h) => {
+    const last = lastCompound(h);
+    if (/:hover/.test(last) && !/:focus-visible/.test(last) && /outline(?!-offset)\s*:\s*(?!none)/.test(body)) return [`${file}: ${h} draws an edge on hover`];
+    if (/:focus-visible/.test(last) && /outline-offset:/.test(body) && !/outline-offset:\s*var\(--ring-scroll-offset\)/.test(body)) return [`${file}: ${h} draws its ring outward`];
+    return [];
+  })));
+
+test('every menu row the kit ships draws no edge on hover and its ring inward (#824)', () => {
+  assert.ok(PANELS.includes('amenu') && PANELS.includes('vsw__menu') && ROW_CLASSES.includes('vopt'),
+    `the menus were not found: panels ${PANELS.join(', ')}, rows ${ROW_CLASSES.join(', ')}`);
+  const sheets = shipped();
+  const measured = sheets.flatMap(([, text]) => flat(text).flatMap(([head]) => splitSelectorList(head).filter(isRow)));
+  assert.ok(measured.length >= 20, `only ${measured.length} row selectors were measured`);
+  assert.deepEqual(rowFaults(sheets), []);
+});
+
+test('the menu-row gate fails on the #824 rules', () => {
+  const topbar = sheet('src/styles/topbar.css');
+  const weakened = `${topbar}\n.amenu a:hover { outline: 1px solid var(--control-edge); outline-offset: -1px; }
+.vopt:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }`;
+  assert.deepEqual(rowFaults([['src/styles/topbar.css', weakened]]), [
+    'src/styles/topbar.css: .amenu a:hover draws an edge on hover',
+    'src/styles/topbar.css: .vopt:focus-visible draws its ring outward',
+  ]);
+});
+
+// A head bleeds through the panel's padding to line its edge. It keeps a gap under its
+// hairline, so the first row's fill and ring stand clear of it.
+/** Each bleeding head in `sheets` with no gap below it, as `file: selector`. */
+/** The values of a shorthand, split at the spaces outside brackets. */
+const values = (text) => {
+  const out = ['']; let depth = 0;
+  for (const ch of text.trim()) {
+    if (ch === '(') depth++;
+    if (ch === ')') depth--;
+    if (/\s/.test(ch) && !depth) { if (out[out.length - 1]) out.push(''); } else out[out.length - 1] += ch;
+  }
+  return out;
+};
+/** The margin of a head that bleeds upward through the panel's padding, or null. */
+const bleed = (body) => {
+  const m = /(?:^|;)\s*margin:\s*([^;]+)/.exec(body);
+  if (!/border-bottom:/.test(body) || !m) return null;
+  const parts = values(m[1]);
+  return /^-|\* -1\)$/.test(parts[0]) ? parts : null;
+};
+const flushHeads = (sheets) => sheets.flatMap(([file, text]) => flat(text).flatMap(([head, body]) => {
+  const parts = bleed(body);
+  if (!parts) return [];
+  return parseFloat(parts[parts.length >= 3 ? 2 : 0]) > 0 ? [] : [`${file}: ${head.trim()}`];
+}));
+
+test('a menu head that bleeds to the panel edge keeps a gap above the first row (#824)', () => {
+  const sheets = shipped();
+  const heads = sheets.flatMap(([, text]) => flat(text).filter(([, body]) => bleed(body)));
+  assert.ok(heads.length >= 2, `only ${heads.length} bleeding heads were found`);
+  assert.deepEqual(flushHeads(sheets), []);
+});
+
+test('the head-gap gate fails when the account head sits flush on the first row', () => {
+  const topbar = sheet('src/styles/topbar.css');
+  const weakened = topbar.replace(/margin: -6px -6px 5px;/, 'margin: -6px -6px 0;');
+  assert.notEqual(weakened, topbar, 'the mutation found nothing to change');
+  assert.deepEqual(flushHeads([['src/styles/topbar.css', weakened]]), ['src/styles/topbar.css: .amenu .ahead']);
 });

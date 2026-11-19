@@ -45,3 +45,17 @@
 **Do:** An Add note button under the clause opens the note form.
 
 **Don't:** A toolbar that appears over the selected words.
+
+## Give every control one shape
+
+<!-- rule: one-shape -->
+
+**Rule:** Draw buttons, dropdowns, filter chips and one-line fields as pills, and a wordless button as a circle.
+
+**Why:** One shape marks what a reader can use.
+
+**Except:** A text area keeps a small corner, because a pill does not fit several lines.
+
+**Do:** Search, status and buttons, all pills.
+
+**Don't:** A square button and field beside a round dropdown.

@@ -409,8 +409,9 @@ two-pixel band. A row that reaches the panel edges draws the ring on the panel b
 outside it. The panel has only two choices: **keep the three pixels inside the panel as padding,
 so the ring appears in the padding; or do not clip at the panel edge, so the ring crosses it.**
 If the panel does neither, it cuts off the ring and leaves the reader with two accent bars.
-`.ui-dropdown__panel` uses the first choice. The account menu uses the second, so its ring
-extends two pixels beyond the panel border. This is accepted.
+`.ui-dropdown__panel`, the top bar's version menu and the account menu use the first choice.
+A menu row draws its ring inward, inside its own corner, so the ring never touches the
+panel edge or a divider.
 
 ### A filter row holds its panels
 
@@ -514,6 +515,12 @@ typeface from the place where it was mounted. `dropdown()` emits a `<div>`, or a
 item has `href`. It never emits a `<button>`. A row that must be a real button is
 [one you write yourself](#a-dropdown-row-you-write-yourself). **A destructive row stays quiet
 and turns `--pink` on the way to being pressed**, in both hover and focus.
+
+**Every menu row answers the pointer with a fill and draws no edge.** Only keyboard focus draws
+the band, inside the row and on the row's corner. A row in a menu that you style yourself keeps
+the `.ui-dropdown__item` class, so it takes the same hover, focus and forced-colour rules. A
+menu head that reaches the panel edge keeps a 5px gap above the first row. In forced colours a
+separator stays a visible 1px line.
 
 ### A submenu row
 
@@ -939,6 +946,17 @@ of the row wraps below it.
 A title without an introduction keeps a 32px gap before the page body.
 A control row directly inside the page body, a `.ui-card-stack` or a `.ui-stack` sits one inner gap, 8px, above the block it controls. On a touch phone below `560px`, that gap is 20px.
 Use `.ui-toolbar--split` to place the final control at the row's end. On a phone, it stays in that row beside the control before it, rather than dropping to its own line.
+Every control on a toolbar line takes the line's height, so a button beside a field or a filter chip has the same top and bottom edge. Put a button and a field that share a row in `.ui-toolbar`, and change neither control's size.
+
+**A toolbar that opens with a small search field is a small row.** With a mouse, its filter
+chips, the add control and Clear all stand at 32px, level with the field, a dropdown trigger, a
+small Segmented and a small button. Give the Segmented and the button `size="sm"` yourself. The
+small search field stops at `--panel-sm`, 320px, and the free width goes before the last
+control. A full-size search field still takes the free width. At `560px` and below, each search
+field takes the full line. On a touch screen the row keeps the full height: the field is 46px,
+and a chip, Clear all, a dropdown trigger, the Segmented and the button are 40px on a line
+without the field. At both sizes, the text and the glyphs of the row share one vertical centre,
+within about 1.5px.
 
 ### Segmented strips that outgrow their column
 
@@ -1115,6 +1133,13 @@ the control's only name**, because no label appears in the row. It declares no C
 toolbar's row rule and the field's focus ring therefore reach it from the kit's stylesheet.
 **There is no clear button**, because the browser paints its own near-black button on the light
 field and white button on the dark one.
+**`size="sm"` is the field above a dense table.** With a mouse it is 32px high with `--text-sm`, the
+text of the dense rows, and the pill corner. Without `size`, the field keeps its full size. At every
+size, the leading glyph sits on the vertical centre of the text and the caret. A `TextField` glyph
+does the same. On a touch screen a
+small field is the full field. Only `SearchField` takes a size: `TextField` and `SelectField` keep
+one size, because a form keeps the full size. See
+[A toolbar at one column](#a-toolbar-at-one-column).
 
 ### React date and month picker
 
@@ -1484,13 +1509,14 @@ dropdown's `id` sits on a wrapper that a label cannot name. The label and then t
 the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
 label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
 placeholder is not a name. **In a field, a dropdown trigger has the shape of a text input.** It
-takes the input's corner, its top and bottom padding and its type size, so the two have the same
-height. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
+has the input's pill corner, its top and bottom padding and its type size, so the two have the
+same height. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
 fixed 16px, as the input's is, also when the host changes `--text-base`. A long value stays on
 one line, starts at the left and ends with an ellipsis, as in a select, so the trigger keeps the
 input's height at every value length. A person mark stands as far from the left edge as from the
 top and bottom edges. A date picker in a field does the same. Outside a field, for example in a
-filter bar, a toolbar or the topbar, the trigger keeps the pill.
+filter bar, a toolbar or the topbar, the trigger is the same pill. See
+[Control corners](foundations.md#control-corners).
 Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See
 [Colour and contrast](foundations.md#colour-and-contrast). **A filter bar is the one exception.**

@@ -5,7 +5,7 @@
    showing through a switched-off box — the complaint behind #505's review. */
 .ui-filter-bar__chip {
   display: inline-flex; align-items: center; min-width: 0; margin: 0;
-  border: 1px solid var(--control-edge); border-radius: var(--radius-sm); padding: var(--space-1);
+  border: 1px solid var(--control-edge); border-radius: var(--radius-pill); padding: var(--space-1);
   /* The chip holds two focus targets of its own — the trigger and the remove
      button — so it is a painted container, not a control that inherits the gap
      outside it. It joins the shared recomposition in tokens.css beside .ui-seg,
@@ -15,14 +15,14 @@
      mark's line box. The bar names the height; every chip keeps it. */
   min-height: var(--ui-filter-row-h);
 }
-.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); }
+.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); min-height: calc(var(--ui-filter-row-h) - 2px - 2 * var(--space-1)); } /* fills the chip: a fieldset's content does not follow its min-height. #822 */
 /* The chip is the edge the row's other boxes are measured against, so it fades with them:
    off, the chips stayed at full strength and only their ink said so. Two carriers, because
    a bar turned off disables the controls in a nested fieldset and not the fieldset. #518
    why: guidelines/accessibility-floor.md#disabled-control-legibility */
 .ui-filter-bar__chip:disabled,
 .ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
-.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-xs); cursor: pointer; }
+.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-pill); cursor: pointer; }
 .ui-filter-bar__remove:focus-visible,
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
@@ -134,6 +134,19 @@
    names it too, for the control at the end of a split row. Rounded up to a whole pixel:
    a fractional line moved a scrolled table below it off the pixel its hit test uses. #768 */
 .ui-filter-bar, .ui-toolbar { --ui-filter-row-h: round(up, calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)), 1px); }
+/* A toolbar that opens with a small search field is a small row, and its filter bar
+   follows it to 32px. The chip gives up its block padding so the 24px remove mark still
+   fits. The trigger fills the chip between its two edges, because a min-height on the
+   chip alone leaves the text high: the chip is a fieldset. A touch screen keeps the
+   full field, so it keeps the full row too. #822
+   why: docs/components.md#a-toolbar-at-one-column */
+@media not (pointer: coarse) {
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm),
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar { --ui-filter-row-h: var(--btn-height-sm); }
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar__chip { padding-block: 0; }
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar__chip .ui-dropdown__trigger { min-height: calc(var(--btn-height-sm) - 2px); }
+  .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar__remove { line-height: var(--leading-tight); }
+}
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the
@@ -152,7 +165,7 @@
 /* Clear all keeps a chip's height when it wraps to a line of its own, so a wider gap
    that moves it to the next line does not change its size. */
 .ui-toolbar .ui-filter-bar [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-radius: var(--radius-sm); min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }

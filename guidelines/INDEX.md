@@ -14,7 +14,7 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Microcopy and tone](microcopy.md) | Names for controls and their current state. | Read it before you name controls or states. |
 | [Text length](text-length.md) | Labels, buttons, captions, callouts and introductions. | Read it when you write labels, captions or callouts. |
 | [Labels and titles](labels-and-titles.md) | Text ink, sentence case, card titles and eyebrows. | Read it when you write labels, titles or eyebrows. |
-| [Button labels](button-labels.md) | Button words, glyphs and wordless buttons. | Read it before you write button words or add glyphs. |
+| [Button labels](button-labels.md) | Button words, glyphs, wordless buttons and the one shape of every control. | Read it before you write button words, add glyphs or draw a control. |
 | [Iconography](iconography.md) | Icon-only controls, status glyphs and glyph paths. | Read it before you use a glyph or an icon-only control. |
 | [Layout and density](layout-and-density.md) | Page width, the reading column, the spacing scale and breakpoints. | Read it before you set page width, columns or breakpoints. |
 | [Spacing](spacing.md) | Page gaps, title placement and the text edge. | Read it before you set gaps on a page. |

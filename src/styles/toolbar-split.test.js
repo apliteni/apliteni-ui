@@ -18,7 +18,8 @@ const splitRules = () => {
   const outside = css.replace(inPhone, '');
   const pick = (text) => text.match(/\.ui-toolbar--split\s*>\s*:last-child\s*\{([^}]*)\}/);
   const group = inPhone.match(/\.ui-toolbar--split\s*>\s*:nth-last-child\(2\)\s*\{([^}]*)\}/);
-  return { base: pick(outside), phone: pick(inPhone), group };
+  const seg = inPhone.match(/\.ui-toolbar--split\s*>\s*\.ui-seg:nth-last-child\(2\)\s*\{([^}]*)\}/);
+  return { base: pick(outside), phone: pick(inPhone), group, seg };
 };
 
 test('export at the row end: layout.css moves the split row\'s last control', () => {
@@ -42,7 +43,7 @@ test('export at the row end: layout.css moves the split row\'s last control', ()
  * JSDOM lays out no flex, so the position is read from the source rule. The
  * rendered x positions above are in the pull request's captures. */
 test('export at the row end: below the phone step the end control stays in the row', () => {
-  const { phone, group } = splitRules();
+  const { phone, group, seg } = splitRules();
   assert.ok(phone, 'the 560px query declares no `.ui-toolbar--split > :last-child` rule, so the '
     + 'export keeps the auto margin on a phone and lands alone against the right edge');
   assert.match(phone[1], /margin-inline-start:\s*0/,
@@ -55,6 +56,12 @@ test('export at the row end: below the phone step the end control stays in the r
     'the group needs a fractional basis — on `auto` its content is its hypothetical size and the '
     + 'line breaks before the end control');
   assert.match(group[1], /min-width:\s*0/, 'without this the group cannot shrink to the basis it was given');
+  // #831: a segmented track before the end control grew to the basis and drew an
+  // empty end, 225px of track for 131px of options at 390. Only the track stops at
+  // its content. A filter group keeps growing, which control-row-edges.test.js measures.
+  assert.doesNotMatch(group[1], /max-width/, 'a filter group before the end control must keep growing');
+  assert.match(seg ? seg[1] : '', /max-width:\s*max-content/,
+    'a segmented track before the end control must stop at its options\' width');
 });
 
 /* #768: below the phone step the end control keeps its own height, so beside a filter
@@ -80,6 +87,6 @@ test('export at the row end: beside a filter bar the phone end control takes a c
 test('export at the row end: the chip height check refuses a sheet without either half', () => {
   const layout = sheet('layout.css');
   const filterBar = sheet('filter-bar.css');
-  assert.ok(endBesideChips(layout.replace('min-height: var(--ui-filter-row-h)', 'min-height: 0'), filterBar));
+  assert.ok(endBesideChips(layout.replace(':last-child { min-height: var(--ui-filter-row-h)', ':last-child { min-height: 0'), filterBar));
   assert.ok(endBesideChips(layout, filterBar.replace('.ui-filter-bar, .ui-toolbar {', '.ui-filter-bar {')));
 });
