@@ -933,7 +933,9 @@ edge, a shade marks that edge. In light, keywords, flags and URLs fall below AA 
 shade is darkest: 4.15:1 and 4.36:1, and 3.91:1 and 4.10:1 in a table scroll. This is recorded
 debt. The reveal block keeps its own look. **The copy button is
 icon-only in both faces**, with `copyLabel` as its accessible name and `title`. **Confirming a copy does not change the control's size or its name**: the glyph
-swaps inside the same box, and the word goes to a hidden live region. Snippet descendants use
+swaps inside the same box, and the word goes to a hidden live region. A copy that succeeds
+shows a check, and a copy that fails shows the alert glyph and says "Copy failed". Each glyph
+stays for a moment, then the copy glyph comes back. Snippet descendants use
 the shared ring, except the browser-focusable code region. A `<pre>` sits flush with its card and
 has no radius, so **the card paints that ring instead**.
 

@@ -27,7 +27,7 @@ export const OneColumn: StoryObj = {
 function CopyIdentifierStory() {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const timer = useRef<ReturnType<typeof setTimeout>>();
-  // The write comes first; the glyph swaps in the same box only after it succeeds, as a code block's does.
+  // The write comes first. The glyph swaps in the same box to a check or an alert, as a code block's does.
   const copy = async () => {
     clearTimeout(timer.current);
     setStatus('idle');
@@ -37,10 +37,11 @@ function CopyIdentifierStory() {
       timer.current = setTimeout(() => setStatus('idle'), 1500);
     } catch {
       setStatus('failed');
+      timer.current = setTimeout(() => setStatus('idle'), 1500);
     }
   };
   return <div style={{ maxWidth: 480 }}><KeyValueList rows={[
-    { label: 'Reference', value: <>INV-1162<Button variant="ghost" size="sm" icon={status !== 'copied' ? 'copy' : 'check'} iconOnly onClick={copy}>Copy INV-1162</Button></> },
+    { label: 'Reference', value: <>INV-1162<Button variant="ghost" size="sm" icon={status === 'idle' ? 'copy' : status === 'copied' ? 'check' : 'alert'} iconOnly onClick={copy}>Copy INV-1162</Button></> },
     { label: 'Amount', value: '€ 1,240.00' },
   ]} /><span className="ui-sr" role="status" aria-live="polite">{status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}</span></div>;
 }

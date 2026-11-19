@@ -335,10 +335,20 @@ it('writes the identifier, then swaps the glyph and says Copied', async () => {
   vi.unstubAllGlobals();
 });
 
-it('keeps the copy glyph and says Copy failed when the write fails', async () => {
+it('shows the alert glyph and says Copy failed when the write fails', async () => {
   const { button, idle } = await pressCopy(vi.fn().mockRejectedValue(new Error('denied')));
   expect(await screen.findByRole('status')).toHaveTextContent('Copy failed');
-  expect(button.innerHTML).toBe(idle);
+  expect(button.innerHTML).not.toBe(idle);
+  vi.unstubAllGlobals();
+});
+
+it('shows a failure and a success with different glyphs', async () => {
+  const write = vi.fn().mockRejectedValueOnce(new Error('denied')).mockResolvedValue(undefined);
+  const { button } = await pressCopy(write);
+  const failed = button.innerHTML;
+  await userEvent.click(button);
+  expect(await screen.findByRole('status')).toHaveTextContent('Copied');
+  expect(button.innerHTML).not.toBe(failed);
   vi.unstubAllGlobals();
 });
 
