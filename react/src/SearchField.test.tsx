@@ -108,7 +108,7 @@ it('passes axe with no visible label', async () => {
 // ---- the small size, #822 ---------------------------------------------------
 // Reads which rules of one kit sheet reach a rendered element, and under which media
 // condition. Limits: JSDOM resolves no @media and no layout, so this proves where a
-// declaration applies, not the pixels. The 32px and 46px heights are measured in a
+// declaration applies, not the pixels. The 32px and 40px heights are measured in a
 // browser for the pull request, against the Toolbar at the small size story.
 function declared(file: string, el: Element) {
   const style = document.createElement('style');
@@ -168,6 +168,18 @@ it('stands a small row\'s button at the chip height on a touch screen, and no fu
   const button = (size?: 'sm') => { cleanup(); return declared('filter-bar.css', smallRow(size).querySelector('.ui-btn')!)('min-height'); };
   expect(button('sm')).toEqual([`${COARSE} var(--ui-filter-row-h)`]);
   expect(button()).toEqual([]);
+});
+
+// A create row directly above that bar stands at its height too, and only there. #832
+it('stands a create row\'s button above a small row at the chip height on a touch screen', () => {
+  const rows = (size?: 'sm', apart = false) => { cleanup(); return render(<>
+    <div className="ui-toolbar"><button className="ui-btn ui-btn--sm">New invoice</button></div>
+    {apart && <p>Between</p>}
+    <div className="ui-toolbar"><SearchField ariaLabel="Search invoices" size={size} /></div>
+  </>).container.querySelector('.ui-btn')!; };
+  expect(declared('filter-bar.css', rows('sm'))('min-height')).toEqual([`${COARSE} var(--ui-filter-row-h)`]);
+  expect(declared('filter-bar.css', rows())('min-height')).toEqual([]);
+  expect(declared('filter-bar.css', rows('sm', true))('min-height')).toEqual([]);
 });
 
 it('stands its toolbar and filter bar at the small row to a mouse', () => {
