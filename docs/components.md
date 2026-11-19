@@ -1359,7 +1359,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   Tab stop whatever the choice is.** Arrow keys wrap past disabled options; Home and End reach
   the first and last enabled choice. `block` fills the container with either appearance. An
   option's `icon` names a kit glyph drawn before its label. With `iconOnly`, the glyph is the
-  whole button and the label becomes its accessible name.
+  whole button and the label becomes its accessible name and its hover title.
   **`size="sm"` compacts the pill appearance only:** under the underline appearance it changes
   the type size and leaves the tab at its full height.
 - **`Confirm`** builds on `Modal` as an `alertdialog`. It focuses the safe action and draws it

@@ -150,6 +150,8 @@
 }
 @media (pointer: coarse) {
   .ui-toolbar:has(> .ui-input-group > .ui-input--sm) > :is(.ui-btn, .ui-seg) { min-height: var(--ui-filter-row-h); }
+  /* The create row above that bar stands the same height. #832 */
+  .ui-toolbar:has(+ .ui-toolbar > .ui-input-group > .ui-input--sm) > .ui-btn { min-height: var(--ui-filter-row-h); }
 }
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
