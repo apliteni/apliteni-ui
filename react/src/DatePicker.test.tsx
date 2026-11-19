@@ -1561,6 +1561,16 @@ describe('in a dialog', () => {
     rect.mockRestore();
   });
 
+  it('keeps the panel unseen while the dialog still moves', () => {
+    const style = vi.spyOn(window, 'getComputedStyle');
+    style.mockImplementation(((e: Element) => ({ getPropertyValue: () => '', transform: (e as HTMLElement).classList?.contains('rx-modal') ? 'matrix(1, 0, 0, 1, 0, 8)' : 'none' })) as unknown as typeof window.getComputedStyle);
+    render(<Modal open title="Edit invoice" onClose={() => {}}>
+      <Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>);
+    expect((document.querySelector('.ui-datepicker__panel') as HTMLElement).style.visibility).toBe('hidden');
+    style.mockRestore();
+  });
+
   it('leaves a panel outside a dialog where its trigger hangs it', () => {
     render(<Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>);
     expect((document.querySelector('.ui-datepicker__panel') as HTMLElement).style.position).toBe('');

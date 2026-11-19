@@ -333,6 +333,9 @@ export function DatePicker({
       // In a field the panel is the field's width, which fixed would read off the screen.
       if (root.parentElement?.classList.contains('ui-field')) el.style.width = `${r.width}px`;
       el.style.position = 'fixed';
+      // A moving dialog is the frame of a fixed child and clips it, so the panel waits unseen.
+      const moving = view.getComputedStyle(el.closest('.rx-modal')!).transform !== 'none';
+      el.style.visibility = moving ? 'hidden' : '';
       // A fixed panel cannot be scrolled to, so it opens above where the room is
       // there, and otherwise scrolls inside the room below.
       const tall = el.scrollHeight + el.offsetHeight - el.clientHeight;
@@ -370,7 +373,7 @@ export function DatePicker({
       view.removeEventListener('scroll', fit, true);
       dialog?.removeEventListener('transitionend', fit);
       clearTimeout(rest);
-      if (lifted) for (const k of ['position', 'top', 'left', 'right', 'width', 'max-height', 'overflow-y']) el.style.removeProperty(k);
+      if (lifted) for (const k of ['position', 'top', 'left', 'right', 'width', 'max-height', 'overflow-y', 'visibility']) el.style.removeProperty(k);
     };
   }, [open, asSheet, align]);
 
