@@ -962,7 +962,7 @@ within about 1.5px.
 
 ### Segmented strips that outgrow their column
 
-The enabled selected pill uses an accent fill with contrasting label ink in both themes. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
+The enabled selected pill uses the primary button's accent fill and label ink, with a thin light accent edge that marks it in the dark theme. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
 
 A pill strip lays out its choices in one row while they fit. When they do not fit, the choices
 wrap onto further rows. **It never widens past its container:** a twelve-month picker in a phone

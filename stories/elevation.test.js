@@ -104,8 +104,9 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // 21 -> 22: the pinned column's scroll shade, #736.
 // 22 -> 23: #736's viewer sheet rests on its stage with the card's own rung.
 // 23 -> 22: the pinned column drops its scroll shade, #770.
-  assert.equal(sweep.length, 22,
-    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 22. `
+// 22 -> 23: a selected Segmented pill's flat 1px accent edge, no drop, #832.
+  assert.equal(sweep.length, 23,
+    `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 23. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
   assert.ok(new Set(sweep.map((d) => d.file)).size >= 8,

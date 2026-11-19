@@ -304,8 +304,9 @@ is the named exception. It uses a soft fill, and neutral chip tones use
 floating panel in dark and vanished on a white card in light.
 
 **A selected item is the one exception.** Selection is marked by a background highlight. An
-enabled chosen segmented pill fills `--accent` on its track, with `--accent-contrast` ink in light
-and `--signal-contrast` ink in dark. A disabled chosen pill keeps `--surface-3` and the disabled
+enabled chosen segmented pill takes the primary button's pair, `--accent-strong` with
+`--accent-contrast` ink, and a 1px `--accent` edge. In dark the edge is the mark, at 3:1 or more
+on the track, because the fill alone is under 3:1. A disabled chosen pill keeps `--surface-3` and the disabled
 ink.
 
 **What floats depends on the surface's job, not on its rung.** A floating surface has the

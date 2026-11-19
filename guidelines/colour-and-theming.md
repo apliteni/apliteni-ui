@@ -38,7 +38,7 @@
 
 **Don't:** Use `--accent` as ground.
 
-**Except:** Only Nebula gives the two tokens different values. Artur chose `--accent` for dark selected Segmented pills on #614.
+**Except:** Only Nebula gives the two tokens different values. A dark selected Segmented pill adds an `--accent` edge to its `--accent-strong` ground (#832).
 
 <!-- rule: accent-strong -->
 
@@ -54,7 +54,7 @@
 
 **Don't:** Add a second accent mark, such as an accent counter, to a selected tab.
 
-**Except:** NavTabs pills keep accent ink on soft fill. Fill alone is too faint to mark the route. Artur chose this on #429.
+**Except:** NavTabs pills keep accent ink on soft fill, as fill alone is too faint (#429). A Segmented pill's edge belongs to its fill.
 
 ## Theme checks
 

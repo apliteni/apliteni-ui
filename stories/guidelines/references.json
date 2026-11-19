@@ -142,12 +142,12 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:45",
+    "ref": "src/styles/segmented.css:47",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:46",
-    "pattern": "background: var(--accent);"
+    "ref": "src/styles/segmented.css:48",
+    "pattern": "background: var(--accent-strong);"
    },
    {
     "ref": "src/styles/nav.css:370",
@@ -682,11 +682,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:119",
+    "ref": "src/styles/segmented.css:116",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:128",
+    "ref": "src/styles/segmented.css:125",
     "pattern": "padding: var(--space-3)"
    }
   ]
