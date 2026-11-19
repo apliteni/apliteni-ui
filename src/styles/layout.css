@@ -479,9 +479,11 @@
      otherwise empty row — a mark that came loose rather than what to do with the
      block, which is what Artur marked on round r31. `align-self` is what keeps
      the control its own height beside a group two lines tall; it sits at the
-     row's top end, the corner it keeps above this step.
+     row's top end, the corner it keeps above this step. The group grows no wider than
+     its own content, so a segmented track before the end control keeps its options'
+     width and draws no empty end. #831
      why: Artur's review of the Finance report, rounds r31 and r34, #505 */
-  .ui-toolbar--split > :nth-last-child(2) { flex: 1 1 60%; min-width: 0; }
+  .ui-toolbar--split > :nth-last-child(2) { flex: 1 1 60%; min-width: 0; max-width: max-content; }
   .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; }
 }
 

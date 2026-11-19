@@ -55,6 +55,11 @@ test('export at the row end: below the phone step the end control stays in the r
     'the group needs a fractional basis — on `auto` its content is its hypothetical size and the '
     + 'line breaks before the end control');
   assert.match(group[1], /min-width:\s*0/, 'without this the group cannot shrink to the basis it was given');
+  // #831: a segmented track before the end control grew to the basis and drew an
+  // empty end, 225px of track for 131px of options at 390. A filter group asks for
+  // more than the line, so the cap does not hold it back.
+  assert.match(group[1], /max-width:\s*max-content/,
+    'the group must stop at its own content, or a segmented track grows past its options');
 });
 
 /* #768: below the phone step the end control keeps its own height, so beside a filter
