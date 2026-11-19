@@ -368,3 +368,18 @@ it('restarts the glyph timer at each press, so a second press keeps the check fo
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
+
+it('keeps the alert glyph for 1.5 seconds after a failed write, then shows the copy glyph again', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } });
+  render((CopyIdentifier.render as () => ReactElement)());
+  const button = screen.getByRole('button', { name: 'Copy INV-1162' });
+  const idle = button.innerHTML;
+  await act(async () => { fireEvent.click(button); });
+  await act(async () => { vi.advanceTimersByTime(1400); });
+  expect(button.innerHTML).not.toBe(idle);
+  await act(async () => { vi.advanceTimersByTime(200); });
+  expect(button.innerHTML).toBe(idle);
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
+});
