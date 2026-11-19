@@ -172,7 +172,9 @@ const sizedColumns: Column<Row>[] = [
 export const SetWidths: StoryObj = {
   parameters: FULL_WIDTH,
   render: () => <div className="ui-card-stack">
+    {/* No filter bar: the story compares column edges, not a long list. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
     <Card title="Loading again"><DataTable columns={sizedColumns} rows={[]} loading selectable={false} pager={false} empty="Loading campaigns" /></Card>
+    {/* No filter bar: five rows, all on view. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
     <Card title="Loaded"><DataTable columns={sizedColumns} rows={rows} selectable={false} pager={false} /></Card>
   </div>,
 };

@@ -186,6 +186,7 @@ const PAYMENTS: Payment[] = [
 export const PinnedTitle = {
   render: () => page(
     <Card title="October payments">
+      {/* No filter bar: the story shows a pinned name, and every row is on view. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
       <DataTable selectable={false} pager={false} pinnedIdentity="name"
         scrollLabel="October payments, scroll for more columns" rows={PAYMENTS}
         columns={[
