@@ -1,6 +1,6 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
 import { Drawer } from './Drawer';
@@ -10,7 +10,7 @@ import { tokensFor, substitute, kitCssFor, parseColour, ratio, desugar } from '.
 // @ts-expect-error -- shared cascade reader is JavaScript.
 import { specificity, selectorList, sheetText } from '../../stories/lib/focus-walk.js';
 import { KeyValueList, DrawerSection } from './KeyValueList';
-import { WideDrawer } from './KeyValueList.stories';
+import { WideDrawer, CopyIdentifier } from './KeyValueList.stories';
 import type { ReactElement } from 'react';
 import { Dropdown } from './Dropdown';
 import { SelectField, TextField } from './Field';
@@ -314,4 +314,30 @@ it.each(['light', 'dark'])('sets the modal title in semibold strong ink in %s', 
   document.body.appendChild(probe);
   expect(getComputedStyle(title).color).toBe(getComputedStyle(probe).color);
   expect(getComputedStyle(title).color).not.toBe('');
+});
+
+// The story is the example a consumer copies, so its copy button must write before it confirms. #832
+async function pressCopy(writeText: () => Promise<void>) {
+  vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
+  render((CopyIdentifier.render as () => ReactElement)());
+  const button = screen.getByRole('button', { name: 'Copy INV-1162' });
+  const idle = button.innerHTML;
+  await userEvent.click(button);
+  return { button, idle };
+}
+
+it('writes the identifier, then swaps the glyph and says Copied', async () => {
+  const write = vi.fn().mockResolvedValue(undefined);
+  const { button, idle } = await pressCopy(write);
+  expect(write).toHaveBeenCalledWith('INV-1162');
+  expect(await screen.findByRole('status')).toHaveTextContent('Copied');
+  expect(button.innerHTML).not.toBe(idle);
+  vi.unstubAllGlobals();
+});
+
+it('keeps the copy glyph and says Copy failed when the write fails', async () => {
+  const { button, idle } = await pressCopy(vi.fn().mockRejectedValue(new Error('denied')));
+  expect(await screen.findByRole('status')).toHaveTextContent('Copy failed');
+  expect(button.innerHTML).toBe(idle);
+  vi.unstubAllGlobals();
 });
