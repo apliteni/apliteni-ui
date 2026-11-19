@@ -17,7 +17,8 @@
  * WHAT THIS DOES NOT REACH: a ghost or link button, because it paints no edge at
  * rest; a button and a field in a grid or on two lines; a state a story does not
  * render, such as a closed panel; the default accent and the light theme only; a
- * story under a touch pointer, because only the fixture row is measured there.
+ * story under a touch pointer, because only the fixture row is measured there. The
+ * split row at 390 is a fixture too: it reads a filter group and a segmented track.
  * The source half, which boxes a toolbar stretches, is filter-bar.test.js.
  *
  * why: docs/components.md#a-toolbar-at-one-column
@@ -94,7 +95,7 @@ async function walk() {
   };
   const jobs = WIDTHS.flatMap((width) => ids.map((id) => ({ id, width })));
   const measured = [], problems = [];
-  let fixture, coarse;
+  let fixture, coarse, split;
   try {
     // The mutation, in the same browser and sheet: a hand-made centred row must be
     // refused, and the same two controls in a toolbar must pass. The third row is a
@@ -124,6 +125,26 @@ async function walk() {
     });
     fixture.push(...await touch.evaluate(PROBE, '#control-row-touch'));
     await touch.close();
+    // A split row at 390: a filter group before the end control grows to fill the line,
+    // and only a segmented track in that place stops at its options. #831
+    const phone = await open(ids[0], 390);
+    split = await phone.evaluate(() => {
+      const host = document.createElement('div');
+      host.id = 'control-row-split';
+      const end = '<button class="ui-btn ui-btn--sm">New</button>';
+      host.innerHTML = `<div class="ui-toolbar ui-toolbar--split"><div><fieldset class="ui-filter-bar"><legend class="ui-filter-bar__legend">Filters</legend></fieldset></div>${end}</div>`
+        + `<div class="ui-toolbar ui-toolbar--split"><div class="ui-seg"><button>Table</button><button>Board</button></div>${end}</div>`;
+      document.body.append(host);
+      const [group, seg] = [...host.children].map((row) => {
+        const inner = row.getBoundingClientRect().right - parseFloat(getComputedStyle(row).paddingRight);
+        return { gap: +(inner - row.lastElementChild.getBoundingClientRect().right).toFixed(2), first: row.firstElementChild };
+      });
+      const track = seg.first, cs = getComputedStyle(track);
+      const empty = track.getBoundingClientRect().right - parseFloat(cs.paddingRight) - parseFloat(cs.borderRightWidth)
+        - track.lastElementChild.getBoundingClientRect().right;
+      return { groupGap: group.gap, segEmpty: +empty.toFixed(2) };
+    });
+    await phone.close();
     let next = 0;
     await Promise.all(Array.from({ length: PAGES }, async () => {
       while (next < jobs.length) {
@@ -141,11 +162,11 @@ async function walk() {
     await browser.close();
     serve.kill();
   }
-  return { ids, fixture, coarse, measured, problems };
+  return { ids, fixture, coarse, split, measured, problems };
 }
 
 test('a button and a field in one row share their top and bottom edges', { skip: !RUN && 'set CONTROL_ROWS=1' }, async (t) => {
-  const { ids, fixture, coarse, measured, problems } = await walk();
+  const { ids, fixture, coarse, split, measured, problems } = await walk();
   t.diagnostic(`${ids.length} stories at ${WIDTHS.join(' and ')}px, ${measured.length} button and field pairs measured`);
 
   assert.equal(fixture.length, 4, 'the fixture rows were not all measured');
@@ -153,6 +174,8 @@ test('a button and a field in one row share their top and bottom edges', { skip:
   assert.ok(apart(fixture[0]), `the probe passed a centred hand-made row: ${JSON.stringify(fixture[0])}`);
   assert.ok(!apart(fixture[1]), `the probe refused a toolbar row: ${JSON.stringify(fixture[1])}`);
   assert.ok(!apart(fixture[2]) && !oval(fixture[2]), `a wordless button beside a search field is not a circle on its row: ${JSON.stringify(fixture[2])}`);
+  assert.ok(Math.abs(split.groupGap) <= 0.5, `at 390 a filter group in a split row stops short of the line by ${split.groupGap}px`);
+  assert.ok(Math.abs(split.segEmpty) <= 0.5, `at 390 a segmented track in a split row has ${split.segEmpty}px of empty end`);
   assert.ok(!apart(fixture[3]) && !oval(fixture[3]), `on a touch screen a wordless button beside a search field is not a circle on its row: ${JSON.stringify(fixture[3])}`);
 
   assert.deepEqual(problems, [], 'a story could not be measured');

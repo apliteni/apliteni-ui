@@ -10,7 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField` at both sizes, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. In a `.ui-toolbar` beside a full field or a filter bar, it takes the row\u2019s height and stays a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
       ['changed', 'A dropdown in a form is a pill, the same as the text input beside it, and the two stay at one height. A multi-line `TextArea` keeps its 12px corner, because a pill does not fit several lines. Part of #823.', ['Dropdown', 'Field', 'Guidelines']],
-      ['fixed', 'On a phone, the control before the last one in a `.ui-toolbar--split` row grows no wider than its content. A `Segmented` track there kept an empty end. Refs #831.', ['Segmented']],
+      ['fixed', 'On a phone, a `Segmented` track before the last control in a `.ui-toolbar--split` row stops at its options\u2019 width. It kept an empty end. Refs #831.', ['Segmented']],
     ],
   },
   {
