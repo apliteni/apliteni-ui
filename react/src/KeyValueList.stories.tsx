@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from './primitives/Button';
 import type { Meta, StoryObj } from '@storybook/react';
 import { KeyValueList, DrawerSection } from './KeyValueList';
@@ -26,13 +26,15 @@ export const OneColumn: StoryObj = {
 // An identifier copies where it stands, with an icon-only copy button beside it. #832
 function CopyIdentifierStory() {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const timer = useRef<ReturnType<typeof setTimeout>>();
   // The write comes first; the glyph swaps in the same box only after it succeeds, as a code block's does.
   const copy = async () => {
+    clearTimeout(timer.current);
     setStatus('idle');
     try {
       await navigator.clipboard.writeText('INV-1162');
       setStatus('copied');
-      setTimeout(() => setStatus('idle'), 1500);
+      timer.current = setTimeout(() => setStatus('idle'), 1500);
     } catch {
       setStatus('failed');
     }

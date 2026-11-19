@@ -156,8 +156,11 @@ it('reports a rejected write and allows retry', async () => {
   const write = clipboard(vi.fn().mockRejectedValueOnce(new Error('Denied')).mockResolvedValue(undefined));
   const { container } = render(<Snippet code="example" />);
   const status = container.querySelector('.ui-snippet__status')!;
+  const idle = screen.getByRole('button', { name: 'Copy code' }).innerHTML;
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(status).toHaveTextContent('Copy failed');
+  // A failed write keeps the copy glyph: the check would claim a success. #832
+  expect(screen.getByRole('button', { name: 'Copy code' }).innerHTML).toBe(idle);
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(status).toHaveTextContent('Copied');
   expect(write).toHaveBeenCalledTimes(2);

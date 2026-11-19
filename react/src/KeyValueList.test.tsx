@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
@@ -339,5 +339,22 @@ it('keeps the copy glyph and says Copy failed when the write fails', async () =>
   const { button, idle } = await pressCopy(vi.fn().mockRejectedValue(new Error('denied')));
   expect(await screen.findByRole('status')).toHaveTextContent('Copy failed');
   expect(button.innerHTML).toBe(idle);
+  vi.unstubAllGlobals();
+});
+
+it('restarts the glyph timer at each press, so a second press keeps the check for its full time', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+  render((CopyIdentifier.render as () => ReactElement)());
+  const button = screen.getByRole('button', { name: 'Copy INV-1162' });
+  const idle = button.innerHTML;
+  await act(async () => { fireEvent.click(button); });
+  await act(async () => { vi.advanceTimersByTime(1000); });
+  await act(async () => { fireEvent.click(button); });
+  await act(async () => { vi.advanceTimersByTime(1000); });
+  expect(button.innerHTML).not.toBe(idle);
+  await act(async () => { vi.advanceTimersByTime(600); });
+  expect(button.innerHTML).toBe(idle);
+  vi.useRealTimers();
   vi.unstubAllGlobals();
 });
