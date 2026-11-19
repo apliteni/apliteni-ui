@@ -6,7 +6,9 @@
  * Browser only, off unless CONTROL_ROWS=1, because Playwright is deliberately not
  * a dependency. It opens every story in storybook-static at 1280 and 390, finds
  * each painted button and each field, select, input group, dropdown trigger or
- * filter chip that share a flex row and a line, and compares their edges.
+ * filter chip that share a flex row and a line, and compares their edges. A
+ * wordless button in such a pair must also be as wide as it is tall, because a
+ * row that stretches it to a field's height draws an oval. #831
  *
  *   npm run build-storybook
  *   UI_PLAYWRIGHT=… UI_CHROME=… CONTROL_ROWS=1 node --test stories/control-row-edges.test.js
@@ -58,12 +60,14 @@ const PROBE = (scope) => {
     const rb = b.getBoundingClientRect(), rf = f.getBoundingClientRect();
     if (rb.bottom <= rf.top || rf.bottom <= rb.top) continue;
     const top = +(rb.top - rf.top).toFixed(2), bottom = +(rb.bottom - rf.bottom).toFixed(2);
-    pairs.push({ button: name(b), field: name(f), row: String(row.className).split(' ')[0] || row.tagName.toLowerCase(), top, bottom });
+    const oval = b.classList.contains('ui-btn--icon') ? +(rb.width - rb.height).toFixed(2) : 0;
+    pairs.push({ button: name(b), field: name(f), row: String(row.className).split(' ')[0] || row.tagName.toLowerCase(), top, bottom, oval });
   }
   return pairs;
 };
 
 const apart = (p) => Math.abs(p.top) > 0.5 || Math.abs(p.bottom) > 0.5;
+const oval = (p) => Math.abs(p.oval) > 0.5;
 
 async function walk() {
   const built = path.join(root, 'storybook-static');
@@ -91,13 +95,16 @@ async function walk() {
   let fixture;
   try {
     // The mutation, in the same browser and sheet: a hand-made centred row must be
-    // refused, and the same two controls in a toolbar must pass.
+    // refused, and the same two controls in a toolbar must pass. The third row is a
+    // wordless button beside a search field, which the toolbar stretches. #831
     const page = await open(ids[0], 1280);
     await page.evaluate(() => {
       const host = document.createElement('div');
       host.id = 'control-row-fixture';
       host.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><button class="ui-btn ui-btn--primary">Save</button><input class="ui-input" aria-label="URL"></div>'
-        + '<div class="ui-toolbar"><button class="ui-btn ui-btn--primary">Save</button><input class="ui-input" aria-label="URL"></div>';
+        + '<div class="ui-toolbar"><button class="ui-btn ui-btn--primary">Save</button><input class="ui-input" aria-label="URL"></div>'
+        + '<div class="ui-toolbar"><div class="ui-input-group"><input class="ui-input" aria-label="Search"></div>'
+        + '<button class="ui-btn ui-btn--icon" aria-label="More actions"><svg viewBox="0 0 24 24"></svg></button></div>';
       document.body.append(host);
     });
     fixture = await page.evaluate(PROBE, '#control-row-fixture');
@@ -126,15 +133,19 @@ test('a button and a field in one row share their top and bottom edges', { skip:
   const { ids, fixture, measured, problems } = await walk();
   t.diagnostic(`${ids.length} stories at ${WIDTHS.join(' and ')}px, ${measured.length} button and field pairs measured`);
 
-  assert.equal(fixture.length, 2, 'the fixture rows were not both measured');
+  assert.equal(fixture.length, 3, 'the fixture rows were not all measured');
   assert.ok(apart(fixture[0]), `the probe passed a centred hand-made row: ${JSON.stringify(fixture[0])}`);
   assert.ok(!apart(fixture[1]), `the probe refused a toolbar row: ${JSON.stringify(fixture[1])}`);
+  assert.ok(!apart(fixture[2]) && !oval(fixture[2]), `a wordless button beside a search field is not a circle on its row: ${JSON.stringify(fixture[2])}`);
 
   assert.deepEqual(problems, [], 'a story could not be measured');
   // Coverage: the two rows #825 fixed must still be found, at the desktop width.
-  for (const [id, button] of [['guidelines-the-full-state-set--state-set', 'Save changes'], ['guidelines-component-choice--component-choice', 'Export']]) {
+  for (const [id, button] of [['guidelines-the-full-state-set--state-set', 'Save changes'], ['guidelines-component-choice--component-choice', 'Export'],
+    ['guidelines-button-labels--button-labels', 'More actions']]) {
     assert.ok(measured.some((p) => p.id === id && p.width === 1280 && p.button === button), `${id}: the ${button} row was not measured`);
   }
   const off = measured.filter(apart).map((p) => `${p.id} at ${p.width}px: “${p.button}” beside “${p.field}” in ${p.row}, top ${p.top}px, bottom ${p.bottom}px`);
   assert.deepEqual(off, [], 'a button and a field in one row have different edges; put them in .ui-toolbar');
+  const ovals = measured.filter(oval).map((p) => `${p.id} at ${p.width}px: “${p.button}” beside “${p.field}” is ${p.oval}px wider than tall`);
+  assert.deepEqual(ovals, [], 'a wordless button in a row is not a circle');
 });

@@ -546,6 +546,30 @@
    These sit below the phone shell because guideline references cite the lines above. #768 */
 .ui-toolbar :where(div:has(.ui-filter-bar)) { display: grid; }
 .ui-toolbar > .ui-seg { align-self: stretch; }
+/* A wordless button on a toolbar is a circle of the row's height. A wrapping row cannot
+   give a stretched box a width from its height, so the button takes the height that
+   the row gets: a chip's height beside a filter bar, and beside a full field the field's
+   own height, which is the line box of the field's text, its 12px padding and its edge.
+   On a touch screen every field is a full field with 16px text. #831
+   why: docs/foundations.md#control-corners */
+.ui-toolbar:has(.ui-filter-bar) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
+  min-width: var(--ui-filter-row-h);
+  min-height: var(--ui-filter-row-h);
+}
+.ui-toolbar:has(> .ui-input-group > .ui-input:not(.ui-input--sm), > .ui-input:not(.ui-input--sm)) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
+  font-size: var(--text-base);
+  line-height: normal;
+  min-width: calc(1lh + 26px);
+  min-height: calc(1lh + 26px);
+}
+@media (pointer: coarse) {
+  .ui-toolbar:has(> .ui-input-group > .ui-input, > .ui-input) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
+    font-size: 16px;
+    line-height: normal;
+    min-width: calc(1lh + 26px);
+    min-height: calc(1lh + 26px);
+  }
+}
 @media (max-width: 560px) {
   .ui-toolbar--split:has(.ui-filter-bar) > :last-child { min-height: var(--ui-filter-row-h); }
 }

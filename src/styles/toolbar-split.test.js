@@ -80,6 +80,6 @@ test('export at the row end: beside a filter bar the phone end control takes a c
 test('export at the row end: the chip height check refuses a sheet without either half', () => {
   const layout = sheet('layout.css');
   const filterBar = sheet('filter-bar.css');
-  assert.ok(endBesideChips(layout.replace('min-height: var(--ui-filter-row-h)', 'min-height: 0'), filterBar));
+  assert.ok(endBesideChips(layout.replace(':last-child { min-height: var(--ui-filter-row-h)', ':last-child { min-height: 0'), filterBar));
   assert.ok(endBesideChips(layout, filterBar.replace('.ui-filter-bar, .ui-toolbar {', '.ui-filter-bar {')));
 });

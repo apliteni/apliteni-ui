@@ -73,7 +73,8 @@ first label on the page title's edge.
 **Every control that a reader presses or types into is a pill.** This covers each button size,
 each dropdown trigger, also in a form, a filter chip and the filter bar's add control, a search
 field, a text field, a select and every other one-line field. The corner is `--radius-pill`. A
-wordless button is square, so the pill makes it a circle. A dropdown in a form and the text input
+wordless button is square, so the pill makes it a circle. In a toolbar beside a full field or a filter
+bar, a wordless button takes the row's height and stays a circle. A dropdown in a form and the text input
 beside it have the same corner and the same height. The kit's padding keeps text, glyphs, units
 and the focus ring inside the rounded edge. Give a control of your own the same corner.
 
