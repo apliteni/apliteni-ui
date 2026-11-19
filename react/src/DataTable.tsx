@@ -261,7 +261,9 @@ export function DataTable<T extends { name: string }>({
               {columns.map((c, columnIndex) => {
                 const Cell = c.rowHeader ? 'th' : 'td';
                 return (
-                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined}
+                  // A set width lives on the col alone: the cell gives up a title cell's
+                  // claim on the rest of the row, so the edges hold when the rows arrive. #832
+                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined} style={c.width ? { width: 'auto' } : undefined}
                     className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedColumn(pinnedIdentity, c.key, columnIndex) && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
                     {c.render ? c.render(r) : String(r[c.key])}
                   </Cell>

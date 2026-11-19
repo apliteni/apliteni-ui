@@ -133,6 +133,13 @@ Before opening a PR that changes a cell's `vertical-align` in `src/styles/table.
 `TOP_ALIGN=1 UI_PLAYWRIGHT=… node --test src/styles/table-top-align.test.js`
 Report the result in the PR. CI runs only the source half, in the table and DataTable tests.
 
+## Check the title cell's width locally
+
+Before opening a PR that changes the `.ui-table__title` width rules in `src/styles/table.css` or
+how React `<DataTable>` writes a column's `width`, measure them in a real browser:
+`TITLE_WIDTH=1 UI_PLAYWRIGHT=… node --test src/styles/table-title-width.test.js`
+Report the result in the PR. CI runs only this gate's source half.
+
 ## Check the partial dash locally
 
 Before opening a PR that changes the `:indeterminate::after` rule in `src/styles/input.css`, measure the dash

@@ -167,7 +167,7 @@ export const PinnedSortable: StoryObj = {
 // Set widths hold while the rows load again, so Try again does not move the columns.
 // The empty table and the loaded one share their column edges. #832
 const sizedColumns: Column<Row>[] = [
-  { ...columns[0], width: '24ch' }, { ...columns[1], width: '12ch' }, { ...columns[2], width: '10ch' },
+  { ...columns[0], cell: 'title', width: '24ch' }, { ...columns[1], width: '12ch' }, { ...columns[2], width: '10ch' },
 ];
 export const SetWidths: StoryObj = {
   parameters: FULL_WIDTH,
