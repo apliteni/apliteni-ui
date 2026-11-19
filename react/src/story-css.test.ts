@@ -185,7 +185,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/Landing.stories.tsx': { glue: 23 },
   'react/src/AccentPicker.stories.tsx': { shadow: 2 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
-  'react/src/Button.stories.tsx': { shadow: 1 },
   'react/src/CommandPalette.stories.tsx': { shadow: 2 },
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
   'react/src/DocumentReview.css': { shadow: 1 },
