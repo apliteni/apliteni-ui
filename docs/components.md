@@ -1021,7 +1021,8 @@ than 20 characters**, or a pinned column's ceiling, so a table wider than its fr
 two-word name in a pinned column stays on one line. A column takes `cell` for it:
 `title`, `code`, `long`, `strong` or `act`. **A column's `width`, such as `'12ch'`, holds while
 the rows reload or are empty**, so the columns do not move when data arrives; longer content still
-widens it. When the set widths add up to more than the table, the columns share the room by
+widens it. The columns with no `width` share the free room, so set the narrow columns and leave the
+title column unset to keep it the widest. When the set widths add up to more than the table, the columns share the room by
 their content, so the edges can move on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),

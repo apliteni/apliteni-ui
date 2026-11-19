@@ -1017,6 +1017,15 @@ describe('the vanilla table hooks', () => {
     expect((firstRow[1] as HTMLElement).style.width).toBe('');
   });
 
+  it('lets an unsized title column take the free room when another column has a set width', () => {
+    const titled = (width?: string) => render(<DataTable selectable={false} pager={false} rows={rows}
+      columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'clicks', label: 'Clicks', num: true, width }]} />)
+      .container.querySelector('tbody td.ui-table__title') as HTMLElement;
+    expect(titled('10ch').style.width).toBe('auto');
+    // Without a set width the title cell keeps its claim on the rest of the row.
+    expect(titled().style.width).toBe('');
+  });
+
   it('gives the selection column its own col, so a set width lands on its own column', () => {
     const { container } = render(<DataTable rows={rows} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}}
       columns={[{ key: 'name', label: 'Name' }, { key: 'clicks', label: 'Clicks', width: '12ch' }]} />);
