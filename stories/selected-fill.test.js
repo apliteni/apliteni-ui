@@ -378,6 +378,28 @@ test('a selected pill without its inset edge falls under 3:1 in the dark theme',
     'the dark fill passes alone, so the edge proves nothing');
 });
 
+/** Every box-shadow a selector is given, as written, in document order. */
+const shadowsOf = (selector, css = rules) => css
+  .filter((rule) => selectorsOf(rule.selector).includes(selector))
+  .flatMap((rule) => {
+    const shadow = /(?:^|;)\s*box-shadow\s*:\s*([^;]+)/.exec(rule.body.replace(/\/\*[\s\S]*?\*\//g, ''));
+    return shadow ? [shadow[1].trim()] : [];
+  });
+
+// The edge belongs to the enabled pill's fill. A disabled pill takes no focus and an
+// underline tab has its bar, so on each the edge would be a second mark. #832
+// Limits: this reading drops the forced-colours block, so the edge it takes off there
+// is not checked here.
+const EDGELESS = [
+  ...['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]'].map((state) => `.ui-seg button${state}:where(:disabled)`),
+  ...['.is-active', '[aria-pressed="true"]'].map((state) => `.ui-seg--underline button${state}`),
+];
+test('a disabled selected pill and a selected underline tab take the edge off', () => {
+  for (const selector of EDGELESS) assert.equal(shadowsOf(selector).at(-1), 'none', `${selector} keeps the pill's edge`);
+  const bare = rules.map((rule) => ({ ...rule, body: rule.body.replace(/box-shadow\s*:\s*none\s*;?/g, '') }));
+  assert.ok(EDGELESS.every((selector) => shadowsOf(selector, bare).length === 0), 'the mutation did not reach the reading');
+});
+
 // This source check covers every selected spelling and accent. The contrast ledger
 // measures label ink and interaction states; browser evidence covers painted pixels.
 test('segmented pills use an accent mark with at least 3:1 against their track', () => {

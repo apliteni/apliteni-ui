@@ -43,7 +43,7 @@
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
   /* The primary button's pair, so a selection and the main action share one fill. The
-     edge carries the 3:1 mark where that fill is darker than it, as in the dark theme. #832 */
+     edge carries the 3:1 mark where that fill is faint on the track, as under the default accent in dark. #832 */
   color: var(--accent-contrast);
   background: var(--accent-strong);
   box-shadow: inset 0 0 0 1px var(--accent);
@@ -54,6 +54,7 @@
 .ui-seg button[aria-pressed="true"]:where(:disabled),
 .ui-seg button[aria-selected="true"]:where(:disabled) {
   background: var(--surface-3); /* code-bg: inherit — the selected control's own fill. */
+  box-shadow: none; /* No edge: on a control that takes no focus it reads as a ring. #832 */
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. */
@@ -133,6 +134,7 @@
 .ui-seg--underline button.is-active,
 .ui-seg--underline button[aria-pressed="true"] {
   background: none;
+  box-shadow: none; /* The bar is the one mark; the pill's edge goes with its fill. #832 */
   color: var(--strong);
   font-weight: var(--weight-semibold);
 }
