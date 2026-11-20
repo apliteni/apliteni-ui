@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from './primitives/Button';
 import type { Meta, StoryObj } from '@storybook/react';
 import { KeyValueList, DrawerSection } from './KeyValueList';
@@ -23,6 +23,28 @@ const rows = [
 export const OneColumn: StoryObj = {
   render: () => <div style={{ maxWidth: 480 }}><KeyValueList rows={rows} /></div>,
 };
+// An identifier copies where it stands, with an icon-only copy button beside it. #832
+function CopyIdentifierStory() {
+  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  // The write comes first; the glyph swaps in the same box only after it succeeds, as a code block's does.
+  const copy = async () => {
+    clearTimeout(timer.current);
+    setStatus('idle');
+    try {
+      await navigator.clipboard.writeText('INV-1162');
+      setStatus('copied');
+      timer.current = setTimeout(() => setStatus('idle'), 1500);
+    } catch {
+      setStatus('failed');
+    }
+  };
+  return <div style={{ maxWidth: 480 }}><KeyValueList rows={[
+    { label: 'Reference', value: <>INV-1162<Button variant="ghost" size="sm" icon={status !== 'copied' ? 'copy' : 'check'} iconOnly onClick={copy}>Copy INV-1162</Button></> },
+    { label: 'Amount', value: '€ 1,240.00' },
+  ]} /><span className="ui-sr" role="status" aria-live="polite">{status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}</span></div>;
+}
+export const CopyIdentifier: StoryObj = { render: () => <CopyIdentifierStory /> };
 export const TwoColumns: StoryObj = {
   render: () => <KeyValueList rows={rows} columns={2} />,
 };

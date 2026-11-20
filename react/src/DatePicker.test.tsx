@@ -18,6 +18,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { DatePicker, type DatePickerRange } from './DatePicker';
 import { Field } from './Field';
 import { Drawer } from './Drawer';
+import { Modal } from './Modal';
 
 const TODAY = '2026-09-15';
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
@@ -35,7 +36,8 @@ describe('the trigger', () => {
     render(<Field label="Due">{({ id }) => (
       <DatePicker id={id} today={TODAY} defaultValue={value} />
     )}</Field>);
-    const button = screen.getByRole('button', { name: 'Due' });
+    // The label leads the value it shows, so the name holds the visible text. #832
+    const button = screen.getByRole('button', { name: value ? 'Due, August 2026' : 'Due, Select a month' });
     expect(screen.getByLabelText('Due')).toBe(button);
     await user.click(screen.getByText('Due'));
     expect(button).toHaveFocus();
@@ -85,9 +87,9 @@ describe('the trigger', () => {
     expect(trigger()).not.toHaveAttribute('aria-label');
   });
 
-  it('still takes an explicit ariaLabel over its own text', () => {
+  it('still takes an explicit ariaLabel over its own text, and leads the value with it', () => {
     render(<DatePicker today={TODAY} ariaLabel="Reporting month" defaultValue="2026-08" />);
-    expect(trigger()).toHaveAccessibleName('Reporting month');
+    expect(trigger()).toHaveAccessibleName('Reporting month, August 2026');
   });
 
   it('opens and closes, and gives focus back on Escape', async () => {
@@ -917,6 +919,18 @@ describe('the sheet', () => {
     expect(dialog.querySelector('.ui-datepicker__body')).toHaveClass('is-sheet');
   });
 
+  it('takes the title of the Field around it, so the reader knows which date it sets (#832)', () => {
+    render(<Field label="Due date">{({ id }) => (
+      <DatePicker id={id} today={TODAY} sheet defaultValue="2026-08" defaultOpen />
+    )}</Field>);
+    expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Due date' })).toBeInTheDocument();
+  });
+
+  it('keeps the placeholder as its title outside a Field', () => {
+    render(<DatePicker today={TODAY} sheet defaultOpen />);
+    expect(within(screen.getByRole('dialog')).getByRole('heading', { name: 'Select a month' })).toBeInTheDocument();
+  });
+
   it('makes the page behind it inert, which the popover never did', () => {
     const { container } = render(
       <div><button type="button">Behind</button>
@@ -1519,5 +1533,46 @@ describe('the panel is the grid\'s width and no wider', () => {
     const mutant = own.replace(/\n\s*min-width: 0;/, '');
     expect(mutant, 'the declaration this gate mutates was renamed').not.toBe(own);
     expect(unanswered(mutant)).toEqual(['min-width']);
+  });
+});
+
+describe('in a dialog', () => {
+  // JSDOM lays nothing out, so this holds the switch; the placement is measured in a browser.
+  it('lifts the panel out of the dialog body, so the dialog edge does not clip it', () => {
+    render(<Modal open title="Edit invoice" onClose={() => {}}>
+      <Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>);
+    const panel = document.querySelector('.ui-datepicker__panel') as HTMLElement;
+    expect(panel.style.position).toBe('fixed');
+  });
+
+  it('places the panel again when the dialog comes to rest after its slide', () => {
+    let bottom = 100;
+    const rect = vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(
+      () => ({ top: bottom - 40, bottom, left: 20, right: 300, width: 280, height: 40, x: 20, y: bottom - 40, toJSON: () => ({}) }) as DOMRect);
+    render(<Modal open title="Edit invoice" onClose={() => {}}>
+      <Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>);
+    const panel = document.querySelector('.ui-datepicker__panel') as HTMLElement;
+    const before = panel.style.top;
+    bottom = 120;
+    document.querySelector('.rx-modal')!.dispatchEvent(new Event('transitionend'));
+    expect(panel.style.top).not.toBe(before);
+    rect.mockRestore();
+  });
+
+  it('keeps the panel unseen while the dialog still moves', () => {
+    const style = vi.spyOn(window, 'getComputedStyle');
+    style.mockImplementation(((e: Element) => ({ getPropertyValue: () => '', transform: (e as HTMLElement).classList?.contains('rx-modal') ? 'matrix(1, 0, 0, 1, 0, 8)' : 'none' })) as unknown as typeof window.getComputedStyle);
+    render(<Modal open title="Edit invoice" onClose={() => {}}>
+      <Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>);
+    expect((document.querySelector('.ui-datepicker__panel') as HTMLElement).style.visibility).toBe('hidden');
+    style.mockRestore();
+  });
+
+  it('leaves a panel outside a dialog where its trigger hangs it', () => {
+    render(<Field label="Due">{({ id }) => <DatePicker id={id} defaultValue="2026-08" defaultOpen />}</Field>);
+    expect((document.querySelector('.ui-datepicker__panel') as HTMLElement).style.position).toBe('');
   });
 });

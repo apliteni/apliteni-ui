@@ -181,6 +181,9 @@
      other. A chart's switch there keeps the clearance .ui-seg declares. */
   .ui-card__head { margin-bottom: var(--space-3, 12px) !important; }
   .ui-card__tools { column-gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  /* The page's title row holds small tools the same way: the room beside them is title
+     text, and they stand under the title on a phone, so the layer has room on each side. #832 */
+  .ui-app__tools { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 
   /* The selection box is 19px in a 58px row and a 34px header: the layer has room to reach the floor both ways. */
   .ui-table__selection { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
@@ -240,6 +243,13 @@
     row-gap: var(--tap-gap-bordered) !important;
     --tap-clear-x: var(--space-1, 4px);
     --tap-clear-y: var(--tap-gap-bordered);
+  }
+
+  /* A value's icon button, such as a copy button: the value before it, the label above
+     and the next row's label below are text, so the layer may reach the floor. #832 */
+  .ui-drawer__row > dd {
+    --tap-clear-x: var(--tap-gap);
+    --tap-clear-y: var(--tap-gap);
   }
 
   /* Both ways: fixed squares cannot overflow the way labels can, and a drawer

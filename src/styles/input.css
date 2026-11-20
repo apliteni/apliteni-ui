@@ -335,8 +335,9 @@
 .ui-switch input:disabled + .ui-switch__track { opacity: 0.5; cursor: not-allowed; }
 
 /* The small field: 32px with the dense rows' 13px text, level with a small button, a
-   dropdown trigger and a small segmented control. Only a fine pointer gets it. A touch
-   screen keeps the full field, because iOS zooms into a field under 16px. The group's
+   dropdown trigger and a small segmented control. Only a fine pointer gets it. On a touch
+   screen it keeps 16px text, because iOS zooms into a field under 16px, and stands 40px,
+   a chip's height. rev_1bef7d7c3b22/d5, #832 The group's
    42px left padding outranks the side padding here, so the glyph keeps its place. #822
    why: docs/components.md#react-search-field */
 @media not (pointer: coarse) {
@@ -347,4 +348,7 @@
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-pill); /* why: docs/foundations.md#control-corners */
   }
+}
+@media (pointer: coarse) {
+  .ui-input--sm { height: var(--ui-filter-row-h, 40px); min-height: var(--ui-filter-row-h, 40px); padding-block: 0; }
 }

@@ -6,7 +6,6 @@ import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { Dropdown, type DropdownProps } from '../../react/src/Dropdown';
-import { FilterBar } from '../../react/src/FilterBar';
 import { Segmented } from '../../react/src/Segmented';
 import { SidebarNav } from '../../react/src/SidebarNav';
 import { Success, SuccessPanel } from '../../react/src/Success';
@@ -26,33 +25,6 @@ const PairedActions = ({ cancel }: { cancel: 'ghost' | 'primary' }) => <Stage>
 </Stage>;
 
 const FILTERS = ['Any', 'Verified', 'Pending'];
-const SECTORS = ['Technology', 'Energy', 'Health care'].map(label => ({ label, value: label }));
-const SAVED_VIEWS = ['All rows', 'Unclassified', 'This month'];
-
-// Three categories, three groups. --space-6 between them against the filter
-// bar's own --space-2 inside it, so the filter bar wrapping on a phone still
-// reads as one group wrapping. The split toolbar puts Export at the row's end
-// and gives it the chips' height. The views take the plain strip: the underline
-// appearance is for a column switch over one dataset.
-const CategoryDo = () => <Stage>
-  <div style={{ display: 'grid', gap: 'var(--space-6)', justifyItems: 'start' }}>
-    <div className="ui-toolbar ui-toolbar--split" style={{ width: '100%' }}>
-      <div><FilterBar filters={[{ id: 'sector', label: 'Sector', value: 'Technology', items: SECTORS }]}
-        onRemove={noop} onClear={noop} onChange={noop} /></div>
-      <Button size="sm">Export</Button>
-    </div>
-    <Segmented options={['Overview', 'Performance'].map(label => ({ label, value: label }))} value="Overview"
-      onChange={noop} label="Dataset view" />
-  </div>
-</Stage>;
-// What #508 reported: the saved views and the control that adds a condition, one
-// bar and one style, so nothing says which of them re-draws every row.
-const CategoryDont = () => <Stage>
-  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-    {[...SAVED_VIEWS, 'Filter'].map(label => <Button key={label} size="sm">{label}</Button>)}
-  </div>
-</Stage>;
-
 // Both halves render open, so the stage keeps room below the trigger for the panel it drops.
 const Currency = (props: Partial<DropdownProps>) => <Stage><div style={{ minHeight: 400 }}>
   <Dropdown label="currency:" ariaLabel="Currency" items={currencyItems('EUR')} selectedValue="EUR" open onOpenChange={noop} {...props} />
@@ -89,7 +61,6 @@ const specimens = [
     dont: () => <Stage><Tabs label="Status filter" value="Pending" onChange={noop}
       items={FILTERS.map(label => ({ value: label, label, panel: null }))} /></Stage> },
   { id: 'panel-origin', do: () => <MenuOrigin side="right" />, dont: () => <MenuOrigin side="left" /> },
-  { id: 'one-category', do: () => <CategoryDo />, dont: () => <CategoryDont /> },
   { id: 'scale',
     do: () => <Stage><Card><SuccessPanel title="Feedback sent" sub="It goes straight to the strategy owner." /></Card></Stage>,
     dont: () => <Stage><Card><Success layout="hero" title="Feedback sent" /></Card></Stage> },

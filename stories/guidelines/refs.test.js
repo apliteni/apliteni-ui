@@ -303,7 +303,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   }
   // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
-  assert.equal(count, 152, 'update the rule count when adding or removing a rule');
+  // 151: Component choice lost one-category (#832).
+  assert.equal(count, 151, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
@@ -331,6 +332,10 @@ test('inline issue links render as links while code and HTML remain escaped', ()
   assert.equal(doc.querySelector('unsafe'), null);
   assert.equal(doc.querySelector('code').textContent, '--text');
   assert.equal(JSDOM.fragment(mono('[bad](javascript:alert(1))')).querySelector('a'), null);
+  // A link closing a parenthesis keeps the bracket out of its address. #832
+  const pair = JSDOM.fragment(mono('Owners ([#742](https://github.com/apliteni/apliteni-ui/issues/742), [#832](https://github.com/apliteni/apliteni-ui/issues/832)).'));
+  assert.deepEqual([...pair.querySelectorAll('a')].map((a) => a.href), ['https://github.com/apliteni/apliteni-ui/issues/742', 'https://github.com/apliteni/apliteni-ui/issues/832']);
+  assert.ok(pair.textContent.endsWith('#832).'));
 });
 
 // A long form was sent to a drawer here and to a page on the Drawers page. The two

@@ -128,7 +128,8 @@ test('the chosen tab is a weight step and one bar, and draws no box', () => {
   // list-row grip, so a reader offered to drag the strip. Both are gone, and
   // neither may come back without this failing.
   assert.equal(decl(tab, 'background'), 'none', 'the chosen tab keeps the ground it stands on');
-  assert.equal(decl(tab, 'box-shadow'), undefined, 'the chosen tab draws no hairline of its own');
+  // #832 gave a chosen pill an accent edge; the tab takes it off, so the bar stays the one mark.
+  assert.equal(decl(tab, 'box-shadow'), 'none', 'the chosen tab draws no hairline of its own');
   assert.equal(decl(tab, 'border'), undefined);
   assert.equal(decl(tab, 'border-bottom'), undefined, 'the rail on the tab\'s own edge is what the inset bar replaced');
   // The pill rule above used to paint an accent outline on every chosen button, and

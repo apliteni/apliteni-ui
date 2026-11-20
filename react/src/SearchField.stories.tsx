@@ -121,7 +121,11 @@ export const SmallToolbar: StoryObj = {
     const set = (id: string, value?: string) => setChosen((previous) => ({ ...previous, [id]: value ?? '' }));
 
     return <div className="ui-app__body">
-      <div className="ui-toolbar ui-toolbar--split">
+      {/* The create action stands on its own row, above the filters. rev_462a2ac56f32/d12 */}
+      <div className="ui-toolbar">
+        <Button variant="primary" size="sm" icon="plus">New invoice</Button>
+      </div>
+      <div className="ui-toolbar">
         <SearchField size="sm" ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <Dropdown variant="select" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
@@ -129,8 +133,7 @@ export const SmallToolbar: StoryObj = {
         <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" size="sm" value={view} onChange={setView}
-          options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
-        <Button variant="primary" size="sm" icon="plus">New invoice</Button>
+          options={[{ label: 'Table', value: 'table', icon: 'table', iconOnly: true }, { label: 'Board', value: 'board', icon: 'grid', iconOnly: true }]} />
       </div>
       <Card><DataTable columns={columns} rows={rows} density="dense" pager={false} selectable={false} stickyHeader
         scrollLabel="Invoices" /></Card>

@@ -304,8 +304,10 @@ is the named exception. It uses a soft fill, and neutral chip tones use
 floating panel in dark and vanished on a white card in light.
 
 **A selected item is the one exception.** Selection is marked by a background highlight. An
-enabled chosen segmented pill fills `--accent` on its track, with `--accent-contrast` ink in light
-and `--signal-contrast` ink in dark. A disabled chosen pill keeps `--surface-3` and the disabled
+enabled chosen segmented pill takes the primary button's pair, `--accent-strong` with
+`--accent-contrast` ink, and a 1px `--accent` edge. Where the fill is under 3:1 on the track, as
+under the default accent in dark, the edge is the mark. A disabled chosen pill and an underline tab
+take no edge. A disabled chosen pill keeps `--surface-3` and the disabled
 ink.
 
 **What floats depends on the surface's job, not on its rung.** A floating surface has the
@@ -458,8 +460,8 @@ A bare `input { font-size: 20px !important; }` has the same specificity as the n
 only while your stylesheet loads after the kit's.
 
 **A small field is the full field on a touch screen.** With a mouse, `SearchField size="sm"` is
-32px high with `--text-sm`. On a touch screen it is 46px high with 16px text, and its toolbar
-keeps the full row. So the small size never takes a field under 16px.
+32px high with `--text-sm`. On a touch screen it is 40px high with 16px text, and its toolbar
+and a create row above it stand the same height. So the small size never takes a field under 16px.
 
 ## A tap reaches the floor below the phone step
 

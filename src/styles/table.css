@@ -50,6 +50,10 @@
 .ui-table tfoot tr:first-child > :is(th, td) { border-top: 2px solid var(--border-strong); }
 .ui-table tfoot th { text-align: right; }
 .ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
+/* A floor, not a spacing step: a two-word name stays on one line when the table is
+   wider than its frame, so the frame scrolls instead of the title breaking at each word,
+   as a pinned subject column did in #832. A pinned column's own ceiling still wins. */
+.ui-table td.ui-table__title { min-width: min(20ch, var(--ui-table-identity-max, 20ch)); }
 .ui-table th:last-child { padding-right: 0; }
 /* The last body cell ends where its header and the table end. A right-aligned amount in the
    last column stood 16px in from both, because only the header and the action cell dropped
@@ -534,6 +538,16 @@ a.ui-identity:hover { text-decoration: underline; }
 /* A pinned selection cell keeps its fixed, centred track. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):first-child:not(:where(.ui-table--pinned) .ui-table__selection) { padding-left: var(--cell-edge); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):last-child { padding-right: var(--cell-edge); }
+/* A cell of the default density opens with no padding of its own, so the pinned cell gives half its gap to the
+   column after the divider, or that column's text touches the divider. The gap keeps its
+   size, so the table keeps one width whether the divider shows or not. #832 */
+.ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__identity { padding-right: var(--space-2); }
+.ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__identity + :is(th, td) { padding-left: var(--space-2); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity { padding-right: calc(var(--cell-gap) / 2); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity + :is(th, td) { padding-left: calc(var(--cell-gap) / 2); }
+/* A link that fills a pinned cell carries the cell's padding, so it gives up the same half. */
+.ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) td.ui-table__identity.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-2); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) td.ui-table__identity.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child { padding-right: calc(var(--cell-gap) / 2); }
 /* 16px, so the box's 44px phone tap layer stops at the cell's edge and leaves the next cell's control whole. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):not(.ui-table--pinned) .ui-table__selection { padding-right: var(--space-4); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) thead th { padding-block: var(--space-3); }

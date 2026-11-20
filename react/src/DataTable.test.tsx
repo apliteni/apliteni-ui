@@ -993,6 +993,47 @@ describe('the vanilla table hooks', () => {
     expect(container.querySelector('table')).not.toHaveClass('ui-table--hover');
   });
 
+  // #832: a set width lives on a <col>, so it holds while the rows are empty or reloading.
+  // JSDOM does no layout, so this reads the markup only; the browser keeps the width.
+  it('writes a set column width on a col, and draws no colgroup without one', () => {
+    const { container, rerender } = render(<DataTable selectable={false} pager={false} rows={rows}
+      columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'clicks', label: 'Clicks', num: true, width: '12ch' }]} />);
+    const cols = [...container.querySelectorAll('colgroup > col')] as HTMLElement[];
+    expect(cols.map((c) => c.style.width)).toEqual(['', '12ch']);
+    rerender(<DataTable selectable={false} pager={false} rows={[]} columns={[{ key: 'name', label: 'Name' }, { key: 'clicks', label: 'Clicks', width: '12ch' }]} />);
+    expect((container.querySelectorAll('colgroup > col')[1] as HTMLElement).style.width).toBe('12ch');
+    rerender(<DataTable selectable={false} pager={false} rows={rows} columns={columns} />);
+    expect(container.querySelector('colgroup')).toBeNull();
+  });
+
+  // #832: a title cell claims the rest of the row, so a cell of a sized column gives the
+  // claim up. The edges are measured in src/styles/table-title-width.test.js.
+  it('lets the col alone size a sized column, a title column too', () => {
+    const { container } = render(<DataTable selectable={false} pager={false} rows={rows}
+      columns={[{ key: 'name', label: 'Name', cell: 'title', width: '24ch' }, { key: 'clicks', label: 'Clicks', num: true }]} />);
+    const firstRow = container.querySelectorAll('tbody tr')[0].querySelectorAll('td');
+    expect(firstRow[0]).toHaveClass('ui-table__title');
+    expect((firstRow[0] as HTMLElement).style.width).toBe('auto');
+    expect((firstRow[1] as HTMLElement).style.width).toBe('');
+  });
+
+  it('lets an unsized title column take the free room when another column has a set width', () => {
+    const titled = (width?: string) => render(<DataTable selectable={false} pager={false} rows={rows}
+      columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'clicks', label: 'Clicks', num: true, width }]} />)
+      .container.querySelector('tbody td.ui-table__title') as HTMLElement;
+    expect(titled('10ch').style.width).toBe('auto');
+    // Without a set width the title cell keeps its claim on the rest of the row.
+    expect(titled().style.width).toBe('');
+  });
+
+  it('gives the selection column its own col, so a set width lands on its own column', () => {
+    const { container } = render(<DataTable rows={rows} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}}
+      columns={[{ key: 'name', label: 'Name' }, { key: 'clicks', label: 'Clicks', width: '12ch' }]} />);
+    const cols = [...container.querySelectorAll('colgroup > col')] as HTMLElement[];
+    expect(cols).toHaveLength(3);
+    expect(cols[2].style.width).toBe('12ch');
+  });
+
   it('ignores the deprecated stack prop, so a phone table keeps its columns', () => {
     const { container } = render(<DataTable selectable={false} pager={false} stack rows={rows}
       columns={[{ key: 'name', label: 'Name', rowHeader: true }, { key: 'clicks', label: 'Clicks', num: true }]} />);

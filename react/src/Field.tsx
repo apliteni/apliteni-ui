@@ -53,7 +53,7 @@ export function Field({ id: suppliedId, label, hint, error, required, children }
   const id = suppliedId ?? generatedId;
   const labelId = `${id}-label`;
   return <Frame {...{ id, labelId, label, hint, error, required }}>
-    <FieldContext.Provider value={{ id, labelId }}>
+    <FieldContext.Provider value={{ id, labelId, label }}>
       {children({ ...wiring(id, hint, error), required })}
     </FieldContext.Provider>
   </Frame>;

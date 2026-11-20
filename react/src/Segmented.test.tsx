@@ -95,3 +95,14 @@ it('has accessible toolbar and pressed-button semantics in the small block prese
   const result = await axe.run(container, { rules: { 'color-contrast': { enabled: false } } });
   expect(result.violations).toEqual([]);
 });
+
+it('gives a glyph-only option its name as a hover title, and a worded option none', () => {
+  render(<Segmented label="View" value="table" onChange={() => {}} options={[
+    { label: 'Table', value: 'table', icon: 'table', iconOnly: true },
+    { label: 'Board', value: 'board', icon: 'grid' },
+  ]} />);
+  const table = screen.getByRole('button', { name: 'Table' });
+  expect(table).toHaveAttribute('title', 'Table');
+  expect(table).not.toHaveTextContent('Table');
+  expect(screen.getByRole('button', { name: 'Board' })).not.toHaveAttribute('title');
+});

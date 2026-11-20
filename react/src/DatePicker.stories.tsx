@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { DatePicker, type DatePickerRange } from './DatePicker';
+import { Field } from './Field';
+import { Modal } from './Modal';
 
 // Demo data as of 15 September 2026, so every specimen renders the same grid
 // whenever it is read.
@@ -307,5 +309,24 @@ export const PhoneDayRange: StoryObj<typeof DatePicker> = {
       <DatePicker {...args} sheet mode="day-range" range={span}
         onRangeChange={setSpan} presets={dayPresets} defaultOpen />
     );
+  },
+};
+
+// Inside a Field, the sheet's title is the field's label: the sheet covers the field, so
+// the reader still sees which date the calendar sets. #832
+export const SheetInField: StoryObj<typeof DatePicker> = {
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: args => <Field label="Due date">{({ id }) => (
+    <DatePicker {...args} id={id} sheet defaultValue="2026-08" defaultOpen />
+  )}</Field>,
+};
+
+// Escape in the open calendar closes only the calendar; the dialog stays. #832
+export const InModal: StoryObj<typeof DatePicker> = {
+  render: args => {
+    const [open, setOpen] = useState(true);
+    return <Modal open={open} title="Edit invoice" onClose={() => setOpen(false)}>
+      <Field label="Due date">{({ id }) => <DatePicker {...args} id={id} defaultValue="2026-08" defaultOpen />}</Field>
+    </Modal>;
   },
 };

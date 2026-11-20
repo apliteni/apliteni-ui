@@ -29,7 +29,8 @@ const THEMES = ['dark', 'light'];
 // shell, so one of them stands for all.
 // 15 and 10: the panel-origin picture draws one drawer on each side (#790).
 // 16: the KeyValueList Wide Drawer story (#811).
-const EXPECTED = { subjects: 16, donts: 10 };
+// 17: the date sheet in the DatePicker Sheet In Field story (#832).
+const EXPECTED = { subjects: 17, donts: 10 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);

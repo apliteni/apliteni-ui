@@ -29,7 +29,8 @@ it('puts page tools at the end of the title row and the lede under it', () => {
   expect(row.nextElementSibling).toHaveClass('ui-app__sub');
   // The vanilla sheet holds the row, so /css consumers have it too, and the React sheet does not repeat it.
   const css = read('../../src/styles/layout.css');
-  expect(css).toMatch(/\.ui-app__title-row \{ display: flex; align-items: center;/);
+  // #832: tools that do not fit beside the title go under it.
+  expect(css).toMatch(/\.ui-app__title-row \{ display: flex; flex-wrap: wrap; align-items: center;/);
   expect(css).toMatch(/\.ui-app__tools \{ display: flex; flex: none;/);
   expect(read('./AppShell.css')).not.toMatch(/ui-app__title-row|ui-app__tools/);
 });

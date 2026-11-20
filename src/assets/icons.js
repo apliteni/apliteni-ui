@@ -194,6 +194,9 @@ export const iconOnlyAllowed = {
   // are the two views themselves, side by side in one toolbar at the card's corner.
   chart: 'show the values as a chart',
   table: 'show the values as a table',
+  // A list's Table and Board switch, decided by Artur on #832 (rev_4f729c7b8624/d16).
+  // The kit has no board glyph; the grid of four squares is the nearest one.
+  grid: 'show the items as a board',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -221,6 +224,7 @@ export const iconOnlyNames = {
   plus: ['zoom'],
   chart: ['chart'],
   table: ['table'],
+  grid: ['board'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a

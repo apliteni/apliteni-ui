@@ -19,6 +19,11 @@ export type Column<T> = {
   rowHeader?: boolean;
   /** `title` gives the column the remaining width, `code` sets a handle or id in the table's small text, `long` is running text that wraps in a column wide enough to read, `strong` bolds a figure, `act` right-aligns a row action. */
   cell?: 'title' | 'code' | 'long' | 'strong' | 'act';
+  /**
+   * The column's set width, such as `'12ch'` or `'160px'`. The column keeps it while the rows
+   * change, so a reload does not move the columns. Longer content still widens it. #832
+   */
+  width?: string;
 };
 export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
 type SelectionProps =
@@ -99,6 +104,7 @@ export function DataTable<T extends { name: string }>({
   // and the arrow keys all get to the far columns; the pair of buttons that used to
   // stand above it is retired. why: docs/components.md#react-tables
   const scrollable = stickyHeader || pinnedIdentity;
+  const sized = columns.some((c) => c.width);
   const table = useRef<HTMLTableElement>(null);
   // The box the strip sits in, held as state and not as a ref: the strip is conditional,
   // and an effect reading a ref cannot see one arrive. A surface that supplies its own pager
@@ -207,6 +213,10 @@ export function DataTable<T extends { name: string }>({
       <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}
+        {sized ? <colgroup>
+          {selectable ? <col /> : null}
+          {columns.map((c) => <col key={c.key} style={c.width ? { width: c.width } : undefined} />)}
+        </colgroup> : null}
         <thead>
           <tr>
             {selectable ? <th scope="col" className="ui-table__selection">
@@ -252,7 +262,10 @@ export function DataTable<T extends { name: string }>({
               {columns.map((c, columnIndex) => {
                 const Cell = c.rowHeader ? 'th' : 'td';
                 return (
-                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined}
+                  // A set width lives on the col alone. In a table with a set width, a title
+                  // cell gives up its claim on the rest of the row, so the edges hold when the
+                  // rows arrive: the free room goes to the unsized columns in both states. #832
+                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined} style={c.width || (sized && c.cell === 'title') ? { width: 'auto' } : undefined}
                     className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedColumn(pinnedIdentity, c.key, columnIndex) && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
                     {c.render ? c.render(r) : String(r[c.key])}
                   </Cell>

@@ -163,3 +163,18 @@ export const PinnedSortable: StoryObj = {
     </div>;
   },
 };
+
+// Set widths hold while the rows load again, so Try again does not move the columns.
+// The empty table and the loaded one share their column edges. #832
+const sizedColumns: Column<Row>[] = [
+  { ...columns[0], cell: 'title' }, { ...columns[1], width: '10ch' }, { ...columns[2], width: '10ch' },
+];
+export const SetWidths: StoryObj = {
+  parameters: FULL_WIDTH,
+  render: () => <div className="ui-card-stack">
+    {/* No filter bar: the story compares column edges, not a long list. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
+    <Card title="Loading again"><DataTable columns={sizedColumns} rows={[]} loading selectable={false} pager={false} empty="Loading campaigns" /></Card>
+    {/* No filter bar: five rows, all on view. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
+    <Card title="Loaded"><DataTable columns={sizedColumns} rows={rows} selectable={false} pager={false} /></Card>
+  </div>,
+};

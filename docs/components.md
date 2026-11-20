@@ -571,7 +571,9 @@ must have a search field is a rule rather than a recommendation:
 A drawer is a panel against one edge of the screen. It appears over a scrim. It lets the reader
 look at or change one thing without leaving the list that opened it. **It groups by heading, never
 by card:** `DrawerSection` puts a heading over a `<dl>` of label and value pairs. A screen reader
-then hears each label with its value. **Groups stand 32px apart, with no line between them.**
+then hears each label with its value. **An icon button at the end of a value, such as a copy
+button, sits on the value's line**, and its row keeps a text row's height. On a phone it reaches
+the 44px tap target. **Groups stand 32px apart, with no line between them.**
 Each group heading stands on a 1px `--border` line, the same line as a table head. **A record can
 lead with its key figure:** put a `<dl class="ui-drawer__figure">` in a group with no heading, as
 the first group. Its `<dt>` is the label, and its `<dd>` holds a `.ui-drawer__figure-value`, set at
@@ -937,7 +939,7 @@ has no radius, so **the card paints that ring instead**.
 
 ### A toolbar at one column
 
-A toolbar above a list opens with a search box, followed by its filters and then its view switch.
+A toolbar above a list opens with a search box, followed by its filters and then its view switch. A create action stands on its own row above the toolbar, at the left.
 `.ui-toolbar` gives its text field a `6rem` flex basis. The row breaks only when the field would
 be squeezed below that size. At `560px`, that basis would become the field's size rather than its
 floor. So at that width the field uses `flex-basis: 100%`. It takes the full line, and the rest
@@ -953,14 +955,14 @@ chips, the add control and Clear all stand at 32px, level with the field, a drop
 small Segmented and a small button. Give the Segmented and the button `size="sm"` yourself. The
 small search field stops at `--panel-sm`, 320px, and the free width goes before the last
 control. A full-size search field still takes the free width. At `560px` and below, each search
-field takes the full line. On a touch screen the row keeps the full height: the field is 46px,
-and a chip, Clear all, a dropdown trigger, the Segmented and the button are 40px on a line
-without the field. At both sizes, the text and the glyphs of the row share one vertical centre,
+field takes the full line. On a touch screen the row is 40px, a chip's height: the field keeps
+16px text, and a chip, Clear all, a dropdown trigger, the Segmented and the button are 40px on
+every line of the row. At both sizes, the text and the glyphs of the row share one vertical centre,
 within about 1.5px.
 
 ### Segmented strips that outgrow their column
 
-The enabled selected pill uses an accent fill with contrasting label ink in both themes. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
+The enabled selected pill uses the primary button's accent fill and label ink, with a thin accent edge that marks it wherever that fill is faint on the track. A disabled or underline selection has no edge. A disabled selected pill keeps a quiet fill and disabled ink. Only keyboard focus draws an outline.
 
 A pill strip lays out its choices in one row while they fit. When they do not fit, the choices
 wrap onto further rows. **It never widens past its container:** a twelve-month picker in a phone
@@ -1016,8 +1018,14 @@ vanilla sections above.
 ### React tables
 
 Tables fill their container by default. Inside `.ui-card--fit`, tables size to their content.
-A `.ui-table__title` cell gives a text column the remaining width. A column takes `cell` for it:
-`title`, `code`, `long`, `strong` or `act`. `rowHeader` renders the column's body cells as `th scope="row"`.
+A `.ui-table__title` cell gives a text column the remaining width. **A title cell is never narrower
+than 20 characters**, or a pinned column's ceiling, so a table wider than its frame scrolls and a
+two-word name in a pinned column stays on one line. A column takes `cell` for it:
+`title`, `code`, `long`, `strong` or `act`. **A column's `width`, such as `'12ch'`, holds while
+the rows reload or are empty**, so the columns do not move when data arrives; longer content still
+widens it. The columns with no `width` share the free room, so set the narrow columns and leave the
+title column unset to keep it the widest. When the set widths and a title column's 20 characters add up to more than the table, the
+columns share the room by their content, so the edges can move on a narrow screen. `rowHeader` renders the column's body cells as `th scope="row"`.
 `DataTable` takes the vanilla hooks as props: `zebra`, `hover` (on unless `false`), `density`
 (`dense`, `compact` or `comfortable`),
 `stickyHeader` and `pinnedIdentity`. **`pinnedIdentity: true` pins column 0; a column key pins that column**,
@@ -1137,7 +1145,7 @@ field and white button on the dark one.
 text of the dense rows, and the pill corner. Without `size`, the field keeps its full size. At every
 size, the leading glyph sits on the vertical centre of the text and the caret. A `TextField` glyph
 does the same. On a touch screen a
-small field is the full field. Only `SearchField` takes a size: `TextField` and `SelectField` keep
+small field is 40px with 16px text, because iOS zooms into a field with smaller text. Only `SearchField` takes a size: `TextField` and `SelectField` keep
 one size, because a form keeps the full size. See
 [A toolbar at one column](#a-toolbar-at-one-column).
 
@@ -1165,8 +1173,12 @@ and loses only the tint. **Blocked beats every other state in the paint, and its
 through.** **Hover is the kit's row hover**, not a tint of the accent. **The current period is a
 ring**, a hairline in the accent, and it stands aside while the cell holds focus, so a focused
 current period draws one band and not two. **Nothing is drawn under the grid:** no legend and no per-period
-swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**, and below the phone
-step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
+swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **Inside a `Field`,
+the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
+over the label, and outside a `Field` the placeholder is the title. The trigger's name is
+that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". **In a `Modal`, the open panel draws over the dialog's edge**,
+below the field, or above it where there is more room, and scrolls inside itself when neither
+side holds it. Below the phone step the gap between weeks opens to reach the 44px tap floor. Its one breakpoint literal is one of
 the steps in [Breakpoints](foundations.md#breakpoints).
 
 ### React file drop
@@ -1347,7 +1359,7 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   Tab stop whatever the choice is.** Arrow keys wrap past disabled options; Home and End reach
   the first and last enabled choice. `block` fills the container with either appearance. An
   option's `icon` names a kit glyph drawn before its label. With `iconOnly`, the glyph is the
-  whole button and the label becomes its accessible name.
+  whole button and the label becomes its accessible name and its hover title.
   **`size="sm"` compacts the pill appearance only:** under the underline appearance it changes
   the type size and leaves the tab at its full height.
 - **`Confirm`** builds on `Modal` as an `alertdialog`. It focuses the safe action and draws it
@@ -1363,8 +1375,9 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   account at the rail foot and leaves only Sign out in its menu. It shows no section counts.
   Pass `back` to show the way up from a subpage, above the page title.
   **`tools` puts small tools for the whole page at the end of the title row** (#736), such as
-  a version badge or a `size="sm"` button. The lede stands under the whole row. The tools do
-  not wrap, so keep them to what fits beside a short title on a 390px phone. `actions` keeps
+  a version badge, a period picker or a `size="sm"` button. The lede stands under the whole row.
+  **Tools that do not fit beside the title go under it**, so a period picker and a view action
+  can stay on a 390px phone. `actions` keeps
   the page's buttons in their own row under the title.
   **`accountItems` adds a product's rows, such as Account settings and Support, at the top of
   every account menu,** above the Theme row and Sign out. A row takes `href` to go somewhere,
@@ -1437,7 +1450,12 @@ The button and tick follow `value` until the caller updates it. `AccountMenu` ma
   its description; the label stays the box's name. **`CheckList` groups `Checkbox` children in a
   fieldset under a legend** set in the field label's type. A disabled box dims its hint with its label.
 - **`Snippet`** displays `code` as plain text, and **copying always writes the original `code`
-  string**, whatever `children` displays.
+  string**, whatever `children` displays. **`Snippet` is a block of code, not the only way to
+  copy.** To copy an identifier where it stands, in a drawer row or a table cell, put an
+  icon-only `Button` with the `copy` glyph beside it, such as
+  `<Button variant="ghost" size="sm" icon="copy" iconOnly>Copy INV-1162</Button>`. Its words
+  become its accessible name and its hover title. Swap the glyph to `check` for a moment after
+  the copy, as `Snippet` does.
 - **`EmptyState`** uses the vanilla markup and CSS, and **the page supplies its own `h1`.**
 - **`ThemeToggle`** cycles through dark, light, auto, then dark. It stores explicit choices
   and follows the OS otherwise. It sets `data-theme-choice` and the resolved `data-theme` on

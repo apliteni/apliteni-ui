@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:259",
+    "ref": "src/styles/table.css:263",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,7 +12,7 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:319",
+    "ref": "src/styles/table.css:323",
     "pattern": "max-width: calc(100% + 2 * var(--space-3));"
    }
   ],
@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:205",
+    "ref": "src/styles/tap-zone.css:208",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -142,12 +142,12 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:45",
+    "ref": "src/styles/segmented.css:47",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:46",
-    "pattern": "background: var(--accent);"
+    "ref": "src/styles/segmented.css:48",
+    "pattern": "background: var(--accent-strong);"
    },
    {
     "ref": "src/styles/nav.css:370",
@@ -286,20 +286,6 @@
     "pattern": "className={['ui-nav', 'ui-nav--tabs'"
    }
   ],
-  "one-category": [
-   {
-    "ref": "react/src/FilterBar.tsx:19",
-    "pattern": "export function FilterBar("
-   },
-   {
-    "ref": "src/styles/filter-bar.css:6",
-    "pattern": ".ui-filter-bar__chip {"
-   },
-   {
-    "ref": "react/src/Segmented.tsx:6",
-    "pattern": "export function Segmented("
-   }
-  ],
   "scale": [
    {
     "ref": "react/src/Success.tsx:98",
@@ -408,7 +394,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:267",
+    "ref": "src/styles/drawer.css:274",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -506,7 +492,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:238",
+    "ref": "src/assets/icons.js:242",
     "pattern": "export const iconMeanings"
    },
    {
@@ -620,7 +606,7 @@
     "pattern": "--space-3: 12px"
    },
    {
-    "ref": "src/styles/table.css:97",
+    "ref": "src/styles/table.css:101",
     "pattern": "padding: var(--space-2) var(--space-3)"
    },
    {
@@ -640,7 +626,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:506",
+    "ref": "src/styles/layout.css:508",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -664,11 +650,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:447",
+    "ref": "src/styles/layout.css:449",
     "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }"
    },
    {
-    "ref": "src/styles/layout.css:448",
+    "ref": "src/styles/layout.css:450",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -696,11 +682,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:119",
+    "ref": "src/styles/segmented.css:117",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:128",
+    "ref": "src/styles/segmented.css:126",
     "pattern": "padding: var(--space-3)"
    }
   ]
@@ -788,7 +774,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:280",
+    "ref": "src/styles/drawer.css:287",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -1127,15 +1113,15 @@
   ],
   "link-to-the-report": [
    {
-    "ref": "src/styles/table.css:122",
+    "ref": "src/styles/table.css:126",
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:141",
+    "ref": "src/styles/table.css:145",
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:290",
+    "ref": "src/styles/table.css:294",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
@@ -1145,7 +1131,7 @@
   ],
   "report-depth": [
    {
-    "ref": "src/styles/table.css:96",
+    "ref": "src/styles/table.css:100",
     "pattern": ".ui-table--dense td"
    }
   ],

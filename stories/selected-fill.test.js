@@ -358,6 +358,48 @@ test('a later rule that removes a selected fill fails this gate', () => {
   }
 });
 
+/** The colour of each 1px inset edge a selector is given: `box-shadow: inset 0 0 0 1px <colour>`. */
+const edgesOf = (selector, css = rules) => css
+  .filter((rule) => selectorsOf(rule.selector).includes(selector))
+  .flatMap((rule) => {
+    const edge = /(?:^|;)\s*box-shadow\s*:\s*inset 0 0 0 1px ([^;,]+)\s*(?:;|$)/.exec(rule.body);
+    return edge ? [edge[1].trim()] : [];
+  });
+
+// Without the edge, the dark theme's strong fill alone is under 3:1 on its track. #832
+test('a selected pill without its inset edge falls under 3:1 in the dark theme', () => {
+  const selector = '.ui-seg button[aria-pressed="true"]';
+  assert.ok(edgesOf(selector).length > 0, 'the selected pill has no inset edge to remove');
+  const bare = rules.map((rule) => ({ ...rule, body: rule.body.replace(/box-shadow\s*:\s*inset 0 0 0 1px [^;]+;?/, '') }));
+  assert.deepEqual(edgesOf(selector, bare), []);
+  const vars = tokensFor('dark', 'default');
+  const fill = discovered.find((found) => found.selector === selector).fill;
+  assert.ok(ratio(parseColour(substitute(fill, vars)), parseColour(substitute('var(--surface)', vars))) < 3,
+    'the dark fill passes alone, so the edge proves nothing');
+});
+
+/** Every box-shadow a selector is given, as written, in document order. */
+const shadowsOf = (selector, css = rules) => css
+  .filter((rule) => selectorsOf(rule.selector).includes(selector))
+  .flatMap((rule) => {
+    const shadow = /(?:^|;)\s*box-shadow\s*:\s*([^;]+)/.exec(rule.body.replace(/\/\*[\s\S]*?\*\//g, ''));
+    return shadow ? [shadow[1].trim()] : [];
+  });
+
+// The edge belongs to the enabled pill's fill. A disabled pill takes no focus and an
+// underline tab has its bar, so on each the edge would be a second mark. #832
+// Limits: this reading drops the forced-colours block, so the edge it takes off there
+// is not checked here.
+const EDGELESS = [
+  ...['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]'].map((state) => `.ui-seg button${state}:where(:disabled)`),
+  ...['.is-active', '[aria-pressed="true"]'].map((state) => `.ui-seg--underline button${state}`),
+];
+test('a disabled selected pill and a selected underline tab take the edge off', () => {
+  for (const selector of EDGELESS) assert.equal(shadowsOf(selector).at(-1), 'none', `${selector} keeps the pill's edge`);
+  const bare = rules.map((rule) => ({ ...rule, body: rule.body.replace(/box-shadow\s*:\s*none\s*;?/g, '') }));
+  assert.ok(EDGELESS.every((selector) => shadowsOf(selector, bare).length === 0), 'the mutation did not reach the reading');
+});
+
 // This source check covers every selected spelling and accent. The contrast ledger
 // measures label ink and interaction states; browser evidence covers painted pixels.
 test('segmented pills use an accent mark with at least 3:1 against their track', () => {
@@ -378,7 +420,11 @@ test('segmented pills use an accent mark with at least 3:1 against their track',
         const fill = parseColour(substitute(mark.fill, vars));
         const track = parseColour(substitute('var(--surface)', vars));
         assert.ok(fill && track, `${theme}/${name}: unresolved paint`);
-        assert.ok(ratio(fill, track) >= 3, `${theme}/${name}: selected fill is below 3:1`);
+        // An inset edge in the same rule can carry the mark where the fill is dark. #832
+        const edges = edgesOf(selector).map((edge) => parseColour(substitute(edge, vars)));
+        assert.ok(edges.every(Boolean), `${theme}/${name}: unresolved edge`);
+        const best = Math.max(ratio(fill, track), ...edges.map((edge) => ratio(edge, track)));
+        assert.ok(best >= 3, `${theme}/${name}: selected fill and edge are below 3:1`);
         count += 1;
       }
     }

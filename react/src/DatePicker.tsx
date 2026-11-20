@@ -1,11 +1,12 @@
 import {
-  useCallback, useEffect, useMemo, useRef, useState,
+  useCallback, useContext, useEffect, useMemo, useRef, useState,
   type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { dropdownRest, dropdownViewportFit } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 import { Drawer } from './Drawer';
 import { useIsoLayoutEffect } from './dialog';
+import { FieldContext } from './fieldContext';
 import './DatePicker.css';
 
 // The kit's date and month picker. It wears the dropdown's shell — the same
@@ -320,7 +321,34 @@ export function DatePicker({
     const el = panel.current;
     const view = el?.ownerDocument?.defaultView;
     if (!el || !view || !open) return;
+    // A dialog scrolls its body and clips at its edge, so there the panel stands
+    // fixed beside its field and draws over the dialog's edge. The open dialog has
+    // no transform, so fixed is the screen's frame. #832
+    const lifted = !asSheet && !!el.closest('.rx-modal');
+    const lift = () => {
+      const root = el.parentElement;
+      if (!lifted || !root) return;
+      const r = root.getBoundingClientRect();
+      const gap = parseFloat(view.getComputedStyle(el).getPropertyValue('--ui-dropdown-gap')) || 0;
+      // In a field the panel is the field's width, which fixed would read off the screen.
+      if (root.parentElement?.classList.contains('ui-field')) el.style.width = `${r.width}px`;
+      el.style.position = 'fixed';
+      // A moving dialog is the frame of a fixed child and clips it, so the panel waits unseen.
+      const moving = view.getComputedStyle(el.closest('.rx-modal')!).transform !== 'none';
+      el.style.visibility = moving ? 'hidden' : '';
+      // A fixed panel cannot be scrolled to, so it opens above where the room is
+      // there, and otherwise scrolls inside the room below.
+      const tall = el.scrollHeight + el.offsetHeight - el.clientHeight;
+      const below = view.innerHeight - r.bottom - gap * 2;
+      const up = tall > below && r.top - gap * 2 > below;
+      el.style.top = up ? `${Math.max(gap, r.top - gap - Math.min(tall, r.top - gap * 2))}px` : `${r.bottom + gap}px`;
+      el.style.maxHeight = `${up ? r.top - gap * 2 : below}px`;
+      el.style.overflowY = 'auto';
+      el.style.left = align === 'end' ? 'auto' : `${r.left}px`;
+      el.style.right = align === 'end' ? `${el.ownerDocument.documentElement.clientWidth - r.right}px` : 'auto';
+    };
     const fit = () => {
+      lift();
       let got = dropdownViewportFit(el);
       if (!got) return;
       el.style.setProperty('--ui-dropdown-ceiling', got.max > 0 ? `${got.max}px` : '');
@@ -333,11 +361,21 @@ export function DatePicker({
     if (trigger.current) ro?.observe(trigger.current);
     ro?.observe(el);
     view.addEventListener('resize', fit);
+    // The dialog slides in, so a panel that opens with it is placed again when it comes to rest.
+    // The timer is the way out when no transition runs, as under reduced motion.
+    const dialog = lifted ? el.closest('.rx-modal') : null;
+    dialog?.addEventListener('transitionend', fit);
+    const rest = lifted ? setTimeout(fit, 400) : undefined;
+    if (lifted) view.addEventListener('scroll', fit, true);
     return () => {
       ro?.disconnect();
       view.removeEventListener('resize', fit);
+      view.removeEventListener('scroll', fit, true);
+      dialog?.removeEventListener('transitionend', fit);
+      clearTimeout(rest);
+      if (lifted) for (const k of ['position', 'top', 'left', 'right', 'width', 'max-height', 'overflow-y', 'visibility']) el.style.removeProperty(k);
     };
-  }, [open, asSheet]);
+  }, [open, asSheet, align]);
 
   // Click-outside while it is open as a popover. Escape is the root's own handler
   // below, which marks it handled so a dialog around it lets the first Escape close
@@ -565,6 +603,12 @@ export function DatePicker({
     ? (grain === 'month' ? 'Select a period' : 'Select dates')
     : (grain === 'month' ? 'Select a month' : 'Select a date'));
   const name = ariaLabel || empty;
+  // A sheet covers the field, so its title says which field it belongs to. #832
+  const inField = useContext(FieldContext);
+  const sheetTitle = ariaLabel || (inField && id === inField.id ? inField.label : empty);
+  // A named trigger also says its value, so a speech user can say what they see. #832
+  const fieldLabel = inField && id === inField.id ? inField.label : '';
+  const triggerName = ariaLabel || fieldLabel ? `${ariaLabel || fieldLabel}, ${shown ?? empty}` : undefined;
 
   /** What a page is called: the year, or the month and year. */
   const pageName = (which: number) => (grain === 'month'
@@ -725,8 +769,8 @@ export function DatePicker({
         id={id}
         aria-haspopup="dialog"
         aria-expanded={open}
-        // The native label or visible text names the trigger unless explicitly overridden.
-        aria-label={ariaLabel || undefined}
+        // Its own text names a bare trigger. A label or an ariaLabel leads the value.
+        aria-label={triggerName}
         disabled={disabled}
         ref={trigger}
         onClick={(e: ReactMouseEvent) => { e.stopPropagation(); setOpen(!open); }}
@@ -744,7 +788,7 @@ export function DatePicker({
         // without taking the sheet's affordances left a phone reader with no
         // visible way out and a Tab that walked into the live page behind it.
         // why: guidelines/drawer.md
-        <Drawer open={open} side="bottom" size="md" title={name} onClose={() => setOpen(false)}>
+        <Drawer open={open} side="bottom" size="md" title={sheetTitle} onClose={() => setOpen(false)}>
           {calendar}
         </Drawer>
       ) : (

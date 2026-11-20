@@ -6,6 +6,25 @@
 
 export const RELEASES = [
   {
+    v: '0.178.0', date: '2026-11-19',
+    changes: [
+      ['added', 'A `DataTable` column takes `width`, such as `\'12ch\'`. The column keeps that width while its rows reload or are empty, so the columns do not move when data arrives. Part of #832.', ['DataTable']],
+      ['fixed', 'A `Snippet` copy button keeps its copy glyph when the clipboard write fails. It showed the check, so the screen claimed a copy that did not happen. Part of #832.', ['Snippet']],
+      ['fixed', 'A `DatePicker` sheet inside a `Field` takes the field\u2019s label as its title. It showed the placeholder, so a phone reader could not tell which date the open calendar sets. Part of #832.', ['DatePicker', 'Field']],
+      ['fixed', 'A `.ui-table__title` cell is never narrower than 20 characters, or a pinned column\u2019s ceiling. In a table wider than its frame, a pinned name broke at every word. Part of #832.', ['DataTable']],
+      ['changed', 'Page `tools` that do not fit beside the title go under it, so a period picker and a view action can stand in the title row on a phone. Part of #832.', ['AppShell']],
+      ['fixed', 'Page `tools` wrap on the narrowest phone, and on a touch screen each tool reaches the 44px tap target. Part of #832.', ['AppShell']],
+      ['fixed', 'A `DatePicker` trigger with a label or an `ariaLabel` is named with that label and the value it shows, such as “Due date, August 2026”. Its month and day cells take the kit’s font, not the browser’s. Part of #832.', ['DatePicker']],
+      ['changed', 'A list\'s Table and Board switch may show only its glyphs: `table` for Table and `grid` for Board, each named for a screen reader. A `Segmented` option with `iconOnly` now also shows its label as a hover title. Part of #832.', ['Guidelines', 'Segmented']],
+      ['changed', 'A selected `Segmented` option now has the primary button\'s fill and ink in both themes, plus a thin accent edge. Under the default accent in the dark theme, the option now shows white ink on the darker purple, and the edge marks it. Part of #832.', ['Segmented']],
+      ['removed', 'The Component choice page no longer has the rule "Group one category at a time". A create action above a list now stands on its own row above the toolbar, at the left, and on a touch screen its button is as high as the toolbar below it. Part of #832.', ['Guidelines']],
+      ['changed', 'An icon button at the end of a `KeyValueList` value, such as a copy button, sits on the value\'s line, and its row keeps a text row\'s height. On a phone it reaches the 44px tap target. Part of #832.', ['KeyValueList']],
+      ['fixed', 'An open `DatePicker` panel in a `Modal` draws over the dialog\u2019s edge, above the field where there is more room. The dialog body cut it off. Part of #832.', ['DatePicker', 'Modal']],
+      ['changed', 'On a touch screen, a small `SearchField` row is 40px high with 16px field text, and its button and `Segmented` match it on every line. It kept the full 46px field. Part of #832.', ['SearchField']],
+      ['fixed', 'In a table with a pinned column, the gap after the pinned column now sits on both sides of the divider, so the next column\'s text is clear of it. Part of #832.', ['DataTable']],
+    ],
+  },
+  {
     v: '0.177.0', date: '2026-11-18',
     changes: [
       ['changed', 'Every `Button` size, every dropdown trigger, a filter chip and the filter bar\u2019s add control, `SearchField` at both sizes, `TextField`, `SelectField` and every other one-line field are now pills, with `--radius-pill`. An icon-only button is a circle. In a `.ui-toolbar` beside a full field or a filter bar, it takes the row\u2019s height and stays a circle. If your screen sets its own small corner beside a kit control, change it to `--radius-pill` too. Part of #823.', ['Button', 'Dropdown', 'FilterBar', 'SearchField', 'Field', 'Pagination']],
