@@ -36,9 +36,7 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
       setStatus('copied');
       timer.current = setTimeout(() => setStatus('idle'), 1400);
     } catch {
-      if (current !== request.current) return;
-      setStatus('failed');
-      timer.current = setTimeout(() => setStatus('idle'), 1400);
+      if (current === request.current) setStatus('failed');
     }
   }
 
@@ -61,7 +59,7 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
             title={copyLabel}
             onClick={handleCopy}
           >
-            <Icon name={status === 'idle' ? 'copy' : status === 'copied' ? 'check' : 'alert'} />
+            <Icon name={status !== 'copied' ? 'copy' : 'check'} />
           </button>
           <span className="ui-sr ui-snippet__status" role="status" aria-live="polite">
             {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}

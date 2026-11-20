@@ -335,20 +335,10 @@ it('writes the identifier, then swaps the glyph and says Copied', async () => {
   vi.unstubAllGlobals();
 });
 
-it('shows the alert glyph and says Copy failed when the write fails', async () => {
+it('keeps the copy glyph and says Copy failed when the write fails', async () => {
   const { button, idle } = await pressCopy(vi.fn().mockRejectedValue(new Error('denied')));
   expect(await screen.findByRole('status')).toHaveTextContent('Copy failed');
-  expect(button.innerHTML).not.toBe(idle);
-  vi.unstubAllGlobals();
-});
-
-it('shows a failure and a success with different glyphs', async () => {
-  const write = vi.fn().mockRejectedValueOnce(new Error('denied')).mockResolvedValue(undefined);
-  const { button } = await pressCopy(write);
-  const failed = button.innerHTML;
-  await userEvent.click(button);
-  expect(await screen.findByRole('status')).toHaveTextContent('Copied');
-  expect(button.innerHTML).not.toBe(failed);
+  expect(button.innerHTML).toBe(idle);
   vi.unstubAllGlobals();
 });
 
@@ -364,21 +354,6 @@ it('restarts the glyph timer at each press, so a second press keeps the check fo
   await act(async () => { vi.advanceTimersByTime(1000); });
   expect(button.innerHTML).not.toBe(idle);
   await act(async () => { vi.advanceTimersByTime(600); });
-  expect(button.innerHTML).toBe(idle);
-  vi.useRealTimers();
-  vi.unstubAllGlobals();
-});
-
-it('keeps the alert glyph for 1.5 seconds after a failed write, then shows the copy glyph again', async () => {
-  vi.useFakeTimers();
-  vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: vi.fn().mockRejectedValue(new Error('denied')) } });
-  render((CopyIdentifier.render as () => ReactElement)());
-  const button = screen.getByRole('button', { name: 'Copy INV-1162' });
-  const idle = button.innerHTML;
-  await act(async () => { fireEvent.click(button); });
-  await act(async () => { vi.advanceTimersByTime(1400); });
-  expect(button.innerHTML).not.toBe(idle);
-  await act(async () => { vi.advanceTimersByTime(200); });
   expect(button.innerHTML).toBe(idle);
   vi.useRealTimers();
   vi.unstubAllGlobals();

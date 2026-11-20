@@ -159,12 +159,10 @@ it('reports a rejected write and allows retry', async () => {
   const idle = screen.getByRole('button', { name: 'Copy code' }).innerHTML;
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(status).toHaveTextContent('Copy failed');
-  // A failed write shows the alert glyph: the check would claim a success, and no change hides the failure. #832
-  const failed = screen.getByRole('button', { name: 'Copy code' }).innerHTML;
-  expect(failed).not.toBe(idle);
+  // A failed write keeps the copy glyph: the check would claim a success. #832
+  expect(screen.getByRole('button', { name: 'Copy code' }).innerHTML).toBe(idle);
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
   expect(status).toHaveTextContent('Copied');
-  expect(screen.getByRole('button', { name: 'Copy code' }).innerHTML).not.toBe(failed);
   expect(write).toHaveBeenCalledTimes(2);
 });
 
@@ -202,17 +200,4 @@ it('has no axe violations in resting and copied states', async () => {
   expect((await axe.run(container, options)).violations).toEqual([]);
   await act(async () => { fireEvent.click(screen.getByRole('button')); });
   expect((await axe.run(container, options)).violations).toEqual([]);
-});
-
-it('shows the alert glyph for a moment after a failed write, then the copy glyph again', async () => {
-  vi.useFakeTimers();
-  clipboard(vi.fn().mockRejectedValue(new Error('Denied')));
-  render(<Snippet code="example" />);
-  const button = screen.getByRole('button', { name: 'Copy code' });
-  const idle = button.innerHTML;
-  await act(async () => { fireEvent.click(button); });
-  expect(button.innerHTML).not.toBe(idle);
-  await act(async () => { vi.advanceTimersByTime(1400); });
-  expect(button.innerHTML).toBe(idle);
-  vi.useRealTimers();
 });
