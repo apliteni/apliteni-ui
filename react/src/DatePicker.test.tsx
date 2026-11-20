@@ -969,8 +969,8 @@ describe('the sheet', () => {
   /* #835: a six-week month is taller than the sheet on a phone. JSDOM lays nothing out,
    * so the geometry is given here: the body shows 300px from y=400, and each grid row
    * ends `step` px below the one above it, less the body's scroll. The margin is the
-   * sheet rule's 20px, written as a number because JSDOM does not resolve a token. What a
-   * browser draws is in the PR. */
+   * sheet rule's 20px, written as a
+   * number because JSDOM does not resolve a token. What a browser draws is in the PR. */
   describe('opens with the chosen day in view', () => {
     const MARGIN = '.ui-datepicker__body.is-sheet .ui-datepicker__opt { scroll-margin-bottom: 20px; }';
     function geometry(step: () => number) {
