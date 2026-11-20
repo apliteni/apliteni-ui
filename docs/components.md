@@ -140,12 +140,16 @@ account, and you give it the page content. Do not use it for a sign-in page. Use
 ```
 
 `sections` lists the destinations, each with `href`, `label`, `icon` and an optional `count`.
-The longest `href` that matches `pathname` is the current section.
+The longest `href` that matches `pathname` is the current section. `word` names the product, and
+its default is `apliteni-ui`, so set it. `brand` replaces the mark, and `brandHref` is its link,
+`/` by default.
 
-**Two layouts.** `layout="rail"` puts the sections in a side rail, with the account at the foot of
-the rail. `layout="topbar"` puts a band beside the rail with the search field. With a sidebar, the
-account and `bandControl` stand in the sidebar, and the theme is a row of the account menu.
-`width="wide"` removes the limit on the content column. `centered` is the default.
+**Two layouts.** `layout="topbar"` is the default. It has a sidebar with the sections, a band with
+the search trigger, the command palette and the theme switch. `layout="rail"` has only the side
+rail, with the sections and the account at its foot. The rail layout has no search trigger, no
+command palette, no Cmd+K, no theme switch, no section counts, and takes no `bandControl` and no
+`headControl`. `width="wide"` removes the limit on the content column. `centered` is the
+default.
 
 **The title row.** `title` is the page's one `h1`. `lede` is one line under it. `tools` puts small
 tools for the whole page at the end of the title row, such as a version badge, a period picker or
@@ -154,35 +158,45 @@ in their own row under the title. `back` puts a [back link](#back-link) above th
 
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top
 of every account menu. A row takes `href` to go to a page, or `onSelect` to open something in
-place. The Theme row opens a submenu with Auto, Light and Dark. A separator stands before Sign
-out.
+place. A separator stands before Sign out. In the topbar layout, a Theme row opens a submenu with
+Auto, Light and Dark.
 
-**Extra controls.** `bandControl` stands under the rail head, or on the band when there is no
-sidebar. `headControl` is one glyph control in the sidebar head, before the fold button.
+**Topbar layout only.**
 
-**Routing.** `renderLink` lets your router draw each section link. `onNavigate` sends a same-tab
-pick in the built-in command palette to your router, so the page changes without a reload. If
-your `palette` sets its own `onNavigate`, the shell uses that one.
+- `searchLabel` gives the words and the accessible name of the search trigger, at every width.
+  Its default is "Search or run a command…". `searchShortLabel` is deprecated, and the shell does
+  not draw it.
+- `palette` gives the command palette its groups. Without it, the palette lists the sections.
+  `onNavigate` sends a same-tab pick in the palette to your router, so the page changes without a
+  reload. If your `palette` sets its own `onNavigate`, the shell uses that one.
+- `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
+  head, before the fold button.
+
+**Routing.** `renderLink` lets your router draw each section link.
 
 **What the user sees.**
 
-- Above 720px the rail folds and unfolds with a button. The shell stores the choice in the
-  `apliteni-ui-rail` cookie. `defaultCollapsed` sets the first state. A folded row keeps its name
-  and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
+- Above 720px the sidebar or the rail folds and unfolds with a button. The shell stores the choice
+  in the `apliteni-ui-rail` cookie. `defaultCollapsed` sets the first state. A folded row keeps its
+  name and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
   column, so a click beside it reaches the page.
-- At 720px and below, the rail goes away. A 52px band holds the brand mark, the page title on one
-  line, the search trigger and a menu button. The menu button opens the full section list in a
-  drawer. The drawer opens from the side of the menu button: the right in the topbar layout and
-  the left in the rail layout. `drawerSide` chooses the side in either layout. A press on a
-  section, Escape or a wider window closes the drawer, and the focus goes back to the menu button.
+- At 720px and below, the sidebar goes away and a 52px band shows. In the topbar layout, the band
+  holds the brand mark, the page title on one line, the search trigger and a menu button. In the
+  rail layout, it holds only the menu button and the mark. The menu button opens the full section
+  list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
+  layout and the left in the rail layout. `drawerSide` chooses the side in either layout. A press
+  on a section, Escape or a wider window closes the drawer, and the focus goes back to the menu
+  button.
 - Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
   glyph, and keeps the same accessible name.
 - The current section is one quiet fill behind its row. A row under the pointer has a lighter
-  fill. A shell with one section and no back link draws no rail, no fold control and no menu
-  button. The section stays in the command palette.
-- When the shell mounts, the theme switch applies the stored theme, or follows the system. A page
-  that sets its own `data-theme` must also set `data-theme-choice`, or store the choice.
-  Otherwise `<html data-theme="light">` on a dark system turns dark when the shell mounts.
+  fill. In the topbar layout, a shell with one section and no back link draws no sidebar, no fold
+  control and no menu button. The section stays in the command palette. The rail layout always
+  draws the rail.
+- In the topbar layout, the theme switch applies the stored theme when the shell mounts, or
+  follows the system. A page that sets its own `data-theme` must also set `data-theme-choice`, or
+  store the choice. Otherwise `<html data-theme="light">` on a dark system turns dark when the
+  shell mounts.
 
 **Keyboard and screen reader.** The shell draws one `<main>` landmark, and each navigation
 landmark has its own name. The band is a `<header>` outside the navigation. The page title in the
@@ -277,11 +291,14 @@ Use `AuthShell` for a sign-in or sign-up page. It centres one card and puts the 
 Use `Footer` at the end of a site page or an app page. `variant` is `full`, `slim` or `app`.
 
 ```tsx
-<Footer variant="slim" tagline="Made for finance teams" legal="© 2026 Example Ltd" />
+<Footer variant="full" word="Ledger" tagline="Made for finance teams" legal="© 2026 Example Ltd" />
 ```
 
-The full footer puts its link `columns` side by side above the phone width and stacks them on a
-phone. Pass React content for the brand, the links, the legal row and the `switcher`.
+The `slim` and `app` footers draw only the legal row: `legal`, `legalLinks` and the `switcher`.
+The `full` footer adds the brand, the `tagline`, the link `columns` and the `social` links. Its
+columns stand side by side above the phone width and stack on a phone. `brand={false}` hides the
+whole brand block. Set `word` and `legal`, because their defaults are `Strategy` and
+"© <year> Apliteni".
 
 ## Actions
 
@@ -433,8 +450,13 @@ page.
 
 `groups` holds your items. An item has `id` and `label`, and can have `description`, `icon`,
 `keywords`, `shortcut`, `badge` and `href`. Your product names the groups and the kinds of result.
-A row with `href` goes to the address. Other rows call `onSelect`. `onNavigate` sends a same-tab
-pick on an `href` row to your router. A Cmd- or Ctrl-held pick opens a new tab. `density` is
+Every pick calls `onSelect` with the item first. Then the palette closes, and a row with `href`
+goes to the address: `onNavigate` sends a same-tab pick to your router, and a Cmd- or Ctrl-held
+pick opens a new tab.
+
+**Destructive rows.** After `onSelect`, an item with `danger` calls its `onConfirm`, and the
+palette stays open, so open your [`Confirm`](#confirm) there. A `danger` item without `onConfirm`
+is disabled. An item with `disabled` cannot be picked. `density` is
 `compact` or `roomy`.
 
 **Ranking.** The palette ranks rows by how the query matches. A whole label beats a prefix, a
@@ -511,8 +533,8 @@ under a legend. Use `Switch` for a setting that takes effect at once.
 
 **What the user sees.** A resting box has the field fill and an edge that is clear on the page, a
 card, a menu and a hovered row. A checked box, a partial box and a checked radio have a light
-accent tint, an accent edge and an accent mark. A checkbox with `indeterminate` set shows a short
-dash. `hint` stands under the label and describes the box. A disabled box has the same disabled
+accent tint, an accent edge and an accent mark. `Checkbox` has no `indeterminate` prop. Set the DOM
+property through a ref, and the box shows a short dash. `hint` stands under the label and describes the box. A disabled box has the same disabled
 paint as every other control, and dims its hint.
 
 ### Date picker
@@ -530,7 +552,9 @@ a date and a time.
 range uses `range` and `onRangeChange`. Values are ISO strings in the grain of the mode: `2026-08`
 or `2026-08-14`. A value in the other grain still counts: a month in day grain is the whole month.
 `min`, `max` and `disabledPeriods` block periods. `presets`, `locale`, `weekStartsOn` and `today`
-are optional.
+are optional. `placeholder` is the trigger text while nothing is chosen, such as "Select a date"
+by default. `ariaLabel` names the trigger and the title of the phone sheet, and wins over the label
+of a `Field`. Outside a `Field` and without `ariaLabel`, the placeholder is the sheet title.
 
 **What the user sees.** The panel opens like a dropdown and holds a grid. A blocked cell has a
 struck label and refuses a press, but the keyboard can still reach it. A range covers everything
@@ -1019,7 +1043,10 @@ The table rules: [Dense tables](../guidelines/dense-tables.md).
 ```
 
 Each row needs a `name`, which is also the key of a selection. A column has `key` and `label`, and
-can have `num`, `sortable`, `render`, `cell`, `width`, `linked` and `rowHeader`.
+can have `num`, `sortable`, `render`, `cell`, `width`, `linked` and `rowHeader`. A `label` can hold
+React content, such as a [`Tooltip`](#tooltip). `empty` is the text of a table with no rows, "No
+rows" by default. `DataTable` takes no `className`. `stack` is deprecated and does nothing: a table
+scrolls sideways on a phone.
 
 **Columns.** `cell` is `title`, `code`, `long`, `strong` or `act`. A `title` column takes the free
 width and is never narrower than 20 characters. A `width` such as `'12ch'` holds while the rows
@@ -1033,7 +1060,7 @@ choose the look. A hover table that is not zebra or dense is a row table: rows 4
 `compact` and 56px with `comfortable`, with no lines between rows. Every cell aligns its content to
 the top, so other values stay level with the first line of a cell that wraps. A badge in a cell is
 19px high and never makes its row taller. `rowState` marks a row `target` or `dead`. A dead row is
-muted and says its state in a word. `footer` takes totals rows. `caption` names the table for
+muted, so put the word that names its state in one of its cells. `footer` takes totals rows. `caption` names the table for
 assistive technology.
 
 **Status words.** Use a badge for the status of the record. For a second status in the same row,
@@ -1045,7 +1072,7 @@ least 4.5:1 on a plain or a selected row.
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
 region can scroll. Below 720px a pinned cell keeps one line and is cut at
 `--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
-frame has no scrollbar. `scrollLabel` names the region. Use the subject of the table, such as
+frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
 
 **Sorting and paging.** A table either controls its sort with `sort` and `onSortChange`, or leaves
@@ -1144,14 +1171,21 @@ chart has the title. `format` prints exact values in the readout, the live regio
 | `months` | `periods`, `series` | none: bars per period with a line across them | |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
-| `line` | `periods`, `series` | `thin`, `points`, `labels` | `thin` |
-| `area` | `periods`, `series` | `flat`, `curves`, `stacked`, `share` | `stacked` |
-| `stacked` | `periods`, `series` | `columns`, `share`, `rows` | `columns` |
-| `donut` | `slices` | `thin`, `table`, `labels` | `table` |
+| `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end, and a chart that scrolls opens on its latest period | `thin` |
+| `area` | `periods`, `series` | `flat`, each series from zero; `curves`, each series from zero as a smooth curve with a point on each value; `stacked`; `share`, each column is 100% | `stacked` |
+| `stacked` | `periods`, `series` | `columns`; `share`, each column is 100%; `rows`, a bar for each period | `columns` |
+| `donut` | `slices` | `thin`, the total in the centre; `table`, a list of the shares beside the ring; `labels`, the name, value and share at each slice | `table` |
 
 `area`, `stacked` and `donut` take only values of 0 or more. A negative value throws a `RangeError`.
-Use `curves` for two or three series that the user compares by shape, not by total. A donut takes
-`totalLabel`, and has no `selectable`.
+A stacked look reads a missing value as zero. The readout of a stacked or a share look lists each
+series of the column and the total, and the table adds a `Total` column. A share look shows the
+parts as percentages, and its table keeps your values. Use `curves` for two or three series that
+the user compares by shape, not by total. A donut slice says its value and its share of the whole.
+`totalLabel` names the whole, `Total` by default. A donut has no `selectable`.
+
+**Series.** A series is `{ id, name, values }`, with an optional `tone`. In `months`, its `shape`
+is `bars`, `bars-below` or `line`. `bars` stand on the zero line. `bars-below` takes positive
+values and hangs them under the line.
 
 **Tones.** A series without `tone` takes the next of `accent`, `accent-soft`, `info`, `warn`,
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
@@ -1205,6 +1239,7 @@ them for markup that you write yourself, or on a server that must give the same 
 | `hlCode`, `hlShell`, `codeTokens`, `codeLanguages` | Code highlighting. See [Snippet](#snippet). |
 | `rankGroups`, `rankCommands`, `scoreCommand`, `SCORE`, `paletteHotkey()` | The command palette ranking, for a server that sorts the same way. |
 | `dropdownMatch`, `dropdownFiltering` | The dropdown search match. |
+| `dropdownAvail` | The room that a dropdown panel has below or above its trigger. |
 | `filterChipText`, `filterChipName`, `filterChipUnset`, `filterChipItems`, `nextFocusStop`, `focusNextStop` | The filter bar logic, for a filter bar that you draw yourself. |
 | `dropdownViewportFit`, `dropdownHeightFit`, `dropdownLift`, `dropdownReveal`, `dropdownRest`, `dropdownSnap`, `filterPanelFit`, `filterPanelRow`, `DD_MENU_FLOOR` | The dropdown placement, for a second dropdown that must place its panel as the kit does. |
 | `observeNavFit(row)`, `revealCurrentNav(row)`, `revealFocusedNav(row, target)` | The route tab sizing and scrolling, for a tab row that you draw yourself. |
@@ -1218,11 +1253,15 @@ package, but you cannot import them.
 
 ### Escaping and URLs
 
-Every React component sends each address through `safeUrl`. An address that starts with
-`javascript:`, `data:` or `vbscript:`, in any case and also with control characters or line
-breaks in it, becomes `#`. An image source becomes empty. `BackLink` draws nothing for one. Other
-schemes, relative paths and fragments stay as they are. Use `esc` and `safeUrl` when you write
-HTML yourself.
+`Footer`, `NavTabs`, `TopBar` and `Card` send each address through `safeUrl`. `BackLink` draws
+nothing for an address that starts with `javascript:`. The other components, such as `AppShell`,
+`SidebarNav`, `Dropdown`, `Button`, `RowIdentity` and `Avatar`, write the address that you give.
+Check an address that comes from a user before you pass it to one of them.
+
+`safeUrl` replaces an address that starts with `javascript:`, `data:` or `vbscript:`, in any case,
+with the fallback. Before it reads the scheme, it removes tabs and line breaks everywhere, and
+spaces and control characters at the start. Other schemes, relative paths and fragments stay as
+they are. Use `esc` and `safeUrl` when you write HTML yourself.
 
 ## What the kit does not do
 
