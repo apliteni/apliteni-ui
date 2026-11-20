@@ -1079,7 +1079,7 @@ before the hint rather than in its place**. This keeps a hint with consent, safe
 on screen while the reader decides whether to retry. The error also uses `role="alert"`, so a new
 error is announced without moving focus. Required markers are decorative. Native controls carry
 `required`. `Field` exposes the frame for a control that you render yourself. Its child function
-receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. Spread them on a `Dropdown` and the label and then the value name its trigger. `FileField` accepts one
+receives a stable ID, `required`, `aria-invalid` and `aria-describedby`. Spread them on a `Dropdown` or a `DatePicker`, and the label and then the value name its trigger. An error marks the trigger invalid and gives it the kit's invalid edge. `FileField` accepts one
 file from the picker or by drop. `accept` only filters the system picker, so you validate before
 upload.
 
@@ -1142,7 +1142,7 @@ toolbar's row rule and the field's focus ring therefore reach it from the kit's 
 **There is no clear button**, because the browser paints its own near-black button on the light
 field and white button on the dark one.
 **`size="sm"` is the field above a dense table.** With a mouse it is 32px high with `--text-sm`, the
-text of the dense rows, and the pill corner. Without `size`, the field keeps its full size. At every
+text of the dense rows, and the field corner. Without `size`, the field keeps its full size. At every
 size, the leading glyph sits on the vertical centre of the text and the caret. A `TextField` glyph
 does the same. On a touch screen a
 small field is 40px with 16px text, because iOS zooms into a field with smaller text. Only `SearchField` takes a size: `TextField` and `SelectField` keep
@@ -1173,7 +1173,10 @@ and loses only the tint. **Blocked beats every other state in the paint, and its
 through.** **Hover is the kit's row hover**, not a tint of the accent. **The current period is a
 ring**, a hairline in the accent, and it stands aside while the cell holds focus, so a focused
 current period draws one band and not two. **Nothing is drawn under the grid:** no legend and no per-period
-swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **Inside a `Field`,
+swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **The sheet opens
+with the chosen period in view.** Its body scrolls the least distance that shows the chosen cell
+with 20px below it, and focus starts on that cell. With no chosen period, the sheet opens at the
+top. Nothing moves, because the body scrolls before the sheet slides in. **Inside a `Field`,
 the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
 over the label, and outside a `Field` the placeholder is the title. The trigger's name is
 that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". **In a `Modal`, the open panel draws over the dialog's edge**,
@@ -1526,14 +1529,15 @@ asterisk. **A `dropdown()` inside `field()` is wired through its trigger button*
 dropdown's `id` sits on a wrapper that a label cannot name. The label and then the chosen value name
 the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
 label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
-placeholder is not a name. **In a field, a dropdown trigger has the shape of a text input.** It
-has the input's pill corner, its top and bottom padding and its type size, so the two have the
-same height. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
+placeholder is not a name. An invalid trigger has the kit's invalid edge, also under the pointer.
+**In a field, a dropdown trigger has the height of a text input.** It has the input's top and
+bottom padding and its type size, so the two have the same height. It keeps the pill corner, and
+the text input has the field corner. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
 fixed 16px, as the input's is, also when the host changes `--text-base`. A long value stays on
 one line, starts at the left and ends with an ellipsis, as in a select, so the trigger keeps the
 input's height at every value length. A person mark stands as far from the left edge as from the
 top and bottom edges. A date picker in a field does the same. Outside a field, for example in a
-filter bar, a toolbar or the topbar, the trigger is the same pill. See
+filter bar, a toolbar or the topbar, the trigger is also a pill. See
 [Control corners](foundations.md#control-corners).
 Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See

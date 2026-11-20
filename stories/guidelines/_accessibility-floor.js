@@ -152,13 +152,6 @@ export const TAP_EXEMPT = [
       + 'gap opens; the box does not.',
   },
   {
-    selector: '.ui-back',
-    why: 'A back link stands at the top of a page, where what sits above it belongs to the '
-      + 'shell rather than to the link \u2014 measured in the app shell at 390, a zone reaching '
-      + 'up from it met the wordmark. A control cannot declare clearance it has no way to know, '
-      + 'so this one keeps the 24px it draws, which clears 2.5.8 on both axes.',
-  },
-  {
     selector: '.ui-select',
     why: 'A `select` generates no pseudo-element in any browser the kit targets, with or '
       + 'without `appearance: none`, so it cannot carry a layer at all. It measures 42px '

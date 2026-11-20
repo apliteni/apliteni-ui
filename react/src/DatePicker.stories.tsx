@@ -279,6 +279,12 @@ export const PhoneDay: StoryObj<typeof DatePicker> = {
   render: args => <DatePicker {...args} sheet mode="day" defaultValue="2026-09-17" defaultOpen />,
 };
 
+// A six-week month with the chosen day in the last week: the sheet opens scrolled to it. #835
+export const PhoneDayLastWeek: StoryObj<typeof DatePicker> = {
+  globals: { viewport: { value: 'phone', isRotated: false } },
+  render: args => <DatePicker {...args} sheet mode="day" defaultValue="2026-08-31" defaultOpen />,
+};
+
 // Last year's shortcuts against this year's bounds, so every chip is switched off. The
 // row still scrolls, and with no chip left to take the stop the scrollport takes it —
 // the state its focus band is for. why: docs/foundations.md#the-focus-ring

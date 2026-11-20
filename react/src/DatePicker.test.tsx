@@ -966,6 +966,59 @@ describe('the sheet', () => {
     expect(trigger()).toHaveFocus();
   });
 
+  /* #835: a six-week month is taller than the sheet on a phone. JSDOM lays nothing out,
+   * so the geometry is given here: the body shows 300px from y=400, and each grid row
+   * ends 44px below the one above it. The margin is the sheet rule's 20px, written as a
+   * number because JSDOM does not resolve a token. What a browser draws is in the PR. */
+  describe('opens with the chosen day in view', () => {
+    const MARGIN = '.ui-datepicker__body.is-sheet .ui-datepicker__opt { scroll-margin-bottom: 20px; }';
+    function opened(defaultValue: string | null) {
+      const style = document.createElement('style');
+      style.textContent = MARGIN;
+      document.head.append(style);
+      const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+        const row = this.closest('.ui-datepicker__row');
+        const rows = [...document.querySelectorAll('.ui-datepicker__row')];
+        const top = this.classList.contains('ui-drawer__body') ? 400
+          : row && this.matches('.ui-datepicker__opt') ? 400 + 44 * rows.indexOf(row) : 0;
+        return { top, bottom: top + 44, left: 0, right: 0, width: 0, height: 44, x: 0, y: top, toJSON() {} } as DOMRect;
+      });
+      const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
+        return this.classList.contains('ui-drawer__body') ? 300 : 0;
+      });
+      try {
+        render(<DatePicker today={TODAY} sheet mode="day" defaultValue={defaultValue} defaultOpen />);
+      } finally {
+        rect.mockRestore();
+        height.mockRestore();
+        style.remove();
+      }
+      return document.querySelector<HTMLElement>('.ui-drawer__body')!;
+    }
+
+    it('scrolls the least distance that shows the chosen day with 20px below it', () => {
+      // 31 August 2026 is in the sixth week: its row ends at 400 + 44 × 7 = 708, and the
+      // view ends at 700, so the body scrolls 708 + 20 − 700 = 28.
+      expect(opened('2026-08-31').scrollTop).toBe(28);
+      expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('31 August 2026'));
+    });
+
+    it('does not scroll when the chosen day is already in view', () => {
+      expect(opened('2026-08-10').scrollTop).toBe(0);
+      expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('10 August 2026'));
+    });
+
+    it('does not scroll and keeps the first focus without a chosen day', () => {
+      expect(opened(null).scrollTop).toBe(0);
+      expect(document.activeElement).toHaveAccessibleName(expect.stringContaining('Previous month'));
+    });
+
+    it('takes the 20px from the sheet rule, which is --space-5', () => {
+      expect(read('./DatePicker.css')).toMatch(
+        /\.ui-datepicker__body\.is-sheet \.ui-datepicker__opt \{ scroll-margin-bottom: var\(--space-5\); \}/);
+    });
+  });
+
   it('picks from the sheet and closes it', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

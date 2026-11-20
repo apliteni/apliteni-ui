@@ -1,6 +1,6 @@
-/* Rule: in a form field a dropdown trigger has the text input's corner and height.
- * Outside a form field it keeps the pill.
- * why: docs/components.md#forms, #812
+/* Rule: in a form field a dropdown trigger has the text input's height and keeps the pill.
+ * The text input has the field corner since #836, so the two corners differ.
+ * why: docs/components.md#forms, #812, #836
  *
  * Limits: the source half reads declarations and resolves tokens from tokens.css. It
  * does not lay anything out, and it reads no cascade, so a later rule that overrides the
@@ -80,9 +80,9 @@ function sourceFaults(mutation) {
   const pill = declarations(dropdown, '.ui-dropdown__trigger');
   const out = [];
   if (!field) return [`dropdown.css has no ${TRIGGER} rule`];
-  // Both are pills since #823, so the field trigger may keep the trigger's own corner.
+  // The trigger is a control the reader presses, so it keeps the pill. #836
   const corner = field['border-radius'] ?? pill['border-radius'];
-  if (corner !== input['border-radius']) out.push(`radius ${corner}, the input's is ${input['border-radius']}`);
+  if (corner !== resolve('var(--radius-pill)')) out.push(`radius ${corner}, not the pill`);
   const block = (padding) => padding.split(/\s+/)[0];
   if (block(field.padding) !== block(input.padding)) out.push(`block padding ${block(field.padding)}, the input's is ${block(input.padding)}`);
   if (field['font-size'] !== input['font-size']) out.push(`font size ${field['font-size']}, the input's is ${input['font-size']}`);
@@ -94,7 +94,7 @@ function sourceFaults(mutation) {
   return out;
 }
 
-test('source: the field trigger takes the input corner, block padding and size', () => {
+test('source: the field trigger keeps the pill and takes the input block padding and size', () => {
   assert.deepEqual(sourceFaults(), []);
 });
 
@@ -162,7 +162,7 @@ function faults(cells) {
     if (c.field.length !== 3) out.push(`${c.cell}: ${c.field.length} of 3 field triggers found`);
     c.field.forEach((t, i) => {
       if (Math.abs(t.height - c.input.height) > 0.5) out.push(`${c.cell}: field trigger ${i + 1} is ${t.height}px, the input ${c.input.height}px`);
-      if (t.radius !== c.input.radius) out.push(`${c.cell}: field trigger ${i + 1} radius ${t.radius}, the input's ${c.input.radius}`);
+      if (t.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: field trigger ${i + 1} radius ${t.radius}, not the pill`);
       if (t.font !== c.input.font) out.push(`${c.cell}: field trigger ${i + 1} text ${t.font}, the input's ${c.input.font}`);
     });
     if (c.pill.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: the trigger outside a field has radius ${c.pill.radius}`);

@@ -34,7 +34,7 @@
     "pattern": ".ui-btn--sm"
    },
    {
-    "ref": "src/styles/input.css:165",
+    "ref": "src/styles/input.css:170",
     "pattern": ".ui-check input::before"
    },
    {
@@ -44,7 +44,7 @@
   ],
   "tap-zone": [
    {
-    "ref": "src/styles/tap-zone.css:89",
+    "ref": "src/styles/tap-zone.css:91",
     "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
    },
    {
@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:208",
+    "ref": "src/styles/tap-zone.css:210",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -82,7 +82,7 @@
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
-    "ref": "src/styles/input.css:60",
+    "ref": "src/styles/input.css:64",
     "pattern": "opacity: 1;"
    }
   ],
@@ -306,11 +306,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:466",
+    "ref": "src/styles/dropdown.css:472",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:528",
+    "ref": "src/styles/dropdown.css:534",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -322,7 +322,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:418",
+    "ref": "src/styles/dropdown.css:424",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -426,7 +426,7 @@
   ],
   "quiet": [
    {
-    "ref": "src/styles/back.css:33",
+    "ref": "src/styles/back.css:35",
     "pattern": ".ui-back[href] { color: var(--text); }"
    }
   ]
@@ -550,7 +550,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:406",
+    "ref": "src/styles/layout.css:416",
     "pattern": "rank: page-title"
    },
    {
@@ -626,7 +626,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:508",
+    "ref": "src/styles/layout.css:518",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -650,11 +650,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:449",
+    "ref": "src/styles/layout.css:459",
     "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }"
    },
    {
-    "ref": "src/styles/layout.css:450",
+    "ref": "src/styles/layout.css:460",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -664,19 +664,19 @@
     "pattern": "--tap-gap: var(--space-5"
    },
    {
-    "ref": "src/styles/tap-zone.css:143",
+    "ref": "src/styles/tap-zone.css:145",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:150",
+    "ref": "src/styles/tap-zone.css:152",
     "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5, 20px)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:151",
+    "ref": "src/styles/tap-zone.css:153",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
-    "ref": "src/styles/tap-zone.css:127",
+    "ref": "src/styles/tap-zone.css:129",
     "pattern": ".ui-seg--underline { row-gap: var(--space-1"
    }
   ],
@@ -1099,8 +1099,12 @@
     "pattern": "border-radius: var(--radius-pill);"
    },
    {
-    "ref": "src/styles/control-shape.test.js:82",
-    "pattern": "every control is a pill, except the controls that keep their corner"
+    "ref": "src/styles/input.css:38",
+    "pattern": ".ui-textarea { border-radius: var(--radius-md); }"
+   },
+   {
+    "ref": "src/styles/control-shape.test.js:89",
+    "pattern": "every control is a pill and every field has the field corner, except the controls that keep their corner"
    }
   ]
  },

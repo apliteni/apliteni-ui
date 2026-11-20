@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, vi } from 'vitest';
 import axe from 'axe-core';
 import { Dropdown } from './Dropdown';
+import { DatePicker } from './DatePicker';
 import { Field, TextField, TextArea, SelectField, FileField, type FieldControlProps } from './Field';
 
 // Vite rewrites a literal new URL(..., import.meta.url) into an asset URL, so the
@@ -258,8 +259,12 @@ const OWNERS = [{ label: 'Avery Example', value: 'avery' }, { label: 'Jordan Exa
 const owner = (props: { hint?: string; error?: string }) => render(
   <Field label="Owner" {...props}>{control => <Dropdown {...control} variant="select" items={OWNERS} value="Avery Example" />}</Field>);
 
-it('links a Dropdown trigger to the field error and marks it invalid', () => {
-  const { container } = owner({ error: 'That option is no longer available.' });
+// A DatePicker takes the same wiring from Field as a Dropdown. #835
+const due = (props: { hint?: string; error?: string }) => render(
+  <Field label="Owner" {...props}>{control => <DatePicker {...control} mode="day" today="2026-11-20" defaultValue="2026-11-20" />}</Field>);
+
+it.each([['Dropdown', owner], ['DatePicker', due]] as const)('links a %s trigger to the field error and marks it invalid', (_, mount) => {
+  const { container } = mount({ error: 'That option is no longer available.' });
   const trigger = screen.getByRole('button', { name: /Owner/ });
   const error = container.querySelector('.ui-field__error')!;
   expect(trigger.getAttribute('aria-describedby')).toBe(error.id);
@@ -275,13 +280,13 @@ it('describes a Dropdown trigger by the error and then the hint, as Field orders
   expect(trigger).toHaveAccessibleDescription('Choose another. Who answers for this.');
 });
 
-it('describes a Dropdown trigger by the hint alone and leaves aria-invalid off without an error', () => {
-  owner({ hint: 'Who answers for this.' });
+it.each([['Dropdown', owner], ['DatePicker', due]] as const)('describes a %s trigger by the hint alone and leaves aria-invalid off without an error', (_, mount) => {
+  mount({ hint: 'Who answers for this.' });
   const trigger = screen.getByRole('button', { name: /Owner/ });
   expect(trigger).toHaveAccessibleDescription('Who answers for this.');
   expect(trigger).not.toHaveAttribute('aria-invalid');
   cleanup();
-  owner({});
+  mount({});
   expect(screen.getByRole('button', { name: /Owner/ })).not.toHaveAttribute('aria-describedby');
   expect(screen.getByRole('button', { name: /Owner/ })).not.toHaveAttribute('aria-invalid');
 });

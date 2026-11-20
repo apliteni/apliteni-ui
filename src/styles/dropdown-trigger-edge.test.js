@@ -74,6 +74,8 @@ const SHEETS = [...KIT_SHEETS, ...REACT_SHEETS];
  * and draws the unavailable edge, so it is classified as off and not as hover. */
 const STATES = [
   ['off', /:disabled\b|\[disabled\]|:not\(\s*:enabled\s*\)|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i],
+  // Before hover, so the invalid edge under the pointer is not read as the live hover. #835
+  ['invalid', /\[aria-invalid\s*=\s*("true"|'true'|true)\]/i],
   ['hover', /:hover\b/i],
   ['focus', /:focus(-visible|-within)?\b/i],
   ['open', /\.open\b|\[aria-expanded\s*=\s*("true"|'true'|true)\]/i],
@@ -105,7 +107,7 @@ const DISABLED_TARGETS = [
  * "resting" and counted as covered. */
 const STATEFUL = '(?::(?:hover|active|focus(?:-visible|-within)?|disabled|enabled|checked|target|visited|link'
   + '|indeterminate|placeholder-shown|user-(?:in)?valid|in-range|out-of-range|read-only)\\b'
-  + '|\\[disabled\\]|\\[aria-(?:disabled|expanded|pressed|current|selected|busy)\\s*=\\s*[^\\]]*\\]'
+  + '|\\[disabled\\]|\\[aria-(?:disabled|expanded|pressed|current|selected|busy|invalid)\\s*=\\s*[^\\]]*\\]'
   + '|\\.open\\b|\\.is-(?:open|active|selected|busy)\\b)';
 const STATE_IN_SELECTOR = new RegExp(`${STATEFUL}|:not\\([^)]*\\)`, 'gi');
 
@@ -352,6 +354,11 @@ test('disabled readings reject live paint in every discovered scope and state', 
  * response gets frozen, and it is the fault this fix itself could have caused.
  * A resting rule that paints no edge is exempt — the filter bar's chip takes the
  * trigger's box away entirely and carries the edge itself. */
+/* The resting rules no invalid state can reach, each with its reason. */
+const NEVER_INVALID = {
+  '.ui-filter-bar [data-filter-add] .ui-dropdown__trigger':
+    'The filter bar\'s add control only adds a filter. No Field holds it, so nothing marks it invalid.',
+};
 function frozenPairs(byScope) {
   const resting = [...byScope.values()].flat().filter((r) => r.state === 'rest' && r.edge?.drawn);
   const out = [];
@@ -360,6 +367,7 @@ function frozenPairs(byScope) {
       const won = winner(rules, state);
       if (!won) continue;
       for (const rest of resting) {
+        if (state === 'invalid' && rest.selector in NEVER_INVALID) continue;
         const reaches = rest.scope.endsWith(scope) || scope.endsWith(rest.scope);
         if (reaches && outranks(rest, won)) out.push(`${scope} — ${state} loses to the resting rule ${rest.selector}`);
       }
@@ -491,6 +499,9 @@ test('the reading refuses every way the two edges can come back together', () =>
     // The same defect one state along, under the pointer.
     [{ from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: var(--disabled-border)' },
       'live-is-off'],
+    // The invalid edge painted as the off one. #835
+    [{ from: ':hover:not(:focus-visible) { border-color: var(--pink)', to: ':hover:not(:focus-visible) { border-color: var(--disabled-border)' },
+      'live-is-off'],
     // An edge this arithmetic cannot resolve, which must be reported rather than
     // counted as "not the off ink".
     [{ from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: currentColor' },
@@ -542,4 +553,6 @@ test('the sheet still says what the gate reads, so none of this is checking a gh
     `${TRIGGER}:disabled no longer takes ${OFF_EDGE}`);
   assert.match(css, /\.ui-dropdown__trigger:enabled:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
     'the trigger no longer answers the pointer');
+  assert.match(css, /\.ui-dropdown__trigger\[aria-invalid="true"\],\s*\.ui-dropdown__trigger\[aria-invalid="true"\]:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--pink\)/,
+    'an invalid trigger no longer draws the kit\'s invalid edge');
 });

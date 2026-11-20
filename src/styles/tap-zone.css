@@ -57,6 +57,7 @@
     .ui-snippet__copy,
     .ui-footer__social,
     .ui-app__search,
+    .ui-back,
     .toggle,
     /* Already relative in react/src/DatePicker.css — restated because this
        gate reads the kit's own sheets and cannot see that one, and a carrier
@@ -79,6 +80,7 @@
     .ui-switch,
     .ui-datepicker__opt,
     .ui-app__search,
+    .ui-back,
     .toggle
   )::after {
     content: "";
@@ -279,6 +281,11 @@
      20 claims 10px a side and the trigger has 7.4. The clamp would still stop
      at 44 today and be a number that is not true, which is what the browser
      half fails a container for. */
+  /* A back link draws 32px and owns 6px above and below it: the layer stops 6px into
+     the room the shell leaves above the link and the room the page leaves below it.
+     Across, it keeps the width it draws. #834 */
+  .ui-back { --tap-clear-y: var(--space-3, 12px); }
+
   .ui-app__bar,
   .topbar__in { --tap-clear-x: var(--space-3, 12px); --tap-clear-y: var(--space-3, 12px); }
 }

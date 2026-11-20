@@ -401,6 +401,16 @@
    why: docs/components.md#the-page-shell */
 .ui-app__bar .toggle, .topbar__in .toggle { flex: none; }
 .ui-app__user--bar .ui-app__av { margin-inline-start: 0; }
+/* In the band the trigger holds the 30px mark and no words, so it is a wordless button: a
+   40px circle. The ring stands outside it, 5px clear of the mark. #834
+   why: docs/foundations.md#control-corners */
+.ui-app__bar .ui-app__user-trigger {
+  width: var(--space-10);
+  height: var(--space-10);
+  padding: 0;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+}
 .ui-app__main h1 {
   color: var(--strong);
   /* rank: page-title */

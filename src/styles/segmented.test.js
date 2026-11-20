@@ -89,7 +89,7 @@ const pxOf = (value) => {
 // is the kind of value the rule names. The tab's height comes from the tap floor
 // token instead of a padding sum, which is also what makes it independent of the
 // font — the off-scale padding it replaced drew 41 without the webfont.
-test('the underline tab pads off the scale and draws the tap floor', () => {
+test('the underline tab pads off the scale and draws the tap floor on both axes', () => {
   const tab = ruleBody(baseCss, '.ui-seg--underline button');
   const padding = decl(tab, 'padding');
   assert.match(
@@ -97,6 +97,8 @@ test('the underline tab pads off the scale and draws the tap floor', () => {
     `the tab pads \`${padding}\`; every side has to be a step of the scale`,
   );
   assert.match(decl(tab, 'min-height'), /^var\(--tap-min(,\s*44px)?\)$/, 'the drawn height is the floor');
+  // #834: a two-letter tab drew 42px wide.
+  assert.match(decl(tab, 'min-width') ?? '', /^var\(--tap-min(,\s*44px)?\)$/, 'the drawn width is the floor');
 });
 
 test('the underline small tab keeps its floor when the compact pill rule is later', () => {

@@ -51,6 +51,12 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
 .ui-dropdown__trigger:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+/* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
+   under the pointer. The hover selector ties live hover at (0,4,0) and comes later, and the
+   off rules below tie it and come later still, so an off trigger keeps the off edge. #835
+   why: docs/components.md#forms */
+.ui-dropdown__trigger[aria-invalid="true"],
+.ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { border-color: var(--pink); }
 /* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
@@ -488,7 +494,7 @@
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md); /* The field corner, as .ui-input. #836 */
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
@@ -553,7 +559,7 @@
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
 /* In a form the trigger takes the text input's block padding and type, so the two
-   stand at one height. Both are pills, so it keeps its own corner. #812, #823
+   stand at one height. It keeps the pill, and the input has the field corner. #812, #836
    why: docs/components.md#forms */
 @property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
