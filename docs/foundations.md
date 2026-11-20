@@ -1,9 +1,10 @@
 # Foundations
 
-The kit ships these values, and every component meets these minimums.
-[components.md](components.md) is the other half. It explains each component and its promise.
-The design rules for a screen are in [the guidelines](../guidelines/overview.md). The issue that
-settled a number explains why it has that value.
+Use this page when you write CSS of your own beside the kit, or when you need to know what a
+component keeps on every screen. The kit ships these values, and every component meets these
+minimums. [components.md](components.md) tells you which component to use and how. The design
+rules for a screen are in [the guidelines](../guidelines/overview.md). The issue that settled a
+number explains why it has that value.
 
 Everything here is a CSS custom property that you can read and re-point. Take the tokens from
 `@apliteni/apliteni-ui/tokens` and `/accents`, or take the full stylesheet from `/css`.
@@ -18,9 +19,8 @@ Everything here is a CSS custom property that you can read and re-point. Take th
 Use the first value for a box that bounds the page. Use the second for a box that bounds a line
 of text. The kit does not write a page-scale width as a number.
 
-`appShell({ width })` sets the content column. `centered` limits and centres it, and is the
-default. `wide` removes that limit and fills the track beside the rail. `maxWidth` replaces the
-limit under either name. If the kit cannot use a value, it drops that value.
+The `width` of `AppShell` sets the content column. `centered` limits and centres it, and is the
+default. `wide` removes that limit and fills the track beside the rail.
 
 ## Boxes below the page
 
@@ -132,7 +132,7 @@ sentence case and renders as written. A word that is capitalised in itself stays
 
 | rank         | size          | weight              | line-height        | what takes it |
 | ------------ | ------------- | ------------------- | ------------------ | ------------- |
-| `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `appShell()` |
+| `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `AppShell` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
 | `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label |
@@ -143,8 +143,8 @@ On the kit's scale, these are 30, 18, 14.5, 13, 13 and 12px. When two ranks shar
 their weight separates them. `label` and `caption` are both 13px. Words use body ink, including
 labels and captions. See [Text ink](#text-ink).
 
-**A card title is a heading, one level under the page's.** `card()` and `<Card>` emit an `h2`.
-`level` moves it to `h3`–`h6`. An eyebrow above a card title is a label, not a heading.
+**A card title is a heading, one level under the page's.** `<Card>` draws an `h2`. `level`
+moves it to `h3`–`h6`. An eyebrow above a card title is a label, not a heading.
 
 ## Motion
 
@@ -168,15 +168,12 @@ Every easing is also a token. `--ease` is the default. The other options are `--
 - A `transition` always reads a duration token. An `animation` may keep its own number in two
   cases, named at the declaration: **ambient** motion with no interaction origin, and
   **choreographed** sequences timed against each other. There is no third kind.
-- **A published motion helper accepts a missing element.** `transitionMs(el)` returns the
-  stylesheet's transition time for `el`: the longest duration plus its own delay, in
-  milliseconds. It returns `0` for no element, for anything that is not an element, and `0`
-  again where there is no window to ask for a computed style. `playEntrance()` and `replay()`
-  do nothing for a missing element. None of the three ask whether the element is still in the
-  document, so a node you detached gets no promise here: what `transitionMs()` answers for one
-  is whatever the engine's style API says about it. A caller sizing a backstop timer for a fade
-  can read the stylesheet instead of copying a duration token, and an unmounted ref gets a timer
-  that fires immediately instead of an exception.
+- **Use `transitionMs(el)` to time a fallback for a fade.** It returns the transition time
+  that the stylesheet gives `el`, in milliseconds: the longest duration plus its delay. Read it
+  instead of copying a duration token. It returns `0` for a missing element, for anything that
+  is not an element and where there is no window, so a timer for an unmounted ref fires at once.
+  `playEntrance()` and `replay()` do nothing for a missing element. None of the three checks
+  that the element is still in the document.
 
 ### Reduced motion travels with the stylesheet
 
@@ -223,10 +220,9 @@ The neutral fill separates from a card by about 1.22:1 in dark and 1.20:1 in lig
 
 **A status chip's ink and fill form one pair.** Change them together and check the result
 on the page, a card and a floating panel in both themes. Keep text at least 4.5:1.
-Light success has a stronger aim of **7:1** on its fill. It currently measures 7.17:1.
-This stronger aim is a written consumer rule only. The automated badge checks enforce 4.5:1,
-so they would accept the previous success pair at 5.29:1. The other light status pairs
-meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these three grounds.
+Light success has a stronger aim of **7:1** on its fill. It measures 7.17:1. The other light
+status pairs meet 4.5:1 but do not all meet 7:1. Dark danger measures at least 6.30:1 on these
+three grounds.
 
 **A status word has its own ink in light.** A word with no fill stands on a selected row's accent
 wash, so `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink` are deeper than the
@@ -255,11 +251,11 @@ These fill ratios describe separation, not text contrast.
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
   therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1. This is
   a white box on a grey page. **Put a form on a card.** A filter bar above a table is the one
-  exception. See [Forms](components.md#forms).
+  exception. See [Forms](components.md#fields).
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
-- **A disabled select carries the kit's own paint and no fade.** The kit's disabled field
-  rule resets the `opacity: 0.7` that Chromium's user-agent stylesheet applies to one.
+- **A disabled select carries the kit's own paint and no fade**, also in Chromium, which fades
+  a disabled select by default.
 - **A dropdown trigger uses the live control edge while it is live.** It uses
   `--control-edge`, as `.ui-btn` does. When it is off, it uses `--disabled-border`,
   `--disabled-ink`, and `cursor: not-allowed`. Hover does not take the accent from an
@@ -287,8 +283,8 @@ where columns scroll under its frame or its pinned column, in both themes. A ste
 | modal | `--level-line`, one line | `--elev-drop` | none, the deep scrim separates it | `--elev-drop` |
 
 Each level reads its line from one token in both themes: `--card-edge`, `--rail-edge`,
-`--float-edge`, `--float-edge-inner` and `--modal-edge` (`src/tokens/tokens.css`). The React
-modal draws `--modal-edge` as an inset line (`react/src/Modal.css`).
+`--float-edge`, `--float-edge-inner` and `--modal-edge`. Re-point the token to change the line
+of a level. The modal draws `--modal-edge` as an inset line.
 
 The ladder, from bottom to top:
 
@@ -304,8 +300,7 @@ The ladder, from bottom to top:
 themes, fields, code blocks, navigation labels and segmented controls use those reading
 surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A status chip
 is the named exception. It uses a soft fill, and neutral chip tones use
-`--chip-neutral-fill`. This avoids the old card-surface badge, which sat darker than a
-floating panel in dark and vanished on a white card in light.
+`--chip-neutral-fill`, which stays visible on a card and on a floating panel in both themes.
 
 **A selected item is the one exception.** Selection is marked by a background highlight. An
 enabled chosen segmented pill takes the primary button's pair, `--accent-strong` with
@@ -415,7 +410,7 @@ for a focusable that is neither a link nor a kit control — a `div` or `span` y
 
 **A focused control draws the band and nothing beside it.** A boxed text field keeps its 1px border width during visible focus.
 The same rule applies to a text area, select and search field. Their border becomes transparent during visible focus.
-This applies to vanilla and React fields, including the Dropdown search field. The ring keeps its 2px width and accent ink.
+This applies to every field, including the Dropdown search field. The ring keeps its 2px width and accent ink.
 It also keeps a 1px clear gap. Other edges keep their resting ink.
 If a hover rule would outrank focus, it stands aside with `:not(:focus-visible)`.
 A drop zone still recolours its dashed edge while a file is over it. That edge marks the drop target, not focus.
@@ -443,10 +438,10 @@ you set it on a painted container of your own, or recomposed `--ring` there, del
 iOS Safari zooms the page into a focused field when its text is smaller than 16px. It does not
 zoom back out.
 
-- **One net, over elements rather than classes.** A single `@media (pointer: coarse)` rule
-  sets `input`, `select` and `textarea` to 16px. Both published stylesheets import it. Controls
-  with nothing to type into are excluded because they do not zoom. The rule uses `!important`
-  because it must outrank a component rule that it has not seen.
+- **One net, over elements rather than classes.** On a touch screen, every `input`, `select`
+  and `textarea` is 16px, your own fields too. Both published stylesheets hold the net. Controls
+  with nothing to type into keep their size, because they do not zoom. The net uses
+  `!important`.
 - **The size is real, never a scaled 16px.** The zoom uses the computed font size. A 16px field
   that is made smaller with a `transform` still zooms.
 - **`font-size` and not the viewport.** `user-scalable=no` also stops the zoom. It removes
@@ -489,16 +484,11 @@ minimums page names all of them. Rows that share an edge have no space outside a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
 
-The whole system is behind `@media (max-width: 560px) and (pointer: coarse)`. A transparent
-layer is also a hover surface, and a coarse pointer has no hover. The sheet is imported
-**last**, and its openings use `!important` because each one overrides a gap already set by a
-component. `--tap-min` is declared in that sheet rather than the token file because the React
-entry imports these nets without `tokens.css`. It is still a token, and you can move it.
+The whole system applies only below 560px with a coarse pointer, because a coarse pointer has
+no hover. `--tap-min` is a token, and you can move it.
 
-**A row that already has the room opens nothing and still says so.** The shell's band
-remains a 52px row. Its phone palette trigger measures 37.05px tall, and its theme switch
-remains 34px square. The existing space lets their targets reach 44px without changing
-those drawn sizes.
+**A row that already has the room opens nothing.** The shell's band stays a 52px row, and its
+controls reach 44px targets in the room that the band already has.
 
 On a phone, the product topbar uses two rows with a 44px minimum height per row.
 Brand, theme and account occupy the first row. The view and version switches occupy the
@@ -534,7 +524,7 @@ a colour keep the shorthand.
 glyphs may appear without a word and what each glyph means.
 
 **A status glyph is circled.** A circled glyph reports a state. A bare glyph names an action.
-`toast()` and `callout()` use the circled status glyphs for success, danger and warning:
+`Toast` and `Callout` use the circled status glyphs for success, danger and warning:
 `circleCheck`, `circleX` and `circleAlert`. Info and neutral callouts use `info`. An explicit
 `icon` still wins. A neutral toast still uses `bolt`, because it reports an event without a
 verdict.

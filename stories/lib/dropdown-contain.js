@@ -2,7 +2,7 @@
  * dropdown, put in front of a real browser at four widths and both themes, and asked where
  * its panel's two inline edges land — shut, and again with each trigger open.
  * Nothing is asserted here; the gate next door does the asserting.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  */
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -236,7 +236,7 @@ export const where = (p) => `${p.half} ${p.width}/${p.theme} ${p.state} “${p.s
  * transition. Fixtures rather than discovered subjects — the sweep owns discovery,
  * and a flex row cannot be asked to reorder itself — but the React half moves a
  * SHIPPED story, so a rename fails this gate rather than shrinking it.
- * why: docs/components.md#the-dropdown-panel */
+ * why: docs/components.md#dropdown */
 
 /** A fabricated filename, long enough that no placement can hold the panel its row
  *  asks for: 548px in React, on a 390px screen. */
@@ -245,7 +245,7 @@ export const LONG_LABEL = 'Invoice_2026_September_Consolidated_International_Ope
 /* The wrap keeps a long token inside an in-place panel's own box, whose room is its
  * trigger's block. Refused, it widens the page to 497px. The width bound answers
  * for a portalled panel, which the fixture story does not render, so no arm here
- * refuses it. why: docs/components.md#the-dropdown-panel */
+ * refuses it. why: docs/components.md#dropdown */
 export const WRAP_OFF = '[data-dropdown-panel] { overflow-wrap: normal !important; }';
 
 /** The mutation observer taken away: then nothing reports a move that resizes

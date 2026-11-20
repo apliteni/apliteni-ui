@@ -5,7 +5,7 @@
  * The row overrides the primitive edge rules, so every state must be measured.
  *
  * Subjects and their state vocabularies are discovered, not listed; each check below states what
- * it cannot see. why: docs/components.md#a-filter-row-holds-its-panels
+ * it cannot see. why: docs/components.md#filter-bar
  */
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';

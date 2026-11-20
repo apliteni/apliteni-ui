@@ -12,7 +12,7 @@
  *
  * One panel answers to the row rather than to its trigger: see unrooted(). #496
  *
- * why: docs/components.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#filter-bar
  */
 
 /* State what this test cannot measure.

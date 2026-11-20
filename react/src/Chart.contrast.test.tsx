@@ -4,7 +4,7 @@
 // Tones are discovered from the stylesheet and their names from the component's
 // own union, so a tone added to one and not the other fails before it can ship a
 // colour nobody measured.
-// why: #740, docs/components.md#react-charts
+// why: #740, docs/components.md#chart
 //
 // Limits: the ratios are the stylesheet's values, not painted pixels, so
 // antialiasing, the ramp between the two ends, host overrides and a consumer's

@@ -22,7 +22,7 @@
  * Tab only, so a ring that Shift+Tab scrolls in at the upper edge is not measured. The
  * mutation removes the body's scroll padding in the long section at 320x640 and needs at
  * least one clipped stop there.
- * why: docs/components.md#the-account-window
+ * why: docs/components.md#account-window
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -12,7 +12,7 @@ export type Column<T> = {
    * "Invoice 1162" with the number linked looks the same to a selector, and filling that
    * one would put the number on a line of its own. The header cell is never marked — it
    * holds a label, or a sort button that keeps its own ring.
-   * why: docs/components.md#dense-financial-tables
+   * why: docs/components.md#data-table
    */
   linked?: boolean;
   /** Renders this column's body cells as row headers (`th scope="row"`), as the kit's compact table does. */
@@ -38,7 +38,7 @@ type SelectionProps =
 // arm, and `total: null` — the honest answer from a caller who cannot count —
 // requires `hasMore` in its place, because whether a page follows this one is
 // then the only thing left that a control can be computed from.
-// why: docs/components.md#react-tables
+// why: docs/components.md#data-table
 type PagerProps =
   | { page?: never; onPageChange?: (page: number) => void; total?: never; hasMore?: never }
   | { page: number; onPageChange: (page: number) => void; total: number; hasMore?: boolean }
@@ -77,14 +77,14 @@ export type DataTableProps<T> = {
 const CELL_CLASS = { title: 'ui-table__title', code: 'ui-table__code', long: 'ui-table__long', strong: 'ui-table__num--strong', act: 'ui-table__act' } as const;
 
 // `true` pins column 0, as it always has. A key pins the column that carries it,
-// so a date can stand before the pinned identity. why: docs/components.md#react-tables
+// so a date can stand before the pinned identity. why: docs/components.md#data-table
 const pinnedColumn = <T,>(pinnedIdentity: boolean | (keyof T & string) | undefined, key: keyof T & string, index: number) =>
   pinnedIdentity === true ? index === 0 : pinnedIdentity === key;
 
 // The absence of a sort, as a value: the order is whatever the rows arrived in.
 const NO_SORT = { key: undefined, dir: -1 } as const;
 
-// why: docs/components.md#react-tables
+// why: docs/components.md#data-table
 // Every path returns a copy. Values must be comparable with JavaScript < and >.
 export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
   if (sort.key === undefined) return [...rows];
@@ -102,7 +102,7 @@ export function DataTable<T extends { name: string }>({
   // A wide table is reached by scrolling it, and by nothing else. The region is a
   // named keyboard stop and draws the kit's inward ring, so a trackpad, a finger
   // and the arrow keys all get to the far columns; the pair of buttons that used to
-  // stand above it is retired. why: docs/components.md#react-tables
+  // stand above it is retired. why: docs/components.md#data-table
   const scrollable = stickyHeader || pinnedIdentity;
   const sized = columns.some((c) => c.width);
   const table = useRef<HTMLTableElement>(null);

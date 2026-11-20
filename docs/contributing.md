@@ -4,7 +4,7 @@ Use Node 20 or newer and install [jq](https://jqlang.github.io/jq/). Then:
 
 ```bash
 npm ci
-npm run storybook              # the kit on 6006; -w react for React's own, on 6007
+npm run storybook              # Storybook on port 6006
 npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 ```
 
@@ -16,8 +16,8 @@ The kit's own promises are in [components.md](components.md) and
 follows.
 
 ```
-src/          the kit: tokens, one stylesheet per component, HTML-string factories
-react/        the React wrapper over the same CSS
+src/          the kit: tokens, one stylesheet per component, the shared helpers and logic
+react/        the React components over the same CSS
 stories/      Storybook: where components are built and reviewed
 guidelines/   the design rules, as Markdown that ships in the package
 site/         the public site: homepage, changelog, hosted Storybook
@@ -26,12 +26,16 @@ scripts/      the gates that are not component tests
 
 ## Adding a component
 
+First check that the kit needs it. [AGENTS.md](../AGENTS.md#changes) gives the three checks. If
+one fails, build the screen from existing components and add a showcase.
+
 Put the token-based CSS in `src/styles/`, and name it in `src/index.css` and in both the
-`styles` map and `cssText` in `src/inline.js`. Put the HTML factory in `src/components/` and
-export it from `src/index.js` — a module the entry never names still ships in the tarball and
-still cannot be imported. Add a playground and the states in `stories/components/`. React
-components go in `react/src/`, each with a test and a story built from the shared classes and
-tokens.
+`styles` map and `cssText` in `src/inline.js`. Put logic that a server or a second component
+must share in `src/logic/`, and export it from `src/index.js`. A module that the entry does not
+name still ships in the tarball, but nobody can import it. Put the React component in
+`react/src/` with a test and a story built from the shared classes and tokens, and export it
+from `react/src/index.ts`. Write its section in [components.md](components.md): when to use it
+and when not, one short example and what the user sees.
 
 ## Storybook
 
@@ -46,9 +50,8 @@ export const Primary: StoryObj = { render: () => <Button variant="primary">Save<
 
 A decorator applies the toolbar's globals to `<html>` and paints the canvas with the theme's
 `--bg`, so every story is viewable in two themes and four accents with no code of its own. Do
-not wire theming yourself. The vanilla `.stories.js` files stay on disk for the Node gates
-until the vanilla kit is removed, but Storybook does not build them. An old component link
-redirects to its React story; `.storybook/redirects.js` holds the table.
+not wire theming yourself. An old component link redirects to its React story;
+`.storybook/redirects.js` holds the table.
 
 The toolbar has a **Theme** toggle that shows the theme you are in and flips it in one
 click, plus **Inspect** and **Accent** dropdowns. The config is in `.storybook/`:
@@ -80,10 +83,11 @@ built from kit parts, and the text is only what the picture cannot carry. `npm r
 is the length check; `refs.test.js` and `reading-surface.test.js` are the other two.
 [AGENTS.md](../AGENTS.md#the-guidelines-collection) has the rest.
 
-To add a page: write its Markdown and a specimen module exporting `TITLE`, `BLURB`, `RULES`
-and an optional `SPEC_CSS`; add a story calling `guidelinePage({ title, rules, css })`; list
-it in `_overview.js`, the Overview navigation and Storybook's `storySort`; then update the
-collection counts and run the suites.
+To add a page: write its Markdown in `guidelines/`, and a specimen module in
+`stories/guidelines/` that exports its `SPEC_CSS`. Add a `.stories.tsx` that loads the Markdown
+with `loadGuideline()` and renders `<GuidelinePage content={content} specimens={specimens}
+css={SPEC_CSS} />`. List the page in `_overview.js`, the Overview navigation and Storybook's
+`storySort`. Then update the collection counts and run the suites.
 
 ## The site
 
@@ -127,7 +131,7 @@ The changelog is hand-written, newest release first, in `site/changelog.mjs`:
   v: '0.3.0', date: '2026-07-22',
   changes: [
     // [type, text, components?]   added | changed | fixed | deprecated | removed | breaking
-    ['breaking', '`accountShell()` renamed `cap` → `maxWidth`.', ['Shell']],
+    ['breaking', 'Use one `Toast` provider for each document.',  ['Toast']],
     ['added',    'Finance data-table treatment.',                ['Table']],
     ['fixed',    'Enlarged the consent scope icons.'],
   ],

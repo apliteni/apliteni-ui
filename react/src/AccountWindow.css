@@ -1,6 +1,6 @@
 /* The account window: Modal's shell and motion, wider, of a fixed height, with an inset
  * rail. The rail is the page ground, a neutral well inside the raised window, and only the
- * current row carries the accent. why: docs/components.md#the-account-window */
+ * current row carries the accent. why: docs/components.md#account-window */
 .rx-modal.rx-account {
   /* --container less a 48px gutter at each side: the 1024px window of the reference. */
   width: min(calc(var(--container) - var(--space-12) * 2), 96vw);

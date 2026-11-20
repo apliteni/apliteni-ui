@@ -8,7 +8,7 @@
 // stories/react-bundle-cascade.test.js allows a re-emitted sheet only while it moves nothing.
 // why: docs/foundations.md#motion
 // why: docs/foundations.md#a-field-is-16px-on-a-touch-screen
-// why: docs/components.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
+// why: docs/components.md#load-both-stylesheets
 import '../../src/styles/reduced-motion.css';
 import '../../src/styles/field-zoom.css';
 import '../../src/styles/tap-zone.css';

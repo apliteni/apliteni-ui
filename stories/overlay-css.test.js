@@ -221,7 +221,7 @@ test('a React modal paints above a drawer', () => {
 //
 // Every menu the kit ships, not just the dropdown's own panel: the fixes key on
 // `.ui-dropdown__panel` and two of the three menus are written in another sheet.
-// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#dropdown
 const MENUS = [
   {
     file: 'src/styles/dropdown.css',

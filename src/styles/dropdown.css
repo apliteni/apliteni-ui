@@ -11,7 +11,7 @@
    the last thing the body holds, so the body ends where the panel ends; this 1px spot
    lets it scroll that far. It stays through the fade and until the reader has scrolled
    out of it, so closing does not move the field, and it paints nothing.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .ui-dropdown[style*="--ui-dropdown-reach"]::after {
   content: "";
   position: absolute;
@@ -53,7 +53,7 @@
 /* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
    under the pointer. The hover selector ties live hover at (0,4,0) and comes later, and the
    off rules below tie it and come later still, so an off trigger keeps the off edge. #835
-   why: docs/components.md#forms */
+   why: docs/components.md#fields */
 .ui-dropdown__trigger[aria-invalid="true"],
 .ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { border-color: var(--pink); }
 /* As a select: under the ring the edge keeps its width and goes transparent, so focus has
@@ -88,7 +88,7 @@
 /* Chevron — border caret that flips when the container is .open. Its ink is an L
    on a rotated square, so centring the BOX leaves the mark off centre; --caret-off
    is that gap, derived rather than typed.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .ui-dropdown__chevron {
   --caret: 8px;
   --caret-ink: 1.6px;
@@ -113,24 +113,24 @@
 .ui-dropdown__panel {
   /* One number for the trigger-to-panel offset, read by both edges here and by
      the portal's JS, so an upward panel cannot drift from a downward one.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   --ui-dropdown-gap: 9px;
   /* The least a panel keeps between itself and the edge of the view it is laid out
      in. The wiring reads it off the panel and moves the panel along the inline axis
      when the edge `align` asked for does not fit; a page wanting a panel flush with
      the screen's edge sets it to 0.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   --ui-dropdown-edge: 8px;
   /* What a panel that opens down inside a Modal or Drawer body keeps between its end
      and the body's end. The drop shadow fades out over 43px in light and 15px in dark,
      measured from pixels; the body clips whatever is left of it. 48px is the 8px
-     step above the light figure. why: docs/components.md#the-dropdown-panel */
+     step above the light figure. why: docs/components.md#dropdown */
   --ui-dropdown-shade: 48px;
   /* The least height a capped panel keeps before it would rather spend the edge
      inset above than shrink further — three rows or so. Below it the panel
      still ends at or before the edge; it never spends room past the edge to
      reach this floor, because that room does not exist. #489
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   --ui-dropdown-min: 120px;
   /* The tallest a panel grows before it scrolls inside itself. It is the figure the
      reference systems settle on, 256 to 300px, and the one `scroll` and the search
@@ -139,11 +139,11 @@
      shows 7 whole rows and half of the eighth in a plain list, 4 and a half with a
      description line, 5 and a half under a search field and 3 and a half with both.
      A consumer asks for another cap with `scroll: <n>`.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   --ui-dropdown-max: 300px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
      bleed back through it, and #306 is a page copying the number by hand.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   --ui-dropdown-pad: 6px;
   /* The panel states its own role rather than inheriting one, because `portal:
      true` moves it onto <body> and an inherited face is then decided by where
@@ -165,7 +165,7 @@
      240. The wiring writes the property off the LAYOUT viewport; the fallback is
      for a page whose JS has not run, and is a classic scrollbar's width too
      generous, because `100vw` counts a scrollbar the panel's own box does not.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   max-width: var(--ui-dropdown-ceiling, calc(100vw - 2 * var(--ui-dropdown-edge)));
   /* And this is what holds an IN-PLACE one, whose room is its trigger's block: a
      shrink-to-fit box is its min-content wide at the least, and one 70-character
@@ -197,7 +197,7 @@
      means nothing has measured yet, which is a server-rendered page before
      hydration — so the fallback promises the same thing at a coarser grain, the
      viewport less the edge inset at each end.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   max-height: min(
     var(--ui-dropdown-cap, var(--ui-dropdown-max)),
     var(--ui-dropdown-fit, 100dvh),
@@ -211,7 +211,7 @@
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a
      box that is drawn is a box that is hit. The open rules take this back.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   pointer-events: none;
   transform: translateY(-6px);
   transition:
@@ -230,7 +230,7 @@
 /* On a phone, the panel keeps the page's 16px margin at the shell fold, or the wider
    safe-area inset, the gap the phone account window keeps. Registered as a length so
    the wiring reads one number, not the max() expression. #808
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 @property --ui-dropdown-edge { syntax: "<length>"; inherits: true; initial-value: 8px; }
 @media (max-width: 720px) {
   .ui-dropdown__panel { --ui-dropdown-edge: max(var(--space-4), env(safe-area-inset-left), env(safe-area-inset-right)); }
@@ -247,19 +247,19 @@
 /* The wiring lifts a panel out of a Modal or Drawer body too short to hold the field's
    label and trigger, the floor and the 8px edge under it. Fixed, it opens over the
    body the way a portalled panel does, and the wiring writes its edges from the
-   trigger's. The value is the side it opens on. why: docs/components.md#the-dropdown-panel */
+   trigger's. The value is the side it opens on. why: docs/components.md#dropdown */
 .ui-dropdown__panel[data-dd-lifted] { position: fixed; }
 .ui-dropdown__panel[data-dd-lifted="up"] { transform: translateY(6px); }
 
 /* A search list that carries the consumer's own cap keeps it, and the panel is that cap
    and the search field over it. The wiring writes the sum as --ui-dropdown-fit; this
-   lifts the standard cap out of its way. why: docs/components.md#the-dropdown-panel */
+   lifts the standard cap out of its way. why: docs/components.md#dropdown */
 .ui-dropdown__panel--search:has(> .ui-dropdown__list[style*="--ui-dropdown-cap"]) { --ui-dropdown-max: 100dvh; }
 
 /* A shut panel is still laid out, and a box that is laid out counts towards the
    scroll of the body or page it sits in. The wiring collapses it once its fade is
    over and gives the box back before the next open measures it. The width stays, so
-   the horizontal fit reads the same number. why: docs/components.md#the-dropdown-panel */
+   the horizontal fit reads the same number. why: docs/components.md#dropdown */
 .ui-dropdown__panel[data-dd-shut] {
   max-height: 0;
   padding-block: 0;
@@ -281,7 +281,7 @@
    them, and a consumer who set `bottom` and left our `top` standing got a
    fourteen-pixel panel. The entry travel is mirrored too, so the panel arrives
    from the trigger whichever way it opens.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .ui-dropdown__panel.is-up {
   top: auto;
   bottom: calc(100% + var(--ui-dropdown-gap));
@@ -292,7 +292,7 @@
 /* Open, the panel is visible AT ONCE: `visibility` is off the list, so it is not
    held at `hidden` for the frame a key opens the panel in — the frame the focus
    call happens in. Closing still fades on every property it always did.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .ui-dropdown.open .ui-dropdown__panel,
 .ui-dropdown__panel--portal.is-open { transition-property: opacity, transform; }
 
@@ -300,7 +300,7 @@
    property of its own still transitions the inherited `visibility`, so it is hidden in
    the frame openDropdown() focuses into it — #519. Keyed on the data hook, because the
    topbar's two menus open on the same wiring and keep their own CSS.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 @media (prefers-reduced-motion: reduce) {
   .open > [data-dropdown-panel] *,
   [data-dropdown-panel].is-open * { transition: none !important; }
@@ -311,7 +311,7 @@
    selector above stops matching the moment it leaves the trigger's subtree, so
    its open state is a class of its own; the wiring writes the viewport
    coordinates inline, and these `auto`s are what it writes over.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .ui-dropdown__panel--portal {
   position: fixed;
   top: auto; right: auto; bottom: auto; left: auto;
@@ -322,7 +322,7 @@
    <a href> or a <button>: `is-selected` and __tick below mean a row gets
    chosen, and choosing is a button's job. So the tag's own styling is reset
    here, the way .ui-nav__item resets it, and the three render identically.
-   why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   why: docs/components.md#dropdown */
 .ui-dropdown__item {
   display: flex;
   gap: 11px;
@@ -375,7 +375,7 @@
 /* A row that opens a submenu (#736): the current value at the trailing edge in body ink,
    then a chevron. The submenu is a second panel beside this one, or, in a panel marked
    is-sub, the only rows showing.
-   why: docs/components.md#a-submenu-row */
+   why: docs/components.md#dropdown */
 .ui-dropdown__aside { margin-left: auto; flex: none; font-size: var(--text-xs); color: var(--text); }
 .ui-dropdown__more { margin-left: auto; display: inline-flex; flex: none; /* muted-ink: glyph — submenu chevron */ color: var(--muted); }
 .ui-dropdown__aside + .ui-dropdown__more { margin-left: 0; }
@@ -422,7 +422,7 @@
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
 /* Body ink at rest, --pink on the way to being pressed. Both states, not hover alone:
    the ring says where the reader is, not that this row ends something.
-   why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button */
+   why: docs/components.md#dropdown */
 .ui-dropdown__item.is-danger .ui-dropdown__label { color: var(--text); }
 .ui-dropdown__item.is-danger:hover .ui-dropdown__label,
 .ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label { color: var(--pink); }
@@ -447,7 +447,7 @@
 
 /* Optional pinned head/foot blocks — symmetrical: one inner padding, and each
    bleeding to the edge it sits on, lining the edge it faces.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .ui-dropdown__panel > .ui-dropdown__head,
 .ui-dropdown__panel > .ui-dropdown__foot {
   padding: 11px 13px;
@@ -467,7 +467,7 @@
    reader types. The rows move into a list of their own, so the field stays put
    while the list scrolls. Every rule below keys on a class only the search
    variant emits, so the plain dropdown renders as it did.
-   why: docs/components.md#a-dropdown-with-a-search-field */
+   why: docs/components.md#dropdown */
 /* A column, so the panel's own avail-based max-height (above) lands on the rows
    and not on the field: the field and the empty-state block keep their content
    height, and the list — the child that can overflow — gives up the room they
@@ -563,7 +563,7 @@
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
 /* In a form the trigger takes the text input's block padding and type, so the two
    stand at one height. It keeps the pill, and the input has the field corner. #812, #836
-   why: docs/components.md#forms */
+   why: docs/components.md#fields */
 @property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
   padding: var(--space-3) var(--space-4);
@@ -584,7 +584,7 @@
 }
 /* The chosen value takes the text input's regular weight and normal spacing. No colour:
    the value keeps --strong, a disabled value its off ink and a placeholder its muted ink.
-   rev_67189e20ee1f/d5 why: docs/components.md#forms */
+   rev_67189e20ee1f/d5 why: docs/components.md#fields */
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__value { font-weight: var(--weight-normal); letter-spacing: normal; }
 /* The mark stands as far from the left edge as from the top and bottom edges. */
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-avatar {

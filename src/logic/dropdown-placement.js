@@ -2,7 +2,7 @@
 // by the vanilla wiring and the React <Dropdown> (#429 moved it out of
 // src/components/dropdown.js, so it outlives the vanilla wiring). The functions read
 // and write the panel's DOM; they hold no state of their own.
-// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#dropdown
 import { dropdownAvail, dropdownStop } from './dropdown.js';
 import { transitionMs, prefersReducedMotion } from '../motion.js';
 
@@ -116,7 +116,7 @@ export function filterPanelRow(dd) {
  * A panel is anchored at one edge of its dropdown — its inline end when it
  * carries `is-end` — so room is measured from that edge and the slide goes the
  * other way. Measuring an end-anchored panel forwards put one off the page.
- * why: docs/components.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#filter-bar
  *
  * A menu that is not a chip's takes this arithmetic by asking, on its own panel,
  * for a width: `--ui-filter-panel-ask`. why: src/styles/filter-bar.css
@@ -152,7 +152,7 @@ export function filterPanelFit(dd, floor) {
  * ends. Measured from the trigger, not the panel, the way dropdownViewportFit()
  * is measured from the panel and not the trigger: each is the box the number it
  * answers actually depends on. `null` when there is nothing to measure.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  *
  * @param {Element} dd the `[data-dropdown]` container the trigger lives in
  * @param {Element} panel a `[data-dropdown-panel]`, for its gap/edge/min and its
@@ -183,7 +183,7 @@ export function dropdownHeightFit(dd, panel) {
 
 /* A panel the wiring lifted out of a body too short to hold it: `position: fixed`, so
  * it opens over the body the way a portalled panel does. The value is the side it
- * opens on. why: docs/components.md#the-dropdown-panel */
+ * opens on. why: docs/components.md#dropdown */
 export const ddLifted = (panel) => typeof panel?.hasAttribute === 'function' && panel.hasAttribute('data-dd-lifted');
 const ddUp = (panel) => (ddLifted(panel)
   ? panel.getAttribute('data-dd-lifted') === 'up'
@@ -290,7 +290,7 @@ function ddBodyFit(dd, panel) {
  * below its trigger or, where the viewport has more room above, over it, the way a
  * portalled panel opens. It follows its trigger while the body scrolls. Call it with
  * the panel open and laid out, before sizing it. Returns whether the panel is lifted.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  */
 export function dropdownLift(dd, panel) {
   if (!dd || !panel?.style || dd.__ddPanel) return false;
@@ -389,7 +389,7 @@ function ddPlaceLifted(dd, panel) {
  * wrapper inside the body that does not scroll is passed over: the ancestor whose end
  * is the end of what the reader sees is the one scrolled. Instant under
  * `prefers-reduced-motion`. Returns the distance scrolled.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  */
 export function dropdownReveal(dd, panel) {
   const by = ddRevealOnce(dd, panel);
@@ -422,7 +422,7 @@ function ddReserveEnd(dd, panel, end) {
  * collapsing under a reader who is looking at that room would slide the field down by
  * the whole of it: the box stays until the reader has scrolled out of the room, and the
  * field never moves. The panel is given its box back before anything measures it.
- * why: docs/components.md#the-dropdown-panel */
+ * why: docs/components.md#dropdown */
 function ddScrollerOf(dd, panel) {
   return ddScrollBox(dd, panel)?.el ?? dd.ownerDocument.scrollingElement;
 }
@@ -446,7 +446,7 @@ function ddCollapse(dd, panel) {
  * its fade is over. Returns a function that cancels a collapse still waiting.
  * Does nothing for a portalled panel, which is `position: fixed` and adds no scroll,
  * and for a panel in a filter row, which its row already bounds.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  *
  * @param {Element} dd the `[data-dropdown]` container
  * @param {Element} panel its `[data-dropdown-panel]`
@@ -563,7 +563,7 @@ function ddRevealLifted(dd, panel, trigger) {
  * field or not, stops at its own half row. A cap a consumer asked for (`scroll: <n>`)
  * is kept to its number where it is the smaller, and a panel that fits has nothing to
  * cut. Call it with the panel laid out and its room written.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  */
 export function dropdownSnap(dd, panel) {
   if (!panel?.style) return;
@@ -648,7 +648,7 @@ export function ddWriteCeiling(panel) {
 
 /** A panel a filter row bounds to the row itself. It is nothing the viewport fit
  *  has to measure, and nothing the wiring has to watch for it.
- *  why: docs/components.md#a-filter-row-holds-its-panels */
+ *  why: docs/components.md#filter-bar */
 export const ddInFilterRow = (panel) => typeof panel?.closest === 'function' && !!panel.closest('.ui-filter-bar');
 
 /**
@@ -669,7 +669,7 @@ export const ddInFilterRow = (panel) => typeof panel?.closest === 'function' && 
  *
  * A panel inside a `.ui-filter-bar` is not this function's subject: a filter row
  * bounds its panels to the row itself, which already holds them inside the view.
- * why: docs/components.md#a-filter-row-holds-its-panels
+ * why: docs/components.md#filter-bar
  *
  * @param {Element} panel a `[data-dropdown-panel]`, as the sheet has placed it
  * @param {{left: number, width: number}} [at] the box the caller is about to

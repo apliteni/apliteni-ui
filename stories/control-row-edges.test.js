@@ -21,7 +21,7 @@
  * split row at 390 is a fixture too: it reads a filter group and a segmented track.
  * The source half, which boxes a toolbar stretches, is filter-bar.test.js.
  *
- * why: docs/components.md#a-toolbar-at-one-column
+ * why: docs/components.md#toolbar
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

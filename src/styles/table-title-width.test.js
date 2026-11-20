@@ -1,6 +1,6 @@
 /* Rule: a title cell keeps a floor of 20 characters, or a pinned column's ceiling when that
  * is smaller, and a column's set width holds while its rows reload, a title column too.
- * why: #832, docs/components.md#dense-financial-tables
+ * why: #832, docs/components.md#data-table
  *
  * Limits: the source half reads the sheet, so it proves what is declared and not what is
  * drawn. The browser half draws tables in Chromium and measures them; it runs with

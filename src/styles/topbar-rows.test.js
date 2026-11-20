@@ -8,7 +8,7 @@
 // Playwright is no dependency here: TOPBAR_ROWS=1 with UI_PLAYWRIGHT (and optionally
 // UI_CHROME). The vanilla shell half retired with the vanilla shell: the React
 // AppShell draws its own band, .ui-app__bar, which this rule does not cover.
-// why: docs/components.md#react-top-bar
+// why: docs/components.md#top-bar
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { markup } from '../../stories/lib/react-markup.js';

@@ -24,7 +24,7 @@ const Change = ({ n }: { n: number }) => <DeltaValue value={signed(n)} tone={n >
 
 // The two conditions this screener filters on. A chip carries one in force; the rest
 // are what the way to add a filter offers, a section each. Each id is the column it
-// reads. why: docs/components.md#a-filter-row-holds-its-panels
+// reads. why: docs/components.md#filter-bar
 const FILTERS = [
   { id: 'sector', label: 'Sector', items: [...sectors, 'Utilities'].map(label => ({ label, value: label })) },
   { id: 'rating', label: 'Rating', items: ratings.map(label => ({ label, value: label })) },

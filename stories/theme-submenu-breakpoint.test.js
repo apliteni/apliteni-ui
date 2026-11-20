@@ -15,7 +15,7 @@
  * Its limits: one engine, one story (React/AppShell > Theme submenu), one crossing,
  * 1280 to 390, in light. The edge check probes one point on each right edge. The
  * drawer's submenu, which does not leave with the view, is not measured here.
- * why: docs/components.md#the-rest-of-the-react-surface
+ * why: docs/components.md#page-shell
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

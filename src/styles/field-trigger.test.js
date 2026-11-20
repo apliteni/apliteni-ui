@@ -1,7 +1,7 @@
 /* Rule: in a form field a dropdown trigger has the text input's height and keeps the pill.
  * The text input has the field corner since #836, so the two corners differ. The chosen
  * value has the input's regular weight and normal letter spacing, and no colour of its own.
- * why: docs/components.md#forms, #812, #836
+ * why: docs/components.md#fields, #812, #836
  *
  * Limits: the source half reads declarations and resolves tokens from tokens.css. It
  * does not lay anything out, and it reads no cascade, so a later rule that overrides the

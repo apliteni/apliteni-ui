@@ -6,7 +6,7 @@
 //   in a browser and reported on the PR.
 // - It reads the rule's selectors and its width, not the cascade around them.
 //
-// why: docs/components.md#the-page-shell
+// why: docs/components.md#page-shell
 // Weaken the rule and confirm that its test fails.
 
 import test from 'node:test';

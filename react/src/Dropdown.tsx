@@ -36,9 +36,9 @@ const inPanel = (node: Node | null) => {
 // there rather than a drift. The one rule that is not re-expressed at all is the
 // search match: dropdownMatch() is imported, so a list a server rendered and the
 // same list after a keystroke hide the same rows.
-// why: docs/components.md#the-dropdown-panel
-// why: docs/components.md#a-dropdown-row-is-a-div-a-link-or-a-button
-// why: docs/components.md#a-dropdown-with-a-search-field
+// why: docs/components.md#dropdown
+// why: docs/components.md#dropdown
+// why: docs/components.md#dropdown
 
 export type DropdownBadge = string | { text: string; tone?: string };
 
@@ -239,7 +239,7 @@ export function Dropdown({
   const field = useRef<HTMLInputElement>(null);
   // Where the keyboard asked focus to land once the panel is open: an index, or the
   // selected row. Read in a layout effect, because the rows have to be styled open
-  // before one of them can take focus. why: docs/components.md#the-dropdown-panel
+  // before one of them can take focus. why: docs/components.md#dropdown
   const landOn = useRef<number | 'selected' | null>(null);
   const revealed = useRef(false);
   // The pointer's last position. A move event carrying the one it already had is the
@@ -305,7 +305,7 @@ export function Dropdown({
      * menu out of its row. So the boxes laid out in the row are observed too, and
      * the mutation that moved the chip is watched. wireDropdown() answers the same
      * way and states the limit the two leave.
-     * why: docs/components.md#a-filter-row-holds-its-panels */
+     * why: docs/components.md#filter-bar */
     const view = root.current?.ownerDocument?.defaultView;
     // Which menus are fitted, and so which row to observe, is the kit's answer.
     const row = filterPanelRow(root.current);
@@ -481,7 +481,7 @@ export function Dropdown({
 
   /* An open panel has its box; a shut one gives it back once its fade is over, so it
    * adds no scroll room. Ordered before the sizing below, which measures the box.
-   * why: docs/components.md#the-dropdown-panel */
+   * why: docs/components.md#dropdown */
   useIsoLayoutEffect(() => {
     const el = panel.current;
     if (!el || !root.current) return undefined;
@@ -498,7 +498,7 @@ export function Dropdown({
    * a field-less menu, focusing a row before the cap is applied can scroll the
    * page to bring that row into view — moving the trigger and measuring the cap
    * against its new, wrong position. Sizing first keeps the trigger where the
-   * cap is measured from. why: docs/components.md#the-dropdown-panel
+   * cap is measured from. why: docs/components.md#dropdown
    */
   useIsoLayoutEffect(() => {
     const dd = root.current;
@@ -600,14 +600,14 @@ export function Dropdown({
    * than re-implemented; what this half owns is when it is asked. Shut as well as
    * open, because a shut panel is `visibility: hidden` and still laid out, and a
    * laid-out box counts towards the page's scrollable width.
-   * why: docs/components.md#the-dropdown-panel */
+   * why: docs/components.md#dropdown */
   useIsoLayoutEffect(() => {
     const el = panel.current;
     /* A filter row's panels are its own: that row bounds them, which is what
        dropdownViewportFit() returns `null` for, and the effect above is the one
        that fits them. Declined here rather than inside the fit, so a chip's menu is
        not watched for an answer it never gets — ddInFilterRow() is the same
-       sentence on the other half. why: docs/components.md#a-filter-row-holds-its-panels */
+       sentence on the other half. why: docs/components.md#filter-bar */
     if (!el || el.closest('.ui-filter-bar')) return;
     const fit = () => {
       // A lifted panel is placed by dropdownLift(), from its trigger.

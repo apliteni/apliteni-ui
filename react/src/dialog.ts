@@ -114,7 +114,7 @@ function trapTab(panel: HTMLElement, e: KeyboardEvent) {
 // One listener for the page. Only the top dialog answers the keyboard, so one Escape
 // closes one dialog and Tab never meets a lower dialog's trap. An Escape another overlay
 // already handled — a tooltip, a picker — has `defaultPrevented` set, so the stack lets
-// it pass and the next Escape is the dialog's. why: docs/components.md#the-drawer
+// it pass and the next Escape is the dialog's. why: docs/components.md#drawer
 function onKey(e: KeyboardEvent) {
   const top = stack[stack.length - 1];
   if (!top) return;

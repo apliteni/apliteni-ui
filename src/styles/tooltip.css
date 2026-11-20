@@ -7,7 +7,7 @@
  * host, so showing it, filling it and moving it change the size of nothing.
  * The React readout is a manual popover: open, it sits in the top layer and is
  * fixed to the view, so no ancestor cuts it and no sticky cell covers it.
- * why: docs/components.md#the-hover-readout
+ * why: docs/components.md#tooltip
  * ========================================================================== */
 
 .ui-tip-host { position: relative; }

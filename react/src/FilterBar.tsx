@@ -70,7 +70,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     // goes — the add control while the row still draws one, then the bar itself
     // while it still holds chips, since emptied of both it draws no box and the
     // ring would sit on a 0-height line — and checks that it arrived.
-    // why: docs/components.md#a-filter-row-holds-its-panels
+    // why: docs/components.md#filter-bar
     if (target) target.focus();
     else focusNextStop(bar.current);
   });
@@ -83,7 +83,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
       onFocus={event => { focused.current = { id: filter.id, index, remove: Boolean((event.target as Element).closest('[data-filter-remove]')) }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
-          trigger's name and the chip's own legend. why: docs/components.md#dense-financial-tables */}
+          trigger's name and the chip's own legend. why: docs/components.md#data-table */}
       {/* The chip's own value is marked in the items its menu gets, so the line
           the chip prints and the row the menu washes cannot disagree — the same
           shared call the vanilla factory makes. why: src/logic/filter-bar.js */}
@@ -109,7 +109,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
         }} />
     </div>}
     {/* Shown only once there is something to clear, as a quiet text button. The
-        vanilla factory carries the reasoning. why: docs/components.md#a-filter-row-holds-its-panels */}
+        vanilla factory carries the reasoning. why: docs/components.md#filter-bar */}
     {filters.some(filter => !filterChipUnset(filter)) && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

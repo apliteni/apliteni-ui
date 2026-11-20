@@ -2,7 +2,7 @@
 // a line, an area, a stack and a ring. Chart.tsx owns the keyboard, the readout,
 // the live region and the table; this file owns each look's geometry and the
 // SVG it draws.
-// why: docs/components.md#react-charts
+// why: docs/components.md#chart
 import type { CSSProperties, ReactNode } from 'react';
 import type { ChartTone, Mark, MarkRow } from './Chart';
 

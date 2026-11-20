@@ -1,6 +1,6 @@
 /* Rule: on a phone a pinned identity cell is one running text line with a hard
  * cell edge, never a layout row squeezed to fit.
- * why: docs/components.md#dense-financial-tables, #500, #513 */
+ * why: docs/components.md#data-table, #500, #513 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -667,7 +667,7 @@ test('at 1280 the phone rules are off and the desktop identity is what it was', 
 /**
  * `#kit` is marked `.ui-table__linked`, so its link is the row's handle: below the fold the
  * cell hands its padding over and the link's box is the cell's.
- * why: docs/components.md#dense-financial-tables, #500
+ * why: docs/components.md#data-table, #500
  *
  * Limits: JSDOM draws no boxes, so these are the values the cascade leaves. Which ring each shape takes is read in
  * src/styles/table-focus.test.js, because `:focus-visible` matches nothing here.

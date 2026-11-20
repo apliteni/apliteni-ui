@@ -5,6 +5,7 @@ deploy). These pages explain how each part works.
 
 ```
 @apliteni/apliteni-ui        the kit — tokens + component CSS + shared helpers        (src/)
+      ├── React components   the components over the same CSS                           (react/)
       ├── Storybook          the workbench where components are built and reviewed      (stories/, .storybook/)
       └── the public site    landing page + hosted Storybook + changelog                (site/)
 ```
@@ -14,8 +15,8 @@ Two pages are for someone using the kit:
 - [foundations.md](foundations.md) — the tokens and the floors: widths, breakpoints,
   spacing, type, labels and titles, motion, ink, colour and contrast, elevation, the focus
   ring, the 16px field, the tap floor, icons.
-- [components.md](components.md) — the package: what to import, theming, the component
-  catalog, and what each component guarantees.
+- [components.md](components.md) — the package: what to import, theming, which component to
+  use for a job, how to call it and what the user sees.
 
 Two are for someone working on the kit:
 
@@ -34,7 +35,7 @@ also lists the rules the kit has yet to meet.
 Four places, and the kind of statement picks the home.
 
 **What the kit guarantees** goes in a reader page: a token or a floor in
-[foundations.md](foundations.md), a component's promise in [components.md](components.md), a rule
+[foundations.md](foundations.md), a component's use and promise in [components.md](components.md), a rule
 for a screen in `guidelines/`. State the guarantee in words a consumer can act on. A reader
 needs to know that every stroked glyph clears 1.5 CSS px; they do not need the sub-pixel
 argument that settled on 1.5, and they do not need the name of the gate holding it.

@@ -860,7 +860,7 @@ test('state badge ink and generic metadata match the factory classification', ()
 // numbers the stylesheet reads, writing them again when the viewport moves, and
 // giving a search panel's inline pin back on close. Each of the three was a defect
 // this component shipped while the vanilla wiring did not.
-// why: docs/components.md#a-filter-row-holds-its-panels
+// why: docs/components.md#filter-bar
 //
 // LIMITS: JSDOM lays nothing out, so the row and the dropdown are given rects and
 // the panel the width a browser would have bounded it to. That a rendered menu
@@ -1673,7 +1673,7 @@ it('a panel in a filter row is left to the row that bounds it', () => {
 // edge, and the room is a number the wiring has to measure. React has wiring of
 // its own, so it measures it too — from the same dropdownHeightFit(), so the two
 // cannot disagree about where a panel ends.
-// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#dropdown
 
 /** A phone, with the trigger's own bottom `bottom` px down a `view`px-tall screen. */
 function phone(bottom: number, view = 844) {
