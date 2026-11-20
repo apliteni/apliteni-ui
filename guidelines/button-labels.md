@@ -50,12 +50,12 @@
 
 <!-- rule: one-shape -->
 
-**Rule:** Draw buttons, dropdowns, filter chips and one-line fields as pills, and a wordless button as a circle.
+**Rule:** Draw buttons, dropdowns, filter chips and selects as pills, and a wordless button as a circle.
 
 **Why:** One shape marks what a reader can use.
 
-**Except:** A text area keeps a small corner, because a pill does not fit several lines.
+**Except:** A text field has the field corner, because it is a box for text.
 
-**Do:** Search, status and buttons, all pills.
+**Do:** A search field with the field corner beside pill buttons.
 
-**Don't:** A square button and field beside a round dropdown.
+**Don't:** Square buttons and a pill search field.

@@ -1,6 +1,7 @@
-/* Rule: in a form field a dropdown trigger has the text input's corner and height.
- * Outside a form field it keeps the pill.
- * why: docs/components.md#forms, #812
+/* Rule: in a form field a dropdown trigger has the text input's height and keeps the pill.
+ * The text input has the field corner since #836, so the two corners differ. The chosen
+ * value has the input's regular weight and normal letter spacing, and no colour of its own.
+ * why: docs/components.md#forms, #812, #836
  *
  * Limits: the source half reads declarations and resolves tokens from tokens.css. It
  * does not lay anything out, and it reads no cascade, so a later rule that overrides the
@@ -29,12 +30,16 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const mediaBody = (css, media) => new RegExp(`@media ${media.replace(/[()]/g, '\\$&')} \\{([\\s\\S]*?)\\n\\}`).exec(decomment(css))?.[1];
 
 const TRIGGER = '.ui-field > .ui-dropdown > .ui-dropdown__trigger';
+const VALUE = `${TRIGGER} > .ui-dropdown__value`;
 // The rule this gate holds, deleted. Both halves must reject it.
 const MUTATION = ['the field trigger rule removed', 'src/styles/dropdown.css',
   /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{\n[^}]*\}\n/, ''];
 // The touch size written as an offset of the host's scale, as it was before #812's review.
 const SCALED = ['the touch size scaled with --text-base', 'src/styles/dropdown.css',
   /(\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{ font-size: )16px;/, '$1calc(var(--text-base) + 1.5px);'];
+// The value semibold again, as the top bar's switcher drew it.
+const HEAVY = ['the field value rule removed', 'src/styles/dropdown.css',
+  /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger > \.ui-dropdown__value \{[^}]*\}\n/, ''];
 // A long value let wrap again.
 const WRAP = ['a long value let wrap', 'src/styles/dropdown.css', /(overflow: hidden;)\n  white-space: nowrap;(\n  text-overflow: ellipsis;\n  text-align: start;)/, '$1$2'];
 
@@ -53,7 +58,7 @@ const resolve = (value) => value.replace(/var\((--[\w-]+)\)/g, (_, name) => {
   return resolve(tokens[name]);
 }).replace(/^calc\(([\d.]+)px ([+-]) ([\d.]+)px\)$/, (_, a, op, b) => `${op === '+' ? +a + +b : a - b}px`);
 
-/** The declarations of the first rule whose selector list is exactly `selector`, outside any @media. */
+/** The declarations of every rule whose selector list holds exactly `selector`, outside any @media, later ones last. */
 function declarations(css, selector, media = null) {
   let body = decomment(css);
   if (media) {
@@ -63,12 +68,13 @@ function declarations(css, selector, media = null) {
   } else {
     body = body.replace(/@media[^{]*\{[\s\S]*?\n\}/g, '');
   }
+  let found = null;
   for (const m of body.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (splitSelectorList(m[1]).map((s) => s.trim().replace(/\s+/g, ' ')).includes(selector)) {
-      return Object.fromEntries([...m[2].matchAll(/([\w-]+)\s*:\s*([^;]+)/g)].map((d) => [d[1], resolve(d[2].trim())]));
+      found = { ...found, ...Object.fromEntries([...m[2].matchAll(/([\w-]+)\s*:\s*([^;]+)/g)].map((d) => [d[1], resolve(d[2].trim())])) };
     }
   }
-  return null;
+  return found;
 }
 
 /** What the field trigger does wrong against the input, read from source. */
@@ -80,9 +86,9 @@ function sourceFaults(mutation) {
   const pill = declarations(dropdown, '.ui-dropdown__trigger');
   const out = [];
   if (!field) return [`dropdown.css has no ${TRIGGER} rule`];
-  // Both are pills since #823, so the field trigger may keep the trigger's own corner.
+  // The trigger is a control the reader presses, so it keeps the pill. #836
   const corner = field['border-radius'] ?? pill['border-radius'];
-  if (corner !== input['border-radius']) out.push(`radius ${corner}, the input's is ${input['border-radius']}`);
+  if (corner !== resolve('var(--radius-pill)')) out.push(`radius ${corner}, not the pill`);
   const block = (padding) => padding.split(/\s+/)[0];
   if (block(field.padding) !== block(input.padding)) out.push(`block padding ${block(field.padding)}, the input's is ${block(input.padding)}`);
   if (field['font-size'] !== input['font-size']) out.push(`font size ${field['font-size']}, the input's is ${input['font-size']}`);
@@ -91,14 +97,19 @@ function sourceFaults(mutation) {
   // Written flat, as the net is, so a host's scale cannot move it off the input.
   if (!new RegExp(`\\{\\s*font-size:\\s*${net};`).test(mediaBody(dropdown, '(pointer: coarse)') ?? '')) out.push(`touch font size is not the net's flat ${net}`);
   if (pill['border-radius'] !== resolve('var(--radius-pill)')) out.push(`the trigger outside a field lost the pill: ${pill['border-radius']}`);
+  // The value reads as the input's text. A colour here would outrank the off and placeholder inks.
+  const value = declarations(dropdown, VALUE);
+  if (value?.['font-weight'] !== resolve('var(--weight-normal)')) out.push(`value weight ${value?.['font-weight']}, the input's is regular`);
+  if (value?.['letter-spacing'] !== 'normal') out.push(`value letter spacing ${value?.['letter-spacing']}, the input's is normal`);
+  if (value && 'color' in value) out.push(`the value sets colour ${value.color}`);
   return out;
 }
 
-test('source: the field trigger takes the input corner, block padding and size', () => {
+test('source: the field trigger keeps the pill and takes the input block padding and size', () => {
   assert.deepEqual(sourceFaults(), []);
 });
 
-for (const mutation of [MUTATION, SCALED]) {
+for (const mutation of [MUTATION, SCALED, HEAVY]) {
   test(`source: the gate rejects ${mutation[0]}`, () => {
     assert.ok(sourceFaults(mutation).length > 0);
   });
@@ -134,8 +145,9 @@ async function measure(css) {
         await page.setContent(`<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}\n${host}</style></head>`
           + `<body>${html}</body></html>`, { waitUntil: 'load' });
         const box = await page.evaluate(() => {
+          const text = (el) => ({ weight: getComputedStyle(el).fontWeight, spacing: getComputedStyle(el).letterSpacing });
           const one = (el) => ({ height: el.getBoundingClientRect().height, radius: getComputedStyle(el).borderTopLeftRadius,
-            font: getComputedStyle(el).fontSize });
+            font: getComputedStyle(el).fontSize, ...text(el.querySelector('.ui-dropdown__value') ?? el) });
           return {
             coarse: matchMedia('(pointer: coarse)').matches,
             input: one(document.querySelector('.ui-field .ui-input')),
@@ -162,8 +174,11 @@ function faults(cells) {
     if (c.field.length !== 3) out.push(`${c.cell}: ${c.field.length} of 3 field triggers found`);
     c.field.forEach((t, i) => {
       if (Math.abs(t.height - c.input.height) > 0.5) out.push(`${c.cell}: field trigger ${i + 1} is ${t.height}px, the input ${c.input.height}px`);
-      if (t.radius !== c.input.radius) out.push(`${c.cell}: field trigger ${i + 1} radius ${t.radius}, the input's ${c.input.radius}`);
+      if (t.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: field trigger ${i + 1} radius ${t.radius}, not the pill`);
       if (t.font !== c.input.font) out.push(`${c.cell}: field trigger ${i + 1} text ${t.font}, the input's ${c.input.font}`);
+      if (t.weight !== c.input.weight || t.spacing !== c.input.spacing) {
+        out.push(`${c.cell}: field value ${i + 1} weight ${t.weight} spacing ${t.spacing}, the input's ${c.input.weight} ${c.input.spacing}`);
+      }
     });
     if (c.pill.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: the trigger outside a field has radius ${c.pill.radius}`);
   }
@@ -176,7 +191,7 @@ test('measured in Chromium: a field trigger is as high as the input, both widths
   const cells = await measure(sheet());
   for (const c of cells) t.diagnostic(`${c.cell}: input ${c.input.height}px, triggers ${c.field.map((f) => f.height).join(' and ')}px, pill radius ${c.pill.radius}`);
   assert.deepEqual(faults(cells), []);
-  for (const mutation of [MUTATION, SCALED, WRAP]) {
+  for (const mutation of [MUTATION, SCALED, WRAP, HEAVY]) {
     await t.test(`the gate rejects ${mutation[0]}`, async () => {
       const found = faults(await measure(sheet(mutation)));
       assert.ok(found.length > 0, `the gate passed a sheet with ${mutation[0]}`);

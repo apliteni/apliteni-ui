@@ -228,6 +228,10 @@
   outline-offset: var(--ring-scroll-offset);
 }
 
+/* The room the sheet keeps below the chosen period when it opens scrolled to it.
+   DatePicker.tsx reads it. #835 why: docs/components.md#react-date-and-month-picker */
+.ui-datepicker__body.is-sheet .ui-datepicker__opt { scroll-margin-bottom: var(--space-5); }
+
 /* -- In a phone popover ---------------------------------------------------- */
 /* The grid and the shortcut column beside it outgrew a 390px screen. The popover
    takes the screen less 8px a side and puts the shortcuts in a row, as the sheet

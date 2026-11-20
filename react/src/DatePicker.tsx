@@ -54,6 +54,10 @@ export type DatePickerProps = {
    * With a value, the trigger's own text is already its name.
    */
   ariaLabel?: string;
+  /** Names the elements that describe the trigger, e.g. a field's error and hint. */
+  'aria-describedby'?: string;
+  /** Marks the trigger invalid. `Field` supplies it while its error shows. */
+  'aria-invalid'?: boolean | 'true' | 'false';
   id?: string;
   disabled?: boolean;
   /** The edge the panel hugs. */
@@ -223,6 +227,7 @@ export function DatePicker({
   range, defaultRange, onRangeChange,
   min, max, disabledPeriods, presets,
   placeholder, ariaLabel, id, disabled = false,
+  'aria-describedby': describedBy, 'aria-invalid': invalid,
   align = 'start', locale = 'en-GB', weekStartsOn = 1, today, sheet,
   open: openProp, defaultOpen = false, onOpenChange,
 }: DatePickerProps) {
@@ -308,8 +313,9 @@ export function DatePicker({
   // Every open starts from the current pick, not from wherever the reader left
   // the grid last time. The open edge is the whole dependency on purpose: a
   // caller that moves its value while the panel is up has not asked for the
-  // reader's place in the grid back.
-  useEffect(() => {
+  // reader's place in the grid back. Before the paint, so the sheet below opens
+  // on the pick's page and not on the page the reader left.
+  useIsoLayoutEffect(() => {
     if (open) setCursor(clamp(anchor, lo, hi));
   }, [open]);
 
@@ -405,6 +411,45 @@ export function DatePicker({
     if (!open || !land.current) return;
     land.current = false;
     grid.current?.querySelector<HTMLElement>('[data-dp-cell][tabindex="0"]')?.focus();
+  });
+
+  // A sheet is shorter than a six-week month on a phone, so it opens with the chosen
+  // period in view: its body scrolls the least distance that shows the cell with the
+  // cell's scroll margin below it, before the paint, so nothing moves. With no chosen
+  // period it stays at the top. The chosen cell is also where the sheet puts focus,
+  // because the drawer's first control is above the view and focusing it would scroll
+  // back. The first open can lay out before the web font is in, so the same measure runs
+  // again once the fonts are ready and a frame has laid them out, unless the reader has
+  // touched the sheet first. Scroll anchoring moves the body by itself when the font
+  // lands, so the reader's input is the signal, not the scroll position. #835
+  // why: docs/components.md#react-date-and-month-picker
+  const reveal = useRef(false);
+  const chosen = useRef<HTMLElement | null>(null);
+  useIsoLayoutEffect(() => { reveal.current = open && asSheet; }, [open, asSheet]);
+  useIsoLayoutEffect(() => {
+    if (!reveal.current || cursor !== clamp(anchor, lo, hi)) return;
+    reveal.current = false;
+    chosen.current = grid.current?.querySelector<HTMLElement>('[data-dp-cell][tabindex="0"].is-selected') ?? null;
+    const body = grid.current?.closest<HTMLElement>('.ui-drawer__body');
+    const cell = chosen.current;
+    if (!cell || !body) return;
+    const scrollIn = () => {
+      const below = parseFloat(getComputedStyle(cell).scrollMarginBottom) || 0;
+      const view = body.getBoundingClientRect().top + body.clientTop + body.clientHeight;
+      const over = cell.getBoundingClientRect().bottom + below - view;
+      if (over > 0) body.scrollTop += over;
+    };
+    scrollIn();
+    const { fonts, defaultView: win } = body.ownerDocument;
+    if (!fonts || !win) return;
+    let touched = false;
+    const touch = () => { touched = true; };
+    const inputs = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
+    for (const type of inputs) body.addEventListener(type, touch, { passive: true });
+    void fonts.ready.then(() => win.requestAnimationFrame(() => {
+      for (const type of inputs) body.removeEventListener(type, touch);
+      if (cell.isConnected && !touched) scrollIn();
+    }));
   });
 
   const columns = grain === 'month' ? 3 : 7;
@@ -771,6 +816,8 @@ export function DatePicker({
         aria-expanded={open}
         // Its own text names a bare trigger. A label or an ariaLabel leads the value.
         aria-label={triggerName}
+        aria-describedby={describedBy}
+        aria-invalid={invalid}
         disabled={disabled}
         ref={trigger}
         onClick={(e: ReactMouseEvent) => { e.stopPropagation(); setOpen(!open); }}
@@ -788,7 +835,7 @@ export function DatePicker({
         // without taking the sheet's affordances left a phone reader with no
         // visible way out and a Tab that walked into the live page behind it.
         // why: guidelines/drawer.md
-        <Drawer open={open} side="bottom" size="md" title={sheetTitle} onClose={() => setOpen(false)}>
+        <Drawer open={open} side="bottom" size="md" title={sheetTitle} onClose={() => setOpen(false)} initialFocusRef={chosen}>
           {calendar}
         </Drawer>
       ) : (

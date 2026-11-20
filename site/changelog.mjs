@@ -6,6 +6,19 @@
 
 export const RELEASES = [
   {
+    v: '0.179.0', date: '2026-11-20',
+    changes: [
+      ['changed', 'A one-line text field, a search field and the search field in a `Dropdown` panel have the 12px field corner, not the pill. Buttons, dropdown triggers, filter chips and the view switch keep the pill. Part of #836.', ['Dropdown', 'Field']],
+      ['changed', 'In a form field, the chosen value of a `Dropdown` and of a `DatePicker` has the regular weight of a typed value. Filter bar and toolbar dropdowns do not change. Part of #836.', ['Dropdown', 'DatePicker', 'Field']],
+      ['added', 'A `DatePicker` takes an invalid state and an error id. Its trigger then has `aria-invalid`, `aria-describedby` and the error edge. Inside a `Field` it takes both from the field. Part of #835.', ['DatePicker', 'Field']],
+      ['fixed', 'A `Dropdown` trigger with `aria-invalid="true"` shows the error edge, as a text field does. Under keyboard focus a trigger shows only the focus ring. Part of #835.', ['Dropdown']],
+      ['fixed', 'On a phone, the `DatePicker` drawer opens with the chosen day in view. It showed the first weeks only, so a day late in a six-week month was hidden. Part of #835.', ['DatePicker']],
+      ['added', 'A `Dropdown` takes `title`, a hover title for its trigger. The account button uses it. Part of #834.', ['Dropdown', 'AppShell']],
+      ['fixed', 'The back link is a pill 32px high, and on a phone its tap area is 44px high. The page below a back link moves 8px down. Part of #834.', ['AppShell']],
+      ['fixed', 'The account button in the top bar is a 40px circle, so the focus ring no longer touches the avatar. Each option of an underline view switch is at least 44px wide. Part of #834.', ['AppShell', 'Segmented']],
+    ],
+  },
+  {
     v: '0.178.0', date: '2026-11-19',
     changes: [
       ['added', 'A `DataTable` column takes `width`, such as `\'12ch\'`. The column keeps that width while its rows reload or are empty, so the columns do not move when data arrives. Part of #832.', ['DataTable']],

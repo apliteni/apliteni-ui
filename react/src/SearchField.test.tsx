@@ -155,7 +155,8 @@ it('is 32px with the dense rows\' text to a mouse, and 40px with 16px text on a 
   expect(read('height')).toEqual([`${COARSE} var(--ui-filter-row-h, 40px)`]);
   expect(read('font-size')).toEqual(['all var(--text-base)', `${FINE} var(--text-sm)`]);
   expect(read('line-height')).toEqual([`${FINE} var(--leading-tight)`]);
-  expect(read('border-radius')).toEqual(['all var(--radius-pill)', `${FINE} var(--radius-pill)`]);
+  // The field corner, also on the small field. #836
+  expect(read('border-radius')).toEqual(['all var(--radius-md)', `${FINE} var(--radius-md)`]);
   // The group's 42px glyph inset outranks the small field's side padding.
   expect(read('padding-left')).toContain('all 42px');
   cleanup();

@@ -9,5 +9,6 @@ export const SPEC_CSS = `
   <style>
     .gl-stage--row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
     .gl-clause { display: flex; flex-direction: column; gap: var(--space-3); }
-    .bl-square .ui-btn, .bl-square .ui-input { border-radius: var(--radius-sm); }
+    .bl-square .ui-btn { border-radius: var(--radius-sm); }
+    .bl-square .ui-input { border-radius: var(--radius-pill); }
   </style>`;

@@ -70,17 +70,21 @@ first label on the page title's edge.
 
 ## Control corners
 
-**Every control that a reader presses or types into is a pill.** This covers each button size,
-each dropdown trigger, also in a form, a filter chip and the filter bar's add control, a search
-field, a text field, a select and every other one-line field. The corner is `--radius-pill`. A
-wordless button is square, so the pill makes it a circle. In a toolbar beside a full field or a filter
-bar, a wordless button takes the row's height and stays a circle. A dropdown in a form and the text input
-beside it have the same corner and the same height. The kit's padding keeps text, glyphs, units
-and the focus ring inside the rounded edge. Give a control of your own the same corner.
+**Every control that a reader presses is a pill.** This covers each button size, each dropdown
+trigger, also in a form, a filter chip and the filter bar's add control, a select and the back
+link. The corner is `--radius-pill`. A wordless button is square, so the pill makes it a circle.
+The account button in the band is a 40px circle. In a toolbar beside a full field or a filter
+bar, a wordless button takes the row's height and stays a circle. The kit's padding keeps text,
+glyphs, units and the focus ring inside the rounded edge. Give a control of your own the same
+corner.
+
+**Every field that a reader types into has the field corner, `--radius-md`.** This covers a text
+field, a search field of each size, the search field in a dropdown panel, the page field of a
+pager and a text area. In a form, a dropdown trigger has the height of the text field beside it,
+but it keeps the pill. Give a field of your own the same corner.
 
 These parts keep another corner:
 
-- A text area keeps `--radius-md`, because a pill does not fit several lines.
 - A segmented strip keeps its own rounded track.
 - A menu row, a palette row and a date picker's day cell keep their small corner. They are rows
   and cells in a panel, not controls on the page.
@@ -483,7 +487,7 @@ unless it cannot overflow. Only a row whose marks are each a fixed square, a dra
 or a dense table's action cell opens across. Some families get no layer. The Accessibility
 minimums page names all of them. Rows that share an edge have no space outside a row for a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
-A back link draws 24 on both axes because it cannot know what the shell places above it.
+A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
 
 The whole system is behind `@media (max-width: 560px) and (pointer: coarse)`. A transparent
 layer is also a hover surface, and a coarse pointer has no hover. The sheet is imported

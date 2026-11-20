@@ -30,7 +30,8 @@ const THEMES = ['dark', 'light'];
 // 15 and 10: the panel-origin picture draws one drawer on each side (#790).
 // 16: the KeyValueList Wide Drawer story (#811).
 // 17: the date sheet in the DatePicker Sheet In Field story (#832).
-const EXPECTED = { subjects: 17, donts: 10 };
+// 18: the date sheet in the DatePicker Phone Day Last Week story (#835).
+const EXPECTED = { subjects: 18, donts: 10 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);

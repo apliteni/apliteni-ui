@@ -3,10 +3,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 /**
  * What the back link's sheet decides that nothing else checks: that the colour
- * holds against a host stylesheet's link rule, that the target is 24px tall, and
+ * holds against a host stylesheet's link rule, that the link is a 32px pill, and
  * that a long destination clips rather than wrapping.
  * Read as text, because the package ships CSS as its artifact: the first two are
  * `var()` values, which jsdom resolves to nothing, and the third is an ellipsis,
@@ -58,11 +59,29 @@ test('the resting colour is a token, and not the accent', () => {
   assert.doesNotMatch(color, /accent/);
 });
 
-test('the link is at least a 24px target', () => {
+// #834: 32px tall and a pill, with 8px before the arrow and 12px after the words.
+test('the link is a 32px pill', () => {
   const base = rules.find((r) => r.selector === '.ui-back');
   const m = /min-height\s*:\s*var\(--(space-[\w-]+)\)/.exec(base.body);
   assert.ok(m, '.ui-back declares no min-height from the spacing scale');
-  assert.ok(SPACE[m[1]] >= 24, `--${m[1]} is ${SPACE[m[1]]}px`);
+  assert.ok(SPACE[m[1]] >= 32, `--${m[1]} is ${SPACE[m[1]]}px`);
+  assert.match(base.body, /(?:^|;)\s*border-radius\s*:\s*var\(--radius-pill\)/);
+  assert.match(base.body, /(?:^|;)\s*padding\s*:\s*0 var\(--space-3\) 0 var\(--space-2\)/);
+});
+
+// #834: on a phone with touch the tap layer takes the 32px link to the 44px floor. Read
+// as text, so it proves the declarations, not the hit area: stories/tap-zone.test.js
+// measures that in a browser with TAP_ZONES=1.
+test('on a phone with touch the link carries a tap layer that reaches 44px', () => {
+  const tap = decomment(read('tap-zone.css'));
+  const list = (re) => splitSelectorList(re.exec(tap)?.[1] ?? '').map((s) => s.trim());
+  assert.ok(list(/:where\(([^)]+)\)\s*\{\s*position:\s*relative;/).includes('.ui-back'), 'not a containing block');
+  assert.ok(list(/:where\(([^)]+)\)::after\s*\{/).includes('.ui-back'), 'not on the ::after carrier list');
+  const clear = /\.ui-back\s*\{\s*--tap-clear-y:\s*var\(--(space-[\w-]+)/.exec(tap);
+  assert.ok(clear, 'no --tap-clear-y on .ui-back');
+  const base = rules.find((r) => r.selector === '.ui-back');
+  const height = SPACE[/min-height\s*:\s*var\(--(space-[\w-]+)\)/.exec(base.body)[1]];
+  assert.ok(height + SPACE[clear[1]] >= 44, `${height}px and ${SPACE[clear[1]]}px of clear space do not reach 44px`);
 });
 
 test("the destination's name clips to one line rather than wrapping", () => {
