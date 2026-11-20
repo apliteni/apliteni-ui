@@ -14,8 +14,8 @@ import './DatePicker.css';
 // opens — and adds only the grid inside it, so a picker and a select beside it
 // are the same control at rest. The panel is a dialog rather than a listbox
 // because a calendar is a grid, and a listbox may own only options.
-// why: docs/components.md#the-dropdown-panel
-// why: docs/components.md#react-date-and-month-picker
+// why: docs/components.md#dropdown
+// why: docs/components.md#date-picker
 
 /**
  * `'month'` and `'range'` work in whole months, `'day'` and `'day-range'` in
@@ -399,7 +399,7 @@ export function DatePicker({
   }, [open]);
 
   // An open popover has its box; a shut one gives it back once its fade is over,
-  // marked `data-dd-shut` exactly as a shut Dropdown is. why: docs/components.md#the-dropdown-panel
+  // marked `data-dd-shut` exactly as a shut Dropdown is. why: docs/components.md#dropdown
   useIsoLayoutEffect(() => {
     const el = panel.current;
     if (!el || !root.current) return undefined;
@@ -422,7 +422,7 @@ export function DatePicker({
   // again once the fonts are ready and a frame has laid them out, unless the reader has
   // touched the sheet first. Scroll anchoring moves the body by itself when the font
   // lands, so the reader's input is the signal, not the scroll position. #835
-  // why: docs/components.md#react-date-and-month-picker
+  // why: docs/components.md#date-picker
   const reveal = useRef(false);
   const chosen = useRef<HTMLElement | null>(null);
   useIsoLayoutEffect(() => { reveal.current = open && asSheet; }, [open, asSheet]);
@@ -803,7 +803,7 @@ export function DatePicker({
       onKeyDown={(e) => {
         if (asSheet || !open || e.key !== 'Escape') return;
         // Mark it handled so a dialog around the picker lets this Escape close
-        // only the calendar, wherever focus is inside the picker. why: docs/components.md#the-drawer
+        // only the calendar, wherever focus is inside the picker. why: docs/components.md#drawer
         e.preventDefault();
         close.current(false);
         trigger.current?.focus();
@@ -847,7 +847,7 @@ export function DatePicker({
           // Mounted while closed so the panel can fade out the way every other
           // dropdown in the kit does, and inert while it is, so a grid nobody
           // opened is out of the tab order, out of the pointer's way and out of
-          // the accessibility tree. why: docs/components.md#the-dropdown-panel
+          // the accessibility tree. why: docs/components.md#dropdown
           inert={!open}
           onClick={(e: ReactMouseEvent) => e.stopPropagation()}
         >

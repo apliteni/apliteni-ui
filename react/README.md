@@ -43,7 +43,7 @@ fill its container, and `appearance="underline"` draws the underline strip inste
 of the pill track; omit all three for the standard pill. Options support
 `ariaLabel` and `disabled`; `disabled` on the toolbar disables every choice. What
 each presentation guarantees is in
-docs/components.md#the-rest-of-the-react-surface.
+docs/components.md#segmented.
 Reach for it when a choice filters or switches a view in place; use `Tabs` when the
 choice owns a panel, and links when it changes the page.
 
@@ -606,7 +606,7 @@ Its accessible name is the label and then the chosen value. Outside a `Field`,
 `type="search"` input, and no visible label, so the row keeps the height of the
 unlabelled controls beside it. `ariaLabel` is required and is the control's only
 name. It forwards its ref and the native input props, and `className` joins
-`.ui-input`. There is no clear button — see docs/components.md#react-search-field for why.
+`.ui-input`. There is no clear button — see docs/components.md#search-field for why.
 
 ```tsx
 <div className="ui-toolbar">

@@ -2,7 +2,7 @@
 // beside a figure. The arithmetic is the kit's (src/logic/chart.js), the readout
 // is the kit's tooltip, and the paint is the kit's tokens — this file owns the
 // pixels, the keyboard and the markup, and nothing else.
-// why: docs/components.md#react-charts
+// why: docs/components.md#chart
 import {
   useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
   type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
@@ -24,7 +24,7 @@ import {
 // copy at equal specificity. The chart has no vanilla markup for a story to
 // render, so there is nothing to measure that re-emission against. A consumer
 // imports both sheets, which is what react/README.md asks for, and the kit's copy
-// is the only one. why: docs/components.md#the-react-stylesheet-does-not-re-emit-a-kit-sheet
+// is the only one. why: docs/components.md#load-both-stylesheets
 
 export type ChartTone =
   | 'accent' | 'accent-soft' | 'good' | 'bad' | 'warn' | 'info' | 'neutral';
@@ -596,7 +596,7 @@ export function Chart(props: ChartProps) {
    * a point near the top read 28 x 19.4 where its attributes said 28 x 32. The
    * line keeps the height it is drawn at and is centred in the taller box, so
    * the reader sees the same sparkline and the target is whole.
-   * why: docs/components.md#react-charts
+   * why: docs/components.md#chart
    */
   const boxHeight = Math.max(plotHeight, floor);
   const boxTop = -(boxHeight - plotHeight) / 2;
@@ -753,7 +753,7 @@ export function Chart(props: ChartProps) {
   }, [openId]);
 
   // Escape dismisses the mark it was pressed on; the readout comes back on the
-  // next one, not on that one. why: docs/components.md#the-hover-readout
+  // next one, not on that one. why: docs/components.md#tooltip
   const show = (id: string | null | undefined) => {
     if (!id) { setOpenId(null); return; }
     if (dismissed.current === id) return;
@@ -908,7 +908,7 @@ export function Chart(props: ChartProps) {
         {/* While the plot overflows, this box is a named region and a Tab stop
             after the frame, with the kit's ring, so a reader can scroll it with
             the keyboard. While it fits, it stays out of the tab order.
-            why: docs/components.md#react-charts */}
+            why: docs/components.md#chart */}
         <div
           ref={scroller}
           className={cx('ui-chart__scroll', overflows && 'ui-focusable')}
@@ -1054,7 +1054,7 @@ export function Chart(props: ChartProps) {
                   which is how the dots already separate themselves from the line:
                   it buys the line its 3:1 against whatever it crosses, and the
                   bars it crosses are now its own hue.
-                  why: docs/components.md#react-charts */}
+                  why: docs/components.md#chart */}
               {(['casing', 'stroke'] as const).map((layer) => lines.flatMap(
                 (line) => line.values.slice(1).map((value, i) => (
                   Number.isFinite(value) && Number.isFinite(line.values[i]) ? (
@@ -1170,7 +1170,7 @@ export function Chart(props: ChartProps) {
               them. A browser makes an overflowing box keyboard-focusable on its
               own, so the box is named and takes the kit's inward band rather
               than the browser's outline.
-              why: docs/components.md#react-charts */}
+              why: docs/components.md#chart */}
           <div
             className="ui-table-scroll" role="region" tabIndex={0}
             aria-label={`${title}, as a table. Scroll for more columns.`}

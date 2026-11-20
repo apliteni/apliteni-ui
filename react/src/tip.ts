@@ -2,7 +2,7 @@
 // whole reason it is a module: a chart that copied this would drift from the
 // placement the specification states, and the flip test is the part that drifts
 // first.
-// why: docs/components.md#the-hover-readout
+// why: docs/components.md#tooltip
 
 const TIP_GAP = 8;
 
@@ -18,7 +18,7 @@ const TIP_GAP = 8;
  * Otherwise `host` must be the box the readout is positioned in: the three custom
  * properties below are written in its coordinates. `bound` narrows the
  * measurement to one element, for a part that keeps its readout inside itself.
- * why: docs/components.md#the-hover-readout
+ * why: docs/components.md#tooltip
  */
 export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element, placement: 'top' | 'bottom' = 'top'): void {
   const mrect = mark.getBoundingClientRect();

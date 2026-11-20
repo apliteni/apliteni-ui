@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.179.1', date: '2026-11-20',
+    changes: [
+      ['changed', 'The components page now tells you, for each React component, when to use it and when not, gives one short example and says what the user sees. It no longer documents the removed vanilla factories. Part of #781.'],
+      ['changed', 'The foundations page lost its references to the removed vanilla factories and some implementation detail. No token or floor changed. Part of #781.'],
+    ],
+  },
+  {
     v: '0.179.0', date: '2026-11-20',
     changes: [
       ['changed', 'A one-line text field, a search field and the search field in a `Dropdown` panel have the 12px field corner, not the pill. Buttons, dropdown triggers, filter chips and the view switch keep the pill. Part of #836.', ['Dropdown', 'Field']],

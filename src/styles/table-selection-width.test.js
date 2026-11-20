@@ -1,6 +1,6 @@
 /* Rule: a selectable table gives its selection column the width of its box, not a share of
  * the free width, so the first data column starts straight after the box.
- * why: #636, docs/components.md#dense-financial-tables
+ * why: #636, docs/components.md#data-table
  *
  * Limits: the source half reads the sheet, so it proves what is declared and not what is
  * drawn. The browser half draws a table in Chromium at 1280 and measures the column; it

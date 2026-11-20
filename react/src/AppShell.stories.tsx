@@ -53,7 +53,7 @@ function Example(args: Partial<AppShellProps>) {
     }} />}
     {...args}>
       {/* Each long table has its filter bar directly above it, on the page with no card
-          of its own. why: docs/components.md#forms */}
+          of its own. why: docs/components.md#fields */}
       <div className="ui-toolbar">
         <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <FilterBar filters={[{ ...status, value: state }]} label="Payout filters"

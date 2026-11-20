@@ -39,10 +39,10 @@
 
 /* Shut, a panel is the trigger's width, never the 240px floor a standalone
    dropdown gets: it is laid out while hidden, so a wider one widened the page
-   (#467). why: docs/components.md#a-filter-row-holds-its-panels */
+   (#467). why: docs/components.md#filter-bar */
 .ui-filter-bar .ui-dropdown__panel { min-width: 100%; max-width: 100%; overflow-wrap: anywhere; }
 /* Clear is a quiet text button: no edge in any state, and no fill but the pointer's wash below.
-   why: docs/components.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#filter-bar */
 [data-filter-clear] button { background: transparent; }
 .ui-filter-bar [data-filter-clear] button:disabled,
 .ui-filter-bar [data-filter-clear] button[aria-disabled="true"],
@@ -69,7 +69,7 @@
    filterPanelFit(); `is-closing` holds that geometry through the fade. A chip's menu
    reaches for the kit's menu floor; the add control's catalogue asks for a panel's
    width instead, because a search field over it reads "Searc" at 240. #549, #496
-   why: docs/components.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#filter-bar */
 .ui-filter-bar [data-filter-add] .ui-dropdown__panel { --ui-filter-panel-ask: var(--panel-sm); }
 .ui-filter-bar__chip .ui-dropdown.open .ui-dropdown__panel,
 .ui-filter-bar__chip .ui-dropdown__panel.is-closing,
@@ -96,7 +96,7 @@
    open menu too and left 9.8px of the check in a 240px menu — a chevron, not a
    tick. Open the menu is at the floor with room for the mark, and `is-closing`
    holds the open geometry through the fade, so it is open for this as well. #550
-   why: docs/components.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#filter-bar */
 .ui-filter-bar__chip .ui-dropdown:not(.open) .ui-dropdown__panel:not(.is-closing) .ui-dropdown__tick {
   flex-shrink: 1;
   min-width: 0;
@@ -107,7 +107,7 @@
    tab you are on, and keeps the kit's 16px check. The wash is a 1.2:1 tint, so the
    check is what identifies the state under WCAG 1.4.1; Apple, Material, Carbon,
    Primer and Radix all tick a chosen menu row. #549
-   why: docs/components.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#filter-bar */
 .ui-filter-bar .ui-dropdown__item.is-selected { background: var(--glow-purple); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 /* A chip's menu lists the values the chip prints, so its rows take the body weight and
    not the kit's semibold menu label. #757 */
@@ -126,7 +126,7 @@
    hover deepens it: 9% more accent, the step .ui-table--zebra gives a hovered row.
    The arrow keys need nothing here: ddSetActive() writes no .is-active without a search
    field and filterBar() builds none, so an arrow key moves real focus instead. #578
-   why: docs/components.md#a-filter-row-holds-its-panels */
+   why: docs/components.md#filter-bar */
 .ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 
 /* A chip's height — a remove mark's line box, padding and border — named so every chip,
@@ -140,7 +140,7 @@
    chip alone leaves the text high: the chip is a fieldset. On a touch screen the row is a
    chip's height, 40px, and a small button or segmented control on any of its lines takes
    it too. #822, rev_1bef7d7c3b22/d5
-   why: docs/components.md#a-toolbar-at-one-column */
+   why: docs/components.md#toolbar */
 @media not (pointer: coarse) {
   .ui-toolbar:has(> .ui-input-group > .ui-input--sm),
   .ui-toolbar:has(> .ui-input-group > .ui-input--sm) .ui-filter-bar { --ui-filter-row-h: var(--btn-height-sm); }

@@ -2,7 +2,7 @@
 // which way the panel opens, the gap and padding it reads, the caret, and the
 // portalled panel's own rules. JSDOM has no layout, so nothing here is measured.
 //
-// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#dropdown
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -142,7 +142,7 @@ test('a block bleeding through the panel reads the padding, never a number of it
 // box and centring the box leaves the mark off centre — measured in Chrome at
 // dSF 8: 1.75px low closed, 3.88px high open, against the trigger's middle.
 // Both halves of the fix are read here, because either one alone leaves it wrong.
-// why: docs/components.md#the-dropdown-panel
+// why: docs/components.md#dropdown
 test('the caret is centred in both states, and shifted in page space', () => {
   const closed = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__chevron'));
   const open = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown.open .ui-dropdown__chevron'));

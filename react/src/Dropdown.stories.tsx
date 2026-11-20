@@ -196,7 +196,7 @@ export const Closed: StoryObj<typeof Dropdown> = {
  * the row's end has nowhere to put one at 1280 either; the row only makes that
  * true at every width. Shut, because a shut panel is laid out too — and because
  * the containment is the same question in both states.
- * why: docs/components.md#the-dropdown-panel */
+ * why: docs/components.md#dropdown */
 const Ends = ({ children }: { children: React.ReactNode }) => (
   <div style={{
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 'var(--space-3)',

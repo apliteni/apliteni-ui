@@ -203,7 +203,7 @@
    panel, and rows are held apart by space alone. Groups stand apart by space too.
    The one line inside the body stands under each group heading, the same hairline
    as a table head, so a heading and a table head read as one kind of line.
-   why: docs/components.md#the-drawer */
+   why: docs/components.md#drawer */
 .ui-drawer__section + .ui-drawer__section { margin-top: var(--space-8); }
 /* An h3, and it opts out of the display face for the reason .ui-drawer__title does.
    why: docs/foundations.md#typefaces */
@@ -221,7 +221,7 @@
 }
 /* The record's lead figure: a <dl> of one label over its value, with a status badge
    beside the value. It stands in a group with no heading, before the other groups.
-   why: docs/components.md#the-drawer */
+   why: docs/components.md#drawer */
 .ui-drawer__figure { margin: 0; }
 .ui-drawer__figure > dt { color: var(--text); }
 .ui-drawer__figure > dd {

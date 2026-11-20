@@ -2,7 +2,7 @@
  * and the functions that measure a live stack and publish that geometry.
  * The sheet (Toast.css) picks between the two positions on :hover and
  * :focus-within; nothing here listens for either.
- * why: docs/components.md#toast-stacks */
+ * why: docs/components.md#toast */
 
 export const TOAST_PEEK = 8;          // px of each card showing above the one in front
 export const TOAST_SCALE_STEP = 0.04; // how much smaller each tier is drawn

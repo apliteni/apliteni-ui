@@ -6,7 +6,7 @@
  *
  * `value` is display text: it is the chip's only visible line, so a consumer
  * answers a change with text a reader can read, not a raw code.
- * why: docs/components.md#dense-financial-tables
+ * why: docs/components.md#data-table
  */
 
 const text = (v) => (v == null ? '' : String(v));
@@ -92,7 +92,7 @@ function focusStops(host) {
  *  last chip keeps no box the focus ring can sit on, so with no control of its own
  *  left the focus has to leave rather than land on a line with no height.
  *  `focusNextStop()` acts on this same list.
- *  why: docs/components.md#a-filter-row-holds-its-panels */
+ *  why: docs/components.md#filter-bar */
 export function nextFocusStop(host) {
   return focusStops(host)[0] || null;
 }
@@ -106,7 +106,7 @@ export function nextFocusStop(host) {
  *  the row, which is what the Stock screener draws, else outside the bar.
  *  Being reachable is not taking the focus: each candidate is asked and then
  *  checked. #518
- *  why: docs/components.md#a-filter-row-holds-its-panels */
+ *  why: docs/components.md#filter-bar */
 export function focusNextStop(host) {
   const doc = host && host.ownerDocument;
   if (!doc) return null;
@@ -132,7 +132,7 @@ export function focusNextStop(host) {
  *  consumer wrote them left whatever they had marked standing — a menu checking
  *  `All`, `aria-selected="true"` on it, under a chip printing `Asia`. The
  *  consumer's own array and objects are not written to. #550
- *  why: docs/components.md#a-filter-row-holds-its-panels */
+ *  why: docs/components.md#filter-bar */
 export function filterChipItems(filter = {}) {
   const items = filter.items || [];
   const chosen = text(filter.value);

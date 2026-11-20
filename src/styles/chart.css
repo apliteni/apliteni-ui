@@ -7,7 +7,7 @@
  *   .ui-chart__plot    the drawing and its column labels
  *   .ui-chart__data    the same numbers as a table
  * The component sets --ui-chart-h, the plot's height, which the axis matches.
- * why: docs/components.md#react-charts
+ * why: docs/components.md#chart
  * ========================================================================== */
 
 .ui-chart {
@@ -39,7 +39,7 @@
 .ui-chart--spark .ui-chart__frame { grid-template-columns: minmax(0, 1fr); }
 /* The box, not the drawing: a phone target does not fit in 32px. Written here
    rather than left to the height attribute, which `.ui-stat__trend svg` beats.
-   why: docs/components.md#react-charts */
+   why: docs/components.md#chart */
 .ui-chart--spark .ui-chart__svg { height: var(--ui-chart-box); }
 
 /* -- the legend ------------------------------------------------------------ */

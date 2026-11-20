@@ -57,7 +57,7 @@ const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 
     lede="Two of the four that arrived this week are waiting for a second approval."
     palette={layout === 'topbar' ? PALETTE : undefined}>
     {/* Each long table has its filter bar directly above it, on the page with no card
-        of its own. why: docs/components.md#forms */}
+        of its own. why: docs/components.md#fields */}
     <div className="ui-toolbar">
       <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
       <FilterBar filters={[{ ...STATUS, value: status }]} label="Payout filters"

@@ -149,7 +149,7 @@
   /* The same cap `.ui-dropdown__panel` writes itself, in bespoke clothes: this
      menu is `wireDropdown()` too, so wireDropdown() measures it the same way and
      writes the same two properties. #489
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   max-height: min(var(--ui-dropdown-cap, 100dvh), var(--ui-dropdown-avail, calc(100dvh - 16px)));
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -157,7 +157,7 @@
   visibility: hidden;
   /* Drawn for the whole of the fade out, so the rows do not vanish mid-fade — and a box
      that is drawn is a box that is hit. The open rule takes this back.
-     why: docs/components.md#the-dropdown-panel */
+     why: docs/components.md#dropdown */
   pointer-events: none;
   transform: translateY(-6px);
   /* Named properties, not the bare shorthand: `transition: 0.18s` is `all`, and `all`
@@ -182,7 +182,7 @@
    open transition, because the frame the open class lands is the frame the wiring moves
    focus onto a row in and a browser will not focus inside a hidden box; and
    `pointer-events` back on, because the closed rule turned it off.
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .vsw.open .vsw__menu {
   opacity: 1;
   visibility: visible;
@@ -335,7 +335,7 @@
      the ring cross the edge. #489's cap takes that choice away — `overflow-y: auto` clips
      again, because a menu that scrolls has to stop its content at its own edge — so this
      reserves the room instead, the same 6px `.vsw__menu` and `.ui-dropdown__panel` already
-     keep rather than a new figure. why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+     keep rather than a new figure. why: docs/components.md#dropdown */
   padding: 6px;
   /* The same cap `.ui-dropdown__panel` writes itself — see .vsw__menu above. #489 */
   max-height: min(var(--ui-dropdown-cap, 100dvh), var(--ui-dropdown-avail, calc(100dvh - 16px)));
@@ -346,7 +346,7 @@
      reserves that room while the menu stands still; this keeps it reserved once
      scrolling the menu — reaching the first row this PR made it do — puts a
      focused row at either end. #641's danger 2.
-     why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+     why: docs/components.md#dropdown */
   scroll-padding-block: 3px;
   opacity: 0;
   visibility: hidden;
@@ -377,7 +377,7 @@
    the border-bottom hairline reaches the panel's edge instead of stopping a
    notch short of it. #641's warning. The 5px below is the kit head's own gap, so the first
    row's fill and ring stand clear of the hairline. #824
-   why: docs/components.md#the-dropdown-panel */
+   why: docs/components.md#dropdown */
 .amenu .ahead {
   padding: 13px 15px;
   margin: -6px -6px 5px;
@@ -394,7 +394,7 @@
    above: Chromium's own focus-follow scroll honoured the padding scrolling
    toward the end of the list and not the start, so the row carries its own
    reserve too rather than leaving the start of the list short. #641's danger 2.
-   why: docs/components.md#a-menu-panel-does-not-cut-off-its-rows-ring */
+   why: docs/components.md#dropdown */
 .amenu a { display: flex; align-items: center; gap: 11px; padding: 10px 15px; color: var(--text); text-decoration: none; font-family: var(--font-sans); font-size: var(--text-sm); cursor: pointer; scroll-margin-block: 3px; }
 /* The row is a `.ui-dropdown__item`, so the kit's menu row draws its hover fill, its corner
    and its inward ring. A pointer draws no edge on a row. #824 */

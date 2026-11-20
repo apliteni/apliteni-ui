@@ -12,7 +12,7 @@ import { JSDOM } from "jsdom";
  * and WHICH ring follows the cell it stands in. A cell marked `.ui-table__linked` holding
  * one link hands the link its padding, so the link's box is the cell's and the ring is the
  * inward band; every other cell link keeps its own box and the outset ring.
- * why: docs/components.md#dense-financial-tables; decided in #510 and #500.
+ * why: docs/components.md#data-table; decided in #510 and #500.
  *
  * Subjects come from the markup and from SHAPES below, because a composition the kit does
  * not ship is still one a consumer may write.
@@ -448,7 +448,7 @@ test("the check rejects a fill that reaches the wrong composition", () => {
 const BOXED = ["inline-block", "flex"];
 
 test("a cell link is one box, so a wrapped one paints one ring", () => {
-  // The guarantee `docs/components.md#dense-financial-tables` states: one ring around the whole link, including a
+  // The guarantee `docs/components.md#data-table` states: one ring around the whole link, including a
   // title-cell link that wraps. A link left in the inline flow takes a ring per line box —
   // seven of them, measured at 390 on a title cell — so the box is what carries this.
   const subjects = cellLinks();

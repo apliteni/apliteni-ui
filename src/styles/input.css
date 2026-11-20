@@ -344,7 +344,7 @@
    screen it keeps 16px text, because iOS zooms into a field under 16px, and stands 40px,
    a chip's height. rev_1bef7d7c3b22/d5, #832 The group's
    42px left padding outranks the side padding here, so the glyph keeps its place. #822
-   why: docs/components.md#react-search-field */
+   why: docs/components.md#search-field */
 @media not (pointer: coarse) {
   .ui-input--sm {
     font-size: var(--text-sm);

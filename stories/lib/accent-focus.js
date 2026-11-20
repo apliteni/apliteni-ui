@@ -25,7 +25,7 @@
  * substitutes the tokens, and no gradient, so the ring's gap against the swatch
  * fill is recorded by the caller as a reading rather than asserted: an outline
  * leaves its offset UNPAINTED, so what shows there is the swatch's own shadow.
- * why: docs/components.md#page-furniture. See issues #429, #472 and #578.
+ * why: docs/components.md#choose-a-component. See issues #429, #472 and #578.
  */
 import assert from 'node:assert/strict';
 import { outlineBare, parseColour, ratio, substitute, tokensFor } from './contrast.js';

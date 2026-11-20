@@ -112,7 +112,7 @@ export const SPEC_CSS = `
 // Two limits the same gate walks that this page does not draw. They are not
 // decisions anybody takes per screen — the kit has already taken them, and a
 // designer looking at a mock cannot break either one — so what they guarantee
-// is stated in docs/components.md#the-page-shell, and the ids stay here because
+// is stated in docs/components.md#page-shell, and the ids stay here because
 // react/src/the-page.test.tsx keys one check to each.
 export const GATED_ELSEWHERE = [
   { id: 'shell', states: 'An application page is the shell’s, and it draws one main region.' },

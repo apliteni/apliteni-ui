@@ -14,7 +14,7 @@
  * supplies; no right-to-left row, the kit claiming no RTL support; not the block
  * axis, which is #255's; and not a filter row's panels, which
  * stories/filter-bar-fit.test.js measures.
- * why: docs/components.md#the-dropdown-panel
+ * why: docs/components.md#dropdown
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

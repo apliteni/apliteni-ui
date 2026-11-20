@@ -1,6 +1,6 @@
 /* The rail fold, and where the reader's choice is kept.
  * A cookie rather than localStorage, because a server can read one and paint the
- * rail at the width the reader left it. why: docs/components.md#the-page-shell */
+ * rail at the width the reader left it. why: docs/components.md#page-shell */
 
 export const RAIL_COOKIE = 'apliteni-ui-rail';
 const RAIL_VALUE = new RegExp(`(?:^|;\\s*)${RAIL_COOKIE}=(collapsed|expanded)(?:;|$)`);

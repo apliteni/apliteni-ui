@@ -16,7 +16,7 @@
  *   npm run build-storybook
  *   UI_PLAYWRIGHT=… UI_CHROME=… ROW_HEIGHTS=1 node --test stories/row-height.test.js
  *
- * why: docs/components.md#react-file-drop
+ * why: docs/components.md#file-drop
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

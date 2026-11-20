@@ -13,7 +13,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
  * `var()` values, which jsdom resolves to nothing, and the third is an ellipsis,
  * which needs a layout jsdom does not have. What the clip looks like when a
  * browser does the layout is docs/evidence/back-label-long-*.png.
- * why: docs/components.md#the-back-link
+ * why: docs/components.md#back-link
  */
 const here = path.dirname(fileURLToPath(import.meta.url));
 const read = (rel) => readFileSync(path.join(here, rel), 'utf8');

@@ -1,7 +1,7 @@
 /* Rule: an open readout shows whole, and opening it changes the size of nothing. An
  * ancestor too small to hold it, such as a pinned name cell that cuts its text on a
  * phone, does not cut it, and no sticky cell paints over it (#814).
- * docs/components.md#the-hover-readout states it.
+ * docs/components.md#tooltip states it.
  *
  * Two halves:
  *  - The source half (always on) finds the story files that render a React Tooltip,

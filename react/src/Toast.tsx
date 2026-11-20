@@ -93,7 +93,7 @@ type Entry = { id: number; notice: ToastNotice; remove: () => void };
  * document root so a fixed page action can sit clear of any number of notices
  * rather than guess at the height of one. 0px while the stack is empty, so the
  * action rests in its own corner until a notice needs the space (#388).
- * why: docs/components.md#react-toasts */
+ * why: docs/components.md#toast */
 const REACH = '--rx-toast-stack';
 
 function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number) {
@@ -119,7 +119,7 @@ function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: numbe
  * card, and where it fans out to. applyToastPile() inside watchToastPile()
  * (lib/toast-stack.ts) writes both.
  * The switch between the two positions is the stylesheet's, on :hover and
- * :focus-within — nothing here listens for either. why: docs/components.md#toast-stacks */
+ * :focus-within — nothing here listens for either. why: docs/components.md#toast */
 function usePile(stack: RefObject<HTMLDivElement | null>, piled: boolean, count: number) {
   useLayoutEffect(() => {
     const element = stack.current;

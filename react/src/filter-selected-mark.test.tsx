@@ -10,7 +10,7 @@
  * since #578 is an `outline`, rather than a native one (#457). Hover is measured,
  * not declared: its step off the wash is read as a ratio. Subjects are swept from
  * the stories, not listed, and a sweep that finds none fails.
- * why: docs/components.md#a-filter-row-holds-its-panels,
+ * why: docs/components.md#filter-bar,
  *      guidelines/accessibility-floor.md#status-labels
  */
 

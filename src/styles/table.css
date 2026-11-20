@@ -187,7 +187,7 @@
    The mark is the consumer's because a selector counts elements and not words: `:only-child`
    reads `<td>Invoice <a>1162</a></td>` as a lone link too. The link is named rather than
    denied — a denylist of the anchors that own their box went stale twice (#510).
-   why: docs/components.md#dense-financial-tables, #500
+   why: docs/components.md#data-table, #500
    held by: src/styles/table-focus.test.js */
 .ui-table td.ui-table__linked:has(> :is(a:not([class]), a.ui-identity):only-child) { padding: 0; height: 1px; }
 .ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child {
@@ -433,7 +433,7 @@ a.ui-identity:hover { text-decoration: underline; }
      retunes. The cut takes NO margin — the cell is sticky and the next column scrolls
      under it, so whatever the cut lets out is painted over that column. A child's ring
      needs 3px and the cell's padding is 12px, so the room comes from the padding.
-     why: docs/components.md#dense-financial-tables, #500, #513 */
+     why: docs/components.md#data-table, #500, #513 */
   /* A percentage can stretch an intrinsic table beyond its content. */
   .ui-card--fit .ui-table--pinned .ui-table__identity { width: 1px; }
   .ui-table--pinned .ui-table__identity {
@@ -633,7 +633,7 @@ a.ui-identity:hover { text-decoration: underline; }
    heading is, semibold in strong ink on the same hairline, so the two read as one kind of
    line. Its rows are held apart by space, as the drawer's pairs are, with no line between.
    A hover table keeps its own row floor, because its rows are targets.
-   why: docs/components.md#the-drawer */
+   why: docs/components.md#drawer */
 .ui-drawer .ui-drawer__section .ui-table thead th {
   padding-bottom: var(--space-2);
   font-weight: var(--weight-semibold);

@@ -53,7 +53,7 @@ import { icon } from '@apliteni/apliteni-ui';
 
 The `AppShell` component provides the complete product layout: the rail, the page body and
 a topbar over it when you ask for one, so no product rebuilds it. The
-[component catalog](docs/components.md#component-catalog) lists it and every other component.
+[component catalog](docs/components.md#choose-a-component) lists it and every other component.
 Account and personal settings belong in a modal over the product rather than on a page of
 their own — see [Guidelines / Account and settings](guidelines/account-and-settings.md).
 
