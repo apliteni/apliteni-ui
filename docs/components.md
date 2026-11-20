@@ -1178,7 +1178,7 @@ with the chosen period in view.** Its body scrolls the least distance that shows
 with 20px below it, and focus starts on that cell. With no chosen period, the sheet opens at the
 top. Nothing moves, because the body scrolls before the sheet slides in. When the web font
 arrives after the first open, the sheet measures again after the font loads and one frame, so the
-20px holds. It does not move a body that the reader has scrolled. **Inside a `Field`,
+20px holds. It does not move the body after the reader scrolls, touches or types in the sheet. **Inside a `Field`,
 the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
 over the label, and outside a `Field` the placeholder is the title. The trigger's name is
 that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". **In a `Modal`, the open panel draws over the dialog's edge**,

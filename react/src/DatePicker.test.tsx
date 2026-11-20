@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
-import { act, cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   AA_LARGE, AA_TEXT, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, substitute, tokensFor,
@@ -1018,6 +1018,8 @@ describe('the sheet', () => {
         const body = document.querySelector<HTMLElement>('.ui-drawer__body')!;
         scroll?.(body);
         step = 48;
+        // The browser's scroll anchoring moves the body 1px as the font lands.
+        body.scrollTop += 1;
         await act(async () => {
           loaded();
           await ready;
@@ -1037,7 +1039,10 @@ describe('the sheet', () => {
     it('keeps 20px below the chosen day after the web font loads, unless the reader scrolled', async () => {
       // The sixth-week row now ends at 400 + 48 × 7 = 736, so the body scrolls 736 + 20 − 700 = 56.
       expect(await fontsIn()).toBe(56);
-      expect(await fontsIn((body) => { body.scrollTop = 10; })).toBe(10);
+      expect(await fontsIn((body) => {
+        fireEvent.wheel(body);
+        body.scrollTop = 10;
+      })).toBe(11);
     });
 
     it('scrolls the least distance that shows the chosen day with 20px below it', () => {

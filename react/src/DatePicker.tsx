@@ -420,7 +420,9 @@ export function DatePicker({
   // because the drawer's first control is above the view and focusing it would scroll
   // back. The first open can lay out before the web font is in, so the same measure runs
   // again once the fonts are ready and a frame has laid them out, unless the reader has
-  // scrolled. #835 why: docs/components.md#react-date-and-month-picker
+  // touched the sheet first. Scroll anchoring moves the body by itself when the font
+  // lands, so the reader's input is the signal, not the scroll position. #835
+  // why: docs/components.md#react-date-and-month-picker
   const reveal = useRef(false);
   const chosen = useRef<HTMLElement | null>(null);
   useIsoLayoutEffect(() => { reveal.current = open && asSheet; }, [open, asSheet]);
@@ -440,9 +442,13 @@ export function DatePicker({
     scrollIn();
     const { fonts, defaultView: win } = body.ownerDocument;
     if (!fonts || !win) return;
-    const placed = body.scrollTop;
+    let touched = false;
+    const touch = () => { touched = true; };
+    const inputs = ['wheel', 'touchstart', 'pointerdown', 'keydown'] as const;
+    for (const type of inputs) body.addEventListener(type, touch, { passive: true });
     void fonts.ready.then(() => win.requestAnimationFrame(() => {
-      if (cell.isConnected && body.scrollTop === placed) scrollIn();
+      for (const type of inputs) body.removeEventListener(type, touch);
+      if (cell.isConnected && !touched) scrollIn();
     }));
   });
 
