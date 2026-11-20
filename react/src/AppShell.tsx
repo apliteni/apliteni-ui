@@ -220,7 +220,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
           {headControl && <span className="ui-react-app__band-control">{headControl}</span>}
           <ThemeToggle />
           <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
-            ariaLabel={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
+            ariaLabel={`Signed in as ${account.name}, ${account.email}`} title={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
             triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
             header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
             items={[...ownItems, { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]} onSelect={pick} />

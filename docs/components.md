@@ -1176,7 +1176,9 @@ current period draws one band and not two. **Nothing is drawn under the grid:** 
 swatch. **Below 560px the panel is a sheet, and a sheet is the kit's drawer**. **The sheet opens
 with the chosen period in view.** Its body scrolls the least distance that shows the chosen cell
 with 20px below it, and focus starts on that cell. With no chosen period, the sheet opens at the
-top. Nothing moves, because the body scrolls before the sheet slides in. **Inside a `Field`,
+top. Nothing moves, because the body scrolls before the sheet slides in. When the web font
+arrives after the first open, the sheet measures again after the font loads and one frame, so the
+20px holds. It does not move a body that the reader has scrolled. **Inside a `Field`,
 the sheet's title is the field's label**, because the sheet covers the field. An `ariaLabel` wins
 over the label, and outside a `Field` the placeholder is the title. The trigger's name is
 that label or `ariaLabel` and then the value it shows, such as "Due date, August 2026". **In a `Modal`, the open panel draws over the dialog's edge**,
@@ -1530,14 +1532,18 @@ dropdown's `id` sits on a wrapper that a label cannot name. The label and then t
 the trigger, the error or hint describes it, and an error marks it invalid. The list is named by the
 label unless you give it an `ariaLabel`. A control outside a `field()` needs its own `ariaLabel`. A
 placeholder is not a name. An invalid trigger has the kit's invalid edge, also under the pointer.
+With keyboard focus, a trigger shows the focus ring only, as a text input does. Its edge is
+transparent under the ring, also when the trigger is invalid.
 **In a field, a dropdown trigger has the height of a text input.** It has the input's top and
 bottom padding and its type size, so the two have the same height. It keeps the pill corner, and
 the text input has the field corner. Its side padding is 16px, 1px more than the input's. On a touch screen its text is a
 fixed 16px, as the input's is, also when the host changes `--text-base`. A long value stays on
 one line, starts at the left and ends with an ellipsis, as in a select, so the trigger keeps the
 input's height at every value length. A person mark stands as far from the left edge as from the
-top and bottom edges. A date picker in a field does the same. Outside a field, for example in a
-filter bar, a toolbar or the topbar, the trigger is also a pill. See
+top and bottom edges. The chosen value has the input's regular weight and normal letter spacing.
+It keeps its own ink: the value is `--strong`, a disabled value keeps the off ink, and a person
+picker's placeholder keeps the muted ink. A date picker in a field does the same. Outside a field, for example in a
+filter bar, a toolbar or the topbar, the trigger is also a pill, and the value keeps its own weight. See
 [Control corners](foundations.md#control-corners).
 Put a form on a card, not on the page ground. A field is drawn by its edge, but the page ground
 is too close to the field's own fill for you to see that edge. See

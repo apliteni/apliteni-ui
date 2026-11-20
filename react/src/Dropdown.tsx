@@ -138,6 +138,8 @@ export type DropdownProps = {
   /** A field above the rows that filters them as the reader types. */
   search?: boolean | DropdownSearch;
   ariaLabel?: string;
+  /** The trigger's hover title. A wordless trigger takes its name here too. */
+  title?: string;
   /** Names the elements that describe the trigger, e.g. a field's error and hint. */
   'aria-describedby'?: string;
   /** Marks the trigger invalid. `Field` supplies it while its error shows. */
@@ -213,7 +215,7 @@ export function Dropdown({
   label, value, selectedValue, placeholder = 'Select…', variant, items, sections,
   header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
-  ariaLabel, id, panelClass = '',
+  ariaLabel, title, id, panelClass = '',
   'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
@@ -873,6 +875,7 @@ export function Dropdown({
         aria-expanded={open}
         id={fieldName?.id}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
+        title={title}
         aria-labelledby={fieldName?.labelledBy}
         aria-describedby={describedBy}
         aria-invalid={invalid}

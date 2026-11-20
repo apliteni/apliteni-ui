@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
   AA_LARGE, AA_TEXT, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, substitute, tokensFor,
@@ -968,33 +968,77 @@ describe('the sheet', () => {
 
   /* #835: a six-week month is taller than the sheet on a phone. JSDOM lays nothing out,
    * so the geometry is given here: the body shows 300px from y=400, and each grid row
-   * ends 44px below the one above it. The margin is the sheet rule's 20px, written as a
-   * number because JSDOM does not resolve a token. What a browser draws is in the PR. */
+   * ends `step` px below the one above it, less the body's scroll. The margin is the
+   * sheet rule's 20px, written as a number because JSDOM does not resolve a token. What a
+   * browser draws is in the PR. */
   describe('opens with the chosen day in view', () => {
     const MARGIN = '.ui-datepicker__body.is-sheet .ui-datepicker__opt { scroll-margin-bottom: 20px; }';
-    function opened(defaultValue: string | null) {
+    function geometry(step: () => number) {
       const style = document.createElement('style');
       style.textContent = MARGIN;
       document.head.append(style);
       const rect = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
         const row = this.closest('.ui-datepicker__row');
         const rows = [...document.querySelectorAll('.ui-datepicker__row')];
+        const scrolled = this.closest<HTMLElement>('.ui-drawer__body')?.scrollTop ?? 0;
         const top = this.classList.contains('ui-drawer__body') ? 400
-          : row && this.matches('.ui-datepicker__opt') ? 400 + 44 * rows.indexOf(row) : 0;
-        return { top, bottom: top + 44, left: 0, right: 0, width: 0, height: 44, x: 0, y: top, toJSON() {} } as DOMRect;
+          : row && this.matches('.ui-datepicker__opt') ? 400 + step() * rows.indexOf(row) - scrolled : 0;
+        return { top, bottom: top + step(), left: 0, right: 0, width: 0, height: step(), x: 0, y: top, toJSON() {} } as DOMRect;
       });
       const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockImplementation(function (this: HTMLElement) {
         return this.classList.contains('ui-drawer__body') ? 300 : 0;
       });
-      try {
-        render(<DatePicker today={TODAY} sheet mode="day" defaultValue={defaultValue} defaultOpen />);
-      } finally {
+      return () => {
         rect.mockRestore();
         height.mockRestore();
         style.remove();
+      };
+    }
+    function opened(defaultValue: string | null) {
+      const restore = geometry(() => 44);
+      try {
+        render(<DatePicker today={TODAY} sheet mode="day" defaultValue={defaultValue} defaultOpen />);
+      } finally {
+        restore();
       }
       return document.querySelector<HTMLElement>('.ui-drawer__body')!;
     }
+
+    /* The web font arrives after the first open and makes each row 48px, as a browser's
+     * first load did (15.2px below the day, not 20px). The day is measured again once
+     * the fonts are ready and a frame has passed. A reader who scrolled keeps the place. */
+    async function fontsIn(scroll?: (body: HTMLElement) => void) {
+      let loaded = () => {};
+      const ready = new Promise<void>((done) => { loaded = done; });
+      Object.defineProperty(document, 'fonts', { configurable: true, value: { ready } });
+      let step = 44;
+      const restore = geometry(() => step);
+      try {
+        render(<DatePicker today={TODAY} sheet mode="day" defaultValue="2026-08-31" defaultOpen />);
+        const body = document.querySelector<HTMLElement>('.ui-drawer__body')!;
+        scroll?.(body);
+        step = 48;
+        await act(async () => {
+          loaded();
+          await ready;
+          await new Promise((frame) => requestAnimationFrame(frame));
+        });
+        return body.scrollTop;
+      } finally {
+        restore();
+        delete (document as { fonts?: unknown }).fonts;
+        cleanup();
+      }
+    }
+
+    /* The web font arrives after the first open and makes each row 48px, as a browser's
+     * first load did (15.2px below the day, not 20px). The day is measured again once
+     * the fonts are ready and a frame has passed. A reader who scrolled keeps the place. */
+    it('keeps 20px below the chosen day after the web font loads, unless the reader scrolled', async () => {
+      // The sixth-week row now ends at 400 + 48 × 7 = 736, so the body scrolls 736 + 20 − 700 = 56.
+      expect(await fontsIn()).toBe(56);
+      expect(await fontsIn((body) => { body.scrollTop = 10; })).toBe(10);
+    });
 
     it('scrolls the least distance that shows the chosen day with 20px below it', () => {
       // 31 August 2026 is in the sixth week: its row ends at 400 + 44 × 7 = 708, and the

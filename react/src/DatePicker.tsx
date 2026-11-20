@@ -418,7 +418,9 @@ export function DatePicker({
   // cell's scroll margin below it, before the paint, so nothing moves. With no chosen
   // period it stays at the top. The chosen cell is also where the sheet puts focus,
   // because the drawer's first control is above the view and focusing it would scroll
-  // back. #835 why: docs/components.md#react-date-and-month-picker
+  // back. The first open can lay out before the web font is in, so the same measure runs
+  // again once the fonts are ready and a frame has laid them out, unless the reader has
+  // scrolled. #835 why: docs/components.md#react-date-and-month-picker
   const reveal = useRef(false);
   const chosen = useRef<HTMLElement | null>(null);
   useIsoLayoutEffect(() => { reveal.current = open && asSheet; }, [open, asSheet]);
@@ -427,11 +429,21 @@ export function DatePicker({
     reveal.current = false;
     chosen.current = grid.current?.querySelector<HTMLElement>('[data-dp-cell][tabindex="0"].is-selected') ?? null;
     const body = grid.current?.closest<HTMLElement>('.ui-drawer__body');
-    if (!chosen.current || !body) return;
-    const below = parseFloat(getComputedStyle(chosen.current).scrollMarginBottom) || 0;
-    const view = body.getBoundingClientRect().top + body.clientTop + body.clientHeight;
-    const over = chosen.current.getBoundingClientRect().bottom + below - view;
-    if (over > 0) body.scrollTop += over;
+    const cell = chosen.current;
+    if (!cell || !body) return;
+    const scrollIn = () => {
+      const below = parseFloat(getComputedStyle(cell).scrollMarginBottom) || 0;
+      const view = body.getBoundingClientRect().top + body.clientTop + body.clientHeight;
+      const over = cell.getBoundingClientRect().bottom + below - view;
+      if (over > 0) body.scrollTop += over;
+    };
+    scrollIn();
+    const { fonts, defaultView: win } = body.ownerDocument;
+    if (!fonts || !win) return;
+    const placed = body.scrollTop;
+    void fonts.ready.then(() => win.requestAnimationFrame(() => {
+      if (cell.isConnected && body.scrollTop === placed) scrollIn();
+    }));
   });
 
   const columns = grain === 'month' ? 3 : 7;

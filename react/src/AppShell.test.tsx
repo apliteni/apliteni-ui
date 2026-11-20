@@ -428,6 +428,9 @@ it('draws no section navigation for a single section, at any width', () => {
   expect(screen.queryByRole('link', { name: 'Changes' })).toBeNull();
   expect(document.querySelector('[aria-current]')).toBeNull();
   expect(screen.queryByRole('button', { name: /sidebar$/i })).toBeNull();
+  // The band's avatar is a wordless button, so its name is also its hover title. #837
+  expect(screen.getByRole('button', { name: 'Signed in as Demo User, demo@example.com' }))
+    .toHaveAttribute('title', 'Signed in as Demo User, demo@example.com');
   // What the shell keeps: its brand, and the section as a palette entry.
   expect(screen.getByRole('link', { name: props.word ?? 'apliteni-ui' })).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /^Search or run a command/ }));

@@ -106,7 +106,8 @@ const MEASURED = [
   // A pointer gets an answer, and it is the accent edge both of this row's primitives move to.
   // Clear is overridden to transparent below, because Artur's unboxed button answers with a wash.
   { what: 'hover', is: (s) => s.includes(':hover'), want: 'var(--accent)' },
-  { what: 'keyboard focus', is: (s) => s.includes(':focus-visible'), want: 'var(--accent)' },
+  // The ring is the answer to focus, and a field's edge goes transparent under it. why: guidelines/state-set.md
+  { what: 'keyboard focus', is: (s) => s.includes(':focus-visible'), want: 'transparent' },
   { what: 'rest', is: (s) => s === '', want: null },
 ];
 const classOf = (state) => MEASURED.find((one) => one.is(state));
@@ -319,7 +320,7 @@ test('every subject, box and state the sheet aims at this row is measured', () =
   // box in a state the add control's box is never in, and the other way round.
   const kit = (box) => [...kitStates(box).keys()].sort();
   assert.deepEqual(kit('.ui-btn'), ['busy', 'hover', 'rest', 'unavailable']);
-  assert.deepEqual(kit('.ui-dropdown__trigger'), ['hover', 'rest', 'unavailable']);
+  assert.deepEqual(kit('.ui-dropdown__trigger'), ['hover', 'keyboard focus', 'rest', 'unavailable']);
 });
 
 test('the gate refuses a sheet that brings any of it back', () => {

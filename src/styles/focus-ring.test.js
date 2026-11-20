@@ -68,14 +68,15 @@ test('the check rejects a shell control dropped from the ring', () => {
   }
 });
 
-// A focused field keeps one accent ring. The four classes that draw their own border hide
-// its ink while the ring shows. The browser captures check the painted line; this check holds
+// A focused field keeps one accent ring. The five classes that draw their own border hide
+// its ink while the ring shows, the Dropdown and DatePicker trigger since #837. The browser captures check the painted line; this check holds
 // the declarations and rejects a border brought back under the ring. why: #661
 const FIELD_FOCUS = [
   ['input.css', '.ui-input:focus-visible'],
   ['input.css', '.ui-textarea:focus-visible'],
   ['input.css', '.ui-select:focus-visible'],
   ['dropdown.css', '.ui-dropdown__search-input:focus-visible'],
+  ['dropdown.css', '.ui-dropdown__trigger:focus-visible'],
 ];
 const fieldFocusBody = (sheet, selector) => {
   const css = sheet.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -85,7 +86,7 @@ const fieldFocusBody = (sheet, selector) => {
   return matches[0][2];
 };
 const checkFieldFocus = (sheets) => {
-  assert.equal(FIELD_FOCUS.length, 4, 'text, textarea, select and Dropdown search are measured');
+  assert.equal(FIELD_FOCUS.length, 5, 'text, textarea, select, Dropdown search and the trigger are measured');
   for (const [file, selector] of FIELD_FOCUS) {
     const body = fieldFocusBody(sheets[file], selector);
     assert.match(body, /border-color:\s*transparent\s*;/, `${selector} hides its own border ink`);
