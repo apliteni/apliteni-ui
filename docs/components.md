@@ -177,6 +177,10 @@ Auto, Light and Dark.
   reload. If your `palette` sets its own `onNavigate`, the shell uses that one.
 - `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
   head, before the fold button.
+- `bandActions` puts glyph controls, such as a notification bell, at the right end of the band,
+  in each sidebar structure and at every width. With a sidebar, they stand before the menu
+  button, and search keeps the centre of the band. With no sidebar, they stand before the theme
+  switch. Put one or two there. Below 560px, each one keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.
 
@@ -187,7 +191,7 @@ Auto, Light and Dark.
   name and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
   column, so a click beside it reaches the page.
 - At 720px and below, the sidebar goes away and a 52px band shows. In the topbar layout, the band
-  holds the brand mark, the page title on one line, the search trigger and a menu button. In the
+  holds the brand mark, the page title on one line, the search trigger, the band actions and a menu button. In the
   rail layout, it holds only the menu button and the mark. The menu button opens the full section
   list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
   layout and the left in the rail layout. `drawerSide` chooses the side in either layout. The

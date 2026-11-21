@@ -150,3 +150,28 @@
   .ui-react-app__band-control > .ui-btn .ui-btn__label,
   .ui-react-app__band-control .ui-dropdown__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+/* The band's actions (#847): glyph controls at the band's right end, such as a bell. A
+   dropdown trigger draws no field there, as the band controls draw none on a phone. */
+.ui-react-app__band-actions { display: flex; align-items: center; flex: none; gap: var(--space-1); }
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { min-width: 40px; min-height: 40px; justify-content: center; border-color: transparent; background: transparent; }
+/* The glyph is the nav glyph's size and weight, as in the head control: src/styles/nav.css:95. */
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger svg { flex: none; width: 17px; height: 17px; stroke-width: 2.2; }
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+/* With a sidebar, search keeps the band's centre: two equal outer columns hold it there,
+   and the actions stand at the end of the right one. */
+@media (min-width: 721px) {
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title):has(> .ui-react-app__band-actions) {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--panel-sm)) minmax(0, 1fr);
+  }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title) > .ui-react-app__band-actions { grid-column: 3; justify-self: end; }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title):has(> .ui-react-app__band-actions) .ui-app__search { grid-column: 2; margin-inline: 0; }
+}
+@media (max-width: 560px) {
+  /* Each action is a 40px glyph, as every band control is. The band packs its controls
+     with no gap, so the actions open 4px on each side and between them, and declare it:
+     a coarse pointer's layer then reaches 44px across, and 44px down from the band's 12px.
+     tap-zone.css */
+  .ui-react-app .ui-app__bar > .ui-react-app__band-actions { margin-inline: var(--space-1); --tap-clear-x: var(--space-1); }
+  .ui-react-app__band-actions > .ui-btn { flex: none; width: 40px; min-width: 40px; height: 40px; min-height: 40px; padding: 0; }
+  .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { padding-block: 0; }
+}

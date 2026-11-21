@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { AppShell, type AppShellGroup, type AppShellProps, type AppShellSection } from './AppShell';
 import { Card } from './primitives/Card';
 import { Badge } from './primitives/Badge';
+import { Icon } from './primitives/Icon';
 import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { DatePicker } from './DatePicker';
@@ -97,6 +98,7 @@ const meta: Meta<typeof AppShell> = {
   title: 'React/AppShell', component: AppShell, parameters: { layout: 'fullscreen', viewport: { options: {
     tablet: { name: 'Tablet', styles: { width: '700px', height: '800px' }, type: 'tablet' },
     phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' },
+    desktop: { name: 'Desktop', styles: { width: '1280px', height: '800px' }, type: 'desktop' },
   } } },
   render,
 };
@@ -188,3 +190,23 @@ export const GroupsPhone: Story = { render, globals: { viewport: { value: 'phone
 export const RailGroups: Story = { render, args: { layout: 'rail', groups, pathname: '/payouts' } };
 export const RailGroupsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { layout: 'rail', groups, pathname: '/payouts' }, play: openMenu };
+
+// A notifications bell at the band's right end, at 1280px and 390px, dark and light, in
+// each sidebar structure and with no sidebar (#847).
+const bandBell = <Dropdown variant="menu" align="end" chevron={false} ariaLabel="Notifications, 3 unread"
+  triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>3</Badge></span></>}
+  header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
+  items={[{ label: 'Payout run PR-204 failed', value: 'payout', href: '#payout' },
+    { label: 'CMP-88 assigned to you', value: 'assign', href: '#assign' },
+    { label: 'Jon Avery commented', value: 'comment', href: '#comment' }]} />;
+const desktop = { viewport: { value: 'desktop', isRotated: false } };
+const phone = { viewport: { value: 'phone', isRotated: false } };
+export const BandActions: Story = { render, globals: desktop, args: { bandActions: bandBell } };
+export const BandActionsLight: Story = { render, globals: { ...desktop, theme: 'light' }, args: { bandActions: bandBell } };
+export const BandActionsPhone: Story = { render, globals: phone, args: { bandActions: bandBell } };
+export const BandActionsPhoneLight: Story = { render, globals: { ...phone, theme: 'light' }, args: { bandActions: bandBell } };
+export const BandActionsGroups: Story = { render, globals: desktop, args: { groups, pathname: '/payouts', bandActions: bandBell } };
+export const BandActionsAlone: Story = { render, globals: desktop,
+  args: { sections: [{ href: '/overview', label: 'Overview', icon: 'chart' }], pathname: '/overview', bandActions: bandBell } };
+export const BandActionsAlonePhone: Story = { render, globals: phone,
+  args: { sections: [{ href: '/overview', label: 'Overview', icon: 'chart' }], pathname: '/overview', bandActions: bandBell } };

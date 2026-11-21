@@ -500,3 +500,40 @@ it('keeps a single section when it is the parent of the page on screen', () => {
     .toHaveAttribute('aria-current', 'true');
   expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
 });
+
+// The band's actions stand at its right end in each sidebar structure: before Menu with a
+// sidebar, before the theme switch without one (#847). jsdom lays nothing out, so the
+// order is read from the markup and the 44px floor from the stylesheet; measured at 390
+// and 1280 in Chromium.
+describe('band actions', () => {
+  const bell = <button type="button">Notifications</button>;
+  const groups = [{ label: 'Money', sections: sections.slice(0, 3) }, { label: 'Admin', sections: sections.slice(3) }];
+  const band = () => document.querySelector('.ui-app__bar')!;
+  const order = () => [...band().children].map(el => el.className.split(' ').find(c => /^ui-(app|react-app)__|^toggle$/.test(c)) ?? el.className);
+
+  it('ends the band before Menu with sections or groups', () => {
+    const { rerender } = render(<AppShell {...props} bandActions={bell} />);
+    expect(order().slice(-2)).toEqual(['ui-react-app__band-actions', 'ui-app__menu']);
+    expect(within(band() as HTMLElement).getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
+    rerender(<AppShell {...props} sections={undefined as never} groups={groups} bandActions={bell} />);
+    expect(order().slice(-2)).toEqual(['ui-react-app__band-actions', 'ui-app__menu']);
+  });
+
+  it('stands before the theme switch and the avatar with no sidebar', () => {
+    render(<AppShell {...props} sections={[sections[0]]} pathname="/" bandActions={bell} />);
+    expect(order().slice(-3)).toEqual(['ui-react-app__band-actions', 'toggle', 'ui-app__user']);
+  });
+
+  it('draws nothing without actions', () => {
+    render(<AppShell {...props} />);
+    expect(document.querySelector('.ui-react-app__band-actions')).toBeNull();
+  });
+
+  it('opens 4px around each action below 560px, so a layer reaches 44px', () => {
+    const css = read('./AppShell.css');
+    const phone = css.slice(css.lastIndexOf('@media (max-width: 560px)'));
+    expect(phone).toMatch(/\.ui-app__bar > \.ui-react-app__band-actions \{ margin-inline: var\(--space-1\); --tap-clear-x: var\(--space-1\); \}/);
+    expect(css).toMatch(/\.ui-react-app__band-actions \{ display: flex; align-items: center; flex: none; gap: var\(--space-1\); \}/);
+    expect(phone).toMatch(/\.ui-react-app__band-actions > \.ui-btn \{[^}]*width: 40px;/);
+  });
+});

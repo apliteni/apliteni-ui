@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.182.0', date: '2026-11-21',
+    changes: [
+      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre; with no sidebar they stand before the theme switch. Topbar layout only. Resolves #847.', ['AppShell']],
+      ['added', 'The page guideline has a new rule, Keep the bar’s end for product alerts: only glyph controls that serve every page, such as the bell, go there. Resolves #847.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.180.0', date: '2026-11-21',
     changes: [
       ['added', '`AppShell` takes one level of sub-items in a section\'s `items`, or `groups` in place of `sections` to sort the sections under group labels. Both reach the sidebar, the phone menu and the command palette. Resolves #843.', ['AppShell']],
