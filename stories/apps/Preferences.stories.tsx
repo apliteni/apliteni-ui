@@ -1,45 +1,55 @@
-// The preferences showcase in React, under the vanilla page's title and id.
+// The Preferences page (#845): how the product behaves for this reader. It opens from
+// the account menu as one page inside the app shell, under the vanilla page's title and id.
 import type { Meta, StoryObj } from '@storybook/react';
-import type { ReactNode } from 'react';
-import { ACCOUNT_NAV } from '@apliteni/apliteni-ui';
-import { AppShell } from '../../react/src/AppShell';
-import { AccentPicker } from '../../react/src/AccentPicker';
+import { useState } from 'react';
+import { AccountPage, VIEWPORTS, fourWays } from './_account-pages';
+import { useThemeChoice, type Theme } from '../../react/src/ThemeToggle';
+import { Confirm } from '../../react/src/Confirm';
+import { EmptyState } from '../../react/src/EmptyState';
 import { Segmented } from '../../react/src/Segmented';
-import { Switch } from '../../react/src/Switch';
+import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 
-const meta: Meta = { title: 'Showcases/Preferences', id: 'apps-preferences', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Showcases/Preferences', id: 'apps-preferences', parameters: { layout: 'fullscreen', ...VIEWPORTS } };
 export default meta;
 
-const noop = () => {};
-type NavItem = { id: string; icon: string; label: string };
-// Overview belongs to this demo, not to the kit's default nav: see Access.
-const NAV: NavItem[] = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...(ACCOUNT_NAV as NavItem[])];
-// AppShell lights the section whose path matches, so each gets one; the links stay inert.
-const sections = NAV.map(item => ({ href: `/${item.id}`, label: item.label, icon: item.icon }));
-
-// Theme and Language are settings, not navigation, so they stay a segmented strip,
-// which says "pressed", and each one carries its own name.
-const Seg = ({ label, options }: { label: string; options: string[] }) =>
-  <Segmented label={label} options={options.map(o => ({ label: o, value: o }))} value={options[0]} onChange={noop} />;
-const Row = ({ lab, hint, tight = false, children }: { lab: string; hint?: string; tight?: boolean; children: ReactNode }) =>
-  <div className={`ui-card__row${tight ? ' ui-card__row--tight-choice' : ''}`}><div><div className="lab">{lab}</div>{hint && <div className="hint">{hint}</div>}</div>{children}</div>;
-
-export const Default: StoryObj = {
-  render: () => <AppShell layout="rail" sections={sections} pathname="/prefs" title="Preferences"
-    renderLink={(_, props) => <a {...props} href="#" />}
-    lede="Saved to this browser."
-    account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={noop}>
-    <Card title="Appearance">
-      <Row lab="Theme" tight><Seg label="Theme" options={['Dark', 'Light', 'System']} /></Row>
-      <Row lab="Accent"><AccentPicker value="default" onChange={noop} /></Row>
-      <Row lab="Language" hint="Interface language for the portal."><Seg label="Language" options={['English', 'Русский']} /></Row>
-      <Row lab="Reduce motion" hint="Turn off animated transitions."><Switch label="Reduce motion" /></Row>
-    </Card>
-    <Card title="Notifications">
-      <Row lab="Weekly digest" hint="A summary when things change."><Switch defaultChecked label="Weekly digest" /></Row>
-      <Row lab="Agent activity" hint="Email me when an agent first connects."><Switch defaultChecked label="Agent activity" /></Row>
-      <Row lab="Product news" hint="Occasional updates about new components."><Switch label="Product news" /></Row>
-    </Card>
-  </AppShell>,
+// Each choice applies as it is made, so the page carries no Save.
+const THEMES = [{ label: 'System', value: 'auto' }, { label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' }];
+const ThemeChoice = () => {
+  const { theme, set } = useThemeChoice();
+  return <Card title="Theme">
+    <Segmented label="Theme" options={THEMES} value={theme} onChange={(value) => set(value as Theme)} />
+  </Card>;
 };
+
+const CONNECTIONS = [
+  ['Research bot', 'Read only', '2026-09-02', 'Today'],
+  ['Deck summariser', 'Read only', '2026-08-14', 'Yesterday'],
+  ['Spreadsheet sync', 'Read and write', '2026-06-30', '3 weeks ago'],
+];
+// Revoking cannot be undone from here, so it asks first and names both actions.
+const Connections = () => {
+  const [rows, setRows] = useState(CONNECTIONS);
+  const [asking, setAsking] = useState<string | null>(null);
+  const revoke = () => { setRows(rows.filter(([app]) => app !== asking)); setAsking(null); };
+  return <Card title="Connections">
+    {/* A reader holds a few connections, so the table takes no bar. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
+    {rows.length ? <table className="ui-table ui-table--hover">
+      <thead><tr><th>App</th><th>Access</th><th>Connected</th><th>Last used</th><th></th></tr></thead>
+      <tbody>{rows.map(([app, access, connected, used]) => <tr key={app}>
+        <td className="ui-table__title">{app}</td><td>{access}</td><td>{connected}</td><td>{used}</td>
+        <td className="ui-table__act"><Button variant="danger" size="sm" aria-label={`Revoke ${app}`} onClick={() => setAsking(app)}>Revoke</Button></td>
+      </tr>)}</tbody>
+    </table> : <EmptyState title="No apps connected" sub="" icon="" />}
+    <Confirm open={asking !== null} danger title={`Revoke ${asking ?? ''}?`} body="It loses access to your account at once."
+      confirmLabel="Revoke access" cancelLabel="Keep access" onConfirm={revoke} onCancel={() => setAsking(null)} />
+  </Card>;
+};
+
+const render = () => <AccountPage title="Preferences"><ThemeChoice /><Connections /></AccountPage>;
+
+const ways = fourWays(render);
+export const Default: StoryObj = ways.Default;
+export const Light: StoryObj = ways.Light;
+export const Phone: StoryObj = ways.Phone;
+export const PhoneLight: StoryObj = ways.PhoneLight;
