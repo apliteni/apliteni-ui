@@ -9,6 +9,7 @@ import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
 import { BackLink } from '../../react/src/BackLink';
 import { KeyValueList } from '../../react/src/KeyValueList';
+import { SidebarNav, type SidebarNavSections } from '../../react/src/SidebarNav';
 import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -24,6 +25,15 @@ const Out = ({ rank, text, bad = false }: { rank: number; text: string; bad?: bo
   <div className={`tp-out__row tp-out__row--${rank}${bad ? ' tp-out__row--bad' : ''}`}>
     <span className="ui-badge tp-out__rank">{`h${rank}`}</span><span>{text}</span>
   </div>;
+
+// The sidebar's one way of grouping: sub-items with no labels, or labels with no
+// sub-items. The mix is cast past the type that refuses it.
+const payouts = { id: 'payouts', icon: 'card', label: 'Payouts',
+  items: [{ id: 'pending', label: 'Pending' }, { id: 'history', label: 'History' }] };
+const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side"><SidebarNav aria-label={mixed ? 'Sections, mixed' : 'Sections'} active="pending"
+  sections={(mixed ? [{ label: 'Money', items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts] },
+    { label: 'Workspace', items: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }] }]
+    : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
 
 // The one primary action.
 const Agents = ({ all = false }: { all?: boolean }) => <Stage>
@@ -120,6 +130,7 @@ const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="
 // holds each of them is the RULE_TO_CODE table in stories/guidelines/the-page.test.js.
 const specimens = [
   { id: 'layout', do: () => <Shells moved={false} />, dont: () => <Shells moved /> },
+  { id: 'sidebar', do: () => <Side mixed={false} />, dont: () => <Side mixed /> },
   { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
   { id: 'head', do: () => <Head parts={['back', 'title', 'sub', 'filters']} />,
     dont: () => <Head parts={['back', 'filters', 'title', 'sub']} /> },

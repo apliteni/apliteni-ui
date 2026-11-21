@@ -17,6 +17,8 @@ export const LIMITS = { outline: 3, primary: 1, lede: 2 };
 export const SPEC_CSS = `
   <style>
     .tp-out { display: flex; flex-direction: column; gap: var(--space-2); }
+    /* The rail's own ground, so the current row's plate shows as it does in the shell. */
+    .tp-side { background: var(--bg); border-radius: var(--radius-md); padding: var(--space-2); }
     .tp-out__row { display: flex; align-items: baseline; gap: var(--space-3);
       font: 400 13px/1.5 var(--font-sans); color: var(--text); }
     /* Rank chip. Longhands and no line-height, because the chip rank inherits

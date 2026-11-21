@@ -535,8 +535,8 @@
      starts at the panel's edge like the rows above it. */
   .ui-app__drawer .ui-nav--side,
   .ui-app__drawer .ui-nav--side > * { width: 100%; }
-  /* The panel's title names the list, so the section's own caption stays out. */
-  .ui-app__drawer .ui-nav__cap { display: none; }
+  /* The panel's title names one section's list, so its caption stays out; group labels stay (#843). */
+  .ui-app__drawer .ui-nav--side:not(:has(> .ui-nav__section + .ui-nav__section)) .ui-nav__cap { display: none; }
   .ui-app__drawer .ui-drawer__footer { justify-content: flex-start; }
   .ui-app__drawer .ui-app__user { width: 100%; }
   /* A finger is the only pointer this width has, so a row and the account block are
@@ -771,3 +771,7 @@
     forced-color-adjust: auto; background: Canvas; color: CanvasText; border-color: CanvasText;
   }
 }
+
+/* A folded sub-row has no glyph, so its floating name took the row's only line box with it
+   and the row shrank under the pointer. It keeps one line and its padding (#843). */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic)) { min-height: calc(1lh + 18px); /* one line plus the row's 9px padding, top and bottom */ }

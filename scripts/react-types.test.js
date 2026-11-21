@@ -1,6 +1,10 @@
 /* Rule: React Button's published type surface keeps compiling for the consumer
  * patterns in react/src/primitives/Button.types.tsx.
  *
+ * The same project compiles react/src/SidebarNav.types.tsx, whose @ts-expect-error
+ * lines hold "group labels or sub-items, never both" (#843). The clean compile below
+ * fails when one of them stops refusing; its case markers and mutation are Button's.
+ *
  * why: docs/components.md#button
  *
  * Three of them — forwarding the exported `ButtonProps` back in, reading

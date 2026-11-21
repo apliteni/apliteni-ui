@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.180.0', date: '2026-11-21',
+    changes: [
+      ['added', '`AppShell` takes one level of sub-items in a section\'s `items`, or `groups` in place of `sections` to sort the sections under group labels. Both reach the sidebar, the phone menu and the command palette. Resolves #843.', ['AppShell']],
+      ['changed', 'A sidebar takes group labels or sub-items, never both. `SidebarNav` types now refuse a `sections` list that mixes them, and in development the component warns. A product that types its list as `SidebarNavSection[]` changes it to `SidebarNavGroup[]` or `SidebarNavBlock[]`. Resolves #843.', ['SidebarNav']],
+      ['changed', 'The current sub-item stays shown: its group opens when the current page comes into it or moves to another of its rows, also over a closed `defaultOpen` or an earlier close. `SidebarNav` and `CommandPalette` drop a `javascript:`, `data:` or `vbscript:` link. In forced colours, a focused current rail row now rings in the page text colour, not the accent. A folded sub-row keeps its dot. The parent row takes the current row\'s ink and weight. `AppShell`\'s `renderLink` now receives an `AppShellLink`, whose `icon` is optional. Resolves #843.', ['SidebarNav', 'AppShell']],
+      ['added', 'The page guideline has a new rule, Group the sidebar one way: group labels with no sub-items, or sub-items with no group labels. Resolves #843.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.179.2', date: '2026-11-21',
     changes: [
       ['changed', 'The page guideline no longer limits a page to six cards. A page may stack as many cards as it needs. A card inside another card is still against the rule. Resolves #839.', ['Guidelines']],

@@ -411,7 +411,7 @@
     forced-color-adjust: none;
     background: Highlight !important;
     color: HighlightText !important;
-    --ring: var(--ring-width) solid CanvasText;
+    --ring: var(--ring-width) solid CanvasText; --ring-scroll: var(--ring); /* the row draws --ring-scroll, which the root resolved (#843) */
   }
   .ui-nav__item.is-active:not(.is-disabled) .ui-nav__ic svg,
   .ui-nav__item.is-current:not(.is-disabled) .ui-nav__ic svg,
@@ -453,4 +453,17 @@
   .ui-nav--side.is-collapsed .ui-nav__item:is(.is-active, .is-current).is-disabled::before { background: GrayText; }
   /* The fill is the one mark, so the underline bar, which would paint the accent inside it, is gone. */
   .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { display: none; /* motion: still — the bar is not drawn while the fill marks the tab */ }
+}
+
+/* The parent of the current sub-item takes the current row's ink and weight, so the place
+   shows while its list is closed. In the folded rail its full-ink glyph is the mark (#843). */
+.ui-nav__toggle.is-current { color: var(--strong); font-weight: 500; }
+
+/* In forced colours a background becomes the canvas, so a folded sub-row's dot vanished.
+   A border keeps it: the engine paints it in the text colour, and a filled current row,
+   which opts out of the forced palette, keeps its own ink. The second selector is the
+   shell's folded rail, which layout.css marks on .ui-app (#843). */
+@media (forced-colors: active) {
+  .ui-nav--side.is-collapsed .ui-nav__item:not(:has(.ui-nav__ic))::after,
+  :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after { box-sizing: border-box; background: none; border: 2.5px solid currentColor; }
 }

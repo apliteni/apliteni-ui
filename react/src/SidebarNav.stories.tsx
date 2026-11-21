@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { SidebarNav, type SidebarNavSection } from './SidebarNav';
+import { SidebarNav, type SidebarNavBlock, type SidebarNavGroup } from './SidebarNav';
 import { Icon } from './primitives/Icon';
 
 const meta: Meta<typeof SidebarNav> = { title: 'React/SidebarNav', component: SidebarNav, render: args => <SidebarNav {...args} /> };
 export default meta;
 
-const sections: SidebarNavSection[] = [
+// A sidebar takes group labels or sub-items, never both (#843). These are the two forms.
+const groups: SidebarNavGroup[] = [
   {
     label: 'Overview',
     items: [
@@ -18,14 +19,7 @@ const sections: SidebarNavSection[] = [
     label: 'Finance',
     items: [
       { id: 'revenue', icon: 'chart', label: 'Revenue' },
-      {
-        id: 'payouts', icon: 'card', label: 'Payouts',
-        items: [
-          { id: 'payouts-pending', label: 'Pending', badge: 3 },
-          { id: 'payouts-history', label: 'History' },
-          { id: 'payouts-methods', label: 'Methods' },
-        ],
-      },
+      { id: 'payouts', icon: 'card', label: 'Payouts' },
       { id: 'invoices', icon: 'doc', label: 'Invoices', badge: { text: 'due', tone: 'danger' } },
     ],
   },
@@ -38,13 +32,33 @@ const sections: SidebarNavSection[] = [
     ],
   },
 ];
-
+const nested: SidebarNavBlock[] = [{
+  items: [
+    { id: 'home', icon: 'chart', label: 'Dashboard' },
+    { id: 'inbox', icon: 'mail', label: 'Inbox', badge: { text: 12, tone: 'accent' } },
+    {
+      id: 'payouts', icon: 'card', label: 'Payouts',
+      items: [
+        { id: 'payouts-pending', label: 'Pending', badge: 3 },
+        { id: 'payouts-history', label: 'History' },
+        { id: 'payouts-methods', label: 'Methods' },
+      ],
+    },
+    { id: 'invoices', icon: 'doc', label: 'Invoices', badge: { text: 'due', tone: 'danger' } },
+    { id: 'settings', icon: 'gear', label: 'Settings', disabled: true },
+  ],
+}];
 
 const footer = <a className="ui-nav__item is-danger" href="#logout" aria-label="Sign out">
   <span className="ui-nav__ic"><Icon name="logout" /></span><span className="ui-nav__label">Sign out</span>
 </a>;
+// Sub-items under no group label. The current sub-item shows, and its parent is current.
 export const Sidebar: StoryObj<typeof SidebarNav> = {
-  args: { sections, active: 'payouts-pending', 'aria-label': 'Primary', footer },
+  args: { sections: nested, active: 'payouts-pending', 'aria-label': 'Primary', footer },
+};
+// Group labels over rows with no sub-items.
+export const Groups: StoryObj<typeof SidebarNav> = {
+  args: { sections: groups, active: 'payouts', 'aria-label': 'Primary', footer },
 };
 // The folded rail holds its caps, labels and counts at opacity 0, so the rail alone
 // renders no text a contrast walk can judge. The vanilla gallery's specimen caption
@@ -61,7 +75,7 @@ export const SidebarCollapsed: StoryObj<typeof SidebarNav> = {
   </div>,
 };
 export const ActiveBadge: StoryObj<typeof SidebarNav> = {
-  args: { sections: [sections[0]], active: 'inbox', 'aria-label': 'Overview' },
+  args: { sections: [groups[0]], active: 'inbox', 'aria-label': 'Overview' },
 };
 export const RouterLink: StoryObj<typeof SidebarNav> = {
   args: { ...Sidebar.args, renderLink: (item, props) => <a {...props} data-route={item.id} /> },
