@@ -549,36 +549,86 @@ it('opens the kit readout on the mark the pointer rests on, with one comparison'
   expect(tip.querySelectorAll('.ui-tip__detail'), 'one comparison at most').toHaveLength(1);
 });
 
-it('prints the unfinished state in the readout instead of a comparison, and in the legend', () => {
+it('prints the unfinished state in the readout instead of a comparison, and draws no legend key for it', () => {
   expect(months().container.querySelector('.ui-chart__legend'), 'a legend only when asked for').toBeNull();
   cleanup();
   const { container } = months({ legend: true });
   hover('income-3');
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail'))
     .toHaveTextContent('Estimated — April is still running');
-  const key = [...container.querySelectorAll('.ui-chart__key')].find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(key.textContent?.trim()).toBe('Estimated');
+  expect([...container.querySelectorAll('.ui-chart__key')].map((k) => k.textContent),
+    'the words under the plot name the state, so the legend keys only the series')
+    .toEqual(['Income', 'Spend', 'Net']);
 });
 
-it('keeps the series fill on unfinished periods with a dashed ground edge', () => {
+// #841: an unfinished period keeps the solid mark every other period draws, and
+// the words under the plot say which periods are not final.
+const forecast: ChartPeriod[] = [
+  { label: 'Oct 2026' }, { label: 'Nov 2026', estimated: 'incomplete' },
+  { label: 'Dec 2026', estimated: 'projected' }, { label: 'Jan 2027', estimated: 'projected' },
+  { label: 'Feb 2027', estimated: 'projected', note: 'from the signed contracts' },
+];
+const forecastSeries: ChartSeries[] = [
+  { id: 'in', name: 'Cash in', values: [10, 12, 11, 13, 14], tone: 'good' },
+  { id: 'net', name: 'Net', values: [4, 5, 3, 6, 7], shape: 'line' },
+];
+const forecastChart = (extra: Partial<React.ComponentProps<typeof Chart>> = {}) => render(
+  <Chart title="Cash" periods={forecast} series={forecastSeries} format={eur} {...extra as object} />,
+);
+
+it('keeps the series fill and a solid edge on unfinished periods', () => {
   const { container } = months();
   const bars = [...container.querySelectorAll('path.ui-chart__bar')];
   const april = bars.filter((b) => b.classList.contains('is-estimated'));
   expect(april, 'one estimated bar per bar series in the unfinished column').toHaveLength(2);
-  const rule = /\.ui-chart__bar\.is-estimated\s*\{([^}]*)\}/.exec(readRepo('../../src/styles/chart.css'))![1];
-  expect(rule, 'an unfinished bar keeps the ramp every other bar is painted with')
-    .not.toContain('fill');
   for (const bar of april) {
-    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toMatch(/^url\(#/);
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'),
+      'an unfinished bar keeps the ramp every other bar is painted with').toMatch(/^url\(#/);
   }
-  expect(rule).toContain('stroke: var(--ui-chart-ground)');
-  expect(rule, 'the dash is the cue a reader who cannot see the tone still gets')
-    .toContain('stroke-dasharray: 3 2');
+  const css = readRepo('../../src/styles/chart.css');
+  expect(css, 'no mark draws a dash: not a bar, a line, a segment or a key').not.toContain('dasharray');
+  expect(css, 'no rule restyles an unfinished mark').not.toContain('is-estimated');
   expect(container.querySelectorAll('pattern'), 'no hatch is declared').toHaveLength(0);
   const segments = [...container.querySelectorAll('line.ui-chart__line')];
   expect(segments).toHaveLength(3);
-  expect(segments.filter((s) => s.classList.contains('is-estimated')),
-    'the segment into the unfinished month is dashed').toHaveLength(1);
+});
+
+// The owner struck the words under the plot from the accepted picture, so a
+// chart at rest prints no state: the readouts and the table name it.
+const restingWords = (root: Element) => root.textContent!.toLowerCase();
+
+it('prints no state words around the plot while no readout is open', () => {
+  const { container } = forecastChart();
+  expect(restingWords(container), 'no state words at rest').not.toMatch(/incomplete|projected|estimated/);
+  cleanup();
+  expect(restingWords(months().container), 'a plain estimate prints no word either').not.toMatch(/estimated/);
+});
+
+it('reads the state with the same word in the hover, keyboard and table readouts', async () => {
+  const user = userEvent.setup();
+  forecastChart();
+  hover('in-1');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail')).toHaveTextContent(/^Incomplete$/);
+  hover('in-4');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail'))
+    .toHaveTextContent('Projected — from the signed contracts');
+  await tabToFrame(user);
+  fireEvent.keyDown(frame(), { key: 'End' });
+  expect(screen.getByRole('status')).toHaveTextContent('Feb 2027. Cash in €14. Net €7. Projected — from the signed contracts.');
+  fireEvent.keyDown(frame(), { key: 'ArrowLeft' });
+  fireEvent.keyDown(frame(), { key: 'ArrowLeft' });
+  fireEvent.keyDown(frame(), { key: 'ArrowLeft' });
+  expect(screen.getByRole('status')).toHaveTextContent('Nov 2026. Cash in €12. Net €5. Incomplete.');
+  showTable();
+  expect([...document.querySelectorAll('.ui-chart__state')].map((s) => s.textContent))
+    .toEqual(['Incomplete', 'Projected', 'Projected', 'Projected — from the signed contracts']);
+});
+
+it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
+  const { container } = render(<Chart variant="spark" title="Cash" periods={forecast}
+    series={forecastSeries.slice(1)} format={eur} />);
+  expect(container.querySelector('line.ui-chart__line.is-estimated'), 'the line stays one solid stroke')
+    .not.toBeNull();
 });
 
 // #740: a bar fades from a tint of its tone at the base on zero to the full tone
@@ -892,14 +942,14 @@ describe('bridge', () => {
 
 /* -- the narrow width ------------------------------------------------------ */
 
-it('scrolls the plot and opens a labels look at its latest period', () => {
+it('scrolls the plot and opens a chart of periods at its latest period', () => {
   const { container } = months();
   expect(container.querySelector('.ui-chart__plot')).toHaveStyle({ '--ui-chart-cols': '4' });
   cleanup();
 
-  // A labels look opens on its latest period, where its labels are; the others
-  // open on the first. The widths are set before the render, so the opening
-  // scroll reads them.
+  // A chart of periods wider than its box opens on its latest period, the one
+  // a reader came for (#841); a bridge reads from its opening total. The widths
+  // are set before the render, so the opening scroll reads them.
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(576);
   const opening = (look: string) => {
@@ -908,8 +958,31 @@ it('scrolls the plot and opens a labels look at its latest period', () => {
     return left;
   };
   expect(opening('labels'), 'the labels look opens at the end').toBe(376);
-  expect(opening('thin'), 'the thin look opens at the start').toBe(0);
-  expect(opening('points'), 'the points look opens at the start').toBe(0);
+  expect(opening('thin'), 'the thin look opens at the end').toBe(376);
+  expect(opening('points'), 'the points look opens at the end').toBe(376);
+  const scrollOf = (el: HTMLElement) => (el.querySelector('.ui-chart__scroll') as HTMLDivElement).scrollLeft;
+  expect(scrollOf(months().container), 'a months chart opens at the end').toBe(376);
+  cleanup();
+  expect(scrollOf(render(<Chart variant="bridge" title="Cash" format={eur}
+    steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 }]} />).container),
+  'a bridge opens at its opening total').toBe(0);
+});
+
+// A chart that opens at its end must not open a readout on a period scrolled out
+// of view: focus starts on the nearest column the reader can see.
+it('opens the keyboard readout on a column in view when the plot opens at its end', async () => {
+  const user = userEvent.setup();
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  // Every box reads 200px and the scroller holds 300px, so the plot opens at 100
+  // and its 40px columns 3 and 4 are in view; column 0 is scrolled away.
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(300);
+  forecastChart({ table: false });
+  const scroll = document.querySelector('.ui-chart__scroll') as HTMLDivElement;
+  expect(scroll.scrollLeft, 'the plot opens at its end').toBe(100);
+  await user.tab();
+  expect(screen.getByRole('status'), 'not Oct, which is scrolled away').toHaveTextContent(/^Jan 2027\./);
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent('Cash in, Jan 2027');
+  vi.restoreAllMocks();
 });
 
 it('keeps the value axis out of the scroller, so it stays put', () => {
@@ -1215,30 +1288,14 @@ it('lays every line casing under every line stroke, and makes it the wider of th
     .toMatch(/\.ui-chart--spark \.ui-chart__line-casing \{ display: none; \}/);
 });
 
-it('draws the Estimated key in the tone of the series it describes, not in body ink', () => {
-  const { container } = months({ legend: true });
-  const key = [...container.querySelectorAll('.ui-chart__key')]
-    .find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(classOf(key), 'the key takes the tone of the unfinished bar it stands for')
-    .toContain('ui-chart__tone--good');
-  const css = readRepo('../../src/styles/chart.css');
-  const rule = /\.ui-chart__key-estimated\s*\{([^}]*)\}/.exec(css)![1];
-  expect(rule, 'the key cuts dashes into the fill').toContain('stroke: var(--ui-chart-ground)');
-  expect(rule, 'the key keeps the series fill')
-    .toContain('fill: var(--ui-chart-tone)');
-  expect(rule, 'the key draws no maximum-contrast outline').not.toMatch(/var\(--(text|strong)\)/);
-});
-
-it('a bridge draws its Estimated key in the tone of the step that is not final', () => {
+it('a bridge prints no word for its step that is not final, and keys no state', () => {
   const { container } = render(
     <Chart variant="bridge" title="Cash" format={eur}
       steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
         { label: 'Fees', value: -150, estimated: true }, { label: 'Closing', kind: 'total' }]} legend />,
   );
-  const key = [...container.querySelectorAll('.ui-chart__key')]
-    .find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(classOf(key), 'a falling step is the bad tone, not the first key in the legend')
-    .toContain('ui-chart__tone--bad');
+  expect(restingWords(container), 'the readout names the step, not the resting chart').not.toMatch(/estimated/);
+  expect(container.querySelector('.ui-chart__key-estimated')).toBeNull();
 });
 
 it('a cursor left past the end of a shortened series still announces', async () => {
@@ -1415,7 +1472,6 @@ it('draws a line look as lines only, with points or end labels where the look as
     const { container } = lookChart('line', look);
     const got = {
       bars: container.querySelectorAll('.ui-chart__bar, .ui-chart__segment').length,
-      /* A line is drawn a segment a column step, so the estimated step can dash alone. */
       lines: container.querySelectorAll('line.ui-chart__line').length,
       dots: container.querySelectorAll('.ui-chart__dot').length,
     };

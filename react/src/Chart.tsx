@@ -34,11 +34,17 @@ export type ChartPeriod = {
   label: string;
   /** The period as the axis names it. Defaults to `label`'s first word. */
   short?: string;
-  /** The period is not final — estimated, forecast, or still running. */
-  estimated?: boolean;
-  /** Why it is not final. Printed in the readout and in the legend. */
+  /**
+   * The period is not final. `incomplete` is the period still running,
+   * `projected` a future one, and `true` any other estimate. The readout and
+   * the table name the state; the chart at rest prints none.
+   */
+  estimated?: ChartEstimate;
+  /** Why it is not final. Printed in the readout and in the table. */
   note?: string;
 };
+
+export type ChartEstimate = boolean | 'incomplete' | 'projected';
 
 export type ChartSeries = {
   id: string;
@@ -68,7 +74,7 @@ export type ChartBridgeStep = {
   kind?: 'total' | 'change';
   /** A change's amount. A `total` without one takes the running total. */
   value?: number;
-  estimated?: boolean;
+  estimated?: ChartEstimate;
   note?: string;
 };
 
@@ -119,7 +125,8 @@ export type ChartProps = ChartCommon & (
   }
 );
 
-type Column = { label: string; short: string; estimated: boolean; note?: string };
+/** `state` is the word the chart prints for a period that is not final. */
+type Column = { label: string; short: string; estimated: boolean; state?: string; note?: string };
 type Key = { id: string; name: string; tone: ChartTone; shape: 'bars' | 'bars-below' | 'line' | 'fill' };
 type Band = 'up' | 'down' | 'full';
 
@@ -242,8 +249,10 @@ function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const px = (n: number) => Math.round(n * 10) / 10;
+const STATE_WORD = { incomplete: 'Incomplete', projected: 'Projected' } as const;
 const columnOf = (p: ChartPeriod | ChartBridgeStep, fallback: string): Column => ({
   label: p.label, short: p.short || fallback, estimated: Boolean(p.estimated), note: p.note,
+  state: !p.estimated ? undefined : p.estimated === true ? 'Estimated' : STATE_WORD[p.estimated],
 });
 
 /** A share-of-the-previous-column comparison, in the kit's readout wording. */
@@ -301,9 +310,10 @@ function useTapFloor() {
   return floor;
 }
 
+/** The readout's words for a period that is not final: the state, then why. */
 function stateOf(column: Column | undefined) {
-  if (!column?.estimated) return '';
-  return column.note ? `Estimated — ${column.note}` : 'Estimated';
+  if (!column?.state) return '';
+  return column.note ? `${column.state} — ${column.note}` : column.state;
 }
 
 /** The frame a bars-and-line chart draws, and the sparkline's, which is the same
@@ -555,6 +565,9 @@ export function Chart(props: ChartProps) {
 
   const floor = useTapFloor();
   const [width, setWidth] = useState(0);
+  /** The scroller's own width, which the axis beside it can still change after
+   *  the plot has its width: a chart that opens at its end follows it there. */
+  const [boxWidth, setBoxWidth] = useState(0);
   const [overflows, setOverflows] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [rawCursor, setCursor] = useState(0);
@@ -703,6 +716,7 @@ export function Chart(props: ChartProps) {
     if (!el || !box) return;
     const read = () => {
       setWidth(el.clientWidth);
+      setBoxWidth(box.clientWidth);
       setOverflows(box.scrollWidth > box.clientWidth);
     };
     read();
@@ -713,12 +727,13 @@ export function Chart(props: ChartProps) {
     return () => observer.disconnect();
   }, []);
 
-  // A labels look opens on its latest period, where its labels are.
-  const opensAtEnd = variant === 'line' && lookName === 'labels';
+  // A chart of periods wider than its card opens on its latest period, which is
+  // the one a reader came for. A labels look also keeps its labels there.
+  const opensAtEnd = Boolean(periods);
   useLayoutEffect(() => {
     const el = scroller.current;
     if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
-  }, [opensAtEnd, plotWidth, count]);
+  }, [opensAtEnd, plotWidth, boxWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */
 
@@ -777,6 +792,17 @@ export function Chart(props: ChartProps) {
     setSaid(`${where.label}. ${values}.${state ? ` ${state}.` : ''}${picked === column ? ' Selected.' : ''}`);
   }, [columns, marks, format, pick, totalLabel]);
 
+  /** The column focus opens on: the cursor, or the nearest column in view when
+   *  the plot is scrolled away from it, so the readout stands beside its mark. */
+  const inView = (column: number) => {
+    const el = scroller.current;
+    if (!el || el.scrollWidth <= el.clientWidth || !colWidth) return column;
+    const first = Math.min(count - 1, Math.max(0, Math.ceil(el.scrollLeft / colWidth - 0.01)));
+    const last = Math.max(first, Math.min(count - 1,
+      Math.floor((el.scrollLeft + el.clientWidth) / colWidth + 0.01) - 1));
+    return Math.min(Math.max(column, first), last);
+  };
+
   const step = (next: number) => {
     const column = Math.max(0, Math.min(next, count - 1));
     setCursor(column);
@@ -814,12 +840,6 @@ export function Chart(props: ChartProps) {
 
   /* -- the drawing --------------------------------------------------------- */
 
-  const estimated = columns.filter((c) => c.estimated);
-  // The key is drawn in the tone of the unfinished mark it stands for, so it
-  // looks like that bar rather than like an outline of its own: the income bar
-  // in a months chart, the step that is not invoiced yet in a bridge.
-  const estimatedTone = marks.find((m) => m.estimated && m.kind === 'bar')?.tone
-    ?? keys[0]?.tone ?? 'neutral';
   const hitBand = (band: Band) => (band === 'up'
     ? { y: PAD, h: Math.max(zero - PAD, TARGET) }
     : band === 'down'
@@ -837,14 +857,6 @@ export function Chart(props: ChartProps) {
           {key.name}
         </li>
       ))}
-      {estimated.length > 0 && (
-        <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
-          <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-            <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="2.5" />
-          </svg>
-          Estimated
-        </li>
-      )}
     </ul>
   );
   const viewSwitch = showTable && (
@@ -888,8 +900,10 @@ export function Chart(props: ChartProps) {
         onFocus={(event) => {
           if (event.target !== event.currentTarget) return;
           if (pointerFocus.current) { pointerFocus.current = false; return; }
-          show(lead(cursor)?.id);
-          announce(cursor);
+          const column = inView(cursor);
+          setCursor(column);
+          show(lead(column)?.id);
+          announce(column);
         }}
         onBlur={(event) => {
           if (event.target !== event.currentTarget) return;

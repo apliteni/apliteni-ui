@@ -18,7 +18,7 @@ const SPEND = [29870, 30410, 31220, 30980, 32140, 31760, 32900, 33410, 32780, 33
 const NET = INCOME.map((value, i) => value - SPEND[i]);
 
 const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
-  ? { label, estimated: true, note: 'November is still running' }
+  ? { label, estimated: 'incomplete' }
   : { label }));
 
 /* Two hues for the two measured series, and a third for the one derived from
@@ -63,15 +63,36 @@ export const AsTable: StoryObj = {
   },
 };
 
-/** The same months with no unfinished period: every column solid, so the hollow
- *  one beside them in every other story reads as the exception it is. The story's
- *  id is kept from the round that named it after the fade it no longer draws. */
+/** The same months with no unfinished period, so no readout names a state.
+ *  The story's id is kept from the round that named it after the fade it no
+ *  longer draws. */
 export const Solid: StoryObj = {
   render: () => (
     <Card title="Income and spend">
       <Chart title="Income and spend by closed month, with net"
         periods={closed}
         series={series.map((s) => ({ ...s, values: s.values.slice(0, 11) }))}
+        format={eur} formatAxis={eurAxis} />
+    </Card>
+  ),
+};
+
+/** The last closed months, the running one and three projected ones (#841).
+ *  Every mark stays solid; the readout and the table name the periods that are
+ *  not final. */
+export const Forecast: StoryObj = {
+  render: () => (
+    <Card title="Cash in">
+      <Chart title="Cash in by month, with three projected months"
+        periods={[
+          ...MONTHS.slice(8, 11).map((label) => ({ label })),
+          { label: 'Nov 2025', estimated: 'incomplete' },
+          { label: 'Dec 2025', estimated: 'projected' },
+          { label: 'Jan 2026', estimated: 'projected' },
+          { label: 'Feb 2026', estimated: 'projected', note: 'from the signed contracts' },
+        ]}
+        series={[{ id: 'in', name: 'Cash in', values: [47930, 46820, 49300, 31870, 48100, 48600, 49200],
+          shape: 'bars', tone: 'good' }]}
         format={eur} formatAxis={eurAxis} />
     </Card>
   ),

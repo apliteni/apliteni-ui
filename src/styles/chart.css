@@ -1,7 +1,7 @@
 /* ============================================================================
  * Chart — .ui-chart, the shapes a money dashboard keeps redrawing.
  *   .ui-chart__head    the opt-in legend and the chart and table switch
- *   .ui-chart__legend  one key per series, plus the unfinished-period key
+ *   .ui-chart__legend  one key per series
  *   .ui-chart__frame   the tab stop; the value axis beside the scroller
  *   .ui-chart__scroll  the scroller
  *   .ui-chart__plot    the drawing and its column labels
@@ -12,8 +12,8 @@
 
 .ui-chart {
   --ui-chart-col: var(--space-12);
-  /* The ground the marks are drawn on, so an unfinished period and the rim the
-     line is carried on read as cut out of it. A chart outside a card names its
+  /* The ground the marks are drawn on, so a point and the rim the line is
+     carried on read as cut out of it. A chart outside a card names its
      own. */
   --ui-chart-ground: var(--surface);
   /* The tick's own line box. The axis spans the band the gridlines are drawn
@@ -65,12 +65,6 @@
 .ui-chart__key-mark { flex: none; }
 .ui-chart__key-swatch { fill: var(--ui-chart-tone); }
 .ui-chart__key-line { fill: none; stroke: var(--ui-chart-tone); stroke-width: 2; stroke-linecap: round; }
-.ui-chart__key-estimated {
-  fill: var(--ui-chart-tone);
-  stroke: var(--ui-chart-ground);
-  stroke-width: 1;
-  stroke-dasharray: 2 2;
-}
 
 /* -- the frame ------------------------------------------------------------- */
 
@@ -172,13 +166,6 @@
 /* The ramp's two stops. Each reads the tone of the gradient that holds it. */
 .ui-chart__fade-base { stop-color: var(--ui-chart-fade); }
 .ui-chart__fade-end { stop-color: var(--ui-chart-tone); }
-/* Keep each series' fill. Ground-coloured dashes mark unfinished data
-   without joining the mirrored bars across the zero channel. */
-.ui-chart__bar.is-estimated {
-  stroke: var(--ui-chart-ground);
-  stroke-width: 1;
-  stroke-dasharray: 3 2;
-}
 
 /* An isolated value has no segment to draw it. Connected points need no dot. */
 .ui-chart__isolated { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 1; }
@@ -189,7 +176,6 @@
   stroke-width: 2;
   stroke-linecap: round;
 }
-.ui-chart__line.is-estimated { stroke-dasharray: 5 3; }
 
 /* The ground carried under the line. The line crosses bars of its own family,
    where hue alone separates them and luminance does not: a stroke of the ground
@@ -243,7 +229,7 @@
 /* The rule under the column the reader is on. It is the zero rule's weight: a
    line read across, not a mark. */
 .ui-chart__cross { stroke: var(--border-strong); stroke-width: 1; }
-/* A point, cut out of the ground like an unfinished bar, so two lines that
+/* A point, cut out of the ground, so two lines that
    meet still show both points. */
 .ui-chart__dot { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 2; }
 .ui-chart--line-thin .ui-chart__line { stroke-width: 1.5; }
@@ -266,7 +252,6 @@
   stroke-width: 2;
   stroke-linejoin: round;
 }
-.ui-chart__segment.is-estimated { stroke-dasharray: 3 2; }
 /* Words drawn in the plot: a value at a line's end, a row's total, a slice's
    name. They are the chart's own figures, so they take the body ink. */
 .ui-chart__text { fill: var(--text); font-size: var(--text-xs); font-variant-numeric: tabular-nums; }
@@ -352,6 +337,9 @@
    their height would hide the last period behind a second scrollbar. */
 .ui-chart__data .ui-table-scroll { --ui-table-height: none; }
 .ui-chart__data .ui-table { margin: 0; }
+/* A period that is not final keeps its solid mark in the series ink: the
+   readout and the table name its state. */
+
 /* Why a period is not final is a sentence, not a label, so it wraps under the
    period it qualifies instead of carrying the money columns another two hundred
    pixels to the right of a 390px card. */

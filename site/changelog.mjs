@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.180.0', date: '2026-11-21',
+    changes: [
+      ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink. The chart no longer draws a dashed edge, a dashed line or a dashed legend key, and the legend no longer has an Estimated key. The readout and the table name a period that is not final. Resolves #841.', ['Chart']],
+      ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the period that is still running and `estimated: \'projected\'` for a future period. The readout and the table then say \u201cIncomplete\u201d or \u201cProjected\u201d. Resolves #841.', ['Chart']],
+      ['changed', 'A `Chart` of periods that is wider than its card opens at its latest period in every look, not only in the line chart\u2019s labels look. A bridge still opens at its opening total. Resolves #841.', ['Chart']],
+    ],
+  },
+  {
     v: '0.179.2', date: '2026-11-21',
     changes: [
       ['changed', 'The page guideline no longer limits a page to six cards. A page may stack as many cards as it needs. A card inside another card is still against the rule. Resolves #839.', ['Guidelines']],
