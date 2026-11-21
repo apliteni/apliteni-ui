@@ -620,7 +620,7 @@ const checkPinGap = (css) => {
   // the frame is scrolled does the cut reach past the divider, by the widest band (12px)
   // and its 1px line. Chromium computes a calc() in this property as 0px.
   assert.match(band[1], /\.ui-table--pinned\s+\.ui-table__identity\s*\{\s*overflow-clip-margin:\s*var\(--space-4\);\s*\}/,
-    'the cell cut reaches past the widest band, with a plain token');
+    'the cell cut reaches past the widest band, with a plain step');
   const pads = [...css.matchAll(/([^{}]+?)\s*\.ui-table__identity \+ :is\(th, td\)\s*\{\s*padding-left:\s*([^;]+);\s*\}/g)];
   assert.equal(pads.length, 2, 'two rules pad the cell after the divider');
   for (const [, scope, value] of pads) {

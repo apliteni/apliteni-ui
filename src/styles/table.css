@@ -410,7 +410,7 @@
    under the pin stops short of the line. A frame at rest paints nothing more. The gap is
    the next cell's padding, set beside each padding rule below. Below 720px the cell cuts
    what overflows it, so its cut reaches past the divider to hold the widest band, 12px and
-   the 1px line. A plain token, because Chromium computes a calc() here as 0px. why: #845 */
+   the 1px line. A plain step, because Chromium computes a calc() here as 0px. why: #845 */
 @container scroll-state(scrollable: left) {
   .ui-table--pinned .ui-table__identity { overflow-clip-margin: var(--space-4); }
   .ui-table--pinned .ui-table__identity::after {
