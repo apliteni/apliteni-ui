@@ -33,6 +33,7 @@ const Connections = () => {
   const [asking, setAsking] = useState<string | null>(null);
   const revoke = () => { setRows(rows.filter(([app]) => app !== asking)); setAsking(null); };
   return <Card title="Connections">
+    {/* A reader holds a few connections, so the table takes no bar. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
     {rows.length ? <table className="ui-table ui-table--hover">
       <thead><tr><th>App</th><th>Access</th><th>Connected</th><th>Last used</th><th></th></tr></thead>
       <tbody>{rows.map(([app, access, connected, used]) => <tr key={app}>
