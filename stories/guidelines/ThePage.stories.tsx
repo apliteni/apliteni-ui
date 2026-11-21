@@ -13,7 +13,7 @@ import { RestingFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { LIMITS, SPEC_CSS } from './_the-page.js';
+import { SPEC_CSS } from './_the-page.js';
 
 const content = await loadGuideline('the-page.md', new URL('../../guidelines/the-page.md', import.meta.url));
 
@@ -34,9 +34,10 @@ const Agents = ({ all = false }: { all?: boolean }) => <Stage>
   </div></Card>
 </Stage>;
 
-// How much may stack: one block per card, both columns at one scale.
-const Stack = ({ n, over = false }: { n: number; over?: boolean }) => <Stage>
-  <div className={`tp-stack${over ? ' tp-stack--over' : ''}`}>{Array.from({ length: n }, (_, i) => <div key={i} className="tp-card" />)}</div>
+// Cards stack at one level, never one inside another.
+const Stack = ({ nested }: { nested: boolean }) => <Stage>{nested
+  ? <Card title="Payouts"><Card title="Last 7 days" sub="14 payouts" /><Card title="Failed" sub="2 payouts" /></Card>
+  : <div className="ui-card-stack"><Card title="Payouts" sub="14 payouts" /><Card title="Last 7 days" sub="14 payouts" /><Card title="Failed" sub="2 payouts" /></div>}
 </Stage>;
 
 // One density per page. Each long table keeps its filter bar directly above it.
@@ -129,7 +130,7 @@ const specimens = [
     dont: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={1} text="Last 7 days" bad />
       <Out rank={3} text="Payouts" bad /><Out rank={4} text="Failed this week" bad /></div></Stage> },
   { id: 'one-primary', do: () => <Agents />, dont: () => <Agents all /> },
-  { id: 'stacking', do: () => <Stack n={LIMITS.cards} />, dont: () => <Stack n={12} over /> },
+  { id: 'stacking', do: () => <Stack nested={false} />, dont: () => <Stack nested /> },
   { id: 'at-rest', do: () => <AtLoad open={false} />, dont: () => <AtLoad open /> },
   { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
   { id: 'lede', do: () => <Lede sub="Payouts arrive within three business days." />,

@@ -74,17 +74,17 @@
 
 **Don't:** Give all three actions equal emphasis.
 
-## Limit card stacks
+## Never nest cards
 
 <!-- rule: stacking -->
 
-**Rule:** Stack no more than six cards, and never put cards inside other cards.
+**Rule:** Never put a card inside another card.
 
-**Why:** Too many cards make readers scroll past other content to find their target.
+**Why:** Two borders around one thing give the inner card no rank, so the reader cannot tell which box holds the content.
 
-**Do:** Show up to six cards.
+**Do:** Stack the cards at one level, as many as the page needs.
 
-**Don't:** Show twelve cards or nest cards inside cards.
+**Don't:** Put a card inside another card.
 
 ## Leave pages closed
 

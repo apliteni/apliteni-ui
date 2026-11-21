@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.179.2', date: '2026-11-21',
+    changes: [
+      ['changed', 'The page guideline no longer limits a page to six cards. A page may stack as many cards as it needs. A card inside another card is still against the rule. Resolves #839.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.179.1', date: '2026-11-20',
     changes: [
       ['changed', 'The components page now tells you, for each React component, when to use it and when not, gives one short example and says what the user sees. It no longer documents the removed vanilla factories. Part of #781.'],
