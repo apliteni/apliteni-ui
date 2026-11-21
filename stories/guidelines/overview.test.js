@@ -118,6 +118,4 @@ test('every page has a line and a card on the Overview', () => {
     if (!PAGES.some((page) => page.group === group)) problems.push(`the card "${group}" lists no page`);
   }
   assert.deepStrictEqual(problems, [], `the Overview would hide a page or draw an empty card:\n  ${problems.join('\n  ')}`);
-  // Six cards, the most a page stacks (The page, "Limit card stacks").
-  assert.ok(GROUPS.length <= 6, `${GROUPS.length} cards on the Overview, and a page stacks at most six`);
 });

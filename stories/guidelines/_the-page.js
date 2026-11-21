@@ -7,13 +7,13 @@ export const RULES = content.rules;
 
 export const REFERENCE_POLICY = 'code-free';
 
-// The four limits the rules are stated in. They are here rather than in the
+// The three limits the rules are stated in. They are here rather than in the
 // prose because react/src/the-page.test.tsx measures the kit's own
 // screens against these names — a number edited in the sentence and not in the
 // gate is the drift this whole collection exists to stop.
-export const LIMITS = { cards: 6, outline: 3, primary: 1, lede: 2 };
+export const LIMITS = { outline: 3, primary: 1, lede: 2 };
 
-// The outline uses labels for heading levels; the stack uses one block per card.
+// The outline uses labels for heading levels.
 export const SPEC_CSS = `
   <style>
     .tp-out { display: flex; flex-direction: column; gap: var(--space-2); }
@@ -30,16 +30,6 @@ export const SPEC_CSS = `
     .tp-out__row--bad .tp-out__rank { color: var(--pink);
       background: color-mix(in srgb, var(--pink) 16%, transparent); }
 
-    /* The stack specimens. Twelve cards do not fit a 420px cell at life size and
-       a clipped column cannot be counted, so the count is what is drawn: one
-       block per card, both columns at one scale. The caption says so. */
-    .tp-stack { height: 224px; display: flex; flex-direction: column; gap: 6px; }
-    .tp-card { height: 12px; border-radius: 4px; flex: none;
-      background: var(--surface); box-shadow: inset 0 0 0 1px var(--border);
-      display: flex; align-items: center; padding: 0 5px; }
-    .tp-card::before { content: ""; height: 3px; width: 34%; border-radius: 2px;
-      background: color-mix(in srgb, var(--muted) 55%, transparent); }
-    .tp-stack--over .tp-card { background: var(--surface-2); }
 
     /* The layout and width specimens. A shell cannot be photographed at life size in
        a 420px cell either, so these are drawn to scale: the rail, the band and the

@@ -191,18 +191,6 @@ export const CHECKS = {
       problems.push(`${s.where} puts ${nested.length} card(s) inside another card. Two borders `
         + 'around one thing, and the kit has no rank for the inner one.');
     }
-    const body = s.doc.querySelector('.ui-app__body');
-    if (body) {
-      // Every card the body holds that no other card holds — counted by
-      // ancestry rather than by direct childhood, because a wrapper around
-      // twelve cards is still twelve cards on the page.
-      const stacked = [...body.querySelectorAll('.ui-card')]
-        .filter((el) => !inOverlay(el) && !el.parentElement.closest('.ui-card'));
-      if (stacked.length > LIMITS.cards) {
-        problems.push(`${s.where} stacks ${stacked.length} cards. Past ${LIMITS.cards} the page `
-          + 'is a list of lists and wants sections, tabs, or a second page.');
-      }
-    }
     return problems;
   },
 

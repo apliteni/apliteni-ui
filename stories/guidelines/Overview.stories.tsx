@@ -9,7 +9,7 @@ import { TITLE, LINKS, GROUPS } from './_overview.js';
 
 type Link = { title: string; href: string; group: string; summary: string };
 
-// Six cards, the most a page stacks: guidelines/the-page.md#limit-card-stacks.
+// One card for each group of guideline pages.
 // The page's name and its line are one link, so the target is the whole entry.
 const CSS = `<style>
   .gi { max-width: var(--container); }

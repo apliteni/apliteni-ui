@@ -18,7 +18,7 @@
 .invoice-flow__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin: 0; }
 
 /* A file the reader added, sized to its pane. No edge: the pane is the card.
-   why: guidelines/the-page.md#limit-card-stacks */
+   why: guidelines/the-page.md#never-nest-cards */
 .invoice-flow__preview :is(img, iframe) { width: 100%; }
 .invoice-flow__preview iframe { height: var(--panel-lg); }
 
