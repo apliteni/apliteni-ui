@@ -978,8 +978,10 @@ tooltip or a picker already used closes only that overlay. The next Escape close
 
 ### Account window
 
-Use `AccountWindow` for account and settings. Do not make account and settings a page of the
-product: [Account and settings](../guidelines/account-and-settings.md).
+Use `AccountWindow` for an account area of several groups. When the account area is only a
+profile and a few preferences, open a Profile page and a Preferences page in the app shell from
+the account menu, with no second navigation column:
+[Account and settings](../guidelines/account-and-settings.md).
 
 ```tsx
 <AccountWindow open={open} onClose={close} reader={{ name: 'Dana Reyes', email: 'dana@example.com' }}
