@@ -345,6 +345,7 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   column-gap: var(--space-4);
+  row-gap: var(--space-1);
   margin: 0;
 }
 

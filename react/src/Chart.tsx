@@ -582,6 +582,9 @@ export function Chart(props: ChartProps) {
 
   const floor = useTapFloor();
   const [width, setWidth] = useState(0);
+  /** The scroller's own width, which the axis beside it can still change after
+   *  the plot has its width: a chart that opens at its end follows it there. */
+  const [boxWidth, setBoxWidth] = useState(0);
   const [overflows, setOverflows] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const [rawCursor, setCursor] = useState(0);
@@ -730,6 +733,7 @@ export function Chart(props: ChartProps) {
     if (!el || !box) return;
     const read = () => {
       setWidth(el.clientWidth);
+      setBoxWidth(box.clientWidth);
       setOverflows(box.scrollWidth > box.clientWidth);
     };
     read();
@@ -746,7 +750,7 @@ export function Chart(props: ChartProps) {
   useLayoutEffect(() => {
     const el = scroller.current;
     if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
-  }, [opensAtEnd, plotWidth, count]);
+  }, [opensAtEnd, plotWidth, boxWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */
 
@@ -804,6 +808,17 @@ export function Chart(props: ChartProps) {
     const state = stateOf(where);
     setSaid(`${where.label}. ${values}.${state ? ` ${state}.` : ''}${picked === column ? ' Selected.' : ''}`);
   }, [columns, marks, format, pick, totalLabel]);
+
+  /** The column focus opens on: the cursor, or the nearest column in view when
+   *  the plot is scrolled away from it, so the readout stands beside its mark. */
+  const inView = (column: number) => {
+    const el = scroller.current;
+    if (!el || el.scrollWidth <= el.clientWidth || !colWidth) return column;
+    const first = Math.min(count - 1, Math.max(0, Math.ceil(el.scrollLeft / colWidth - 0.01)));
+    const last = Math.max(first, Math.min(count - 1,
+      Math.floor((el.scrollLeft + el.clientWidth) / colWidth + 0.01) - 1));
+    return Math.min(Math.max(column, first), last);
+  };
 
   const step = (next: number) => {
     const column = Math.max(0, Math.min(next, count - 1));
@@ -905,8 +920,10 @@ export function Chart(props: ChartProps) {
         onFocus={(event) => {
           if (event.target !== event.currentTarget) return;
           if (pointerFocus.current) { pointerFocus.current = false; return; }
-          show(lead(cursor)?.id);
-          announce(cursor);
+          const column = inView(cursor);
+          setCursor(column);
+          show(lead(column)?.id);
+          announce(column);
         }}
         onBlur={(event) => {
           if (event.target !== event.currentTarget) return;

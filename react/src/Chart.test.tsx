@@ -977,6 +977,23 @@ it('scrolls the plot and opens a chart of periods at its latest period', () => {
   'a bridge opens at its opening total').toBe(0);
 });
 
+// A chart that opens at its end must not open a readout on a period scrolled out
+// of view: focus starts on the nearest column the reader can see.
+it('opens the keyboard readout on a column in view when the plot opens at its end', async () => {
+  const user = userEvent.setup();
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  // Every box reads 200px and the scroller holds 300px, so the plot opens at 100
+  // and its 40px columns 3 and 4 are in view; column 0 is scrolled away.
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(300);
+  forecastChart({ table: false });
+  const scroll = document.querySelector('.ui-chart__scroll') as HTMLDivElement;
+  expect(scroll.scrollLeft, 'the plot opens at its end').toBe(100);
+  await user.tab();
+  expect(screen.getByRole('status'), 'not Oct, which is scrolled away').toHaveTextContent(/^Jan 2027\./);
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent('Cash in, Jan 2027');
+  vi.restoreAllMocks();
+});
+
 it('keeps the value axis out of the scroller, so it stays put', () => {
   const { container } = months();
   const axis = container.querySelector('.ui-chart__axis')!;
