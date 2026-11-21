@@ -9,6 +9,8 @@ import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
 import { BackLink } from '../../react/src/BackLink';
 import { Dropdown } from '../../react/src/Dropdown';
+// The shell's own band rules, so the Do picture draws the bell as the shell does.
+import '../../react/src/AppShell.css';
 import { KeyValueList } from '../../react/src/KeyValueList';
 import { SidebarNav, type SidebarNavSections } from '../../react/src/SidebarNav';
 import { RestingFilters } from '../_table-filters';
@@ -94,7 +96,7 @@ const Shells = ({ moved }: { moved: boolean }) => <div className="tp-rows">
   </div>)}
 </div>;
 
-// The bar's right end: the bell that serves every page, or a page's own button.
+// The bar's right end: the shell's bell, which serves every page, or a page's own button.
 const BarEnd = ({ page }: { page: boolean }) => <div className="gl-stage tp-screen"><div className="ui-app__bar tp-bar">
   <button type="button" className="ui-app__search">
     <span className="ui-app__search-ic"><Icon name="search" /></span>
@@ -102,10 +104,9 @@ const BarEnd = ({ page }: { page: boolean }) => <div className="gl-stage tp-scre
   </button>
   <span className="ui-app__bar-gap" />
   {page ? <Button variant="primary" icon="plus">New report</Button>
-    : <Dropdown variant="menu" align="end" chevron={false} ariaLabel="Notifications, 3 unread"
-      triggerContent={<><span className="ui-nav__ic"><Icon name="bell" /></span><span aria-hidden="true"><Badge>3</Badge></span></>}
-      items={[{ label: 'Payout run PR-204 failed', value: 'payout' }]} />}
-  <Avatar personKey="dana@example.com" name="Dana Reyes" size={32} />
+    : <div className="ui-react-app__band-actions"><Dropdown variant="menu" align="end" chevron={false} title="Notifications"
+      ariaLabel="Notifications, 3 unread" triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>3</Badge></span></>}
+      items={[{ label: 'Payout run PR-204 failed', value: 'payout' }]} /></div>}
 </div></div>;
 
 // A page head with the shell's own classes, in the order given.

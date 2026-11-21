@@ -50,7 +50,7 @@ const ROWS = [
 const STATUS = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
 
 // The topbar layout's bell at the band's right end (#847). The count is its name too.
-const BELL = <Dropdown variant="menu" align="end" chevron={false} ariaLabel="Notifications, 2 unread"
+const BELL = <Dropdown variant="menu" align="end" chevron={false} title="Notifications" ariaLabel="Notifications, 2 unread"
   triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>2</Badge></span></>}
   header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
   items={[{ label: 'Globex payout needs a second approval', value: 'globex', href: '#globex' },

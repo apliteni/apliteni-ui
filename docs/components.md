@@ -179,8 +179,11 @@ Auto, Light and Dark.
   head, before the fold button.
 - `bandActions` puts glyph controls, such as a notification bell, at the right end of the band,
   in each sidebar structure and at every width. With a sidebar, they stand before the menu
-  button, and search keeps the centre of the band. With no sidebar, they stand before the theme
-  switch. Put one or two there. Below 560px, each one keeps a 44 by 44px tap zone.
+  button, and search keeps the centre of the band while it has room. Where the band is short of
+  room, search moves off the centre and shrinks, and never goes under an action. With no
+  sidebar, they stand before the theme switch. Put one or two there, and give each one a hover
+  title. A dropdown trigger there is a 40px square, and a count in it stands on the glyph's
+  corner. Below 560px, each one is a 40px glyph with no border and keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.
 

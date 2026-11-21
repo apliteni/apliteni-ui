@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.182.0', date: '2026-11-21',
     changes: [
-      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre; with no sidebar they stand before the theme switch. Topbar layout only. Resolves #847.', ['AppShell']],
+      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre while it has room; with no sidebar they stand before the theme switch. A count stands on the glyph’s corner. Topbar layout only. Resolves #847.', ['AppShell']],
       ['added', 'The page guideline has a new rule, Keep the bar’s end for product alerts: only glyph controls that serve every page, such as the bell, go there. Resolves #847.', ['Guidelines']],
     ],
   },

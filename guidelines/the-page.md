@@ -32,7 +32,7 @@
 
 **Why:** The reader looks for the bell in the same place on every page, and a phone bar has room for two glyphs at most.
 
-**Do:** Put the bell beside the reader’s menu.
+**Do:** Put the bell at the bar’s end, after search.
 
 **Don't:** Put a page’s own button, such as New report, in the bar.
 

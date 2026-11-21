@@ -529,11 +529,23 @@ describe('band actions', () => {
     expect(document.querySelector('.ui-react-app__band-actions')).toBeNull();
   });
 
-  it('opens 4px around each action below 560px, so a layer reaches 44px', () => {
+  it('draws each action as a borderless 40px glyph below 560px, and opens 4px around it, so a layer reaches 44px', () => {
     const css = read('./AppShell.css');
     const phone = css.slice(css.lastIndexOf('@media (max-width: 560px)'));
     expect(phone).toMatch(/\.ui-app__bar > \.ui-react-app__band-actions \{ margin-inline: var\(--space-1\); --tap-clear-x: var\(--space-1\); \}/);
     expect(css).toMatch(/\.ui-react-app__band-actions \{ display: flex; align-items: center; flex: none; gap: var\(--space-1\); \}/);
-    expect(phone).toMatch(/\.ui-react-app__band-actions > \.ui-btn \{[^}]*width: 40px;/);
+    // A 1px border leaves a 38px padding box, and the layer is 100% of it plus the 4px: 42px.
+    const glyphs = css.match(/\.ui-react-app \.ui-app__bar \.ui-app__menu,[^{]*\{([^}]*)\}/)!;
+    expect(glyphs[0]).toContain('.ui-react-app__band-actions > .ui-btn,');
+    expect(glyphs[0]).toContain('.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger {');
+    expect(glyphs[1]).toMatch(/width: 40px;[^]*border: 0;/);
+  });
+
+  it('puts a count on the glyph corner, keeps the actions column as wide as the actions, and keeps a short title whole', () => {
+    const css = read('./AppShell.css');
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \.ui-badge \{ position: absolute;/);
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ position: relative; min-width: 40px; min-height: 40px; padding: 0;/);
+    expect(css).toMatch(/grid-template-columns: minmax\(0, 1fr\) minmax\(0, var\(--panel-sm\)\) minmax\(max-content, 1fr\);/);
+    expect(css).toMatch(/@media \(min-width: 561px\) and \(max-width: 720px\) \{[^@]*\.ui-react-app__title \{ flex-shrink: 0; max-width: 50%; \}/);
   });
 });
