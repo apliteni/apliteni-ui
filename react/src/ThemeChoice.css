@@ -1,0 +1,97 @@
+.ui-theme-choice {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.ui-theme-choice__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  cursor: pointer;
+}
+/* The drawing scales with the picture, so its lengths are shares of the picture's width. */
+.ui-theme-choice__pic {
+  position: relative;
+  display: block;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 2 / 1.1;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.ui-theme-choice__option:hover .ui-theme-choice__pic { border-color: var(--border-strong); }
+.ui-theme-choice__option:active .ui-theme-choice__pic { transform: translateY(1px); }
+/* The chosen card's one accent signal: a 2px edge inside the picture, over the drawing.
+   The focus ring stands outside it, past the kit's gap. */
+.ui-theme-choice__pic::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.ui-theme-choice__input:checked + .ui-theme-choice__pic { border-color: var(--accent); }
+.ui-theme-choice__input:checked + .ui-theme-choice__pic::after { box-shadow: inset 0 0 0 1px var(--accent); }
+.ui-theme-choice__input:focus-visible + .ui-theme-choice__pic { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-theme-choice__name { overflow-wrap: anywhere; text-align: center; }
+
+/* The tokens sheet gives each scene its theme. System lays the dark scene over the light
+   one and shows its right half. */
+.ui-theme-choice__scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 24% minmax(0, 1fr);
+  background: var(--bg); /* code-bg: inherit — the drawing holds no text. */
+}
+.ui-theme-choice__scene + .ui-theme-choice__scene { clip-path: inset(0 0 0 50%); }
+.ui-theme-choice__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4cqi;
+  padding: 8cqi 5cqi;
+  border-inline-end: 1px solid var(--border);
+  background: var(--surface); /* code-bg: inherit — the drawing holds no text. */
+}
+.ui-theme-choice__main {
+  display: flex;
+  flex-direction: column;
+  gap: 5cqi;
+  padding: 8cqi 7cqi;
+}
+.ui-theme-choice__title { width: 40%; height: 3cqi; border-radius: 2cqi; background: var(--strong); }
+.ui-theme-choice__card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4cqi;
+  padding-inline: 7cqi;
+  border: 1px solid var(--border);
+  border-radius: 4cqi;
+  background: var(--surface); /* code-bg: inherit — the drawing holds no text. */
+}
+.ui-theme-choice__rail > span,
+.ui-theme-choice__card > span { height: 2cqi; border-radius: 1cqi; background: var(--text); }
+.ui-theme-choice__rail > span,
+.ui-theme-choice__card > span + span { background: var(--muted); }
+.ui-theme-choice__card > span + span { width: 55%; }
+
+/* The drawing keeps its paint, as a picture would. The chosen card takes the system
+   highlight on its edge and its name. */
+@media (forced-colors: active) {
+  .ui-theme-choice__pic { forced-color-adjust: none; --ring: var(--ring-width) solid CanvasText; }
+  .ui-theme-choice__input:checked + .ui-theme-choice__pic { border-color: Highlight; }
+  .ui-theme-choice__input:checked + .ui-theme-choice__pic::after { box-shadow: inset 0 0 0 1px Highlight; }
+  .ui-theme-choice__input:checked ~ .ui-theme-choice__name {
+    forced-color-adjust: none;
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-sm);
+    background: Highlight;
+    color: HighlightText;
+  }
+}

@@ -3,11 +3,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useEffect, useState } from 'react';
 import { AccountPage, VIEWPORTS, fourWays } from './_account-pages';
-import { useThemeChoice, type Theme } from '../../react/src/ThemeToggle';
+import { Sheet } from '../_guideline';
 import { Confirm } from '../../react/src/Confirm';
-import { DataTable, type Column } from '../../react/src/DataTable';
 import { EmptyState } from '../../react/src/EmptyState';
-import { Segmented } from '../../react/src/Segmented';
+import { ThemeChoice } from '../../react/src/ThemeChoice';
 import { Toast, useToast } from '../../react/src/Toast';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
@@ -15,22 +14,22 @@ import { Card } from '../../react/src/primitives/Card';
 const meta: Meta = { title: 'Showcases/Preferences', id: 'apps-preferences', parameters: { layout: 'fullscreen', ...VIEWPORTS } };
 export default meta;
 
-// Each choice applies as it is made, so the page carries no Save. The choice ends the
-// row that names it, as the kit's settings rows place a control.
-const THEMES = [{ label: 'System', value: 'auto' }, { label: 'Light', value: 'light' }, { label: 'Dark', value: 'dark' }];
-const ThemeChoice = () => {
-  const { theme, set } = useThemeChoice();
-  return <Card title="Appearance">
-    <div className="ui-card__row ui-card__row--tight-choice"><div className="lab">Theme</div>
-      <Segmented label="Theme" options={THEMES} value={theme} onChange={(value) => set(value as Theme)} /></div>
-  </Card>;
-};
+// The theme applies as it is chosen, so the page carries no Save.
+const Theme = () => <Card title="Theme"><ThemeChoice /></Card>;
 
-type Connection = { name: string; access: string; connected: string; used: string; act?: never };
+// A reader holds a few connections and compares none of them, so each is a setting row,
+// not a table. The two dates are separate facts: a line breaks between them, never inside.
+const CSS = `<style>
+  .pf-facts { display: flex; flex-wrap: wrap; column-gap: var(--space-3); }
+  .pf-facts > span { white-space: nowrap; }
+</style>`;
+
+type Connection = { name: string; access: string; connected: string; used: string };
 const CONNECTIONS: Connection[] = [
-  ['Research bot', 'Read only', '2026-09-02', 'Today'],
-  ['Deck summariser', 'Read only', '2026-08-14', 'Yesterday'],
-  ['Spreadsheet sync', 'Read and write', '2026-06-30', '3 weeks ago'],
+  ['Research bot', 'Read only', '2 Sep 2026', 'Used today'],
+  ['Deck summariser', 'Read only', '14 Aug 2026', 'Used yesterday'],
+  ['Spreadsheet sync', 'Read and write', '30 Jun 2026', 'Used 3 weeks ago'],
+  ['Calendar bridge with a very long name for a narrow screen', 'Read and write', '2 Nov 2026', 'Never used'],
 ].map(([name, access, connected, used]) => ({ name, access, connected, used }));
 const revokeId = (app: string) => `revoke-${app.toLowerCase().replace(/\W+/g, '-')}`;
 const BROWSE = 'connections-browse';
@@ -57,18 +56,16 @@ const Connections = ({ start = CONNECTIONS }: { start?: Connection[] }) => {
     document.getElementById(land)?.focus();
     setLand(null);
   }, [land]);
-  const columns: Column<Connection>[] = [
-    { key: 'name', label: 'App', cell: 'title' },
-    { key: 'access', label: 'Access' },
-    { key: 'connected', label: 'Connected' },
-    { key: 'used', label: 'Last used' },
-    { key: 'act', label: <span className="ui-sr">Actions</span>, cell: 'act', render: (row) =>
-      <Button id={revokeId(row.name)} variant="danger" size="sm" aria-label={`Revoke ${row.name}`} onClick={() => setAsking(row.name)}>Revoke</Button> },
-  ];
   return <Card title="Connections">
-    {/* A reader holds a few connections, so the table takes no bar. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
     {rows.length
-      ? <DataTable<Connection> selectable={false} pager={false} stickyHeader pinnedIdentity caption="Connections" scrollLabel="Connections" rows={rows} columns={columns} />
+      ? rows.map((row) => <div key={row.name} className="ui-card__row">
+        <div>
+          <div className="lab">{row.name}</div>
+          <div className="hint">{row.access}</div>
+          <div className="hint pf-facts"><span>Connected {row.connected}</span><span>{row.used}</span></div>
+        </div>
+        <Button id={revokeId(row.name)} variant="danger" size="sm" aria-label={`Revoke ${row.name}`} onClick={() => setAsking(row.name)}>Revoke</Button>
+      </div>)
       : <EmptyState title="No apps connected" sub="Apps that you allow to use your account show here." icon=""
         actions={<Button id={BROWSE}>Browse apps</Button>} />}
     <Confirm open={asking !== null} danger title={`Revoke ${asking ?? ''}?`} body="It loses access to your account at once."
@@ -76,7 +73,7 @@ const Connections = ({ start = CONNECTIONS }: { start?: Connection[] }) => {
   </Card>;
 };
 
-const page = (start?: Connection[]) => () => <Toast><AccountPage title="Preferences"><ThemeChoice /><Connections start={start} /></AccountPage></Toast>;
+const page = (start?: Connection[]) => () => <Toast><AccountPage title="Preferences"><Sheet css={CSS} /><Theme /><Connections start={start} /></AccountPage></Toast>;
 const render = page();
 
 const ways = fourWays(render);

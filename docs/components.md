@@ -58,8 +58,9 @@ Neither attribute changes the type. `--font-display` is for headings and brand m
 `--font-sans` is for all text that the user reads, and `--font-mono` is for code. The package
 does not ship the font files, so your page loads them. See [Typefaces](foundations.md#typefaces).
 
-Use `ThemeToggle` to let the user choose the theme. Put `THEME_INIT_SCRIPT` in a `<script>` in
-the `<head>`, so the first paint has the stored theme. Use `AccentPicker` to let the user choose
+Use `ThemeToggle` to let the user choose the theme from a bar. Use [`ThemeChoice`](#theme-choice)
+on a settings page. Put `THEME_INIT_SCRIPT` in a `<script>` in the `<head>`, so the first paint has
+the stored theme. Use `AccentPicker` to let the user choose
 the accent. It calls `onChange`. Your page sets `data-accent` and stores the choice. `ACCENTS`
 from the root entry lists the accent names.
 
@@ -636,6 +637,30 @@ wider. A long label wraps inside its own option.
 **Keyboard and screen reader.** One named toolbar of pressed buttons, with one Tab stop. The arrow
 keys move and choose, wrap at the ends and skip disabled options. Home and End go to the first and
 last enabled option. In forced colours the chosen option uses the system highlight colours.
+
+### Theme choice
+
+Use `ThemeChoice` for the theme on a settings page. Use `ThemeToggle` in a bar. Use `Segmented`
+for other preferences.
+
+```tsx
+<Card title="Theme"><ThemeChoice /></Card>
+```
+
+`label` names the group, `Theme` by default. The choice applies and is stored at once, as with
+`ThemeToggle`, so the page needs no Save.
+
+**What the user sees.** Three cards in one row at every width: System, Light and Dark. Each card is
+a small picture of a page in that theme, drawn from the theme's tokens, with its name under it.
+System is half light and half dark. The chosen card has a 2px accent edge. Hover makes the edge of
+another card stronger.
+
+**Keyboard and screen reader.** One named radio group, with one Tab stop on the chosen card. The
+arrow keys move and choose. The focus ring stands outside the chosen edge. In forced colours the
+chosen card takes the system highlight colour on its edge and its name.
+
+**Why the kit has it.** Only one product asked for it. The owner decided to add it, because a
+page cannot draw the other theme with kit classes.
 
 ### Tabs
 
