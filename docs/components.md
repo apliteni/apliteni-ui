@@ -1104,6 +1104,8 @@ focus. A `.ui-table__sub` puts a second value under the first, such as an email 
 edge, so the arrow keys, a trackpad and a finger reach the same columns.
 
 **In a card.** The table reaches the card's edges, and its end cells keep the card's text edge.
+At 560px and narrower, the end cells pad by 16px, so the first column starts 8px outside the
+card's text edge.
 `.ui-card--fit` makes the card end at the table's content.
 
 ### Pagination
