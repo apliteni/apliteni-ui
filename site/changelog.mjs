@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.181.0', date: '2026-11-21',
+    changes: [
+      ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. The account guideline now says to use these pages for a small account area and the account window for several groups. Resolves #845.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.179.2', date: '2026-11-21',
     changes: [
       ['changed', 'The page guideline no longer limits a page to six cards. A page may stack as many cards as it needs. A card inside another card is still against the rule. Resolves #839.', ['Guidelines']],

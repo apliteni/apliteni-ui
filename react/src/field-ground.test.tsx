@@ -86,8 +86,9 @@ const THEMES = ['dark', 'light'] as const;
 // Then the small search field in the SearchField Toolbar at the small size story (#822).
 // Then the shell search field in the AppShell Period Tools and Period Tools Phone stories (#832).
 // Then the text input in the Form Row Invalid story (#835).
+// Less the four Preferences switches, which left that page with its rework (#845).
 // Move this count with the specimens.
-const FIELD_COUNT = 186;
+const FIELD_COUNT = 182;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

@@ -1,24 +1,24 @@
 # Account and settings
 
-## Open the account area in one modal
+## Choose pages or the account window by size
 
 <!-- rule: modal -->
 
-**Rule:** Open account and settings in the kit's account window, over the product, with its sections beside the pane.
+**Rule:** Open Profile and Preferences as two pages in the app shell, and keep the account window for an account area of several groups.
 
-**Why:** The reader has not left the work behind it, and one overlay holds every setting.
+**Why:** A column of sections beside the app sidebar reads as a second navigation, and a name and a theme fill no column.
 
-**Do:** Give the window the reader and the sections, and let it draw the rail, the title, the close and the dimmed page.
+**Do:** Open each page from the account menu, with no sidebar entry lit.
 
-**Don't:** Slide a full-width sheet in with columns inside it.
+**Don't:** Open a window with its own sections for a photo and a theme.
 
-**Except:** On a phone the sections become tabs under the reader, where a column beside the pane would leave it narrower than its rows.
+**Except:** On a phone the window's sections become tabs under the reader.
 
-## Give the modal its own navigation
+## Give the account window its own navigation
 
 <!-- rule: nav -->
 
-**Rule:** Give the modal one entry per group a reader arrives to change.
+**Rule:** Give the account window one entry per group a reader arrives to change.
 
 **Why:** A reader already knows which group they came for, and a list of names is read faster than every group in turn.
 
@@ -36,7 +36,7 @@
 
 **Why:** A setting answered inside a menu has no address to link, search or come back to.
 
-**Do:** Name the reader, then Account settings and Support.
+**Do:** Name the reader, then Profile, Preferences and Support.
 
 **Don't:** Answer the settings in the menu, a row per setting.
 
@@ -50,7 +50,7 @@
 
 **Do:** Flip the weekly digest where it is named.
 
-**Don't:** Open the modal on a pane to flip one switch.
+**Don't:** Open the account window on a pane to flip one switch.
 
 **Except:** A question that must be answered before anything else still stops the page.
 

@@ -38,8 +38,6 @@ export const SPEC_CSS = `
       border: 1px solid var(--border-strong);
       box-shadow: inset 0 0 0 1px var(--elev-edge, var(--border)), var(--elev-drop);
       display: flex; gap: 6px; padding: 8px; }
-    .gas-over--sheet { left: 0; right: 0; bottom: 0; height: 64%;
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: 0; }
     .gas-over__pane { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
 
     /* A whole screen does not fit a 420px cell at life size, so both halves of the
