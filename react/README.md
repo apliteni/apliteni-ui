@@ -924,8 +924,12 @@ one series at text size with no axis, for a stat band's `trend` slot.
 The numbers are yours and so is the wording. `format` prints exact values in the readout, the
 live region and the table; `formatAxis` prints the ticks, which are whole units, and defaults
 to `format`. A `bars-below` series takes positive magnitudes and is drawn under the zero line.
-A period marked `estimated` keeps its series fill with a dashed edge. The legend names the state.
-The readout and the optional table show the state and its `note`.
+A period marked `estimated` keeps its solid mark in the series ink. `estimated: 'incomplete'` marks
+the period that is still running, `'projected'` a future period, and `true` any other estimate.
+Words under the chart name each run of such periods, such as "Nov incomplete" and "Dec–Feb
+projected". The readout and the optional table show the same word and the `note`. Table mode
+hides the words under the chart. A sparkline draws no words. A chart of periods that is wider than
+its card opens at its latest period.
 
 A bar series names a tone. Each tone has its own hue: `accent` is blue and `accent-soft` is
 cyan, so two series read apart by hue. `good` and `bad` say which way

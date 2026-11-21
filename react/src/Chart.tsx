@@ -34,11 +34,17 @@ export type ChartPeriod = {
   label: string;
   /** The period as the axis names it. Defaults to `label`'s first word. */
   short?: string;
-  /** The period is not final — estimated, forecast, or still running. */
-  estimated?: boolean;
-  /** Why it is not final. Printed in the readout and in the legend. */
+  /**
+   * The period is not final. `incomplete` is the period still running,
+   * `projected` a future one, and `true` any other estimate. The chart names
+   * the state under the plot, in the readout and in the table.
+   */
+  estimated?: ChartEstimate;
+  /** Why it is not final. Printed in the readout and in the table. */
   note?: string;
 };
+
+export type ChartEstimate = boolean | 'incomplete' | 'projected';
 
 export type ChartSeries = {
   id: string;
@@ -68,7 +74,7 @@ export type ChartBridgeStep = {
   kind?: 'total' | 'change';
   /** A change's amount. A `total` without one takes the running total. */
   value?: number;
-  estimated?: boolean;
+  estimated?: ChartEstimate;
   note?: string;
 };
 
@@ -119,7 +125,8 @@ export type ChartProps = ChartCommon & (
   }
 );
 
-type Column = { label: string; short: string; estimated: boolean; note?: string };
+/** `state` is the word the chart prints for a period that is not final. */
+type Column = { label: string; short: string; estimated: boolean; state?: string; note?: string };
 type Key = { id: string; name: string; tone: ChartTone; shape: 'bars' | 'bars-below' | 'line' | 'fill' };
 type Band = 'up' | 'down' | 'full';
 
@@ -242,8 +249,10 @@ function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null
 
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const px = (n: number) => Math.round(n * 10) / 10;
+const STATE_WORD = { incomplete: 'Incomplete', projected: 'Projected' } as const;
 const columnOf = (p: ChartPeriod | ChartBridgeStep, fallback: string): Column => ({
   label: p.label, short: p.short || fallback, estimated: Boolean(p.estimated), note: p.note,
+  state: !p.estimated ? undefined : p.estimated === true ? 'Estimated' : STATE_WORD[p.estimated],
 });
 
 /** A share-of-the-previous-column comparison, in the kit's readout wording. */
@@ -301,9 +310,27 @@ function useTapFloor() {
   return floor;
 }
 
+/** The readout's words for a period that is not final: the state, then why. */
 function stateOf(column: Column | undefined) {
-  if (!column?.estimated) return '';
-  return column.note ? `Estimated — ${column.note}` : 'Estimated';
+  if (!column?.state) return '';
+  return column.note ? `${column.state} — ${column.note}` : column.state;
+}
+
+/**
+ * The words under the plot: each run of periods in one state, by its axis
+ * names, so a reader sees which columns are not final without a hover.
+ * `Nov incomplete`, then `Dec–Feb projected`.
+ */
+function stateRuns(columns: readonly Column[]) {
+  const runs: { first: Column; last: Column; state: string }[] = [];
+  columns.forEach((column, i) => {
+    if (!column.state) return;
+    const run = runs[runs.length - 1];
+    if (run && run.state === column.state && run.last === columns[i - 1]) run.last = column;
+    else runs.push({ first: column, last: column, state: column.state });
+  });
+  return runs.map(({ first, last, state }) =>
+    `${first === last ? first.short : `${first.short}–${last.short}`} ${state.toLowerCase()}`);
 }
 
 /** The frame a bars-and-line chart draws, and the sparkline's, which is the same
@@ -713,8 +740,9 @@ export function Chart(props: ChartProps) {
     return () => observer.disconnect();
   }, []);
 
-  // A labels look opens on its latest period, where its labels are.
-  const opensAtEnd = variant === 'line' && lookName === 'labels';
+  // A chart of periods wider than its card opens on its latest period, which is
+  // the one a reader came for. A labels look also keeps its labels there.
+  const opensAtEnd = Boolean(periods);
   useLayoutEffect(() => {
     const el = scroller.current;
     if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
@@ -814,12 +842,9 @@ export function Chart(props: ChartProps) {
 
   /* -- the drawing --------------------------------------------------------- */
 
-  const estimated = columns.filter((c) => c.estimated);
-  // The key is drawn in the tone of the unfinished mark it stands for, so it
-  // looks like that bar rather than like an outline of its own: the income bar
-  // in a months chart, the step that is not invoiced yet in a bridge.
-  const estimatedTone = marks.find((m) => m.estimated && m.kind === 'bar')?.tone
-    ?? keys[0]?.tone ?? 'neutral';
+  // A sparkline sits in a figure whose screen names its periods; the table
+  // names the state in each row.
+  const states = spark || asTable ? [] : stateRuns(columns);
   const hitBand = (band: Band) => (band === 'up'
     ? { y: PAD, h: Math.max(zero - PAD, TARGET) }
     : band === 'down'
@@ -837,14 +862,6 @@ export function Chart(props: ChartProps) {
           {key.name}
         </li>
       ))}
-      {estimated.length > 0 && (
-        <li className={cx('ui-chart__key', `ui-chart__tone--${estimatedTone}`)}>
-          <svg className="ui-chart__key-mark" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-            <rect className="ui-chart__key-estimated" x="1.5" y="1.5" width="9" height="9" rx="2.5" />
-          </svg>
-          Estimated
-        </li>
-      )}
     </ul>
   );
   const viewSwitch = showTable && (
@@ -1158,6 +1175,12 @@ export function Chart(props: ChartProps) {
           )}
         </span>
       </div>
+
+      {states.length > 0 && (
+        <p className="ui-chart__states">
+          {states.map((words) => <span key={words}>{words}</span>)}
+        </p>
+      )}
 
       {!legendFirst && legend}
 
