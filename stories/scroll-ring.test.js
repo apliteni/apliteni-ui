@@ -335,6 +335,11 @@ const PERMITTED_FORCED = {
       + 'row and text in place. It draws no outline. #824',
     props: ['padding'],
   },
+  '.ui-nav--side.is-collapsed .ui-nav__item:not(:has(.ui-nav__ic))::after, :where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic))::after': {
+    why: 'forced colours paint a background as the canvas, so a folded sub-row\'s dot vanished. '
+      + 'Its fill comes back as a border in the text colour. It takes no focus. #843',
+    props: ['box-sizing', 'background', 'border'],
+  },
   '.ui-dropdown__sep': {
     why: 'forced colours remove the separator\'s background, so its 1px line comes back as a '
       + 'border and its height goes to 0 to keep the row in place. It takes no focus. #824',

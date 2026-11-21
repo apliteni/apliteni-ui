@@ -140,7 +140,12 @@ account, and you give it the page content. Do not use it for a sign-in page. Use
 ```
 
 `sections` lists the destinations, each with `href`, `label`, `icon` and an optional `count`.
-The longest `href` that matches `pathname` is the current section. `word` names the product, and
+A section can hold one level of sub-items in `items`, each with `href`, `label` and an optional
+`count`. That section then opens its sub-items and is not a link itself. To sort the sections
+under group labels instead, give `groups` in place of `sections`: each group has a `label` and its
+`sections`, with no sub-items. A sidebar takes group labels or sub-items, never both, and the
+types refuse the mix. The longest `href` that matches `pathname` is the current section or
+sub-item. The current sub-item stays shown, and its parent row shows as current. `word` names the product, and
 its default is `apliteni-ui`, so set it. `brand` replaces the mark, and `brandHref` is its link,
 `/` by default.
 
@@ -166,13 +171,14 @@ Auto, Light and Dark.
 - `searchLabel` gives the words and the accessible name of the search trigger, at every width.
   Its default is "Search or run a command…". `searchShortLabel` is deprecated, and the shell does
   not draw it.
-- `palette` gives the command palette its groups. Without it, the palette lists the sections.
+- `palette` gives the command palette its groups. Without it, the palette lists the sections
+  under their group labels, or each sub-item with the name of its parent.
   `onNavigate` sends a same-tab pick in the palette to your router, so the page changes without a
   reload. If your `palette` sets its own `onNavigate`, the shell uses that one.
 - `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
   head, before the fold button.
 
-**Routing.** `renderLink` lets your router draw each section link.
+**Routing.** `renderLink` lets your router draw each section and sub-item link.
 
 **What the user sees.**
 
@@ -184,13 +190,14 @@ Auto, Light and Dark.
   holds the brand mark, the page title on one line, the search trigger and a menu button. In the
   rail layout, it holds only the menu button and the mark. The menu button opens the full section
   list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
-  layout and the left in the rail layout. `drawerSide` chooses the side in either layout. A press
+  layout and the left in the rail layout. `drawerSide` chooses the side in either layout. The
+  drawer keeps two or more group labels, and leaves out the label of one group. A press
   on a section, Escape or a wider window closes the drawer, and the focus goes back to the menu
   button.
 - Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
   glyph, and keeps the same accessible name.
 - The current section is one quiet fill behind its row. A row under the pointer has a lighter
-  fill. In the topbar layout, a shell with one section and no back link draws no sidebar, no fold
+  fill. In the topbar layout, a shell with one destination and no back link draws no sidebar, no fold
   control and no menu button. The section stays in the command palette. The rail layout always
   draws the rail.
 - In the topbar layout, the theme switch applies the stored theme when the shell mounts, or
@@ -259,8 +266,10 @@ Use `SidebarNav` for a section list in a layout of your own. In a product page, 
   active="inv" />
 ```
 
-It takes flat `items` or captioned `sections`, nested groups, badges and `renderLink`. Nesting
-stops at one level. A collapsed row keeps its name and its count.
+It takes flat `items` or captioned `sections`, rows with sub-items, badges and `renderLink`.
+Nesting stops at one level. A sidebar takes captions or sub-items, never both: the type refuses
+the mix, and in development the component warns. When the current page comes into a group, the
+group opens, and its row shows as current. A collapsed row keeps its name and its count.
 
 ### Top bar
 

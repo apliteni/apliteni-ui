@@ -912,3 +912,14 @@ test('the browser gate rejects a folded plate without generated content', { skip
     await browser.close();
   }
 });
+
+// A rail row draws its focus ring from --ring-scroll, which the root resolved from its own
+// --ring. In forced colours the filled row sets --ring to the page text colour, so it must
+// take --ring-scroll again, or the ring stays the accent on the Highlight fill (#843).
+// Limit: this reads the source; the colour a forced-colours engine draws is not measured.
+test('a filled rail row rings in the page text colour in forced colours', () => {
+  const nav = readFileSync(path.join(root, 'src/styles/nav.css'), 'utf8');
+  const block = nav.match(/\.ui-nav__item\.is-current:not\(\.is-disabled\),[^{]*\{[^}]*\}/)?.[0] ?? '';
+  assert.match(block, /--ring: var\(--ring-width\) solid CanvasText;/);
+  assert.match(block, /--ring-scroll: var\(--ring\)/, 'the filled row must re-take --ring-scroll');
+});

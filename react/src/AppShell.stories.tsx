@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { AppShell, type AppShellProps } from './AppShell';
+import { AppShell, type AppShellGroup, type AppShellProps, type AppShellSection } from './AppShell';
 import { Card } from './primitives/Card';
 import { Badge } from './primitives/Badge';
 import { DataTable } from './DataTable';
@@ -20,6 +20,30 @@ const sections = [
   { href: '/prefs', label: 'Preferences', icon: 'gear' },
 ];
 
+// The sidebar's two forms (#843): sub-items under no group label, or group labels over
+// sections with no sub-items. Never both.
+const nested: AppShellSection[] = [
+  { href: '/overview', label: 'Overview', icon: 'chart' },
+  { href: '/payouts', label: 'Payouts', icon: 'card', items: [
+    { href: '/payouts/pending', label: 'Pending', count: 3 },
+    { href: '/payouts/history', label: 'History' },
+    { href: '/payouts/methods', label: 'Methods' },
+  ] },
+  { href: '/reports', label: 'Reports', icon: 'table' },
+  { href: '/prefs', label: 'Preferences', icon: 'gear' },
+];
+const groups: AppShellGroup[] = [
+  { label: 'Money', sections: [
+    { href: '/overview', label: 'Overview', icon: 'chart' },
+    { href: '/payouts', label: 'Payouts', icon: 'card', count: 3 },
+    { href: '/reports', label: 'Reports', icon: 'table' },
+  ] },
+  { label: 'Workspace', sections: [
+    { href: '/agents', label: 'Access & agents', icon: 'user' },
+    { href: '/prefs', label: 'Preferences', icon: 'gear' },
+  ] },
+];
+
 const rows = [
   { name: 'Northwind Traders', day: '2026-09-11', net: '4,200.00', status: 'Paid' },
   { name: 'Globex', day: '2026-09-10', net: '860.00', status: 'Pending' },
@@ -36,14 +60,15 @@ const columns = [
 // The status chip starts unset, so the table opens on every payout.
 const status = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
 
-function Example(args: Partial<AppShellProps>) {
-  const [pathname, setPathname] = useState('/reports');
+function Example({ sections: own, groups: grouped, ...args }: Partial<AppShellProps>) {
+  const [pathname, setPathname] = useState(args.pathname ?? '/reports');
+  const nav = grouped ? { groups: grouped } : { sections: own ?? sections };
   const width = args.width === 'wide' ? 'wide' : 'centered';
   const [query, setQuery] = useState('');
   const [state, setState] = useState('');
   const term = query.trim().toLowerCase();
   const shown = rows.filter(row => (!state || row.status === state) && row.name.toLowerCase().includes(term));
-  return <AppShell sections={sections} pathname={pathname} title="Payouts" word="Finance"
+  return <AppShell {...nav} title="Payouts" word="Finance"
     lede="Two of the four that arrived this week are waiting for a second approval."
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={() => {}}
     renderLink={(section, props) => <a {...props} onClick={(event) => {
@@ -51,7 +76,7 @@ function Example(args: Partial<AppShellProps>) {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault(); setPathname(section.href);
     }} />}
-    {...args}>
+    {...args} pathname={pathname}>
       {/* Each long table has its filter bar directly above it, on the page with no card
           of its own. why: docs/components.md#fields */}
       <div className="ui-toolbar">
@@ -147,3 +172,19 @@ export const ThemeSubmenuPhone: Story = { render, globals: { viewport: { value: 
     await userEvent.click(within(canvasElement).getByRole('button', { name: 'Menu' }));
     await openTheme(within(document.body).getByRole('dialog').querySelector('.ui-app__drawer') as HTMLElement);
   } };
+
+// The sidebar's two forms, at 1280px and in the phone menu at 390px (#843). The current
+// sub-item shows, and its parent row is current too.
+const openMenu: Story['play'] = async ({ canvasElement }) => {
+  await userEvent.click(within(canvasElement).getByRole('button', { name: 'Menu' }));
+  await expect(within(document.body).getByRole('dialog')).toBeVisible();
+};
+export const SubItems: Story = { render, args: { sections: nested, pathname: '/payouts/pending' } };
+export const SubItemsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { sections: nested, pathname: '/payouts/pending' }, play: openMenu };
+export const Groups: Story = { render, args: { groups, pathname: '/payouts' } };
+export const GroupsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { groups, pathname: '/payouts' }, play: openMenu };
+export const RailGroups: Story = { render, args: { layout: 'rail', groups, pathname: '/payouts' } };
+export const RailGroupsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
+  args: { layout: 'rail', groups, pathname: '/payouts' }, play: openMenu };

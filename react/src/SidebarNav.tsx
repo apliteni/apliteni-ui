@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useId, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { ENTRANCE_FALLBACK_MS } from '@apliteni/apliteni-ui/motion';
+import { safeUrl } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 
 export type SidebarNavBadge = string | number | { text: string | number; tone?: 'neutral' | 'accent' | 'live' | 'danger' };
@@ -21,10 +22,18 @@ export type SidebarNavLeaf = {
  * are dropped here too, so the two halves render the same tree.
  */
 export type SidebarNavItem = SidebarNavLeaf & { items?: SidebarNavLeaf[]; defaultOpen?: boolean };
-export type SidebarNavSection = { label?: string; items: SidebarNavItem[] };
+/** A row with no sub-items: the only row a section with a label takes. */
+export type SidebarNavRow = SidebarNavLeaf & { items?: never; defaultOpen?: never };
+/** Group labels over plain rows. */
+export type SidebarNavGroup = { label?: string; items: SidebarNavRow[] };
+/** Rows that may hold sub-items, under no group label. */
+export type SidebarNavBlock = { label?: never; items: SidebarNavItem[] };
+export type SidebarNavSection = SidebarNavGroup | SidebarNavBlock;
+/** A sidebar takes group labels or sub-items, never both (#843). */
+export type SidebarNavSections = SidebarNavGroup[] | SidebarNavBlock[];
 export type SidebarNavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
   items?: SidebarNavItem[];
-  sections?: SidebarNavSection[];
+  sections?: SidebarNavSections;
   active?: string;
   activeIs?: 'page' | 'section';
   collapsed?: boolean;
@@ -43,7 +52,16 @@ function Row({ item, active, activeIs, collapsed, renderLink, sub }: RowProps) {
   const group = !sub && !!item.items?.length;
   const childActive = group && item.items!.some(child => child.id === active);
   const [expanded, setExpanded] = useState<boolean | undefined>();
-  const open = expanded ?? item.defaultOpen ?? childActive;
+  // The current page arriving in this group, or moving to another of its rows, opens it,
+  // over a closed default and over an earlier close: the active sub-item stays visible
+  // (#843). A close made while it stays on one row holds.
+  const here = childActive ? active : undefined;
+  const [held, setHeld] = useState(here);
+  if (held !== here) {
+    setHeld(here);
+    if (here !== undefined) setExpanded(undefined);
+  }
+  const open = expanded ?? (childActive || !!item.defaultOpen);
   const [entering, setEntering] = useState(false);
   useEffect(() => {
     if (!entering) return;
@@ -69,10 +87,15 @@ function Row({ item, active, activeIs, collapsed, renderLink, sub }: RowProps) {
     </ul>
   </li>;
   if (item.disabled) return <li><span {...common} role="link" aria-disabled="true" /></li>;
-  const props: ComponentPropsWithoutRef<'a'> = { ...common, href: item.href ?? `#${item.id}`, target: item.target,
+  const props: ComponentPropsWithoutRef<'a'> = { ...common, href: safeUrl(item.href ?? `#${item.id}`), target: item.target,
     'aria-current': isActive ? activeIs === 'section' ? 'true' : 'page' : undefined };
   return <li>{renderLink ? renderLink(item, props) : <a {...props} />}</li>;
 }
+
+// A bundler writes the mode in for `process.env.NODE_ENV`. Without one there is no
+// `process`, and the warning stays off.
+declare const process: { env: { NODE_ENV?: string } };
+const development = () => { try { return process.env.NODE_ENV !== 'production'; } catch { return false; } };
 
 function Section({ section, ...props }: Omit<RowProps, 'item' | 'sub'> & { section: SidebarNavSection }) {
   const uid = useId();
@@ -87,6 +110,10 @@ function Section({ section, ...props }: Omit<RowProps, 'item' | 'sub'> & { secti
 export const SidebarNav = forwardRef<HTMLElement, SidebarNavProps>(function SidebarNav({
   items = [], sections, active, activeIs = 'page', collapsed = false, footer, renderLink, className, 'aria-label': label = 'Sidebar', ...rest
 }, ref) {
+  const mixed = !!sections?.some(section => section.label) && sections!.some(section => section.items.some(item => item.items?.length));
+  useEffect(() => {
+    if (mixed && development()) console.warn('SidebarNav: a sidebar takes group labels or sub-items, never both. Drop the labels or the sub-items.');
+  }, [mixed]);
   return <nav {...rest} ref={ref} aria-label={label} className={['ui-nav', 'ui-nav--side', collapsed && 'is-collapsed', className].filter(Boolean).join(' ')}>
     {(sections?.length ? sections : [{ items }]).map((section, index) => <Section key={index} section={section}
       active={active} activeIs={activeIs} collapsed={collapsed} renderLink={renderLink} />)}

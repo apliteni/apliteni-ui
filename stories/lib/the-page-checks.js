@@ -66,6 +66,15 @@ export const CHECKS = {
     return problems;
   },
 
+  // A sidebar sorts its rows by group labels or by sub-items, never by both (#843).
+  // Each sidebar is read alone, so the rail and the phone menu answer for themselves.
+  sidebar(s) {
+    return [...s.doc.querySelectorAll('nav.ui-nav--side')]
+      .filter((nav) => nav.querySelector('.ui-nav__cap') && nav.querySelector('.ui-nav__sub'))
+      .map((nav) => `${s.where} gives the sidebar "${nav.getAttribute('aria-label')}" both group labels `
+        + 'and sub-items. It takes one or the other.');
+  },
+
   // The column is the shell's, and the screen does not write one of its own. A page
   // that sets a width inside its own <main> has left the two names behind and is
   // carrying a third number nothing else in the kit knows about.

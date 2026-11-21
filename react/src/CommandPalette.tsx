@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { rankGroups, icon } from '@apliteni/apliteni-ui';
+import { rankGroups, icon, safeUrl } from '@apliteni/apliteni-ui';
 import { DialogScope, dismissOnScrim, useDialog } from './dialog';
 
 // The React face of the kit's commandPalette() factory. The vanilla output is
@@ -113,9 +113,12 @@ export function CommandPalette({
     if (item.danger && item.onConfirm) { item.onConfirm(); return; }
     onClose();
     if (!item.href) return;
-    if (newTab) window.open(item.href, '_blank', 'noopener');
-    else if (onNavigate) onNavigate(item.href);
-    else window.location.href = item.href;
+    // An executable scheme goes nowhere, the same as a link elsewhere in the kit.
+    const href = safeUrl(item.href, '');
+    if (!href) return;
+    if (newTab) window.open(href, '_blank', 'noopener');
+    else if (onNavigate) onNavigate(href);
+    else window.location.href = href;
   }, [onClose, onSelect, onNavigate]);
 
   const onKeyDown = (e: ReactKeyboardEvent) => {
