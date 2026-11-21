@@ -454,3 +454,7 @@
   /* The fill is the one mark, so the underline bar, which would paint the accent inside it, is gone. */
   .ui-nav--tabs.is-underline .ui-nav__tab.is-active::after { display: none; /* motion: still — the bar is not drawn while the fill marks the tab */ }
 }
+
+/* The parent of the current sub-item takes the current row's ink and weight, so the place
+   shows while its list is closed or folded (#843). */
+.ui-nav__toggle.is-current { color: var(--strong); font-weight: 500; }

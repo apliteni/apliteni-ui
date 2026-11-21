@@ -4,7 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { afterEach } from 'vitest';
 import { ENTRANCE_FALLBACK_MS } from '@apliteni/apliteni-ui/motion';
-import { SidebarNav, type SidebarNavItem } from './SidebarNav';
+import { SidebarNav, type SidebarNavItem, type SidebarNavLeaf, type SidebarNavSection } from './SidebarNav';
 
 afterEach(cleanup);
 const items: SidebarNavItem[] = [
@@ -13,11 +13,18 @@ const items: SidebarNavItem[] = [
   { id: 'settings', label: 'Settings', disabled: true },
 ];
 
-it('labels sections and exposes the current page and counts at either width', () => {
-  const { rerender } = render(<SidebarNav sections={[{ label: 'Finance', items }]} active="pending" />);
+const rows = [items[0], items[2]] as SidebarNavLeaf[];
+
+it('labels sections, and exposes the current page and counts at either width', () => {
+  render(<SidebarNav sections={[{ label: 'Finance', items: rows }]} active="home" />);
   expect(screen.getByRole('list', { name: 'Finance' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
+  cleanup();
+  const { rerender } = render(<SidebarNav items={items} active="pending" />);
   expect(screen.getByRole('link', { name: 'Pending 0' })).toHaveAttribute('aria-current', 'page');
-  rerender(<SidebarNav sections={[{ label: 'Finance', items }]} active="pending" collapsed />);
+  // The parent of the current sub-item is current too (#843).
+  expect(screen.getByRole('button', { name: 'Payouts' })).toHaveClass('is-current');
+  rerender(<SidebarNav items={items} active="pending" collapsed />);
   expect(screen.getByRole('link', { name: 'Pending 0' })).toHaveAttribute('title', 'Pending 0');
   expect(screen.getByRole('button', { name: 'Payouts' })).toHaveAttribute('aria-expanded', 'true');
 });
@@ -60,9 +67,36 @@ it('nests one level deep, where sidebarNav() caps it', () => {
   expect(screen.queryByText('Daily')).not.toBeInTheDocument();
 });
 
-it('honors a closed default even when the group contains the current page', () => {
-  render(<SidebarNav items={[{ ...items[1], defaultOpen: false }]} active="pending" />);
-  expect(screen.getByRole('button', { name: 'Payouts' })).toHaveAttribute('aria-expanded', 'false');
+// The active sub-item stays visible (#843): a closed default stays closed only while the
+// current page is elsewhere, and a page arriving in a closed group opens it again.
+it('shows the current sub-item over a closed default and over an earlier close', () => {
+  const group = [{ ...items[1], defaultOpen: false }, items[0]];
+  const { rerender } = render(<SidebarNav items={group} active="pending" />);
+  const toggle = screen.getByRole('button', { name: 'Payouts' });
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  rerender(<SidebarNav items={group} active="home" />);
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  fireEvent.click(toggle);
+  fireEvent.click(toggle);
+  rerender(<SidebarNav items={group} active="history" />);
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByRole('link', { name: 'History' })).toBeVisible();
+});
+
+// A sidebar takes group labels or sub-items, never both (#843). The type refuses the mix
+// (SidebarNav.types.tsx); a JavaScript caller gets this warning, and the rows still draw.
+it('warns when one sidebar mixes group labels and sub-items', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    render(<SidebarNav sections={[{ label: 'Finance', items: rows }]} />);
+    render(<SidebarNav items={items} />);
+    expect(warn).not.toHaveBeenCalled();
+    const mixed = [{ label: 'Finance', items: rows }, { items }] as SidebarNavSection[] as never;
+    render(<SidebarNav sections={mixed} />);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0][0]).toMatch(/group labels or sub-items, never both/);
+    expect(screen.getAllByRole('button', { name: 'Payouts' })).toHaveLength(2);
+  } finally { warn.mockRestore(); }
 });
 
 it('renders disabled rows without destinations, tab stops or router calls', () => {
@@ -94,8 +128,9 @@ it('supports footer and artwork slots, danger rows, refs and nav attributes', ()
 });
 
 it('gives separate instances unique disclosure and caption IDs', () => {
-  const sections = [{ label: 'Finance', items }];
-  const { container } = render(<><SidebarNav sections={sections} /><SidebarNav sections={sections} /></>);
+  const sections = [{ label: 'Finance', items: rows }];
+  const { container } = render(<><SidebarNav sections={sections} /><SidebarNav sections={sections} />
+    <SidebarNav items={items} /><SidebarNav items={items} /></>);
   const ids = [...container.querySelectorAll('[id]')].map(node => node.id);
   expect(new Set(ids).size).toBe(ids.length);
 });

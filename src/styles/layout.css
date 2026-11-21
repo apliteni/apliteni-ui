@@ -535,8 +535,8 @@
      starts at the panel's edge like the rows above it. */
   .ui-app__drawer .ui-nav--side,
   .ui-app__drawer .ui-nav--side > * { width: 100%; }
-  /* The panel's title names the list, so the section's own caption stays out. */
-  .ui-app__drawer .ui-nav__cap { display: none; }
+  /* The panel's title names one section's list, so its caption stays out; group labels stay (#843). */
+  .ui-app__drawer .ui-nav--side:not(:has(> .ui-nav__section + .ui-nav__section)) .ui-nav__cap { display: none; }
   .ui-app__drawer .ui-drawer__footer { justify-content: flex-start; }
   .ui-app__drawer .ui-app__user { width: 100%; }
   /* A finger is the only pointer this width has, so a row and the account block are

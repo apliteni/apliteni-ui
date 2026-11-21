@@ -63,7 +63,7 @@ const GATED: { id: string; says: string }[] = [
 ];
 
 // The floors are what the tree holds today, not a round number underneath it.
-const FOUND = { files: 11, screens: 31, apps: 25, ledes: 22 };
+const FOUND = { files: 11, screens: 31, apps: 25, ledes: 22, sidebars: 29 };
 
 describe('the page: React screens', () => {
   it('found the kit’s own screens', () => {
@@ -81,6 +81,17 @@ describe('the page: React screens', () => {
   it('the lede checks still reach screens that carry one', () => {
     const carrying = screens.filter((s) => s.kind === 'app' && text(s.doc.querySelector('main.ui-app__main p.ui-app__sub')));
     expect(carrying.length, carrying.map((s) => s.where).join(', ')).toBeGreaterThanOrEqual(FOUND.ledes);
+  });
+
+  // `sidebar` only reads a screen that draws one, so this counts them, and a sidebar
+  // with both a group label and a sub-item list must fail it.
+  it('the sidebar check reaches sidebars and refuses the mix', () => {
+    const drawn = screens.filter((s) => s.doc.querySelector('nav.ui-nav--side'));
+    expect(drawn.length, 'screens with a sidebar').toBeGreaterThanOrEqual(FOUND.sidebars);
+    const doc = document.implementation.createHTMLDocument('mixed');
+    doc.body.innerHTML = '<nav class="ui-nav ui-nav--side" aria-label="Sections"><div class="ui-nav__section">'
+      + '<div class="ui-nav__cap">Money</div><ul class="ui-nav__list"><li><ul class="ui-nav__sub"></ul></li></ul></div></nav>';
+    expect(CHECKS.sidebar({ ...drawn[0], where: 'mixed', doc })).toHaveLength(1);
   });
 
   for (const rule of GATED) {

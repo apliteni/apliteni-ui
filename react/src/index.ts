@@ -99,7 +99,7 @@ export type { ToastNotice, ToastProps } from './Toast';
 
 
 export { AppShell } from './AppShell';
-export type { AppShellProps, AppShellSection } from './AppShell';
+export type { AppShellProps, AppShellSection, AppShellLink, AppShellGroup } from './AppShell';
 export { AuthShell } from './AuthShell';
 export type { AuthShellProps } from './AuthShell';
 export { Footer } from './Footer';
@@ -123,7 +123,7 @@ export type {
 } from './chart-looks';
 
 export { SidebarNav } from './SidebarNav';
-export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavSection, SidebarNavBadge } from './SidebarNav';
+export type { SidebarNavProps, SidebarNavItem, SidebarNavLeaf, SidebarNavRow, SidebarNavSection, SidebarNavGroup, SidebarNavBlock, SidebarNavSections, SidebarNavBadge } from './SidebarNav';
 export { AccentPicker } from './AccentPicker';
 export type { Accent, AccentPickerProps } from './AccentPicker';
 export { TopBar, ViewSwitch, VersionSwitcher, AccountMenu } from './TopBar';

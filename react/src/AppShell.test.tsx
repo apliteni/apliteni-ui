@@ -298,6 +298,52 @@ it('opens every section in a drawer from the menu button', () => {
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 });
 
+// The sidebar's two forms (#843): sub-items under no group label, or group labels over
+// sections with no sub-items. Each reaches the sidebar, the phone menu and the palette.
+const nested = [
+  { href: '/', label: 'Overview', icon: 'home' },
+  { href: '/payouts', label: 'Payouts', icon: 'card', items: [
+    { href: '/payouts/pending', label: 'Pending', count: 3 }, { href: '/payouts/history', label: 'History' }] },
+];
+const grouped = [
+  { label: 'Money', sections: [{ href: '/', label: 'Overview', icon: 'home' }, { href: '/payouts', label: 'Payouts', icon: 'card' }] },
+  { label: 'Workspace', sections: [{ href: '/settings', label: 'Settings', icon: 'gear' }] },
+];
+const { sections: _flat, ...shell } = props;
+
+it('draws one level of sub-items, with the current one shown and its parent current', () => {
+  render(<AppShell {...shell} sections={nested} pathname="/payouts/pending/42" />);
+  for (const name of ['Sections', 'Menu sections']) {
+    if (name === 'Menu sections') fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+    const nav = within(screen.getByRole('navigation', { name }));
+    expect(nav.getByRole('link', { name: 'Pending 3' })).toHaveAttribute('aria-current', 'page');
+    expect(nav.getByRole('link', { name: 'Pending 3' })).toBeVisible();
+    expect(nav.getByRole('button', { name: 'Payouts' })).toHaveClass('is-current');
+    expect(nav.getByRole('button', { name: 'Payouts' })).toHaveAttribute('aria-expanded', 'true');
+    expect(nav.queryByText(/^(Money|Workspace)$/)).toBeNull();
+  }
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+  fireEvent.click(screen.getByRole('button', { name: /^Search or run a command/ }));
+  // The palette lists the places: each sub-item, under its parent's name, and not the parent.
+  const options = within(screen.getByRole('dialog')).getAllByRole('option').map(option => option.textContent);
+  expect(options).toEqual(['Overview', expect.stringMatching(/^Pending.*Payouts/), expect.stringMatching(/^History.*Payouts/)]);
+});
+
+it('draws group labels over sections in the sidebar, the phone menu and the palette', () => {
+  render(<AppShell {...shell} groups={grouped} pathname="/settings" />);
+  const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
+  expect(rail.getByRole('list', { name: 'Money' })).toBeInTheDocument();
+  expect(within(rail.getByRole('list', { name: 'Workspace' })).getByRole('link', { name: 'Settings' }))
+    .toHaveAttribute('aria-current', 'page');
+  fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+  const menu = within(screen.getByRole('navigation', { name: 'Menu sections' }));
+  expect(menu.getByRole('list', { name: 'Workspace' })).toBeInTheDocument();
+  expect(menu.queryAllByRole('button', { name: /^(Overview|Payouts|Settings)$/ })).toHaveLength(0);
+  fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+  fireEvent.click(screen.getByRole('button', { name: /^Search or run a command/ }));
+  expect(within(screen.getByRole('dialog')).getByText('Workspace')).toBeInTheDocument();
+});
+
 it('closes the drawer on a row press and on Escape, and returns focus to the button', async () => {
   render(<AppShell {...props} renderLink={(item, link) => <a {...link} onClick={(e) => { e.preventDefault(); link.onClick?.(e); }} />} />);
   const button = screen.getByRole('button', { name: 'Menu' });

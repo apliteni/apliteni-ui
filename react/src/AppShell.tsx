@@ -2,9 +2,9 @@ import { useEffect, useId, useMemo, useRef, useState, type ComponentPropsWithout
 import { prism } from '@apliteni/apliteni-ui';
 import { paletteHotkey } from './lib/palette-hotkey';
 import { railCollapsed, storeRailCollapsed } from './lib/rail';
-import { SidebarNav } from './SidebarNav';
+import { SidebarNav, type SidebarNavSections } from './SidebarNav';
 import { BackLink } from './BackLink';
-import { CommandPalette, type CommandPaletteProps } from './CommandPalette';
+import { CommandPalette, type CommandItem, type CommandPaletteProps } from './CommandPalette';
 import { Drawer } from './Drawer';
 import { AccountMenu } from './AccountMenu';
 import { Dropdown } from './Dropdown';
@@ -14,17 +14,25 @@ import { Avatar } from './primitives/Avatar';
 import { ThemeToggle } from './ThemeToggle';
 import './AppShell.css';
 
-export type AppShellSection = { href: string; label: string; icon: string; count?: number };
+/** A row that goes somewhere: a section, or a sub-item under one. */
+export type AppShellLink = { href: string; label: string; icon?: string; count?: number };
+export type AppShellSection = AppShellLink & { icon: string;
+  /** One level of sub-items. The row then opens them and goes nowhere itself, and its
+   *  `href` only names it. Only in `sections`, never in `groups` (#843). */
+  items?: AppShellLink[] };
+/** A group label over sections with no sub-items (#843). */
+export type AppShellGroup = { label: string; sections: (AppShellSection & { items?: never })[] };
+/** The sidebar takes group labels or sub-items, never both (#843). */
+type AppShellNav = { sections: AppShellSection[]; groups?: never } | { groups: AppShellGroup[]; sections?: never };
 /** A product's own row in the account menu, such as Account settings or Support (#736). */
 export type AppShellAccountItem = { label: string; icon?: string; href?: string; onSelect?: () => void };
-export type AppShellProps = {
-  sections: AppShellSection[];
+export type AppShellProps = AppShellNav & {
   /** The vanilla rail layout, or the existing band layout. */
   layout?: 'rail' | 'topbar';
   /** The side the phone menu drawer opens from. By default it is the menu button's side:
    *  right in the topbar layout, left in the rail layout (#790). */
   drawerSide?: 'left' | 'right';
-  /** Current router pathname; the longest matching section wins. */
+  /** Current router pathname; the longest matching section or sub-item wins. */
   pathname: string;
   title: string;
   children?: ReactNode;
@@ -58,12 +66,12 @@ export type AppShellProps = {
    *  can change the page without a reload. A palette's own `onNavigate` wins. */
   onNavigate?: (href: string) => void;
   /** Spread linkProps onto the router link, including children and onClick. */
-  renderLink?: (section: AppShellSection, linkProps: ComponentPropsWithoutRef<'a'>) => ReactNode;
+  renderLink?: (section: AppShellLink, linkProps: ComponentPropsWithoutRef<'a'>) => ReactNode;
 };
 
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
-export function AppShell({ sections, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
+export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
   brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
@@ -75,9 +83,12 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   // The drawer opens on its first row, not on the band control above the rows (#732).
   const menuBody = useRef<HTMLDivElement>(null);
   const firstRow = useMemo(() => ({ get current() { return menuBody.current?.querySelector<HTMLElement>('.ui-nav__item') ?? null; } }), []);
+  const rows = groups ? groups.flatMap(group => group.sections) : sections;
+  // The places a reader can go: a row with sub-items is not one of them.
+  const links = rows.flatMap((row): AppShellLink[] => row.items?.length ? row.items : [row]);
   const current = path(pathname);
-  const active = sections.filter((section) => current === path(section.href)
-    || (path(section.href) !== '/' && current.startsWith(`${path(section.href)}/`)))
+  const active = links.filter((link) => current === path(link.href)
+    || (path(link.href) !== '/' && current.startsWith(`${path(link.href)}/`)))
     .sort((a, b) => path(b.href).length - path(a.href).length)[0];
 
   useEffect(() => { setCollapsed(railCollapsed() ?? defaultCollapsed); }, [defaultCollapsed]);
@@ -116,11 +127,14 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   // aria-current="true": "page" would announce the list as the page the reader is on.
   // shell.js does the same through sidebarNav()'s `activeIs`.
   // why: guidelines/going-back.md#keep-the-section-active
-  const sidebar = (label: string) => <SidebarNav aria-label={label}
-    items={sections.map(section => ({ ...section, id: section.href, badge: layout === 'rail' ? undefined : section.count }))} active={active?.href}
+  const row = ({ href, label, icon, count }: AppShellLink) => ({ id: href, href, label, icon, badge: layout === 'rail' ? undefined : count });
+  const nav: SidebarNavSections = groups
+    ? groups.map(group => ({ label: group.label, items: group.sections.map(row) }))
+    : [{ items: sections.map(section => ({ ...row(section), items: section.items?.map(row) })) }];
+  const sidebar = (label: string) => <SidebarNav aria-label={label} sections={nav} active={active?.href}
     activeIs={back ? 'section' : 'page'}
     renderLink={(item, props) => {
-      const section = sections.find(section => section.href === item.id)!;
+      const section = links.find(link => link.href === item.id)!;
       const linkProps = { ...props, onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {
         if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setMenu(false);
       } };
@@ -135,7 +149,7 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
   // a child page is a different case: the row is that page's parent, a place the
   // reader can actually go, and it takes aria-current="true" rather than "page"
   // through activeIs above. why: guidelines/going-back.md#keep-the-section-active
-  const navigable = sections.length > 1 || Boolean(back);
+  const navigable = links.length > 1 || Boolean(back);
   // Written once and placed twice: with no list to head, the rail is a column of
   // brand, so the lockup moves to the band the page already has.
   const lockup = <a className="ui-app__brand" href={brandHref} aria-label={word}>
@@ -233,6 +247,10 @@ export function AppShell({ sections, pathname, title, children, word = 'apliteni
       headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}
-    <CommandPalette {...(palette ?? { groups: [{ items: sections.map((section) => ({ id: section.href, ...section })) }] })} onNavigate={palette?.onNavigate ?? onNavigate} open={search} onClose={() => setSearch(false)} />
+    <CommandPalette {...(palette ?? { groups: groups
+      ? groups.map(group => ({ label: group.label, items: group.sections.map(({ href, label, icon }) => ({ id: href, href, label, icon })) }))
+      : [{ items: sections.flatMap((section): CommandItem[] => section.items?.length
+        ? section.items.map(({ href, label, icon }) => ({ id: href, href, label, icon, description: section.label }))
+        : [{ id: section.href, href: section.href, label: section.label, icon: section.icon }]) }] })} onNavigate={palette?.onNavigate ?? onNavigate} open={search} onClose={() => setSearch(false)} />
   </div>;
 }

@@ -414,13 +414,13 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:163",
+    "ref": "react/src/AppShell.tsx:177",
     "pattern": "back && <BackLink"
    }
   ],
   "section-lit": [
    {
-    "ref": "react/src/SidebarNav.tsx:73",
+    "ref": "react/src/SidebarNav.tsx:89",
     "pattern": "activeIs === 'section'"
    }
   ],
@@ -1023,7 +1023,7 @@
   ],
   "nav": [
    {
-    "ref": "react/src/SidebarNav.tsx:87",
+    "ref": "react/src/SidebarNav.tsx:108",
     "pattern": "export const SidebarNav = forwardRef"
    },
    {

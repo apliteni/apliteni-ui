@@ -4,7 +4,7 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 
 | Page | Screen parts | When to read |
 | --- | --- | --- |
-| [The page](the-page.md) | The page shell, content width, headings, the main action, nested cards, table density and the page introduction. | Read it before you build any screen. |
+| [The page](the-page.md) | The page shell, the sidebar's grouping, content width, headings, the main action, nested cards, table density and the page introduction. | Read it before you build any screen. |
 | [Dashboards and reports](dashboards-and-reports.md) | Dashboard figures, trends and exceptions, report tables, chart cards and a report export. | Read it before you build a dashboard or a report. |
 | [Destructive actions](destructive-actions.md) | Danger controls, action names and confirmation or undo. | Read it before you add a delete, revoke or remove action. |
 | [Colour and theming](colour-and-theming.md) | Colour tokens, accents, signal colours, theme checks and forced colours. | Read it before you pick colours, accents or check contrast. |

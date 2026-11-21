@@ -12,6 +12,18 @@
 
 **Don't:** Move search or the account menu between pages.
 
+## Group the sidebar one way
+
+<!-- rule: sidebar -->
+
+**Rule:** Give the sidebar group labels with no sub-items, or sub-items with no group labels, and never both.
+
+**Why:** Both together make a long sidebar that scrolls, so the reader cannot see all the sections at once.
+
+**Do:** Put Pending and History under Payouts, with no group labels.
+
+**Don't:** Put Payouts and its sub-items under a Money label.
+
 ## Choose content width
 
 <!-- rule: width -->
