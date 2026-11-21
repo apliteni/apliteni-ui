@@ -13,8 +13,8 @@ const OPTIONS: { value: Theme; name: string }[] = [
   { value: 'dark', name: 'Dark' },
 ];
 
-// A small page in one theme: a rail, a title and a card. The tokens sheet gives each scene
-// its theme's values, so the drawing follows the tokens and not a copy of them.
+// A small page in one theme: a rail, a title and a card. The theme blocks give each scene
+// its theme's values, so the drawing follows the kit and not a copy of it.
 const Scene = ({ theme }: { theme: 'light' | 'dark' }) => <span className={`ui-theme-choice__scene ui-theme-choice__scene--${theme}`}>
   <span className="ui-theme-choice__rail"><span /><span /><span /></span>
   <span className="ui-theme-choice__main">

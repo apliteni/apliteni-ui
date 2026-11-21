@@ -39,14 +39,14 @@ it('applies and stores a choice at once, by pointer and by arrow key', async () 
   expect(localStorage.getItem(key)).toBe('dark');
 });
 
-// System is half light and half dark. Each scene takes its theme from the tokens sheet,
+// System is half light and half dark. Each scene takes its theme from the theme blocks,
 // so a scene class that leaves a theme block draws the page's own theme instead.
 it('draws each picture from the theme it names', () => {
   const { container } = render(<ThemeChoice />);
   const scenes = [...container.querySelectorAll('.ui-theme-choice__pic')]
     .map(pic => [...pic.children].map(scene => scene.className.replace('ui-theme-choice__scene ui-theme-choice__scene--', '')));
   expect(scenes).toEqual([['light', 'dark'], ['light'], ['dark']]);
-  const tokens = readFileSync(path.resolve(process.cwd(), process.cwd().endsWith('react') ? '..' : '.', 'src/tokens/tokens.css'), 'utf8');
-  expect(tokens).toMatch(/:root,\s*\.ui-theme-choice__scene--dark,\s*:root\[data-theme="dark"\] \{/);
-  expect(tokens).toMatch(/\.ui-theme-choice__scene--light,\s*\.ui-card__page,\s*:root\[data-theme="light"\] \{/);
+  const sheet = readFileSync(path.resolve(process.cwd(), process.cwd().endsWith('react') ? '..' : '.', 'src/tokens/tokens.css'), 'utf8');
+  expect(sheet).toMatch(/:root,\s*\.ui-theme-choice__scene--dark,\s*:root\[data-theme="dark"\] \{/);
+  expect(sheet).toMatch(/\.ui-theme-choice__scene--light,\s*\.ui-card__page,\s*:root\[data-theme="light"\] \{/);
 });

@@ -39,7 +39,7 @@
 .ui-theme-choice__input:focus-visible + .ui-theme-choice__pic { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-theme-choice__name { overflow-wrap: anywhere; text-align: center; }
 
-/* The tokens sheet gives each scene its theme. System lays the dark scene over the light
+/* The theme blocks give each scene its theme. System lays the dark scene over the light
    one and shows its right half. */
 .ui-theme-choice__scene {
   position: absolute;
