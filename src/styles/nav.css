@@ -411,7 +411,7 @@
     forced-color-adjust: none;
     background: Highlight !important;
     color: HighlightText !important;
-    --ring: var(--ring-width) solid CanvasText;
+    --ring: var(--ring-width) solid CanvasText; --ring-scroll: var(--ring); /* the row draws --ring-scroll, which the root resolved (#843) */
   }
   .ui-nav__item.is-active:not(.is-disabled) .ui-nav__ic svg,
   .ui-nav__item.is-current:not(.is-disabled) .ui-nav__ic svg,
@@ -456,5 +456,5 @@
 }
 
 /* The parent of the current sub-item takes the current row's ink and weight, so the place
-   shows while its list is closed or folded (#843). */
+   shows while its list is closed. In the folded rail its full-ink glyph is the mark (#843). */
 .ui-nav__toggle.is-current { color: var(--strong); font-weight: 500; }

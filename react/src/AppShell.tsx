@@ -250,7 +250,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <CommandPalette {...(palette ?? { groups: groups
       ? groups.map(group => ({ label: group.label, items: group.sections.map(({ href, label, icon }) => ({ id: href, href, label, icon })) }))
       : [{ items: sections.flatMap((section): CommandItem[] => section.items?.length
-        ? section.items.map(({ href, label, icon }) => ({ id: href, href, label, icon, description: section.label }))
+        ? section.items.map(({ href, label, icon }) => ({ id: href, href, label, icon: icon ?? section.icon, description: section.label }))
         : [{ id: section.href, href: section.href, label: section.label, icon: section.icon }]) }] })} onNavigate={palette?.onNavigate ?? onNavigate} open={search} onClose={() => setSearch(false)} />
   </div>;
 }

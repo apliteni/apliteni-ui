@@ -30,10 +30,10 @@ const Out = ({ rank, text, bad = false }: { rank: number; text: string; bad?: bo
 // sub-items. The mix is cast past the type that refuses it.
 const payouts = { id: 'payouts', icon: 'card', label: 'Payouts',
   items: [{ id: 'pending', label: 'Pending' }, { id: 'history', label: 'History' }] };
-const Side = ({ mixed }: { mixed: boolean }) => <Stage><SidebarNav aria-label="Sections" active="pending"
+const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side"><SidebarNav aria-label={mixed ? 'Sections, mixed' : 'Sections'} active="pending"
   sections={(mixed ? [{ label: 'Money', items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts] },
     { label: 'Workspace', items: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }] }]
-    : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></Stage>;
+    : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
 
 // The one primary action.
 const Agents = ({ all = false }: { all?: boolean }) => <Stage>
