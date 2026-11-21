@@ -180,6 +180,19 @@ describe('the keyboard and the focus', () => {
     expect(window.location.href).toBe(before);
   });
 
+  it('goes nowhere for an executable href scheme', async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null);
+    const groups: CommandGroup[] = [{ label: 'Go to', items: [{ id: 'bad', label: 'Bad link', href: 'javascript:alert(1)' }] }];
+    render(<CommandPalette open groups={groups} onClose={() => {}} onNavigate={onNavigate} />);
+    await user.type(screen.getByRole('combobox'), 'bad');
+    await user.keyboard('{Enter}');
+    expect(onNavigate).not.toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
+    open.mockRestore();
+  });
+
   it('navigates to the href in the same tab without onNavigate', async () => {
     const user = userEvent.setup();
     const before = window.location.href;

@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useId, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { ENTRANCE_FALLBACK_MS } from '@apliteni/apliteni-ui/motion';
+import { safeUrl } from '@apliteni/apliteni-ui';
 import { Icon } from './primitives/Icon';
 
 export type SidebarNavBadge = string | number | { text: string | number; tone?: 'neutral' | 'accent' | 'live' | 'danger' };
@@ -51,13 +52,14 @@ function Row({ item, active, activeIs, collapsed, renderLink, sub }: RowProps) {
   const group = !sub && !!item.items?.length;
   const childActive = group && item.items!.some(child => child.id === active);
   const [expanded, setExpanded] = useState<boolean | undefined>();
-  // The current page arriving in this group opens it, over a closed default and over an
-  // earlier close: the active sub-item stays visible (#843). A close made while it is
-  // here holds.
-  const [held, setHeld] = useState(childActive);
-  if (held !== childActive) {
-    setHeld(childActive);
-    if (childActive) setExpanded(undefined);
+  // The current page arriving in this group, or moving to another of its rows, opens it,
+  // over a closed default and over an earlier close: the active sub-item stays visible
+  // (#843). A close made while it stays on one row holds.
+  const here = childActive ? active : undefined;
+  const [held, setHeld] = useState(here);
+  if (held !== here) {
+    setHeld(here);
+    if (here !== undefined) setExpanded(undefined);
   }
   const open = expanded ?? (childActive || !!item.defaultOpen);
   const [entering, setEntering] = useState(false);
@@ -85,7 +87,7 @@ function Row({ item, active, activeIs, collapsed, renderLink, sub }: RowProps) {
     </ul>
   </li>;
   if (item.disabled) return <li><span {...common} role="link" aria-disabled="true" /></li>;
-  const props: ComponentPropsWithoutRef<'a'> = { ...common, href: item.href ?? `#${item.id}`, target: item.target,
+  const props: ComponentPropsWithoutRef<'a'> = { ...common, href: safeUrl(item.href ?? `#${item.id}`), target: item.target,
     'aria-current': isActive ? activeIs === 'section' ? 'true' : 'page' : undefined };
   return <li>{renderLink ? renderLink(item, props) : <a {...props} />}</li>;
 }

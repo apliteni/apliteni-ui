@@ -184,7 +184,7 @@
  "_command-palette.js": {
   "named-things": [
    {
-    "ref": "react/src/CommandPalette.tsx:190",
+    "ref": "react/src/CommandPalette.tsx:193",
     "pattern": "role=\"option\""
    }
   ],
@@ -210,7 +210,7 @@
   ],
   "keyboard": [
    {
-    "ref": "react/src/CommandPalette.tsx:121",
+    "ref": "react/src/CommandPalette.tsx:124",
     "pattern": "const onKeyDown = (e: ReactKeyboardEvent)"
    },
    {
@@ -220,11 +220,11 @@
   ],
   "say-it": [
    {
-    "ref": "react/src/CommandPalette.tsx:192",
+    "ref": "react/src/CommandPalette.tsx:195",
     "pattern": "aria-selected={on}"
    },
    {
-    "ref": "react/src/CommandPalette.tsx:223",
+    "ref": "react/src/CommandPalette.tsx:226",
     "pattern": "role=\"status\" aria-live=\"polite\""
    },
    {
@@ -234,7 +234,7 @@
   ],
   "ask-first": [
    {
-    "ref": "react/src/CommandPalette.tsx:246",
+    "ref": "react/src/CommandPalette.tsx:249",
     "pattern": "const isDisabled = (item: CommandItem) =>"
    },
    {
@@ -420,7 +420,7 @@
   ],
   "section-lit": [
    {
-    "ref": "react/src/SidebarNav.tsx:89",
+    "ref": "react/src/SidebarNav.tsx:91",
     "pattern": "activeIs === 'section'"
    }
   ],
@@ -1023,7 +1023,7 @@
   ],
   "nav": [
    {
-    "ref": "react/src/SidebarNav.tsx:108",
+    "ref": "react/src/SidebarNav.tsx:110",
     "pattern": "export const SidebarNav = forwardRef"
    },
    {

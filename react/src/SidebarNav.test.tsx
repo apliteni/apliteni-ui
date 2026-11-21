@@ -44,12 +44,12 @@ it('toggles its controlled list using Enter and Space while collapsed', async ()
   expect(toggle).toHaveFocus();
 });
 
-it('opens the group holding the current page and keeps explicit user disclosure choices', () => {
+it('opens the group holding the current page and keeps a close while the page stays', () => {
   const { rerender } = render(<SidebarNav items={items} />);
   rerender(<SidebarNav items={items} active="pending" />);
   expect(screen.getByRole('link', { name: 'Pending 0' })).toBeVisible();
   fireEvent.click(screen.getByRole('button', { name: 'Payouts' }));
-  rerender(<SidebarNav items={items} active="history" />);
+  rerender(<SidebarNav items={items} active="pending" />);
   expect(screen.getByRole('button', { name: 'Payouts' })).toHaveAttribute('aria-expanded', 'false');
 });
 
@@ -81,6 +81,19 @@ it('shows the current sub-item over a closed default and over an earlier close',
   rerender(<SidebarNav items={group} active="history" />);
   expect(toggle).toHaveAttribute('aria-expanded', 'true');
   expect(screen.getByRole('link', { name: 'History' })).toBeVisible();
+  // A close holds while the page stays put, and a move to another of its rows opens it.
+  fireEvent.click(toggle);
+  rerender(<SidebarNav items={group} active="history" />);
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  rerender(<SidebarNav items={group} active="pending" />);
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByRole('link', { name: 'Pending 0' })).toBeVisible();
+});
+
+it('turns an executable link scheme into a dead link', () => {
+  render(<SidebarNav items={[{ id: 'x', label: 'Bad', icon: 'home', href: 'javascript:alert(1)' }, { id: 'y', label: 'Good', icon: 'home', href: '/payouts' }]} />);
+  expect(screen.getByRole('link', { name: 'Bad' })).toHaveAttribute('href', '#');
+  expect(screen.getByRole('link', { name: 'Good' })).toHaveAttribute('href', '/payouts');
 });
 
 // A sidebar takes group labels or sub-items, never both (#843). The type refuses the mix
