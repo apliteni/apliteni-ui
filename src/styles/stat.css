@@ -2,7 +2,7 @@
  * Stat band — .ui-stats  (a row of key figures: label, value, change, trend)
  *   .ui-stats--tiles  one card per figure — the default
  *   .ui-stats--band   one card, figures divided by space
- *   .ui-stats--open   no surface; a rule over each figure
+ *   .ui-stats--open   no surface and no rule; space and a larger value divide
  * why: docs/components.md#stat-bands
  * ========================================================================== */
 
@@ -118,10 +118,6 @@ dd.ui-stat__caption { contain: inline-size; }
 
 .ui-stats--tiles .ui-stats__list { gap: var(--space-4); }
 
-.ui-stats--open .ui-stat {
-  border-top: 1px solid var(--border-strong);
-  padding-top: var(--space-4);
-}
 .ui-stats--open .ui-stat__value { font-size: var(--text-3xl); }
 
 /* Wrapping alone would leave three figures on one row and one on the next. So

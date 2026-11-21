@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.183.0', date: '2026-11-21',
+    changes: [
+      ['changed', 'An open `StatBand` no longer draws a rule over each figure. Space and the larger value divide the figures, on a page and in a card. Each product that shows `variant="open"` loses the rules when it updates. Resolves #849.', ['StatBand']],
+    ],
+  },
+  {
     v: '0.180.0', date: '2026-11-21',
     changes: [
       ['added', '`AppShell` takes one level of sub-items in a section\'s `items`, or `groups` in place of `sections` to sort the sections under group labels. Both reach the sidebar, the phone menu and the command palette. Resolves #843.', ['AppShell']],

@@ -242,6 +242,15 @@ test('a figure is never narrower than its value, so a band wraps rather than ove
   assert.deepEqual(zeroed.map((r) => r.selector), [], 'a later rule lets a figure shrink to nothing');
 });
 
+// Space and the value divide the figures in every form, so the open form draws no
+// rule over a figure (#849). Limits: reads this sheet only, so a line that another
+// sheet draws on a figure is not seen.
+test('no form draws a rule over a figure or between figures', () => {
+  const lines = rules.filter((r) => /\.ui-stat\b(?!_)|\.ui-stats__list/.test(r.selector)
+    && /(?:^|;)\s*(?:border(?:-top|-block-start)?|box-shadow|outline)\s*:/.test(r.body));
+  assert.deepEqual(lines.map((r) => r.selector), [], 'a figure carries a line that space and the value already give');
+});
+
 test('the band lays out from its own width, never the window\'s', () => {
   assert.equal(valueOf(ruleFor('.ui-stats').body, 'container-type'), 'inline-size');
   assert.doesNotMatch(CSS, /@media/, 'a fold keyed to the viewport: a band beside a rail is narrower than the window');

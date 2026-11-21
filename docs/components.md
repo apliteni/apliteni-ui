@@ -1135,7 +1135,9 @@ totals of a list in the table's footer rows, not in a stat band.
 ```
 
 `variant` is `tiles`, the default, with each figure on its own card, `band` on one card, or `open`
-with no surface and a larger value. A figure has `label`, `value`, `caption`, `delta` and `trend`.
+with no surface and a larger value. No variant draws a rule over a figure or between figures. Space
+and the value divide them, also in a card and when the figures fold. A figure has `label`, `value`,
+`caption`, `delta` and `trend`.
 
 **What the user sees.** A value never wraps and is never cut. The words under it give way first. A
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A
