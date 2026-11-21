@@ -771,3 +771,7 @@
     forced-color-adjust: auto; background: Canvas; color: CanvasText; border-color: CanvasText;
   }
 }
+
+/* A folded sub-row has no glyph, so its floating name took the row's only line box with it
+   and the row shrank under the pointer. It keeps one line and its padding (#843). */
+:where(.ui-app.is-collapsed) .ui-app__rail .ui-nav__item:not(:has(.ui-nav__ic)) { min-height: calc(1lh + 18px); /* one line plus the row's 9px padding, top and bottom */ }
