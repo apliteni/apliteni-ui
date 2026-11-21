@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.181.0', date: '2026-11-21',
+    changes: [
+      ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. The account guideline now says to use these pages for a small account area and the account window for several groups. Resolves #845.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.180.0', date: '2026-11-21',
     changes: [
       ['added', '`AppShell` takes one level of sub-items in a section\'s `items`, or `groups` in place of `sections` to sort the sections under group labels. Both reach the sidebar, the phone menu and the command palette. Resolves #843.', ['AppShell']],

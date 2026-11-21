@@ -1013,12 +1013,12 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/Modal.tsx:17",
-    "pattern": "export function Modal("
+    "ref": "react/src/AppShell.tsx:52",
+    "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
-    "ref": "react/src/Modal.css:18",
-    "pattern": ".rx-modal { width: min("
+    "ref": "react/src/AccountWindow.tsx:33",
+    "pattern": "export function AccountWindow("
    }
   ],
   "nav": [
