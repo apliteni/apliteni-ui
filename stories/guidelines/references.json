@@ -929,11 +929,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:139",
+    "ref": "src/styles/stat.css:135",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:140",
+    "ref": "src/styles/stat.css:136",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
