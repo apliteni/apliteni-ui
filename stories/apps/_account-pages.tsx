@@ -4,15 +4,20 @@
 import type { ReactNode } from 'react';
 import type { StoryObj } from '@storybook/react';
 import { DemoShell, type DemoNavItem } from './_demo-shell';
+import { previewHref } from '../lib/story-link.js';
 
 const NAV: DemoNavItem[] = [
   { id: 'overview', icon: 'chart', label: 'Overview' },
   { id: 'campaigns', icon: 'card', label: 'Campaigns' },
   { id: 'reports', icon: 'table', label: 'Reports' },
 ];
+// Each page opens the other's story, and the preview's link wiring keeps the theme.
+// Support has no page in the kit, so it stays inert.
+export const PROFILE_STORY = 'apps-profile--default';
+export const PREFERENCES_STORY = 'apps-preferences--default';
 const ACCOUNT_ITEMS = [
-  { label: 'Profile', icon: 'user', href: '#profile' },
-  { label: 'Preferences', icon: 'gear', href: '#preferences' },
+  { label: 'Profile', icon: 'user', href: previewHref(PROFILE_STORY) },
+  { label: 'Preferences', icon: 'gear', href: previewHref(PREFERENCES_STORY) },
   { label: 'Support', icon: 'chat', href: '#support' },
 ];
 

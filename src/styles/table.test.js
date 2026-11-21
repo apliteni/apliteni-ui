@@ -811,3 +811,49 @@ test('the bleed gate rejects a wrapper that puts the table out of reach', () => 
   );
   assert.throws(() => bleedReaches(CSS.replace(/margin-inline/g, 'margin-left')), /card bleed is gone/);
 });
+
+/**
+ * A hover table in a card reaches the card's edges at every width, so its end cells pad by
+ * the same bleed, less the frame's side band, or the first column leaves the card title's
+ * edge. A phone rule once lowered the end cells to 16px while the bleed stayed 24px, and
+ * the column stood 8px left of the title at 390px (#845). Every --cell-edge a card table
+ * takes, in or out of a media block, is resolved here against the bleed.
+ * Limit: it reads declarations. The 390px edge is a Chromium measurement on the pull request.
+ */
+function cardEdgeProblems(css) {
+  const ROW = '.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)';
+  const px = (value) => {
+    const steps = [...value.matchAll(/var\((--space-[\w-]+)\)/g)].map((m) => SPACE[m[1]]);
+    return /\s-\s/.test(value) ? steps[0] - steps[1] : steps[0];
+  };
+  const rules = [...css.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map(([, selector, body]) => ({ selector: selector.trim(), body }));
+  const bleed = rules.find((r) => r.selector.startsWith(`.ui-card > :is(${ROW}`) && /margin-inline/.test(r.body));
+  if (!bleed) return { problems: ['no rule bleeds a card table to the card edges'], measured: 0 };
+  const reach = px(/margin-inline\s*:\s*calc\(-1 \* ([^;]+)\)/.exec(bleed.body)?.[1] ?? '');
+  const band = SPACE['--space-1'];
+  const problems = [];
+  let measured = 0;
+  for (const { selector, body } of rules) {
+    const edge = /--cell-edge\s*:\s*([^;]+)/.exec(body)?.[1].trim();
+    if (!edge) continue;
+    const framed = selector === `.ui-card > .ui-table-scroll > ${ROW}`;
+    if (!framed && selector !== `.ui-card > ${ROW}`) continue;
+    measured++;
+    const want = framed ? reach - band : reach;
+    if (px(edge) !== want) problems.push(`${selector}: --cell-edge ${edge} is ${px(edge)}px, and the bleed asks ${want}px`);
+  }
+  return { problems, measured };
+}
+
+test('a card table keeps the card text edge at every width', () => {
+  const { problems, measured } = cardEdgeProblems(CSS);
+  // The bare table and the framed table each declare one end-cell padding.
+  assert.equal(measured, 2, `measured ${measured} card --cell-edge declarations, not 2`);
+  assert.deepEqual(problems, []);
+});
+
+test('the card edge check rejects a phone rule that lowers the end cells', () => {
+  const phone = '@media (max-width: 560px) { .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-4) - var(--space-1)); } }';
+  assert.equal(cardEdgeProblems(CSS + phone).problems.length, 1);
+});

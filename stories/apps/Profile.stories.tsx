@@ -15,9 +15,9 @@ export default meta;
 // The photo, the name and the address come from sign-in, so nothing here is a field.
 // The role is a badge at the row's end: a fact about the reader that no one edits here.
 // 32px is the kit's largest avatar, the size the account window draws the reader at.
+// Sign out is an action, so it takes a kit row of its own under the facts, at the same insets.
 const CSS = `<style>
   .pf-who { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
-  .pf-out { margin-top: var(--space-4); }
 </style>`;
 
 const render = () => <AccountPage title="Profile">
@@ -30,7 +30,7 @@ const render = () => <AccountPage title="Profile">
       </div>
       <Badge>Analyst</Badge>
     </div>
-    <div className="pf-out"><Button icon="logout">Sign out</Button></div>
+    <div className="ui-card__row"><div><Button icon="logout">Sign out</Button></div></div>
   </Card>
 </AccountPage>;
 

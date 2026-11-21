@@ -110,6 +110,8 @@ export const wireStoryLinks = ({ win = window, channel = channelOrNull() } = {})
   const state = { marked: '', toTop: false };
   frames.set(win, state);
 
+  // Captured, because a menu stops its clicks at its own panel: the account menu's
+  // Profile row never bubbled up to here, and the bare href took the theme with it.
   win.document.addEventListener('click', (event) => {
     if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target?.closest?.('a[href]');
@@ -128,7 +130,7 @@ export const wireStoryLinks = ({ win = window, channel = channelOrNull() } = {})
     // Already on the story the link names — the manager re-renders nothing, so the row
     // is landed on here. On any other story the render below does it.
     if (landOnRow(win.document, target.row)) state.marked = target.row;
-  });
+  }, true);
 
   channel?.on(STORY_RENDERED, () => {
     if (state.toTop) {

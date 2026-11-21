@@ -651,13 +651,11 @@ a.ui-identity:hover { text-decoration: underline; }
 :where(.ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface); }
 :where(:root[data-theme="light"] .ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { background: var(--surface-3); }
 
-/* On a phone the cells pad by space-3 across and a card's end cells by space-4. A wide
-   table scrolls under a finger, so the frame shows no scrollbar. 560px is the kit's phone
-   breakpoint. */
+/* On a phone the cells pad by space-3 across. A card's end cells keep the card's text
+   edge, because the frame still reaches the card's edges (#845). A wide table scrolls
+   under a finger, so the frame shows no scrollbar. 560px is the kit's phone breakpoint. */
 @media (max-width: 560px) {
   .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(*, .ui-table--comfortable) { --cell-gap: var(--space-3); }
-  .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-4) - var(--space-1)); }
-  .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-4); }
   .ui-table-scroll { scrollbar-width: none; }
   .ui-table-scroll::-webkit-scrollbar { display: none; }
 }

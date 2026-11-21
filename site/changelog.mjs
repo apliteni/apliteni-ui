@@ -8,7 +8,9 @@ export const RELEASES = [
   {
     v: '0.181.0', date: '2026-11-21',
     changes: [
-      ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. The account guideline now says to use these pages for a small account area and the account window for several groups. Resolves #845.', ['Guidelines']],
+      ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. The account guideline now says to use these pages for a small account area and the account window for several groups. The account menu keeps a Theme submenu only where no page holds the theme. Resolves #845.', ['Guidelines']],
+      ['changed', 'At 560px and narrower, a segmented choice that stacks under its label in a card settings row now starts its first label on the row text edge. The choice moves 16px to the left, and its first pill extends into the card padding.'],
+      ['changed', 'At 560px and narrower, a hover table in a card starts its first column on the card text edge, as it does on a wider screen. Its end cells gain 8px of padding.'],
     ],
   },
   {

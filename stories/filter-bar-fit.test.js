@@ -853,7 +853,7 @@ test('every table a story draws has a search field above it, or the stated excep
       'react/src/DataTable.stories.tsx DataTable', 'react/src/DataTable.stories.tsx DataTable',
       'react/src/DocumentReview.stories.tsx table', 'react/src/DocumentReview.stories.tsx SkeletonTable', 'react/src/DocumentReview.stories.tsx table',
       'react/src/KeyValueList.stories.tsx DataTable',
-      'stories/apps/Preferences.stories.tsx table',
+      'stories/apps/Preferences.stories.tsx DataTable',
       'stories/guidelines/DashboardsAndReports.stories.tsx table']);
 });
 

@@ -22,7 +22,7 @@
 
 **Why:** A reader already knows which group they came for, and a list of names is read faster than every group in turn.
 
-**Do:** Stand the entries beside the pane — above it on a phone — and mark the one on screen.
+**Do:** Stand the entries beside the pane — above it on a phone — and mark the one shown.
 
 **Don't:** Run all five groups down one scroll.
 
@@ -32,7 +32,7 @@
 
 <!-- rule: menu -->
 
-**Rule:** Keep the account menu to the reader, a few ways in, a Theme submenu and Sign out.
+**Rule:** Keep the account menu to the reader, the ways in, Support and Sign out, and Theme only where no page holds it.
 
 **Why:** A setting answered inside a menu has no address to link, search or come back to.
 
@@ -60,7 +60,7 @@
 
 **Rule:** Name an account pane’s action after the change it makes.
 
-**Why:** On a pane of agents and the tokens they hold, Save does not say what the press changes.
+**Why:** On a pane of agent tokens, Save does not say what the press changes.
 
 **Do:** End the tokens pane with “Create token”.
 
