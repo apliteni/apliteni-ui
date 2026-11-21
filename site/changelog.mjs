@@ -10,6 +10,8 @@ export const RELEASES = [
     changes: [
       ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. The account guideline now says to use these pages for a small account area and the account window for several groups. The account menu keeps a Theme submenu only where no page holds the theme. Resolves #845.', ['Guidelines']],
       ['changed', 'At 560px and narrower, a segmented choice that stacks under its label in a card settings row now starts its first label on the row text edge. The choice moves 16px to the left, and its first pill extends into the card padding.'],
+      ['changed', 'A `DataTable` scroll region is a Tab stop only while its content overflows, also after a resize. A control in the region that takes the focus by keyboard or by script now scrolls fully into view. When a region with a pinned column is scrolled, the next column\'s text stops one cell padding short of the divider. Resolves #845.', ['DataTable']],
+      ['fixed', 'The `AppShell` account button takes its name from its content, so the name holds the text that the button shows. The name stays "Signed in as", the name and the address, and the account menu now has the same name. A `Dropdown` with `triggerContent` and no `ariaLabel` names its panel by the trigger. Resolves #845.', ['AppShell', 'Dropdown']],
     ],
   },
   {

@@ -593,6 +593,69 @@ test('the pin-paint check rejects a condition that counts vertical overflow', ()
   ));
 });
 
+/**
+ * Once the frame is scrolled, the column after the pin keeps its cell padding from the
+ * divider: a band of the pinned cell's own ground, as wide as that padding, covers the text
+ * that moves under the pin. Each rule that pads the next cell sets the band's width on the
+ * pinned cell with the same selector and value. A dense or compact cell pads by the band's
+ * fallback.
+ *
+ * Its limit: this reads the declarations, not the paint. JSDOM resolves no container query,
+ * so the gap at 390px is measured in Chromium and recorded in the pull request. #845
+ */
+const PIN_GAP = /@container\s+scroll-state\(\s*scrollable:\s*left\s*\)\s*\{((?:[^{}]*\{[^}]*\})*)\s*\}/;
+
+const checkPinGap = (css) => {
+  const band = css.match(PIN_GAP);
+  assert.ok(band, 'a scroll-state query must draw the band only while the frame is scrolled');
+  const rule = band[1].match(/\.ui-table--pinned\s+\.ui-table__identity::after\s*\{([^}]*)\}/);
+  assert.ok(rule, 'the pinned identity cell draws the band');
+  for (const [decl, why] of [
+    [/background:\s*inherit/, 'the band takes the pinned cell ground, also on a hovered or marked row'],
+    [/left:\s*calc\(100%\s*\+\s*1px\)/, 'the band starts after the 1px divider'],
+    [/width:\s*var\(--ui-table-pin-gap,\s*var\(--space-3\)\)/, 'the band is as wide as the next cell padding'],
+    [/pointer-events:\s*none/, 'the band takes no click from the cell under it'],
+  ]) assert.match(rule[1], decl, why);
+  // Below 720px the cell cuts what overflows it, which would cut the band too. Only while
+  // the frame is scrolled does the cut reach past the divider, by the widest band (12px)
+  // and its 1px line. Chromium computes a calc() in this property as 0px.
+  assert.match(band[1], /\.ui-table--pinned\s+\.ui-table__identity\s*\{\s*overflow-clip-margin:\s*var\(--space-4\);\s*\}/,
+    'the cell cut reaches past the widest band, with a plain token');
+  const pads = [...css.matchAll(/([^{}]+?)\s*\.ui-table__identity \+ :is\(th, td\)\s*\{\s*padding-left:\s*([^;]+);\s*\}/g)];
+  assert.equal(pads.length, 2, 'two rules pad the cell after the divider');
+  for (const [, scope, value] of pads) {
+    const gap = new RegExp(`${scope.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\.ui-table__identity\\s*\\{\\s*--ui-table-pin-gap:\\s*([^;]+);`);
+    const found = css.match(gap);
+    assert.ok(found, `${scope.trim()} sets the band width`);
+    assert.equal(found[1].trim(), value.trim(), `${scope.trim()} gives the band the padding of the next cell`);
+  }
+};
+
+test('the column after the pin keeps its padding from the divider when the frame is scrolled', () => {
+  checkPinGap(CSS);
+});
+
+test('the pin-gap check rejects a sheet with no band', () => {
+  assert.throws(() => checkPinGap(CSS.replace(PIN_GAP, '')));
+});
+
+test('the pin-gap check rejects a band that covers the next cell at rest', () => {
+  assert.throws(() => checkPinGap(CSS.replace('scroll-state(scrollable: left)', 'scroll-state(scrollable: none)')));
+});
+
+test('the pin-gap check rejects a band narrower than the next cell padding', () => {
+  assert.throws(() => checkPinGap(CSS.replace('{ --ui-table-pin-gap: calc(var(--cell-gap) / 2); }', '{ --ui-table-pin-gap: var(--space-1); }')));
+});
+
+test('the pin-gap check rejects a cell cut that hides the band', () => {
+  assert.throws(() => checkPinGap(CSS.replace(/ overflow-clip-margin: var\(--space-4\);/, '')));
+  assert.throws(() => checkPinGap(CSS.replace(/ overflow-clip-margin: var\(--space-4\);/, ' overflow-clip-margin: calc(var(--space-3) + 1px);')));
+});
+
+test('the pin-gap check rejects a band painted in a fixed ground', () => {
+  assert.throws(() => checkPinGap(CSS.replace(/(::after \{[^}]*)background: inherit/, '$1background: var(--table-bg)')));
+});
+
 /* A pinned identity that stands after a column other than the selection still clears the
  * selection column: the offset is written for any preceding selection, not only one
  * directly beside it, so a date column before the identity scrolls under it instead of

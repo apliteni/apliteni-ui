@@ -254,6 +254,8 @@ export function Dropdown({
   const inField = useContext(FieldContext);
   const fieldName = inField && id === inField.id && !(ariaLabel && triggerContent != null)
     ? { id: `${uid}-trigger`, labelId: inField.labelId, labelledBy: `${inField.labelId} ${uid}-trigger` } : null;
+  // A trigger named by its own content, with no ariaLabel, also names its panel.
+  const byContent = !fieldName && !ariaLabel && triggerContent != null ? `${uid}-trigger` : undefined;
 
   const setOpen = useCallback((next: boolean) => {
     if (openProp === undefined) setSelfOpen(next);
@@ -873,7 +875,7 @@ export function Dropdown({
         disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
-        id={fieldName?.id}
+        id={fieldName?.id ?? byContent}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
         title={title}
         aria-labelledby={fieldName?.labelledBy}
@@ -899,7 +901,7 @@ export function Dropdown({
         data-dropdown-panel=""
         role={sx ? 'dialog' : listRole}
         aria-label={sx ? name : ariaLabel}
-        aria-labelledby={!sx && !ariaLabel ? fieldName?.labelId : undefined}
+        aria-labelledby={!sx && !ariaLabel ? fieldName?.labelId ?? byContent : undefined}
         style={sx ? undefined : cap}
         ref={panel}
         onClick={(e) => e.stopPropagation()}

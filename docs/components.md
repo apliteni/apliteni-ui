@@ -164,7 +164,8 @@ in their own row under the title. `back` puts a [back link](#back-link) above th
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top
 of every account menu. A row takes `href` to go to a page, or `onSelect` to open something in
 place. A separator stands before Sign out. In the topbar layout, a Theme row opens a submenu with
-Auto, Light and Dark.
+Auto, Light and Dark. The account button's name is "Signed in as", the name and the address. It
+holds each line of text that the button shows, and the menu takes the same name.
 
 **Topbar layout only.**
 
@@ -1081,7 +1082,8 @@ least 4.5:1 on a plain or a selected row.
 **Scrolling.** With `stickyHeader` or `pinnedIdentity`, the table stands in a named scroll region.
 `pinnedIdentity` pins the first column, or the column whose key you give. A table wider than its
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
-region can scroll. Below 720px a pinned cell keeps one line and is cut at
+region can scroll. When the region is scrolled, the next column's text stops one cell padding
+short of the divider. Below 720px a pinned cell keeps one line and is cut at
 `--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
 frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
@@ -1100,8 +1102,10 @@ selected. A dense table marks a selected row only with its box.
 focus. A `.ui-table__sub` puts a second value under the first, such as an email under a name.
 `.ui-table__pair` groups a reference and a status, and stacks them when the cell is narrow.
 
-**Keyboard and screen reader.** The scroll region takes the focus and draws the ring inside its
-edge, so the arrow keys, a trackpad and a finger reach the same columns.
+**Keyboard and screen reader.** When its content overflows, the scroll region takes the focus and
+draws the ring inside its edge, so the arrow keys, a trackpad and a finger reach the same columns.
+When the content fits, also after a resize, the region is not a Tab stop. A control in the region
+that takes the focus by keyboard or by script scrolls fully into view.
 
 **In a card.** The table reaches the card's edges, and its end cells keep the card's text edge.
 At 560px and narrower, a row table's end cells pad by 16px, so its first column starts 8px

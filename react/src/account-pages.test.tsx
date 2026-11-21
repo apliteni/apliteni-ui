@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, onTestFinished } from 'vitest';
 import { composeStories } from '@storybook/react';
 import { SELECT_STORY } from 'storybook/internal/core-events';
 import * as preferences from '../../stories/apps/Preferences.stories';
@@ -40,6 +40,8 @@ describe('account pages', () => {
     expect(frame.emitted).toEqual([{ type: SELECT_STORY, payload: { storyId: PROFILE_STORY, scrollTo: undefined } }]);
     cleanup();
     render(<Profile />);
+    // The owner's choice: Sign out is in the account menu only, not on the Profile page.
+    expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull();
     follow('Preferences');
     expect(frame.emitted).toEqual([{ type: SELECT_STORY, payload: { storyId: PREFERENCES_STORY, scrollTo: undefined } }]);
   });
@@ -57,14 +59,21 @@ describe('account pages', () => {
   it('names the connections table, its scroll frame and its action column', () => {
     render(<Preferences />);
     const region = screen.getByRole('region', { name: 'Connections' });
-    expect(region).toHaveAttribute('tabindex', '0');
+    // JSDOM lays nothing out, so the frame overflows nothing and is no tab stop.
+    expect(region).not.toHaveAttribute('tabindex');
     const table = within(region).getByRole('table', { name: 'Connections' });
     const heads = within(table).getAllByRole('columnheader');
     expect(heads.map((th) => th.textContent)).toEqual(['App', 'Access', 'Connected', 'Last used', 'Actions']);
     expect(heads[0]).toHaveClass('ui-table__identity');
   });
 
+  // The scroll frame brings the next Revoke fully into view. JSDOM has no scrolling, so this
+  // checks the call. A browser measured the scroll in the pull request.
   it('moves the keyboard to the next Revoke and reports each revoke', async () => {
+    const revealed: Element[] = [];
+    const own = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) { revealed.push(this); };
+    onTestFinished(() => { Element.prototype.scrollIntoView = own; });
     render(<Preferences />);
     const revoke = async (app: string) => {
       fireEvent.click(screen.getByRole('button', { name: `Revoke ${app}` }));
@@ -75,8 +84,10 @@ describe('account pages', () => {
     };
     await revoke('Deck summariser');
     expect(screen.getByRole('button', { name: 'Revoke Spreadsheet sync' })).toHaveFocus();
+    expect(revealed.at(-1)).toBe(screen.getByRole('button', { name: 'Revoke Spreadsheet sync' }));
     await revoke('Spreadsheet sync');
     expect(screen.getByRole('button', { name: 'Revoke Research bot' })).toHaveFocus();
+    expect(revealed.at(-1)).toBe(screen.getByRole('button', { name: 'Revoke Research bot' }));
     await revoke('Research bot');
     expect(screen.getByRole('button', { name: 'Browse apps' })).toHaveFocus();
   });
