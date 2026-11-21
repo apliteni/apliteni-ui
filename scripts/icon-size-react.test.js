@@ -44,8 +44,9 @@ const rel = (p) => path.relative(root, p).split(path.sep).join('/');
 
 // AppShell, DataTable, Field, KeyValueList and Timeline size glyphs on both axes.
 // Change the count with the sizing rules and explain removals.
-// The shell sizes its head control's glyph (#732); the five components own ten sizes.
-const EXPECTED_SUBJECTS = 10;
+// The shell sizes its head control's glyph (#732) and its band actions' glyph (#847);
+// the five components own twelve sizes.
+const EXPECTED_SUBJECTS = 12;
 
 /* Every directory under react/src the walk refused to enter. SKIP_DIRS prunes by
  * NAME wherever the name turns up, which is what build output needs and what
