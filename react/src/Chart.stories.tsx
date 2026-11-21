@@ -63,7 +63,7 @@ export const AsTable: StoryObj = {
   },
 };
 
-/** The same months with no unfinished period, so no words stand under the plot.
+/** The same months with no unfinished period, so no readout names a state.
  *  The story's id is kept from the round that named it after the fade it no
  *  longer draws. */
 export const Solid: StoryObj = {
@@ -78,8 +78,8 @@ export const Solid: StoryObj = {
 };
 
 /** The last closed months, the running one and three projected ones (#841).
- *  Every mark stays solid; the words under the plot name the periods that are
- *  not final, and the readout and the table repeat the same words. */
+ *  Every mark stays solid; the readout and the table name the periods that are
+ *  not final. */
 export const Forecast: StoryObj = {
   render: () => (
     <Card title="Cash in">

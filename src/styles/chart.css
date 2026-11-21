@@ -5,7 +5,6 @@
  *   .ui-chart__frame   the tab stop; the value axis beside the scroller
  *   .ui-chart__scroll  the scroller
  *   .ui-chart__plot    the drawing and its column labels
- *   .ui-chart__states  the periods that are not final, under the plot
  *   .ui-chart__data    the same numbers as a table
  * The component sets --ui-chart-h, the plot's height, which the axis matches.
  * why: docs/components.md#chart
@@ -338,16 +337,8 @@
    their height would hide the last period behind a second scrollbar. */
 .ui-chart__data .ui-table-scroll { --ui-table-height: none; }
 .ui-chart__data .ui-table { margin: 0; }
-/* A period that is not final keeps its solid mark in the series ink: the words
-   under the plot name its state, and the readout and the table repeat them. */
-.ui-chart__states {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  column-gap: var(--space-4);
-  row-gap: var(--space-1);
-  margin: 0;
-}
+/* A period that is not final keeps its solid mark in the series ink: the
+   readout and the table name its state. */
 
 /* Why a period is not final is a sentence, not a label, so it wraps under the
    period it qualifies instead of carrying the money columns another two hundred

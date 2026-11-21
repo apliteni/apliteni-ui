@@ -1235,10 +1235,9 @@ values and hangs them under the line.
 **What the user sees.** A bar is never wider than a mark, so a wider card adds space between
 columns. `legend` shows the legend. A period with `estimated` keeps its solid mark in the series
 ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
-future period, or to `true` for any other estimate. Words under the chart name each run of such
-periods, such as "Nov incomplete" and "Dec–Feb projected". The readout and the table use the same
-word, followed by the `note`. The table hides the words under the chart, because each row names
-its state. A sparkline draws no words, so its screen names the periods. A switch at the top right
+future period, or to `true` for any other estimate. The chart at rest prints no state. The hover
+and keyboard readout and each table row say "Incomplete", "Projected" or "Estimated", followed by
+the `note`. Name the state on the screen where it matters. A switch at the top right
 shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
 and `onSelect` lets the user pick a column, which gets a band behind it. At phone widths the plot
