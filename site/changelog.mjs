@@ -8,8 +8,8 @@ export const RELEASES = [
   {
     v: '0.180.0', date: '2026-11-21',
     changes: [
-      ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink. The chart no longer draws a dashed edge, a dashed line or a dashed legend key, and the legend no longer has an Estimated key. Words under the chart name the periods that are not final, such as \u201cApr estimated\u201d. Resolves #841.', ['Chart']],
-      ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the period that is still running and `estimated: \'projected\'` for a future period. The words under the chart, the readout and the table then say \u201cincomplete\u201d or \u201cprojected\u201d, such as \u201cNov incomplete\u201d and \u201cDec\u2013Feb projected\u201d. Resolves #841.', ['Chart']],
+      ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink. The chart no longer draws a dashed edge, a dashed line or a dashed legend key, and the legend no longer has an Estimated key. The readout and the table name a period that is not final. Resolves #841.', ['Chart']],
+      ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the period that is still running and `estimated: \'projected\'` for a future period. The readout and the table then say \u201cIncomplete\u201d or \u201cProjected\u201d. Resolves #841.', ['Chart']],
       ['changed', 'A `Chart` of periods that is wider than its card opens at its latest period in every look, not only in the line chart\u2019s labels look. A bridge still opens at its opening total. Resolves #841.', ['Chart']],
     ],
   },

@@ -593,21 +593,15 @@ it('keeps the series fill and a solid edge on unfinished periods', () => {
   expect(segments).toHaveLength(3);
 });
 
-it('names each run of unfinished periods under the plot, by its axis names', () => {
+// The owner struck the words under the plot from the accepted picture, so a
+// chart at rest prints no state: the readouts and the table name it.
+const restingWords = (root: Element) => root.textContent!.toLowerCase();
+
+it('prints no state words around the plot while no readout is open', () => {
   const { container } = forecastChart();
-  const states = container.querySelector('.ui-chart__states')!;
-  expect([...states.children].map((s) => s.textContent)).toEqual(['Nov incomplete', 'Dec–Feb projected']);
-  expect(states.previousElementSibling, 'under the plot').toHaveClass('ui-chart__frame');
+  expect(restingWords(container), 'no state words at rest').not.toMatch(/incomplete|projected|estimated/);
   cleanup();
-  expect([...months().container.querySelector('.ui-chart__states')!.children].map((s) => s.textContent),
-    'a plain estimate keeps its own word').toEqual(['Apr estimated']);
-  cleanup();
-  const split: ChartPeriod[] = [{ label: 'Jan 2026', estimated: 'projected' }, { label: 'Feb 2026' },
-    { label: 'Mar 2026', estimated: 'projected' }];
-  const { container: apart } = render(<Chart title="Gap" periods={split} series={series.slice(0, 1)}
-    format={eur} />);
-  expect([...apart.querySelector('.ui-chart__states')!.children].map((s) => s.textContent),
-    'a final period between two projected ones splits the run').toEqual(['Jan projected', 'Mar projected']);
+  expect(restingWords(months().container), 'a plain estimate prints no word either').not.toMatch(/estimated/);
 });
 
 it('reads the state with the same word in the hover, keyboard and table readouts', async () => {
@@ -628,14 +622,11 @@ it('reads the state with the same word in the hover, keyboard and table readouts
   showTable();
   expect([...document.querySelectorAll('.ui-chart__state')].map((s) => s.textContent))
     .toEqual(['Incomplete', 'Projected', 'Projected', 'Projected — from the signed contracts']);
-  expect(document.querySelector('.ui-chart__states'), 'table mode hides the words: each row names its state')
-    .toBeNull();
 });
 
-it('draws no state words under a sparkline, whose screen names its periods', () => {
+it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
   const { container } = render(<Chart variant="spark" title="Cash" periods={forecast}
     series={forecastSeries.slice(1)} format={eur} />);
-  expect(container.querySelector('.ui-chart__states')).toBeNull();
   expect(container.querySelector('line.ui-chart__line.is-estimated'), 'the line stays one solid stroke')
     .not.toBeNull();
 });
@@ -1297,13 +1288,13 @@ it('lays every line casing under every line stroke, and makes it the wider of th
     .toMatch(/\.ui-chart--spark \.ui-chart__line-casing \{ display: none; \}/);
 });
 
-it('a bridge names its step that is not final under the plot, and keys no state', () => {
+it('a bridge prints no word for its step that is not final, and keys no state', () => {
   const { container } = render(
     <Chart variant="bridge" title="Cash" format={eur}
       steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
         { label: 'Fees', value: -150, estimated: true }, { label: 'Closing', kind: 'total' }]} legend />,
   );
-  expect(container.querySelector('.ui-chart__states')).toHaveTextContent('Fees estimated');
+  expect(restingWords(container), 'the readout names the step, not the resting chart').not.toMatch(/estimated/);
   expect(container.querySelector('.ui-chart__key-estimated')).toBeNull();
 });
 

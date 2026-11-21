@@ -36,8 +36,8 @@ export type ChartPeriod = {
   short?: string;
   /**
    * The period is not final. `incomplete` is the period still running,
-   * `projected` a future one, and `true` any other estimate. The chart names
-   * the state under the plot, in the readout and in the table.
+   * `projected` a future one, and `true` any other estimate. The readout and
+   * the table name the state; the chart at rest prints none.
    */
   estimated?: ChartEstimate;
   /** Why it is not final. Printed in the readout and in the table. */
@@ -314,23 +314,6 @@ function useTapFloor() {
 function stateOf(column: Column | undefined) {
   if (!column?.state) return '';
   return column.note ? `${column.state} — ${column.note}` : column.state;
-}
-
-/**
- * The words under the plot: each run of periods in one state, by its axis
- * names, so a reader sees which columns are not final without a hover.
- * `Nov incomplete`, then `Dec–Feb projected`.
- */
-function stateRuns(columns: readonly Column[]) {
-  const runs: { first: Column; last: Column; state: string }[] = [];
-  columns.forEach((column, i) => {
-    if (!column.state) return;
-    const run = runs[runs.length - 1];
-    if (run && run.state === column.state && run.last === columns[i - 1]) run.last = column;
-    else runs.push({ first: column, last: column, state: column.state });
-  });
-  return runs.map(({ first, last, state }) =>
-    `${first === last ? first.short : `${first.short}–${last.short}`} ${state.toLowerCase()}`);
 }
 
 /** The frame a bars-and-line chart draws, and the sparkline's, which is the same
@@ -857,9 +840,6 @@ export function Chart(props: ChartProps) {
 
   /* -- the drawing --------------------------------------------------------- */
 
-  // A sparkline sits in a figure whose screen names its periods; the table
-  // names the state in each row.
-  const states = spark || asTable ? [] : stateRuns(columns);
   const hitBand = (band: Band) => (band === 'up'
     ? { y: PAD, h: Math.max(zero - PAD, TARGET) }
     : band === 'down'
@@ -1192,12 +1172,6 @@ export function Chart(props: ChartProps) {
           )}
         </span>
       </div>
-
-      {states.length > 0 && (
-        <p className="ui-chart__states">
-          {states.map((words) => <span key={words}>{words}</span>)}
-        </p>
-      )}
 
       {!legendFirst && legend}
 
