@@ -28,7 +28,7 @@ const render = () => <AccountPage title="Profile">
         <Avatar personKey="ada@apliteni.com" name="Ada Lovelace" src={person} size={32} />
         <div><div className="lab">Ada Lovelace</div><div className="hint">ada@apliteni.com</div></div>
       </div>
-      <Badge>Admin</Badge>
+      <Badge>Analyst</Badge>
     </div>
     <div className="pf-out"><Button icon="logout">Sign out</Button></div>
   </Card>
