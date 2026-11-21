@@ -36,8 +36,8 @@ const Agents = ({ all = false }: { all?: boolean }) => <Stage>
 
 // Cards stack at one level, never one inside another.
 const Stack = ({ nested }: { nested: boolean }) => <Stage>{nested
-  ? <Card title="Payouts"><Card title="Last 7 days" sub="14 payouts" /><Card title="Failed" sub="2 payouts" /></Card>
-  : <div className="ui-card-stack"><Card title="Payouts" sub="14 payouts" /><Card title="Last 7 days" sub="14 payouts" /><Card title="Failed" sub="2 payouts" /></div>}
+  ? <Card title="Payouts" level={3}><Card title="Last 7 days" level={3} sub="14 payouts" /><Card title="Failed" level={3} sub="2 payouts" /></Card>
+  : <div className="ui-card-stack"><Card title="Payouts" level={3} sub="14 payouts" /><Card title="Last 7 days" level={3} sub="14 payouts" /><Card title="Failed" level={3} sub="2 payouts" /></div>}
 </Stage>;
 
 // One density per page. Each long table keeps its filter bar directly above it.
