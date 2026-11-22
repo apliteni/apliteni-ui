@@ -32,7 +32,7 @@
    outline means focus. why: docs/foundations.md#the-focus-ring */
 .ui-theme-choice__option:not(:has(:checked)):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ color: var(--strong); }
 .ui-theme-choice__option:has(:checked) { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ color: var(--strong); font-weight: var(--weight-semibold); }
-.ui-theme-choice__option:has(:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-theme-choice__option:has(.ui-theme-choice__input:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-theme-choice__option:active .ui-theme-choice__pic { transform: translateY(1px); }
 .ui-theme-choice__name { overflow-wrap: anywhere; text-align: center; }
 
