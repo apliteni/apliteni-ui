@@ -21,11 +21,11 @@ import { fileURLToPath } from 'node:url';
 import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
 import { Card } from './primitives/Card';
 import type { ChartSlice } from './chart-looks';
-import { placeTip } from './tip';
 // Plain JS outside this workspace's tsconfig, imported for its arithmetic the
 // way react/src/contrast.test.tsx imports it.
 // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
 import { substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { LinePoints, LineThin } from './Chart.stories';
 
 const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
@@ -715,6 +715,48 @@ it('leaves out only the values that do not fit, and keeps every exact value else
   expect(screen.getByRole('table')).toHaveTextContent('€1,500');
 });
 
+// #842 review: two bars in one column sit 50px apart, so their two 74px values
+// met although each one fitted half the column.
+it('prints no two values over each other, and gives the room of hidden values back to the bars', () => {
+  const pair = (width: number) => values(width, {
+    periods: periods.slice(0, 1), formatAxis: eur,
+    series: [
+      { id: 'a', name: 'Income', values: [1234567], tone: 'good' },
+      { id: 'b', name: 'Fees', values: [1234567], tone: 'neutral' },
+    ],
+  });
+  const tops = (root: Element) => [...root.querySelectorAll('path.ui-chart__bar')].map((p) => boxOf(p).y);
+  const { container } = pair(300);
+  expect(printed(container), 'neither value fits the 50px between the bars').toEqual([]);
+  hover('a-0');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__value')).toHaveTextContent('€1,234,567');
+  showTable();
+  expect(screen.getByRole('table')).toHaveTextContent('€1,234,567');
+  cleanup();
+  vi.restoreAllMocks();
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+  const plain = tops(render(<Chart title="Fees" periods={periods.slice(0, 1)} format={eur}
+    series={[{ id: 'a', name: 'Income', values: [1234567], tone: 'good' },
+      { id: 'b', name: 'Fees', values: [1234567], tone: 'neutral' }]} />).container);
+  cleanup();
+  vi.restoreAllMocks();
+  expect(tops(pair(300).container), 'no value prints, so no room is kept for one').toEqual(plain);
+  cleanup();
+  vi.restoreAllMocks();
+
+  // Wider bars in four columns: every value that prints keeps its own ground.
+  const { container: wide } = values(640, { formatAxis: eur });
+  const texts = [...wide.querySelectorAll('text.ui-chart__value:not(.ui-chart__value--below)')];
+  expect(texts.length).toBeGreaterThan(1);
+  const spans = texts.map((t) => {
+    const x = Number(t.getAttribute('x'));
+    const half = (t.textContent!.length * 12 * 0.62) / 2;
+    return [x - half, x + half];
+  }).sort((a, b) => a[0] - b[0]);
+  spans.slice(1).forEach(([left], i) => expect(left, 'apart from the value before it')
+    .toBeGreaterThanOrEqual(spans[i][1]));
+});
+
 it('fits 24 months in a 154px plot with no scroll, every bar, and fewer labels', () => {
   const months24: ChartPeriod[] = Array.from({ length: 24 }, (_, i) => ({
     label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2025 + Math.floor(i / 12)}`,
@@ -1007,6 +1049,15 @@ it('an ordinary mouse click is not a tap, and still picks', async () => {
   months({ selectable: true, onSelect });
   await user.click(markEl('income-1'));
   expect(onSelect).toHaveBeenCalledWith(1);
+});
+
+it('a tap after Escape opens the same mark again', () => {
+  months();
+  tap('income-1');
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(screen.queryByRole('tooltip')).toBeNull();
+  tap('income-1');
+  expect(screen.getByRole('tooltip'), 'a new tap is a deliberate press').toHaveTextContent('Feb 2026');
 });
 
 it('Escape dismisses the readout, and the pointer does not bring it straight back', () => {
@@ -1449,42 +1500,11 @@ it('a cursor left past the end of a shortened series still announces', async () 
     .toHaveTextContent('Jan 2026.');
 });
 
-it('keeps the readout inside the part it belongs to', () => {
-  // JSDOM has no layout, so the viewport and the three boxes are all given: a
-  // frame whose top edge is the legend's bottom, and a mark just under it.
-  // Nothing between the frame and the body clips, so without the bound the clip
-  // box is the viewport and the readout is free to open over the chart's own
-  // legend and top tick.
-  for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
-    Object.defineProperty(document.documentElement, prop, { value, configurable: true });
-  }
-  const host = document.createElement('div');
-  const mark = document.createElement('div');
-  const tip = document.createElement('span');
-  host.append(mark, tip);
-  document.body.append(host);
-  const box = (top: number, bottom: number) =>
-    ({ top, bottom, left: 100, right: 200, width: 100, height: bottom - top }) as DOMRect;
-  vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(box(120, 400));
-  vi.spyOn(mark, 'getBoundingClientRect').mockReturnValue(box(130, 130));
-  vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
-  vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(120);
-
-  placeTip(host, mark, tip);
-  expect(tip.classList.contains('is-below'),
-    'unbounded, the viewport is the only ceiling and the readout opens upward over the legend')
-    .toBe(false);
-
-  placeTip(host, mark, tip, host);
-  expect(tip.classList.contains('is-below'),
-    'bounded by the frame, a mark with no room above flips below instead of leaving it')
-    .toBe(true);
-});
-
-it('hands its own frame to the readout as that bound', () => {
-  // The same case, through the component rather than through placeTip: a mark
-  // with the legend just above it. JSDOM reports every box as zero, so the
-  // frame, the anchor and the readout are given the geometry a browser would.
+it('opens the readout above its mark when the view has room there, over the legend', () => {
+  // JSDOM has no layout, so the viewport and the boxes are given: a frame whose
+  // top edge is the legend's bottom, and a mark just under it. Nothing between
+  // the frame and the body clips, so the view is the only ceiling.
+  // why: guidelines/hover-readouts.md#prefer-above-the-mark
   for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
     Object.defineProperty(document.documentElement, prop, { value, configurable: true });
   }
@@ -1500,8 +1520,7 @@ it('hands its own frame to the readout as that bound', () => {
   vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(120);
 
   hover('income-0');
-  expect(tip.classList.contains('is-below'),
-    'the readout flips below rather than opening over the legend above the frame').toBe(true);
+  expect(tip.classList.contains('is-below'), 'the frame is no ceiling for the readout').toBe(false);
 });
 
 it('says under the pointer that a selectable column can be picked', () => {
@@ -1744,4 +1763,17 @@ it('shrinks the labels ring\'s box with its ring on a narrow plot', () => {
   const narrow = box(300);
   expect(narrow.h, 'the narrow box is shorter').toBeLessThan(wide.h);
   expect(wide.h - narrow.h, 'by what the ring lost across').toBeCloseTo(2 * (wide.r - narrow.r), 0);
+});
+
+// #842 design review: a two-line story named its lines only in the readout.
+// The labels look names them by their final values; the others need a key.
+it('names the lines of a two-line story in a key while no readout is open', () => {
+  for (const story of [LineThin, LinePoints]) {
+    const { container } = render(<>{story.render!({} as never, {} as never)}</>);
+    const key = container.querySelector('.ui-chart__legend');
+    expect(key, 'a key').not.toBeNull();
+    expect(key).toHaveTextContent('Income');
+    expect(key).toHaveTextContent('Spend');
+    cleanup();
+  }
 });

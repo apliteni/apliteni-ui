@@ -1236,8 +1236,10 @@ values and hangs them under the line.
 scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
 Where the period labels do not fit, the chart prints every second, third or later label, counted
 from the first period that is not final, or from the latest period. Set `values` to print each
-bar's value over the bar, in `formatAxis`. A value that does not fit its bar's share of the
-column at the 12px text size is left out. The readout and the table always show it. `legend`
+bar's value over the bar, in `formatAxis`. A value takes at most half the space to the next value,
+at the 12px text size, and stays inside the plot. A value that does not fit there is left out.
+The readout and the table always show it. A chart that prints no value gives that room to its
+bars. `legend`
 shows the legend. A period with `estimated` keeps its solid mark in the series
 ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
 future period, or to `true` for any other estimate. In `months`, one solid line stands before the
@@ -1255,7 +1257,8 @@ card opens at its latest period. A bridge opens at its opening total.
 **Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when
 `selectable` is set. A plot that scrolls adds one more Tab stop for the scroll box. On a touch
-screen, the first tap on a mark opens its readout and does not call `onSelect`. Every value is
+screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
+new tap on the same mark opens its readout again. Every value is
 reachable at full strength by pointer or keyboard.
 
 ### Table values

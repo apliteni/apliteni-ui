@@ -375,6 +375,11 @@ function useTextWidth(host: RefObject<HTMLElement | null>) {
   }, [font, loaded]);
 }
 
+/** What a bar is worth: its length, read in the direction its band grows. */
+function barValue(bar: { band: Band; from: number; to: number }) {
+  return bar.band === 'down' ? bar.from - bar.to : bar.to - bar.from;
+}
+
 /** The readout's words for a period that is not final: the state, then why. */
 function stateOf(column: Column | undefined) {
   if (!column?.state) return '';
@@ -686,15 +691,6 @@ export function Chart(props: ChartProps) {
   /* The first period that is not final, where the months chart draws its
      boundary and the "Not final" group label over the plot. */
   const groupFrom = fit ? columns.findIndex((c) => c.estimated) : -1;
-  // The room the group label and the values take, inside the plot's height.
-  const roomTop = (groupFrom >= 0 ? GROUP_ROOM : 0) + (showValues ? VALUE_ROOM : 0);
-  const roomBottom = showValues && frame.bars.some((b) => b.to < 0) ? VALUE_ROOM : 0;
-  const y = useCallback(
-    (value: number) => PAD + roomTop
-      + ((scale.max - value) / span) * (plotHeight - PAD * 2 - roomTop - roomBottom),
-    [scale.max, span, plotHeight, roomTop, roomBottom],
-  );
-  const zero = y(Math.min(Math.max(0, scale.min), scale.max));
   /* The group a column draws, and one bar's slot inside it. The cap is the
      mark's, so two bars in a column take two caps and the gap between them;
      the share is the column's, so a narrow column still keeps its ground. */
@@ -705,6 +701,38 @@ export function Chart(props: ChartProps) {
     : Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6, cap * lanes + LANE_GAP * (lanes - 1)));
   const barWidth = Math.max(1, (groupWidth - LANE_GAP * (lanes - 1)) / lanes);
   const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
+  /** A bar's left edge: each band centres the lanes it actually has. */
+  const barX = useCallback((bar: { column: number; lane: number; lanes: number }) => centre(bar.column)
+    - (bar.lanes * barWidth + LANE_GAP * (bar.lanes - 1)) / 2
+    + bar.lane * (barWidth + LANE_GAP), [centre, barWidth]);
+  /* The bars that print their value. A value is centred on its bar and takes
+     at most half the space to the next value on its side of zero, or the whole
+     space to the plot's edge, so no two values meet. One that cannot fit there
+     is left out, never shrunk under the kit's text size; the readout and the
+     table keep it. */
+  const printed = useMemo(() => {
+    const out = new Set<string>();
+    if (!showValues) return out;
+    const at = frame.bars.map((bar) => ({ bar, x: barX(bar) + barWidth / 2 }));
+    for (const { bar, x } of at) {
+      const side = at.filter((o) => o.bar !== bar && (o.bar.band === 'down') === (bar.band === 'down'));
+      const left = Math.min(2 * x, ...side.filter((o) => o.x <= x).map((o) => x - o.x));
+      const right = Math.min(2 * (plotWidth - x), ...side.filter((o) => o.x > x).map((o) => o.x - x));
+      if (textWidth(formatAxis(barValue(bar))) + TEXT_GAP <= Math.min(left, right)) out.add(bar.id);
+    }
+    return out;
+  }, [showValues, frame.bars, barX, barWidth, plotWidth, textWidth, formatAxis]);
+  // The room the group label and the printed values take, inside the plot's
+  // height. A chart that prints no value gives that room back to its bars.
+  const hangs = (id: string) => frame.bars.find((b) => b.id === id)?.band === 'down';
+  const roomTop = (groupFrom >= 0 ? GROUP_ROOM : 0) + ([...printed].some((id) => !hangs(id)) ? VALUE_ROOM : 0);
+  const roomBottom = [...printed].some(hangs) ? VALUE_ROOM : 0;
+  const y = useCallback(
+    (value: number) => PAD + roomTop
+      + ((scale.max - value) / span) * (plotHeight - PAD * 2 - roomTop - roomBottom),
+    [scale.max, span, plotHeight, roomTop, roomBottom],
+  );
+  const zero = y(Math.min(Math.max(0, scale.min), scale.max));
 
   const axisFormat = look?.share ? pct : formatAxis;
   const geometry = useMemo<LookGeometry | null>(() => (look ? {
@@ -731,16 +759,14 @@ export function Chart(props: ChartProps) {
       }
       return {
         id: bar.id, column: bar.column, name: bar.name, tone: bar.tone,
-        value: bar.band === 'down' ? bar.from - bar.to : bar.to - bar.from,
+        value: barValue(bar),
         detail: bar.detail, kind: 'bar', band: bar.band, foot,
         lane: bar.lane, lanes: bar.lanes,
         // Every bar in the chart is drawn at one width, and each band centres
         // the lanes it actually has: a chart with two series above the line and
         // one below puts the single one in the middle of its column rather than
         // in the left half of a group it does not fill.
-        x: centre(bar.column)
-          - (bar.lanes * barWidth + LANE_GAP * (bar.lanes - 1)) / 2
-          + bar.lane * (barWidth + LANE_GAP),
+        x: barX(bar),
         y: top, w: barWidth, h: Math.max(bottom - top, 1),
         estimated: Boolean(frame.columns[bar.column]?.estimated),
       };
@@ -775,7 +801,7 @@ export function Chart(props: ChartProps) {
       );
     }
     return [...out, ...dots];
-  }, [geometry, frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
+  }, [geometry, frame, lines, keys, columns, centre, barX, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
   // Look A's columns are one flat fill of the series' tone.
@@ -822,9 +848,10 @@ export function Chart(props: ChartProps) {
     // is the caller's string and may carry a quote.
     const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
       .find((el) => el.getAttribute('data-anchor') === openId);
-    // The frame is both the host and the bound: a readout that left it would
-    // open over the legend and the top tick, which belong to the same part.
-    if (anchor) placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
+    // The readout floats over the page, so only the view and a box that really
+    // clips bound it: it opens above its mark, over the legend if it must.
+    // why: guidelines/hover-readouts.md#prefer-above-the-mark
+    if (anchor) placeTip(frameEl.current, anchor, tipEl.current);
   }, [openId, plotWidth, plotHeight]);
 
   useEffect(() => {
@@ -1032,7 +1059,7 @@ export function Chart(props: ChartProps) {
             const mark = anchor.getBoundingClientRect();
             const view = scroller.current.getBoundingClientRect();
             if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
-            else placeTip(frameEl.current, anchor, tipEl.current, frameEl.current);
+            else placeTip(frameEl.current, anchor, tipEl.current);
           }}
         >
           <div ref={plot} className="ui-chart__plot">
@@ -1070,8 +1097,9 @@ export function Chart(props: ChartProps) {
                 // column. The tap that closes one is a second, deliberate press
                 // and keeps the action.
                 // why: guidelines/hover-readouts.md#tap-to-open-or-close
+                // A new tap is a deliberate press, so it also undoes an Escape.
                 if (id && id === openId) { opening.current = false; setOpenId(null); }
-                else { opening.current = Boolean(id) && dismissed.current !== id; show(id); }
+                else { dismissed.current = null; opening.current = Boolean(id); show(id); }
               }}
               onPointerDown={() => { pointerFocus.current = true; }}
               onClick={(event) => {
@@ -1171,12 +1199,9 @@ export function Chart(props: ChartProps) {
                 );
               })}
 
-              {/* A bar's value over its end, where it fits the bar's share of the
-                  column. One that does not is left out, never shrunk under the
-                  kit's text size; the readout and the table keep it. */}
-              {showValues && marks.filter((m) => m.kind === 'bar').map((mark) => {
+              {/* A bar's value over its end, or under a bar hung below zero. */}
+              {marks.filter((m) => m.kind === 'bar' && printed.has(m.id)).map((mark) => {
                 const text = formatAxis(mark.value);
-                if (textWidth(text) + TEXT_GAP > colWidth / mark.lanes) return null;
                 const below = mark.foot === 'top';
                 return (
                   <text key={`value-${mark.id}`}
