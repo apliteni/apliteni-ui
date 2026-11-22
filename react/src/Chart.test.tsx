@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
 import { Card } from './primitives/Card';
 import type { ChartSlice } from './chart-looks';
+import { stubPopover } from './test/popover';
 // Plain JS outside this workspace's tsconfig, imported for its arithmetic the
 // way react/src/contrast.test.tsx imports it.
 // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
@@ -1578,6 +1579,30 @@ it('opens the readout above its mark when the view has room there, over the lege
 
   hover('income-0');
   expect(tip.classList.contains('is-below'), 'the frame is no ceiling for the readout').toBe(false);
+});
+
+it('opens a spark readout in the top layer over a scrolling table', () => {
+  const layer = stubPopover();
+  try {
+    const { container } = render(
+      <div className="ui-table-scroll">
+        <table><tbody><tr><td><Chart variant="spark" title="Cash trend" periods={periods}
+          series={[series[0]]} format={eur} /></td></tr></tbody></table>
+      </div>,
+    );
+    hover('income-0');
+    const tip = screen.getByRole('tooltip', { hidden: true });
+    expect(layer.show, 'the table scroll frame cannot clip a top-layer readout').toHaveBeenCalledWith();
+    expect(tip.matches(':popover-open'), 'the readout is in the browser top layer').toBe(true);
+    expect(tip).toHaveAttribute('popover', 'manual');
+  expect(container.querySelector('.ui-table-scroll')?.contains(tip)).toBe(true);
+  fireEvent.scroll(container.querySelector('.ui-table-scroll')!);
+  expect(tip.matches(':popover-open'), 'a scrolling table closes its fixed readout').toBe(false);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(layer.hide, 'Escape closes the top-layer readout').toHaveBeenCalledWith();
+  } finally {
+    layer.restore();
+  }
 });
 
 it('says under the pointer that a selectable column can be picked', () => {

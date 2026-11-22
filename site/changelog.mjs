@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.188.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'A `Chart` readout in a scrolling table now opens over the table and above its mark when room is available. The readout stays fully visible instead of being cut on the last row. Part of #853.', ['Chart', 'Table']],
+    ],
+  },
+  {
     v: '0.187.0', date: '2026-11-22',
     changes: [
       ['fixed', 'On a phone, Modal and Confirm foot buttons have a 44px tap zone and keep the same look. Part of #853.', ['Modal', 'Confirm']],

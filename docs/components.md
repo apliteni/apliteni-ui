@@ -1291,7 +1291,8 @@ Right, Home and End move between columns and announce each one. Enter picks a co
 `selectable` is set. A plot that scrolls adds one more Tab stop for the scroll box. On a touch
 screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
 new tap on the same mark opens its readout again. Every value is
-reachable at full strength by pointer or keyboard.
+reachable at full strength by pointer or keyboard. A readout in a scrolling region stays fully
+visible over the region and opens above its mark when that space is available.
 
 ### Table values
 
