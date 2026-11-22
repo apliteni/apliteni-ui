@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 95,
+    PARENTHESISED.length, 94,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'six layout rail rules, one layout filter-bar gap rule, three layout rules for a wordless button on a toolbar (#831), four nav rules, fifty-five table rules, five of them a table in a drawer group (#811) and two the gap after a pinned divider (#832), four finance composition rules, two invoice showcase rules, three tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule, one rule for the touch height of the button and segmented control of a small toolbar (#832), four forced-colours Dropdown selection rules and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
+    + 'six layout rail rules, one layout filter-bar gap rule, three layout rules for a wordless button on a toolbar (#831), four nav rules, fifty-five table rules, five of them a table in a drawer group (#811) and two the gap after a pinned divider (#832), four finance composition rules, two invoice showcase rules, three tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule, one rule for the touch height of the button and segmented control of a small toolbar (#832), three forced-colours Dropdown selection rules and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
