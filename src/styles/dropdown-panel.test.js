@@ -97,10 +97,13 @@ test('selected and search-active rows use the forced-colours system pair and dra
     rule.selectorText.includes('.ui-dropdown__label'));
   const badges = rules.find((rule) =>
     rule.selectorText.includes('.ui-dropdown__badge'));
+  const focusedRows = rules.find((rule) =>
+    rule.selectorText === '.ui-dropdown__item:is(.is-selected, .is-active):focus-visible');
   assert.equal(rows.style.getPropertyValue('forced-color-adjust'), 'none');
   assert.equal(rows.style.getPropertyValue('background'), 'highlight');
   assert.equal(rows.style.getPropertyValue('--ring'), 'var(--ring-width) solid CanvasText');
   assert.equal(rows.style.getPropertyValue('--ring-scroll'), 'var(--ring)');
+  assert.equal(focusedRows?.style.getPropertyValue('outline-offset'), 'var(--ring-offset)');
   assert.equal(labels?.style.getPropertyValue('color'), 'highlighttext');
   assert.equal(badges?.style.getPropertyValue('background'), 'highlighttext');
   assert.equal(badges?.style.getPropertyValue('color'), 'highlight');
