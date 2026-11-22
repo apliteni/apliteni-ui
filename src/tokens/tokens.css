@@ -653,11 +653,17 @@
 }
 
 /* #850: a card on the page draws no box, so a chip inside one sits on the page and takes
- * the same surface a chip on the page takes. The split auth's plain half and its shell
- * paint the page for the same reason. */
-.ui-card,
+ * the same surface a chip on the page takes. #850's review keeps the dark card's own
+ * paint, so a chip inside one takes the page, the rung below it — --code-chip-surface is
+ * the page's chip in dark and the page's chip in light, where the two agree. The split
+ * auth's plain half and its shell paint the page for the same reason, and a tinted card
+ * or a blank empty state's tinted panel keeps the plain card as its step. */
+.ui-card {
+  --code-bg: var(--code-chip-surface);
+}
 .ui-card--accent,
 .ui-card--live,
+.ui-empty--panel,
 .ui-auth--split,
 .ui-auth--split .ui-auth__pane {
   --code-bg: var(--code-chip-page);

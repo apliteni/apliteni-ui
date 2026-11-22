@@ -247,6 +247,19 @@ const steps = () => THEMES.flatMap((theme) => contexts.flatMap(({ where, overrid
 /* One entry per CAUSE, written by hand. The mandatory `why` is the point of the ledger: an
  * entry says a person read the pair and accepted it. Do not build a regenerator. */
 const LEDGER = [{
+  id: 'A',
+  selectors: ['.ui-card--accent', '.ui-card--live', '.ui-empty--panel'],
+  themes: ['light'],
+  worst: 1.075,
+  why: 'A tinted card or panel in LIGHT sits between the two reading surfaces, so neither is a '
+    + 'full step away from it. Light mixes its tint down from white (--card-tint 5%), which '
+    + 'lands the accent card and the blank empty state at #f8f5fc and the live card at '
+    + '#f4f9f4. #850 hands a chip inside one the page\'s chip, the quiet fill --surface-3, and '
+    + 'the step lands at 1.053-1.070, under the 1.1 floor. Dark keeps its 9% tint and clears '
+    + 'the step. Not closed here because every way to close it is a rule this kit has already '
+    + 'decided against: a grey chip (#455), an edge (#490) or a stronger tint. A tinted card '
+    + 'carries a short status line, not reference prose with identifiers in it.',
+}, {
   id: 'B',
   selectors: ['.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th)'],
   themes: ['light'],
@@ -262,7 +275,7 @@ const LEDGER = [{
 }, {
   id: 'C',
   washLight: true,
-  count: 3020,
+  count: 3280,
   worst: 1.0982364,
   why: 'The white page (#850) lifts every translucent wash and status fill toward white in '
     + 'LIGHT, and the kit\'s rule against a grey chip (#455) leaves no reading surface that '
@@ -299,7 +312,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 39, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811); #850 takes the card\'s box away, so .ui-card, .ui-card--accent and .ui-card--live no longer paint, and adds the split auth shell and its plain pane as page-ground containers. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 43, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811); #850 adds the split auth shell and its plain pane as page-ground containers; and #850\'s review restores the dark card, accent and live paints and adds the blank empty state\'s tinted panel. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');

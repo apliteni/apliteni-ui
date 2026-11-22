@@ -254,14 +254,12 @@
 
 /* Tables share their containing card's reading surface, including pinned cells. The code
    chip's hand-off travels with it, so an identifier in a cell keeps the page rather than
-   the card the cell is now painted with. why: src/tokens/tokens.css */
-.ui-card { --table-bg: var(--surface); --table-code-bg: var(--bg); }
-/* #850: on the light page a card draws no box, so its table is flush with the page, and the
-   chip's hand-off travels with it. why: src/tokens/tokens.css */
-:root[data-theme="light"] .ui-card { --table-bg: var(--bg); --table-code-bg: var(--code-chip-page); }
+   the card the cell is now painted with. --table-bg is the surface in dark and the white
+   page in light (where --surface is white), and --table-code-bg is --code-chip-surface,
+   the page in dark and the quiet fill in light. why: src/tokens/tokens.css */
+.ui-card { --table-bg: var(--surface); --table-code-bg: var(--code-chip-surface); }
 /* A drawer group is a reading surface in the same way, so its table takes the drawer's ground. */
-.ui-drawer .ui-drawer__section { --table-bg: var(--drawer-surface); --table-code-bg: var(--bg); }
-:root[data-theme="light"] .ui-drawer .ui-drawer__section { --table-code-bg: var(--code-chip-surface); }
+.ui-drawer .ui-drawer__section { --table-bg: var(--drawer-surface); --table-code-bg: var(--code-chip-surface); }
 
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); }
