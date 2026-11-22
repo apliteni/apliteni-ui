@@ -6,6 +6,8 @@ export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 
 export const SPEC_CSS = `<style>
+  /* The inner kit gap gives the provider button room in a phone cell. */
+  .gl-stage:has(.se-page), .gl-stage--confirm { padding: var(--space-2); }
   .se-page { position: relative; min-height: 420px; overflow: hidden; }
   .se-page--dialog-tall { min-height: calc(var(--panel-md) + var(--space-16) * 4); }
   .se-page--dialog-tall .se-page__body { min-height: inherit; }

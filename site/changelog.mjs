@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.188.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],
+      ['added', '`Modal` takes `size="sm"` for a 360px panel when a short sign-in form must stay narrow. Other Modals keep their default width. Resolves #854.', ['Modal']],
     ],
   },
   {

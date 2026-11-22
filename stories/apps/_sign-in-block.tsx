@@ -28,7 +28,7 @@ export function SignInBlock({ google, email, failed, refuses, passwordError, onD
   return <div className="ui-stack">
     {google && error && <Callout variant="danger" actions={<Button variant="secondary" size="sm" icon="refresh" busy={busy?.retry} completionMessage="" onClick={() => answer(true)}>Try Google again</Button>}>Google did not finish the sign-in. Nothing changed. {email ? 'Try again, or sign in with your email.' : 'Try again.'}</Callout>}
     {google && <Button variant="primary" size="lg" block busy={busy && !busy.retry} completionMessage="" leading={googleMark} onClick={() => answer()}>Continue with Google</Button>}
-    {email && <>{google && <div className="ui-divider">or</div>}<form className="auth-form" onSubmit={event => { event.preventDefault(); onDone?.(); }}>
+    {email && <>{google && <div className="ui-divider">or</div>}<form className="ui-stack" onSubmit={event => { event.preventDefault(); onDone?.(); }}>
       <TextField label="Work email" type="email" autoComplete="username" placeholder="you@apliteni.com" defaultValue={passwordError ? 'ada@apliteni.com' : undefined} icon="mail" required />
       <TextField label="Password" type="password" autoComplete="current-password" placeholder="••••••••" defaultValue={passwordError ? 'wrong' : undefined} icon="lock" required error={passwordError} />
       <Button variant={google ? 'secondary' : 'primary'} size="lg" block type="submit">Sign in</Button>

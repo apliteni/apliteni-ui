@@ -28,7 +28,7 @@ const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = 
     {loading && <Skeleton lines={1} width="12rem" />}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={noop}>Sign in</Button>}>
       You are signed out. Sign in to keep working.</Callout>}
-    <div className="ui-toolbar">{loading ? <Skeleton lines={1} /> : <SearchField ariaLabel="Search payouts" defaultValue={search} />}
+    <div className="ui-toolbar">{loading ? <Skeleton className="ui-input-group" lines={1} width="100%" /> : <SearchField ariaLabel="Search payouts" defaultValue={search} />}
       {filter && !loading && <Button variant="secondary" size="sm">Pending</Button>}</div>
     <Card title="Pending payouts">{loading ? <SkeletonTable rows={3} cols={4} /> : <table className="ui-table ui-table--dense"><tbody>
       <tr><td>PO-1170</td><td>860.00 EUR</td><td>Pending</td></tr>

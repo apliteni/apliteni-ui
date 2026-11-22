@@ -982,6 +982,9 @@ destructive question.
 body scrolls, and the title, the close control and the footer stay visible. The title is an `h2`.
 `initialFocusRef` chooses the first focus.
 
+`size="sm"` gives a 360px panel for a short sign-in form. Without `size`, Modal uses its default
+wide panel.
+
 **On a phone.** At 560px and narrower, with a coarse pointer, each footer button has a 44px tap
 zone. The buttons keep their drawn size.
 

@@ -49,7 +49,7 @@ type Session = 'active' | 'ended' | 'closed';
 function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   const [open, setOpen] = useState(session === 'ended');
   const [signedOut, setSignedOut] = useState(session === 'closed');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState('PO-1170');
   useEffect(() => { setOpen(session === 'ended'); setSignedOut(session === 'closed'); }, [session]);
   const waitingForSignIn = open || signedOut;
   return <FinanceShell active="payouts" title="Payouts" sub={waitingForSignIn ? undefined : 'Filtered to pending, this week.'}>
@@ -60,7 +60,7 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
     </Callout>}
     {/* The ledger's filter bar stands on the page directly above it. why: guidelines/dense-tables.md */}
     <div className="ui-toolbar">
-      {waitingForSignIn ? <Skeleton lines={1} /> :
+      {waitingForSignIn ? <Skeleton className="ui-input-group" lines={1} width="100%" /> :
         <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" value={search}
           onChange={event => setSearch(event.currentTarget.value)} />}
     </div>

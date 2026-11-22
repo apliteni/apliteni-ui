@@ -22,7 +22,8 @@
   border-radius: var(--radius-md); overflow: hidden;
   transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
 .rx-scrim.is-open .rx-modal { transform: none; }
-.rx-modal--sm { width: min(var(--panel-md), 96vw); }
+/* A short sign-in form uses 320px plus the 40px control clearance: 360px. */
+.rx-modal--sm { width: min(calc(var(--panel-sm) + var(--space-10)), 96vw); }
 .rx-modal__head { display: flex; align-items: center; justify-content: space-between;
   gap: var(--space-3); flex: none;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);

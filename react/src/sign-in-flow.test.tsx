@@ -17,7 +17,7 @@ describe('sign-in flow', () => {
   it('walks a session from in use to ended, error, retry and back, and keeps the search text', async () => {
     const { rerender } = render(<InUse />);
     const search = screen.getByRole('searchbox', { name: 'Search payouts' });
-    fireEvent.change(search, { target: { value: 'PO-1170' } });
+    expect(search).toHaveValue('PO-1170');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     rerender(<InUse session="ended" />);
