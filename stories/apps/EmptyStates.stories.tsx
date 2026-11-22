@@ -20,7 +20,7 @@ export const FilteredList: StoryObj = {
       <Segmented label="Status filter" options={['Any', 'Verified', 'Pending'].map(label => ({ label, value: label }))} value="Pending" onChange={noop} />
       <Button variant="secondary">Filter</Button>
     </div>
-    <Card><EmptyState art="invoices" title="No invoices match the current filters." sub="Clear the filters to see all invoices."
+    <Card><EmptyState icon="search" title="No invoices match the current filters." sub="Clear the filters to see all invoices."
       actions={<Button variant="primary">Clear filters</Button>} /></Card>
   </FinanceShell>,
 };

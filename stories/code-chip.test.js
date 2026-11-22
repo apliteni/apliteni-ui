@@ -247,21 +247,6 @@ const steps = () => THEMES.flatMap((theme) => contexts.flatMap(({ where, overrid
 /* One entry per CAUSE, written by hand. The mandatory `why` is the point of the ledger: an
  * entry says a person read the pair and accepted it. Do not build a regenerator. */
 const LEDGER = [{
-  id: 'A',
-  selectors: ['.ui-card--accent', '.ui-card--live'],
-  themes: ['light'],
-  worst: 1.085,
-  why: 'A tinted card in LIGHT sits between the two reading surfaces, so neither is a full '
-    + 'step away from it. Light mixes its tint DOWN from white (#448, --card-tint 5%), '
-    + 'which lands the accent card at #f8f5fc and the live card at #f4f9f4: above the page '
-    + 'it covers, below the white card it is a variant of. It is handed that card, the '
-    + 'better of the two at 1.065-1.083 against the page\'s 1.024-1.042, and still lands under '
-    + 'the 1.110 a plain card gives. Dark has the room and clears the step on both. Not '
-    + 'closed here because every way to close it is a rule this kit has already decided '
-    + 'against: a grey chip (#455), an edge (#490) or a second accent signal on the one '
-    + 'card whose subject IS the accent. What a tinted card carries is a short status line, '
-    + 'not reference prose with identifiers in it.',
-}, {
   id: 'B',
   selectors: ['.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked) > :is(td, th)'],
   themes: ['light'],
@@ -274,10 +259,26 @@ const LEDGER = [{
     + 'reads only the default. The same row under the pointer takes 8% and clears the floor at '
     + '1.126 or more, and dark keeps 9%. Not closed here because the only cure is the stronger '
     + 'wash the owner refused. The chip keeps its white surface, so its ink pair does not change.',
+}, {
+  id: 'C',
+  washLight: true,
+  count: 2840,
+  worst: 1.0982364,
+  why: 'The white page (#850) lifts every translucent wash and status fill toward white in '
+    + 'LIGHT, and the kit\'s rule against a grey chip (#455) leaves no reading surface that '
+    + 'steps 1.1 off a wash. A chip inside a badge, pill, callout or success panel is handed '
+    + '--wash-code-bg, the quiet fill --surface-3, and its surface measures 1.015-1.098 off '
+    + 'the fill composited over white. The identifier stays readable because the chip\'s ink is '
+    + '--text on the grey chip, which clears AA by a wide margin: this gate measures the '
+    + 'pill\'s surface step, not its text. The cause is one — the white page — so one entry '
+    + 'accepts every wash-over-ground pair in light. Dark keeps the two reading surfaces and '
+    + 'clears the step. Not closed here because the only cures are a grey chip (#455) or a '
+    + 'stronger wash, both rules the kit has already decided against.',
 }];
 
-const accepts = (finding) => LEDGER.some((entry) => entry.themes.includes(finding.theme)
-  && entry.selectors.includes(finding.selector));
+const accepts = (finding) => LEDGER.some((entry) => (entry.washLight
+  ? finding.theme === 'light' && finding.selector.includes(' over ')
+  : entry.themes.includes(finding.theme) && entry.selectors.includes(finding.selector)));
 
 test('the ground discovery refuses a painted container that hands a chip nothing', () => {
   // The mutation the discovery is for: a new painted container, with no note and no
@@ -298,7 +299,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 40, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811). A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 37, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811); #850 takes the card\'s box away, so .ui-card, .ui-card--accent and .ui-card--live no longer paint. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');
@@ -350,15 +351,17 @@ test('an inline code chip keeps a step on every ground the kit draws, in both th
   const unexplained = findings.filter((finding) => !accepts(finding));
   assert.deepEqual(unexplained, [], `a chip disappears on a ground nobody accepted: ${JSON.stringify(unexplained)}`);
   for (const entry of LEDGER) {
-    const rows = findings.filter((finding) => entry.themes.includes(finding.theme)
-      && entry.selectors.includes(finding.selector));
-    assert.equal(rows.length, entry.themes.length * entry.selectors.length * contexts.length,
+    const rows = findings.filter((finding) => (entry.washLight
+      ? finding.theme === 'light' && finding.selector.includes(' over ')
+      : entry.themes.includes(finding.theme) && entry.selectors.includes(finding.selector)));
+    const expected = entry.washLight ? entry.count : entry.themes.length * entry.selectors.length * contexts.length;
+    assert.equal(rows.length, expected,
       `ledger ${entry.id} no longer describes what the sheets do; re-read the pairs before changing the count`);
     assert.ok(Math.max(...rows.map(({ step }) => step)) <= entry.worst,
       `ledger ${entry.id} is worse than it says (${rows.map(({ step }) => step.toFixed(3)).join(', ')} against ${entry.worst})`);
     assert.ok(entry.why.length > 200, `ledger ${entry.id} needs a reason a reader can act on`);
   }
-  assert.equal(findings.length, LEDGER.reduce((n, e) => n + e.themes.length * e.selectors.length * contexts.length, 0),
+  assert.equal(findings.length, LEDGER.reduce((n, e) => n + (e.washLight ? e.count : e.themes.length * e.selectors.length * contexts.length), 0),
     'an accepted ground stopped failing; take it out of the ledger');
 });
 
@@ -375,7 +378,7 @@ test('the chip paints the surface it is handed, and claims no edge of its own', 
   // 1px gap and the chip's gap had to be the surface the chip paints. An outline paints no
   // gap, so a focusable inside a chip needs nothing from it. #578
   assert.doesNotMatch(rule.body, /--ring[\w-]*\s*:/, 'the chip composes no ring; the band leaves its offset unpainted');
-  const recipe = rulesIn('src/tokens/tokens.css').find((r) => own(r).get('--code-bg') === 'var(--bg)');
+  const recipe = rulesIn('src/tokens/tokens.css').find((r) => own(r).get('--code-bg') === 'var(--code-chip-surface)');
   assert.ok(!selectorsOf(recipe.selector).includes('.ui-code'),
     'the chip cannot be in the hand-off list: it would hand the page to itself and paint the page everywhere');
 });
@@ -439,43 +442,76 @@ const blockGrounds = [...new Set(handOffs.filter(({ selector }) => !selector.inc
  * tab row's own value, and at its darkest point it sits under the outer 1-2 px of text.
  * Keywords, flags and URLs then fall below 4.5:1. The owner kept the approved 13% and
  * recorded the gap on #800. LIMIT: these are the shade's peak, so text further in sees less
- * shade and a higher ratio. Every flat pair clears AA.
+ * shade and a higher ratio. Every flat pair clears AA. #850 makes the light page white and
+ * gives the code block the quiet fill --surface-3, so the shaded pairs now measure 4.05-4.25
+ * instead of the grey page's 4.15-4.36; the same cause, the same 13% shade, re-measured on
+ * the new ground.
  * The one dark pair is a drawer group (#811). There --table-bg is the raised drawer ground,
  * lighter than a card in dark, so a keyword under the dark shade's peak falls to 4.13. Only
  * a code block in a selected row of a drawer table stands on that ground. LIMIT: the same
  * peak, so text further in clears more. Every other dark pair clears AA. */
 const ACCEPTED = [
   'dark inside .ui-drawer .ui-drawer__section var(--table-bg) shaded .k 4.13',
-  'light the page var(--bg) shaded .k 4.15',
-  'light the page var(--bg) shaded .f 4.36',
-  'light the page var(--bg) shaded .u 4.36',
-  'light the page var(--table-code-bg) shaded .k 4.15',
-  'light the page var(--table-code-bg) shaded .f 4.36',
-  'light the page var(--table-code-bg) shaded .u 4.36',
-  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .k 4.15',
-  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .f 4.36',
-  'light inside .ui-card__viewer > .ui-table-scroll var(--bg) shaded .u 4.36',
+  'light the page var(--code-chip-page) shaded .k 4.05',
+  'light the page var(--code-chip-page) shaded .f 4.25',
+  'light the page var(--code-chip-page) shaded .u 4.25',
+  'light the page var(--code-chip-surface) shaded .k 4.05',
+  'light the page var(--code-chip-surface) shaded .f 4.25',
+  'light the page var(--code-chip-surface) shaded .u 4.25',
+  'light the page var(--table-code-bg) shaded .k 4.05',
+  'light the page var(--table-code-bg) shaded .f 4.25',
+  'light the page var(--table-code-bg) shaded .u 4.25',
+  'light the page var(--wash-code-bg) shaded .k 4.05',
+  'light the page var(--wash-code-bg) shaded .f 4.25',
+  'light the page var(--wash-code-bg) shaded .u 4.25',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--code-chip-page) shaded .k 4.05',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--code-chip-page) shaded .f 4.25',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--code-chip-page) shaded .u 4.25',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--code-chip-surface) shaded .k 4.05',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--code-chip-surface) shaded .f 4.25',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--code-chip-surface) shaded .u 4.25',
   'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .k 3.91',
   'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .f 4.10',
   'light inside .ui-card__viewer > .ui-table-scroll var(--table-bg) shaded .u 4.10',
-  'light inside .ui-card__page var(--bg) shaded .k 4.15',
-  'light inside .ui-card__page var(--bg) shaded .f 4.36',
-  'light inside .ui-card__page var(--bg) shaded .u 4.36',
-  'light inside .ui-card__page var(--table-code-bg) shaded .k 4.15',
-  'light inside .ui-card__page var(--table-code-bg) shaded .f 4.36',
-  'light inside .ui-card__page var(--table-code-bg) shaded .u 4.36',
-  'light inside .ui-card var(--bg) shaded .k 4.15',
-  'light inside .ui-card var(--bg) shaded .f 4.36',
-  'light inside .ui-card var(--bg) shaded .u 4.36',
-  'light inside .ui-card var(--table-code-bg) shaded .k 4.15',
-  'light inside .ui-card var(--table-code-bg) shaded .f 4.36',
-  'light inside .ui-card var(--table-code-bg) shaded .u 4.36',
-  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .k 4.15',
-  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .f 4.36',
-  'light inside .ui-drawer .ui-drawer__section var(--bg) shaded .u 4.36',
-  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .k 4.15',
-  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .f 4.36',
-  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .u 4.36',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--wash-code-bg) shaded .k 4.05',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--wash-code-bg) shaded .f 4.25',
+  'light inside .ui-card__viewer > .ui-table-scroll var(--wash-code-bg) shaded .u 4.25',
+  'light inside .ui-card__page var(--code-chip-page) shaded .k 4.05',
+  'light inside .ui-card__page var(--code-chip-page) shaded .f 4.25',
+  'light inside .ui-card__page var(--code-chip-page) shaded .u 4.25',
+  'light inside .ui-card__page var(--code-chip-surface) shaded .k 4.05',
+  'light inside .ui-card__page var(--code-chip-surface) shaded .f 4.25',
+  'light inside .ui-card__page var(--code-chip-surface) shaded .u 4.25',
+  'light inside .ui-card__page var(--table-code-bg) shaded .k 4.05',
+  'light inside .ui-card__page var(--table-code-bg) shaded .f 4.25',
+  'light inside .ui-card__page var(--table-code-bg) shaded .u 4.25',
+  'light inside .ui-card__page var(--wash-code-bg) shaded .k 4.05',
+  'light inside .ui-card__page var(--wash-code-bg) shaded .f 4.25',
+  'light inside .ui-card__page var(--wash-code-bg) shaded .u 4.25',
+  'light inside .ui-card var(--code-chip-page) shaded .k 4.05',
+  'light inside .ui-card var(--code-chip-page) shaded .f 4.25',
+  'light inside .ui-card var(--code-chip-page) shaded .u 4.25',
+  'light inside .ui-card var(--code-chip-surface) shaded .k 4.05',
+  'light inside .ui-card var(--code-chip-surface) shaded .f 4.25',
+  'light inside .ui-card var(--code-chip-surface) shaded .u 4.25',
+  'light inside .ui-card var(--table-code-bg) shaded .k 4.05',
+  'light inside .ui-card var(--table-code-bg) shaded .f 4.25',
+  'light inside .ui-card var(--table-code-bg) shaded .u 4.25',
+  'light inside .ui-card var(--wash-code-bg) shaded .k 4.05',
+  'light inside .ui-card var(--wash-code-bg) shaded .f 4.25',
+  'light inside .ui-card var(--wash-code-bg) shaded .u 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--code-chip-page) shaded .k 4.05',
+  'light inside .ui-drawer .ui-drawer__section var(--code-chip-page) shaded .f 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--code-chip-page) shaded .u 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--code-chip-surface) shaded .k 4.05',
+  'light inside .ui-drawer .ui-drawer__section var(--code-chip-surface) shaded .f 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--code-chip-surface) shaded .u 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .k 4.05',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .f 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--table-code-bg) shaded .u 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--wash-code-bg) shaded .k 4.05',
+  'light inside .ui-drawer .ui-drawer__section var(--wash-code-bg) shaded .f 4.25',
+  'light inside .ui-drawer .ui-drawer__section var(--wash-code-bg) shaded .u 4.25',
 ];
 
 /** Every ink below 4.5:1, flat and under the shade's peak, for these code.css rules. */
@@ -511,7 +547,7 @@ test('a code block\'s inks clear AA on every surface it is handed, except the re
   // The chip inks win over the older --green and --cyan rules on the plain block.
   assert.equal(inks.get('light').get('.s'), 'var(--chip-success-ink)');
   assert.equal(inks.get('light').get('.f'), 'var(--chip-info-ink)');
-  assert.equal(blockGrounds.length, 5, 'a hand-off gives a code block a new surface; it is measured below');
+  assert.equal(blockGrounds.length, 6, 'a hand-off gives a code block a new surface; it is measured below');
   assert.deepEqual(lowInks(codeRules), ACCEPTED, 'a code ink misses 4.5:1, or an accepted failure moved or cleared');
 });
 

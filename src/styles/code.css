@@ -23,6 +23,12 @@
   font-weight: var(--weight-medium);
   color: var(--text);
 }
+/* #850: the light page is one white ground, so a code block takes the quiet grey fill
+   --surface-3 and drops the line under its bar. The grey is the one exception to "Keep
+   text off grey fills": a block is a sample a reader does not write inside, and its own
+   inks clear 4.5:1 on the grey (the lowest is 5.22:1). why: docs/foundations.md#elevation */
+:root[data-theme="light"] .ui-snippet:not(.ui-snippet--reveal) { --code-bg: var(--surface-3); }
+:root[data-theme="light"] .ui-snippet:not(.ui-snippet--reveal) .ui-snippet__bar { border-bottom: 0; }
 .ui-snippet pre {
   margin: 0;
   padding: var(--space-3) 15px 14px;

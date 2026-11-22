@@ -64,6 +64,10 @@ function walk(theme: string, edit = (html: string) => html) {
   const win = dom.window;
   const styles = makeStyleCache(win);
   const ground = rgbOf(vars.get('--bg'));
+  // #850: the light page takes the card's white, so the page ground IS the reading
+  // surface there and standing on it is no longer a defect. Dark still separates the
+  // two, so the rule only flags prose on the ground that is not the surface.
+  const surface = rgbOf(vars.get('--surface'));
   assert.ok(ground, `the ${theme} theme resolves no --bg, so there is no page ground to measure`);
 
   const rows: { where: string; carrier: string | undefined; path: string; onGround: boolean }[] = [];
@@ -120,7 +124,8 @@ function walk(theme: string, edit = (html: string) => html) {
           carrier: Object.keys(PROSE).find((sel) => carrier.matches(sel)),
           path: selectorPath(el),
           onGround: bg !== 'IMAGE'
-            && rgbOf(`rgb(${bg.slice(0, 3).map(Math.round).join(',')})`) === ground,
+            && rgbOf(`rgb(${bg.slice(0, 3).map(Math.round).join(',')})`) === ground
+            && ground !== surface,
         });
       }
     }
@@ -136,7 +141,7 @@ const unpaint = (html: string) => html.replace(/(\.gl-page\s*\{\s*background:\s*
   return `${head}transparent;`;
 });
 const themeWalks = THEMES.map((theme) => walk(theme));
-const unpainted = walk('light', unpaint);
+const unpainted = walk('dark', unpaint);
 const walked = Object.fromEntries(THEMES.map((theme, i) => [theme, themeWalks[i]]));
 
 // ---- the subjects --------------------------------------------------------

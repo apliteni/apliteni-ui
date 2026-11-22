@@ -1,7 +1,9 @@
-// Rule: a field this workspace's catalogue renders is shown on a painted surface,
-// never on the page ground. One exception: a filter bar's live search field stands
-// on the page above its table card (rev_136bd26bc559/d24), and its edge there is
-// recorded below. The reading is in stories/lib/field-ground.js.
+// Rule: a field this workspace's catalogue renders sits inside a card or another
+// named surface (the auth card, a drawer panel, a modal), never loose on the page.
+// One exception: a filter bar's live search field stands on the page above its table
+// card (rev_136bd26bc559/d24), and its edge there is recorded below. #850 makes the
+// card a grouping of space with no fill of its own, so the reading no longer compares
+// colours — it reads structure, in stories/lib/field-ground.js.
 //
 // Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that." #556 moved
@@ -98,7 +100,7 @@ const FIELD_COUNT = 203;
 // from the vanilla gate's table. The two agree, which is what says both halves read
 // one set of tokens rather than two.
 const DISABLED: Record<string, unknown> = {
-  dark: { ground: '#211e2d', fill: '#211e2d', border: '#2d293c', edge: 1.16, ink: 6.24 },
+  dark: { ground: '#0e0d14', fill: '#211e2d', border: '#2d293c', edge: 1.38, ink: 6.24 },
   light: { ground: '#ffffff', fill: '#ffffff', border: '#e4e7ee', edge: 1.24, ink: 6.11 },
 };
 
@@ -107,7 +109,7 @@ const DISABLED: Record<string, unknown> = {
 // rev_136bd26bc559/d24. A token move changes a number here, and a person decides again.
 const FILTER_BAR: Record<string, unknown> = {
   dark: { ground: '#0e0d14', fill: '#211e2d', border: '#332f45', edge: 1.5, ink: 16.3 },
-  light: { ground: '#f2f3f6', fill: '#ffffff', border: '#cdd2dc', edge: 1.37, ink: 19.3 },
+  light: { ground: '#ffffff', fill: '#ffffff', border: '#cdd2dc', edge: 1.52, ink: 19.3 },
 };
 
 type Theme = (typeof THEMES)[number];
@@ -356,16 +358,16 @@ describe('field ground: React coverage', () => {
     }
   });
 
-  /* What a disabled field reads on the card in this workspace, per theme, so a token
+  /* What a disabled field reads on its ground in this workspace, per theme, so a token
    * move changes a number here and a person decides whether it is acceptable. The
    * vanilla gate keeps the same record for its own galleries; neither reads the
    * other's, which is the point of checking the workspaces separately.
    *
-   * `edge` is --disabled-border against the card, below the 3:1 non-text floor that
+   * `edge` is --disabled-border against the ground, below the 3:1 non-text floor that
    * WCAG 1.4.11 exempts a disabled control from, so it is recorded rather than held
    * to a bar. `ink` is --disabled-ink on the field's own paint and must clear AA:
-   * that is the part a reader has to read. Dark reads 1.16:1 off --surface-3, not
-   * the 1.27:1 one token gave both states until #564 made the off box the fainter.
+   * that is the part a reader has to read. #850 makes the card the page, so dark reads
+   * 1.38:1 off the page ground, not the 1.16:1 the card gave it before.
    */
   it('reads a disabled field on the card, and its ink clears AA there', () => {
     for (const theme of THEMES) {
@@ -401,12 +403,12 @@ describe('field ground: React coverage', () => {
     }
   });
 
-  it('rejects a field left on the page ground', () => {
-    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', onPage: false }])).toEqual([]);
-    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', onPage: true }]))
+  it('rejects a field left loose on the page', () => {
+    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', inSurface: true }])).toEqual([]);
+    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', inSurface: false }]))
       .toEqual(['fx:A → div > input.ui-input']);
-    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', onPage: true, filterBar: true }])).toEqual([]);
-    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', onPage: true, filterBar: true, disabled: true }]))
+    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', inSurface: false, filterBar: true }])).toEqual([]);
+    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', inSurface: false, filterBar: true, disabled: true }]))
       .toEqual(['fx:A → input.ui-input']);
   });
 });

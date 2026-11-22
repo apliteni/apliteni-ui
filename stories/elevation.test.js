@@ -106,7 +106,10 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // 23 -> 22: the pinned column drops its scroll shade, #770.
 // 22 -> 23: a selected Segmented pill's flat 1px accent edge, no drop, #832.
 // 23 -> 25: that edge taken off a disabled pill and an underline tab, #832.
-  assert.equal(sweep.length, 25,
+// 25 -> 26: #850 gives the light Segmented track its inset --control-edge. The card
+// drops its own --elev-rest read to `none` (it is a grouping of space now), so the
+// rung count below moves 2 -> 1.
+  assert.equal(sweep.length, 26,
     `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 25. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
@@ -162,7 +165,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // such a rule from the surfaces around them.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
-    'var(--elev-rest)': 2,   // .ui-card, .ui-card__page
+    'var(--elev-rest)': 1,   // .ui-card__page
     'var(--elev-rail)': 1,   // .ui-app__rail
     'var(--elev-drop)': 12,  // the floating surfaces, each saying it once
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '

@@ -1,23 +1,36 @@
 /* ============================================================================
- * Card — .ui-card  (a filled surface one step off the page: edged in both themes)
+ * Card — .ui-card  (a grouping of space, not a box: no fill, edge or shadow on the page)
  * Rows: .ui-card__row  /  headers: .ui-card__title / .ui-card__sub
  * Title row: .ui-card__head holds the title and .ui-card__tools at its end
  * ========================================================================== */
 
-/* The surface is the step; the line makes it legible. Both themes edge the card with
-   --card-edge: the hairline in dark, --level-line in light. Light also casts --elev-rest,
-   a faint short shadow. Dark casts nothing. Decided on #730.
+/* #850: the light page takes the card's white, so a card on the page is a grouping of
+   space, not a box. It draws no fill, edge or shadow in either theme, and it hangs its
+   side inset outside the column so its text starts on the page title's edge. Floating
+   panels keep their box; the card does not float, it is the page.
    why: docs/foundations.md#elevation */
 .ui-card {
-  --ui-card-ground: var(--surface); /* the ground a scrolling row inside covers its edge with; a tint repeats it below */
-  background: var(--surface);
-  border: 1px solid var(--card-edge);
-  box-shadow: var(--elev-rest);
+  --ui-card-ground: var(--bg); /* the ground a scrolling row inside covers its edge with; a card is the page now */
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
   border-radius: var(--radius-xl);
-  /* Was `var(--space-6) 26px`; 26 is off the scale and broke the column's text edge.
-     why: docs/foundations.md#spacing-and-rhythm */
   padding: var(--space-6);
   position: relative;
+}
+/* The card's top and bottom inset is gone, so content starts after its title and the
+   section gap, not a box edge, separates one card from the next. The side inset stays and
+   hangs outside the column, so its text lines up with the page title. --pad-lg is the
+   centred landing card, which keeps its own inset and never hangs out. #850 */
+.ui-card:not(.ui-card--pad-lg) {
+  padding-block: 0;
+  margin-inline: calc(-1 * var(--space-6));
+}
+@media (max-width: 560px) {
+  .ui-card:not(.ui-card--pad-lg) {
+    padding-inline: var(--space-4);
+    margin-inline: calc(-1 * var(--space-4));
+  }
 }
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past
@@ -33,7 +46,7 @@
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
    (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */
-.ui-card-stack { display: flex; flex-direction: column; gap: var(--space-5); }
+.ui-card-stack { display: flex; flex-direction: column; gap: var(--space-10); }
 
 /* A padding modifier moves the vertical rhythm and keeps the text edge, so cards of
    different padding line up in one column. --pad-lg is the centred landing card, never
@@ -47,19 +60,16 @@
    why: docs/foundations.md#spacing-and-rhythm */
 .ui-card--fit { width: fit-content; max-width: 100%; }
 
-/* An accent-tinted card, e.g. a highlighted plan / success surface. It draws no accent
-   ring: the tint carries the signal and the edge is the plain card edge. #295
-   The strength is --card-tint, per theme: light mixes down from white, so a tint that
-   works in dark sinks a light card below the page. The accent card keeps the plain
-   edge. why: docs/foundations.md#elevation */
+/* An accent or live card is a plain card on the page now (#850): the tint and the edge
+   are gone with the box. The signal moves into the content it carries. */
 .ui-card--accent {
-  --ui-card-ground: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
-  background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
+  --ui-card-ground: var(--bg);
+  background: transparent;
 }
 .ui-card--live {
-  --ui-card-ground: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
-  background: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
-  border-color: color-mix(in srgb, var(--green) 22%, transparent);
+  --ui-card-ground: var(--bg);
+  background: transparent;
+  border-color: transparent;
 }
 
 /* A viewer: a document shown inside a card, set apart from the controls that act on it.
@@ -69,7 +79,7 @@
    object and the row above it as the tools. Decided on #736.
    why: docs/foundations.md#elevation */
 .ui-card__viewer {
-  margin: var(--space-4) calc(-1 * var(--space-6)) calc(-1 * var(--space-6));
+  margin: var(--space-4) calc(-1 * var(--space-6)) 0;
   border-top: 1px solid var(--card-edge);
 }
 .ui-card__viewer > .ui-toolbar {
@@ -100,9 +110,10 @@
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
   border-radius: var(--radius-xs);
-  /* A table on the page takes the page's ground, not the stage's, and hands a chip the page. */
+  /* A table on the page takes the page's ground, not the stage's, and hands a chip a
+     surface that steps off the white sheet in both themes. */
   --table-bg: var(--surface);
-  --table-code-bg: var(--bg);
+  --table-code-bg: var(--code-chip-surface);
 }
 
 /* Interactive card (link / button semantics) */
@@ -192,7 +203,11 @@
     margin-inline-start: calc(-1 * (var(--space-1) + var(--ui-row-choice-pad, var(--space-3))));
   }
 }
-.ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }
+/* #850: no hairline between rows of one list; the rows separate by their padding. */
+.ui-card__row + .ui-card__row { border-top: 0; }
+/* A role badge follows the identity it names at --space-4, on the same line, instead of
+   standing at the far end of the row. why: docs/foundations.md#spacing-and-rhythm */
+.ui-card__row:has(> .ui-badge:last-child) { justify-content: flex-start; gap: var(--space-4); }
 .ui-card__row .lab { color: var(--strong); font-size: var(--text-md); font-weight: var(--weight-medium); }
 .ui-card__row .hint { color: var(--text); font-size: var(--text-sm); margin-top: 3px; }
 

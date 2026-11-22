@@ -232,7 +232,9 @@ const PLAIN = '.ui-nav__item:not(.is-active):not(.is-danger):not(.is-disabled)';
  * here, so a paint that moves either is reviewed in the commit that moves it. */
 const ON_THE_PAGE = {
   dark: { plate: 1.186, hover: 1.077 },
-  light: { plate: 1.110, hover: 1.054 },
+  // #850: the light page is white, so the plate is --surface-3 (one rung off white) and the
+  // wash is half of it.
+  light: { plate: 1.140, hover: 1.067 },
 };
 const BAND = 0.01;
 const r3 = (n) => n.toFixed(3);
@@ -321,7 +323,7 @@ test('the current row is a plate with a measurable step, and the pointer stays q
 test('the step gate rejects a plate with no fill, and a pointer that reaches the plate', () => {
   const defects = [
     ['a plate painted the ground it stands on', '.ui-nav--side .ui-nav__item.is-active { background: var(--bg); }'],
-    ['a hovered row painted the plate itself', '.ui-nav--side .ui-nav__item:hover { background: var(--surface); }'],
+    ['a hovered row painted the plate itself', '.ui-nav--side .ui-nav__item:hover { background: var(--nav-active-fill); }'],
   ];
   for (const [what, mutation] of defects) {
     for (const theme of ['dark', 'light']) {
@@ -354,7 +356,8 @@ const DANGER = '.ui-nav__item.is-danger';
  * row's --glow-pink is a signal colour and does not move with the accent. */
 const FOLDED_ON_THE_PAGE = {
   dark: { plate: 1.186, hover: 1.077, danger: 1.251 },
-  light: { plate: 1.110, hover: 1.054, danger: 1.165 },
+  // #850: the light ground is white, so the plate, wash and danger wash each move.
+  light: { plate: 1.140, hover: 1.067, danger: 1.170 },
 };
 /* Below this a "wash" is the ground with a different name. 1.000:1 is the defect
  * itself — background: none — and the quietest reading here is 1.054:1, so the
@@ -433,9 +436,10 @@ test('the folded gate rejects a pointer answered with nothing, and a plate under
   const defects = [
     ['the wash folded away for every row', `${COLLAPSED}:hover { background: none; }`, ['dark', 'light']],
     ['the wash folded away for an ordinary row', `${COLLAPSED}:not(.is-danger):not(.is-active):hover { background: none; }`, ['dark', 'light']],
-    // Two rungs off --bg is 1.028:1 in light, under the hovered row beside it; in
-    // dark the same token is 1.375:1 and only the banded reading catches it.
-    ['the plate painted two rungs off its ground', `${COLLAPSED}.is-active::before { background: var(--surface-3); }`, ['dark', 'light']],
+    // Two rungs off --bg is --surface-3 in dark (1.375:1) and --surface-2 in light
+    // (1.183:1, above the plate's 1.140). The banded reading catches both.
+    ['the plate painted two rungs off its ground', `${COLLAPSED}.is-active::before { background: var(--surface-3); }`, ['dark']],
+    ['the plate painted two rungs off its ground', `${COLLAPSED}.is-active::before { background: var(--surface-2); }`, ['light']],
   ];
   for (const [what, mutation, themes] of defects) {
     for (const theme of themes) {
