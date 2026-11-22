@@ -889,9 +889,11 @@ export function Chart(props: ChartProps) {
       hide();
     };
     doc.addEventListener('keydown', escape);
+    doc.addEventListener('scroll', hide, true);
     view.addEventListener('resize', hide);
     return () => {
       doc.removeEventListener('keydown', escape);
+      doc.removeEventListener('scroll', hide, true);
       view.removeEventListener('resize', hide);
     };
   }, [openId]);

@@ -26,12 +26,10 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, pla
   const gap = Number.isFinite(declared) ? declared : TIP_GAP;
   const clip = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
   const layered = typeof tip.showPopover === 'function' && tip.matches(':popover-open');
-  for (let el: HTMLElement | null = host; el && el !== host.ownerDocument.body; el = el.parentElement) {
+  for (let el: HTMLElement | null = layered ? null : host; el && el !== host.ownerDocument.body; el = el.parentElement) {
     const style = getComputedStyle(el);
     // Overflow does not apply to an inline box.
     if (style.display === 'inline' || ![style.overflow, style.overflowX, style.overflowY].some(v => v && v !== 'visible')) continue;
-    // In the top layer, an ancestor too small to hold the readout cannot cut it.
-    if (layered && (el.clientWidth < tip.offsetWidth || el.clientHeight < mrect.height + gap + tip.offsetHeight)) continue;
     // The padding box clips, inside the border and a scroll bar.
     const edge = el.getBoundingClientRect();
     const top = edge.top + el.clientTop;

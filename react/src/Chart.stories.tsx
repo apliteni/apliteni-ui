@@ -68,7 +68,7 @@ export const AsTable: StoryObj = {
 export const SparkInScrollingTable: StoryObj = {
   render: () => (
     <div className="ui-table-scroll" role="region" aria-label="Cash trends">
-      {/* why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
+      <div className="ui-filter-bar"><label className="ui-field"><span className="ui-sr-only">Filter accounts</span><input type="search" /></label></div>
       <table className="ui-table ui-table--hover">
         <thead><tr><th scope="col">Account</th><th scope="col">Cash trend</th></tr></thead>
         <tbody>

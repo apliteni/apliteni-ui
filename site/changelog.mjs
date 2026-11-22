@@ -12,6 +12,12 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.187.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'On a phone, Modal and Confirm foot buttons have a 44px tap zone and keep the same look. Part of #853.', ['Modal', 'Confirm']],
+    ],
+  },
+  {
     v: '0.186.0', date: '2026-11-22',
     changes: [
       ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],

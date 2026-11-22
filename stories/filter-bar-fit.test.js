@@ -848,8 +848,7 @@ test('every table a story draws has a search field above it, or the stated excep
   // a chart's Table view, the two invoice lines in the wide drawer story, and the three short tables
   // of #832 that show column edges and a pinned name, and no other.
   assert.deepStrictEqual(excepted.map((at) => at.replace(/:\d+/, '')),
-    ['react/src/Chart.stories.tsx table',
-      'react/src/DataTable.ledger.stories.tsx DataTable',
+    ['react/src/DataTable.ledger.stories.tsx DataTable',
       'react/src/DataTable.stories.tsx DataTable', 'react/src/DataTable.stories.tsx DataTable',
       'react/src/DocumentReview.stories.tsx table', 'react/src/DocumentReview.stories.tsx SkeletonTable', 'react/src/DocumentReview.stories.tsx table',
       'react/src/KeyValueList.stories.tsx DataTable',
