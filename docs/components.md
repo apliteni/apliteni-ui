@@ -1236,7 +1236,8 @@ values and hangs them under the line.
 scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
 Where the period labels do not fit, the chart prints every second, third or later label, counted
 from the first period that is not final, or from the latest period. Set `values` to print each
-bar's value over the bar, in `formatAxis`. A value takes at most half the space to the next value,
+bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
+that grows down. A value takes at most half the space to the next value,
 at the 12px text size, and stays inside the plot. A value that does not fit there is left out.
 The readout and the table always show it. A chart that prints no value gives that room to its
 bars. `legend`

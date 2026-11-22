@@ -114,7 +114,8 @@ export type ChartLookSeries = Omit<ChartSeries, 'shape'>;
 export type ChartProps = ChartCommon & (
   | {
     variant?: 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[];
-    /** Print each bar's value above it, in `formatAxis`. A value that does not
+    /** Print each bar's value past its end, in `formatAxis`: over a bar that grows
+     *  up from zero, under one that grows down. A value that does not
      *  fit its bar's room is left out; the readout and the table keep it. */
     values?: boolean;
   }
@@ -383,6 +384,11 @@ function useTextWidth(host: RefObject<HTMLElement | null>) {
 /** What a bar is worth: its length, read in the direction its band grows. */
 function barValue(bar: { band: Band; from: number; to: number }) {
   return bar.band === 'down' ? bar.from - bar.to : bar.to - bar.from;
+}
+
+/** A bar that grows down from zero prints its value under it, whatever its band. */
+function printsBelow(bar: { from: number; to: number }) {
+  return bar.to < bar.from;
 }
 
 /** The readout's words for a period that is not final: the state, then why. */
@@ -715,23 +721,24 @@ export function Chart(props: ChartProps) {
      space to the plot's edge, so no two values meet. One that cannot fit there
      is left out, never shrunk under the kit's text size; the readout and the
      table keep it. */
+  const under = useMemo(() => new Set(frame.bars.filter(printsBelow).map((b) => b.id)), [frame.bars]);
   const printed = useMemo(() => {
     const out = new Set<string>();
     if (!showValues) return out;
     const at = frame.bars.map((bar) => ({ bar, x: barX(bar) + barWidth / 2 }));
     for (const { bar, x } of at) {
-      const side = at.filter((o) => o.bar !== bar && (o.bar.band === 'down') === (bar.band === 'down'));
+      const side = at.filter((o) => o.bar !== bar && under.has(o.bar.id) === under.has(bar.id));
       const left = Math.min(2 * x, ...side.filter((o) => o.x <= x).map((o) => x - o.x));
       const right = Math.min(2 * (plotWidth - x), ...side.filter((o) => o.x > x).map((o) => o.x - x));
       if (textWidth(formatAxis(barValue(bar))) + TEXT_GAP <= Math.min(left, right)) out.add(bar.id);
     }
     return out;
-  }, [showValues, frame.bars, barX, barWidth, plotWidth, textWidth, formatAxis]);
+  }, [showValues, frame.bars, under, barX, barWidth, plotWidth, textWidth, formatAxis]);
   // The room the group label and the printed values take, inside the plot's
-  // height. A chart that prints no value gives that room back to its bars.
-  const hangs = (id: string) => frame.bars.find((b) => b.id === id)?.band === 'down';
-  const roomTop = (groupFrom >= 0 ? GROUP_ROOM : 0) + ([...printed].some((id) => !hangs(id)) ? VALUE_ROOM : 0);
-  const roomBottom = [...printed].some(hangs) ? VALUE_ROOM : 0;
+  // height, on the side where each value prints. A chart that prints no value
+  // gives that room back to its bars.
+  const roomTop = (groupFrom >= 0 ? GROUP_ROOM : 0) + ([...printed].some((id) => !under.has(id)) ? VALUE_ROOM : 0);
+  const roomBottom = [...printed].some((id) => under.has(id)) ? VALUE_ROOM : 0;
   const y = useCallback(
     (value: number) => PAD + roomTop
       + ((scale.max - value) / span) * (plotHeight - PAD * 2 - roomTop - roomBottom),
@@ -1207,10 +1214,10 @@ export function Chart(props: ChartProps) {
                 );
               })}
 
-              {/* A bar's value over its end, or under a bar hung below zero. */}
+              {/* A bar's value over its end, or under a bar that grows down from zero. */}
               {marks.filter((m) => m.kind === 'bar' && printed.has(m.id)).map((mark) => {
                 const text = formatAxis(mark.value);
-                const below = mark.foot === 'top';
+                const below = under.has(mark.id);
                 return (
                   <text key={`value-${mark.id}`}
                     className={cx('ui-chart__text', 'ui-chart__value', below && 'ui-chart__value--below')}

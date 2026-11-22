@@ -717,6 +717,42 @@ it('prints each bar\'s value over its end in formatAxis, and under a bar hung be
   expect(printed(months().container), 'no value without the prop').toEqual([]);
 });
 
+// #842 re-review: an ordinary bar of -60000 printed its value under itself, but
+// the room was kept over the plot, so the value fell out of the SVG. The test
+// reads the text's anchor against a line box of 18px, not the drawn glyphs.
+it('keeps the room for each value on the side it prints, for signed bars and signed hanging bars', () => {
+  const k = (n: number) => `${n / 1000}k`;
+  const inside = (root: Element, expected: [string, boolean][]) => {
+    const svg = root.querySelector('.ui-chart__svg')!;
+    const height = Number(svg.getAttribute('height'));
+    const texts = [...svg.querySelectorAll('text.ui-chart__value')];
+    expect(texts.map((t) => [t.textContent, classOf(t).includes('ui-chart__value--below')])).toEqual(expected);
+    for (const t of texts) {
+      const y = Number(t.getAttribute('y'));
+      if (classOf(t).includes('ui-chart__value--below')) expect(y + 18, `${t.textContent} inside the plot`).toBeLessThanOrEqual(height);
+      else expect(y - 12, `${t.textContent} inside the plot`).toBeGreaterThanOrEqual(0);
+    }
+  };
+  inside(values(400, { periods: periods.slice(0, 1), formatAxis: k,
+    series: [{ id: 'in', name: 'Income', values: [-60000], tone: 'good' }] }).container, [['-60k', true]]);
+  cleanup();
+  vi.restoreAllMocks();
+  inside(values(640, { periods, formatAxis: k,
+    series: [
+      { id: 'in', name: 'Income', values: [40000, -20000, NaN, NaN], tone: 'good' },
+      { id: 'out', name: 'Spend', values: [NaN, NaN, -30000, 50000], shape: 'bars-below', tone: 'bad' },
+    ] }).container, [['40k', false], ['-20k', true], ['-30k', false], ['50k', true]]);
+  cleanup();
+  vi.restoreAllMocks();
+  // A hanging bar of -30000 grows up beside the 40000 bar, so the two values
+  // print on one side at one x, and neither prints.
+  inside(values(640, { periods: periods.slice(0, 1), formatAxis: k,
+    series: [
+      { id: 'in', name: 'Income', values: [40000], tone: 'good' },
+      { id: 'out', name: 'Spend', values: [-30000], shape: 'bars-below', tone: 'bad' },
+    ] }).container, []);
+});
+
 it('leaves out only the values that do not fit, and keeps every exact value elsewhere', () => {
   // 4 columns of 30px: a two-figure value fits, a four-figure one does not.
   const { container } = values(120, {
