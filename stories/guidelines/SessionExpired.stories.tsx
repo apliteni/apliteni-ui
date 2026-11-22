@@ -7,6 +7,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { SearchField } from '../../react/src/SearchField';
+import { SignInBlock } from '../apps/_sign-in-block';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -14,9 +15,10 @@ import { SPEC_CSS } from './_session-expired.js';
 
 const content = await loadGuideline('session-expired.md', new URL('../../guidelines/session-expired.md', import.meta.url));
 const Stage = ({ children }: { children: ReactNode }) => <div className="gl-stage">{children}</div>;
+const DialogPicture = ({ text = 'Your session ended. Sign in to keep working.' }: { text?: string }) =>
+  <ConfirmPicture title="Sign in again" body={text} size="sm"><SignInBlock google email /></ConfirmPicture>;
 const SignIn = ({ text = 'Your session ended. Sign in to keep working.' }: { text?: string }) =>
-  <div className="gl-stage gl-stage--confirm"><ConfirmPicture title="Sign in again" body={text}
-    confirmLabel="Continue with Google" confirmVariant="primary" /></div>;
+  <div className="gl-stage gl-stage--confirm"><DialogPicture text={text} /></div>;
 
 const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false }: {
   loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean;
@@ -34,8 +36,7 @@ const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = 
     </tbody></table>}</Card>
   </div>
   {dialog && <><div className="se-page__scrim" />
-    <div className="se-page__dialog"><ConfirmPicture title="Sign in again"
-      body="Your session ended. Sign in to keep working." confirmLabel="Continue with Google" confirmVariant="primary" /></div></>}
+    <div className="se-page__dialog"><DialogPicture /></div></>}
 </div></Stage>;
 
 const SignInPage = () => <Stage><div className="se-page"><div className="se-page__body">

@@ -6,10 +6,11 @@ export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 
 export const SPEC_CSS = `<style>
-  .se-page { position: relative; min-height: 260px; overflow: hidden; }
+  .se-page { position: relative; min-height: 420px; overflow: hidden; }
   .se-page__body { display: flex; flex-direction: column; gap: var(--space-3); }
   .se-page__title { margin: 0; font: var(--weight-semibold) var(--text-lg)/var(--leading-snug) var(--font-sans); color: var(--strong); }
   .se-page__scrim { position: absolute; inset: 0; background: var(--scrim); }
   .se-page__dialog { position: absolute; inset: 0; display: grid; place-items: center; padding: var(--space-4); }
-  .se-page__dialog .rx-modal { position: static; transform: none; width: min(100%, 24rem); max-height: none; }
+  .se-page__dialog .rx-modal { position: static; transform: none; width: min(100%, var(--panel-md)); max-height: none; }
+  .gl-stage.gl-stage--confirm .rx-modal--sm { width: min(100%, var(--panel-md)); }
 </style>`;

@@ -170,6 +170,10 @@ describe('guideline pages in React: Session expired', () => {
     expect(picture.querySelector('.se-page__title')?.textContent).toBe('Payouts');
     expect(picture.querySelector('.se-page__scrim')).toBeTruthy();
     expect(dialog, 'the dialog must be inside the page picture').toBeTruthy();
+    expect(dialog).toHaveClass('rx-modal--sm');
+    expect([...dialog!.querySelectorAll('button')].some(button => button.textContent?.includes('Continue with Google'))).toBe(true);
+    expect(dialog?.querySelector('input[type="email"]')).toBeTruthy();
+    expect(dialog?.querySelector('input[type="password"]')).toBeTruthy();
   });
 });
 

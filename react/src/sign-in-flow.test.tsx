@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { composeStories } from '@storybook/react';
 import * as stories from '../../stories/apps/SignIn.stories';
 
-const { Default, ProviderError, Error: WithError, InUse, SignedOut } = composeStories(stories);
+const { Default, ProviderError, Error: WithError, InUse, SessionEnded, SignedOut } = composeStories(stories);
 afterEach(cleanup);
 
 // The provider's answer is a 1200ms timer in the story, so each wait outlasts it.
@@ -58,6 +58,16 @@ describe('sign-in flow', () => {
     render(<WithError />);
     expect(screen.queryByRole('button', { name: /^Continue with / })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toHaveClass('ui-btn--primary');
+  });
+
+  it('uses the narrow sign-in dialog with Google and email', async () => {
+    render(<SessionEnded />);
+    const dialog = await screen.findByRole('dialog', { name: 'Sign in again' });
+    expect(dialog).toHaveClass('rx-modal--sm');
+    expect(within(dialog).getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/^Work email/)).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/^Password/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Sign in' })).toBeInTheDocument();
   });
 
   it('names the email and the password for a password manager, and shows one text for a failure', () => {
