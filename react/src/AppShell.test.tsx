@@ -541,10 +541,25 @@ describe('band actions', () => {
     expect(glyphs[1]).toMatch(/width: 40px;[^]*border: 0;/);
   });
 
-  it('puts a count on the glyph corner, keeps the actions column as wide as the actions, and keeps a short title whole', () => {
+  it('draws every action as one 40px square, and stands a count above the bell, inside its column', () => {
     const css = read('./AppShell.css');
-    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \.ui-badge \{ position: absolute;/);
-    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ position: relative; min-width: 40px; min-height: 40px; padding: 0;/);
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-btn,\n\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ min-width: 40px; min-height: 40px; justify-content: center; \}/);
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-btn svg,\n\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger svg \{ flex: none; width: 17px; height: 17px;/);
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ position: relative; padding: 0;/);
+    expect(css).toMatch(/\.ui-dropdown__trigger \.ui-badge \{ position: absolute; inset-block-start: calc\(var\(--space-1\) \* -1\); inset-inline-end: 0; \}/);
+  });
+
+  it('paints a pressed bell on a phone as it paints a pressed search', () => {
+    const css = read('./AppShell.css');
+    const phone = css.slice(css.indexOf('@media (max-width: 560px)'));
+    const pressed = phone.match(/\.ui-react-app \.ui-app__bar \.ui-app__search:hover,[^{]*\{([^}]*)\}/)!;
+    expect(pressed[0]).toContain('.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover {');
+    expect(pressed[1]).toContain('background: var(--surface);');
+  });
+
+  it('keeps the actions column as wide as the actions, keeps a short title whole, and spends no empty gap with no sidebar', () => {
+    const css = read('./AppShell.css');
+    expect(css).toMatch(/@media \(min-width: 561px\) \{\n  \.ui-react-app \.ui-app__bar:not\(:has\(> \.ui-app__menu\)\) \.ui-app__bar-gap \{ display: none; \}\n  \.ui-react-app \.ui-app__bar:not\(:has\(> \.ui-app__menu\)\) \.ui-app__search \{ margin-inline-end: auto; \}/);
     expect(css).toMatch(/grid-template-columns: minmax\(0, 1fr\) minmax\(0, var\(--panel-sm\)\) minmax\(max-content, 1fr\);/);
     expect(css).toMatch(/@media \(min-width: 561px\) and \(max-width: 720px\) \{[^@]*\.ui-react-app__title \{ flex-shrink: 0; max-width: 50%; \}/);
   });

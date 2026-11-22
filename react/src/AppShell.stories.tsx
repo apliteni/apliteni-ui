@@ -192,17 +192,20 @@ export const RailGroupsPhone: Story = { render, globals: { viewport: { value: 'p
   args: { layout: 'rail', groups, pathname: '/payouts' }, play: openMenu };
 
 // A notifications bell at the band's right end, at 1280px and 390px, dark and light, in
-// each sidebar structure and with no sidebar (#847). The count stands on the glyph's
-// corner, and a read bell shows none. A second action is a ghost Button.
+// each sidebar structure and with no sidebar (#847). The count stands above the bell's
+// top edge at its end corner, and a read bell shows none. Above 99 it reads 99+. A second
+// action is a ghost Button.
 const endBell = (unread: number) => <Dropdown variant="menu" align="end" chevron={false} title="Notifications"
   ariaLabel={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-  triggerContent={<><Icon name="bell" />{unread > 0 && <span aria-hidden="true"><Badge>{unread}</Badge></span>}</>}
+  triggerContent={<><Icon name="bell" />{unread > 0 && <span aria-hidden="true"><Badge>{unread > 99 ? '99+' : unread}</Badge></span>}</>}
   header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
   items={[{ label: 'Payout run PR-204 failed', value: 'payout', href: '#payout' },
     { label: 'CMP-88 assigned to you', value: 'assign', href: '#assign' },
     { label: 'Jon Avery commented', value: 'comment', href: '#comment' }]} />;
 const bandBell = endBell(3);
-const bandPair = <>{bandBell}<Button variant="ghost" icon="moreHorizontal" iconOnly aria-label="More actions" title="More actions" /></>;
+const more = <Button variant="ghost" icon="moreHorizontal" iconOnly aria-label="More actions" title="More actions" />;
+const bandPair = <>{bandBell}{more}</>;
+const manyPair = <>{endBell(120)}{more}</>;
 const desktop = { viewport: { value: 'desktop', isRotated: false } };
 const phone = { viewport: { value: 'phone', isRotated: false } };
 const alone = { sections: [{ href: '/overview', label: 'Overview', icon: 'chart' }], pathname: '/overview' } satisfies Partial<AppShellProps>;
@@ -217,3 +220,5 @@ export const BandActionsAlonePhone: Story = { render, globals: phone, args: { ..
 export const BandActionsPair: Story = { render, globals: desktop, args: { bandActions: bandPair } };
 export const BandActionsPairPhone: Story = { render, globals: phone, args: { bandActions: bandPair } };
 export const BandActionsReadPhone: Story = { render, globals: phone, args: { bandActions: endBell(0) } };
+export const BandActionsMany: Story = { render, globals: desktop, args: { bandActions: manyPair } };
+export const BandActionsManyPhone: Story = { render, globals: phone, args: { bandActions: endBell(120) } };

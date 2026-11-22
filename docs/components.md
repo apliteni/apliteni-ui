@@ -182,8 +182,10 @@ Auto, Light and Dark.
   button, and search keeps the centre of the band while it has room. Where the band is short of
   room, search moves off the centre and shrinks, and never goes under an action. With no
   sidebar, they stand before the theme switch. Put one or two there, and give each one a hover
-  title. A dropdown trigger there is a 40px square, and a count in it stands on the glyph's
-  corner. Below 560px, each one is a 40px glyph with no border and keeps a 44 by 44px tap zone.
+  title. Each action there is a 40px square with a 17px glyph, a `Button` and a dropdown trigger
+  alike. A count in a dropdown trigger stands above the trigger's top edge, at its end corner. A
+  long count, such as 99+, grows over the glyph and stays clear of the next control. Below 560px,
+  each action is a 40px glyph with no border and keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.
 

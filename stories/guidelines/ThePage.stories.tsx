@@ -97,7 +97,8 @@ const Shells = ({ moved }: { moved: boolean }) => <div className="tp-rows">
 </div>;
 
 // The bar's right end: the shell's bell, which serves every page, or a page's own button.
-const BarEnd = ({ page }: { page: boolean }) => <div className="gl-stage tp-screen"><div className="ui-app__bar tp-bar">
+// The shell's class on the stage gives search and the bell the shell's look at each width.
+const BarEnd = ({ page }: { page: boolean }) => <div className="gl-stage tp-screen ui-react-app"><div className="ui-app__bar tp-bar">
   <button type="button" className="ui-app__search">
     <span className="ui-app__search-ic"><Icon name="search" /></span>
     <span className="ui-app__search-txt">Search</span><kbd className="ui-cmdk__key">⌘K</kbd>
