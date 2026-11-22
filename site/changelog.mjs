@@ -6,6 +6,17 @@
 
 export const RELEASES = [
   {
+    v: '0.189.0', date: '2026-11-22',
+    changes: [
+      ['changed', 'The light theme page is now white, and the card surface is the same white. A page groups its content with space and edges instead of card fills. This changes the look of every light-theme screen, so a screen that sized or shaded against the old grey page or the old white cards must be reviewed. The dark theme is unchanged. Resolves #850.', ['Card', 'Table']],
+      ['changed', 'In the light theme, a code block keeps its quiet grey fill: a reader never writes in one, so the grey does not read as disabled, and its ink still clears 4.5:1. Resolves #850.', ['Snippet']],
+      ['added', 'A sign-in page takes a split layout: a branded panel with the wordmark and a tagline stands beside the form on wide screens and above it on phones. Resolves #850.', ['Card']],
+      ['added', '`Button` takes `outline`, a transparent fill with a visible edge, for a glyph-only button on a flat ground. `Snippet` no longer needs a `label`. Resolves #850.', ['Button', 'Snippet']],
+      ['added', '`StatBand` takes `lead` for a figure that leads a report row. Resolves #850.', ['StatBand']],
+      ['added', 'The page guideline has a new rule, Brand the background behind a dialog page, and the colour guideline now lets a code block keep its grey fill in the light theme. Resolves #850.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.188.0', date: '2026-11-22',
     changes: [
       ['fixed', 'A `Chart` readout in a scrolling table now opens over the table and above its mark when room is available. The readout stays fully visible instead of being cut on the last row. Part of #853.', ['Chart', 'Table']],
