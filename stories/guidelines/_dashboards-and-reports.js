@@ -7,7 +7,7 @@ export const RULES = content.rules;
 import { CHART_CSS } from '../_chart.js';
 
 // One made-up portal supplies every specimen, and the Finance report showcase
-// prints the same payouts with the same fees and nets —
+// prints the same sales with the same fees and nets —
 // react/src/dashboard-report-refs.test.tsx holds the two in step. The halves of a
 // pair differ in one decision.
 export const SPEC_CSS = `${CHART_CSS}
@@ -42,9 +42,9 @@ export const ESTIMATED = [17.5, 17.8, 18.1, 18.4, 18.7, 19.0];
 // react/src/dashboard-report-refs.test.tsx reads it from this export and holds it
 // against the report's, so the agreement is measured rather than asserted.
 export const LEDGER = [
-  ['PO-1162', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
-  ['PO-1163', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
-  ['PO-1164', '14,566.66', '483.97', '14,082.69', 'pending', 'In transit'],
-  ['PO-1165', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
-  ['PO-1166', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
+  ['SAL-1042', '14,942.27', '489.44', '14,452.83', 'success', 'Paid'],
+  ['SAL-1043', '14,490.70', '574.19', '13,916.51', 'success', 'Paid'],
+  ['SAL-1044', '14,566.66', '483.97', '14,082.69', 'pending', 'Pending'],
+  ['SAL-1045', '39,054.98', '1,369.76', '37,685.22', 'success', 'Paid'],
+  ['SAL-1046', '14,969.33', '472.71', '14,496.62', 'danger', 'Failed'],
 ];

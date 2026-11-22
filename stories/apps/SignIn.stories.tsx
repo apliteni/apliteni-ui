@@ -97,17 +97,17 @@ const splitPage = (sub: string, tagline: string, args: SignInArgs) => {
   </>, tagline);
 };
 
-// The app screen that the session ends on: payouts with a filter that the person set.
+// The app screen that the session ends on: sales with a filter that the person set.
 const PENDING: [string, string, string][] = [
-  ['PO-1171', '4,200.00', '2026-11-09'],
-  ['PO-1170', '860.00', '2026-11-08'],
-  ['PO-1168', '1,975.50', '2026-11-06'],
+  ['SAL-1171', '4,200.00', '2026-11-09'],
+  ['SAL-1170', '860.00', '2026-11-08'],
+  ['SAL-1168', '1,975.50', '2026-11-06'],
 ];
 
 type Session = 'active' | 'ended' | 'closed';
 
 /**
- * Payouts while the session is active, when it ends, and after the modal closes. A change of the
+ * Sales while the session is active, when it ends, and after the modal closes. A change of the
  * `session` arg moves the same mounted screen, so its search text stays. A provider answer closes
  * the modal. Close keeps the screen and a way back in.
  */
@@ -115,20 +115,20 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   const [open, setOpen] = useState(session === 'ended');
   const [signedOut, setSignedOut] = useState(session === 'closed');
   useEffect(() => { setOpen(session === 'ended'); setSignedOut(session === 'closed'); }, [session]);
-  return <FinanceShell active="payouts" title="Payouts" sub="Filtered to pending, this week.">
+  return <FinanceShell active="sales" title="Sales" sub="Filtered to pending, this week.">
     {/* The callout stays under a reopened modal, so its Sign in button gets the focus back. */}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setOpen(true)}>Sign in</Button>}>
-      You are signed out. Sign in to approve payouts. This screen stays as it is.
+      You are signed out. Sign in to approve sales. This screen stays as it is.
     </Callout>}
     {/* The ledger's filter bar stands on the page directly above it. why: guidelines/dense-tables.md */}
     <div className="ui-toolbar">
-      <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" />
+      <SearchField ariaLabel="Search sales" placeholder="Reference or sale ID" />
     </div>
-    <Card title="Pending payouts">
+    <Card title="Pending sales">
       <table className="ui-table ui-table--dense">
-        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Arrival</th><th>Status</th></tr></thead>
-        <tbody>{PENDING.map(([ref, net, arrival]) => <tr key={ref}>
-          <td>{ref}</td><td className="ui-table__num">{net}</td><td>{arrival}</td><td><Badge variant="pending">Pending</Badge></td>
+        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>{PENDING.map(([ref, net, date]) => <tr key={ref}>
+          <td>{ref}</td><td className="ui-table__num">{net}</td><td>{date}</td><td><Badge variant="pending">Pending</Badge></td>
         </tr>)}</tbody>
       </table>
     </Card>

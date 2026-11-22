@@ -16,8 +16,8 @@ const ANSWER = { timeout: 4000 };
 describe('sign-in flow', () => {
   it('walks a session from in use to ended, error, retry and back, and keeps the search text', async () => {
     const { rerender } = render(<InUse />);
-    const search = screen.getByRole('searchbox', { name: 'Search payouts' });
-    fireEvent.change(search, { target: { value: 'PO-1170' } });
+    const search = screen.getByRole('searchbox', { name: 'Search sales' });
+    fireEvent.change(search, { target: { value: 'SAL-1170' } });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     rerender(<InUse session="ended" />);
@@ -34,7 +34,7 @@ describe('sign-in flow', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), ANSWER);
     expect(screen.queryByText(/You are signed out/)).not.toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1170');
+    expect(screen.getByRole('searchbox', { name: 'Search sales' })).toHaveValue('SAL-1170');
   });
 
   it('recovers from the page error and completes the sign-in', async () => {

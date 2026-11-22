@@ -10,7 +10,7 @@ import { useTableFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story module
 import { cashflowStats, PERIODS, periodBasis } from './_finance-data.js';
 // @ts-expect-error -- plain JS story module
-import { payoutHref } from './_finance-nav.js';
+import { salesHref } from './_finance-nav.js';
 
 const meta: Meta = { title: 'Showcases/Finance dashboard', id: 'apps-finance-dashboard', parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -22,9 +22,9 @@ type Figure = { label: string; value: string; delta?: { value: string; tone?: 'g
 // order of the decision, not of the ledger. The status rides in the reference's
 // cell, because a third column did not fit at 320. why: guidelines/dashboards-and-reports.md, #505
 const EXCEPTIONS: [string, string, 'danger' | 'pending', string, string][] = [
-  ['PO-1166', '14,496.62', 'danger', 'Failed', '2025-08-05'],
-  ['PO-1164', '14,082.69', 'pending', 'In transit', '2026-02-20'],
-  ['PO-1159', '2,180.00', 'danger', 'Unmatched', '2025-07-15'],
+  ['SAL-1046', '14,496.62', 'danger', 'Failed', '2025-08-05'],
+  ['SAL-1044', '14,082.69', 'pending', 'Pending', '2026-02-20'],
+  ['SAL-1039', '2,180.00', 'danger', 'Refunded', '2025-07-15'],
 ];
 
 const Dashboard = () => {
@@ -42,14 +42,14 @@ const Dashboard = () => {
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
     {/* Each long table has its filter bar directly above it. why: guidelines/dense-tables.md */}
     {bar}
-    {/* Each reference opens its payout row in the report. */}
+    {/* Each reference opens its sale row in the report. */}
     <Card title="Needs a decision">
       <table className="ui-table ui-table--dense ui-table--hover">
-        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Arrival</th></tr></thead>
-        <tbody>{shown.map(([ref, net, tone, label, arrival]) => <tr key={ref}>
-          <td><span className="ui-table__pair"><a href={payoutHref(ref)}>{ref}</a><Badge variant={tone}>{label}</Badge></span></td>
+        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th></tr></thead>
+        <tbody>{shown.map(([ref, net, tone, label, date]) => <tr key={ref}>
+          <td><span className="ui-table__pair"><a href={salesHref(ref)}>{ref}</a><Badge variant={tone}>{label}</Badge></span></td>
           <td className="ui-table__num ui-table__num--strong">{net}</td>
-          <td>{arrival}</td>
+          <td>{date}</td>
         </tr>)}
         {!shown.length && <tr><td colSpan={3}>No exceptions match</td></tr>}</tbody>
       </table>

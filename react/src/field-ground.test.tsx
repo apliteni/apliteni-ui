@@ -78,7 +78,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then the band's search field in the AppShell PhoneMenu story (#790).
 // Then sixteen checkboxes from the AccountWindow Long section story (#795), four in
 // each of its four groups.
-// Then the payouts search field in the four Sign In session stories, and the email
+// Then the sales search field in the four Sign In session stories, and the email
 // and password fields in the Sign In Default and Provider error stories (#799).
 // Then the text input in the Form Row and Form Row Long Value stories (#812).
 // Then the transfers search field in the DataTable ledgers Status Words story, and the
