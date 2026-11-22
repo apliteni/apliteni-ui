@@ -39,7 +39,8 @@ function rules(css) {
   for (const ch of css) {
     if (ch === '{') { open.push(buf.trim()); buf = ''; } else if (ch === '}') {
       const selector = open.pop() ?? '';
-      if (buf.trim()) out.push({ selector, body: buf.trim() });
+      // `at` is the enclosing at-rule's prelude, or null for a top-level rule.
+      if (buf.trim()) out.push({ selector, body: buf.trim(), at: open.findLast((p) => p.startsWith('@')) ?? null });
       buf = '';
     } else buf += ch;
   }
@@ -326,8 +327,10 @@ for (const m of MENUS) {
 }
 
 // Source guard only: browser captures check viewport geometry and actual scrolling.
+// It reads the top-level rules. A media query may add to a slot, such as the foot's
+// coarse-pointer tap clearance, and is not the layout this guard holds.
 function checkModalScroll(css) {
-  const all = rules(css);
+  const all = rules(css).filter((r) => !r.at);
   const bodyOf = (selector) => {
     const found = all.filter((r) => r.selector === selector);
     assert.equal(found.length, 1, `one ${selector} rule is measured`);
