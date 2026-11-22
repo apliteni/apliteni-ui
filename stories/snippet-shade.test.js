@@ -149,7 +149,7 @@ function blockFindings(img, m, state, pixelAt) {
  * 360px wide and fits at 1280. The bare Shell story is not used: its centred frame grows
  * with the code, so its code never scrolls. Each part is removed once in the page to prove
  * the check sees it. Limits: the Access and reveal stories only, at those two widths. */
-const SHELL_STORY = 'apps-access-agents--default';
+const SHELL_STORY = 'apps-access-agents--key';
 const REVEAL_STORY = 'react-snippet--reveal';
 const NARROW = { width: 360, height: 800 };
 const WIDE = { width: 1280, height: 900 };

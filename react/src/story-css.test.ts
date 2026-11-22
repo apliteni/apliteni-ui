@@ -94,7 +94,7 @@ const subjects: string[] = [...new Set([
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 6 };
+const FOUND = { subjects: 77, declarations: 567, carriers: 53, sheets: 7 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -196,7 +196,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
   'react/src/showcases/InvoiceFlow.css': { glue: 24 },
   // The showcases' figures as the vanilla gate recorded them for the same screens.
-  'stories/apps/Access.stories.tsx': { shadow: 2 },
   'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
@@ -215,7 +214,8 @@ describe('story CSS', () => {
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
-      'react/src/showcases/InvoiceFlow.css', 'react/src/showcases/Notifications.css',
+      'react/src/showcases/InvoiceFlow.css', 'react/src/showcases/InvoiceReview.css',
+      'react/src/showcases/Notifications.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.

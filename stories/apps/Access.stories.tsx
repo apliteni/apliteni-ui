@@ -1,128 +1,197 @@
-// The access and agents showcase in React, under the vanilla page's title and id.
+// The access and agents showcase in React: the phone-first flow of creating, listing,
+// opening and revoking agent keys, under the vanilla page's title and id. A list of
+// agent rows, not a table, so "Revoke access" never sits in a cut-off column. #850
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { ACCOUNT_NAV, codeTokens } from '@apliteni/apliteni-ui';
 import { DemoShell, type DemoNavItem } from './_demo-shell';
+import { Modal } from '../../react/src/Modal';
 import { Snippet } from '../../react/src/Snippet';
-import { FilterBar } from '../../react/src/FilterBar';
-import { SearchField } from '../../react/src/SearchField';
 import { EmptyState } from '../../react/src/EmptyState';
-import { BusyRegion, Denied as DeniedState, SkeletonTable } from '../../react/src/Loading';
+import { TextField, SelectField } from '../../react/src/Field';
+import { KeyValueList } from '../../react/src/KeyValueList';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
+import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
-import { Icon } from '../../react/src/primitives/Icon';
 
-const meta: Meta = { title: 'Showcases/Access & Agents', id: 'apps-access-agents', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Showcases/Access & Agents', id: 'apps-access-agents', excludeStories: ['AccessFlow'], parameters: { layout: 'fullscreen' } };
 export default meta;
 
 // Overview is this demo's own screen, not the kit's default: a consuming /account
 // page that took ACCOUNT_NAV whole would get a link to nothing.
 const NAV: DemoNavItem[] = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...(ACCOUNT_NAV as DemoNavItem[])];
-const Screen = ({ sub, children }: { sub: string; children: ReactNode }) =>
-  <DemoShell layout="rail" nav={NAV} active="access" title="Access & agents" lede={sub}>{children}</DemoShell>;
 
-const AGENTS = [
-  ['Research bot', 'Read only', '2 hours ago', 'live'],
-  ['Deck summariser', 'Read only', 'Yesterday', 'live'],
-  ['Old integration', 'Read only', '3 weeks ago', 'dead'],
+const PRESETS = ['Read invoices and suppliers', 'Read reports', 'Read and write invoices'];
+const EXPIRY = ['7 days', '30 days', '90 days', 'Custom date', 'No expiry'];
+
+type Agent = { name: string; access: string; created: string; last: string; expires: string; state: 'agent' | 'never-used' | 'expired' };
+const SAMPLE_AGENTS: Agent[] = [
+  { name: 'Invoice reader', access: PRESETS[0], created: '1 Nov 2026', last: '22 Nov 2026, 10:42', expires: '1 Dec 2026', state: 'agent' },
+  { name: 'Bookkeeping agent', access: PRESETS[2], created: '20 Nov 2026', last: 'Never used', expires: '20 Dec 2026', state: 'never-used' },
+  { name: 'Monthly report', access: PRESETS[1], created: '1 Sep 2026', last: '15 Sep 2026', expires: '1 Oct 2026', state: 'expired' },
 ];
-const LABEL = { live: 'Active', dead: 'Revoked' } as Record<string, string>;
-// The state chip starts unset, so the table opens on every agent.
-const STATE = { id: 'state', label: 'State', items: [{ label: 'Any state', value: '' }, { label: 'Active', value: 'Active' }, { label: 'Revoked', value: 'Revoked' }] };
-const TokenTable = ({ rows }: { rows: string[][] }) => <table className="ui-table ui-table--hover">
-  <thead><tr><th>Agent</th><th>Scope</th><th>Last used</th><th></th></tr></thead>
-  <tbody>{rows.map(([name, scope, used, state]) => <tr key={name} className={state === 'dead' ? 'is-dead' : ''}>
-    <td className="ui-table__title">{name}</td><td>{scope}</td><td>{used}</td>
-    <td className="ui-table__act">{state === 'dead'
-      ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Revoked</span>
-      : <Button variant="danger" size="sm">Revoke access</Button>}</td>
-  </tr>)}</tbody>
-</table>;
-// Each long table has its filter bar directly above it, the loading one included, on a
-// card because a field never stands on the page ground. why: guidelines/dense-tables.md
-const Agents = ({ loading = false, children }: { loading?: boolean; children?: ReactNode }) => {
-  const [query, setQuery] = useState('');
-  const [state, setState] = useState('');
-  const term = query.trim().toLowerCase();
-  const rows = AGENTS.filter(([name, , , live]) => (!state || LABEL[live] === state) && name.toLowerCase().includes(term));
-  const clear = () => { setQuery(''); setState(''); };
-  return <>
-    <div className="ui-toolbar">
-      <SearchField ariaLabel="Search agents" placeholder="Agent" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-      <FilterBar filters={[{ ...STATE, value: state }]} label="Agent filters"
-        onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
-    </div>
-    <Card title="Your agents">
-      {loading ? <BusyRegion busy label="Loading your agents…" placeholder={<SkeletonTable rows={3} cols={4} />} />
-        : rows.length ? <TokenTable rows={rows} />
-        : <EmptyState title="No agents match" sub="" icon="" actions={<Button size="sm" onClick={clear}>Clear all</Button>} />}
-      {children}
-    </Card>
-  </>;
-};
-const NewAgent = ({ busy = false }: { busy?: boolean }) => <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-  <input className="ui-input" type="text" placeholder="New agent name — e.g. Research bot" aria-label="New agent name" disabled={busy} />
-  <Button variant="primary" icon="key" busy={busy}>Create token</Button>
-</div>;
-
-const CONNECT = 'claude mcp add apliteni \\\n  --url "https://ui.apli.tech/mcp" \\\n  --header "Authorization: Bearer $TOKEN"';
+const DEMO_KEY = 'demo_key_not_valid_1042';
+const DEMO_COMMAND = `claude mcp add --transport http finance https://api.example.com/mcp --header "Authorization: Bearer ${DEMO_KEY}"`;
 const highlighted = (code: string) => codeTokens(code, 'shell').map(({ cls, text }: { cls?: string; text: string }, at: number) =>
   (cls ? <span key={at} className={cls}>{text}</span> : text));
 
-export const Default: StoryObj = {
-  render: () => <Screen sub="Connect agents to read over MCP. Each gets a scoped, revocable token.">
-    <Card title={<>Connect over MCP <Badge variant="live">Live</Badge></>} icon="plug" sub="Paste this into your agent. It reads as you — read-only.">
-      <Snippet label="Terminal" code={CONNECT}>{highlighted(CONNECT)}</Snippet>
+/* A chosen expiry becomes a date the way the prototype writes it: today plus the days,
+   or the reader's custom date, or no expiry at all. */
+const expiryOf = (expiry: string, date: string) => {
+  if (expiry === 'Custom date') return date;
+  if (expiry === 'No expiry') return 'No expiry';
+  return new Date(Date.UTC(2026, 10, 22) + Number.parseInt(expiry) * 86400000)
+    .toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+export type AccessState = 'empty' | 'create' | 'create-error' | 'expiry-custom' | 'expiry-none'
+  | 'key' | 'key-copied' | 'command-copied' | 'list' | 'agent' | 'never-used' | 'expired'
+  | 'revoke' | 'revoke-cancelled' | 'revoked';
+const ALL_STATES: readonly string[] = ['empty', 'create', 'create-error', 'expiry-custom', 'expiry-none',
+  'key', 'key-copied', 'command-copied', 'list', 'agent', 'never-used', 'expired',
+  'revoke', 'revoke-cancelled', 'revoked'];
+
+const agentOf = (screen: AccessState): Agent =>
+  screen === 'never-used' ? SAMPLE_AGENTS[1] : screen === 'expired' ? SAMPLE_AGENTS[2] : SAMPLE_AGENTS[0];
+
+export function AccessFlow({ initialState = 'list' }: { initialState?: AccessState }) {
+  const [screen, setScreen] = useState<AccessState>(() => {
+    const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';
+    return (ALL_STATES.includes(hash) ? hash : initialState) as AccessState;
+  });
+  const [draft, setDraft] = useState(() => ({
+    name: '',
+    access: PRESETS[0],
+    expiry: initialState === 'expiry-custom' ? 'Custom date' : initialState === 'expiry-none' ? 'No expiry' : '30 days',
+    date: '2027-01-15',
+  }));
+  const [created, setCreated] = useState<Agent | null>(null);
+  const [revokedNames, setRevokedNames] = useState<string[]>(initialState === 'revoked' ? ['Invoice reader'] : []);
+  const [origin, setOrigin] = useState<'empty' | 'list' | 'expired'>('list');
+  const [selected, setSelected] = useState<Agent>(SAMPLE_AGENTS[0]);
+
+  const navigate = (next: AccessState) => {
+    setScreen(next);
+    if (typeof window !== 'undefined') window.history.replaceState(null, '', `#${next}`);
+  };
+  useEffect(() => {
+    const onHash = () => {
+      const hash = window.location.hash.slice(1);
+      if (ALL_STATES.includes(hash)) setScreen(hash as AccessState);
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  let agents = screen === 'empty' ? [] : created ? [created, ...SAMPLE_AGENTS.filter((a) => a.name !== created.name)] : [...SAMPLE_AGENTS];
+  agents = agents.filter((a) => !revokedNames.includes(a.name));
+  if (screen === 'revoked' && revokedNames.length === 0) agents = agents.filter((a) => a.name !== 'Invoice reader');
+
+  const creating = ['create', 'create-error', 'expiry-custom', 'expiry-none'].includes(screen);
+  const keyShown = ['key', 'key-copied', 'command-copied'].includes(screen);
+  const revoking = screen === 'revoke';
+  const onDetail = ['agent', 'never-used', 'expired', 'revoke', 'revoke-cancelled'].includes(screen);
+  const detail = created && selected.name === created.name ? created : agentOf(screen);
+
+  const createFooter = <>
+    <Button variant="secondary" onClick={() => navigate(origin)}>Cancel</Button>
+    <Button variant="primary" onClick={() => {
+      if (!draft.name.trim()) { navigate('create-error'); return; }
+      const name = draft.name.trim();
+      setCreated({ name, access: draft.access, created: '22 Nov 2026', last: 'Never used', expires: expiryOf(draft.expiry, draft.date), state: 'agent' });
+      setRevokedNames((names) => names.filter((n) => n !== name));
+      navigate('key');
+    }}>Create key</Button>
+  </>;
+
+  const list = (status?: string) => <div className="ui-card-stack">
+    {status && <p role="status">{status}</p>}
+    {agents.length
+      ? agents.map((a) => <Card key={a.name} level={3} href={`#${a.state}`}
+        title={a.state === 'expired' ? <>{a.name} <Badge variant="danger">Expired</Badge></> : a.name} sub={a.access} />)
+      : <EmptyState title="No agents have access" sub="Create a key and paste the MCP connect command into an agent." />}
+  </div>;
+
+  const detailPage = <>
+    <Card>
+      <KeyValueList rows={[
+        { label: 'Access', value: detail.access },
+        { label: 'Created', value: detail.created },
+        { label: 'Last use', value: detail.last },
+        { label: 'Expires', value: detail.expires },
+      ]} />
+      {screen === 'revoke-cancelled' && <p role="status">Revoke cancelled.</p>}
+      {detail.state === 'expired' && <Callout variant="danger">Expired. This key no longer works.</Callout>}
     </Card>
-    <Agents><NewAgent /></Agents>
-  </Screen>,
-};
+    <div className="ui-card-stack">
+      {detail.state === 'expired'
+        ? <Button variant="primary" icon="key" onClick={() => { setOrigin('expired'); setSelected(detail); setDraft({ name: detail.name, access: detail.access, expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create a new key</Button>
+        : null}
+      <Button variant="danger" icon="trash" onClick={() => { setSelected(detail); navigate('revoke'); }}>Revoke access</Button>
+    </div>
+  </>;
 
-export const NewToken: StoryObj = {
-  name: 'New token revealed',
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Card variant="live" title={<>Token created <Badge variant="warn">Copy now</Badge></>} icon="key"
-      sub="This is the only time you'll see it. Paste it into your agent's config.">
-      <Snippet label="Research bot — shown once" reveal code="apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83" />
-      <div style={{ marginTop: 14, display: 'flex', gap: 10 }}><Button variant="primary" icon="copy">Copy token</Button><Button variant="secondary">Done</Button></div>
-    </Card>
-    <Agents />
-  </Screen>,
-};
+  return <DemoShell layout="rail" nav={NAV} active="access"
+    title={onDetail ? detail.name : 'Access & agents'}
+    lede="Connect agents to read over MCP. Each gets a scoped, revocable key."
+    back={onDetail ? { href: '#list', label: 'Access & agents' } : undefined}
+    tools={!creating && !keyShown && !onDetail ? <Button icon="key" variant="primary" onClick={() => { setOrigin(screen === 'empty' ? 'empty' : 'list'); setDraft({ name: '', access: PRESETS[0], expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create key</Button> : undefined}>
 
-export const Empty: StoryObj = {
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Card><div className="ui-empty">
-      <div className="ui-empty__icon"><Icon name="plug" /></div>
-      <div className="ui-empty__title">No agents connected yet</div>
-      <div className="ui-empty__sub">Create a token, then paste the MCP connect command into your agent.</div>
-      <div style={{ marginTop: 18 }}><Button variant="primary" icon="key">Create token</Button></div>
-    </div></Card>
-  </Screen>,
-};
+    {onDetail ? detailPage : list(screen === 'revoked' ? 'Access revoked (sample).' : undefined)}
 
-// The state this screen is in for as long as the token list is in flight (#128).
-// The skeleton takes the shape of the table that is coming, and the Create-token
-// button is busy in the same breath: one flag, two scales.
-export const Loading: StoryObj = {
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Agents loading><NewAgent busy /></Agents>
-  </Screen>,
-};
+    {creating && <Modal open title="Create key" onClose={() => navigate(origin)} footer={createFooter}>
+      <div className="ui-card-stack">
+        <TextField label="Name" value={draft.name} error={screen === 'create-error' ? 'Enter a name.' : undefined}
+          onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))} />
+        <SelectField label="Access preset" value={draft.access} onChange={(e) => setDraft((d) => ({ ...d, access: e.target.value }))}>
+          {PRESETS.map((p) => <option key={p}>{p}</option>)}
+        </SelectField>
+        <SelectField label="Expiration" value={draft.expiry} onChange={(e) => {
+          const expiry = e.target.value;
+          setDraft((d) => ({ ...d, expiry }));
+          if (expiry === 'Custom date') navigate('expiry-custom');
+          else if (expiry === 'No expiry') navigate('expiry-none');
+          else navigate('create');
+        }}>
+          {EXPIRY.map((o) => <option key={o}>{o}</option>)}
+        </SelectField>
+        {draft.expiry === 'Custom date' && <TextField label="Expiration date (YYYY-MM-DD)" value={draft.date} onChange={(e) => setDraft((d) => ({ ...d, date: e.target.value }))} />}
+        {draft.expiry === 'No expiry' && <p className="ui-field__hint">This key works until you revoke it.</p>}
+      </div>
+    </Modal>}
 
-// 403. `need` names the scope verbatim, because a reader who can name what they
-// lack can ask for it. Denial is how the fetch resolved, so the region that said
-// "Loading…" announces it.
-export const Denied: StoryObj = {
-  name: 'Permission denied',
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Card><BusyRegion busy={false} message="You don’t have access to agent tokens.">
-      <DeniedState title="You don’t have access to agent tokens" need="tokens.read"
-        sub="Tokens are managed by account owners and admins. Your role can read the account, but not the credentials that reach it.">
-        <Button variant="primary" icon="mail">Request access</Button>
-        <Button variant="secondary" href="#overview">Back to overview</Button>
-      </DeniedState>
-    </BusyRegion></Card>
-  </Screen>,
-};
+    {keyShown && <Modal open title="Key created" onClose={() => navigate('list')} footer={<Button variant="primary" onClick={() => navigate('list')}>Done</Button>}>
+      <div className="ui-card-stack">
+        <p>Copy this key now. It shows only once.</p>
+        <Snippet label="Key" code={DEMO_KEY} />
+        <Snippet label="MCP connect command" code={DEMO_COMMAND}>{highlighted(DEMO_COMMAND)}</Snippet>
+        {screen === 'key-copied' && <p role="status">Key copied (sample).</p>}
+        {screen === 'command-copied' && <p role="status">Command copied (sample).</p>}
+      </div>
+    </Modal>}
+
+    {revoking && <Modal open title={`Revoke ${detail.name}?`} onClose={() => navigate('revoke-cancelled')} footer={<>
+      <Button variant="secondary" onClick={() => navigate('revoke-cancelled')}>Cancel</Button>
+      <Button variant="danger" onClick={() => { setRevokedNames((names) => [...names, detail.name]); navigate('revoked'); }}>Revoke access</Button>
+    </>}>
+      <p>This key will stop working. The agent will lose its access.</p>
+    </Modal>}
+  </DemoShell>;
+}
+
+export const Default: StoryObj = { render: () => <AccessFlow /> };
+export const Empty: StoryObj = { render: () => <AccessFlow initialState="empty" /> };
+export const CreateKey: StoryObj = { name: 'Create key', render: () => <AccessFlow initialState="create" /> };
+export const CreateKeyError: StoryObj = { name: 'Create key error', render: () => <AccessFlow initialState="create-error" /> };
+export const ExpiryCustom: StoryObj = { name: 'Custom expiration', render: () => <AccessFlow initialState="expiry-custom" /> };
+export const ExpiryNone: StoryObj = { name: 'No expiration', render: () => <AccessFlow initialState="expiry-none" /> };
+export const Key: StoryObj = { name: 'Key shown once', render: () => <AccessFlow initialState="key" /> };
+export const KeyCopied: StoryObj = { name: 'Key copied', render: () => <AccessFlow initialState="key-copied" /> };
+export const CommandCopied: StoryObj = { name: 'Command copied', render: () => <AccessFlow initialState="command-copied" /> };
+export const Agent: StoryObj = { name: 'Agent details', render: () => <AccessFlow initialState="agent" /> };
+export const NeverUsed: StoryObj = { name: 'Agent never used', render: () => <AccessFlow initialState="never-used" /> };
+export const Expired: StoryObj = { name: 'Expired key', render: () => <AccessFlow initialState="expired" /> };
+export const Revoke: StoryObj = { render: () => <AccessFlow initialState="revoke" /> };
+export const RevokeCancelled: StoryObj = { name: 'Revoke cancelled', render: () => <AccessFlow initialState="revoke-cancelled" /> };
+export const Revoked: StoryObj = { render: () => <AccessFlow initialState="revoked" /> };

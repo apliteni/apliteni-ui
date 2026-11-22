@@ -60,11 +60,13 @@ const THEMES = ['dark', 'light'] as const;
 // 64 base fields, twelve invoice fields, one Card setting row Switch and the four
 // sign-in TextFields, then four from the foundation pages (#429 PR 4): one Switch on
 // each of the four Sub-themes panels. The Signal contrast field went with its page
-// (#758). Then six from the showcases (#429 PR 4): the agent name field on two Access screens and the four
-// Preferences switches. The sign-in fields moved to the showcases with their stories.
+// (#758). Then six from the showcases (#429 PR 4): the agent name field on two Access
+// screens and the four Preferences switches. The sign-in fields moved to the showcases
+// with their stories. The two Access agent-name fields left with the Access rework (#850).
 // Then two from the KeyValueList control-values story (#631): its select and text field.
-// Then 23 search fields, one above each payouts or agents table (#736): fifteen AppShell
-// stories, five Shell layouts and three Access screens. Then 21 more search fields, one
+// Then 20 search fields, one above each payouts or agents table (#736): fifteen AppShell
+// stories and five Shell layouts. The three Access screens' search fields left with the
+// Access rework (#850). Then 21 more search fields, one
 // above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
 // went with the stack layout, and the pinned scroll ledger took one), five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
@@ -94,8 +96,13 @@ const THEMES = ['dark', 'light'] as const;
 // Less the four Preferences switches, which left that page with its rework (#845).
 // Then the native unit select of the Dropdown's Muted Item story (#852).
 // Then the two form fields of the split Sign in story (#850).
+// Then thirteen Access showcase fields (#850): the create-key form's name field, access
+// select and expiration select on four screens, and its date field on the custom-expiry
+// screen, each inside the create-key modal.
+// Then ten Invoice review showcase fields (#850): the three supplier radios, the added
+// supplier's name, the edited total and the four edit fields, each inside a card.
 // Move this count with the specimens.
-const FIELD_COUNT = 205;
+const FIELD_COUNT = 223;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
