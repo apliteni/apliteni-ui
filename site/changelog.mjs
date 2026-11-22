@@ -6,9 +6,15 @@
 
 export const RELEASES = [
   {
-    v: '0.187.0', date: '2026-11-22',
+    v: '0.188.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.187.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'On a phone, Modal and Confirm foot buttons have a 44px tap zone and keep the same look. Part of #853.', ['Modal', 'Confirm']],
     ],
   },
   {
