@@ -11,7 +11,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
-import { SkeletonTable } from '../../react/src/Loading';
+import { Skeleton, SkeletonTable } from '../../react/src/Loading';
 import { FinanceShell } from './_finance-shell';
 import '../../react/src/showcases/Auth.css';
 
@@ -104,16 +104,20 @@ type Session = 'active' | 'ended' | 'closed';
 function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   const [open, setOpen] = useState(session === 'ended');
   const [signedOut, setSignedOut] = useState(session === 'closed');
+  const [search, setSearch] = useState('');
   useEffect(() => { setOpen(session === 'ended'); setSignedOut(session === 'closed'); }, [session]);
   const waitingForSignIn = open || signedOut;
-  return <FinanceShell active="payouts" title="Payouts" sub="Filtered to pending, this week.">
+  return <FinanceShell active="payouts" title="Payouts" sub={waitingForSignIn ? undefined : 'Filtered to pending, this week.'}>
+    {waitingForSignIn && <Skeleton lines={1} width="12rem" />}
     {/* The callout stays under a reopened modal, so its Sign in button gets the focus back. */}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setOpen(true)}>Sign in</Button>}>
       You are signed out. Sign in to approve payouts. This screen stays as it is.
     </Callout>}
     {/* The ledger's filter bar stands on the page directly above it. why: guidelines/dense-tables.md */}
     <div className="ui-toolbar">
-      <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" />
+      {waitingForSignIn ? <Skeleton lines={1} /> :
+        <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" value={search}
+          onChange={event => setSearch(event.currentTarget.value)} />}
     </div>
     <Card title="Pending payouts">
       {waitingForSignIn ? <SkeletonTable rows={PENDING.length} cols={4} /> :
@@ -127,7 +131,7 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
     </Card>
     <Modal open={open} title="Sign in again" onClose={() => { setOpen(false); setSignedOut(true); }}>
       <div className="ui-stack">
-        <p>Your session ended. Sign in to keep working. This screen and its filter stay as they are.</p>
+        <p>Your session ended. Sign in to keep working.</p>
         <SignInBlock {...args} onDone={() => { setOpen(false); setSignedOut(false); }} />
       </div>
     </Modal>

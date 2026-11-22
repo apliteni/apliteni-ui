@@ -52,7 +52,7 @@ export const NoticePicture = ({ tone = 'neutral', glyph, title, text, action, cl
  * body and foot with the same parts. The live one is a portal over a scrim that
  * owns the page, so a page with three of them draws them instead. */
 export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel, confirmVariant = 'danger' }: {
-  title: string; body?: string; cancelLabel: string; confirmLabel: string;
+  title: string; body?: string; cancelLabel?: string; confirmLabel: string;
   confirmVariant?: 'danger' | 'primary';
 }) => <div className="rx-modal" role="group" aria-label={title}>
   <div className="rx-modal__head">
@@ -61,7 +61,7 @@ export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel, confirm
   </div>
   {body && <div className="rx-modal__body"><p>{body}</p></div>}
   <div className="rx-modal__foot">
-    <Button variant="ghost">{cancelLabel}</Button>
+    {cancelLabel && <Button variant="ghost">{cancelLabel}</Button>}
     <Button variant={confirmVariant}>{confirmLabel}</Button>
   </div>
 </div>;

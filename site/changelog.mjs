@@ -6,9 +6,14 @@
 
 export const RELEASES = [
   {
-    v: '0.185.0', date: '2026-11-22',
+    v: '0.186.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.185.0', date: '2026-11-22',
+    changes: [
       ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],
       ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the running period and `estimated: \'projected\'` for a future one. The readout and the table then say "Incomplete" or "Projected". A period with `compare: false` shows its value in the readout with no comparison text. Resolves #841.', ['Chart']],
       ['changed', 'A months `Chart` fits its card and no longer scrolls. Its bars are one flat fill, two thirds of the column wide and at most 48px. Where the period labels do not fit, it prints fewer of them. Resolves #841.', ['Chart']],

@@ -1181,7 +1181,7 @@
  "_session-expired.js": {
   "skeleton-behind-dialog": [
    {
-    "ref": "stories/apps/SignIn.stories.tsx:119",
+    "ref": "stories/apps/SignIn.stories.tsx:123",
     "pattern": "waitingForSignIn ? <SkeletonTable"
    },
    {

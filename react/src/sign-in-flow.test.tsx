@@ -23,6 +23,8 @@ describe('sign-in flow', () => {
     rerender(<InUse session="ended" />);
     const dialog = await screen.findByRole('dialog', { name: 'Sign in again' });
     expect(document.querySelector('.ui-skel--table')).toBeInTheDocument();
+    expect(screen.queryByRole('searchbox', { name: 'Search payouts' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Filtered to pending, this week.')).not.toBeInTheDocument();
     const google = within(dialog).getByRole('button', { name: 'Continue with Google' });
     fireEvent.click(google);
     expect(google).toHaveAttribute('aria-busy', 'true');
@@ -37,6 +39,7 @@ describe('sign-in flow', () => {
     expect(screen.queryByText(/You are signed out/)).not.toBeInTheDocument();
     expect(document.querySelector('.ui-skel--table')).not.toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1170');
+    expect(screen.getByText('Filtered to pending, this week.')).toBeInTheDocument();
   });
 
   it('recovers from the page error and completes the sign-in', async () => {
