@@ -1595,7 +1595,9 @@ it('opens a spark readout in the top layer over a scrolling table', () => {
     expect(layer.show, 'the table scroll frame cannot clip a top-layer readout').toHaveBeenCalledWith();
     expect(tip.matches(':popover-open'), 'the readout is in the browser top layer').toBe(true);
     expect(tip).toHaveAttribute('popover', 'manual');
-    expect(container.querySelector('.ui-table-scroll')?.contains(tip)).toBe(true);
+  expect(container.querySelector('.ui-table-scroll')?.contains(tip)).toBe(true);
+  fireEvent.scroll(container.querySelector('.ui-table-scroll')!);
+  expect(tip.matches(':popover-open'), 'a scrolling table closes its fixed readout').toBe(false);
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(layer.hide, 'Escape closes the top-layer readout').toHaveBeenCalledWith();
   } finally {

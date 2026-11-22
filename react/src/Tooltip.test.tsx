@@ -223,6 +223,21 @@ it('opens in the top layer, in the view, and an ancestor too small to hold it do
   }
 });
 
+it('uses the viewport above a top-layer readout, not a scroll region', () => {
+  const layer = stubPopover();
+  try {
+    const { trigger, tip } = mount();
+    geometry(trigger, tip, 178);
+    clipper(trigger.parentElement!, { left: 0, top: 160, right: 500, bottom: 660 },
+      { left: 0, top: 0, width: 500, height: 500 });
+    hover(trigger);
+    expect(layer.show).toHaveBeenCalledTimes(1);
+    expect(tip, 'the viewport has room above the mark').not.toHaveClass('is-below');
+  } finally {
+    layer.restore();
+  }
+});
+
 it('places the readout again when it or its mark changes size, as when a font loads', () => {
   let resized = () => {};
   class Observer { constructor(cb: () => void) { resized = cb; } observe() {} disconnect() {} }

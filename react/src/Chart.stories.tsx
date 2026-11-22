@@ -5,6 +5,7 @@ import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from 
 import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
 import { StatBand } from './primitives/StatBand';
+import { SearchField } from './SearchField';
 
 const meta: Meta<typeof Chart> = { title: 'React/Chart', component: Chart, id: 'react-chart' };
 export default meta;
@@ -68,7 +69,7 @@ export const AsTable: StoryObj = {
 export const SparkInScrollingTable: StoryObj = {
   render: () => (
     <div className="ui-table-scroll" role="region" aria-label="Cash trends">
-      <div className="ui-filter-bar"><label className="ui-field"><span className="ui-sr-only">Filter accounts</span><input type="search" /></label></div>
+      <div className="ui-filter-bar"><SearchField ariaLabel="Filter accounts" /></div>
       <table className="ui-table ui-table--hover">
         <thead><tr><th scope="col">Account</th><th scope="col">Cash trend</th></tr></thead>
         <tbody>
