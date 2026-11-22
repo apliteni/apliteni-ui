@@ -104,12 +104,13 @@ export function AccountMenu({ account, items, onSelect, withTheme, inPlace, away
 
   return <div ref={block} className="ui-app__user"><Dropdown variant="menu"
     direction="up" align="start" chevron open={open}
-    ariaLabel={`Signed in as ${account.name}, ${account.email}`}
     triggerClass="ui-app__user-trigger" panelClass={`ui-app__user-panel${sub && inPlace ? ' is-sub' : ''}`}
     onOpenChange={(next) => { setOpen(next); if (!next) setSub(false); }}
-    triggerContent={<><span className="ui-app__av" aria-hidden="true">
+    // The trigger is named by its content, not by aria-label: an aria-label must hold the
+    // visible text, and the initials and the stacked lines are visible text of their own.
+    triggerContent={<><span className="ui-sr">{`Signed in as ${account.name}, ${account.email}`}</span><span className="ui-app__av" aria-hidden="true">
       <Avatar personKey={account.email || account.name} name={account.name} size={32} />
-    </span><span className="ui-app__who"><b>{account.name}</b><span>{account.email}</span></span></>}
+    </span><span className="ui-app__who" aria-hidden="true"><b>{account.name}</b><span>{account.email}</span></span></>}
     items={[...items, ...(withTheme ? [{ label: 'Theme', value: 'theme' }, '---' as const] : []), { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]}
     row={(item, props) => item.value === 'theme' ? <>
       <div {...props} ref={themeRow} aria-haspopup="menu" aria-expanded={sub}

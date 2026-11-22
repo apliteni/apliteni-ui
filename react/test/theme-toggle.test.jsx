@@ -79,6 +79,26 @@ describe('what it shows', () => {
     expect(glyphIn(button)).toBe(glyphOf(SunIcon));
   });
 
+  // System is the global `auto`. The button names the theme the page shows, so it reads
+  // the browser's setting as the preview does.
+  it.each([
+    [true, 'Light', SunIcon, 'dark'],
+    [false, 'Dark', MoonIcon, 'light'],
+  ])('shows the theme that System resolves to when the browser prefers light is %s', async (light, word, Icon, other) => {
+    const media = window.matchMedia;
+    window.matchMedia = (query) => ({ matches: light && query.includes('light') });
+    try {
+      const user = userEvent.setup();
+      mountToggle({ theme: 'auto' });
+      const button = screen.getByRole('button', { name: `Theme: ${word}. Switch to ${other}.` });
+
+      expect(button).toHaveTextContent(word);
+      expect(glyphIn(button)).toBe(glyphOf(Icon));
+      await user.click(button);
+      expect(updateGlobals).toHaveBeenCalledWith({ theme: other });
+    } finally { window.matchMedia = media; }
+  });
+
   it.each([
     ['dark', 'Dark'],
     ['light', 'Light'],

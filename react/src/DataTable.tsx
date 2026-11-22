@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type FocusEvent, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
@@ -143,6 +143,32 @@ export function DataTable<T extends { name: string }>({
     measure();
     return () => observer.disconnect();
   }, [pagerHost, columns, rows]);
+  // The frame is a tab stop only while its content overflows: a stop that scrolls nothing
+  // leads nowhere. It is read again on each resize of the frame or the table. Without a
+  // ResizeObserver the frame stays a stop, so the far columns stay reachable.
+  const frame = useRef<HTMLDivElement>(null);
+  const [overflows, setOverflows] = useState(true);
+  useEffect(() => {
+    const box = frame.current;
+    const el = table.current;
+    if (!box || !el || typeof ResizeObserver === 'undefined') return;
+    const read = () => setOverflows(
+      box.scrollWidth > box.clientWidth || box.scrollHeight > box.clientHeight);
+    const observer = new ResizeObserver(read);
+    observer.observe(box);
+    observer.observe(el);
+    read();
+    return () => observer.disconnect();
+  }, [scrollable]);
+  // An engine scrolls a focused control into the frame's view only when the control is
+  // fully hidden, so a Tab to a control that shows in part leaves it cut. A focus that
+  // the keyboard or a script moves brings the whole control in. A pointer's focus is left
+  // alone, so a click does not move its target.
+  const pressed = useRef(false);
+  const reveal = (e: FocusEvent<HTMLDivElement>) => {
+    if (!pressed.current) e.target.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  };
+  const press = (down: boolean) => () => { pressed.current = down; };
   const [localSort, setLocalSort] = useState<TableSort<T>>(
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
   const owned = controlledPage === undefined;
@@ -209,7 +235,7 @@ export function DataTable<T extends { name: string }>({
       {/* The rows stay on screen while the next page is fetched, and the table
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
-      <Wrap {...(scrollable ? { className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: 0 } : {})}>
+      <Wrap {...(scrollable ? { ref: frame, className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: overflows ? 0 : undefined, onFocus: reveal, onPointerDown: press(true), onPointerUp: press(false), onPointerCancel: press(false) } : {})}>
       <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
         aria-busy={loading || undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}

@@ -35,6 +35,25 @@ it('puts page tools at the end of the title row and the lede under it', () => {
   expect(read('./AppShell.css')).not.toMatch(/ui-app__title-row|ui-app__tools/);
 });
 
+// axe's label-content-name-mismatch needs a layout, so JSDOM checks its cause: an account
+// trigger has no aria-label, and the name from its content holds each visible line.
+it('names each account trigger by its content, so the name holds its visible text', () => {
+  const name = 'Signed in as Demo User, demo@example.com';
+  render(<AppShell {...props} />);
+  const triggers = screen.getAllByRole('button', { name });
+  for (const trigger of triggers) {
+    expect(trigger).not.toHaveAttribute('aria-label');
+    const lines = [...trigger.querySelectorAll('.ui-app__who > *')].map((line) => line.textContent);
+    expect(lines).toEqual(['Demo User', 'demo@example.com']);
+    for (const line of lines) expect(name).toContain(line);
+  }
+  fireEvent.click(triggers[0]);
+  expect(screen.getByRole('menu', { name })).toBeInTheDocument();
+  cleanup();
+  render(<AppShell {...props} sections={[{ href: '/changes', label: 'Changes', icon: 'doc' }]} pathname="/changes" />);
+  expect(screen.getByRole('button', { name })).not.toHaveAttribute('aria-label');
+});
+
 it('uses the longest matching route, keeps counts in link names, and forwards router props', () => {
   const { rerender } = render(<AppShell {...props} renderLink={(item, link) => <a {...link} data-router={item.href} />} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));

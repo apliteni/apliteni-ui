@@ -45,7 +45,7 @@ import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import { fireEvent } from '@testing-library/react';
 import { JSDOM } from 'jsdom';
-import { SELECT_STORY, STORY_RENDERED } from 'storybook/internal/core-events';
+import { SELECT_STORY, STORY_RENDERED, UPDATE_GLOBALS } from 'storybook/internal/core-events';
 import * as DashboardStories from '../../stories/apps/FinanceDashboard.stories.tsx';
 import * as ReportStories from '../../stories/apps/FinanceReport.stories.tsx';
 import * as GuidelineStories from '../../stories/guidelines/DashboardsAndReports.stories.tsx';
@@ -444,8 +444,11 @@ test('a reference followed inside the manager asks Storybook to select the story
   assert.ok(event.defaultPrevented,
     'the click was left to the href, which replaces the manager\'s preview with a bare iframe and takes the theme with it');
   assert.equal(frame.win.assigned, undefined, 'the frame navigated itself instead of asking the manager to navigate');
-  assert.deepEqual(frame.emitted,
-    [{ type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: payoutRowId('PO-1159') } }]);
+  // The frame's theme goes to the manager first, so the report opens in it.
+  assert.deepEqual(frame.emitted, [
+    { type: UPDATE_GLOBALS, payload: { globals: { theme: 'light' } } },
+    { type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: payoutRowId('PO-1159') } },
+  ]);
 });
 
 test('the rail\'s Payouts entry opens the whole report, at its top and marked nowhere', () => {
@@ -454,7 +457,7 @@ test('the rail\'s Payouts entry opens the whole report, at its top and marked no
   // report rather than one of its rows, so this test follows that one instead.
   const frame = frameOf(Dashboard.render(), { framed: true });
   clickLink(frame.doc, 'Payouts');
-  assert.deepEqual(frame.emitted, [{ type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: undefined } }]);
+  assert.deepEqual(frame.emitted.at(-1), { type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: undefined } });
 
   // The manager keeps one preview frame, so without this the reader arrives at whatever
   // offset the screen they left was scrolled to.
@@ -546,7 +549,7 @@ test('wiring a frame twice leaves one set of listeners', () => {
   const frame = frameOf(Dashboard.render(), { framed: true });
   wireStoryLinks({ win: frame.win, channel: frame.channel });
   clickLink(frame.doc, 'PO-1159');
-  assert.equal(frame.emitted.length, 1, 'the decorator runs per story, so a second wiring would double every click');
+  assert.equal(frame.emitted.filter((sent) => sent.type === SELECT_STORY).length, 1, 'the decorator runs per story, so a second wiring would double every click');
 });
 
 test('a link that is not a preview link is left alone', () => {

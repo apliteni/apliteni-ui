@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 import { readFileSync } from 'node:fs';
@@ -698,23 +698,72 @@ it('disables the chevron transition under reduced motion', () => {
 // test fails the moment those controls come back. JSDOM supplies no layout, so
 // what it cannot say is that the region actually scrolls — browser captures and
 // stories/scroll-ring.test.js carry that half.
+// The region is a keyboard stop only while it overflows, also after a resize. The sizes
+// are set by hand and the observer is called by hand, because JSDOM lays nothing out.
 it('offers no column pager when the columns overflow, only the scroll region', () => {
-  render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
-    pinnedIdentity scrollLabel="Ledger" />);
-  const region = screen.getByRole('region', { name: 'Ledger' });
-  Object.defineProperties(region, {
-    clientWidth: { configurable: true, value: 300 },
-    scrollWidth: { configurable: true, value: 450 },
+  const resized: (() => void)[] = [];
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(read: () => void) { resized.push(read); }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
   });
-  fireEvent.scroll(region);
-  for (const name of ['Previous columns', 'More columns']) {
-    expect(screen.queryByRole('button', { name })).toBeNull();
-  }
-  expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
-  // What replaces them: the region is a named keyboard stop, which is what the
-  // kit's inward ring and the arrow keys hang off.
-  expect(region).toHaveClass('ui-table-scroll');
-  expect(region).toHaveAttribute('tabindex', '0');
+  const resize = () => act(() => resized.forEach((read) => read()));
+  try {
+    render(<DataTable columns={columns} rows={rows} selectable={false} pager={false}
+      pinnedIdentity scrollLabel="Ledger" />);
+    const region = screen.getByRole('region', { name: 'Ledger' });
+    // Nothing overflows yet, so a stop here would scroll nothing.
+    expect(region).not.toHaveAttribute('tabindex');
+    Object.defineProperties(region, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 450 },
+    });
+    resize();
+    fireEvent.scroll(region);
+    for (const name of ['Previous columns', 'More columns']) {
+      expect(screen.queryByRole('button', { name })).toBeNull();
+    }
+    expect(screen.queryByRole('group', { name: 'Ledger columns' })).toBeNull();
+    // What replaces them: the region is a named keyboard stop, which is what the
+    // kit's inward ring and the arrow keys hang off.
+    expect(region).toHaveClass('ui-table-scroll');
+    expect(region).toHaveAttribute('tabindex', '0');
+    // A frame that grows to fit the columns stops being a stop.
+    Object.defineProperty(region, 'clientWidth', { configurable: true, value: 450 });
+    resize();
+    expect(region).not.toHaveAttribute('tabindex');
+    // A sticky header that scrolls down keeps the stop too.
+    Object.defineProperties(region, {
+      clientHeight: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 600 },
+    });
+    resize();
+    expect(region).toHaveAttribute('tabindex', '0');
+  } finally { vi.unstubAllGlobals(); }
+});
+
+// An engine scrolls a focused control into the frame only when it is fully hidden. JSDOM
+// has no scrolling, so this checks the call and its options. A browser measured the result
+// in the pull request.
+it('brings a control that the frame shows in part fully into view on a keyboard focus', async () => {
+  const user = userEvent.setup();
+  const revealed: Element[] = [];
+  const reveal = vi.fn(function (this: Element) { revealed.push(this); });
+  const own = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = reveal;
+  try {
+    render(<DataTable selectable={false} pager={false} pinnedIdentity scrollLabel="Ledger" rows={rows}
+      columns={[...columns, { key: 'name', label: 'Actions', render: (r) => <button type="button">Revoke {r.name}</button> }]} />);
+    const [first, next] = screen.getAllByRole('button', { name: /^Revoke/ });
+    await user.click(first);
+    // A click does not move the control it lands on.
+    expect(reveal).not.toHaveBeenCalled();
+    await user.tab();
+    expect(next).toHaveFocus();
+    expect(revealed).toEqual([next]);
+    expect(reveal).toHaveBeenLastCalledWith({ block: 'nearest', inline: 'nearest' });
+  } finally { Element.prototype.scrollIntoView = own; }
 });
 
 // #500: a column whose body cells hold one link and nothing else can say so, and the kit

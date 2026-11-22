@@ -179,8 +179,17 @@
 /* The Theme choice needs 195px and the narrowest settings row gives it 160. Its pills
    give up inline padding as the viewport narrows. Other choices keep their tap width. */
 @media (max-width: 560px) {
+  .ui-card__row--tight-choice > .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) {
+    --ui-row-choice-pad: clamp(var(--space-1), calc(var(--space-3) - (360px - 100vw) * 0.3), var(--space-3));
+  }
   .ui-card__row--tight-choice > .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button {
-    padding-inline: clamp(var(--space-1), calc(var(--space-3) - (360px - 100vw) * 0.3), var(--space-3));
+    padding-inline: var(--ui-row-choice-pad);
+  }
+  /* A stacked choice draws no track on the card, so its first label goes back to the
+     row's text edge: the track's padding plus the first pill's. The pill hangs into the
+     card's padding. why: guidelines/spacing.md#put-text-on-the-column-edge */
+  .ui-card__row > .ui-seg:not(.ui-seg--underline) {
+    margin-inline-start: calc(-1 * (var(--space-1) + var(--ui-row-choice-pad, var(--space-3))));
   }
 }
 .ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }

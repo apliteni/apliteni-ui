@@ -5,6 +5,7 @@ import { createElement, useEffect } from 'react';
 import '@apliteni/apliteni-ui/css';
 import { wireStoryLinks } from '../stories/lib/story-link.js';
 import { redirectedSearch } from './redirects.js';
+import { drawnTheme } from './theme-choice.js';
 
 // A bare preview opened on an old component id (iframe.html?id=…) renders its React story.
 const moved = redirectedSearch(window.location.search);
@@ -110,7 +111,7 @@ const preview = {
           'Foundations', ['Colors', 'Typography', 'Spacing & Radius', 'Elevation', 'Backgrounds', 'Motion', 'Iconography', 'Brand', 'Brand primitives'],
           'Guidelines', ['Overview', 'The page', 'Dashboards and reports', 'Destructive actions', 'Colour and theming', 'The full state set', 'Empty states', 'Component choice', 'Microcopy and tone', 'Text length', 'Labels and titles', 'Button labels', 'Iconography', 'Layout and density', 'Spacing', 'Density and accents', 'Dense tables', 'Accessibility minimums', 'Pagination', 'Stat bands', 'Drawers', 'File drop', 'Motion', 'The command palette', 'Hover readouts', 'Going back', 'Account and settings', 'Notifications'],
           'Components', ['Button', 'Badge & Status', 'Card', 'Segmented Control', 'Tabs', 'Inputs', 'Switch & Checkbox', 'Dropdown', 'Tooltip', 'Navigation', 'Back link', 'Drawer', 'Confirm', 'Command palette', 'Table', 'Pagination', 'Stat band', 'Callout & Toast', 'Feedback', 'Code Snippet', 'Topbar'],
-          'Showcases', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Preferences', 'Access & Agents'],
+          'Showcases', ['Landing Page', 'Sign In (OAuth2)', 'Consent', 'Profile', 'Preferences', 'Access & Agents'],
         ],
       },
     },
@@ -164,12 +165,13 @@ const preview = {
       // Before the first story renders, because what it answers is the arrival this
       // frame was already asked for. stories/lib/story-link.js wires it once.
       wireStoryLinks();
-      const theme = ctx.globals.theme === 'light' ? 'light' : 'dark';
+      // `auto` is a choice a page can make, so it stays `auto` and follows the browser.
+      const choice = ctx.globals.theme === 'light' || ctx.globals.theme === 'auto' ? ctx.globals.theme : 'dark';
       const accent = ctx.globals.accent || 'default';
       const root = document.documentElement;
       // The choice first, so the React ThemeToggle reads it rather than a stored one.
-      root.setAttribute('data-theme-choice', theme);
-      root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-choice', choice);
+      root.setAttribute('data-theme', drawnTheme(choice));
       window.dispatchEvent(new Event('apliteni-theme-choice'));
       if (accent === 'default') root.removeAttribute('data-accent');
       else root.setAttribute('data-accent', accent);

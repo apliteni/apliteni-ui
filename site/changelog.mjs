@@ -6,6 +6,16 @@
 
 export const RELEASES = [
   {
+    v: '0.181.0', date: '2026-11-21',
+    changes: [
+      ['added', 'React `ThemeChoice` shows the theme as three picture cards, System, Light and Dark, in one radio group. A choice applies and is stored at once, as with `ThemeToggle`. Resolves #845.', ['ThemeChoice']],
+      ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. Preferences chooses the theme with `ThemeChoice` and lists connections as setting rows. The account guideline now says to use these pages for a small account area and the account window for several groups. The account menu keeps a Theme submenu only where no page holds the theme. Resolves #845.', ['Guidelines']],
+      ['changed', 'At 560px and narrower, a segmented choice that stacks under its label in a card settings row now starts its first label on the row text edge. The choice moves 16px to the left, and its first pill extends into the card padding.'],
+      ['changed', 'A `DataTable` scroll region is a Tab stop only while its content overflows, also after a resize. A control in the region that takes the focus by keyboard or by script now scrolls fully into view. When a region with a pinned column is scrolled, the next column\'s text stops one cell padding short of the divider. Resolves #845.', ['DataTable']],
+      ['fixed', 'The `AppShell` account button takes its name from its content, so the name holds the text that the button shows. The name stays "Signed in as", the name and the address, and the account menu now has the same name. A `Dropdown` with `triggerContent` and no `ariaLabel` names its panel by the trigger. Resolves #845.', ['AppShell', 'Dropdown']],
+    ],
+  },
+  {
     v: '0.180.0', date: '2026-11-21',
     changes: [
       ['added', '`AppShell` takes one level of sub-items in a section\'s `items`, or `groups` in place of `sections` to sort the sections under group labels. Both reach the sidebar, the phone menu and the command palette. Resolves #843.', ['AppShell']],

@@ -1,0 +1,95 @@
+/* Each picture starts on the card's text edge, so the cards' fill and ring hang into the
+   card's padding, as a stacked choice's do. why: guidelines/spacing.md#put-text-on-the-column-edge */
+.ui-theme-choice {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-inline: calc(-1 * var(--space-2));
+}
+.ui-theme-choice__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+/* The drawing scales with the picture, so its lengths are shares of the picture's width. */
+.ui-theme-choice__pic {
+  position: relative;
+  display: block;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 2 / 1.1;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: transform var(--dur-fast) var(--ease);
+}
+/* The card stands on --surface, as a rail row does, so it takes the rail's hover and
+   selected fills. Selection is a fill, an ink and a weight, and no edge, because an
+   outline means focus. why: docs/foundations.md#the-focus-ring */
+.ui-theme-choice__option:not(:has(:checked)):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ color: var(--strong); }
+.ui-theme-choice__option:has(:checked) { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ color: var(--strong); font-weight: var(--weight-semibold); }
+.ui-theme-choice__option:has(.ui-theme-choice__input:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-theme-choice__option:active .ui-theme-choice__pic { transform: translateY(1px); }
+.ui-theme-choice__name { overflow-wrap: anywhere; text-align: center; }
+
+/* The theme blocks give each scene its theme. System lays the dark scene over the light
+   one and shows its right half. */
+.ui-theme-choice__scene {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: 24% minmax(0, 1fr);
+  background: var(--bg); /* code-bg: inherit — the drawing holds no text. */
+}
+.ui-theme-choice__scene + .ui-theme-choice__scene { clip-path: inset(0 0 0 50%); }
+.ui-theme-choice__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4cqi;
+  padding: 8cqi 5cqi;
+  border-inline-end: 1px solid var(--border);
+  background: var(--surface); /* code-bg: inherit — the drawing holds no text. */
+}
+.ui-theme-choice__main {
+  display: flex;
+  flex-direction: column;
+  gap: 5cqi;
+  padding: 8cqi 7cqi;
+}
+.ui-theme-choice__title { width: 40%; height: 3cqi; border-radius: 2cqi; background: var(--strong); }
+.ui-theme-choice__card {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4cqi;
+  padding-inline: 7cqi;
+  border: 1px solid var(--border);
+  border-radius: 4cqi;
+  background: var(--surface); /* code-bg: inherit — the drawing holds no text. */
+}
+.ui-theme-choice__rail > span,
+.ui-theme-choice__card > span { height: 2cqi; border-radius: 1cqi; background: var(--text); }
+.ui-theme-choice__rail > span,
+.ui-theme-choice__card > span + span { background: var(--muted); }
+.ui-theme-choice__card > span + span { width: 55%; }
+
+/* The drawing keeps its paint, as a picture would. The chosen card takes the system
+   highlight on its name. */
+@media (forced-colors: active) {
+  .ui-theme-choice__pic { forced-color-adjust: none; }
+  .ui-theme-choice__input:checked ~ .ui-theme-choice__name {
+    forced-color-adjust: none;
+    padding-inline: var(--space-2);
+    border-radius: var(--radius-sm);
+    background: Highlight;
+    color: HighlightText;
+  }
+}
