@@ -408,8 +408,8 @@ dropdown must have a search field: [Component choice](../guidelines/component-ch
 ```
 
 `items` is a list of rows. A row has `label`, and can have `value`, `description`, `icon`,
-`avatar`, `badge`, `selected` and `disabled`. `'---'` is a separator. `sections` groups rows under
-captions. `header` and `footer` add content above and below the rows. `onSelect` gets the value
+`avatar`, `badge`, `muted`, `selected` and `disabled`. `'---'` is a separator. `sections` groups
+rows under captions, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
 trigger off: no keyboard stop, no panel and the disabled paint.
 
@@ -437,8 +437,17 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
   or a transition.
+- A row names its item in the body weight, as a native list does. A group caption is a compact
+  label in body ink.
 - Each row answers the pointer with a fill and draws no edge. A destructive row turns `--pink` on
   hover and focus. In forced colours a separator stays a visible line.
+
+**Muted or disabled.** Use `muted` for a row that the user can still pick but that is no
+longer current, such as an archived unit for a late invoice. Give it the state word:
+`muted: 'Archived'`. The row keeps its name in body ink and shows the word in a state badge after
+it. The row stays in the keyboard order. After a pick, the trigger shows `Cedar Studio (Archived)`.
+Use `disabled` for a row that the user cannot pick now. A disabled row is faded, and the arrow
+keys skip it.
 
 **Search.** `search` adds a text field above the rows. Typing filters the rows, and the focus stays
 in the field. The match is anywhere in the label, without case or accents. Descriptions are not
@@ -519,6 +528,11 @@ and `aria-describedby`. Spread them on the control. A dropdown or date picker tr
 label and the value as its name, and the error gives it the invalid edge. In a field, a dropdown
 trigger has the height of a text input and keeps the pill corner. A long value stays on one line
 and ends with an ellipsis.
+
+**A list of options in `SelectField`.** The browser draws the open list, so the kit does not
+style an `<option>`. For an option that the user can still pick but that is no longer current,
+write the state word in its text: `<option>Cedar Studio (Archived)</option>`. Do not disable it.
+Name a group with `<optgroup label="Studios">`, not with a disabled option.
 
 **Keyboard and screen reader.** The component makes the ids and points the label, the hint and the
 error at the control. The error has `role="alert"`, so a new error is announced and the focus does

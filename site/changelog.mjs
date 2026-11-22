@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.186.0', date: '2026-11-22',
+    changes: [
+      ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],
+      ['changed', '`Dropdown` rows now name their items in the normal weight, as a native list does. The chosen value in a closed field keeps its weight. Space now sets a group apart from the one before it, in place of a rule. Resolves #852.', ['Dropdown']],
+      ['fixed', 'In light, a state badge on the row that Enter picks in a search dropdown now reads 4.5:1 or more. It was 4.37:1. Resolves #852.', ['Dropdown']],
+      ['added', 'The labels and titles guideline has a new rule, Keep category labels compact: a compact, nonselectable label in body ink, with space before the next category. The components guide says when to use a muted item and when to use a disabled item. Resolves #852.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.185.0', date: '2026-11-22',
     changes: [
       ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre while it has room; with no sidebar they stand before the theme switch. Each action is a 40px square, and a count stands above the bell’s top corner, clear of the next control. Topbar layout only. Resolves #847.', ['AppShell']],

@@ -361,7 +361,7 @@
    why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ui-dropdown__label { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+.ui-dropdown__label { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--strong); font-weight: var(--weight-normal); letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
 .ui-dropdown__ic { display: inline-flex; flex: none; /* muted-ink: glyph — option icon */ color: var(--muted); }
 .ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
@@ -427,9 +427,9 @@
 .ui-dropdown__item.is-danger:hover .ui-dropdown__label,
 .ui-dropdown__item.is-danger:focus-visible .ui-dropdown__label { color: var(--pink); }
 
-/* Grouped sections. `~` and :not([hidden]), because `+` counts a group a search
-   query has hidden and drew the divider above the first group left showing. */
-.ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden]) { border-top: 1px solid var(--border); margin-top: 5px; padding-top: 5px; }
+/* Grouped sections: space, not a rule, before the next group (#852). `~` and :not([hidden]),
+   because `+` counts a group a search query has hidden and spaced the first one left showing. */
+.ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden]) { margin-top: var(--space-4); }
 .ui-dropdown__group {
   /* rank: label */
   font-size: var(--text-sm);
@@ -543,6 +543,9 @@
   /* muted-ink: state — off, unset, disabled or archived badge */
   color: var(--muted);
 }
+/* On the row Enter would pick, the chip sits on --surface-2, where --muted reads 4.37:1 in
+   light. --dim keeps the state ink and clears 4.5:1 (#852). */
+.ui-dropdown__item.is-active > .ui-dropdown__badge.is-state { /* muted-ink: state — archived badge on the search pick */ color: var(--dim); }
 
 /* A picker of people. A mark leads the trigger and each row; with no value the trigger
    shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
