@@ -560,12 +560,20 @@ describe('band actions', () => {
     expect(glyphs[1]).toMatch(/width: 40px;[^]*border: 0;/);
   });
 
-  it('draws every action as one 40px square, and stands a count above the bell, inside its column', () => {
+  it('draws every action as one 40px square, and sets a red count with a band-coloured ring on the bell\'s corner', () => {
     const css = read('./AppShell.css');
     expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-btn,\n\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ min-width: 40px; min-height: 40px; justify-content: center; \}/);
     expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-btn svg,\n\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger svg \{ flex: none; width: 17px; height: 17px;/);
-    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ position: relative; padding: 0;/);
-    expect(css).toMatch(/\.ui-dropdown__trigger \.ui-badge \{ position: absolute; inset-block-start: calc\(var\(--space-1\) \* -1\); inset-inline-end: 0; \}/);
+    // No gap: the kit's 8px gap before the count's wrapper moved the glyph 4px off centre.
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ position: relative; gap: 0; padding: 0;/);
+    const count = css.match(/\.ui-dropdown__trigger \.ui-badge \{([^}]*)\}/)![1];
+    // Over the focus ring, at the corner, with its ring's top on the band's top edge.
+    expect(count).toMatch(/position: absolute; z-index: var\(--z-base\); inset-block-start: calc\(var\(--space-3\) \/ -2\); inset-inline-end: 0;/);
+    expect(count).toMatch(/height: var\(--space-5\);/);
+    expect(count).toMatch(/border: calc\(var\(--space-1\) \/ 2\) solid var\(--bg\);/);
+    expect(count).toMatch(/color: var\(--danger-contrast\); background: var\(--signal-solid-danger\);/);
+    const phone = css.slice(css.lastIndexOf('@media (max-width: 560px)'));
+    expect(phone).toContain('.ui-dropdown__trigger .ui-badge { inset-block-start: calc(var(--space-3) / -2 + 1px); }');
   });
 
   it('paints a pressed bell on a phone as it paints a pressed search', () => {

@@ -176,11 +176,19 @@
 .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { min-width: 40px; min-height: 40px; justify-content: center; }
 .ui-react-app__band-actions > .ui-btn svg,
 .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger svg { flex: none; width: 17px; height: 17px; stroke-width: 2.2; }
-.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { position: relative; padding: 0; border-color: transparent; background: transparent; }
-/* A count stands out of the flow above the bell's top edge, at its end corner, so the bell
-   is a 40px square with any count. It ends at the bell's own edge, so a long count such as
-   99+ grows over the bell and never reaches the next control. */
-.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger .ui-badge { position: absolute; inset-block-start: calc(var(--space-1) * -1); inset-inline-end: 0; }
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { position: relative; gap: 0; padding: 0; border-color: transparent; background: transparent; }
+/* A count sits on the bell's top end corner, out of the flow, so the glyph stays in the
+   centre of its 40px square with any count. It ends at the bell's own edge, so a long count
+   such as 99+ grows over the bell and never reaches the next control. It is the danger
+   solid, and a 2px ring in the band's colour cuts it from the glyph, the hover fill and the
+   focus ring. It stands over the focus ring, so no ring line crosses the digits. The ring's
+   top is on the band's top edge. */
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger .ui-badge {
+  position: absolute; z-index: var(--z-base); inset-block-start: calc(var(--space-3) / -2); inset-inline-end: 0;
+  min-width: var(--space-5); height: var(--space-5); padding: 0 var(--space-1); justify-content: center;
+  border: calc(var(--space-1) / 2) solid var(--bg); /* code-bg: inherit — the ring is the band's own colour. */
+  color: var(--danger-contrast); background: var(--signal-solid-danger);
+}
 .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
 /* With a sidebar, search keeps the band's centre: two equal outer columns hold it there,
    and the actions stand at the end of the right one. That column never draws narrower than
@@ -198,4 +206,7 @@
      them, and declare it: a coarse pointer's layer then reaches 44px across, and 44px down
      from the band's 12px. tap-zone.css */
   .ui-react-app .ui-app__bar > .ui-react-app__band-actions { margin-inline: var(--space-1); --tap-clear-x: var(--space-1); }
+  /* The trigger draws no border here, so the count comes down by the 1px border it drew
+     above 560px, and its ring's top stays on the band's top edge. */
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger .ui-badge { inset-block-start: calc(var(--space-3) / -2 + 1px); }
 }

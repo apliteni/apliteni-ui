@@ -185,8 +185,12 @@ holds each line of text that the button shows, and the menu takes the same name.
   room, search moves off the centre and shrinks, and never goes under an action. With no
   sidebar, they stand before the theme switch. Put one or two there, and give each one a hover
   title. Each action there is a 40px square with a 17px glyph, a `Button` and a dropdown trigger
-  alike. A count in a dropdown trigger stands above the trigger's top edge, at its end corner. A
-  long count, such as 99+, grows over the glyph and stays clear of the next control. Below 560px,
+  alike, and the glyph stays in the centre of its square with or without a count. A count in a
+  dropdown trigger is a red pill on the trigger's top end corner, with a 2px ring in the band's
+  colour that cuts it from the glyph. The focus ring passes under it, so no ring line crosses the
+  digits. A long count, such as 99+, grows over the glyph and stays clear of the next control.
+  Give the trigger a name that holds the count it shows, such as "Notifications, 99+ unread".
+  Below 560px,
   each action is a 40px glyph with no border and keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.

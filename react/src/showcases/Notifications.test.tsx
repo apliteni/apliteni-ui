@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Notifications, bellName } from './Notifications';
+import { Notifications, bellCount, bellName } from './Notifications';
 
 // Interaction tests cover in-memory state. The panel's place and the phone width are a browser's to measure.
 const bell = () => screen.getAllByRole('button', { name: /^Notifications/ })[0];
@@ -10,6 +10,10 @@ describe('notifications showcase', () => {
   it('names the count in the bell sentence and drops the badge at zero', () => {
     expect(bellName(3)).toBe('Notifications, 3 unread');
     expect(bellName(0)).toBe('Notifications');
+    // The name holds the count the badge shows, so a 99+ badge is not named 120.
+    expect(bellName(120)).toBe('Notifications, 99+ unread');
+    expect(bellCount(120)).toBe('99+');
+    expect(bellCount(99)).toBe('99');
     const { unmount } = render(<Notifications />);
     expect(bell()).toHaveAccessibleName('Notifications, 3 unread');
     expect(bell().querySelector('.ui-badge')).toHaveTextContent('3');

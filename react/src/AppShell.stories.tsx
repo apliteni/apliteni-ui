@@ -4,6 +4,7 @@ import { AppShell, type AppShellGroup, type AppShellProps, type AppShellSection 
 import { Card } from './primitives/Card';
 import { Badge } from './primitives/Badge';
 import { Icon } from './primitives/Icon';
+import { bellCount, bellName } from './showcases/Notifications';
 import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { DatePicker } from './DatePicker';
@@ -193,11 +194,11 @@ export const RailGroupsPhone: Story = { render, globals: { viewport: { value: 'p
 
 // A notifications bell at the band's right end, at 1280px and 390px, dark and light, in
 // each sidebar structure and with no sidebar (#847). The count stands above the bell's
-// top edge at its end corner, and a read bell shows none. Above 99 it reads 99+. A second
-// action is a ghost Button.
+// top end corner, and a read bell shows none. Above 99 it reads 99+, and so does its name.
+// A second action is a ghost Button.
 const endBell = (unread: number) => <Dropdown variant="menu" align="end" chevron={false} title="Notifications"
-  ariaLabel={unread ? `Notifications, ${unread} unread` : 'Notifications'}
-  triggerContent={<><Icon name="bell" />{unread > 0 && <span aria-hidden="true"><Badge>{unread > 99 ? '99+' : unread}</Badge></span>}</>}
+  ariaLabel={bellName(unread)}
+  triggerContent={<><Icon name="bell" />{unread > 0 && <span aria-hidden="true"><Badge>{bellCount(unread)}</Badge></span>}</>}
   header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
   items={[{ label: 'Payout run PR-204 failed', value: 'payout', href: '#payout' },
     { label: 'CMP-88 assigned to you', value: 'assign', href: '#assign' },
