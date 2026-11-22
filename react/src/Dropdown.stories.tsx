@@ -79,7 +79,7 @@ export const RowsAreLinks: StoryObj<typeof Dropdown> = {
   render: () => (
     <Stage>
       <Dropdown
-        ariaLabel="Go to"
+        ariaLabel="Jump to"
         triggerContent="Jump to…"
         sections={[
           { label: 'This project', items: [
@@ -150,7 +150,7 @@ export const SearchWithLinkRows: StoryObj<typeof Dropdown> = {
   render: () => (
     <Stage>
       <Dropdown
-        ariaLabel="Go to"
+        ariaLabel="Jump to"
         triggerContent="Jump to…"
         search={{ placeholder: 'Search pages' }}
         items={[

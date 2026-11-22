@@ -7,7 +7,7 @@
 // the stories show no `state` chip and a tone with no subject is a tone nobody measures.
 // Measured through the source cascade in JSDOM: no layout, no browser pseudo-class, no
 // anti-aliased pixel.
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Dropdown } from './Dropdown';
@@ -67,6 +67,11 @@ const measured: Record<string, number> = { light: 0, dark: 0 };
 describe('a dropdown chip is a soft badge', () => {
   it('finds the React Dropdown stories', () => {
     expect(SUBJECTS.length, 'the stories and the tone fixture').toBeGreaterThan(5);
+  });
+
+  it.each(['RowsAreLinks', 'SearchWithLinkRows'])('%s names the Jump to trigger by its visible words', (name) => {
+    render(SUBJECTS.find(([story]) => story === name)![1]());
+    expect(screen.getByRole('button')).toHaveAccessibleName('Jump to');
   });
 
   for (const theme of ['light', 'dark']) {
