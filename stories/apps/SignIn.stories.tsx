@@ -1,7 +1,7 @@
 // The sign-in showcase in React. The title and id are the vanilla page's, so its links stay the same.
 // One sign-in block serves the page and the session-ended modal over an app screen (#799).
 import type { Meta, StoryObj } from '@storybook/react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { brand } from '@apliteni/apliteni-ui';
 import { AuthShell } from '../../react/src/AuthShell';
 import { Modal } from '../../react/src/Modal';
@@ -47,6 +47,7 @@ type Session = 'active' | 'ended' | 'closed';
  * the modal. Close keeps the screen and a way back in.
  */
 function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
+  const formId = useId();
   const [open, setOpen] = useState(session === 'ended');
   const [signedOut, setSignedOut] = useState(session === 'closed');
   const [search, setSearch] = useState('');
@@ -74,10 +75,11 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
         </table>
       }
     </Card>
-    <Modal open={open} title="Sign in again" size="sm" onClose={() => { setOpen(false); setSignedOut(true); }}>
+    <Modal open={open} title="Sign in again" size="sm" onClose={() => { setOpen(false); setSignedOut(true); }}
+      footer={<Button variant="secondary" type="submit" form={formId}>Sign in</Button>}>
       <div className="ui-stack">
         <p>Your session ended. Sign in to keep working.</p>
-        <SignInBlock {...args} onDone={() => { setOpen(false); setSignedOut(false); }} />
+        <SignInBlock {...args} dialog formId={formId} onDone={() => { setOpen(false); setSignedOut(false); }} />
       </div>
     </Modal>
   </FinanceShell>;
