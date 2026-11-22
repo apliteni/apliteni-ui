@@ -652,15 +652,12 @@ for other preferences.
 
 **What the user sees.** Three cards in one row at every width: System, Light and Dark. Each card is
 a small picture of a page in that theme, drawn from the theme's tokens, with its name under it.
-System is half light and half dark. The chosen card has a 2px accent edge. Hover makes the edge of
-another card stronger.
+System is half light and half dark. The chosen card has a fill, and its name is in strong, heavier
+ink. Hover gives another card half that fill.
 
 **Keyboard and screen reader.** One named radio group, with one Tab stop on the chosen card. The
-arrow keys move and choose. The focus ring stands outside the chosen edge. In forced colours the
-chosen card takes the system highlight colour on its edge and its name.
-
-**Why the kit has it.** Only one product asked for it. The owner decided to add it, because a
-page cannot draw the other theme with kit classes.
+arrow keys move and choose. The focus ring is the kit's band around the card, and nothing else.
+In forced colours the chosen card's name takes the system highlight colour.
 
 ### Tabs
 

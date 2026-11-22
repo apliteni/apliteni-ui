@@ -600,7 +600,8 @@ describe('invoice flow prototype', () => {
      * three-word label fails whatever else changes.
      * Limit: a filename is a record's name, not a label, so the list's identity links are
      * not buttons here — they are links, which this walk does not reach. The
-     * shell's short phone label is hidden from assistive technology. */
+     * shell's short phone label is hidden from assistive technology. Copy for a screen
+     * reader only is a name, not a label that shows, so the walk leaves it out. */
     const EARNED: Record<string, string> = {
       // The kit's own control, with its shortcut. Its skip link and its fold button are
       // a link and a two-word label, so neither needs naming here.
@@ -609,9 +610,11 @@ describe('invoice flow prototype', () => {
     const seen = new Map<string, number>();
     for (const state of ['empty', 'table', 'review', 'editing', 'ready', 'uploading', 'parsing', 'error'] as const) {
       const { unmount } = render(<InvoiceFlow initialState={state} />);
+      // The account button keeps its full name for a screen reader.
+      expect(screen.getByRole('button', { name: /^Signed in as / })).toBeInTheDocument();
       for (const button of screen.queryAllByRole('button')) {
         const copy = button.cloneNode(true) as HTMLElement;
-        copy.querySelectorAll('[aria-hidden="true"]').forEach(node => node.remove());
+        copy.querySelectorAll('[aria-hidden="true"], .ui-sr').forEach(node => node.remove());
         const label = (copy.textContent ?? '').replace(/\s+/g, ' ').trim();
         if (label) seen.set(label, (seen.get(label) ?? 0) + 1);
       }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 import { FilterBar } from './FilterBar';
 import { Segmented } from './Segmented';
 import { DataTable } from './DataTable';
@@ -42,13 +42,32 @@ describe('finance composition', () => {
     expect(screen.getByRole('button', { name: 'April 2026, Closed' })).toHaveTextContent('Apr');
     expect(screen.getByRole('button', { name: 'May' })).toBeInTheDocument();
   });
+  // JSDOM lays nothing out, so the sizes are set by hand and the observer is called by hand.
   it('keeps the first data column pinned with selection enabled and exposes scroll semantics', () => {
-    const { container } = render(<DataTable rows={[{ name: 'Aster', price: 0 }]} columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol="ASTR" name={r.name} /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }]} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}} density="compact" pinnedIdentity stickyHeader scrollLabel="Stocks" />);
-    expect(screen.getByRole('region', { name: 'Stocks' })).toHaveAttribute('tabindex', '0');
-    expect(container.querySelector('tbody .ui-table__identity')).toHaveTextContent('ASTR');
-    expect(container.querySelector('tbody td')).toHaveClass('ui-table__selection');
-    expect(container.querySelector('thead th')).toHaveClass('ui-table__selection');
-    expect(screen.getByText('USD')).toBeInTheDocument();
+    const resized: (() => void)[] = [];
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(read: () => void) { resized.push(read); }
+      observe() {}
+      disconnect() {}
+    });
+    try {
+      const { container } = render(<DataTable rows={[{ name: 'Aster', price: 0 }]} columns={[{ key: 'name', label: 'Company', render: r => <RowIdentity symbol="ASTR" name={r.name} /> }, { key: 'price', label: 'Price', num: true, render: r => <NumericValue value={r.price} unit="USD" /> }]} selected={new Set()} onToggle={() => {}} onTogglePage={() => {}} density="compact" pinnedIdentity stickyHeader scrollLabel="Stocks" />);
+      const region = screen.getByRole('region', { name: 'Stocks' });
+      const size = (clientWidth: number) => {
+        Object.defineProperties(region, { clientWidth: { configurable: true, value: clientWidth }, scrollWidth: { configurable: true, value: 720 } });
+        act(() => resized.forEach((read) => read()));
+      };
+      // The columns overflow the frame, so the frame is a keyboard stop.
+      size(390);
+      expect(region).toHaveAttribute('tabindex', '0');
+      // The columns fit, so a stop would scroll nothing.
+      size(720);
+      expect(region).not.toHaveAttribute('tabindex');
+      expect(container.querySelector('tbody .ui-table__identity')).toHaveTextContent('ASTR');
+      expect(container.querySelector('tbody td')).toHaveClass('ui-table__selection');
+      expect(container.querySelector('thead th')).toHaveClass('ui-table__selection');
+      expect(screen.getByText('USD')).toBeInTheDocument();
+    } finally { vi.unstubAllGlobals(); }
   });
   it('removes and clears controlled filters while recovering keyboard focus', () => {
     function Demo() {

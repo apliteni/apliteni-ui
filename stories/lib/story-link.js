@@ -5,16 +5,17 @@
 // looking at the preview iframe, so `./iframe.html?id=…` replaces that frame with a bare
 // preview: the sidebar, the toolbar and the theme the manager is holding all go with it.
 // So a click is handed to Storybook's own navigation instead — SELECT_STORY on the preview
-// channel, which the manager answers by selecting the story the way its sidebar does. Its
-// globals are untouched, so the theme survives, and `scrollTo` rides along into the
-// manager's own fragment, which is where the row this link meant is read back from.
+// channel, which the manager answers by selecting the story the way its sidebar does. It
+// keeps its globals, and a theme that the page chose goes to it as a global first, so the
+// theme survives. `scrollTo` rides along into the manager's own fragment, which is where
+// the row this link meant is read back from.
 //
 // The href stays a real URL, because the preview is also opened on its own — by a deep
 // link into the static build, and by every capture script — and there the browser's own
 // navigation is the right one. It is also the href the gates read. What the click adds
 // there is the globals, which a bare preview carries in its URL and nowhere else.
 import { getChannel } from 'storybook/preview-api';
-import { SELECT_STORY, STORY_RENDERED } from 'storybook/internal/core-events';
+import { SELECT_STORY, STORY_RENDERED, UPDATE_GLOBALS } from 'storybook/internal/core-events';
 
 /** `./` resolves against /iframe.html, so this is the preview's own URL in dev and in a
  *  static build alike. `row` names an element in the story being opened. */
@@ -126,6 +127,10 @@ export const wireStoryLinks = ({ win = window, channel = channelOrNull() } = {})
       win.location.assign(previewHref(target.id, target.row, globals));
       return;
     }
+    // A page can choose the theme, and the manager holds only the theme it set. So the
+    // choice goes to the manager first, or the next story opens in the manager's theme.
+    const theme = win.document.documentElement.getAttribute('data-theme-choice');
+    if (theme) channel.emit(UPDATE_GLOBALS, { globals: { theme } });
     channel.emit(SELECT_STORY, { storyId: target.id, scrollTo: target.row || undefined });
     // Already on the story the link names — the manager re-renders nothing, so the row
     // is landed on here. On any other story the render below does it.

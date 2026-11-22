@@ -164,12 +164,14 @@ const preview = {
       // Before the first story renders, because what it answers is the arrival this
       // frame was already asked for. stories/lib/story-link.js wires it once.
       wireStoryLinks();
-      const theme = ctx.globals.theme === 'light' ? 'light' : 'dark';
+      // `auto` is a choice a page can make, so it stays `auto` and follows the browser.
+      const choice = ctx.globals.theme === 'light' || ctx.globals.theme === 'auto' ? ctx.globals.theme : 'dark';
+      const prefersLight = window.matchMedia?.('(prefers-color-scheme: light)').matches;
       const accent = ctx.globals.accent || 'default';
       const root = document.documentElement;
       // The choice first, so the React ThemeToggle reads it rather than a stored one.
-      root.setAttribute('data-theme-choice', theme);
-      root.setAttribute('data-theme', theme);
+      root.setAttribute('data-theme-choice', choice);
+      root.setAttribute('data-theme', choice === 'auto' ? (prefersLight ? 'light' : 'dark') : choice);
       window.dispatchEvent(new Event('apliteni-theme-choice'));
       if (accent === 'default') root.removeAttribute('data-accent');
       else root.setAttribute('data-accent', accent);

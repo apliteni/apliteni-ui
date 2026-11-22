@@ -1,7 +1,8 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { composeStories } from '@storybook/react';
-import { SELECT_STORY } from 'storybook/internal/core-events';
+import { SELECT_STORY, UPDATE_GLOBALS } from 'storybook/internal/core-events';
+import preview from '../../.storybook/preview.js';
 import * as preferences from '../../stories/apps/Preferences.stories';
 import * as profile from '../../stories/apps/Profile.stories';
 import { PREFERENCES_STORY, PROFILE_STORY } from '../../stories/apps/_account-pages';
@@ -9,7 +10,21 @@ import { previewHref, wireStoryLinks } from '../../stories/lib/story-link.js';
 
 const { Default: Preferences, NoConnections } = composeStories(preferences);
 const { Default: Profile } = composeStories(profile);
-afterEach(() => { cleanup(); document.documentElement.removeAttribute('data-theme-choice'); });
+const root = document.documentElement;
+// The browser asks for light, so a System choice that turns into Dark shows.
+const media = window.matchMedia;
+beforeEach(() => { window.matchMedia = ((query: string) => ({ matches: query.includes('light'), addEventListener() {}, removeEventListener() {} })) as unknown as typeof window.matchMedia; });
+afterEach(() => { cleanup(); root.removeAttribute('data-theme-choice'); window.matchMedia = media; });
+
+// The page that a link opens, drawn by the preview's own decorator with the globals that
+// the frame then holds: the manager's dark, and what the click handed over.
+const arrive = (globals: Record<string, string>) => {
+  cleanup();
+  const { Default } = composeStories(profile, { ...preview, initialGlobals: { theme: 'dark', ...globals } });
+  render(<Default />);
+  return [root.getAttribute('data-theme-choice'), root.getAttribute('data-theme')];
+};
+const handedOver = () => (frame.emitted.find((sent) => sent.type === UPDATE_GLOBALS)?.payload as { globals: Record<string, string> } | undefined)?.globals ?? {};
 
 // The preview decorator wires the links once per frame, so this file wires its one
 // document once. `framed` says whether a Storybook manager sits over the frame.
@@ -37,22 +52,36 @@ describe('account pages', () => {
   it('opens each page from the other through the account menu', () => {
     render(<Preferences />);
     follow('Profile');
-    expect(frame.emitted).toEqual([{ type: SELECT_STORY, payload: { storyId: PROFILE_STORY, scrollTo: undefined } }]);
+    expect(frame.emitted.at(-1)).toEqual({ type: SELECT_STORY, payload: { storyId: PROFILE_STORY, scrollTo: undefined } });
     cleanup();
     render(<Profile />);
     // The owner's choice: Sign out is in the account menu only, not on the Profile page.
     expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull();
     follow('Preferences');
-    expect(frame.emitted).toEqual([{ type: SELECT_STORY, payload: { storyId: PREFERENCES_STORY, scrollTo: undefined } }]);
+    expect(frame.emitted.at(-1)).toEqual({ type: SELECT_STORY, payload: { storyId: PREFERENCES_STORY, scrollTo: undefined } });
+  });
+
+  it('opens the other page in the theme that Preferences chose', () => {
+    for (const [name, choice, theme] of [['Light', 'light', 'light'], ['System', 'auto', 'light']]) {
+      render(<Preferences />);
+      fireEvent.click(screen.getByRole('radio', { name }));
+      follow('Profile');
+      expect(arrive(handedOver())).toEqual([choice, theme]);
+      cleanup();
+    }
   });
 
   it('keeps the theme when a bare preview opens the other page', () => {
     frame.framed = false;
     try {
-      document.documentElement.setAttribute('data-theme-choice', 'light');
-      render(<Profile />);
-      follow('Preferences');
-      expect(frame.assigned).toBe(previewHref(PREFERENCES_STORY, '', 'theme:light'));
+      for (const [choice, theme] of [['light', 'light'], ['auto', 'light']]) {
+        root.setAttribute('data-theme-choice', choice);
+        render(<Profile />);
+        follow('Preferences');
+        expect(frame.assigned).toBe(previewHref(PREFERENCES_STORY, '', `theme:${choice}`));
+        expect(arrive({ theme: choice })).toEqual([choice, theme]);
+        cleanup();
+      }
     } finally { frame.framed = true; }
   });
 

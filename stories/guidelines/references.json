@@ -74,11 +74,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:198",
+    "ref": "src/tokens/tokens.css:200",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:204",
+    "ref": "src/tokens/tokens.css:206",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:216",
+    "ref": "src/tokens/tokens.css:218",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -858,7 +858,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:305",
+    "ref": "src/tokens/tokens.css:307",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1129,7 +1129,7 @@
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
-    "ref": "stories/lib/story-link.js:71",
+    "ref": "stories/lib/story-link.js:72",
     "pattern": "export const landOnRow = (doc, rowId) => {"
    }
   ],

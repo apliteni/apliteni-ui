@@ -9,7 +9,11 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  color: var(--text);
   cursor: pointer;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 /* The drawing scales with the picture, so its lengths are shares of the picture's width. */
 .ui-theme-choice__pic {
@@ -21,22 +25,15 @@
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  transition: border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  transition: transform var(--dur-fast) var(--ease);
 }
-.ui-theme-choice__option:hover .ui-theme-choice__pic { border-color: var(--border-strong); }
+/* The card stands on --surface, as a rail row does, so it takes the rail's hover and
+   selected fills. Selection is a fill, an ink and a weight, and no edge, because an
+   outline means focus. why: docs/foundations.md#the-focus-ring */
+.ui-theme-choice__option:not(:has(:checked)):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ color: var(--strong); }
+.ui-theme-choice__option:has(:checked) { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ color: var(--strong); font-weight: var(--weight-semibold); }
+.ui-theme-choice__option:has(:focus-visible) { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-theme-choice__option:active .ui-theme-choice__pic { transform: translateY(1px); }
-/* The chosen card's one accent signal: a 2px edge inside the picture, over the drawing.
-   The focus ring stands outside it, past the kit's gap. */
-.ui-theme-choice__pic::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-}
-.ui-theme-choice__input:checked + .ui-theme-choice__pic { border-color: var(--accent); }
-.ui-theme-choice__input:checked + .ui-theme-choice__pic::after { box-shadow: inset 0 0 0 1px var(--accent); }
-.ui-theme-choice__input:focus-visible + .ui-theme-choice__pic { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-theme-choice__name { overflow-wrap: anywhere; text-align: center; }
 
 /* The theme blocks give each scene its theme. System lays the dark scene over the light
@@ -82,11 +79,9 @@
 .ui-theme-choice__card > span + span { width: 55%; }
 
 /* The drawing keeps its paint, as a picture would. The chosen card takes the system
-   highlight on its edge and its name. */
+   highlight on its name. */
 @media (forced-colors: active) {
-  .ui-theme-choice__pic { forced-color-adjust: none; --ring: var(--ring-width) solid CanvasText; }
-  .ui-theme-choice__input:checked + .ui-theme-choice__pic { border-color: Highlight; }
-  .ui-theme-choice__input:checked + .ui-theme-choice__pic::after { box-shadow: inset 0 0 0 1px Highlight; }
+  .ui-theme-choice__pic { forced-color-adjust: none; }
   .ui-theme-choice__input:checked ~ .ui-theme-choice__name {
     forced-color-adjust: none;
     padding-inline: var(--space-2);
