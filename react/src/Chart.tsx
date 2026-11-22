@@ -659,6 +659,8 @@ export function Chart(props: ChartProps) {
   const [said, setSaid] = useState('');
   const [ownPick, setOwnPick] = useState<number | null>(null);
   const pick = selected === undefined ? ownPick : selected;
+  const topLayer = typeof HTMLElement !== 'undefined'
+    && typeof HTMLElement.prototype.showPopover === 'function';
 
   const steps = props.variant === 'bridge' ? props.steps : undefined;
   const bridgeTones = props.variant === 'bridge' ? props.tones : undefined;
@@ -855,7 +857,14 @@ export function Chart(props: ChartProps) {
   /* -- the readout --------------------------------------------------------- */
 
   useLayoutEffect(() => {
-    if (!openId || !frameEl.current || !tipEl.current || !svgEl.current) return;
+    const tip = tipEl.current;
+    if (!tip) return;
+    const layered = topLayer;
+    if (!openId) {
+      if (layered && tip.matches(':popover-open')) tip.hidePopover();
+      return;
+    }
+    if (!frameEl.current || !svgEl.current) return;
     // Matched by attribute rather than by an interpolated selector: a series id
     // is the caller's string and may carry a quote.
     const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
@@ -863,8 +872,10 @@ export function Chart(props: ChartProps) {
     // The readout floats over the page, so only the view and a box that really
     // clips bound it: it opens above its mark, over the legend if it must.
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
-    if (anchor) placeTip(frameEl.current, anchor, tipEl.current);
-  }, [openId, plotWidth, plotHeight]);
+    if (!anchor) return;
+    if (layered && !tip.matches(':popover-open')) tip.showPopover();
+    placeTip(frameEl.current, anchor, tip);
+  }, [openId, plotWidth, plotHeight, topLayer]);
 
   useEffect(() => {
     if (!openId) return;
@@ -1305,7 +1316,7 @@ export function Chart(props: ChartProps) {
           </div>
         </div>
 
-        <span ref={tipEl} className={cx('ui-tip', openId && 'is-open')} role={open ? 'tooltip' : undefined}>
+        <span ref={tipEl} {...topLayer && { popover: 'manual' }} className={cx('ui-tip', openId && 'is-open')} role={open ? 'tooltip' : undefined}>
           {open && (
             <>
               <span className="ui-tip__label">

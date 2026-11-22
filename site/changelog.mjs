@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.188.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'A `Chart` readout in a scrolling table now opens over the table and above its mark when room is available. The readout stays fully visible instead of being cut on the last row. Part of #853.', ['Chart', 'Table']],
+    ],
+  },
+  {
     v: '0.186.0', date: '2026-11-22',
     changes: [
       ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],

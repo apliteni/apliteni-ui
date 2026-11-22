@@ -63,6 +63,35 @@ export const AsTable: StoryObj = {
   },
 };
 
+/** The final spark sits in a scroll frame. Its readout stays above the mark and
+ * over the frame, so the table cannot cut it. */
+export const SparkInScrollingTable: StoryObj = {
+  render: () => (
+    <div className="ui-table-scroll" role="region" aria-label="Cash trends">
+      <table className="ui-table ui-table--hover">
+        <thead><tr><th scope="col">Account</th><th scope="col">Cash trend</th></tr></thead>
+        <tbody>
+          {Array.from({ length: 20 }, (_, i) => (
+            <tr key={i}>
+              <th scope="row">Account {i + 1}</th>
+              <td><Chart variant="spark" title={`Account ${i + 1} cash trend`} periods={periods.slice(0, 4)}
+                series={[{ id: 'cash', name: 'Cash', values: INCOME.slice(0, 4), shape: 'line' }]} format={eur} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const region = canvas.getByRole('region', { name: 'Cash trends' });
+    region.scrollTop = region.scrollHeight;
+    const chart = canvas.getByRole('img', { name: /Account 20 cash trend/ });
+    await userEvent.hover(chart.querySelector('.ui-chart__hit')!);
+    await expect(canvas.getByRole('tooltip')).toBeVisible();
+  },
+};
+
 /** The same months with no unfinished period, so no readout names a state.
  *  The story's id is kept from the round that named it after the fade it no
  *  longer draws. */
