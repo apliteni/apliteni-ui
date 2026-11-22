@@ -3,6 +3,7 @@
 // with drawer() until #429 removed it; the shape both agreed on is stored as a snapshot,
 // written in the commit where the comparison last passed.
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { useState } from 'react';
@@ -199,6 +200,17 @@ it.each([
   render(<Drawer open title="Filters" closeLabel="Close filters" onClose={onClose}>body</Drawer>);
   await act_();
   expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+it('gives the Close control the same hover title as its accessible name', () => {
+  render(<Drawer open title="Filters" closeLabel="Close filters" onClose={noop}>body</Drawer>);
+  const close = screen.getByRole('button', { name: 'Close filters' });
+  expect(close).toHaveAttribute('title', 'Close filters');
+});
+
+it('draws the wordless Close control as a circle', () => {
+  const css = readFileSync('../src/styles/drawer.css', 'utf8');
+  expect(css).toMatch(/\.ui-drawer__close\s*\{[^}]*border-radius:\s*50%/s);
 });
 
 // As Modal's: cancelled, so the opener keeps the focus the drawer hands back.

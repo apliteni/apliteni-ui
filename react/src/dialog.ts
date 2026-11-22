@@ -93,7 +93,7 @@ type Entry = {
 
 const stack: Entry[] = [];
 const leaving = new Set<HTMLElement>();
-const placed = new Map<HTMLElement, number>();
+const placed = new WeakMap<HTMLElement, number>();
 let marked: [HTMLElement, boolean][] = []; // what the top made inert, and whether it already was
 let listening = false;
 

@@ -45,7 +45,7 @@ export function Drawer({
           <header className="ui-drawer__header">
             <h2 className="ui-drawer__title" id={titleId}>{title}</h2>
             {headerActions && <div className="ui-drawer__actions">{headerActions}</div>}
-            <button type="button" className="ui-drawer__close" aria-label={closeLabel} onClick={onClose}>
+            <button type="button" className="ui-drawer__close" aria-label={closeLabel} title={closeLabel} onClick={onClose}>
               <Icon name="x" />
             </button>
           </header>
