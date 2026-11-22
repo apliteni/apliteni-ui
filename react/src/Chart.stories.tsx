@@ -5,6 +5,7 @@ import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from 
 import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
 import { StatBand } from './primitives/StatBand';
+import { SearchField } from './SearchField';
 
 const meta: Meta<typeof Chart> = { title: 'React/Chart', component: Chart, id: 'react-chart' };
 export default meta;
@@ -67,9 +68,11 @@ export const AsTable: StoryObj = {
  * over the frame, so the table cannot cut it. */
 export const SparkInScrollingTable: StoryObj = {
   render: () => {
-    const accounts = Array.from({ length: 10 }, (_, i) => i + 1);
-    return <div className="ui-table-scroll" role="region" aria-label="Cash trends">
-      {/* why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
+    const [query, setQuery] = useState('');
+    const accounts = Array.from({ length: 20 }, (_, i) => i + 1).filter((i) => `Account ${i}`.toLowerCase().includes(query.toLowerCase()));
+    return <Card>
+      <div className="ui-filter-bar"><SearchField ariaLabel="Filter accounts" value={query} onChange={(event) => setQuery(event.currentTarget.value)} /></div>
+      <div className="ui-table-scroll" role="region" aria-label="Cash trends">
       <table className="ui-table ui-table--hover">
         <thead><tr><th scope="col">Account</th><th scope="col">Cash trend</th></tr></thead>
         <tbody>
@@ -82,7 +85,8 @@ export const SparkInScrollingTable: StoryObj = {
           ))}
         </tbody>
       </table>
-    </div>;
+      </div>
+    </Card>;
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
