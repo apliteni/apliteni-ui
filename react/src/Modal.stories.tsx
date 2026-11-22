@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
-import { Drawer } from './Drawer';
 import { Modal } from './Modal';
 import { Button } from './primitives/Button';
 
@@ -81,35 +80,6 @@ export const LongNotice: StoryObj<typeof Modal> = {
               this body a scroll container and nothing inside it a keyboard target.
             </p>
           ))}
-        </Modal>
-      </>
-    );
-  },
-};
-
-// The shape #853 was reported on: a sheet opened from inside a modal's form, such as the
-// date picker's on a phone. The sheet paints above the modal and its scrim.
-export const SheetOverModal: StoryObj<typeof Modal> = {
-  render: () => {
-    const [open, setOpen] = useState(true);
-    const [sheet, setSheet] = useState(true);
-    return (
-      <>
-        <Button variant="primary" onClick={() => setOpen(true)}>Open</Button>
-        <Modal open={open} title="New payment" onClose={() => setOpen(false)}
-          footer={<>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button variant="primary" onClick={() => setOpen(false)}>Save</Button>
-          </>}>
-          <div className="ui-field">
-            <label className="ui-field__label" htmlFor="rx-modal-sheet-amount">Amount</label>
-            <input id="rx-modal-sheet-amount" className="ui-input" defaultValue="1,250.00" />
-          </div>
-          <Button variant="secondary" onClick={() => setSheet(true)}>Choose a date</Button>
-          <Drawer open={sheet} side="bottom" size="sm" title="Payment date" onClose={() => setSheet(false)}
-            footer={<Button variant="primary" onClick={() => setSheet(false)}>Use 14 Aug 2026</Button>}>
-            <p>The payment leaves the account on the date you choose.</p>
-          </Drawer>
         </Modal>
       </>
     );

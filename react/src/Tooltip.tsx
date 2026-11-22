@@ -116,7 +116,7 @@ export function Tooltip({ text, label = text, value, detail, placement = 'top', 
     const target = active.current;
     if (!h || !t || !target) return;
     const anchor = target.querySelector('[data-tip-anchor]') || target;
-    placeTip(h, anchor, t, undefined, placement);
+    placeTip(h, anchor, t, placement);
   }
 
   // Runs after content changes too: the current readout can change size.

@@ -214,7 +214,7 @@
     "pattern": "const onKeyDown = (e: ReactKeyboardEvent)"
    },
    {
-    "ref": "react/src/dialog.ts:104",
+    "ref": "react/src/dialog.ts:103",
     "pattern": "function trapTab(panel: HTMLElement, e: KeyboardEvent)"
    }
   ],
@@ -228,7 +228,7 @@
     "pattern": "role=\"status\" aria-live=\"polite\""
    },
    {
-    "ref": "react/src/dialog.ts:176",
+    "ref": "react/src/dialog.ts:155",
     "pattern": "function returnFocus(opener: Element | null, fallback: Element | null)"
    }
   ],
@@ -414,7 +414,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:177",
+    "ref": "react/src/AppShell.tsx:180",
     "pattern": "back && <BackLink"
    }
   ],
@@ -444,11 +444,11 @@
   ],
   "above-the-mark": [
    {
-    "ref": "react/src/tip.ts:55",
+    "ref": "react/src/tip.ts:47",
     "pattern": "const flip = prefersBelow"
    },
    {
-    "ref": "react/src/tip.ts:62",
+    "ref": "react/src/tip.ts:54",
     "pattern": "const left = Math.max(clip.left"
    }
   ],
@@ -571,6 +571,16 @@
   "eyebrow-names-the-kind": [
    {
     "ref": "src/styles/base.css:120",
+    "pattern": "rank: label"
+   }
+  ],
+  "category-compact": [
+   {
+    "ref": "src/styles/dropdown.css:432",
+    "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
+   },
+   {
+    "ref": "src/styles/dropdown.css:434",
     "pattern": "rank: label"
    }
   ]
@@ -1013,7 +1023,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:60",
+    "ref": "react/src/AppShell.tsx:63",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
@@ -1149,7 +1159,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:140",
+    "ref": "react/src/Dropdown.tsx:144",
     "pattern": "ariaLabel?: string;"
    },
    {

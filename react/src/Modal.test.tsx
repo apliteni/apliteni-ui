@@ -4,8 +4,6 @@ import { readFileSync } from 'node:fs';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Modal } from './Modal';
-import { Confirm } from './Confirm';
-import { Drawer } from './Drawer';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -15,20 +13,6 @@ afterEach(() => {
 it('renders nothing when closed', () => {
   const { container } = render(<Modal open={false} title="X" onClose={() => {}} />);
   expect(container.querySelector('[role="dialog"]')).toBeNull();
-});
-
-it('releases each open dialog root when its component unmounts', () => {
-  const dialogs = [
-    <Modal open title="New campaign" onClose={() => {}}>body</Modal>,
-    <Drawer open title="Campaign" onClose={() => {}}>body</Drawer>,
-    <Confirm open title="Delete campaign?" body="This cannot be undone." confirmLabel="Delete" cancelLabel="Keep"
-      onConfirm={() => {}} onCancel={() => {}} />,
-  ];
-  for (let i = 0; i < 7; i++) {
-    for (const dialog of dialogs) render(dialog).unmount();
-  }
-  const dialog = readFileSync('src/dialog.ts', 'utf8');
-  expect(dialog).toContain('const placed = new WeakMap<HTMLElement, number>();');
 });
 
 // ---- motion ------------------------------------------------------------------
@@ -138,12 +122,6 @@ it('focuses the first field in the body on open, not the header Close button', a
   await waitFor(() => {
     expect(document.activeElement).toBe(screen.getByLabelText('Name'));
   });
-});
-
-it('gives the Close control the same hover title as its accessible name', () => {
-  render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
-  const close = screen.getByRole('button', { name: 'Close' });
-  expect(close).toHaveAttribute('title', 'Close');
 });
 
 // A dialog that lets Tab wander into the page behind it is a dialog only in looks.

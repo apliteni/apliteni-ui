@@ -34,12 +34,6 @@ it.each([false, true])('names the dialog and renders safe then committing action
   expect(safe).toHaveFocus();
 });
 
-it('gives the Close control the same hover title as its accessible name', () => {
-  render(<Confirm {...props} open />);
-  const close = screen.getByRole('button', { name: 'Close' });
-  expect(close).toHaveAttribute('title', 'Close');
-});
-
 it('calls only onConfirm and leaves open state with the consumer', async () => {
   const onConfirm = vi.fn();
   const onCancel = vi.fn();

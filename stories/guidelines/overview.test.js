@@ -98,7 +98,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
   // 151: Component choice lost one-category (#832).
   // 152: The page gained sidebar (#843).
-  assert.equal(rules, 152);
+  // 153: The page gained bar-end (#847). Labels and titles gained category-compact (#852).
+  assert.equal(rules, 154);
   // Each is named. Dashboards and reports asks every report for an export and
   // the Stock screener has none (#555). The kit has no unread row weight and no
   // dropdown error part (#798). This list empties as each lands.

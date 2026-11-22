@@ -402,7 +402,7 @@ it('keeps the fallback gap equal to the number the stylesheet declares', async (
 it.each([[100, true], [560, false]])('shared placement prefers bottom at %spx and flips when needed', (top, below) => {
   const { trigger, tip } = mount();
   geometry(trigger, tip, top);
-  placeTip(trigger.parentElement!, trigger, tip, undefined, 'bottom');
+  placeTip(trigger.parentElement!, trigger, tip, 'bottom');
   expect(tip.classList.contains('is-below')).toBe(below);
   expect(tip.style.getPropertyValue('--ui-tip-y')).toBe(`${below ? top + 20 : top}px`);
 });

@@ -93,7 +93,6 @@ type Entry = {
 
 const stack: Entry[] = [];
 const leaving = new Set<HTMLElement>();
-const placed = new WeakMap<HTMLElement, number>();
 let marked: [HTMLElement, boolean][] = []; // what the top made inert, and whether it already was
 let listening = false;
 
@@ -125,29 +124,9 @@ function onKey(e: KeyboardEvent) {
   } else if (e.key === 'Tab') trapTab(top.panel, e);
 }
 
-// Each dialog on the stack paints at least one above the one beneath it. A root retains its
-// assigned layer while leaving, so an active dialog that opened above it stays above it.
-function layer() {
-  let floor = -Infinity;
-  for (const { root } of stack) {
-    const before = placed.get(root);
-    for (const root of leaving) {
-      const leave = placed.get(root);
-      if (leave !== undefined && (before === undefined || leave < before)) floor = Math.max(floor, leave + 1);
-    }
-    root.style.removeProperty('z-index');
-    const own = Number.parseInt(getComputedStyle(root).zIndex, 10) || 0;
-    if (own < floor) root.style.zIndex = String(floor);
-    const layer = Math.max(own, floor);
-    placed.set(root, layer);
-    floor = layer + 1;
-  }
-}
-
 // Recompute the page from the stack: everything outside the top dialog is inert, lower
 // dialogs included, and a leaving root is inert and aria-hidden until it unmounts.
 function sync() {
-  layer();
   for (const [el, was] of marked) if (!was) el.removeAttribute('inert');
   marked = [];
   const top = stack[stack.length - 1];
@@ -261,7 +240,6 @@ export function usePresence(open: boolean, root: Ref, panel: Ref) {
     sync();
     return () => {
       leaving.delete(el);
-      placed.delete(el);
       el.removeAttribute('inert');
       el.removeAttribute('aria-hidden');
       sync();

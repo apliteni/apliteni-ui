@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { GuidelinePage, noop } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
+import { Dropdown, type DropdownSection } from '../../react/src/Dropdown';
 import { FilterBar } from '../../react/src/FilterBar';
 import { TextField } from '../../react/src/Field';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -42,6 +43,17 @@ const Cashflow = ({ faded, children }: { faded?: boolean; children?: ReactNode }
   <h2 className={faded ? 'ui-card__title ui-card__title--muted' : 'ui-card__title'}>Monthly cashflow</h2>
   <div className="ui-card__sub">Income and expenses by month.</div>{children}</div></Stage>;
 
+// A unit picker, open. The do names each category with the kit's group label; the don't
+// writes the same category as a disabled row among the units.
+const UNITS: DropdownSection[] = [
+  { label: 'Studios', items: [{ label: 'Birch Studio', value: 'birch', selected: true }, { label: 'Cedar Studio', value: 'cedar', muted: 'Archived' }] },
+  { label: 'Consultancies', items: [{ label: 'Harbour Consulting', value: 'harbour' }, { label: 'Kestrel Consulting', value: 'kestrel' }] },
+];
+const Units = ({ sections }: { sections: DropdownSection[] }) => <Stage><div style={{ minHeight: 300 }}>
+  <Dropdown ariaLabel="Unit" variant="select" sections={sections} open onOpenChange={noop} />
+</div></Stage>;
+const FLAT: DropdownSection[] = [{ items: UNITS.flatMap((group) => [{ label: group.label!, disabled: true }, ...(group.items || [])]) }];
+
 const specimens = [
   { id: 'text-ink', do: () => <Cashflow />,
     dont: () => <Cashflow faded><p className="ui-chart__caption">Income and expenses by month.</p></Cashflow> },
@@ -67,6 +79,7 @@ const specimens = [
       <h2 className="ui-card__title">Top contractors</h2><div className="ui-card__sub">Paid out, by counterparty.</div></div></Stage>,
     dont: () => <Stage><div className="ui-card"><div className="ui-eyebrow">Top contractors</div>
       <div className="ui-card__sub">Paid out, by counterparty.</div></div></Stage> },
+  { id: 'category-compact', do: () => <Units sections={UNITS} />, dont: () => <Units sections={FLAT} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Labels and titles', parameters: { layout: 'fullscreen' } };

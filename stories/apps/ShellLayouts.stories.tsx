@@ -9,6 +9,8 @@ import { SearchField } from '../../react/src/SearchField';
 import { EmptyState } from '../../react/src/EmptyState';
 import { Button } from '../../react/src/primitives/Button';
 import { Badge } from '../../react/src/primitives/Badge';
+import { Icon } from '../../react/src/primitives/Icon';
+import { Dropdown } from '../../react/src/Dropdown';
 import { Card } from '../../react/src/primitives/Card';
 
 const meta: Meta = {
@@ -47,6 +49,13 @@ const ROWS = [
 // The status chip starts unset, so the table opens on every payout.
 const STATUS = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
 
+// The topbar layout's bell at the band's right end (#847). The count is its name too.
+const BELL = <Dropdown variant="menu" align="end" chevron={false} title="Notifications" ariaLabel="Notifications, 2 unread"
+  triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>2</Badge></span></>}
+  header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
+  items={[{ label: 'Globex payout needs a second approval', value: 'globex', href: '#globex' },
+    { label: 'Initech payout needs a second approval', value: 'initech', href: '#initech' }]} />;
+
 const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) => {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
@@ -55,7 +64,7 @@ const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 
   const clear = () => { setQuery(''); setStatus(''); };
   return <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Payouts"
     lede="Two of the four that arrived this week are waiting for a second approval."
-    palette={layout === 'topbar' ? PALETTE : undefined}>
+    palette={layout === 'topbar' ? PALETTE : undefined} bandActions={layout === 'topbar' ? BELL : undefined}>
     {/* Each long table has its filter bar directly above it, on the page with no card
         of its own. why: docs/components.md#fields */}
     <div className="ui-toolbar">

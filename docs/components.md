@@ -179,6 +179,19 @@ holds each line of text that the button shows, and the menu takes the same name.
   reload. If your `palette` sets its own `onNavigate`, the shell uses that one.
 - `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
   head, before the fold button.
+- `bandActions` puts glyph controls, such as a notification bell, at the right end of the band,
+  in each sidebar structure and at every width. With a sidebar, they stand before the menu
+  button, and search keeps the centre of the band while it has room. Where the band is short of
+  room, search moves off the centre and shrinks, and never goes under an action. With no
+  sidebar, they stand before the theme switch. Put one or two there, and give each one a hover
+  title. Each action there is a 40px square with a 17px glyph, a `Button` and a dropdown trigger
+  alike, and the glyph stays in the centre of its square with or without a count. A count in a
+  dropdown trigger is a red pill on the trigger's top end corner, with a 2px ring in the band's
+  colour that cuts it from the glyph. The focus ring passes under it, so no ring line crosses the
+  digits. A long count, such as 99+, grows over the glyph and stays clear of the next control.
+  Give the trigger a name that holds the count it shows, such as "Notifications, 99+ unread".
+  Below 560px,
+  each action is a 40px glyph with no border and keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.
 
@@ -189,7 +202,7 @@ holds each line of text that the button shows, and the menu takes the same name.
   name and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
   column, so a click beside it reaches the page.
 - At 720px and below, the sidebar goes away and a 52px band shows. In the topbar layout, the band
-  holds the brand mark, the page title on one line, the search trigger and a menu button. In the
+  holds the brand mark, the page title on one line, the search trigger, the band actions and a menu button. In the
   rail layout, it holds only the menu button and the mark. The menu button opens the full section
   list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
   layout and the left in the rail layout. `drawerSide` chooses the side in either layout. The
@@ -395,8 +408,8 @@ dropdown must have a search field: [Component choice](../guidelines/component-ch
 ```
 
 `items` is a list of rows. A row has `label`, and can have `value`, `description`, `icon`,
-`avatar`, `badge`, `selected` and `disabled`. `'---'` is a separator. `sections` groups rows under
-captions. `header` and `footer` add content above and below the rows. `onSelect` gets the value
+`avatar`, `badge`, `muted`, `selected` and `disabled`. `'---'` is a separator. `sections` groups
+rows under captions, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
 trigger off: no keyboard stop, no panel and the disabled paint.
 
@@ -424,8 +437,17 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
   or a transition.
+- A row names its item in the body weight, as a native list does. A group caption is a compact
+  label in body ink.
 - Each row answers the pointer with a fill and draws no edge. A destructive row turns `--pink` on
   hover and focus. In forced colours a separator stays a visible line.
+
+**Muted or disabled.** Use `muted` for a row that the user can still pick but that is no
+longer current, such as an archived unit for a late invoice. Give it the state word:
+`muted: 'Archived'`. The row keeps its name in body ink and shows the word in a state badge after
+it. The row stays in the keyboard order. After a pick, the trigger shows `Cedar Studio (Archived)`.
+Use `disabled` for a row that the user cannot pick now. A disabled row is faded, and the arrow
+keys skip it.
 
 **Search.** `search` adds a text field above the rows. Typing filters the rows, and the focus stays
 in the field. The match is anywhere in the label, without case or accents. Descriptions are not
@@ -506,6 +528,11 @@ and `aria-describedby`. Spread them on the control. A dropdown or date picker tr
 label and the value as its name, and the error gives it the invalid edge. In a field, a dropdown
 trigger has the height of a text input and keeps the pill corner. A long value stays on one line
 and ends with an ellipsis.
+
+**A list of options in `SelectField`.** The browser draws the open list, so the kit does not
+style an `<option>`. For an option that the user can still pick but that is no longer current,
+write the state word in its text: `<option>Cedar Studio (Archived)</option>`. Do not disable it.
+Name a group with `<optgroup label="Studios">`, not with a disabled option.
 
 **Keyboard and screen reader.** The component makes the ids and points the label, the hint and the
 error at the control. The error has `role="alert"`, so a new error is announced and the focus does
@@ -958,9 +985,6 @@ body scrolls, and the title, the close control and the footer stay visible. The 
 **On a phone.** At 560px and narrower, with a coarse pointer, each footer button has a 44px tap
 zone. The buttons keep their drawn size.
 
-**A dialog over the modal.** A drawer, a date picker sheet or another dialog that opens from the
-modal stands above the modal and its scrim.
-
 ### Confirm
 
 Use `Confirm` before a destructive action that the page must stop for. Use
@@ -997,8 +1021,7 @@ card. `DrawerSection` puts a heading on a 1px line, and groups stand 32px apart.
 shows label and value pairs, in one or two columns. A value stays beside its label. An icon button
 at the end of a value, such as a copy button, stays on the value's line. Nothing in a drawer draws a
 card, a row rule or an `<hr>`. The actions stay outside the scrolling body. Under reduced motion
-the panel does not slide. A drawer that opens from a modal or from another drawer stands above it
-and its scrim.
+the panel does not slide.
 
 **A key figure.** Put a `<dl class="ui-drawer__figure">` in a first group with no heading. Its
 `<dd>` holds a `.ui-drawer__figure-value` at 22px, with a status badge beside it.
@@ -1217,10 +1240,10 @@ chart has the title. `format` prints exact values in the readout, the live regio
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | none: bars per period with a line across them | |
+| `months` | `periods`, `series` | none: columns per period with a line across them, fitted to the card | |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
-| `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end, and a chart that scrolls opens on its latest period | `thin` |
+| `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
 | `area` | `periods`, `series` | `flat`, each series from zero; `curves`, each series from zero as a smooth curve with a point on each value; `stacked`; `share`, each column is 100% | `stacked` |
 | `stacked` | `periods`, `series` | `columns`; `share`, each column is 100%; `rows`, a bar for each period | `columns` |
 | `donut` | `slices` | `thin`, the total in the centre; `table`, a list of the shares beside the ring; `labels`, the name, value and share at each slice | `table` |
@@ -1240,17 +1263,34 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** A bar is never wider than a mark, so a wider card adds space between
-columns. `legend` shows the legend. A period with `estimated` keeps its fill with a dashed edge, and
-the readout and the table show its `note`. A switch at the top right shows the same numbers as a
-chart or as a table. In a titled `Card`, the switch stands in the card's title row. `table={false}`
-removes the switch and the table. `selectable` with `selected` and `onSelect` lets the user pick a
-column, which gets a band behind it. At phone widths the plot scrolls and the value axis stays.
+**What the user sees.** In `months`, every period shares the card's width, so the plot never
+scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
+Where the period labels do not fit, the chart prints every second, third or later label, counted
+from the first period that is not final, or from the latest period. Set `values` to print each
+bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
+that grows down. A value takes at most half the space to the next value,
+at the 12px text size, and stays inside the plot. A value that does not fit there is left out.
+The readout and the table always show it. A chart that prints no value gives that room to its
+bars. `legend`
+shows the legend. A period with `estimated` keeps its solid mark in the series
+ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
+future period, or to `true` for any other estimate. In `months`, one solid line stands before the
+first period that is not final, and the words "Not final" stand over that group. Put the periods
+that are not final last. The hover and keyboard readout and each table row say "Incomplete",
+"Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
+the period before it. Set `compare: false` on a period to show its value with no comparison text.
+A switch at the top right
+shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
+card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
+and `onSelect` lets the user pick a column, which gets a band behind it. In the other variants, at
+phone widths the plot scrolls and the value axis stays. A chart of periods that is wider than its
+card opens at its latest period. A bridge opens at its opening total.
 
 **Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when
 `selectable` is set. A plot that scrolls adds one more Tab stop for the scroll box. On a touch
-screen, the first tap on a mark opens its readout and does not call `onSelect`. Every value is
+screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
+new tap on the same mark opens its readout again. Every value is
 reachable at full strength by pointer or keyboard.
 
 ### Table values
