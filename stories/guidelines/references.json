@@ -214,7 +214,7 @@
     "pattern": "const onKeyDown = (e: ReactKeyboardEvent)"
    },
    {
-    "ref": "react/src/dialog.ts:103",
+    "ref": "react/src/dialog.ts:104",
     "pattern": "function trapTab(panel: HTMLElement, e: KeyboardEvent)"
    }
   ],
@@ -228,7 +228,7 @@
     "pattern": "role=\"status\" aria-live=\"polite\""
    },
    {
-    "ref": "react/src/dialog.ts:169",
+    "ref": "react/src/dialog.ts:176",
     "pattern": "function returnFocus(opener: Element | null, fallback: Element | null)"
    }
   ],
