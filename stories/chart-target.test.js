@@ -245,7 +245,7 @@ test(
 
     try {
       const page = await ctx.newPage();
-      const spark = storySubjects().find((s) => s.spark && s.name !== 'SparkInScrollingTable');
+      const spark = storySubjects().find((s) => s.spark);
       await page.goto(
         `http://127.0.0.1:${served.port}/iframe.html?id=${spark.id}&globals=theme:light`,
         { waitUntil: 'load' },
@@ -407,7 +407,7 @@ test(
       .catch((e) => { served.proc.kill(); throw e; });
 
     try {
-      const spark = storySubjects().find((s) => s.spark && s.name !== 'SparkInScrollingTable');
+      const spark = storySubjects().find((s) => s.spark);
       const failures = [];
       for (const width of [320, 390]) {
         for (const theme of ['light', 'dark']) {

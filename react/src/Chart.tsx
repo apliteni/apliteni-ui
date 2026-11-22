@@ -18,6 +18,21 @@ import {
   type Layer, type Look, type LookGeometry,
 } from './chart-looks';
 
+function placeChartTip(mark: Element, tip: HTMLElement) {
+  const rect = mark.getBoundingClientRect();
+  const view = tip.ownerDocument.documentElement;
+  const gap = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap')) || 8;
+  const above = rect.top;
+  const below = view.clientHeight - rect.bottom;
+  const isBelow = above < tip.offsetHeight + gap && below > above;
+  tip.classList.toggle('is-below', isBelow);
+  const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
+  const left = Math.max(0, Math.min(ideal, view.clientWidth - tip.offsetWidth));
+  tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
+  tip.style.setProperty('--ui-tip-y', `${isBelow ? rect.bottom : rect.top}px`);
+  tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
+}
+
 // The paint is src/styles/chart.css, and this module does NOT import it: a kit
 // sheet imported from react/src is re-emitted into react/dist/index.css, which a
 // consumer loads after `apliteni-ui/css` and which then outranks the kit's own
@@ -874,7 +889,8 @@ export function Chart(props: ChartProps) {
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
     if (!anchor) return;
     if (layered && !tip.matches(':popover-open')) tip.showPopover();
-    placeTip(frameEl.current, anchor, tip);
+    if (layered) placeChartTip(anchor, tip);
+    else placeTip(frameEl.current, anchor, tip);
   }, [openId, plotWidth, plotHeight, topLayer]);
 
   useEffect(() => {

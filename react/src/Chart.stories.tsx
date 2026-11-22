@@ -5,7 +5,6 @@ import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from 
 import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
 import { StatBand } from './primitives/StatBand';
-import { SearchField } from './SearchField';
 
 const meta: Meta<typeof Chart> = { title: 'React/Chart', component: Chart, id: 'react-chart' };
 export default meta;
@@ -67,23 +66,24 @@ export const AsTable: StoryObj = {
 /** The final spark sits in a scroll frame. Its readout stays above the mark and
  * over the frame, so the table cannot cut it. */
 export const SparkInScrollingTable: StoryObj = {
-  render: () => (
-    <div className="ui-table-scroll" role="region" aria-label="Cash trends">
-      <div className="ui-filter-bar"><SearchField ariaLabel="Filter accounts" /></div>
+  render: () => {
+    const accounts = Array.from({ length: 10 }, (_, i) => i + 1);
+    return <div className="ui-table-scroll" role="region" aria-label="Cash trends">
+      {/* why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
       <table className="ui-table ui-table--hover">
         <thead><tr><th scope="col">Account</th><th scope="col">Cash trend</th></tr></thead>
         <tbody>
-          {Array.from({ length: 20 }, (_, i) => (
+          {accounts.map((i) => (
             <tr key={i}>
-              <th scope="row">Account {i + 1}</th>
-              <td><Chart variant="spark" title={`Account ${i + 1} cash trend`} periods={periods.slice(0, 4)}
+              <th scope="row">Account {i}</th>
+              <td><Chart variant="spark" title={`Account ${i} cash trend`} periods={periods.slice(0, 4)}
                 series={[{ id: 'cash', name: 'Cash', values: INCOME.slice(0, 4), shape: 'line' }]} format={eur} /></td>
             </tr>
           ))}
         </tbody>
       </table>
-    </div>
-  ),
+    </div>;
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     const region = canvas.getByRole('region', { name: 'Cash trends' });
