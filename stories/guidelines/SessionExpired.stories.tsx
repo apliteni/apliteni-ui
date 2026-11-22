@@ -20,9 +20,9 @@ const DialogPicture = ({ text = 'Your session ended. Sign in to keep working.' }
 const SignIn = ({ text = 'Your session ended. Sign in to keep working.' }: { text?: string }) =>
   <div className="gl-stage gl-stage--confirm"><DialogPicture text={text} /></div>;
 
-const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false }: {
-  loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean;
-}) => <Stage><div className="se-page">
+const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
+  loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean; tall?: boolean;
+}) => <Stage><div className={tall ? 'se-page se-page--dialog-tall' : 'se-page'}>
   <div className="se-page__body">
     <h3 className="se-page__title">Payouts</h3>
     {loading && <Skeleton lines={1} width="12rem" />}
@@ -44,18 +44,18 @@ const SignInPage = () => <Stage><div className="se-page"><div className="se-page
   <Card title="Continue"><Button variant="primary">Continue with Google</Button></Card>
 </div></div></Stage>;
 
-const Payouts = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false }: {
-  loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean;
-}) => <Page loading={loading} search={search} filter={filter} signedOut={signedOut} dialog={dialog} />;
+const Payouts = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
+  loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean; tall?: boolean;
+}) => <Page loading={loading} search={search} filter={filter} signedOut={signedOut} dialog={dialog} tall={tall} />;
 
 const specimens = [
-  { id: 'sign-in-same-page', do: () => <Payouts loading dialog />,
+  { id: 'sign-in-same-page', do: () => <Payouts loading dialog tall />,
     dont: () => <SignInPage /> },
   { id: 'keep-work', do: () => <Payouts search="PO-1170" />,
     dont: () => <Payouts search="" filter={false} /> },
   { id: 'say-session-ended', do: () => <SignIn />,
     dont: () => <SignIn text="Sign in required." /> },
-  { id: 'skeleton-behind-dialog', do: () => <Payouts loading dialog />,
+  { id: 'skeleton-behind-dialog', do: () => <Payouts loading dialog tall />,
     dont: () => <SignIn /> },
   { id: 'lasting-sign-in', do: () => <Payouts loading signedOut />,
     dont: () => <Stage><NoticePicture tone="warn" title="You are signed out" /></Stage> },

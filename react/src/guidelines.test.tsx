@@ -166,8 +166,10 @@ describe('guideline pages in React: Session expired', () => {
     const picture = doSide.querySelector('.se-page')!;
     const dialog = picture.querySelector('.se-page__dialog .rx-modal');
     expect(picture, 'the session picture has no page area').toBeTruthy();
+    expect(picture).toHaveClass('se-page--dialog-tall');
     expect(doSide.querySelector('.ui-app'), 'a specimen must not compress the full application shell').toBeNull();
     expect(picture.querySelector('.se-page__title')?.textContent).toBe('Payouts');
+    expect(picture.querySelectorAll('.ui-skel').length).toBeGreaterThan(1);
     expect(picture.querySelector('.se-page__scrim')).toBeTruthy();
     expect(dialog, 'the dialog must be inside the page picture').toBeTruthy();
     expect(dialog).toHaveClass('rx-modal--sm');

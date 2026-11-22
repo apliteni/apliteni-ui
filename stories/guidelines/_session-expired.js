@@ -7,6 +7,9 @@ export const RULES = content.rules;
 
 export const SPEC_CSS = `<style>
   .se-page { position: relative; min-height: 420px; overflow: hidden; }
+  .se-page--dialog-tall { min-height: calc(var(--panel-md) + var(--space-16) * 4); }
+  .se-page--dialog-tall .se-page__body { min-height: inherit; }
+  .se-page--dialog-tall .ui-card { margin-top: auto; }
   .se-page__body { display: flex; flex-direction: column; gap: var(--space-3); }
   .se-page__title { margin: 0; font: var(--weight-semibold) var(--text-lg)/var(--leading-snug) var(--font-sans); color: var(--strong); }
   .se-page__scrim { position: absolute; inset: 0; background: var(--scrim); }
