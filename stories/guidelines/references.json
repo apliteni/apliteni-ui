@@ -278,7 +278,7 @@
     "pattern": "role=\"toolbar\" aria-label={label}"
    },
    {
-    "ref": "react/src/Tabs.tsx:35",
+    "ref": "react/src/Tabs.tsx:37",
     "pattern": "role=\"tablist\" aria-label={label}"
    },
    {
