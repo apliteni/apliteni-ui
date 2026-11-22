@@ -118,7 +118,7 @@ export type { SuccessProps, SuccessPanelProps, SuccessCheckProps, SuccessCountdo
 
 export { Chart } from './Chart';
 export type {
-  ChartProps, ChartTone, ChartPeriod, ChartSeries, ChartBridgeStep, ChartBridgeTones, ChartLookSeries,
+  ChartProps, ChartTone, ChartPeriod, ChartEstimate, ChartSeries, ChartBridgeStep, ChartBridgeTones, ChartLookSeries,
 } from './Chart';
 export type {
   ChartLineLook, ChartAreaLook, ChartStackedLook, ChartDonutLook, ChartSlice,
