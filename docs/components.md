@@ -982,6 +982,9 @@ destructive question.
 body scrolls, and the title, the close control and the footer stay visible. The title is an `h2`.
 `initialFocusRef` chooses the first focus.
 
+**On a phone.** At 560px and narrower, with a coarse pointer, each footer button has a 44px tap
+zone. The buttons keep their drawn size.
+
 ### Confirm
 
 Use `Confirm` before a destructive action that the page must stop for. Use
@@ -993,7 +996,8 @@ Use `Confirm` before a destructive action that the page must stop for. Use
 ```
 
 It is an `alertdialog`. The safe action gets the focus and stands before the committing action.
-`onConfirm` only reports the press. You save, show errors and close.
+`onConfirm` only reports the press. You save, show errors and close. The answers are the modal's
+footer buttons, so on a phone each one has a 44px tap zone.
 
 ### Drawer
 
