@@ -79,8 +79,8 @@ export const SparkInScrollingTable: StoryObj = {
           {accounts.map((i) => (
             <tr key={i}>
               <th scope="row">Account {i}</th>
-              <td><Chart variant="spark" title={`Account ${i} cash trend`} periods={periods.slice(0, 4)}
-                series={[{ id: 'cash', name: 'Cash', values: INCOME.slice(0, 4), shape: 'line' }]} format={eur} /></td>
+              <td><Chart variant="spark" title={`Account ${i} cash trend`} periods={periods.slice(0, 2)}
+                series={[{ id: 'cash', name: 'Cash', values: INCOME.slice(0, 2), shape: 'line' }]} format={eur} /></td>
             </tr>
           ))}
         </tbody>
