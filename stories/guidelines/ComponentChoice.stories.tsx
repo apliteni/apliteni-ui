@@ -7,7 +7,6 @@ import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { Dropdown, type DropdownProps } from '../../react/src/Dropdown';
 import { DatePicker } from '../../react/src/DatePicker';
-import { Segmented } from '../../react/src/Segmented';
 import { SidebarNav } from '../../react/src/SidebarNav';
 import { Success, SuccessPanel } from '../../react/src/Success';
 import { Tabs } from '../../react/src/Tabs';
@@ -25,7 +24,6 @@ const PairedActions = ({ cancel }: { cancel: 'ghost' | 'primary' }) => <Stage>
   <div style={{ display: 'flex', gap: 'var(--space-3)' }}><Button variant={cancel}>Cancel</Button><Button variant="primary">Save</Button></div>
 </Stage>;
 
-const FILTERS = ['Any', 'Verified', 'Pending'];
 // Both halves render open, so the stage keeps room below the trigger for the panel it drops.
 const Currency = (props: Partial<DropdownProps>) => <Stage><div style={{ minHeight: 400 }}>
   <Dropdown label="currency:" ariaLabel="Currency" items={currencyItems('EUR')} selectedValue="EUR" open onOpenChange={noop} {...props} />
@@ -58,10 +56,10 @@ const specimens = [
     do: () => <Stage><Callout variant="warn">This token is shown once. Copy it now — you won’t see it again.</Callout></Stage>,
     dont: () => <Stage><NoticePicture tone="warn" title="This token is shown once" text="Copy it now — you won’t see it again." /></Stage> },
   { id: 'panels',
-    do: () => <Stage><Tabs label="Report view" value="Summary" onChange={noop} tools={<DatePicker ariaLabel="Month" defaultValue="2026-09" align="end" />}
-      items={['Summary', 'Details'].map(label => ({ value: label, label, panel: null }))} /></Stage>,
-    dont: () => <Stage><Tabs label="Status filter" value="Pending" onChange={noop}
-      items={FILTERS.map(label => ({ value: label, label, panel: null }))} /></Stage> },
+    do: () => <Stage><Tabs label="Report view" value="Chart" onChange={noop} tools={<DatePicker ariaLabel="Month" defaultValue="2026-09" align="end" />}
+      items={['Chart', 'Table'].map(label => ({ value: label, label, panel: null }))} /></Stage>,
+    dont: () => <Stage><Tabs label="Report view and status filter" value="Chart" onChange={noop}
+      items={['Chart', 'Table', 'Verified'].map(label => ({ value: label, label, panel: null }))} /></Stage> },
   { id: 'panel-origin', do: () => <MenuOrigin side="right" />, dont: () => <MenuOrigin side="left" /> },
   { id: 'scale',
     do: () => <Stage><Card><SuccessPanel title="Feedback sent" sub="It goes straight to the strategy owner." /></Card></Stage>,

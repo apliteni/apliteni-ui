@@ -131,6 +131,11 @@
   /* Tabs are wide enough across; down, the panel under them has the room. */
   .ui-tabs__list { --tap-clear-x: 2px; --tap-clear-y: var(--tap-gap); }
 
+  /* A page control wraps above its tabs. The row opens room below it, and the
+     control uses that room for its transparent tap layer. */
+  .ui-tabs__row { row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
+  .ui-tabs__tools { --tap-clear-y: var(--tap-gap); }
+
   /* Equal cells read as one strip, so they stay packed across and open down,
      which is where this strip wraps at this width. */
   .ui-pager__steps {
