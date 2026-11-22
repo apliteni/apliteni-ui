@@ -664,6 +664,8 @@
 }
 .ui-auth--split .ui-auth__tagline {
   margin: 0;
+  /* display: brand — the slogan on the branded half is the brand's own voice, set like
+     the wordmark beside it and not as reading prose. */
   font-family: var(--font-display);
   font-size: var(--text-3xl);
   line-height: 1.05;

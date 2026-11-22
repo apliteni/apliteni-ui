@@ -49,7 +49,7 @@ type Invoice = { supplier: string; number: string; date: string; total: string }
 /* The document is held apart from the fields: it is what the four fields are checked
    against, and its total disagrees with the read total on purpose. It draws as a page
    (.ui-card__page), not as a card, so the paper reads as the object the fields describe. */
-const Paper = () => <div className="ui-card__page" role="img"
+const Paper = () => <div className="ui-card__page" role="img" tabIndex={0}
   aria-label="Invoice INV-1042 from Cedar Studio, dated 18 Sep 2026. Total EUR 1,704.00.">
   <h2 className="ui-card__title">INVOICE</h2>
   <p className="ui-card__sub">Cedar Studio</p>

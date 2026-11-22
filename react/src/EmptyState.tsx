@@ -10,6 +10,9 @@ export type EmptyStateProps = {
   art?: ReactNode;
   actions?: ReactNode;
   className?: string;
+  /** Heading level for the title, as Card's `level`. 0 renders a plain div, for a
+   *  title that must not be a heading, such as one inside a menu. */
+  level?: number;
 };
 
 const cases = {
@@ -19,18 +22,19 @@ const cases = {
   'not-yet-built': { title: 'Not available yet', sub: 'This screen ships in a later release.', icon: 'clock' },
 };
 
-export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions, className }: EmptyStateProps) {
+export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions, className, level = 2 }: EmptyStateProps) {
   const preset = cases[variant];
   const heading = title ?? preset.title;
   const guidance = sub ?? preset.sub;
   const glyph = icon ?? preset.icon;
+  const Title = ([2, 3, 4, 5, 6].includes(level) ? `h${level}` : 'div') as 'h2';
   return (
     <div className={['ui-empty', className].filter(Boolean).join(' ')}>
       {art ? typeof art === 'string'
         ? <div className="ui-empty__art" dangerouslySetInnerHTML={{ __html: /<svg/.test(art) ? art : illo(art) }} />
         : <div className="ui-empty__art" aria-hidden="true">{art}</div>
         : glyph ? <div className="ui-empty__icon" dangerouslySetInnerHTML={{ __html: kitIcon(glyph) }} /> : null}
-      {heading && <div className="ui-empty__title">{heading}</div>}
+      {heading && <Title className="ui-empty__title">{heading}</Title>}
       {guidance && <div className="ui-empty__sub">{guidance}</div>}
       {actions && <div className="ui-empty__actions">{actions}</div>}
     </div>

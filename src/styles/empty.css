@@ -68,20 +68,21 @@
 }
 
 /* #850: a no-results state sits on the column edge with a larger display-face title
-   and no picture, so the words lead and the action stands on the reading line. */
+   and no picture, so the words lead and the action stands on the reading line.
+   The title is an h2, so base.css gives it the display face. */
 .ui-empty--edge {
   align-items: flex-start;
   text-align: left;
   padding: var(--space-6) 0;
 }
 .ui-empty--edge .ui-empty__title {
-  font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: var(--weight-semibold);
   margin-top: 0;
 }
 /* #850: a blank first-run state holds its words in a tinted panel with a display-face
-   title, one rung above the page like an accent card. */
+   title, one rung above the page like an accent card. The title is an h2, so
+   base.css gives it the display face. */
 .ui-empty--panel {
   align-items: flex-start;
   text-align: left;
@@ -91,7 +92,6 @@
   border-radius: var(--radius-xl);
 }
 .ui-empty--panel .ui-empty__title {
-  font-family: var(--font-display);
   font-size: var(--text-xl);
   font-weight: var(--weight-semibold);
   margin-top: 0;

@@ -142,15 +142,15 @@
 
 <!-- rule: branded-background -->
 
-**Rule:** Give each product its own branded background behind a dialog-only page, static or in slow motion.
+**Rule:** Give each product its own branded background behind a dialog-only page.
 
-**Why:** The kit ships one default gradient. A product's own background makes the sign-in or consent page recognisably theirs.
+**Why:** The kit's one default gradient does not distinguish a product.
 
-**Do:** Set a product colour or a slow-moving gradient behind the dialog. The kit default stays when a product sets none.
+**Do:** Set a product colour or a slow-moving gradient behind the dialog. The kit default stays otherwise.
 
-**Don't:** Put a field, a label or a button on the branded ground. Keep the task inside the dialog.
+**Don't:** Put no field, label or button on the branded ground. Keep the task inside the dialog.
 
-**Except:** The brand wordmark and a slogan may stand on the ground, and a dialog clears 3:1 against its ground in both themes, except the kit's split sign-in ground C, which the owner chose at 1.60:1 to 1.51:1 in light and 1.08:1 to 1.04:1 in dark.
+**Except:** A wordmark and a slogan may stand on the ground. A dialog clears 3:1 against its ground in both themes, except split sign-in ground C, which the owner chose at 1.60:1 to 1.51:1 light and 1.08:1 to 1.04:1 dark.
 
 ## Write a useful introduction
 

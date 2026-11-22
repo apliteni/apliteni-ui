@@ -951,7 +951,7 @@
  "_empty-states.js": {
   "next-action": [
    {
-    "ref": "react/src/EmptyState.tsx:22",
+    "ref": "react/src/EmptyState.tsx:25",
     "pattern": "export function EmptyState("
    }
   ]
