@@ -228,7 +228,7 @@
     "pattern": "role=\"status\" aria-live=\"polite\""
    },
    {
-    "ref": "react/src/dialog.ts:155",
+    "ref": "react/src/dialog.ts:169",
     "pattern": "function returnFocus(opener: Element | null, fallback: Element | null)"
    }
   ],
