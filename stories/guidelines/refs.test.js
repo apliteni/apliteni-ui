@@ -305,7 +305,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
   // 151: Component choice lost one-category (#832).
   // 152: The page gained sidebar (#843).
-  assert.equal(count, 152, 'update the rule count when adding or removing a rule');
+  // 153: The page gained bar-end (#847).
+  assert.equal(count, 153, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

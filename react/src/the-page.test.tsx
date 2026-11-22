@@ -63,7 +63,7 @@ const GATED: { id: string; says: string }[] = [
 ];
 
 // The floors are what the tree holds today, not a round number underneath it.
-const FOUND = { files: 11, screens: 31, apps: 25, ledes: 22, sidebars: 29 };
+const FOUND = { files: 11, screens: 31, apps: 25, ledes: 22, sidebars: 29, bandEnds: 3 };
 
 describe('the page: React screens', () => {
   it('found the kit’s own screens', () => {
@@ -92,6 +92,17 @@ describe('the page: React screens', () => {
     doc.body.innerHTML = '<nav class="ui-nav ui-nav--side" aria-label="Sections"><div class="ui-nav__section">'
       + '<div class="ui-nav__cap">Money</div><ul class="ui-nav__list"><li><ul class="ui-nav__sub"></ul></li></ul></div></nav>';
     expect(CHECKS.sidebar({ ...drawn[0], where: 'mixed', doc })).toHaveLength(1);
+  });
+
+  // `bar-end` only reads a band with actions, so this counts them, and a worded page
+  // button or a third control at the band's end must fail it.
+  it('the bar-end check reaches band actions and refuses a page button', () => {
+    const drawn = screens.filter((s) => s.doc.querySelector('.ui-react-app__band-actions'));
+    expect(drawn.length, 'screens with band actions').toBeGreaterThanOrEqual(FOUND.bandEnds);
+    const doc = document.implementation.createHTMLDocument('worded');
+    doc.body.innerHTML = '<header class="ui-app__bar"><div class="ui-react-app__band-actions">'
+      + '<button aria-label="Notifications">3</button><button>New report</button><button aria-label="Help"></button></div></header>';
+    expect(CHECKS['bar-end']({ ...drawn[0], where: 'worded', doc })).toHaveLength(2);
   });
 
   for (const rule of GATED) {

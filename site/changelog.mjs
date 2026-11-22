@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.185.0', date: '2026-11-22',
+    changes: [
+      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre while it has room; with no sidebar they stand before the theme switch. Each action is a 40px square, and a count stands above the bell’s top corner, clear of the next control. Topbar layout only. Resolves #847.', ['AppShell']],
+      ['changed', 'With no sidebar, the band gives search 12px more room from 561px, so its words stay whole beside a band action. Refs #847.', ['AppShell']],
+      ['added', 'The page guideline has a new rule, Keep the bar’s end for product alerts: only glyph controls that serve every page, such as the bell, go there. Resolves #847.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.184.0', date: '2026-11-22',
     changes: [
       ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],

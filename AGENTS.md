@@ -226,6 +226,14 @@ to three short sentences, with no praise, no filler and no test diary. Add detai
 migration step or a behaviour limit. `site/changelog.mjs` stays pure — no git and no filesystem;
 `site/build.mjs` owns the git calls. Keep deploy specifics out of committed files.
 
+## Check the band actions locally
+
+Before opening a PR that changes the band actions' rules in `react/src/AppShell.css`, or the
+band's title or search from 561px to 800px, measure the band in a real browser:
+`npm run build-storybook`, then
+`UI_PLAYWRIGHT=… BAND_ACTIONS=1 node --test stories/band-actions.test.js`
+Report the result in the PR. CI skips this check because Playwright is not a dependency.
+
 ## Check the account menu at the phone breakpoint locally
 
 Before opening a PR that changes React `<AccountMenu>` or how it leaves with the sidebar,

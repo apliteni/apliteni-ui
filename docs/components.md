@@ -179,6 +179,19 @@ holds each line of text that the button shows, and the menu takes the same name.
   reload. If your `palette` sets its own `onNavigate`, the shell uses that one.
 - `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
   head, before the fold button.
+- `bandActions` puts glyph controls, such as a notification bell, at the right end of the band,
+  in each sidebar structure and at every width. With a sidebar, they stand before the menu
+  button, and search keeps the centre of the band while it has room. Where the band is short of
+  room, search moves off the centre and shrinks, and never goes under an action. With no
+  sidebar, they stand before the theme switch. Put one or two there, and give each one a hover
+  title. Each action there is a 40px square with a 17px glyph, a `Button` and a dropdown trigger
+  alike, and the glyph stays in the centre of its square with or without a count. A count in a
+  dropdown trigger is a red pill on the trigger's top end corner, with a 2px ring in the band's
+  colour that cuts it from the glyph. The focus ring passes under it, so no ring line crosses the
+  digits. A long count, such as 99+, grows over the glyph and stays clear of the next control.
+  Give the trigger a name that holds the count it shows, such as "Notifications, 99+ unread".
+  Below 560px,
+  each action is a 40px glyph with no border and keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.
 
@@ -189,7 +202,7 @@ holds each line of text that the button shows, and the menu takes the same name.
   name and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
   column, so a click beside it reaches the page.
 - At 720px and below, the sidebar goes away and a 52px band shows. In the topbar layout, the band
-  holds the brand mark, the page title on one line, the search trigger and a menu button. In the
+  holds the brand mark, the page title on one line, the search trigger, the band actions and a menu button. In the
   rail layout, it holds only the menu button and the mark. The menu button opens the full section
   list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
   layout and the left in the rail layout. `drawerSide` chooses the side in either layout. The
