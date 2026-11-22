@@ -355,24 +355,29 @@ function useTapFloor() {
  * prints a word over its neighbour.
  */
 function useTextWidth(host: RefObject<HTMLElement | null>) {
-  const [font, setFont] = useState('');
+  const [face, setFace] = useState<{ regular: string; medium: string } | null>(null);
   // A web font that arrives after the first draw changes every width.
   const [loaded, setLoaded] = useState(0);
   useEffect(() => {
     const el = host.current;
     if (!el || typeof OffscreenCanvas === 'undefined') return;
     const style = getComputedStyle(el);
-    setFont(`${style.fontWeight} ${TEXT_SIZE}px ${style.fontFamily}`);
+    // The group label is drawn at --weight-medium, which is wider than the body weight.
+    const font = (weight: string) => `${weight} ${TEXT_SIZE}px ${style.fontFamily}`;
+    setFace({ regular: font(style.fontWeight), medium: font(style.getPropertyValue('--weight-medium').trim() || '500') });
     let live = true;
     el.ownerDocument.fonts?.ready.then(() => { if (live) setLoaded((n) => n + 1); });
     return () => { live = false; };
   }, [host]);
   return useMemo(() => {
     void loaded;
-    const ctx = font ? new OffscreenCanvas(1, 1).getContext('2d') : null;
-    if (ctx) ctx.font = font;
-    return (text: string) => (ctx ? Math.ceil(ctx.measureText(text).width) : text.length * TEXT_SIZE * 0.62);
-  }, [font, loaded]);
+    const ctx = face ? new OffscreenCanvas(1, 1).getContext('2d') : null;
+    return (text: string, medium = false) => {
+      if (!ctx || !face) return text.length * TEXT_SIZE * 0.62;
+      ctx.font = medium ? face.medium : face.regular;
+      return Math.ceil(ctx.measureText(text).width);
+    };
+  }, [face, loaded]);
 }
 
 /** What a bar is worth: its length, read in the direction its band grows. */
@@ -1170,7 +1175,7 @@ export function Chart(props: ChartProps) {
                   <line className="ui-chart__boundary"
                     x1={px(groupX)} x2={px(groupX)} y1={BOUNDARY_TOP} y2={px(plotHeight - PAD)} />
                   <text className="ui-chart__text ui-chart__group" y={GROUP_BASELINE}
-                    x={px(Math.max(0, Math.min(groupX + TEXT_GAP, plotWidth - textWidth(GROUP_WORDS))))}
+                    x={px(Math.max(0, Math.min(groupX + TEXT_GAP, plotWidth - textWidth(GROUP_WORDS, true))))}
                   >{GROUP_WORDS}</text>
                 </>
               )}

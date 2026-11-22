@@ -656,6 +656,20 @@ it('draws one solid boundary and the words "Not final" before the first unfinish
   expect(line.querySelector('.ui-chart__boundary'), 'the months chart draws it').toBeNull();
 });
 
+// #842: the label is drawn at --weight-medium and was measured at the body
+// weight, so in a 154px plot its last letters ran past the plot's edge.
+it('keeps the words "Not final" inside a narrow plot, measured at their own weight', () => {
+  const ctx = { font: '', measureText(text: string) { return { width: text.length * (this.font.startsWith('500') ? 6 : 5) }; } };
+  vi.stubGlobal('OffscreenCanvas', class { getContext() { return ctx; } });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(154);
+  const { container } = render(<Chart title="Cash" format={eur}
+    periods={forecast.map((p, i) => (i < 4 ? { label: p.label } : p))} series={forecastSeries} />);
+  const label = container.querySelector('text.ui-chart__group')!;
+  expect(Number(label.getAttribute('x')) + 'Not final'.length * 6, 'the label ends inside the plot')
+    .toBeLessThanOrEqual(154);
+  vi.unstubAllGlobals();
+});
+
 it('prints a period with compare: false with its value and no comparison text', async () => {
   const user = userEvent.setup();
   const { container } = render(<Chart title="Margin" format={eur}
