@@ -1,5 +1,6 @@
 // DOM behavior only; Storybook captures cover the shared CSS and reduced motion.
 import { useState } from 'react';
+import { readFileSync } from 'node:fs';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -32,6 +33,27 @@ it('uses the vanilla classes and links tabs to focusable panels', () => {
   expect(screen.getByRole('tab', { name: 'Settings 12' })).toBeInTheDocument();
   expect(screen.queryByText('Recent activity')).not.toBeInTheDocument();
   expect(screen.getByRole('tabpanel')).not.toHaveClass('is-entering');
+});
+
+it('keeps tools outside the tablist and reaches them after the active tab', async () => {
+  render(<Tabs items={items} value="overview" onChange={() => {}} label="Account sections"
+    tools={<button type="button">September 2026</button>} />);
+  const user = userEvent.setup();
+  const tools = screen.getByText('September 2026');
+  expect(tools.parentElement).toHaveClass('ui-tabs__tools');
+  expect(screen.getByRole('tablist')).not.toContainElement(tools);
+  await user.tab();
+  expect(screen.getByRole('tab', { name: 'Overview' })).toHaveFocus();
+  await user.keyboard('{ArrowRight}');
+  expect(screen.getByRole('tab', { name: 'Activity 0' })).toHaveFocus();
+  await user.tab();
+  expect(tools).toHaveFocus();
+});
+
+it('moves tools above the tab row only when the row must wrap', () => {
+  const css = readFileSync('../src/styles/tabs.css', 'utf8');
+  expect(css).toMatch(/\.ui-tabs__row \{[\s\S]*?flex-wrap: wrap-reverse;/);
+  expect(css).toMatch(/\.ui-tabs__tools \{ margin-left: auto; \}/);
 });
 
 it('requests changes without selecting until the host supplies the value', async () => {

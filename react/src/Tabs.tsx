@@ -7,6 +7,7 @@ export type TabsProps = {
   value: string;
   onChange: (value: string) => void;
   label: string;
+  tools?: ReactNode;
 };
 
 /** The tab a key moves to from tab `i` of `count`, or undefined for a key a tab row ignores. */
@@ -20,7 +21,7 @@ export function tabKeyIndex(key: string, i: number, count: number): number | und
   }
 }
 
-export function Tabs({ items, value, onChange, label }: TabsProps) {
+export function Tabs({ items, value, onChange, label, tools }: TabsProps) {
   const id = useId();
   const previous = useRef(value);
   const activePanel = useRef<HTMLDivElement>(null);
@@ -32,19 +33,22 @@ export function Tabs({ items, value, onChange, label }: TabsProps) {
   }, [value]);
 
   return <div className="ui-tabs">
-    <div className="ui-tabs__list" role="tablist" aria-label={label}>
-      {items.map((item, i) => <button key={item.value} type="button" role="tab"
-        ref={el => { buttons.current[i] = el; }}
-        className={`ui-tabs__tab${item.value === value ? ' is-active' : ''}`}
-        id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
-        aria-selected={item.value === value} tabIndex={item.value === value ? 0 : -1}
-        onClick={() => onChange(item.value)} onKeyDown={event => {
-          const next = tabKeyIndex(event.key, i, items.length);
-          if (next === undefined) return;
-          event.preventDefault();
-          buttons.current[next]?.focus();
-          onChange(items[next].value);
-        }}>{item.label}{item.count != null && <> {item.count}</>}</button>)}
+    <div className="ui-tabs__row">
+      <div className="ui-tabs__list" role="tablist" aria-label={label}>
+        {items.map((item, i) => <button key={item.value} type="button" role="tab"
+          ref={el => { buttons.current[i] = el; }}
+          className={`ui-tabs__tab${item.value === value ? ' is-active' : ''}`}
+          id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
+          aria-selected={item.value === value} tabIndex={item.value === value ? 0 : -1}
+          onClick={() => onChange(item.value)} onKeyDown={event => {
+            const next = tabKeyIndex(event.key, i, items.length);
+            if (next === undefined) return;
+            event.preventDefault();
+            buttons.current[next]?.focus();
+            onChange(items[next].value);
+          }}>{item.label}{item.count != null && <> {item.count}</>}</button>)}
+      </div>
+      {tools && <div className="ui-tabs__tools">{tools}</div>}
     </div>
     <div className="ui-tabs__panels">
       {items.map((item, i) => <div key={item.value} className="ui-tabs__panel" role="tabpanel"

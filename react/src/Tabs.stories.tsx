@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { DatePicker } from './DatePicker';
 import { Tabs } from './Tabs';
 
-const meta: Meta<typeof Tabs> = { title: 'React/Tabs', component: Tabs };
+const meta: Meta<typeof Tabs> = { title: 'React/Tabs', component: Tabs, parameters: { viewport: { options: {
+  phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' },
+} } } };
 export default meta;
 
 function Example({ counts = false, initial = 'overview' }) {
@@ -20,4 +23,19 @@ export const Active: StoryObj<typeof Tabs> = { render: () => <Example initial="a
 export const Hover: StoryObj<typeof Tabs> = {
   render: () => <Example />,
   parameters: { docs: { description: { story: 'Hover a tab to see its hover state.' } } },
+};
+
+function WithMonthControl() {
+  const [value, onChange] = useState('overview');
+  return <Tabs label="Unit view" value={value} onChange={onChange} tools={<DatePicker ariaLabel="Month" defaultValue="2026-09" align="end" />}
+    items={[
+      { value: 'overview', label: 'Overview', panel: <p>Unit overview</p> },
+      { value: 'activity', label: 'Activity', panel: <p>Unit activity</p> },
+      { value: 'settings', label: 'Settings', panel: <p>Unit settings</p> },
+    ]} />;
+}
+
+export const WithPageControl: StoryObj<typeof Tabs> = { render: () => <WithMonthControl /> };
+export const WithPageControlPhone: StoryObj<typeof Tabs> = {
+  globals: { viewport: { value: 'phone', isRotated: false } }, render: () => <WithMonthControl />,
 };

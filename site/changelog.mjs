@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.187.0', date: '2026-11-22',
+    changes: [
+      ['added', 'React `Tabs` takes `tools` for a page control, such as a month picker, at the end of the tab row. The control stays outside the tablist and moves above the row when the row is full. Part of #858.', ['Tabs']],
+    ],
+  },
+  {
     v: '0.184.0', date: '2026-11-22',
     changes: [
       ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],

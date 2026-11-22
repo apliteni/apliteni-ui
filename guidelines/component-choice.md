@@ -44,15 +44,15 @@
 
 <!-- rule: panels -->
 
-**Rule:** Use `tabs()` to switch panels and `segmented()` for a choice that owns no panel, such as a value, filter or sort order.
+**Rule:** Put a period control at the end of a tab row; use a separate control for a filter or sort order.
 
-**Why:** A tablist promises a panel and arrow-key support; a strip without either fails the reader.
+**Why:** A tablist promises panels and arrow keys, but a period or filter changes the whole view.
 
 **Except:** Links between locations are neither; the kit’s nav uses aria-current, not a tablist.
 
-**Do:** Use a segmented control to filter one list by Any, Verified or Pending.
+**Do:** Put a month control at the end of a report’s Chart and Table tab row.
 
-**Don't:** Give those same list filters tab roles when they have no separate panels.
+**Don't:** Style a report filter as a tab beside Chart and Table.
 
 ## Open a panel at its control
 

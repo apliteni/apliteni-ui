@@ -3,11 +3,19 @@
  * A tablist with an underline indicator + panels. Markup comes from tabs() in
  * components/tabs.js; wire it with initTabs(). Colours read the accent tokens.
  * ========================================================================== */
+.ui-tabs__row {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  align-items: baseline;
+  gap: var(--space-2);
+}
 .ui-tabs__list {
   display: flex;
+  flex: 1 1 auto;
   gap: 2px;
   border-bottom: 1px solid var(--border);
 }
+.ui-tabs__tools { margin-left: auto; }
 .ui-tabs__tab {
   appearance: none;
   background: none;

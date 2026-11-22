@@ -667,12 +667,15 @@ Use `Tabs` when each choice shows a different block of content on the same page.
 [`NavTabs`](#route-tabs) when each choice is its own address.
 
 ```tsx
-<Tabs label="Invoice" value={tab} onChange={setTab}
+<Tabs label="Invoice" value={tab} onChange={setTab} tools={<DatePicker ariaLabel="Month" mode="month" />}
   items={[{ value: 'lines', label: 'Lines', count: 12, panel: <Lines /> }, { value: 'notes', label: 'Notes', panel: <Notes /> }]} />
 ```
 
 It draws a tablist and the panel of the chosen tab. Content of the other panels is not mounted.
 The arrow keys, Home and End move between tabs and choose them.
+
+Use `tools` for a page control that changes the whole view, such as a month. The tool follows the
+active tab in keyboard order. It stays outside the tablist and moves above the tab row when needed.
 
 ### Filter bar
 

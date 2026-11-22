@@ -6,6 +6,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { Dropdown, type DropdownProps } from '../../react/src/Dropdown';
+import { DatePicker } from '../../react/src/DatePicker';
 import { Segmented } from '../../react/src/Segmented';
 import { SidebarNav } from '../../react/src/SidebarNav';
 import { Success, SuccessPanel } from '../../react/src/Success';
@@ -57,7 +58,8 @@ const specimens = [
     do: () => <Stage><Callout variant="warn">This token is shown once. Copy it now — you won’t see it again.</Callout></Stage>,
     dont: () => <Stage><NoticePicture tone="warn" title="This token is shown once" text="Copy it now — you won’t see it again." /></Stage> },
   { id: 'panels',
-    do: () => <Stage><Segmented options={FILTERS.map(label => ({ label, value: label }))} value="Pending" onChange={noop} label="Status filter" /></Stage>,
+    do: () => <Stage><Tabs label="Report view" value="Summary" onChange={noop} tools={<DatePicker ariaLabel="Month" defaultValue="2026-09" align="end" />}
+      items={['Summary', 'Details'].map(label => ({ value: label, label, panel: null }))} /></Stage>,
     dont: () => <Stage><Tabs label="Status filter" value="Pending" onChange={noop}
       items={FILTERS.map(label => ({ value: label, label, panel: null }))} /></Stage> },
   { id: 'panel-origin', do: () => <MenuOrigin side="right" />, dont: () => <MenuOrigin side="left" /> },
