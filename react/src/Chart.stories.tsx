@@ -18,7 +18,7 @@ const SPEND = [29870, 30410, 31220, 30980, 32140, 31760, 32900, 33410, 32780, 33
 const NET = INCOME.map((value, i) => value - SPEND[i]);
 
 const periods: ChartPeriod[] = MONTHS.map((label, i) => (i === MONTHS.length - 1
-  ? { label, estimated: true, note: 'November is still running' }
+  ? { label, estimated: 'incomplete' }
   : { label }));
 
 /* Two hues for the two measured series, and a third for the one derived from
@@ -63,9 +63,9 @@ export const AsTable: StoryObj = {
   },
 };
 
-/** The same months with no unfinished period: every column solid, so the hollow
- *  one beside them in every other story reads as the exception it is. The story's
- *  id is kept from the round that named it after the fade it no longer draws. */
+/** The same months with no unfinished period, so no readout names a state.
+ *  The story's id is kept from the round that named it after the fade it no
+ *  longer draws. */
 export const Solid: StoryObj = {
   render: () => (
     <Card title="Income and spend">
@@ -74,6 +74,55 @@ export const Solid: StoryObj = {
         series={series.map((s) => ({ ...s, values: s.values.slice(0, 11) }))}
         format={eur} formatAxis={eurAxis} />
     </Card>
+  ),
+};
+
+/* A year and two years of made-up revenue and cash for the forecast stories
+   (#841): the last month to close is October, November is still running, and
+   the months after it are projected. */
+const YEAR_AHEAD = ['Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026',
+  'Sep 2026', 'Oct 2026', 'Nov 2026', 'Dec 2026', 'Jan 2027', 'Feb 2027'];
+const notFinal = (label: string, i: number, count: number): ChartPeriod => ({
+  label,
+  compare: false,
+  ...(i === count - 4 ? { estimated: 'incomplete' as const }
+    : i > count - 4 ? { estimated: 'projected' as const } : {}),
+});
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const TWO_YEARS = Array.from({ length: 24 }, (_, i) => `${MONTH_NAMES[(i + 2) % 12]} ${2025 + Math.floor((i + 2) / 12)}`);
+const CASH_IN = [31200, 33850, 30410, 35120, 36240, 29980, 37310, 38860, 40120, 43570, 36640, 35290,
+  41830, 44910, 43060, 47720, 45530, 40370, 49640, 52190, 31400, 54500, 56000, 51500];
+
+/** Look A, with a value on each bar and no comparison in the readout (#841).
+ *  One solid line stands before November, the running month, and "Not final"
+ *  stands over it and the three projected months. Every bar stays solid in the
+ *  series tone; the readout and the table say "Incomplete" or "Projected". */
+export const Forecast: StoryObj = {
+  render: () => (
+    <Card title="Revenue">
+      <Chart title="Revenue by month, with three projected months"
+        periods={YEAR_AHEAD.map((label, i) => notFinal(label, i, YEAR_AHEAD.length))}
+        series={[{ id: 'revenue', name: 'Revenue', tone: 'accent',
+          values: [44120, 47310, 45240, 50390, 48070, 42650, 52280, 55010, 39180, 57500, 59600, 54000] }]}
+        format={eur} formatAxis={eurAxis} values />
+    </Card>
+  ),
+};
+
+/** Twenty-four months in a plot 154px wide (#841). Every bar is drawn and
+ *  nothing scrolls. A value prints where it fits at the 12px text size, so here
+ *  none does, and every other label steps back from November. */
+export const TwentyFourMonths: StoryObj = {
+  render: () => (
+    // The card's padding and the value axis take 86px, so the plot is 154px.
+    <div style={{ width: 240 }}>
+      <Card title="Cash in">
+        <Chart title="Cash in by month, two years, with three projected months" height={154}
+          periods={TWO_YEARS.map((label, i) => notFinal(label, i, TWO_YEARS.length))}
+          series={[{ id: 'in', name: 'Cash in', tone: 'good', values: CASH_IN }]}
+          format={eur} formatAxis={eurAxis} values />
+      </Card>
+    </div>
   ),
 };
 
@@ -139,8 +188,8 @@ export const Bridge: StoryObj = {
   ),
 };
 
-/** The phone width the acceptance names. The axis stays put, the plot scrolls,
- *  A column cut by the edge shows that more months are there. */
+/** The phone width the acceptance names. The plot takes the card's width, so
+ *  every month is drawn and nothing scrolls; the labels step where they do not fit. */
 export const Narrow: StoryObj = {
   render: () => (
     <div style={{ maxWidth: 'var(--panel-sm)' }}>
@@ -246,12 +295,12 @@ const lookCard = (title: string, chart: ReactNode) => (
 );
 
 export const LineThin: StoryObj = {
-  render: () => lookCard('Income and spend', <Chart variant="line" look="thin"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="thin" legend
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 export const LinePoints: StoryObj = {
-  render: () => lookCard('Income and spend', <Chart variant="line" look="points"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="points" legend
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };

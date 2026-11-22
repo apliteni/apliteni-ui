@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { AppShell, type AppShellGroup, type AppShellProps, type AppShellSection } from './AppShell';
 import { Card } from './primitives/Card';
 import { Badge } from './primitives/Badge';
+import { Icon } from './primitives/Icon';
+import { bellCount, bellName } from './showcases/Notifications';
 import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { DatePicker } from './DatePicker';
@@ -97,6 +99,7 @@ const meta: Meta<typeof AppShell> = {
   title: 'React/AppShell', component: AppShell, parameters: { layout: 'fullscreen', viewport: { options: {
     tablet: { name: 'Tablet', styles: { width: '700px', height: '800px' }, type: 'tablet' },
     phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' },
+    desktop: { name: 'Desktop', styles: { width: '1280px', height: '800px' }, type: 'desktop' },
   } } },
   render,
 };
@@ -188,3 +191,35 @@ export const GroupsPhone: Story = { render, globals: { viewport: { value: 'phone
 export const RailGroups: Story = { render, args: { layout: 'rail', groups, pathname: '/payouts' } };
 export const RailGroupsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
   args: { layout: 'rail', groups, pathname: '/payouts' }, play: openMenu };
+
+// A notifications bell at the band's right end, at 1280px and 390px, dark and light, in
+// each sidebar structure and with no sidebar (#847). The count stands above the bell's
+// top end corner, and a read bell shows none. Above 99 it reads 99+, and so does its name.
+// A second action is a ghost Button.
+const endBell = (unread: number) => <Dropdown variant="menu" align="end" chevron={false} title="Notifications"
+  ariaLabel={bellName(unread)}
+  triggerContent={<><Icon name="bell" />{unread > 0 && <span aria-hidden="true"><Badge>{bellCount(unread)}</Badge></span>}</>}
+  header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
+  items={[{ label: 'Payout run PR-204 failed', value: 'payout', href: '#payout' },
+    { label: 'CMP-88 assigned to you', value: 'assign', href: '#assign' },
+    { label: 'Jon Avery commented', value: 'comment', href: '#comment' }]} />;
+const bandBell = endBell(3);
+const more = <Button variant="ghost" icon="moreHorizontal" iconOnly aria-label="More actions" title="More actions" />;
+const bandPair = <>{bandBell}{more}</>;
+const manyPair = <>{endBell(120)}{more}</>;
+const desktop = { viewport: { value: 'desktop', isRotated: false } };
+const phone = { viewport: { value: 'phone', isRotated: false } };
+const alone = { sections: [{ href: '/overview', label: 'Overview', icon: 'chart' }], pathname: '/overview' } satisfies Partial<AppShellProps>;
+export const BandActions: Story = { render, globals: desktop, args: { bandActions: bandBell } };
+export const BandActionsLight: Story = { render, globals: { ...desktop, theme: 'light' }, args: { bandActions: bandBell } };
+export const BandActionsPhone: Story = { render, globals: phone, args: { bandActions: bandBell } };
+export const BandActionsPhoneLight: Story = { render, globals: { ...phone, theme: 'light' }, args: { bandActions: bandBell } };
+export const BandActionsGroups: Story = { render, globals: desktop, args: { groups, pathname: '/payouts', bandActions: bandBell } };
+export const BandActionsSubItems: Story = { render, globals: desktop, args: { sections: nested, pathname: '/payouts/pending', bandActions: bandBell } };
+export const BandActionsAlone: Story = { render, globals: desktop, args: { ...alone, bandActions: bandBell } };
+export const BandActionsAlonePhone: Story = { render, globals: phone, args: { ...alone, bandActions: bandBell } };
+export const BandActionsPair: Story = { render, globals: desktop, args: { bandActions: bandPair } };
+export const BandActionsPairPhone: Story = { render, globals: phone, args: { bandActions: bandPair } };
+export const BandActionsReadPhone: Story = { render, globals: phone, args: { bandActions: endBell(0) } };
+export const BandActionsMany: Story = { render, globals: desktop, args: { bandActions: manyPair } };
+export const BandActionsManyPhone: Story = { render, globals: phone, args: { bandActions: endBell(120) } };

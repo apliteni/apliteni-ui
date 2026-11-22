@@ -15,6 +15,25 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.185.0', date: '2026-11-22',
+    changes: [
+      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre while it has room; with no sidebar they stand before the theme switch. Each action is a 40px square, and a count stands above the bell’s top corner, clear of the next control. Topbar layout only. Resolves #847.', ['AppShell']],
+      ['changed', 'With no sidebar, the band gives search 12px more room from 561px, so its words stay whole beside a band action. Refs #847.', ['AppShell']],
+      ['added', 'The page guideline has a new rule, Keep the bar’s end for product alerts: only glyph controls that serve every page, such as the bell, go there. Resolves #847.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.184.0', date: '2026-11-22',
+    changes: [
+      ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],
+      ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the running period and `estimated: \'projected\'` for a future one. The readout and the table then say "Incomplete" or "Projected". A period with `compare: false` shows its value in the readout with no comparison text. Resolves #841.', ['Chart']],
+      ['changed', 'A months `Chart` fits its card and no longer scrolls. Its bars are one flat fill, two thirds of the column wide and at most 48px. Where the period labels do not fit, it prints fewer of them. Resolves #841.', ['Chart']],
+      ['added', 'A months `Chart` takes `values` to print each bar\'s value past its end, in `formatAxis`: over a bar that grows up from zero, and under one that grows down. A value that would meet the next value at the 12px text size is left out, and the readout and the table keep it. A chart that prints no value gives that room to its bars. Resolves #841.', ['Chart']],
+      ['fixed', 'A `Chart` readout opens above its mark whenever the window has room there, also over the chart\'s legend. Before, it opened below a mark near the top of the plot. Resolves #841.', ['Chart']],
+      ['fixed', 'On a touch screen, a new tap on a `Chart` mark opens its readout after Escape closed it, and a tap on another mark moves the readout while the chart has focus. Resolves #841.', ['Chart']],
+    ],
+  },
+  {
     v: '0.181.0', date: '2026-11-21',
     changes: [
       ['added', 'React `ThemeChoice` shows the theme as three picture cards, System, Light and Dark, in one radio group. A choice applies and is stored at once, as with `ThemeToggle`. Resolves #845.', ['ThemeChoice']],

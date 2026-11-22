@@ -24,6 +24,18 @@
 
 **Don't:** Put Payouts and its sub-items under a Money label.
 
+## Keep the bar’s end for product alerts
+
+<!-- rule: bar-end -->
+
+**Rule:** Put only glyph controls that serve every page, such as the notification bell, at the right end of the bar.
+
+**Why:** The reader looks for the bell in the same place on every page, and a phone bar has room for two glyphs at most.
+
+**Do:** Put the bell at the bar’s end, after search.
+
+**Don't:** Put a page’s own button, such as New report, in the bar.
+
 ## Choose content width
 
 <!-- rule: width -->

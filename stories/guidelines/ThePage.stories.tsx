@@ -8,6 +8,9 @@ import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
 import { BackLink } from '../../react/src/BackLink';
+import { Dropdown } from '../../react/src/Dropdown';
+// The shell's own band rules, so the Do picture draws the bell as the shell does.
+import '../../react/src/AppShell.css';
 import { KeyValueList } from '../../react/src/KeyValueList';
 import { SidebarNav, type SidebarNavSections } from '../../react/src/SidebarNav';
 import { RestingFilters } from '../_table-filters';
@@ -93,6 +96,20 @@ const Shells = ({ moved }: { moved: boolean }) => <div className="tp-rows">
   </div>)}
 </div>;
 
+// The bar's right end: the shell's bell, which serves every page, or a page's own button.
+// The shell's class on the stage gives search and the bell the shell's look at each width.
+const BarEnd = ({ page }: { page: boolean }) => <div className="gl-stage tp-screen ui-react-app"><div className="ui-app__bar tp-bar">
+  <button type="button" className="ui-app__search">
+    <span className="ui-app__search-ic"><Icon name="search" /></span>
+    <span className="ui-app__search-txt">Search</span><kbd className="ui-cmdk__key">⌘K</kbd>
+  </button>
+  <span className="ui-app__bar-gap" />
+  {page ? <Button variant="primary" icon="plus">New report</Button>
+    : <div className="ui-react-app__band-actions"><Dropdown variant="menu" align="end" chevron={false} title="Notifications"
+      ariaLabel="Notifications, 3 unread" triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>3</Badge></span></>}
+      items={[{ label: 'Payout run PR-204 failed', value: 'payout' }]} /></div>}
+</div></div>;
+
 // A page head with the shell's own classes, in the order given.
 const Head = ({ parts }: { parts: ('back' | 'title' | 'sub' | 'filters')[] }) => <Stage><div className="ui-app__main tp-head">
   {parts.map(part => part === 'back' ? <BackLink key={part} href="#" label="Payouts" />
@@ -131,6 +148,7 @@ const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="
 const specimens = [
   { id: 'layout', do: () => <Shells moved={false} />, dont: () => <Shells moved /> },
   { id: 'sidebar', do: () => <Side mixed={false} />, dont: () => <Side mixed /> },
+  { id: 'bar-end', do: () => <BarEnd page={false} />, dont: () => <BarEnd page /> },
   { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
   { id: 'head', do: () => <Head parts={['back', 'title', 'sub', 'filters']} />,
     dont: () => <Head parts={['back', 'filters', 'title', 'sub']} /> },
