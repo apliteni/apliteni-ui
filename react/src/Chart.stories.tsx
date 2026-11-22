@@ -295,12 +295,12 @@ const lookCard = (title: string, chart: ReactNode) => (
 );
 
 export const LineThin: StoryObj = {
-  render: () => lookCard('Income and spend', <Chart variant="line" look="thin"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="thin" legend
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
 export const LinePoints: StoryObj = {
-  render: () => lookCard('Income and spend', <Chart variant="line" look="points"
+  render: () => lookCard('Income and spend', <Chart variant="line" look="points" legend
     title="Income and spend by month, last 12 months" periods={year} series={flows}
     format={eur} formatAxis={eurAxis} />),
 };
