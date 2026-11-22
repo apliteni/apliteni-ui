@@ -17,7 +17,8 @@ describe('sign-in flow', () => {
   it('walks a session from in use to ended, error, retry and back, and keeps the search text', async () => {
     const { rerender } = render(<InUse />);
     const search = screen.getByRole('searchbox', { name: 'Search payouts' });
-    expect(search).toHaveValue('PO-1170');
+    fireEvent.change(search, { target: { value: 'PO-1171' } });
+    expect(search).toHaveValue('PO-1171');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     rerender(<InUse session="ended" />);
@@ -38,7 +39,7 @@ describe('sign-in flow', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), ANSWER);
     expect(screen.queryByText(/You are signed out/)).not.toBeInTheDocument();
     expect(document.querySelector('.ui-skel--table')).not.toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1170');
+    expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1171');
     expect(screen.getByText('Filtered to pending, this week.')).toBeInTheDocument();
   });
 
