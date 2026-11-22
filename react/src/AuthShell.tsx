@@ -10,11 +10,19 @@ export type AuthShellProps = Omit<HTMLAttributes<HTMLDivElement>, 'children'> & 
   split?: boolean;
   /** A slogan under the brand in the split layout's brand half. */
   tagline?: ReactNode;
+  /** The brand stands on the branded ground above the card, not inside it. #850 */
+  brandAbove?: boolean;
 };
 
 /** Centers one auth task on the kit's auth card, or splits the brand and the task. */
-export const AuthShell = forwardRef<HTMLDivElement, AuthShellProps>(function AuthShell({ brand, children, split, tagline, className, ...rest }, ref) {
-  const cls = ['ui-auth', split && 'ui-auth--split', className].filter(Boolean).join(' ');
+export const AuthShell = forwardRef<HTMLDivElement, AuthShellProps>(function AuthShell({ brand, children, split, tagline, brandAbove, className, ...rest }, ref) {
+  const cls = ['ui-auth', split && 'ui-auth--split', brandAbove && 'ui-auth--brand-above', className].filter(Boolean).join(' ');
+  if (!split && brandAbove) {
+    return <div {...rest} ref={ref} className={cls}>
+      <div className="ui-auth__brand">{brand}</div>
+      <div className="ui-auth__card">{children}</div>
+    </div>;
+  }
   if (!split) {
     return <div {...rest} ref={ref} className={cls}>
       <div className="ui-auth__card">

@@ -14,6 +14,7 @@ import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
+import { Icon } from '../../react/src/primitives/Icon';
 
 const meta: Meta = { title: 'Showcases/Access & Agents', id: 'apps-access-agents', excludeStories: ['AccessFlow'], parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -96,7 +97,7 @@ export function AccessFlow({ initialState = 'list' }: { initialState?: AccessSta
 
   const createFooter = <>
     <Button variant="secondary" onClick={() => navigate(origin)}>Cancel</Button>
-    <Button variant="primary" onClick={() => {
+    <Button variant="primary" icon="plus" onClick={() => {
       if (!draft.name.trim()) { navigate('create-error'); return; }
       const name = draft.name.trim();
       setCreated({ name, access: draft.access, created: '22 Nov 2026', last: 'Never used', expires: expiryOf(draft.expiry, draft.date), state: 'agent' });
@@ -108,9 +109,11 @@ export function AccessFlow({ initialState = 'list' }: { initialState?: AccessSta
   const list = (status?: string) => <div className="ui-card-stack">
     {status && <p role="status">{status}</p>}
     {agents.length
-      ? agents.map((a) => <Card key={a.name} level={3} href={`#${a.state}`}
+      ? agents.map((a) => <Card key={a.name} level={3} href={`#${a.state}`} onClick={() => setSelected(a)}
+        trailing={<Icon name="chevronRight" />}
         title={a.state === 'expired' ? <>{a.name} <Badge variant="danger">Expired</Badge></> : a.name} sub={a.access} />)
-      : <EmptyState title="No agents have access" sub="Create a key and paste the MCP connect command into an agent." />}
+      : <EmptyState variant="no-matches" icon="" title="No agents have access" sub="Create a key and paste the MCP connect command into an agent."
+        actions={<Button variant="primary" icon="plus" onClick={() => { setOrigin('empty'); setDraft({ name: '', access: PRESETS[0], expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create key</Button>} />}
   </div>;
 
   const detailPage = <>
@@ -126,17 +129,17 @@ export function AccessFlow({ initialState = 'list' }: { initialState?: AccessSta
     </Card>
     <div className="ui-card-stack">
       {detail.state === 'expired'
-        ? <Button variant="primary" icon="key" onClick={() => { setOrigin('expired'); setSelected(detail); setDraft({ name: detail.name, access: detail.access, expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create a new key</Button>
+        ? <Button variant="primary" icon="plus" onClick={() => { setOrigin('expired'); setSelected(detail); setDraft({ name: detail.name, access: detail.access, expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create a new key</Button>
         : null}
-      <Button variant="danger" icon="trash" onClick={() => { setSelected(detail); navigate('revoke'); }}>Revoke access</Button>
+      <Button variant="danger" onClick={() => { setSelected(detail); navigate('revoke'); }}>Revoke access</Button>
     </div>
   </>;
 
   return <DemoShell layout="rail" nav={NAV} active="access"
     title={onDetail ? detail.name : 'Access & agents'}
-    lede="Connect agents to read over MCP. Each gets a scoped, revocable key."
+    lede={onDetail ? 'Review this agent\'s access, and revoke it anytime.' : 'Connect agents to read over MCP. Each gets a scoped, revocable key.'}
     back={onDetail ? { href: '#list', label: 'Access & agents' } : undefined}
-    tools={!creating && !keyShown && !onDetail ? <Button icon="key" variant="primary" onClick={() => { setOrigin(screen === 'empty' ? 'empty' : 'list'); setDraft({ name: '', access: PRESETS[0], expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create key</Button> : undefined}>
+    tools={!creating && !keyShown && !onDetail && screen !== 'empty' ? <Button icon="plus" variant="primary" onClick={() => { setOrigin(screen === 'empty' ? 'empty' : 'list'); setDraft({ name: '', access: PRESETS[0], expiry: '30 days', date: '2027-01-15' }); navigate('create'); }}>Create key</Button> : undefined}>
 
     {onDetail ? detailPage : list(screen === 'revoked' ? 'Access revoked (sample).' : undefined)}
 
@@ -164,15 +167,15 @@ export function AccessFlow({ initialState = 'list' }: { initialState?: AccessSta
     {keyShown && <Modal open title="Key created" onClose={() => navigate('list')} footer={<Button variant="primary" onClick={() => navigate('list')}>Done</Button>}>
       <div className="ui-card-stack">
         <p>Copy this key now. It shows only once.</p>
-        <Snippet label="Key" code={DEMO_KEY} />
-        <Snippet label="MCP connect command" code={DEMO_COMMAND}>{highlighted(DEMO_COMMAND)}</Snippet>
+        <Snippet label="Key" code={DEMO_KEY} onCopy={() => navigate('key-copied')} />
+        <Snippet label="MCP connect command" code={DEMO_COMMAND} wrap onCopy={() => navigate('command-copied')}>{highlighted(DEMO_COMMAND)}</Snippet>
         {screen === 'key-copied' && <p role="status">Key copied (sample).</p>}
         {screen === 'command-copied' && <p role="status">Command copied (sample).</p>}
       </div>
     </Modal>}
 
     {revoking && <Modal open title={`Revoke ${detail.name}?`} onClose={() => navigate('revoke-cancelled')} footer={<>
-      <Button variant="secondary" onClick={() => navigate('revoke-cancelled')}>Cancel</Button>
+      <Button variant="ghost" onClick={() => navigate('revoke-cancelled')}>Keep access</Button>
       <Button variant="danger" onClick={() => { setRevokedNames((names) => [...names, detail.name]); navigate('revoked'); }}>Revoke access</Button>
     </>}>
       <p>This key will stop working. The agent will lose its access.</p>

@@ -4,30 +4,40 @@
  * Title row: .ui-card__head holds the title and .ui-card__tools at its end
  * ========================================================================== */
 
-/* #850: the light page takes the card's white, so a card on the page is a grouping of
-   space, not a box. It draws no fill, edge or shadow in either theme, and it hangs its
-   side inset outside the column so its text starts on the page title's edge. Floating
-   panels keep their box; the card does not float, it is the page.
+/* The surface is the step; the line makes it legible. Both themes edge the card with
+   --card-edge: the hairline in dark, --level-line in light. Light also casts --elev-rest,
+   a faint short shadow. Dark casts nothing. Decided on #730.
    why: docs/foundations.md#elevation */
 .ui-card {
-  --ui-card-ground: var(--bg); /* the ground a scrolling row inside covers its edge with; a card is the page now */
-  background: transparent;
-  border: 1px solid transparent;
-  box-shadow: none;
+  --ui-card-ground: var(--surface); /* the ground a scrolling row inside covers its edge with; a tint repeats it below */
+  background: var(--surface);
+  border: 1px solid var(--card-edge);
+  box-shadow: var(--elev-rest);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
   position: relative;
 }
-/* The card's top and bottom inset is gone, so content starts after its title and the
-   section gap, not a box edge, separates one card from the next. The side inset stays and
-   hangs outside the column, so its text lines up with the page title. --pad-lg is the
+/* #850: the light page takes the card's white, so a light card on the page is a grouping
+   of space, not a box. It draws no fill, edge or shadow, and it hangs its side inset
+   outside the column so its text starts on the page title's edge. Dark keeps its card.
+   Floating panels keep their box; the card does not float, it is the page.
+   why: docs/foundations.md#elevation */
+:root[data-theme="light"] .ui-card {
+  --ui-card-ground: var(--bg);
+  background: transparent;
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+/* The light card's top and bottom inset is gone, so content starts after its title and
+   the section gap, not a box edge, separates one card from the next. The side inset stays
+   and hangs outside the column, so its text lines up with the page title. --pad-lg is the
    centred landing card, which keeps its own inset and never hangs out. #850 */
-.ui-card:not(.ui-card--pad-lg) {
+:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg) {
   padding-block: 0;
   margin-inline: calc(-1 * var(--space-6));
 }
 @media (max-width: 560px) {
-  .ui-card:not(.ui-card--pad-lg) {
+  :root[data-theme="light"] .ui-card:not(.ui-card--pad-lg) {
     padding-inline: var(--space-4);
     margin-inline: calc(-1 * var(--space-4));
   }
@@ -46,7 +56,10 @@
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
    (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */
-.ui-card-stack { display: flex; flex-direction: column; gap: var(--space-10); }
+.ui-card-stack { display: flex; flex-direction: column; gap: var(--space-5); }
+/* #850: on the light page a card draws no box, so the stack opens to the page's group gap.
+   why: docs/foundations.md#spacing-and-rhythm */
+:root[data-theme="light"] .ui-card-stack { gap: var(--space-10); }
 
 /* A padding modifier moves the vertical rhythm and keeps the text edge, so cards of
    different padding line up in one column. --pad-lg is the centred landing card, never
@@ -60,16 +73,29 @@
    why: docs/foundations.md#spacing-and-rhythm */
 .ui-card--fit { width: fit-content; max-width: 100%; }
 
-/* An accent or live card is a plain card on the page now (#850): the tint and the edge
-   are gone with the box. The signal moves into the content it carries. */
+/* An accent-tinted card, e.g. a highlighted plan / success surface. It draws no accent
+   ring: the tint carries the signal and the edge is the plain card edge. #295
+   The strength is --card-tint, per theme: light mixes down from white, so a tint that
+   works in dark sinks a light card below the page. The accent card keeps the plain
+   edge. why: docs/foundations.md#elevation */
 .ui-card--accent {
-  --ui-card-ground: var(--bg);
-  background: transparent;
+  --ui-card-ground: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
+  background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
 }
 .ui-card--live {
-  --ui-card-ground: var(--bg);
-  background: transparent;
-  border-color: transparent;
+  --ui-card-ground: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
+  background: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
+  border-color: color-mix(in srgb, var(--green) 22%, transparent);
+}
+/* #850: the light page takes a plain card's white, but a tinted card keeps its tint,
+   so the accent or live signal stays above the page. Dark keeps its own tint. */
+:root[data-theme="light"] .ui-card--accent {
+  --ui-card-ground: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
+  background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
+}
+:root[data-theme="light"] .ui-card--live {
+  --ui-card-ground: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
+  background: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
 }
 
 /* A viewer: a document shown inside a card, set apart from the controls that act on it.
@@ -103,6 +129,8 @@
    own ink is set here: the inherited colour is the theme's. */
 .ui-card__page {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   aspect-ratio: 210 / 297;
   padding: var(--space-6) var(--space-5);
   color: var(--text);
@@ -115,6 +143,29 @@
   --table-bg: var(--surface);
   --table-code-bg: var(--code-chip-surface);
 }
+/* The document's bottom line: the total is set in a strong value with a rule around
+   it, so it reads as the figure the page adds up to, and it sits on the paper's foot
+   however tall the sheet is. #850 */
+.ui-card__page-total {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  color: var(--strong);
+  font-weight: var(--weight-semibold);
+}
+.ui-card__page-total strong {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* A document page's fact list and its line table are two parts, so a gap sits
+   between them rather than letting one line touch the next. #850 */
+.ui-card__page > .ui-table { margin-top: var(--space-4); }
 
 /* Interactive card (link / button semantics) */
 .ui-card--interactive {
@@ -159,6 +210,10 @@
 .ui-card__head > .ui-card__title { flex: 1 1 auto; min-width: 0; margin: 0; }
 .ui-card__tools { display: flex; flex: none; align-items: center; gap: var(--space-1); margin-inline-start: auto; }
 .ui-card__tools:empty { display: none; }
+/* A link card's end mark, such as a chevron that says the row opens. It is decorative
+   art, not a control, so the card's accessible name stays its title. */
+.ui-card__trailing { display: flex; flex: none; align-items: center; margin-inline-start: auto; /* muted-ink: glyph — a decorative chevron that says the row opens */ color: var(--muted); }
+.ui-card__trailing svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 /* The title of a card that supports its neighbour, such as a document beside the
    data read from it. The size, weight and rank stay the card title's.
    why: docs/foundations.md#text-ink */
@@ -203,8 +258,10 @@
     margin-inline-start: calc(-1 * (var(--space-1) + var(--ui-row-choice-pad, var(--space-3))));
   }
 }
-/* #850: no hairline between rows of one list; the rows separate by their padding. */
-.ui-card__row + .ui-card__row { border-top: 0; }
+.ui-card__row + .ui-card__row { border-top: 1px solid var(--border); }
+/* #850: on the light page no hairline between rows of one list; the rows separate by
+   their padding. */
+:root[data-theme="light"] .ui-card__row + .ui-card__row { border-top: 0; }
 /* A role badge follows the identity it names at --space-4, on the same line, instead of
    standing at the far end of the row. why: docs/foundations.md#spacing-and-rhythm */
 .ui-card__row:has(> .ui-badge:last-child) { justify-content: flex-start; gap: var(--space-4); }

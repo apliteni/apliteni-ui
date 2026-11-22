@@ -86,11 +86,10 @@ function SignInPage({ sub, ...args }: SignInArgs & { sub: string }) {
   </>);
 }
 const page = (sub: string, args: SignInArgs) => <SignInPage sub={sub} {...args} />;
-const splitPage = (sub: string, tagline: string, args: SignInArgs) => {
+const splitPage = (tagline: string, args: SignInArgs) => {
   const [done, setDone] = useState(false);
   return shellSplit(<>
     <h1 className="ui-auth__title">Sign in</h1>
-    <p className="ui-auth__sub">{sub}</p>
     {done ? <Callout variant="success">You are signed in. The app opens next.</Callout>
       : <SignInBlock {...args} onDone={() => setDone(true)} />}
     <div className="ui-auth__foot">Only <b>apliteni.com</b> accounts can sign in.</div>
@@ -118,7 +117,7 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   return <FinanceShell active="sales" title="Sales" sub="Filtered to pending, this week.">
     {/* The callout stays under a reopened modal, so its Sign in button gets the focus back. */}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setOpen(true)}>Sign in</Button>}>
-      You are signed out. Sign in to approve sales. This screen stays as it is.
+      You are signed out. Sign in to keep working. This screen stays as it is.
     </Callout>}
     {/* The ledger's filter bar stands on the page directly above it. why: guidelines/dense-tables.md */}
     <div className="ui-toolbar">
@@ -151,7 +150,7 @@ type Story = StoryObj<SignInArgs>;
 
 export const Default: Story = { render: args => page('Access the Apliteni design system with your work account.', args) };
 
-export const Split: Story = { name: 'Split layout', render: args => splitPage('Access the Apliteni design system with your work account.', 'Design tokens that ship with the look.', args) };
+export const Split: Story = { name: 'Split layout', render: args => splitPage('Access the Apliteni design system with your work account.', args) };
 
 export const ProviderError: Story = { name: 'Provider error', args: { failed: true },
   render: args => page('Access the Apliteni design system with your work account.', args) };

@@ -53,10 +53,11 @@ const filterSales = (period: string, values: Record<string, string | undefined> 
 
 // The three figures are the rows' own sums, fixed at two decimals beside the Net (EUR)
 // column. #850 layout A: Net result leads, one display rank above Money in and Money out.
+// A failed or refunded sale is not income, so Paid and Pending rows alone reach the figures. why: #850
 const amount = (value: string) => Number.parseFloat(value.replace(/,/g, ''));
 const twoDecimals = (value: number) => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 const salesStats = (rows: Row[]) => ([['Net result', 5], ['Money in', 3], ['Money out', 4]] as const)
-  .map(([label, column], at) => ({ label, lead: at === 0, value: twoDecimals(rows.reduce((sum, row) => sum + amount(row[column]), 0)) }));
+  .map(([label, column], at) => ({ label, lead: at === 0, value: twoDecimals(rows.filter((row) => row[7] === 'Paid' || row[7] === 'Pending').reduce((sum, row) => sum + amount(row[column]), 0)) }));
 
 const noop = () => {};
 const periods = (PERIODS as string[]).map(p => ({ label: p, value: p }));

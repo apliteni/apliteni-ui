@@ -10,11 +10,15 @@ export type SnippetProps = {
   children?: ReactNode;
   copy?: boolean;
   reveal?: boolean;
+  /** Wraps the code instead of scrolling it, for a command a reader copies whole. */
+  wrap?: boolean;
+  /** Called after a successful copy, so a page can show its own result. */
+  onCopy?: () => void;
   /** Accessible name and tooltip for the icon-only copy button; name what it copies. */
   copyLabel?: string;
 };
 
-export function Snippet({ label, code = '', children, copy = true, reveal = false, copyLabel = 'Copy code' }: SnippetProps) {
+export function Snippet({ label, code = '', children, copy = true, reveal = false, wrap = false, onCopy, copyLabel = 'Copy code' }: SnippetProps) {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const request = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -35,6 +39,7 @@ export function Snippet({ label, code = '', children, copy = true, reveal = fals
       await navigator.clipboard.writeText(code);
       if (current !== request.current) return;
       setStatus('copied');
+      onCopy?.();
       timer.current = setTimeout(() => setStatus('idle'), 1400);
     } catch {
       if (current === request.current) setStatus('failed');
@@ -42,7 +47,7 @@ export function Snippet({ label, code = '', children, copy = true, reveal = fals
   }
 
   return (
-    <div className={reveal ? 'ui-snippet ui-snippet--reveal' : 'ui-snippet'}>
+    <div className={reveal ? 'ui-snippet ui-snippet--reveal' : wrap ? 'ui-snippet ui-snippet--wrap' : 'ui-snippet'}>
       {(label || copy) && <div className="ui-snippet__bar">
         {label && <span>{label}</span>}
         {/* Icon-only, the way the kit writes an allowed icon-only control:

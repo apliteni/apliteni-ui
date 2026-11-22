@@ -5,7 +5,7 @@ import { TextField } from '../Field';
 import { KeyValueList, type KeyValueRow } from '../KeyValueList';
 import { Button } from '../primitives/Button';
 import { Callout } from '../primitives/Callout';
-import { Card } from '../primitives/Card';
+import { Icon } from '../primitives/Icon';
 import { CheckList, Checkbox } from '../Checkbox';
 import './InvoiceReview.css';
 
@@ -38,16 +38,24 @@ const STEPS: Partial<Record<InvoiceReviewState, 'Supplier' | 'Total' | 'Finish'>
 const SUPPLIERS = ['Cedar Studio', 'Cedar Works', 'Linden Office'];
 const DOCUMENT = { number: 'INV-1042', issued: '18 Sep 2026', total: 'EUR 1,704.00' };
 const money = (value: string) => `EUR ${Number(value).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const dateOf = (value: string) => new Date(`${value}T12:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* The document writes "18 Sep 2026"; the fields must say the same, so the two can be
+   compared word for word. toLocaleDateString('en-GB') writes "Sept", which is why the
+   month list is written by hand. */
+const dateOf = (value: string) => { const d = new Date(`${value}T12:00:00Z`); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 
 type Invoice = { supplier: string; number: string; date: string; total: string };
 
 /* The document is held apart from the fields: it is what the four fields are checked
-   against, and its total disagrees with the read total on purpose. */
-const Paper = () => <Card title="INVOICE" sub="Cedar Studio">
+   against, and its total disagrees with the read total on purpose. It draws as a page
+   (.ui-card__page), not as a card, so the paper reads as the object the fields describe. */
+const Paper = () => <div className="ui-card__page" role="img"
+  aria-label="Invoice INV-1042 from Cedar Studio, dated 18 Sep 2026. Total EUR 1,704.00.">
+  <h2 className="ui-card__title">INVOICE</h2>
+  <p className="ui-card__sub">Cedar Studio</p>
   <KeyValueList rows={[
     { label: 'Invoice', value: DOCUMENT.number },
-    { label: 'Issued', value: DOCUMENT.issued },
+    { label: 'Date', value: DOCUMENT.issued },
   ]} />
   <table className="ui-table ui-table--dense">
     <thead><tr><th scope="col">Description</th><th scope="col" className="ui-table__num">Amount</th></tr></thead>
@@ -55,9 +63,9 @@ const Paper = () => <Card title="INVOICE" sub="Cedar Studio">
       <tr><td>Design services</td><td className="ui-table__num">1,420.00</td></tr>
       <tr><td>VAT (20%)</td><td className="ui-table__num">284.00</td></tr>
     </tbody>
-    <tfoot><tr><th scope="row">Total due</th><td className="ui-table__num ui-table__num--strong">{DOCUMENT.total}</td></tr></tfoot>
   </table>
-</Card>;
+  <div className="ui-card__page-total"><span>Total</span><strong>{DOCUMENT.total}</strong></div>
+</div>;
 
 const Steps = ({ step }: { step?: 'Supplier' | 'Total' | 'Finish' }) => step ? <div className="invoice-review__steps" aria-label="Invoice review progress" role="list">
   {(['Supplier', 'Total', 'Finish'] as const).map((name) => <span key={name} role="listitem">{name === step ? <strong>{name}</strong> : name}</span>)}
@@ -80,6 +88,8 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
   const [suppliers, setSuppliers] = useState(SUPPLIERS);
   const [draft, setDraft] = useState<Invoice>({ supplier: 'Cedar Studio', number: 'INV-1042', date: '2026-09-18', total: '1740.00' });
   const [newSupplier, setNewSupplier] = useState('');
+  const [supplierError, setSupplierError] = useState(false);
+  const [editError, setEditError] = useState(false);
   const [total, setTotal] = useState('1740.00');
   const [origin, setOrigin] = useState<InvoiceReviewState>('mismatch');
 
@@ -113,7 +123,10 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
   ];
   const facts = (withTotal: boolean) => <Panel title="Fields"><KeyValueList rows={rows(withTotal)} /></Panel>;
 
-  const openDocument = <Button variant="ghost" icon="image" className="invoice-review__document-button" onClick={() => { setOrigin(screen); navigate('document'); }}>Open document</Button>;
+  const openDocument = <div className="ui-card__row invoice-review__document-row">
+    <span className="invoice-review__document-name"><Icon name="image" aria-hidden="true" /> <strong>INV-1042.pdf</strong></span>
+    <Button variant="ghost" icon="chevronUp" onClick={() => { setOrigin(screen); navigate('document'); }}>Open document</Button>
+  </div>;
 
   const task = (body: ReactNode, actions: ReactNode, showDocument = true) => <section className="invoice-review__task">
     <Steps step={STEPS[screen]} />
@@ -127,7 +140,7 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
 
   if (screen === 'start') {
     body = <><p>INV-1042.pdf uploaded.</p>{facts(true)}</>;
-    actions = <><Button variant="secondary" onClick={() => { setDraft(invoice); navigate('edit'); }}>Edit fields</Button>
+    actions = <><Button variant="secondary" onClick={() => { setOrigin('start'); setDraft(invoice); navigate('edit'); }}>Edit fields</Button>
       <Button variant="primary" onClick={() => navigate('supplier')}>Review invoice</Button></>;
   } else if (screen === 'unreadable') {
     body = <><p>INV-1042.pdf</p><Callout variant="danger">The document cannot be read.</Callout>
@@ -151,11 +164,13 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
       <Button variant="ghost" onClick={() => navigate('add-supplier')}>Add supplier</Button>
       <Button variant="primary" onClick={() => { setInvoice((i) => ({ ...i, supplier: picked })); navigate('mismatch'); }}>Use supplier</Button></>;
   } else if (screen === 'add-supplier') {
-    body = <Panel title="Supplier"><TextField label="Supplier name" value={newSupplier} onChange={(e) => setNewSupplier(e.target.value)} autoComplete="off" /></Panel>;
+    body = <Panel title="Supplier"><TextField label="Supplier name" value={newSupplier}
+      error={supplierError ? 'Enter a supplier name.' : undefined}
+      onChange={(e) => { setNewSupplier(e.target.value); if (supplierError) setSupplierError(false); }} autoComplete="off" /></Panel>;
     actions = <><Button variant="ghost" onClick={() => navigate('choose-supplier')}>Cancel</Button>
       <Button variant="primary" onClick={() => {
         const name = newSupplier.trim();
-        if (!name) return;
+        if (!name) { setSupplierError(true); return; }
         setInvoice((i) => ({ ...i, supplier: name })); setPicked(name);
         if (!suppliers.includes(name)) setSuppliers((s) => [...s, name]);
         navigate('supplier-added');
@@ -192,22 +207,30 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
       : screen === 'edit-saved' ? 'Changes saved (sample).'
         : (invoice.supplier === 'Cedar Studio' && invoice.number === 'INV-1042' && invoice.date === '2026-09-18' && invoice.total === '1704.00' ? 'All fields match.' : 'Fields checked.');
     body = <>{facts(true)}<p role="status">{notice}</p></>;
-    actions = <><Button variant="secondary" onClick={() => { setDraft(invoice); navigate('edit'); }}>Edit fields</Button>
+    actions = <><Button variant="secondary" onClick={() => { setOrigin('matched'); setDraft(invoice); navigate('edit'); }}>Edit fields</Button>
       <Button variant="primary" onClick={() => navigate('finish')}>Review summary</Button></>;
   } else if (screen === 'edit') {
+    const empty = (value: string) => editError && !value.trim();
     body = <Panel title="Fields"><div className="invoice-review__fields">
-      <TextField label="Supplier" value={draft.supplier} onChange={(e) => setDraft((d) => ({ ...d, supplier: e.target.value }))} />
-      <TextField label="Invoice number" value={draft.number} onChange={(e) => setDraft((d) => ({ ...d, number: e.target.value }))} />
-      <TextField label="Date" value={draft.date} onChange={(e) => setDraft((d) => ({ ...d, date: e.target.value }))} />
-      <TextField label="Total (EUR)" inputMode="decimal" value={draft.total} onChange={(e) => setDraft((d) => ({ ...d, total: e.target.value }))} />
+      <TextField label="Supplier" value={draft.supplier}
+        error={empty(draft.supplier) ? 'Enter a supplier.' : undefined}
+        onChange={(e) => { setDraft((d) => ({ ...d, supplier: e.target.value })); setEditError(false); }} />
+      <TextField label="Invoice number" value={draft.number}
+        error={empty(draft.number) ? 'Enter an invoice number.' : undefined}
+        onChange={(e) => { setDraft((d) => ({ ...d, number: e.target.value })); setEditError(false); }} />
+      <TextField label="Date" value={draft.date}
+        error={empty(draft.date) ? 'Enter a date.' : undefined}
+        onChange={(e) => { setDraft((d) => ({ ...d, date: e.target.value })); setEditError(false); }} />
+      <TextField label="Total (EUR)" inputMode="decimal" value={draft.total}
+        error={(editError && (!Number.isFinite(Number(draft.total)) || Number(draft.total) < 0)) ? 'Enter a total of zero or more.' : undefined}
+        onChange={(e) => { setDraft((d) => ({ ...d, total: e.target.value })); setEditError(false); }} />
     </div></Panel>;
     actions = <><Button variant="secondary" onClick={() => navigate(origin === 'matched' ? 'edit-cancelled' : origin)}>Cancel</Button>
       <Button variant="primary" onClick={() => {
-        if (!draft.supplier.trim() || !draft.number.trim() || !draft.date || !Number.isFinite(Number(draft.total)) || Number(draft.total) < 0) return;
+        if (!draft.supplier.trim() || !draft.number.trim() || !draft.date || !Number.isFinite(Number(draft.total)) || Number(draft.total) < 0) { setEditError(true); return; }
         setInvoice({ ...draft, total: Number(draft.total).toFixed(2) });
         navigate('edit-saved');
       }}>Save</Button></>;
-    showDocument = false;
   } else if (screen === 'document') {
     body = <>
       <Panel title="Fields"><KeyValueList rows={[
@@ -221,12 +244,12 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
       <Button variant="secondary" onClick={() => navigate('manual-total')}>Edit total</Button></>;
   } else if (screen === 'finish') {
     body = facts(true);
-    actions = <><Button variant="secondary" onClick={() => { setDraft(invoice); navigate('edit'); }}>Edit fields</Button>
+    actions = <><Button variant="secondary" onClick={() => { setOrigin('finish'); setDraft(invoice); navigate('edit'); }}>Edit fields</Button>
       <Button variant="primary" icon="check" onClick={() => navigate('done')}>Confirm</Button></>;
   } else {
     // done
     body = <>{facts(true)}<p role="status">Review saved (sample).</p></>;
-    actions = <Button variant="secondary" onClick={() => { setDraft(invoice); navigate('edit'); }}>Edit fields</Button>;
+    actions = <Button variant="secondary" onClick={() => { setOrigin('done'); setDraft(invoice); navigate('edit'); }}>Edit fields</Button>;
     showDocument = false;
   }
 
@@ -241,7 +264,7 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
           <Paper />
         </aside>}
       </div>
-    <Drawer open={screen === 'document'} title="INV-1042.pdf" side="bottom" onClose={() => navigate(origin)}>
+    <Drawer open={screen === 'document'} title="INV-1042.pdf" side="bottom" size="lg" onClose={() => navigate(origin)}>
       <Paper />
     </Drawer>
   </AppShell>;

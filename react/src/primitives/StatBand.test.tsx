@@ -130,3 +130,19 @@ it('references a shared caption, with a local basis taking precedence', () => {
   expect([...bands[0].querySelectorAll('.ui-stat__delta')].every(delta => delta.getAttribute('aria-describedby') === 'shared-basis')).toBe(true);
   expect([...bands[1].querySelectorAll('.ui-stat__delta')].every(delta => delta.getAttribute('aria-describedby') === 'local-band-basis')).toBe(true);
 });
+
+// #850: a lead figure reads one display rank above its siblings, so the first
+// thing to read leads the band and the siblings keep their size.
+it('marks a lead figure and keeps its siblings at the lower rank', () => {
+  const { container } = render(<StatBand stats={[
+    { label: 'Net result', value: '€ 14,452.83', lead: true },
+    { label: 'Money in', value: '€ 14,942.27' },
+    { label: 'Money out', value: '€ 489.44' },
+  ]} />);
+  const figures = container.querySelectorAll('.ui-stat');
+  expect(figures[0]).toHaveClass('ui-stat--lead');
+  expect(figures[1]).not.toHaveClass('ui-stat--lead');
+  expect(figures[2]).not.toHaveClass('ui-stat--lead');
+  expect([...container.querySelectorAll('.ui-stat')].map(f => f.querySelector('dt')?.textContent))
+    .toEqual(['Net result', 'Money in', 'Money out']);
+});

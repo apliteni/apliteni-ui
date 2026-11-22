@@ -108,7 +108,7 @@ const FIELD_COUNT = 223;
 // from the vanilla gate's table. The two agree, which is what says both halves read
 // one set of tokens rather than two.
 const DISABLED: Record<string, unknown> = {
-  dark: { ground: '#0e0d14', fill: '#211e2d', border: '#2d293c', edge: 1.38, ink: 6.24 },
+  dark: { ground: '#211e2d', fill: '#211e2d', border: '#2d293c', edge: 1.16, ink: 6.24 },
   light: { ground: '#ffffff', fill: '#ffffff', border: '#e4e7ee', edge: 1.24, ink: 6.11 },
 };
 
@@ -374,8 +374,8 @@ describe('field ground: React coverage', () => {
    * `edge` is --disabled-border against the ground, below the 3:1 non-text floor that
    * WCAG 1.4.11 exempts a disabled control from, so it is recorded rather than held
    * to a bar. `ink` is --disabled-ink on the field's own paint and must clear AA:
-   * that is the part a reader has to read. #850 makes the card the page, so dark reads
-   * 1.38:1 off the page ground, not the 1.16:1 the card gave it before.
+   * that is the part a reader has to read. #850 restores the dark card's own paint,
+   * so dark reads 1.16:1 off the card ground it stands on.
    */
   it('reads a disabled field on the card, and its ink clears AA there', () => {
     for (const theme of THEMES) {

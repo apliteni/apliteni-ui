@@ -305,9 +305,14 @@ name, and its menu shows each name with its badge and a tick on the chosen one. 
 ### Auth shell
 
 Use `AuthShell` for a sign-in or sign-up page. It centres one card and puts the brand above it.
+`split` puts the brand on the branded ground beside the task, which stands on the plain page with
+no card box, and `tagline` is the slogan under the brand. `brandAbove` stands the brand on the
+ground above the card and centres the title with a line under it. The ground is
+`--ui-auth-ground`, a gradient that a product may override with its own colour or gradient.
 
 ```tsx
 <AuthShell brand={<img src="/logo.svg" alt="Example" />}><SignInForm /></AuthShell>
+<AuthShell split tagline="Access the design system with your work account." brand={logo}><SignInForm /></AuthShell>
 ```
 
 ### Footer
@@ -336,8 +341,9 @@ action goes to another page. Use [`Dropdown`](#dropdown) for a list of actions, 
 <Button variant="primary" icon="download" busy={exporting} onClick={exportRows}>Export</Button>
 ```
 
-`variant` is `primary`, `secondary`, `ghost`, `danger` or `link`. `size` is `xs`, `sm`, `md` or
-`lg`. `icon` puts a glyph before the label and `iconRight` after it. `leading` puts your own
+`variant` is `primary`, `secondary`, `outline`, `ghost`, `danger` or `link`. `outline` draws an
+edge and no fill, so an icon-only control keeps a boundary on a flat ground. `size` is `xs`,
+`sm`, `md` or `lg`. `icon` puts a glyph before the label and `iconRight` after it. `leading` puts your own
 decorative content before the label, and it wins over `icon`. `block` fills the row.
 
 **Links.** With `href`, the button is an `<a>` with the button classes. Without `href`, it is a
@@ -808,8 +814,8 @@ Use `Avatar` to show a person beside their name. Do not use it in place of the n
 <Avatar personKey={user.id} name="Dana Reyes" src={user.photo} size={32} />
 ```
 
-**What the user sees.** A filled circle with the first and last initials, 24px or 32px. The hue
-comes from `personKey`, the stable id of the person, so one person keeps one hue on every screen.
+**What the user sees.** A filled circle with the first and last initials, 24px, 32px or 48px. The
+hue comes from `personKey`, the stable id of the person, so one person keeps one hue on every screen.
 The letters are readable on each hue in both themes and under every accent. A name with no letters
 shows the `user` glyph. `empty` shows a dashed ring for "no one". A `src` photo covers the letters,
 and the letters show when the photo does not load. The top bar account button, its menu and the
@@ -1199,6 +1205,7 @@ totals of a list in the table's footer rows, not in a stat band.
 
 `variant` is `tiles`, the default, with each figure on its own card, `band` on one card, or `open`
 with no surface and a larger value. A figure has `label`, `value`, `caption`, `delta` and `trend`.
+`lead` reads the value one display rank above its siblings, and the siblings sit on its baseline.
 
 **What the user sees.** A value never wraps and is never cut. The words under it give way first. A
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A

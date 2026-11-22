@@ -635,7 +635,8 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.ok(clear, 'the filter row offers no way to clear it');
   act(() => { fireEvent.click(clear!); });
   assert.equal(doc.querySelectorAll('tbody tr').length, 6, 'clearing the filters still leaves the 1Y window in force');
-  assert.deepEqual(figures(), ['96,813.87 €', '100,275.34 €', '3,461.47 €']);
+  assert.deepEqual(figures(), ['80,137.25 €', '83,054.61 €', '2,917.36 €'],
+    'the figures must leave a failed or refunded sale out of income');
   assert.deepEqual(figures(), atRest,
     'the first paint already holds to the 1Y window, so clearing the filters returns to exactly what was there at rest');
   // The search reads the reference and the sale ID, and the figures follow it too.

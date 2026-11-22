@@ -49,7 +49,7 @@ export function Drawer({
               <Icon name="x" />
             </button>
           </header>
-          <div className="ui-drawer__body" ref={body}>{children}</div>
+          <div className="ui-drawer__body" ref={body} tabIndex={0}>{children}</div>
           {footer && <footer className="ui-drawer__footer">{footer}</footer>}
         </div>
       </div>

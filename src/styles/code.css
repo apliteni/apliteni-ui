@@ -54,6 +54,8 @@
 :root[data-theme="light"] .ui-snippet pre { --ui-snippet-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent); }
 /* The reveal block wraps, so it never scrolls and draws no shade. */
 .ui-snippet--reveal pre { background-image: none; }
+/* #850: a command a reader copies whole wraps instead of scrolling one cut line. */
+.ui-snippet--wrap pre { white-space: pre-wrap; word-break: break-all; }
 /* Scrollable code is a keyboard target, but a <pre> flush with the card and
    without its radius draws a square ring that cuts across the card and squares
    its corners. The card carries the ring instead, so it follows --radius-md and

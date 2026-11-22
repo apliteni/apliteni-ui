@@ -432,7 +432,10 @@
 .ui-app__main .ui-app__title-row > h1 { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
 /* The tools wrap at the narrowest phone, so a period picker and a view action stay in the column. #832 */
 .ui-app__tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: var(--space-3); max-width: 100%; }
-.ui-app__body { display: flex; flex-direction: column; gap: var(--space-10); }
+.ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
+/* #850: on the light page a card draws no box, so the body opens to the page's group gap.
+   why: docs/foundations.md#spacing-and-rhythm */
+:root[data-theme="light"] .ui-app__body { gap: var(--space-10); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
    inside itself. This is what keeps the shell narrower than the window. */
@@ -456,7 +459,8 @@
    on the page meets its table card at the same distance. Not on the last row:
    there the gap is the page's bottom and nothing is being narrowed. tap-zone.css
    widens it on a touch phone. why: docs/foundations.md#spacing-and-rhythm */
-:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }
+:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
+:root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }
 .ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
@@ -653,13 +657,14 @@
 .ui-auth--split .ui-auth__brand-pane {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: flex-start;
   padding: clamp(48px, 7vw, 120px);
   background: var(--ui-auth-ground, var(--bg));
 }
 .ui-auth--split .ui-auth__tagline {
-  margin: 18px 0 0;
+  margin: 0;
+  font-family: var(--font-display);
   font-size: var(--text-3xl);
   line-height: 1.05;
   letter-spacing: var(--tracking-tight);
@@ -669,6 +674,7 @@
 .ui-auth--split .ui-auth__pane {
   display: grid;
   place-items: center;
+  place-content: center;
   padding: 40px 20px;
   background: var(--bg);
 }
@@ -694,6 +700,16 @@
 }
 .ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
 .ui-auth__brand span { font-size: var(--text-md); font-weight: 600; color: var(--strong); }
+/* Consent: the brand stands on the gradient above the card, and the card's title is
+   centred with a hairline under it. why: docs/foundations.md#elevation */
+.ui-auth--brand-above { grid-template-rows: auto 1fr; row-gap: var(--space-5); }
+.ui-auth--brand-above > .ui-auth__brand { margin-bottom: 0; }
+.ui-auth--brand-above .ui-auth__title {
+  text-align: center;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
 .ui-auth__title {
   color: var(--strong);
   /* rank: page-title */
@@ -714,7 +730,9 @@
 /* App scope grant list (OAuth consent) */
 .ui-scopes { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 8px; }
 .ui-scope { display: flex; gap: 13px; padding: 13px 4px; }
-.ui-scope + .ui-scope { border-top: 0; }
+.ui-scope + .ui-scope { border-top: 1px solid var(--border); }
+/* #850: on the light page no hairline between scope rows; the rows separate by space. */
+:root[data-theme="light"] .ui-scope + .ui-scope { border-top: 0; }
 .ui-scope__icon {
   width: 38px; height: 38px; flex: none;
   border-radius: 11px;

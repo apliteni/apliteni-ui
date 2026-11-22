@@ -51,6 +51,10 @@
 /* #850: a lead figure reads one rank above its siblings, so the first thing the
    reader should see leads the band. why: docs/components.md#stat-bands */
 .ui-stat--lead .ui-stat__value { font-size: var(--text-4xl); }
+/* #850: the siblings sit on the lead's baseline. The band's cards are one height,
+   and a value reads digits — the only descender is the comma — so its bottom is its
+   baseline. Seating the value on the card's foot lines the three baselines up. */
+.ui-stats__list:has(> .ui-stat--lead) .ui-stat__value:last-child { margin-top: auto; }
 
 /* A figure's own words about its value, in the caption rank's size and weight
    with the band's tighter leading, as the label takes, so it claims no rank.
@@ -122,9 +126,11 @@ dd.ui-stat__caption { contain: inline-size; }
 .ui-stats--tiles .ui-stats__list { gap: var(--space-4); }
 
 .ui-stats--open .ui-stat {
-  border-top: 0;
+  border-top: 1px solid var(--border-strong);
   padding-top: var(--space-4);
 }
+/* #850: on the light page no hairline above an open stat; the value is the signal. */
+:root[data-theme="light"] .ui-stats--open .ui-stat { border-top: 0; }
 .ui-stats--open .ui-stat__value { font-size: var(--text-3xl); }
 
 /* Wrapping alone would leave three figures on one row and one on the next. So

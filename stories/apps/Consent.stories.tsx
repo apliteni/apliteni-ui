@@ -10,7 +10,7 @@ import { SuccessCheck } from '../../react/src/Success';
 import '../../react/src/showcases/Auth.css';
 
 const brandMark = <span dangerouslySetInnerHTML={{ __html: brand({ p: 'consent', word: 'apliteni-ui', href: '#' }) }} />;
-const shell = (body: ReactNode) => <AuthShell brand={brandMark}>{body}</AuthShell>;
+const shell = (body: ReactNode) => <AuthShell brand={brandMark} brandAbove>{body}</AuthShell>;
 
 const meta: Meta<typeof AuthShell> = { title: 'Showcases/Consent', id: 'apps-consent', component: AuthShell, parameters: { layout: 'fullscreen' } };
 export default meta;

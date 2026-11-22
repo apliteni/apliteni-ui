@@ -18,7 +18,6 @@
 .fbs-quote {
   margin: 0;
   padding-left: var(--space-3);
-  border-left: 0;
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
 }

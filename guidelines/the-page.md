@@ -150,7 +150,7 @@
 
 **Don't:** Put a field, a label or a button on the branded ground. Keep the task inside the dialog.
 
-**Except:** The brand wordmark and a slogan may stand on the ground. The dialog against its ground must clear 3:1 in both themes.
+**Except:** The brand wordmark and a slogan may stand on the ground, and a dialog clears 3:1 against its ground in both themes, except the kit's split sign-in ground C, which the owner chose at 1.60:1 to 1.51:1 in light and 1.08:1 to 1.04:1 in dark.
 
 ## Write a useful introduction
 

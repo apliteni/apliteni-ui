@@ -178,7 +178,9 @@ const GLUE_CEILING = 22;
 //
 // The invoice showcase's sheet is recorded at 24 glue declarations, two over the ceiling.
 // The record form keeps its two columns down to the phone step (#458), which takes a grid
-// declaration for the fields and one for their phone rule. It paints nothing.
+// declaration for the fields and one for their phone rule. It paints nothing. The invoice
+// review showcase's sheet is recorded at the same figure: its data column and document
+// column sit side by side, then fold at 860px, which the kit offers no single utility for.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   // The bento grid and phone stack place six kit cards with demos at their feet.
   // The closing card has a page width of its own.
@@ -189,12 +191,13 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
   'react/src/DocumentReview.css': { shadow: 1 },
   'react/src/DocumentReview.stories.tsx': { shadow: 11, glue: 31 },
-  'react/src/FeedbackShowcase.css': { shadow: 12 },
+  'react/src/FeedbackShowcase.css': { shadow: 11 },
   'react/src/FeedbackShowcase.stories.tsx': { shadow: 2 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
   'react/src/showcases/InvoiceFlow.css': { glue: 24 },
+  'react/src/showcases/InvoiceReview.css': { glue: 24 },
   // The showcases' figures as the vanilla gate recorded them for the same screens.
   'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };

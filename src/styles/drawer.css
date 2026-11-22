@@ -72,6 +72,19 @@
   transition: transform var(--dur-med) var(--ease);
 }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
+/* A bottom sheet carries a drag grip at its top, so a phone reader knows the sheet moves.
+   It is a drawn affordance, not a control; the sheet closes by the close button or Escape. */
+.ui-drawer--bottom .ui-drawer__panel::before {
+  content: "";
+  display: block;
+  flex: none;
+  width: 36px;
+  height: 3px;
+  margin: var(--space-2) auto 0;
+  border-radius: var(--radius-pill);
+  /* muted-ink: chrome — the grip is a hint of the sheet's motion, not text */
+  background: var(--muted);
+}
 
 /* -- Edge anchoring + slide-in direction ---------------------------------- */
 .ui-drawer--right .ui-drawer__panel,
@@ -219,6 +232,9 @@
   font-weight: var(--weight-semibold);
   color: var(--strong);
 }
+/* #850: on the light page a drawer group title has no line under it; space owns the group.
+   why: docs/foundations.md#spacing-and-rhythm */
+:root[data-theme="light"] .ui-drawer__section-title { border-bottom: 0; padding-bottom: 0; }
 /* The record's lead figure: a <dl> of one label over its value, with a status badge
    beside the value. It stands in a group with no heading, before the other groups.
    why: docs/components.md#drawer */

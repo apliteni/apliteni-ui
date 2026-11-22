@@ -222,7 +222,8 @@ export const CHECKS = {
   // control: the reader acts inside the dialog the ground stands behind. #850
   'branded-background'(s) {
     if (s.kind !== 'auth') return [];
-    const onGround = [...s.doc.querySelectorAll('.ui-auth > button, .ui-auth > input, .ui-auth > select, .ui-auth > textarea, .ui-auth > .ui-btn')]
+    const onGround = [...s.doc.querySelectorAll('.ui-auth > :is(button, input, select, textarea, .ui-btn), '
+      + '.ui-auth__brand-pane > :is(button, input, select, textarea, .ui-btn)')]
       .filter((el) => !el.closest('.ui-auth__card, .ui-auth__pane'));
     return onGround.map((el) => `${s.where} puts "${text(el)}" on the branded ground. `
       + 'A control stays inside the dialog; the ground carries only the mark and a slogan.');

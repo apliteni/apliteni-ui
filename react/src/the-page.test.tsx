@@ -105,6 +105,17 @@ describe('the page: React screens', () => {
     expect(CHECKS['bar-end']({ ...drawn[0], where: 'worded', doc })).toHaveLength(2);
   });
 
+  // `branded-background` also reads the split layout's brand half, so a control
+  // standing on that branded ground must fail it.
+  it('the branded-background check reaches the split brand pane and refuses a control', () => {
+    const drawn = screens.filter((s) => s.kind === 'auth');
+    const doc = document.implementation.createHTMLDocument('brand');
+    doc.body.innerHTML = '<div class="ui-auth ui-auth--split">'
+      + '<aside class="ui-auth__brand-pane"><div class="ui-auth__brand">Example</div><button>Sign in</button></aside>'
+      + '<div class="ui-auth__pane"><h1>Sign in</h1></div></div>';
+    expect(CHECKS['branded-background']({ ...drawn[0], where: 'brand', doc })).toHaveLength(1);
+  });
+
   for (const rule of GATED) {
     it(`${rule.id}: ${rule.says}`, () => {
       expect(screens.flatMap((s) => CHECKS[rule.id](s))).toEqual([]);

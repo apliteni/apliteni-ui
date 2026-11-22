@@ -9,6 +9,7 @@ export type EmptyStateProps = {
   icon?: string;
   art?: ReactNode;
   actions?: ReactNode;
+  className?: string;
 };
 
 const cases = {
@@ -18,13 +19,13 @@ const cases = {
   'not-yet-built': { title: 'Not available yet', sub: 'This screen ships in a later release.', icon: 'clock' },
 };
 
-export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions }: EmptyStateProps) {
+export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions, className }: EmptyStateProps) {
   const preset = cases[variant];
   const heading = title ?? preset.title;
   const guidance = sub ?? preset.sub;
   const glyph = icon ?? preset.icon;
   return (
-    <div className="ui-empty">
+    <div className={['ui-empty', className].filter(Boolean).join(' ')}>
       {art ? typeof art === 'string'
         ? <div className="ui-empty__art" dangerouslySetInnerHTML={{ __html: /<svg/.test(art) ? art : illo(art) }} />
         : <div className="ui-empty__art" aria-hidden="true">{art}</div>
