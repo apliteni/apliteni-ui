@@ -53,6 +53,7 @@ it('keeps tools outside the tablist and reaches them after the active tab', asyn
 it('moves tools above the tab row only when the row must wrap', () => {
   const css = readFileSync('../src/styles/tabs.css', 'utf8');
   expect(css).toMatch(/\.ui-tabs__row \{[\s\S]*?flex-wrap: wrap-reverse;/);
+  expect(css).toMatch(/\.ui-tabs__list \{[\s\S]*?min-width: max-content;/);
   expect(css).toMatch(/\.ui-tabs__tools \{ margin-left: auto; \}/);
 });
 
