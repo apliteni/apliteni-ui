@@ -459,9 +459,11 @@ test(
               }
               const STEP = 0.05;
               const round = (n) => Math.round(n * 100) / 100;
-              const anchorCount = document.querySelectorAll('[data-anchor]').length;
-              const rows = [...document.querySelectorAll('.ui-chart__hit')].map((hit) => {
-                hit.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+              const charts = [...document.querySelectorAll('.ui-chart')];
+              const anchorCount = charts.reduce((count, chart) => count + chart.querySelectorAll('[data-anchor]').length, 0);
+              const rows = charts.flatMap((chart, chartIndex) => {
+                chart.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                return [...chart.querySelectorAll('.ui-chart__hit')].map((hit) => {
                 const id = hit.closest('[data-mark]').getAttribute('data-mark');
                 const box = hit.getBoundingClientRect();
                 const y = box.top + box.height / 2;
@@ -474,11 +476,12 @@ test(
                   else stolen += 1;
                 }
                 return {
-                  id,
+                  id: `${chartIndex}:${id}`,
                   declared: round(box.width),
                   owned: round(owned * STEP),
                   stolen,
                 };
+                });
               });
               const min = rows.reduce((best, row) => Math.min(best, row.owned), Infinity);
               return { anchorCount, min: round(min), rows };
