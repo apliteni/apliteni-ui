@@ -58,8 +58,9 @@ Neither attribute changes the type. `--font-display` is for headings and brand m
 `--font-sans` is for all text that the user reads, and `--font-mono` is for code. The package
 does not ship the font files, so your page loads them. See [Typefaces](foundations.md#typefaces).
 
-Use `ThemeToggle` to let the user choose the theme. Put `THEME_INIT_SCRIPT` in a `<script>` in
-the `<head>`, so the first paint has the stored theme. Use `AccentPicker` to let the user choose
+Use `ThemeToggle` to let the user choose the theme from a bar. Use [`ThemeChoice`](#theme-choice)
+on a settings page. Put `THEME_INIT_SCRIPT` in a `<script>` in the `<head>`, so the first paint has
+the stored theme. Use `AccentPicker` to let the user choose
 the accent. It calls `onChange`. Your page sets `data-accent` and stores the choice. `ACCENTS`
 from the root entry lists the accent names.
 
@@ -164,7 +165,8 @@ in their own row under the title. `back` puts a [back link](#back-link) above th
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top
 of every account menu. A row takes `href` to go to a page, or `onSelect` to open something in
 place. A separator stands before Sign out. In the topbar layout, a Theme row opens a submenu with
-Auto, Light and Dark.
+Auto, Light and Dark. The account button's name is "Signed in as", the name and the address. It
+holds each line of text that the button shows, and the menu takes the same name.
 
 **Topbar layout only.**
 
@@ -645,6 +647,29 @@ wider. A long label wraps inside its own option.
 keys move and choose, wrap at the ends and skip disabled options. Home and End go to the first and
 last enabled option. In forced colours the chosen option uses the system highlight colours.
 
+### Theme choice
+
+Use `ThemeChoice` for the theme on a settings page. Use `ThemeToggle` in a bar. Use `Segmented`
+for other preferences.
+
+```tsx
+<Card title="Theme"><ThemeChoice /></Card>
+```
+
+`label` names the group, `Theme` by default. The choice applies and is stored at once, as with
+`ThemeToggle`, so the page needs no Save.
+
+**What the user sees.** Three cards in one row at every width: System, Light and Dark. Each card is
+a small picture of a page in that theme, drawn from the theme's tokens, with its name under it.
+System is half light and half dark. The chosen card has a fill, and its name is in strong, heavier
+ink. Hover gives another card half that fill. The first and last pictures sit on the card's text
+edges. The fill extends 8 px into the card's padding, and the focus ring extends 3 px more. So put
+the group in a padded container, such as `Card`.
+
+**Keyboard and screen reader.** One named radio group, with one Tab stop on the chosen card. The
+arrow keys move and choose. The focus ring is the kit's band around the card, and nothing else.
+In forced colours the chosen card's name takes the system highlight colour.
+
 ### Tabs
 
 Use `Tabs` when each choice shows a different block of content on the same page. Use
@@ -987,8 +1012,10 @@ tooltip or a picker already used closes only that overlay. The next Escape close
 
 ### Account window
 
-Use `AccountWindow` for account and settings. Do not make account and settings a page of the
-product: [Account and settings](../guidelines/account-and-settings.md).
+Use `AccountWindow` for an account area of several groups. When the account area is only a
+profile and a few preferences, open a Profile page and a Preferences page in the app shell from
+the account menu, with no second navigation column:
+[Account and settings](../guidelines/account-and-settings.md).
 
 ```tsx
 <AccountWindow open={open} onClose={close} reader={{ name: 'Dana Reyes', email: 'dana@example.com' }}
@@ -1088,7 +1115,8 @@ least 4.5:1 on a plain or a selected row.
 **Scrolling.** With `stickyHeader` or `pinnedIdentity`, the table stands in a named scroll region.
 `pinnedIdentity` pins the first column, or the column whose key you give. A table wider than its
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
-region can scroll. Below 720px a pinned cell keeps one line and is cut at
+region can scroll. When the region is scrolled, the next column's text stops one cell padding
+short of the divider. Below 720px a pinned cell keeps one line and is cut at
 `--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
 frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
@@ -1107,10 +1135,14 @@ selected. A dense table marks a selected row only with its box.
 focus. A `.ui-table__sub` puts a second value under the first, such as an email under a name.
 `.ui-table__pair` groups a reference and a status, and stacks them when the cell is narrow.
 
-**Keyboard and screen reader.** The scroll region takes the focus and draws the ring inside its
-edge, so the arrow keys, a trackpad and a finger reach the same columns.
+**Keyboard and screen reader.** When its content overflows, the scroll region takes the focus and
+draws the ring inside its edge, so the arrow keys, a trackpad and a finger reach the same columns.
+When the content fits, also after a resize, the region is not a Tab stop. A control in the region
+that takes the focus by keyboard or by script scrolls fully into view.
 
 **In a card.** The table reaches the card's edges, and its end cells keep the card's text edge.
+At 560px and narrower, a row table's end cells pad by 16px, so its first column starts 8px
+outside the card's text edge. A row table has hover and is neither zebra nor dense.
 `.ui-card--fit` makes the card end at the table's content.
 
 ### Pagination

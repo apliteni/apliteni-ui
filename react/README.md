@@ -682,6 +682,20 @@ cannot change an earlier paint.
 <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
 ```
 
+## ThemeChoice
+
+ThemeChoice shows the theme as three picture cards on a settings page: System, Light
+and Dark. It reads and stores the choice as ThemeToggle does, with the same key, the
+same root attributes and the same event.
+
+```tsx
+import { Card, ThemeChoice } from '@apliteni/apliteni-ui/react';
+
+<Card title="Theme"><ThemeChoice /></Card>
+```
+
+`label` names the radio group, `Theme` by default.
+
 ## AppShell
 
 AppShell includes the kit’s rail and top band. Pass the current router pathname so the longest matching section path becomes active. Spread the props from `renderLink` onto your router link. The rail’s folded state is saved in a shared cookie. On phones, the bar shows up to four sections. If there are more, it shows three sections and a More sheet. Provide no more than one primary page action. The palette defaults to section links; pass `palette` to add custom commands. Import both the kit CSS and React CSS.

@@ -21,8 +21,9 @@ const Stage = ({ children }: { children: ReactNode }) => <div className="gl-stag
 const Rows = ({ n, cur }: { n: number; cur: number }) => <>{Array.from({ length: n }, (_, i) =>
   <div key={i} className={`gas-row${i === cur ? ' gas-row--cur' : ''}`} />)}</>;
 const Lines = ({ widths }: { widths: string[] }) => <>{widths.map((w, i) => <div key={i} className={`gas-ln gas-ln--${w}`} />)}</>;
-const Shell = ({ over }: { over?: ReactNode }) => <div className="gas-shell">
-  <div className="gas-shell__rail"><Rows n={5} cur={2} /></div>
+// An account page lights no rail row: it opens from the account menu, not the sidebar.
+const Shell = ({ over, cur = 2 }: { over?: ReactNode; cur?: number }) => <div className="gas-shell">
+  <div className="gas-shell__rail"><Rows n={5} cur={cur} /></div>
   <div className="gas-shell__well">
     <div className="gas-shell__bar" />
     <div className="gas-shell__col"><Lines widths={['short', 'half', 'half']} /></div>
@@ -78,7 +79,8 @@ const GROUPS = [
 // The page sheet holds each menu open in the flow, so neither is a live dropdown.
 const READER = { name: 'Ada Lovelace', email: 'ada@apliteni.com' };
 const row = ({ id, icon, label }: { id: string; icon: string; label: string }) => ({ label, icon, value: id, href: `#${id}` });
-const WAY_IN = [{ id: 'settings', icon: 'gear', label: 'Account settings' }, { id: 'support', icon: 'chat', label: 'Support' }].map(row);
+const WAY_IN = [{ id: 'profile', icon: 'user', label: 'Profile' }, { id: 'prefs', icon: 'gear', label: 'Preferences' },
+  { id: 'support', icon: 'chat', label: 'Support' }].map(row);
 // A setting answered in the menu, drawn the only way the menu can draw one: the
 // row states its current value. The menu holds no control, which is the point.
 const ANSWERED = [
@@ -107,9 +109,10 @@ const Tokens = ({ label }: { label: string }) => <Modal><Nav active="agents" /><
 </Pane></Modal>;
 
 const specimens = [
+  // The page fills the well beside the one rail; the window brings a second column of names.
   { id: 'modal',
-    do: () => <Over><div className="gas-over gas-over--modal"><div className="gas-over__nav"><Rows n={5} cur={1} /></div><Panes count={1} /></div></Over>,
-    dont: () => <Over><div className="gas-over gas-over--sheet"><Panes count={3} /></div></Over> },
+    do: () => <Stage><div className="gas-frame"><Shell cur={-1} /></div></Stage>,
+    dont: () => <Over><div className="gas-over gas-over--modal"><div className="gas-over__nav"><Rows n={5} cur={1} /></div><Panes count={1} /></div></Over> },
   { id: 'nav',
     do: () => <Modal mod="gas-modal--nav"><Nav active="security" /><Pane cap="Signed in now">
       {DEVICES.map(([l, h]) => <SettingRow key={l} lab={l} hint={h} />)}</Pane></Modal>,

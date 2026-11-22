@@ -115,7 +115,9 @@
 /* ============================================================================
  * DARK THEME (default) — deck palette from viz/index.html
  * ========================================================================== */
+/* A ThemeChoice scene draws this theme inside a page of either theme. */
 :root,
+.ui-theme-choice__scene--dark,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
@@ -369,6 +371,7 @@
  * A document sheet (.ui-card__page) takes this palette in both themes: the document
  * is paper, so it stays white with dark ink on a dark stage too. Decided on #736.
  * ========================================================================== */
+.ui-theme-choice__scene--light,
 .ui-card__page,
 :root[data-theme="light"] {
   color-scheme: light;
