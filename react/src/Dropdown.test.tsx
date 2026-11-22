@@ -853,6 +853,50 @@ test('state badge ink and generic metadata match the factory classification', ()
     .toEqual(cases.map(([, tone]) => `ui-dropdown__badge is-${tone}`));
 });
 
+// A muted row (#852): an item that is no longer current and can still be picked, under
+// a category label. The word is text, so a reader without colour and a screen reader get it.
+const UNITS = [
+  { label: 'Studios', items: [
+    { label: 'Birch Studio', value: 'birch' },
+    { label: 'Cedar Studio', value: 'cedar', muted: 'Archived', badge: 'New' },
+  ] },
+  { label: 'Consultancies', items: [
+    { label: 'Harbour Consulting', value: 'harbour' },
+    { label: 'Kestrel Consulting', value: 'kestrel', muted: '  ' },
+  ] },
+];
+
+it('a muted row carries its word in state ink, and the arrows and Enter still pick it', async () => {
+  const user = userEvent.setup();
+  const picks: unknown[] = [];
+  const { container } = render(<Dropdown variant="select" ariaLabel="Unit" sections={UNITS} onSelect={(v) => picks.push(v)} />);
+  const dd = container.querySelector('.ui-dropdown')! as HTMLElement;
+  const trigger = within(dd).getByRole('button');
+  const cedar = rowsOf(dd)[1];
+  // The muted word takes the badge slot, in place of a badge the row also names.
+  expect([...cedar.querySelectorAll('.ui-dropdown__badge')].map((el) => [el.className, el.textContent]))
+    .toEqual([['ui-dropdown__badge is-state', 'Archived']]);
+  expect(cedar.getAttribute('aria-disabled')).toBeNull();
+  expect(cedar.textContent).toBe('Cedar StudioArchived');
+  // A blank word mutes nothing.
+  expect(rowsOf(dd)[3].querySelector('.ui-dropdown__badge')).toBeNull();
+  trigger.focus();
+  await user.keyboard('{ArrowDown}{ArrowDown}');
+  expect(document.activeElement).toBe(cedar);
+  await user.keyboard('{Enter}');
+  expect(picks).toEqual(['cedar']);
+  // The closed trigger keeps the word after the name; a blank word adds nothing.
+  expect(trigger.textContent).toBe('Cedar Studio (Archived)');
+  await user.click(trigger);
+  await user.click(rowsOf(dd)[3]);
+  expect(trigger.textContent).toBe('Kestrel Consulting');
+});
+
+it('a caller-owned selection shows a muted row with its word in the trigger', () => {
+  const { container } = render(<Dropdown variant="select" ariaLabel="Unit" sections={UNITS} selectedValue="cedar" />);
+  expect(within(container as HTMLElement).getByRole('button').textContent).toBe('Cedar Studio (Archived)');
+});
+
 // ---- A filter chip's menu -----------------------------------------------------
 // Inside `.ui-filter-bar__chip` an open menu takes the kit's menu floor and slides
 // back along the row. The arithmetic is the kit's, held by

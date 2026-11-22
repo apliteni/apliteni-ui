@@ -91,7 +91,8 @@ test('every control is a pill and every field has the field corner, except the c
   for (const c of corners) t.diagnostic(`${c.sheet}: ${c.selector} ${c.value}`);
   assert.deepEqual(faults(corners), []);
   // What the tree holds today. A lower count means a control lost its declaration.
-  assert.equal(corners.filter((c) => c.value === PILL).length, 16, 'pill corners read');
+  // 18 since #847: a band action's Button and dropdown trigger take the band's 40px pill on a phone.
+  assert.equal(corners.filter((c) => c.value === PILL).length, 18, 'pill corners read');
   assert.equal(corners.filter((c) => c.value === FIELD).length, 5, 'field corners read');
   assert.ok(SHEETS.length >= 45, `${SHEETS.length} style sheets read`);
 });

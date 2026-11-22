@@ -106,6 +106,18 @@
   }
   .ui-react-app .ui-app__bar:has(> .ui-react-app__title) .ui-app__bar-gap { display: none; }
 }
+/* Without a sidebar, search stands beside the mark, and its own margin pushes the band's
+   controls to the end. The empty gap cost the band one more 12px gap, and at 561px that cut
+   search's words beside a band action (#847). */
+@media (min-width: 561px) {
+  .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu)) .ui-app__bar-gap { display: none; }
+  .ui-react-app .ui-app__bar:not(:has(> .ui-app__menu)) .ui-app__search { margin-inline-end: auto; }
+}
+@media (min-width: 561px) and (max-width: 720px) {
+  /* The title keeps its words up to half the band, and search shrinks first, so a short title
+     such as Payouts stays whole beside two band actions at 561px (#847). */
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title) > .ui-react-app__title { flex-shrink: 0; max-width: 50%; }
+}
 @media (max-width: 560px) {
   /* One row of bare glyphs (#729): the mark, the title, search and Menu. Each control is a
      40px square with no border and no box, so the row fits 300px with the title in it. */
@@ -120,13 +132,17 @@
   .ui-react-app .ui-app__bar .ui-app__menu,
   .ui-react-app .ui-app__bar .ui-app__search,
   .ui-react-app .ui-app__bar .toggle,
-  .ui-react-app .ui-app__bar .ui-app__user-trigger {
+  .ui-react-app .ui-app__bar .ui-app__user-trigger,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-btn,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger {
     flex: none; justify-content: center; width: 40px; min-width: 40px; height: 40px; min-height: 40px;
     padding: 0; margin: 0; border: 0; border-radius: var(--radius-pill); background: transparent;
   }
   .ui-react-app .ui-app__bar .ui-app__search:hover,
   .ui-react-app .ui-app__bar .toggle:hover,
-  .ui-react-app .ui-app__bar .ui-app__user-trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+  .ui-react-app .ui-app__bar .ui-app__user-trigger:hover,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-btn:hover,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
   .ui-react-app .ui-app__bar > .ui-app__brand--band { min-width: 40px; min-height: 40px; }
   .ui-react-app .ui-app__user--bar { margin: 0; }
   /* Search shows only its glyph, an exception in guidelines/iconography.md. The sentence
@@ -150,4 +166,48 @@
   /* The label ends in an ellipsis only when the band has no room left for it. */
   .ui-react-app__band-control > .ui-btn .ui-btn__label,
   .ui-react-app__band-control .ui-dropdown__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* The band's actions (#847): glyph controls at the band's right end, such as a bell. A
+   dropdown trigger draws no field there, as the band controls draw none on a phone. */
+.ui-react-app__band-actions { display: flex; align-items: center; flex: none; gap: var(--space-1); }
+/* Every action is a 40px square, a Button and a dropdown trigger alike, so two side by side
+   are one size. The glyph is the nav glyph's size and weight, as in the head control:
+   src/styles/nav.css:95. */
+.ui-react-app__band-actions > .ui-btn,
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { min-width: 40px; min-height: 40px; justify-content: center; }
+.ui-react-app__band-actions > .ui-btn svg,
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger svg { flex: none; width: 17px; height: 17px; stroke-width: 2.2; }
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { position: relative; gap: 0; padding: 0; border-color: transparent; background: transparent; }
+/* A count sits on the bell's top end corner, out of the flow, so the glyph stays in the
+   centre of its 40px square with any count. It ends at the bell's own edge, so a long count
+   such as 99+ grows over the bell and never reaches the next control. It is the danger
+   solid, and a 2px ring in the band's colour cuts it from the glyph, the hover fill and the
+   focus ring. It stands over the focus ring, so no ring line crosses the digits. The ring's
+   top is on the band's top edge. */
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger .ui-badge {
+  position: absolute; z-index: var(--z-base); inset-block-start: calc(var(--space-3) / -2); inset-inline-end: 0;
+  min-width: var(--space-5); height: var(--space-5); padding: 0 var(--space-1); justify-content: center;
+  border: calc(var(--space-1) / 2) solid var(--bg); /* code-bg: inherit — the ring is the band's own colour. */
+  color: var(--danger-contrast); background: var(--signal-solid-danger);
+}
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+/* With a sidebar, search keeps the band's centre: two equal outer columns hold it there,
+   and the actions stand at the end of the right one. That column never draws narrower than
+   the actions, so where the band is short of room search gives up the centre and shrinks. */
+@media (min-width: 721px) {
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title):has(> .ui-react-app__band-actions) {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--panel-sm)) minmax(max-content, 1fr);
+  }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title) > .ui-react-app__band-actions { grid-column: 3; justify-self: end; }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title):has(> .ui-react-app__band-actions) .ui-app__search { grid-column: 2; margin-inline: 0; }
+}
+@media (max-width: 560px) {
+  /* Each action is a 40px glyph with no border, as every band control is, in the rule above.
+     The band packs its controls with no gap, so the actions open 4px on each side and between
+     them, and declare it: a coarse pointer's layer then reaches 44px across, and 44px down
+     from the band's 12px. tap-zone.css */
+  .ui-react-app .ui-app__bar > .ui-react-app__band-actions { margin-inline: var(--space-1); --tap-clear-x: var(--space-1); }
+  /* The trigger draws no border here, so the count comes down by the 1px border it drew
+     above 560px, and its ring's top stays on the band's top edge. */
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger .ui-badge { inset-block-start: calc(var(--space-3) / -2 + 1px); }
 }

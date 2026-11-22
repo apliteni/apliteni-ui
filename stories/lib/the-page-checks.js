@@ -75,6 +75,20 @@ export const CHECKS = {
         + 'and sub-items. It takes one or the other.');
   },
 
+  // The band's right end holds glyph controls for every page, one or two of them, and
+  // no page's own button (#847). A word on a control there is a page action; a count
+  // such as 3 or 99+ is the bell's. A dropdown's panel is not on the band.
+  'bar-end'(s) {
+    return [...s.doc.querySelectorAll('.ui-react-app__band-actions')].flatMap((end) => {
+      const controls = [...end.querySelectorAll('button, a')].filter((el) => !el.closest('.ui-dropdown__panel'));
+      const worded = controls.filter((el) => /\p{L}/u.test(text(el)));
+      return [
+        ...(controls.length > 2 ? [`${s.where} puts ${controls.length} controls at the band's end. It takes two at most.`] : []),
+        ...worded.map((el) => `${s.where} puts "${text(el)}" at the band's end. A page's own button goes on the page.`),
+      ];
+    });
+  },
+
   // The column is the shell's, and the screen does not write one of its own. A page
   // that sets a width inside its own <main> has left the two names behind and is
   // carrying a third number nothing else in the kit knows about.

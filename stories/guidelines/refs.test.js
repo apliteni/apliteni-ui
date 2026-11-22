@@ -304,8 +304,10 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 150: Dense tables gained top-align (#806). Notifications added three rules (#798).
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
   // 151: Component choice lost one-category (#832).
-  // 152: The page gained sidebar (#843). Session expired added five rules (#854).
-  assert.equal(count, 157, 'update the rule count when adding or removing a rule');
+  // 152: The page gained sidebar (#843).
+  // 153: The page gained bar-end (#847). Labels and titles gained category-compact (#852).
+  // 154: Session expired added five rules (#854).
+  assert.equal(count, 159, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

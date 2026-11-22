@@ -89,3 +89,17 @@
 **Do:** Use the eyebrow for the period and the title for what is shown.
 
 **Don't:** Use a label-sized eyebrow as the only title.
+
+## Keep category labels compact
+
+<!-- rule: category-compact -->
+
+**Rule:** Give each category a compact, nonselectable label in body ink, with space before the next category.
+
+**Why:** A compact label leaves the items prominent in a short list.
+
+**Do:** Write “Studios” above the studio names.
+
+**Don't:** Add “Studios” as a disabled item.
+
+**Except:** A native picker keeps the spacing and label style supplied by the browser.

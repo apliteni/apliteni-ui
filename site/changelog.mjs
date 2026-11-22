@@ -6,13 +6,30 @@
 
 export const RELEASES = [
   {
-    v: '0.186.0', date: '2026-11-22',
+    v: '0.187.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],
     ],
   },
   {
+    v: '0.186.0', date: '2026-11-22',
+    changes: [
+      ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],
+      ['changed', '`Dropdown` rows now name their items in the normal weight, as a native list does. The chosen value in a closed field keeps its weight. Space now sets a group apart from the one before it, in place of a rule. Resolves #852.', ['Dropdown']],
+      ['fixed', 'In light, a state badge on the row that Enter picks in a search dropdown now reads 4.5:1 or more. It was 4.37:1. Resolves #852.', ['Dropdown']],
+      ['added', 'The labels and titles guideline has a new rule, Keep category labels compact: a compact, nonselectable label in body ink, with space before the next category. The components guide says when to use a muted item and when to use a disabled item. Resolves #852.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.185.0', date: '2026-11-22',
+    changes: [
+      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre while it has room; with no sidebar they stand before the theme switch. Each action is a 40px square, and a count stands above the bell’s top corner, clear of the next control. Topbar layout only. Resolves #847.', ['AppShell']],
+      ['changed', 'With no sidebar, the band gives search 12px more room from 561px, so its words stay whole beside a band action. Refs #847.', ['AppShell']],
+      ['added', 'The page guideline has a new rule, Keep the bar’s end for product alerts: only glyph controls that serve every page, such as the bell, go there. Resolves #847.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.184.0', date: '2026-11-22',
     changes: [
       ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],
       ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the running period and `estimated: \'projected\'` for a future one. The readout and the table then say "Incomplete" or "Projected". A period with `compare: false` shows its value in the readout with no comparison text. Resolves #841.', ['Chart']],

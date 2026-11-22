@@ -520,3 +520,75 @@ it('keeps a single section when it is the parent of the page on screen', () => {
     .toHaveAttribute('aria-current', 'true');
   expect(screen.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
 });
+
+// The band's actions stand at its right end in each sidebar structure: before Menu with a
+// sidebar, before the theme switch without one (#847). jsdom lays nothing out, so the
+// order is read from the markup and the 44px floor from the stylesheet; measured at 390
+// and 1280 in Chromium.
+describe('band actions', () => {
+  const bell = <button type="button">Notifications</button>;
+  const groups = [{ label: 'Money', sections: sections.slice(0, 3) }, { label: 'Admin', sections: sections.slice(3) }];
+  const band = () => document.querySelector('.ui-app__bar')!;
+  const order = () => [...band().children].map(el => el.className.split(' ').find(c => /^ui-(app|react-app)__|^toggle$/.test(c)) ?? el.className);
+
+  it('ends the band before Menu with sections or groups', () => {
+    const { rerender } = render(<AppShell {...props} bandActions={bell} />);
+    expect(order().slice(-2)).toEqual(['ui-react-app__band-actions', 'ui-app__menu']);
+    expect(within(band() as HTMLElement).getByRole('button', { name: 'Notifications' })).toBeInTheDocument();
+    rerender(<AppShell {...props} sections={undefined as never} groups={groups} bandActions={bell} />);
+    expect(order().slice(-2)).toEqual(['ui-react-app__band-actions', 'ui-app__menu']);
+  });
+
+  it('stands before the theme switch and the avatar with no sidebar', () => {
+    render(<AppShell {...props} sections={[sections[0]]} pathname="/" bandActions={bell} />);
+    expect(order().slice(-3)).toEqual(['ui-react-app__band-actions', 'toggle', 'ui-app__user']);
+  });
+
+  it('draws nothing without actions', () => {
+    render(<AppShell {...props} />);
+    expect(document.querySelector('.ui-react-app__band-actions')).toBeNull();
+  });
+
+  it('draws each action as a borderless 40px glyph below 560px, and opens 4px around it, so a layer reaches 44px', () => {
+    const css = read('./AppShell.css');
+    const phone = css.slice(css.lastIndexOf('@media (max-width: 560px)'));
+    expect(phone).toMatch(/\.ui-app__bar > \.ui-react-app__band-actions \{ margin-inline: var\(--space-1\); --tap-clear-x: var\(--space-1\); \}/);
+    expect(css).toMatch(/\.ui-react-app__band-actions \{ display: flex; align-items: center; flex: none; gap: var\(--space-1\); \}/);
+    // A 1px border leaves a 38px padding box, and the layer is 100% of it plus the 4px: 42px.
+    const glyphs = css.match(/\.ui-react-app \.ui-app__bar \.ui-app__menu,[^{]*\{([^}]*)\}/)!;
+    expect(glyphs[0]).toContain('.ui-react-app__band-actions > .ui-btn,');
+    expect(glyphs[0]).toContain('.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger {');
+    expect(glyphs[1]).toMatch(/width: 40px;[^]*border: 0;/);
+  });
+
+  it('draws every action as one 40px square, and sets a red count with a band-coloured ring on the bell\'s corner', () => {
+    const css = read('./AppShell.css');
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-btn,\n\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ min-width: 40px; min-height: 40px; justify-content: center; \}/);
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-btn svg,\n\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger svg \{ flex: none; width: 17px; height: 17px;/);
+    // No gap: the kit's 8px gap before the count's wrapper moved the glyph 4px off centre.
+    expect(css).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown > \.ui-dropdown__trigger \{ position: relative; gap: 0; padding: 0;/);
+    const count = css.match(/\.ui-dropdown__trigger \.ui-badge \{([^}]*)\}/)![1];
+    // Over the focus ring, at the corner, with its ring's top on the band's top edge.
+    expect(count).toMatch(/position: absolute; z-index: var\(--z-base\); inset-block-start: calc\(var\(--space-3\) \/ -2\); inset-inline-end: 0;/);
+    expect(count).toMatch(/height: var\(--space-5\);/);
+    expect(count).toMatch(/border: calc\(var\(--space-1\) \/ 2\) solid var\(--bg\);/);
+    expect(count).toMatch(/color: var\(--danger-contrast\); background: var\(--signal-solid-danger\);/);
+    const phone = css.slice(css.lastIndexOf('@media (max-width: 560px)'));
+    expect(phone).toContain('.ui-dropdown__trigger .ui-badge { inset-block-start: calc(var(--space-3) / -2 + 1px); }');
+  });
+
+  it('paints a pressed bell on a phone as it paints a pressed search', () => {
+    const css = read('./AppShell.css');
+    const phone = css.slice(css.indexOf('@media (max-width: 560px)'));
+    const pressed = phone.match(/\.ui-react-app \.ui-app__bar \.ui-app__search:hover,[^{]*\{([^}]*)\}/)!;
+    expect(pressed[0]).toContain('.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover {');
+    expect(pressed[1]).toContain('background: var(--surface);');
+  });
+
+  it('keeps the actions column as wide as the actions, keeps a short title whole, and spends no empty gap with no sidebar', () => {
+    const css = read('./AppShell.css');
+    expect(css).toMatch(/@media \(min-width: 561px\) \{\n  \.ui-react-app \.ui-app__bar:not\(:has\(> \.ui-app__menu\)\) \.ui-app__bar-gap \{ display: none; \}\n  \.ui-react-app \.ui-app__bar:not\(:has\(> \.ui-app__menu\)\) \.ui-app__search \{ margin-inline-end: auto; \}/);
+    expect(css).toMatch(/grid-template-columns: minmax\(0, 1fr\) minmax\(0, var\(--panel-sm\)\) minmax\(max-content, 1fr\);/);
+    expect(css).toMatch(/@media \(min-width: 561px\) and \(max-width: 720px\) \{[^@]*\.ui-react-app__title \{ flex-shrink: 0; max-width: 50%; \}/);
+  });
+});

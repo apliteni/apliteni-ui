@@ -254,31 +254,6 @@ function restated(rest, state) {
   return group ? valueOf(group.body, 'border-color') : null;
 }
 
-/* A chip's menu lists the values the chip prints, so its rows take the body weight. The
-   kit's semibold menu label made every row read bold. #757. Limit: this weighs selectors
-   in the two sheets; a consumer rule or an inline style is outside it. */
-const NORMAL = /^(var\(--weight-normal\)|400|normal)$/;
-const labelWeights = (css) => rules(css)
-  .filter(({ selector, body }) => /\.ui-dropdown__label$/.test(selector) && valueOf(body, 'font-weight'));
-const unweighed = (bar) => {
-  const answers = labelWeights(bar).filter(({ selector, body }) =>
-    selector.startsWith('.ui-filter-bar__chip ') && NORMAL.test(valueOf(body, 'font-weight')));
-  return labelWeights(DROPDOWN).filter(({ selector, body }) => !NORMAL.test(valueOf(body, 'font-weight'))
-    && !answers.some((a) => outranks(specificity(a.selector), specificity(selector))))
-    .map(({ selector }) => selector);
-};
-
-test('a chip menu row takes the body weight over every bold kit label rule', () => {
-  assert.ok(labelWeights(DROPDOWN).length > 0, 'the kit sheet must declare a menu label weight');
-  assert.deepEqual(unweighed(BAR), []);
-});
-
-test('the weight check refuses a sheet without the chip answer', () => {
-  const without = BAR.replace(/\.ui-filter-bar__chip \.ui-dropdown__label\s*\{[^}]*\}/, '');
-  assert.notEqual(without, BAR, 'the mutation must find the chip answer');
-  assert.notDeepEqual(unweighed(without), []);
-});
-
 /* One row, one height (#768): a chip beside the search field stood 39.16px against the
  * field's 45px and sat 2.92px higher. Every control on a toolbar line, and both file
  * drop actions, must reach the row through boxes that stretch on the cross axis, so it
