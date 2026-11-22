@@ -90,7 +90,7 @@ Before opening a PR that changes a chart's point target, its plot height or
 `src/styles/chart.css`, measure the targets in a real browser — a hit test is
 something only an engine answers, and a rect's attributes certified a clipped
 target once already:
-`npm run build-storybook -w react`, then
+`npm run build-storybook` (the root `package.json` script; the react workspace has none), then
 `UI_PLAYWRIGHT=… CHART_TARGETS=1 node --test stories/chart-target.test.js`
 Report the result in the PR. Playwright is not a dependency and CI runs only this
 gate's source half.

@@ -444,11 +444,11 @@
   ],
   "above-the-mark": [
    {
-    "ref": "react/src/tip.ts:55",
+    "ref": "react/src/tip.ts:47",
     "pattern": "const flip = prefersBelow"
    },
    {
-    "ref": "react/src/tip.ts:62",
+    "ref": "react/src/tip.ts:54",
     "pattern": "const left = Math.max(clip.left"
    }
   ],
