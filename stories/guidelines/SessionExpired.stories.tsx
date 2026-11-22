@@ -16,7 +16,7 @@ import { SPEC_CSS } from './_session-expired.js';
 const content = await loadGuideline('session-expired.md', new URL('../../guidelines/session-expired.md', import.meta.url));
 const Stage = ({ children }: { children: ReactNode }) => <div className="gl-stage">{children}</div>;
 const DialogPicture = ({ text = 'Your session ended. Sign in to keep working.' }: { text?: string }) =>
-  <ConfirmPicture title="Sign in again" body={text} size="sm" footer={<Button variant="secondary">Sign in</Button>}><SignInBlock google email dialog /></ConfirmPicture>;
+  <ConfirmPicture title="Sign in again" body={text} size="sm"><SignInBlock google email /></ConfirmPicture>;
 const SignIn = ({ text = 'Your session ended. Sign in to keep working.' }: { text?: string }) =>
   <div className="gl-stage gl-stage--confirm"><DialogPicture text={text} /></div>;
 

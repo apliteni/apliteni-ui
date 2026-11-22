@@ -67,8 +67,8 @@ describe('sign-in flow', () => {
     expect(within(dialog).getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
     expect(within(dialog).getByLabelText(/^Work email/)).toBeInTheDocument();
     expect(within(dialog).getByLabelText(/^Password/)).toBeInTheDocument();
-    expect(within(dialog).getByRole('button', { name: 'Continue with Google' })).not.toHaveClass('ui-btn--block');
-    expect(within(dialog).getByRole('button', { name: 'Sign in' }).parentElement).toHaveClass('rx-modal__foot');
+    expect(within(dialog).getByRole('button', { name: 'Continue with Google' })).toHaveClass('ui-btn--block');
+    expect(within(dialog).getByRole('button', { name: 'Sign in' })).toHaveClass('ui-btn--block');
   });
 
   it('names the email and the password for a password manager, and shows one text for a failure', () => {

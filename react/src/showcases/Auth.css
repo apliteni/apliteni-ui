@@ -1,4 +1,6 @@
 .auth-form { display: flex; flex-direction: column; gap: 18px; }
+/* The owner chose a narrower session dialog than the kit's 420px small panel. */
+.rx-modal:has(.sign-in-dialog) { width: min(360px, 96vw); }
 .auth-actions { display: flex; gap: 10px; }
 .auth-actors { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .auth-note { display: flex; align-items: flex-start; gap: 8px; margin: 14px 0 22px; }
