@@ -573,6 +573,16 @@
     "ref": "src/styles/base.css:120",
     "pattern": "rank: label"
    }
+  ],
+  "category-compact": [
+   {
+    "ref": "src/styles/dropdown.css:432",
+    "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
+   },
+   {
+    "ref": "src/styles/dropdown.css:434",
+    "pattern": "rank: label"
+   }
   ]
  },
  "_layout-and-density.js": {
@@ -1149,7 +1159,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:140",
+    "ref": "react/src/Dropdown.tsx:144",
     "pattern": "ariaLabel?: string;"
    },
    {

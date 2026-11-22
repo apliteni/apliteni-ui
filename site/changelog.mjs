@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.185.0', date: '2026-11-22',
+    changes: [
+      ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],
+      ['changed', '`Dropdown` rows now name their items in the normal weight, as a native list does. The chosen value in a closed field keeps its weight. Space now sets a group apart from the one before it, in place of a rule. Resolves #852.', ['Dropdown']],
+      ['fixed', 'In light, a state badge on the row that Enter picks in a search dropdown now reads 4.5:1 or more. It was 4.37:1. Resolves #852.', ['Dropdown']],
+      ['added', 'The labels and titles guideline has a new rule, Keep category labels compact: a compact, nonselectable label in body ink, with space before the next category. The components guide says when to use a muted item and when to use a disabled item. Resolves #852.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.181.0', date: '2026-11-21',
     changes: [
       ['added', 'React `ThemeChoice` shows the theme as three picture cards, System, Light and Dark, in one radio group. A choice applies and is stored at once, as with `ThemeToggle`. Resolves #845.', ['ThemeChoice']],

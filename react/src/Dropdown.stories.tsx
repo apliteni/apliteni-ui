@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Dropdown, type DropdownEntry } from './Dropdown';
-import { Field } from './Field';
+import { Field, SelectField } from './Field';
 import { Card } from './primitives/Card';
 import person from '../../stories/assets/demo-person.png';
 
@@ -323,4 +323,44 @@ export const PersonPickerFailedPhoto: StoryObj<typeof Dropdown> = {
       )}</Field>
     </Card></Column>
   ),
+};
+
+// A unit list with two categories, where an archived unit stays selectable. The Dropdown
+// marks it with `muted`; the native select writes the same word into the option text.
+// The units are fabricated. why: docs/components.md#dropdown
+const UNITS = [
+  { label: 'Studios', items: [
+    { label: 'Birch Studio', value: 'birch' },
+    { label: 'Cedar Studio', value: 'cedar', muted: 'Archived' },
+  ] },
+  { label: 'Consultancies', items: [
+    { label: 'Harbour Consulting', value: 'harbour' },
+    { label: 'Kestrel Consulting', value: 'kestrel', muted: 'Archived' },
+  ] },
+];
+
+export const MutedItem: StoryObj<typeof Dropdown> = {
+  render: () => {
+    const [unit, setUnit] = useState<string | number | undefined>('cedar');
+    return (
+      <Stage><Column><div className="ui-card-stack">
+        <Card title="Native select">
+          <SelectField label="Unit" defaultValue="cedar">
+            {UNITS.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.items.map((it) => (
+                  <option key={it.value} value={it.value}>{it.muted ? `${it.label} (${it.muted})` : it.label}</option>
+                ))}
+              </optgroup>
+            ))}
+          </SelectField>
+        </Card>
+        <Card title="Dropdown">
+          <Field label="Unit">{(control) => (
+            <Dropdown {...control} variant="select" selectedValue={unit} onSelect={setUnit} sections={UNITS} defaultOpen />
+          )}</Field>
+        </Card>
+      </div></Column></Stage>
+    );
+  },
 };

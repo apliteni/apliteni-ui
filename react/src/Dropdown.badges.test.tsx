@@ -30,6 +30,12 @@ const SUBJECTS: [string, () => ReactElement][] = [
     { label: 'Digest', value: 'digest', badge: 'Archive' },
     { label: 'Slack', value: 'slack', badge: 'New' },
   ]} />],
+  // A muted row as the row Enter would pick: its chip sits on the search highlight,
+  // where --muted read 4.37:1 in light (#852).
+  ['a muted row under the search pick', () => <Dropdown defaultOpen ariaLabel="Unit" search items={[
+    { label: 'Cedar Studio', value: 'cedar', muted: 'Archived' },
+    { label: 'Birch Studio', value: 'birch' },
+  ]} />],
 ];
 
 function sheet(theme: string) {
@@ -43,7 +49,8 @@ function sheet(theme: string) {
 function measureChip(chip: Element) {
   const style = getComputedStyle(chip);
   const ground = effectiveBackground(chip, window);
-  const panel = effectiveBackground(chip.closest('.ui-dropdown__panel')!, window);
+  // The row's ground, which is the panel's unless the row is filled, as the search pick is.
+  const panel = effectiveBackground(chip.parentElement!, window);
   expect(ratio(parseColour(style.color), ground), 'chip text >= 4.5:1').toBeGreaterThanOrEqual(4.5);
   for (const side of ['Top', 'Right', 'Bottom', 'Left'] as const) {
     const visible = !['none', 'hidden', ''].includes(style[`border${side}Style`]);
@@ -90,8 +97,9 @@ describe('a dropdown chip is a soft badge', () => {
   // Reads what the cases above recorded, so it stays below them.
   it('covers every non-live chip the subjects draw, and the two themes separate alike', () => {
     for (const theme of ['light', 'dark']) {
-      // Seven today: the EOL, New and Beta chips in the stories and the four in the tone fixture.
-      expect(measured[theme], `the non-live chips measured in ${theme}`).toBeGreaterThanOrEqual(7);
+      // Ten today: the EOL, New and Beta chips, the two Archived chips of the muted story,
+      // the four in the tone fixture and the one under the search pick.
+      expect(measured[theme], `the non-live chips measured in ${theme}`).toBeGreaterThanOrEqual(10);
     }
     expect(Math.abs(separation.light - separation.dark), 'dark fill separation roughly matches light').toBeLessThan(0.05);
   });
@@ -99,7 +107,7 @@ describe('a dropdown chip is a soft badge', () => {
   for (const theme of ['light', 'dark']) {
     it(`rejects a missing fill and a strong edge in ${theme}`, () => {
       sheet(theme);
-      const { container } = render(SUBJECTS[SUBJECTS.length - 1][1]());
+      const { container } = render(SUBJECTS.find(([name]) => name === 'every tone')![1]());
       const chip = container.querySelector('.ui-dropdown__badge.is-state') as HTMLElement;
       expect(chip).not.toBeNull();
       chip.style.background = 'transparent';
