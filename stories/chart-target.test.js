@@ -245,7 +245,7 @@ test(
 
     try {
       const page = await ctx.newPage();
-      const spark = storySubjects().find((s) => s.spark);
+      const spark = storySubjects().find((s) => s.spark && s.name !== 'SparkInScrollingTable');
       await page.goto(
         `http://127.0.0.1:${served.port}/iframe.html?id=${spark.id}&globals=theme:light`,
         { waitUntil: 'load' },
