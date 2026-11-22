@@ -157,6 +157,22 @@ describe('guideline pages in React: the confirm picture is the Modal', () => {
   });
 });
 
+/* The session-ended pair is a page fragment, not an application shell. The dialog
+ * stays over that fragment, so the reader can see where work continues in a cell. */
+describe('guideline pages in React: Session expired', () => {
+  const page = pages.find(p => p.file.endsWith('/SessionExpired.stories.tsx'))!;
+  it('keeps the sign-in dialog over a page-only picture', () => {
+    const doSide = mount(page).querySelector('[data-rule="sign-in-same-page"] [data-specimen="do"]')!;
+    const picture = doSide.querySelector('.se-page')!;
+    const dialog = picture.querySelector('.se-page__dialog .rx-modal');
+    expect(picture, 'the session picture has no page area').toBeTruthy();
+    expect(doSide.querySelector('.ui-app'), 'a specimen must not compress the full application shell').toBeNull();
+    expect(picture.querySelector('.se-page__title')?.textContent).toBe('Payouts');
+    expect(picture.querySelector('.se-page__scrim')).toBeTruthy();
+    expect(dialog, 'the dialog must be inside the page picture').toBeTruthy();
+  });
+});
+
 // The notice picture has no component to read, so its glyphs are held to the Toast's own table.
 describe('guideline pages in React: the notice picture is the Toast', () => {
   it('draws each tone with the glyph the Toast draws it with', () => {
