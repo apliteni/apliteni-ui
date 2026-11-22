@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.185.0', date: '2026-11-22',
+    v: '0.186.0', date: '2026-11-22',
     changes: [
       ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],
       ['changed', '`Dropdown` rows now name their items in the normal weight, as a native list does. The chosen value in a closed field keeps its weight. Space now sets a group apart from the one before it, in place of a rule. Resolves #852.', ['Dropdown']],

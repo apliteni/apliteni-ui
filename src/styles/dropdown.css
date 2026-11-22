@@ -547,22 +547,6 @@
    light. --dim keeps the state ink and clears 4.5:1 (#852). */
 .ui-dropdown__item.is-active > .ui-dropdown__badge.is-state { /* muted-ink: state — archived badge on the search pick */ color: var(--dim); }
 
-/* Forced colours replace the quiet selected fill. The system pair marks both a selected
-   row and the search row Enter would pick. Its focus ring stays CanvasText, so focus is
-   distinct from selection. An archived state badge reverses the pair to stay readable. */
-@media (forced-colors: active) {
-  .ui-dropdown__item:is(.is-selected, .is-active) {
-    forced-color-adjust: none;
-    background: Highlight;
-    color: HighlightText;
-    --ring: var(--ring-width) solid CanvasText;
-    --ring-scroll: var(--ring); /* the row draws --ring-scroll, which the root resolved (#852) */
-    --ring-scroll-offset: var(--ring-offset);
-  }
-  .ui-dropdown__item:is(.is-selected, .is-active) :is(.ui-dropdown__label, .ui-dropdown__desc, .ui-dropdown__aside, .ui-dropdown__ic, .ui-dropdown__more, .ui-dropdown__tick) { color: HighlightText; }
-  .ui-dropdown__item:is(.is-selected, .is-active) :is(.ui-dropdown__badge, .ui-dropdown__badge.is-state) { background: HighlightText; color: Highlight; }
-}
-
 /* A picker of people. A mark leads the trigger and each row; with no value the trigger
    shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
    margins give back the room it takes, so the trigger keeps its height.

@@ -83,30 +83,6 @@ test('a group stands apart from the one before it by space and draws no rule', (
   }
 });
 
-/* A selected row and the row a search will pick need the system pair. The state badge
-   inverts that pair, so an archived row stays readable. Limit: this reads declarations;
-   the browser test measures the system colours at the two required widths. */
-test('selected and search-active rows use the forced-colours system pair and outward drawn focus ring', () => {
-  const forced = sheet().filter((rule) => rule.conditionText === '(forced-colors: active)');
-  assert.ok(forced.length, 'the sheet has no forced-colours rule');
-  const rules = forced.flatMap((rule) => [...rule.cssRules]);
-  const rows = rules.find((rule) =>
-    rule.selectorText === '.ui-dropdown__item:is(.is-selected, .is-active)');
-  assert.ok(rows, 'selected and search-active rows have no forced-colours rule');
-  const labels = rules.find((rule) =>
-    rule.selectorText.includes('.ui-dropdown__label'));
-  const badges = rules.find((rule) =>
-    rule.selectorText.includes('.ui-dropdown__badge'));
-  assert.equal(rows.style.getPropertyValue('forced-color-adjust'), 'none');
-  assert.equal(rows.style.getPropertyValue('background'), 'highlight');
-  assert.equal(rows.style.getPropertyValue('--ring'), 'var(--ring-width) solid CanvasText');
-  assert.equal(rows.style.getPropertyValue('--ring-scroll'), 'var(--ring)');
-  assert.equal(rows.style.getPropertyValue('--ring-scroll-offset'), 'var(--ring-offset)');
-  assert.equal(labels?.style.getPropertyValue('color'), 'highlighttext');
-  assert.equal(badges?.style.getPropertyValue('background'), 'highlighttext');
-  assert.equal(badges?.style.getPropertyValue('color'), 'highlight');
-});
-
 test('both directions read one gap, so neither can drift from the other', () => {
   const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const gap = decl(panel, '--ui-dropdown-gap');
