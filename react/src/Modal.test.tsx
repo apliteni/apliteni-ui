@@ -1,5 +1,6 @@
 import { act, createEvent, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { readFileSync } from 'node:fs';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Modal } from './Modal';
@@ -332,4 +333,17 @@ it('names the dialog with a heading, not a styled div', () => {
   const heading = screen.getByRole('heading', { name: 'New campaign' });
   expect(heading.tagName).toBe('H2');
   expect(screen.getByRole('dialog')).toHaveAttribute('aria-labelledby', heading.id);
+});
+
+// accessibility-floor: tap-zone — to a coarse pointer, each 36px foot button reaches 44.
+// A source read: jsdom resolves no @media and lays nothing out. The layer is tap-zone.css's
+// `.ui-btn::after`, clamped to 100% + --tap-clear-y, so the foot's clearance has to give
+// it 8px. stories/tap-zone.test.js measures a Confirm's foot at 390 in Chromium.
+it('opens the foot to a coarse pointer, so each foot button reaches the 44px tap floor', () => {
+  const read = (rel: string) => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  const phone = read('./Modal.css').match(/@media \(max-width: 560px\) and \(pointer: coarse\) \{([^]*?)\n\}/)?.[1] ?? '';
+  const clear = phone.match(/\.rx-modal__foot \{[^}]*--tap-clear-y: var\((--tap-[\w-]+)\);/)?.[1];
+  expect(clear, 'Modal.css gives the foot no coarse-pointer clearance').toBeDefined();
+  const px = Number(read('../../src/styles/tap-zone.css').match(new RegExp(`${clear}: var\\(--space-\\d+, (\\d+)px\\)`))?.[1]);
+  expect(36 + px).toBeGreaterThanOrEqual(44);
 });

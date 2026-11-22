@@ -6,7 +6,8 @@
  * ./dialog adds `is-open` once the start state is styled and waits for the panel's
  * transition before it unmounts. The reduced-motion net shortens both to 0.01ms.
  * It paints on the confirm's layer, one above the drawer's, because a modal opened
- * from a drawer is a question about the drawer.
+ * from a drawer is a question about the drawer. A dialog opened from a modal paints
+ * above it: ./dialog raises each dialog over the one beneath it on the stack.
  * why: docs/foundations.md#motion */
 .rx-scrim { /* code-bg: inherit — The dialog supplies the ground for every focusable control. */
   position: fixed; inset: 0; background: color-mix(in srgb, var(--shadow-ink) 82%, transparent);
@@ -37,3 +38,9 @@
   padding: var(--space-4); }
 .rx-modal__head > .ui-btn { width: calc(var(--space-10) + var(--space-1));
   height: calc(var(--space-10) + var(--space-1)); flex: none; }
+/* The foot's buttons are 36px: to a coarse pointer, the layer in tap-zone.css takes
+ * 4px of the foot's 16px padding above and below each one. Across, a labelled button is
+ * already wider than the floor. why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step */
+@media (max-width: 560px) and (pointer: coarse) {
+  .rx-modal__foot { --tap-clear-y: var(--tap-gap); }
+}

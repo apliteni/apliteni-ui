@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.186.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'At 560px and narrower, with a coarse pointer, each foot button of `Modal` and `Confirm` now has a 44px tap zone. The buttons keep their drawn size and place. Part of #853.', ['Modal', 'Confirm']],
+      ['fixed', 'A React dialog opened from another one now paints above it and its scrim. A `Drawer` or a date picker sheet opened from a `Modal` no longer goes under the Modal. Part of #853.', ['Drawer', 'Modal']],
+    ],
+  },
+  {
     v: '0.181.0', date: '2026-11-21',
     changes: [
       ['added', 'React `ThemeChoice` shows the theme as three picture cards, System, Light and Dark, in one radio group. A choice applies and is stored at once, as with `ThemeToggle`. Resolves #845.', ['ThemeChoice']],

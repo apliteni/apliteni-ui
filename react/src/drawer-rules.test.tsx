@@ -31,7 +31,8 @@ const THEMES = ['dark', 'light'];
 // 16: the KeyValueList Wide Drawer story (#811).
 // 17: the date sheet in the DatePicker Sheet In Field story (#832).
 // 18: the date sheet in the DatePicker Phone Day Last Week story (#835).
-const EXPECTED = { subjects: 18, donts: 10 };
+// 19: the sheet in the Modal Sheet Over Modal story (#853).
+const EXPECTED = { subjects: 19, donts: 10 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);

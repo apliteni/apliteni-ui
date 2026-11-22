@@ -955,6 +955,12 @@ destructive question.
 body scrolls, and the title, the close control and the footer stay visible. The title is an `h2`.
 `initialFocusRef` chooses the first focus.
 
+**On a phone.** At 560px and narrower, with a coarse pointer, each footer button has a 44px tap
+zone. The buttons keep their drawn size.
+
+**A dialog over the modal.** A drawer, a date picker sheet or another dialog that opens from the
+modal stands above the modal and its scrim.
+
 ### Confirm
 
 Use `Confirm` before a destructive action that the page must stop for. Use
@@ -966,7 +972,8 @@ Use `Confirm` before a destructive action that the page must stop for. Use
 ```
 
 It is an `alertdialog`. The safe action gets the focus and stands before the committing action.
-`onConfirm` only reports the press. You save, show errors and close.
+`onConfirm` only reports the press. You save, show errors and close. The answers are the modal's
+footer buttons, so on a phone each one has a 44px tap zone.
 
 ### Drawer
 
@@ -990,7 +997,8 @@ card. `DrawerSection` puts a heading on a 1px line, and groups stand 32px apart.
 shows label and value pairs, in one or two columns. A value stays beside its label. An icon button
 at the end of a value, such as a copy button, stays on the value's line. Nothing in a drawer draws a
 card, a row rule or an `<hr>`. The actions stay outside the scrolling body. Under reduced motion
-the panel does not slide.
+the panel does not slide. A drawer that opens from a modal or from another drawer stands above it
+and its scrim.
 
 **A key figure.** Put a `<dl class="ui-drawer__figure">` in a first group with no heading. Its
 `<dd>` holds a `.ui-drawer__figure-value` at 22px, with a status badge beside it.

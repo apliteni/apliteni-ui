@@ -8,6 +8,7 @@ import axe from 'axe-core';
 import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Drawer, type DrawerProps } from './Drawer';
+import { Confirm } from './Confirm';
 import { Modal } from './Modal';
 import { Tooltip } from './Tooltip';
 import { classesOfEl } from './test/classlist';
@@ -406,4 +407,90 @@ it('closing the Modal gives the Drawer back its keyboard, and the page waits for
   await waitFor(() => expect(document.activeElement).toBe(opener));
   expect(container).not.toHaveAttribute('inert');
   expect(drawerRoot).toHaveAttribute('aria-hidden', 'true');
+});
+
+// ---- paint order -------------------------------------------------------------
+// The layers the sheets give: the drawer on --z-overlay, the modal (and so a Confirm)
+// one above it. jsdom does not resolve var() in calc(), so the fixture states them as
+// numbers. jsdom paints nothing either: these read the z-index each root ends on.
+function layers() {
+  const style = document.createElement('style');
+  style.dataset.fixture = '';
+  style.textContent = '.ui-drawer { z-index: 40; } .rx-scrim { z-index: 41; }';
+  document.head.appendChild(style);
+}
+const z = (el: Element) => Number(getComputedStyle(el).zIndex);
+/** The z-index of the dialog root named `title`. A portal lands in <body> in commit order, not stack order. */
+const zOf = (title: string) =>
+  z([...document.querySelectorAll('h2')].find((h) => h.textContent === title)!.closest('.ui-drawer, .rx-scrim')!);
+
+it('a Drawer opened from a Modal paints above the Modal and its scrim', async () => {
+  layers();
+  function Form() {
+    const [sheet, setSheet] = useState(false);
+    return (
+      <Modal open title="New payment" onClose={noop}>
+        <button type="button" onClick={() => setSheet(true)}>Pick a date</button>
+        <Drawer open={sheet} side="bottom" title="Payment date" onClose={noop}>days</Drawer>
+      </Modal>
+    );
+  }
+  render(<Form />);
+  await userEvent.click(screen.getByRole('button', { name: 'Pick a date' }));
+  await waitFor(() => expect(root()).toHaveClass('is-open'));
+  expect(zOf('Payment date')).toBeGreaterThan(zOf('New payment'));
+});
+
+it('a Drawer and a Modal opened in one commit keep their paint order both ways', () => {
+  layers();
+  const { unmount } = render(
+    <Modal open title="New payment" onClose={noop}>
+      <Drawer open title="Payment date" onClose={noop}>days</Drawer>
+    </Modal>,
+  );
+  expect(zOf('Payment date')).toBeGreaterThan(zOf('New payment'));
+  unmount();
+  // A Modal from a Drawer already sat above it on its own layer, and stays there.
+  render(
+    <Drawer open title="Record" onClose={noop}>
+      <Modal open title="Confirm" onClose={noop}>sure?</Modal>
+    </Drawer>,
+  );
+  expect(zOf('Confirm')).toBeGreaterThan(zOf('Record'));
+  expect(document.querySelector<HTMLElement>('.rx-scrim')!.style.zIndex).toBe('');
+});
+
+it('a Drawer from a Drawer, and a Confirm over both from a Modal, each paint above the last', () => {
+  layers();
+  render(
+    <Drawer open title="Record" onClose={noop}>
+      <Drawer open title="Line" onClose={noop}>
+        <Modal open title="Edit line" onClose={noop}>
+          <Drawer open title="Account" onClose={noop}>
+            <Confirm open title="Delete the line?" body="It goes for good." confirmLabel="Delete"
+              cancelLabel="Keep" onConfirm={noop} onCancel={noop} />
+          </Drawer>
+        </Modal>
+      </Drawer>
+    </Drawer>,
+  );
+  const order = ['Record', 'Line', 'Edit line', 'Account', 'Delete the line?'].map(zOf);
+  expect(order).toEqual([40, 41, 42, 43, 44]);
+});
+
+it('a closing Drawer keeps its layer over the Modal while it leaves', async () => {
+  layers();
+  const style = document.createElement('style');
+  style.dataset.fixture = '';
+  style.textContent = '.ui-drawer__panel { transition-duration: 10s; }';
+  document.head.appendChild(style);
+  const { rerender } = render(
+    <Modal open title="New payment" onClose={noop}><Drawer open title="Payment date" onClose={noop}>days</Drawer></Modal>,
+  );
+  rerender(
+    <Modal open title="New payment" onClose={noop}><Drawer open={false} title="Payment date" onClose={noop}>days</Drawer></Modal>,
+  );
+  await waitFor(() => expect(root()).not.toHaveClass('is-open'));
+  expect(root()).toHaveAttribute('aria-hidden', 'true');
+  expect(zOf('Payment date')).toBeGreaterThan(zOf('New payment'));
 });

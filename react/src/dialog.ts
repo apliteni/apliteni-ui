@@ -124,9 +124,23 @@ function onKey(e: KeyboardEvent) {
   } else if (e.key === 'Tab') trapTab(top.panel, e);
 }
 
+// Each dialog on the stack paints at least one above the one beneath it, whatever layer
+// its stylesheet gives it: a Drawer opened from a Modal sits on the drawer's layer, under
+// the Modal's scrim. A leaving root is off the stack and keeps the layer it had.
+function layer() {
+  let floor = -Infinity;
+  for (const { root } of stack) {
+    root.style.removeProperty('z-index');
+    const own = Number.parseInt(getComputedStyle(root).zIndex, 10) || 0;
+    if (own < floor) root.style.zIndex = String(floor);
+    floor = Math.max(own, floor) + 1;
+  }
+}
+
 // Recompute the page from the stack: everything outside the top dialog is inert, lower
 // dialogs included, and a leaving root is inert and aria-hidden until it unmounts.
 function sync() {
+  layer();
   for (const [el, was] of marked) if (!was) el.removeAttribute('inert');
   marked = [];
   const top = stack[stack.length - 1];
