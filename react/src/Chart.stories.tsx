@@ -5,6 +5,7 @@ import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from 
 import type { ChartSlice } from './chart-looks';
 import { Card } from './primitives/Card';
 import { StatBand } from './primitives/StatBand';
+import { SearchField } from './SearchField';
 
 const meta: Meta<typeof Chart> = { title: 'React/Chart', component: Chart, id: 'react-chart' };
 export default meta;
@@ -60,6 +61,40 @@ export const AsTable: StoryObj = {
     const canvas = within(canvasElement);
     await userEvent.click(canvas.getByRole('button', { name: 'Table' }));
     await expect(canvas.getByRole('table', { name: 'Income and spend by month, last 12 months, with net' })).toBeVisible();
+  },
+};
+
+/** The final spark sits in a scroll frame. Its readout stays above the mark and
+ * over the frame, so the table cannot cut it. */
+export const SparkInScrollingTable: StoryObj = {
+  render: () => {
+    const [query, setQuery] = useState('');
+    const accounts = Array.from({ length: 20 }, (_, i) => i + 1).filter((i) => `Account ${i}`.toLowerCase().includes(query.toLowerCase()));
+    return <Card>
+      <div className="ui-filter-bar"><SearchField ariaLabel="Filter accounts" value={query} onChange={(event) => setQuery(event.currentTarget.value)} /></div>
+      <div className="ui-table-scroll" role="region" aria-label="Cash trends">
+      <table className="ui-table ui-table--hover">
+        <thead><tr><th scope="col">Account</th><th scope="col">Cash trend</th></tr></thead>
+        <tbody>
+          {accounts.map((i) => (
+            <tr key={i}>
+              <th scope="row">Account {i}</th>
+              <td><Chart variant="spark" title={`Account ${i} cash trend`} periods={periods.slice(0, 2)}
+                series={[{ id: 'cash', name: 'Cash', values: INCOME.slice(0, 2), shape: 'line' }]} format={eur} /></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+    </Card>;
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const region = canvas.getByRole('region', { name: 'Cash trends' });
+    region.scrollTop = region.scrollHeight;
+    const chart = canvas.getByRole('img', { name: /Account 20 cash trend/ });
+    await userEvent.hover(chart.querySelector('.ui-chart__hit')!);
+    await expect(canvas.getByRole('tooltip')).toBeVisible();
   },
 };
 

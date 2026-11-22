@@ -94,7 +94,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then the native unit select of the Dropdown's Muted Item story (#852).
 // Then the email and password fields in the two Session ended dialogs (#854).
 // Move this count with the specimens.
-const FIELD_COUNT = 203;
+const FIELD_COUNT = 204;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
