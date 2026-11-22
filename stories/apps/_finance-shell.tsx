@@ -13,13 +13,13 @@ type NavItem = { id: string; icon: string; label: string; href: string; target?:
 const sections = (FINANCE_NAV as NavItem[]).map(item => ({ href: `/${item.id}`, label: item.label, icon: item.icon }));
 const linkOf = Object.fromEntries((FINANCE_NAV as NavItem[]).map(item => [`/${item.id}`, item]));
 
-export const FinanceShell = ({ active, title, sub, back, children }: {
-  active: string; title: string; sub?: string; back?: { href: string; label: string }; children: ReactNode;
+export const FinanceShell = ({ active, title, sub, back, children, surface = false }: {
+  active: string; title: string; sub?: string; back?: { href: string; label: string }; children: ReactNode; surface?: boolean;
 }) =>
   // The portal's column is 960px, set the way the vanilla shell sets it: through the
   // shell's own --ui-app-main, which the main column reads.
-  <div style={{ '--ui-app-main': '960px' } as CSSProperties}>
-    <AppShell layout="rail" word="Finance" sections={sections} pathname={`/${active}`} title={title} lede={sub}
+  <div style={{ '--ui-app-main': '960px', ...(surface && { '--bg': 'var(--surface)' }) } as CSSProperties}>
+    <AppShell surface={surface} layout="rail" word="Finance" sections={sections} pathname={`/${active}`} title={title} lede={sub}
       back={back}
       account={FINANCE_READER} onSignOut={() => {}}
       renderLink={(section, props) => <a {...props} href={linkOf[section.href].href} target={linkOf[section.href].target} />}>

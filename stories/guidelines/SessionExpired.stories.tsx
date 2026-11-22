@@ -21,7 +21,7 @@ const SignIn = ({ text = 'Your session ended. Sign in to keep working.' }: { tex
 const Payouts = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false }: {
   loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean;
 }) =>
-  <Stage><FinanceShell active="payouts" title="Payouts" sub={loading || !filter ? undefined : 'Filtered to pending, this week.'}>
+  <Stage><FinanceShell surface active="payouts" title="Payouts" sub={loading || !filter ? undefined : 'Filtered to pending, this week.'}>
     <div className="ui-card-stack">
     {loading && <Skeleton lines={1} width="12rem" />}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={noop}>Sign in</Button>}>

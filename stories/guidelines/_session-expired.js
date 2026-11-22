@@ -5,4 +5,4 @@ export const BLURB = content.blurb;
 export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 
-export const SPEC_CSS = '';
+export const SPEC_CSS = '<style>.gl-stage .ui-app { background: var(--surface); }</style>';

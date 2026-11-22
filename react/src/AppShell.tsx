@@ -61,6 +61,7 @@ export type AppShellProps = AppShellNav & {
   onSignOut: () => void;
   /** Server-read fold preference. The browser restores the shared rail cookie. */
   defaultCollapsed?: boolean;
+  surface?: boolean;
   palette?: Omit<CommandPaletteProps, 'open' | 'onClose'>;
   /** Called for a same-tab pick from the built-in palette, so a client router
    *  can change the page without a reload. A palette's own `onNavigate` wins. */
@@ -73,7 +74,7 @@ const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/
 
 export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
   brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
-  searchLabel = 'Search or run a command…',
+  searchLabel = 'Search or run a command…', surface = false,
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
   const uid = useId();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
@@ -207,7 +208,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
   // page title, search and Menu. The menu panel puts the head control in its own head.
   // With no sidebar, the band keeps them all.
   const control = bandControl && <div className="ui-react-app__control" inert={collapsed}>{bandControl}</div>;
-  return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
+  return <div className={`ui-app ui-app--topbar ui-react-app${surface ? ' ui-app--surface' : ''}${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
       <div className="ui-app__head">{lockup}{foldControl}</div>
       {control}
