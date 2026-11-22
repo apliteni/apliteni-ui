@@ -22,6 +22,7 @@ describe('sign-in flow', () => {
 
     rerender(<InUse session="ended" />);
     const dialog = await screen.findByRole('dialog', { name: 'Sign in again' });
+    expect(document.querySelector('.ui-skel--table')).toBeInTheDocument();
     const google = within(dialog).getByRole('button', { name: 'Continue with Google' });
     fireEvent.click(google);
     expect(google).toHaveAttribute('aria-busy', 'true');
@@ -34,6 +35,7 @@ describe('sign-in flow', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), ANSWER);
     expect(screen.queryByText(/You are signed out/)).not.toBeInTheDocument();
+    expect(document.querySelector('.ui-skel--table')).not.toBeInTheDocument();
     expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1170');
   });
 

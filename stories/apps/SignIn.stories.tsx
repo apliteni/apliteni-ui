@@ -11,6 +11,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
+import { SkeletonTable } from '../../react/src/Loading';
 import { FinanceShell } from './_finance-shell';
 import '../../react/src/showcases/Auth.css';
 
@@ -104,6 +105,7 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   const [open, setOpen] = useState(session === 'ended');
   const [signedOut, setSignedOut] = useState(session === 'closed');
   useEffect(() => { setOpen(session === 'ended'); setSignedOut(session === 'closed'); }, [session]);
+  const waitingForSignIn = open || signedOut;
   return <FinanceShell active="payouts" title="Payouts" sub="Filtered to pending, this week.">
     {/* The callout stays under a reopened modal, so its Sign in button gets the focus back. */}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setOpen(true)}>Sign in</Button>}>
@@ -114,12 +116,14 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
       <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" />
     </div>
     <Card title="Pending payouts">
-      <table className="ui-table ui-table--dense">
+      {waitingForSignIn ? <SkeletonTable rows={PENDING.length} cols={4} /> :
+        <table className="ui-table ui-table--dense">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Arrival</th><th>Status</th></tr></thead>
         <tbody>{PENDING.map(([ref, net, arrival]) => <tr key={ref}>
           <td>{ref}</td><td className="ui-table__num">{net}</td><td>{arrival}</td><td><Badge variant="pending">Pending</Badge></td>
         </tr>)}</tbody>
-      </table>
+        </table>
+      }
     </Card>
     <Modal open={open} title="Sign in again" onClose={() => { setOpen(false); setSignedOut(true); }}>
       <div className="ui-stack">

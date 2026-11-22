@@ -1177,5 +1177,17 @@
     "pattern": ".ui-callout--danger {"
    }
   ]
+ },
+ "_session-expired.js": {
+  "skeleton-behind-dialog": [
+   {
+    "ref": "stories/apps/SignIn.stories.tsx:119",
+    "pattern": "waitingForSignIn ? <SkeletonTable"
+   },
+   {
+    "ref": "react/src/Loading.tsx:49",
+    "pattern": "export function SkeletonTable"
+   }
+  ]
  }
 }

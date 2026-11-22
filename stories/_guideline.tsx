@@ -51,8 +51,9 @@ export const NoticePicture = ({ tone = 'neutral', glyph, title, text, action, cl
 /* A confirm drawn in place, as a picture of the React Confirm: the Modal's head,
  * body and foot with the same parts. The live one is a portal over a scrim that
  * owns the page, so a page with three of them draws them instead. */
-export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel }: {
+export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel, confirmVariant = 'danger' }: {
   title: string; body?: string; cancelLabel: string; confirmLabel: string;
+  confirmVariant?: 'danger' | 'primary';
 }) => <div className="rx-modal" role="group" aria-label={title}>
   <div className="rx-modal__head">
     <h2 className="rx-modal__title">{title}</h2>
@@ -61,7 +62,7 @@ export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel }: {
   {body && <div className="rx-modal__body"><p>{body}</p></div>}
   <div className="rx-modal__foot">
     <Button variant="ghost">{cancelLabel}</Button>
-    <Button variant="danger">{confirmLabel}</Button>
+    <Button variant={confirmVariant}>{confirmLabel}</Button>
   </div>
 </div>;
 
