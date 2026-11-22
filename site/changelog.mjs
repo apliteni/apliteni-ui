@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.184.0', date: '2026-11-22',
+    changes: [
+      ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],
+      ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the running period and `estimated: \'projected\'` for a future one. The readout and the table then say "Incomplete" or "Projected". A period with `compare: false` shows its value in the readout with no comparison text. Resolves #841.', ['Chart']],
+      ['changed', 'A months `Chart` fits its card and no longer scrolls. Its bars are one flat fill, two thirds of the column wide and at most 48px. Where the period labels do not fit, it prints fewer of them. Resolves #841.', ['Chart']],
+      ['added', 'A months `Chart` takes `values` to print each bar\'s value over the bar, in `formatAxis`. A value that does not fit at the 12px text size is left out, and the readout and the table keep it. Resolves #841.', ['Chart']],
+    ],
+  },
+  {
     v: '0.181.0', date: '2026-11-21',
     changes: [
       ['added', 'React `ThemeChoice` shows the theme as three picture cards, System, Light and Dark, in one radio group. A choice applies and is stored at once, as with `ThemeToggle`. Resolves #845.', ['ThemeChoice']],

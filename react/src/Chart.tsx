@@ -5,7 +5,7 @@
 // why: docs/components.md#chart
 import {
   useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState,
-  type CSSProperties, type KeyboardEvent as ReactKeyboardEvent,
+  type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type RefObject,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { CHART_FLOOR, bridgeWalk, chartScale, pointTarget } from '@apliteni/apliteni-ui';
@@ -42,6 +42,8 @@ export type ChartPeriod = {
   estimated?: ChartEstimate;
   /** Why it is not final. Printed in the readout and in the table. */
   note?: string;
+  /** `false` prints the period's value in the readout with no comparison text. */
+  compare?: boolean;
 };
 
 export type ChartEstimate = boolean | 'incomplete' | 'projected';
@@ -110,7 +112,12 @@ type ChartCommon = {
 export type ChartLookSeries = Omit<ChartSeries, 'shape'>;
 
 export type ChartProps = ChartCommon & (
-  | { variant?: 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[] }
+  | {
+    variant?: 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[];
+    /** Print each bar's value above it, in `formatAxis`. A value that does not
+     *  fit its bar's room is left out; the readout and the table keep it. */
+    values?: boolean;
+  }
   | { variant: 'spark'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[] }
   | { variant: 'bridge'; steps: readonly ChartBridgeStep[]; tones?: ChartBridgeTones }
   | { variant: 'line'; look?: ChartLineLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
@@ -126,7 +133,11 @@ export type ChartProps = ChartCommon & (
 );
 
 /** `state` is the word the chart prints for a period that is not final. */
-type Column = { label: string; short: string; estimated: boolean; state?: string; note?: string };
+type Column = {
+  label: string; short: string; estimated: boolean; state?: string; note?: string;
+  /** The readout compares the period with the one before it. */
+  compare: boolean;
+};
 type Key = { id: string; name: string; tone: ChartTone; shape: 'bars' | 'bars-below' | 'line' | 'fill' };
 type Band = 'up' | 'down' | 'full';
 
@@ -228,6 +239,28 @@ const BAR_MAX = 12;
  * and the carry joining two steps would be longer than the steps it joins.
  */
 const BAR_MAX_BRIDGE = 22;
+/**
+ * The months chart's columns (#841, look A): the plot takes the card's width and
+ * every period shares it, so nothing scrolls. A bar takes two thirds of its
+ * column up to --space-12, and its corner is --radius-xs or a quarter of the
+ * bar, whichever is smaller, so a narrow bar keeps the same shape.
+ */
+const FIT_SHARE = 2 / 3;
+const FIT_MAX = 48;
+const FIT_CORNER = 6;
+/** The ground a value or a period label keeps beside its neighbour: --space-1, --space-2. */
+const TEXT_GAP = 4;
+const LABEL_GAP = 8;
+/** The text size the plot's words are drawn at: --text-xs. */
+const TEXT_SIZE = 12;
+/** The room a bar's value takes past its bar: one line of the tick's box and the gap. */
+const VALUE_ROOM = Math.ceil(TEXT_SIZE * 1.45) + TEXT_GAP;
+/** The room the "Not final" group label takes over the plot: --space-8. Its
+ *  baseline is at --space-4 and the boundary starts at --space-6. */
+const GROUP_ROOM = 32;
+const GROUP_BASELINE = 16;
+const BOUNDARY_TOP = 24;
+const GROUP_WORDS = 'Not final';
 /** The ground between two bars that share a column. */
 const LANE_GAP = 2;
 
@@ -252,6 +285,7 @@ const px = (n: number) => Math.round(n * 10) / 10;
 const STATE_WORD = { incomplete: 'Incomplete', projected: 'Projected' } as const;
 const columnOf = (p: ChartPeriod | ChartBridgeStep, fallback: string): Column => ({
   label: p.label, short: p.short || fallback, estimated: Boolean(p.estimated), note: p.note,
+  compare: !('compare' in p) || p.compare !== false,
   state: !p.estimated ? undefined : p.estimated === true ? 'Estimated' : STATE_WORD[p.estimated],
 });
 
@@ -271,8 +305,11 @@ function onPrevious(value: number, previous: number | undefined, when: string) {
  * `foot` names the edge that stands on zero; a bridge step floats between two
  * running totals and stands on nothing, so it is rounded at both ends.
  */
-function barPath(m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null }): string {
-  const r = Math.min(m.w / 2, m.h / (m.foot ? 1 : 4));
+function barPath(
+  m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null },
+  corner = m.w / 2,
+): string {
+  const r = Math.min(corner, m.w / 2, m.h / (m.foot ? 1 : 4));
   const { x, y: top, w, h } = m;
   const bottom = top + h;
   const arc = (dx: number, dy: number, sweep: 0 | 1) =>
@@ -308,6 +345,34 @@ function useTapFloor() {
     return () => query.removeEventListener?.('change', read);
   }, []);
   return floor;
+}
+
+/**
+ * How wide a word is drawn in the chart's font, so a value or a period label is
+ * printed only where it fits. A browser measures it; where no canvas can
+ * (server-rendered, or a test environment) a figure is taken as 0.62 of the text
+ * size, which is wider than any figure of the kit's face, so an estimate never
+ * prints a word over its neighbour.
+ */
+function useTextWidth(host: RefObject<HTMLElement | null>) {
+  const [font, setFont] = useState('');
+  // A web font that arrives after the first draw changes every width.
+  const [loaded, setLoaded] = useState(0);
+  useEffect(() => {
+    const el = host.current;
+    if (!el || typeof OffscreenCanvas === 'undefined') return;
+    const style = getComputedStyle(el);
+    setFont(`${style.fontWeight} ${TEXT_SIZE}px ${style.fontFamily}`);
+    let live = true;
+    el.ownerDocument.fonts?.ready.then(() => { if (live) setLoaded((n) => n + 1); });
+    return () => { live = false; };
+  }, [host]);
+  return useMemo(() => {
+    void loaded;
+    const ctx = font ? new OffscreenCanvas(1, 1).getContext('2d') : null;
+    if (ctx) ctx.font = font;
+    return (text: string) => (ctx ? Math.ceil(ctx.measureText(text).width) : text.length * TEXT_SIZE * 0.62);
+  }, [font, loaded]);
 }
 
 /** The readout's words for a period that is not final: the state, then why. */
@@ -356,7 +421,7 @@ function seriesFrame(
       bars.push({
         id: `${s.id}-${i}`, name: s.name, tone, column: i,
         from: 0, to: below ? -value : value,
-        detail: onPrevious(value, s.values[i - 1], columns[i - 1]?.short ?? ''),
+        detail: columns[i].compare ? onPrevious(value, s.values[i - 1], columns[i - 1]?.short ?? '') : '',
         band, lane, lanes,
       });
     });
@@ -487,7 +552,7 @@ function donutFrame(
       values: [Number.isFinite(s.value) ? s.value : Number.NaN], from: [from], to: [total > 0 ? at / total : 0],
     };
   });
-  const columns = slices.map((s) => ({ label: s.name, short: s.name, estimated: false }));
+  const columns = slices.map((s) => ({ label: s.name, short: s.name, estimated: false, compare: false }));
   return {
     columns,
     scale: { min: 0, max: 1, step: 1, ticks: [] },
@@ -536,6 +601,9 @@ export function Chart(props: ChartProps) {
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
+  /** The months chart fits its card: look A's columns, and no scroll. */
+  const fit = variant === 'months';
+  const showValues = fit && 'values' in props && props.values === true;
   const plotHeight = height ?? HEIGHT[variant];
   const showTable = table ?? !spark;
   const [view, setView] = useState<'chart' | 'table'>('chart');
@@ -564,6 +632,7 @@ export function Chart(props: ChartProps) {
   const pointerFocus = useRef(false);
 
   const floor = useTapFloor();
+  const textWidth = useTextWidth(frameEl);
   const [width, setWidth] = useState(0);
   /** The scroller's own width, which the axis beside it can still change after
    *  the plot has its width: a chart that opens at its end follows it there. */
@@ -614,19 +683,27 @@ export function Chart(props: ChartProps) {
   const boxHeight = Math.max(plotHeight, floor);
   const boxTop = -(boxHeight - plotHeight) / 2;
   const span = scale.max - scale.min || 1;
+  /* The first period that is not final, where the months chart draws its
+     boundary and the "Not final" group label over the plot. */
+  const groupFrom = fit ? columns.findIndex((c) => c.estimated) : -1;
+  // The room the group label and the values take, inside the plot's height.
+  const roomTop = (groupFrom >= 0 ? GROUP_ROOM : 0) + (showValues ? VALUE_ROOM : 0);
+  const roomBottom = showValues && frame.bars.some((b) => b.to < 0) ? VALUE_ROOM : 0;
   const y = useCallback(
-    (value: number) => PAD + ((scale.max - value) / span) * (plotHeight - PAD * 2),
-    [scale.max, span, plotHeight],
+    (value: number) => PAD + roomTop
+      + ((scale.max - value) / span) * (plotHeight - PAD * 2 - roomTop - roomBottom),
+    [scale.max, span, plotHeight, roomTop, roomBottom],
   );
   const zero = y(Math.min(Math.max(0, scale.min), scale.max));
   /* The group a column draws, and one bar's slot inside it. The cap is the
      mark's, so two bars in a column take two caps and the gap between them;
      the share is the column's, so a narrow column still keeps its ground. */
   const lanes = Math.max(1, ...frame.bars.map((b) => b.lanes));
-  const cap = variant === 'bridge' ? BAR_MAX_BRIDGE : BAR_MAX;
-  const groupWidth = Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6,
-    cap * lanes + LANE_GAP * (lanes - 1)));
-  const barWidth = (groupWidth - LANE_GAP * (lanes - 1)) / lanes;
+  const cap = fit ? FIT_MAX : variant === 'bridge' ? BAR_MAX_BRIDGE : BAR_MAX;
+  const groupWidth = fit
+    ? Math.max(lanes * 2, Math.min(colWidth * FIT_SHARE, cap * lanes + LANE_GAP * (lanes - 1)))
+    : Math.max(4, Math.min(colWidth * BAR_SHARE, colWidth - 6, cap * lanes + LANE_GAP * (lanes - 1)));
+  const barWidth = Math.max(1, (groupWidth - LANE_GAP * (lanes - 1)) / lanes);
   const centre = useCallback((column: number) => column * colWidth + colWidth / 2, [colWidth]);
 
   const axisFormat = look?.share ? pct : formatAxis;
@@ -675,7 +752,7 @@ export function Chart(props: ChartProps) {
         dots.push({
           id: `${line.id}-${i}`, column: i,
           name: keys.find((k) => k.id === line.id)?.name ?? line.id, tone: line.tone,
-          value, detail: onPrevious(value, line.values[i - 1], columns[i - 1]?.short ?? ''),
+          value, detail: columns[i]?.compare ? onPrevious(value, line.values[i - 1], columns[i - 1]?.short ?? '') : '',
           kind: 'dot', band: 'full', foot: null, lane: 0, lanes: 1,
           x: centre(i) - TARGET / 2, y: y(value) - TARGET / 2, w: TARGET, h: TARGET,
           estimated: Boolean(columns[i]?.estimated),
@@ -701,9 +778,11 @@ export function Chart(props: ChartProps) {
   }, [geometry, frame, lines, keys, columns, centre, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
+  // Look A's columns are one flat fill of the series' tone.
+  const fadeFor = useCallback((m: Mark) => (fit ? null : fadeOf(uid, m, variant === 'bridge')), [fit, uid, variant]);
   const fades = useMemo(() => new Map(marks.filter((m) => m.kind === 'bar')
-    .map((m) => fadeOf(uid, m, variant === 'bridge'))
-    .filter((f) => f !== null).map((f) => [f.id, f])), [marks, uid, variant]);
+    .map(fadeFor)
+    .filter((f) => f !== null).map((f) => [f.id, f])), [marks, fadeFor]);
   /** The mark a keystroke opens for a column: its first, in drawing order. */
   const lead = useCallback((column: number) => marks.find((m) => m.column === column), [marks]);
   const open = openId ? byId.get(openId) : undefined;
@@ -868,6 +947,21 @@ export function Chart(props: ChartProps) {
   );
   const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
 
+  /* The period row. Where the widest label does not fit its column, every n-th
+     label is printed, counted from the first period that is not final, or from
+     the latest one, so the period a reader came for keeps its label. */
+  const labelRoom = Math.max(0, ...columns.map((c) => textWidth(c.short))) + LABEL_GAP;
+  const every = labelRoom > colWidth ? Math.ceil(labelRoom / colWidth) : 1;
+  const anchor = groupFrom >= 0 ? groupFrom : count - 1;
+  const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
+  /** A stepped label wider than its column stands centred on it, or on the
+   *  plot's edge where centring would carry it past that edge. */
+  const edgeOf = (i: number) => {
+    const half = textWidth(columns[i].short) / 2;
+    return centre(i) - half < 0 ? 'is-start' : centre(i) + half > plotWidth ? 'is-end' : null;
+  };
+  const groupX = groupFrom >= 0 ? Math.min(Math.max(groupFrom * colWidth, 1), plotWidth - 1) : 0;
+
   return (
     <div
       className={cx('ui-chart', `ui-chart--${variant}`, look && `ui-chart--${variant}-${look.look}`,
@@ -877,6 +971,8 @@ export function Chart(props: ChartProps) {
         '--ui-chart-box': `${px(boxHeight)}px`,
         '--ui-chart-cols': count,
         '--ui-chart-pad': `${PAD}px`,
+        '--ui-chart-top': `${PAD + roomTop}px`,
+        '--ui-chart-bottom': `${PAD + roomBottom}px`,
       } as CSSProperties}
     >
       {toCard && createPortal(viewSwitch, toCard)}
@@ -1035,6 +1131,19 @@ export function Chart(props: ChartProps) {
                   x1="0" x2={px(plotWidth)} y1={px(y(0))} y2={px(y(0))} />
               )}
 
+              {/* One solid boundary before the first period that is not final, and
+                  the words over that group. The readout and the table name each
+                  period's state. why: docs/components.md#chart */}
+              {groupFrom >= 0 && (
+                <>
+                  <line className="ui-chart__boundary"
+                    x1={px(groupX)} x2={px(groupX)} y1={BOUNDARY_TOP} y2={px(plotHeight - PAD)} />
+                  <text className="ui-chart__text ui-chart__group" y={GROUP_BASELINE}
+                    x={px(Math.max(0, Math.min(groupX + TEXT_GAP, plotWidth - textWidth(GROUP_WORDS))))}
+                  >{GROUP_WORDS}</text>
+                </>
+              )}
+
               {/* One ramp per tone and direction that a bar uses. The id carries the
                   chart's own prefix, so two charts on one page never share a ramp. */}
               {fades.size > 0 && (
@@ -1050,15 +1159,31 @@ export function Chart(props: ChartProps) {
                 </defs>
               )}
               {marks.filter((m) => m.kind === 'bar').map((mark) => {
-                const fade = fadeOf(uid, mark, variant === 'bridge');
+                const fade = fadeFor(mark);
                 return (
                   <path
                     key={`bar-${mark.id}`}
                     className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
                       mark.estimated && 'is-estimated')}
                     style={fade ? { '--ui-chart-paint': `url(#${fade.id})` } as CSSProperties : undefined}
-                    d={barPath(mark)}
+                    d={fit ? barPath(mark, px(Math.min(FIT_CORNER, mark.w / 4))) : barPath(mark)}
                   />
+                );
+              })}
+
+              {/* A bar's value over its end, where it fits the bar's share of the
+                  column. One that does not is left out, never shrunk under the
+                  kit's text size; the readout and the table keep it. */}
+              {showValues && marks.filter((m) => m.kind === 'bar').map((mark) => {
+                const text = formatAxis(mark.value);
+                if (textWidth(text) + TEXT_GAP > colWidth / mark.lanes) return null;
+                const below = mark.foot === 'top';
+                return (
+                  <text key={`value-${mark.id}`}
+                    className={cx('ui-chart__text', 'ui-chart__value', below && 'ui-chart__value--below')}
+                    x={px(mark.x + mark.w / 2)}
+                    y={px(below ? mark.y + mark.h + TEXT_GAP : mark.y - TEXT_GAP)}
+                  >{text}</text>
                 );
               })}
 
@@ -1129,11 +1254,11 @@ export function Chart(props: ChartProps) {
             )}
 
             {!spark && columnsLayout && (
-              <div className="ui-chart__periods" aria-hidden="true">
+              <div className={cx('ui-chart__periods', every > 1 && 'ui-chart__periods--step')} aria-hidden="true">
                 {columns.map((column, i) => (
                   <span key={`${column.label}-${i}`}
-                    className={cx('ui-chart__period', pick === i && 'is-selected')}
-                  >{column.short}</span>
+                    className={cx('ui-chart__period', pick === i && 'is-selected', every > 1 && edgeOf(i))}
+                  >{labelled(i) ? column.short : null}</span>
                 ))}
               </div>
             )}

@@ -582,8 +582,9 @@ it('keeps the series fill and a solid edge on unfinished periods', () => {
   const april = bars.filter((b) => b.classList.contains('is-estimated'));
   expect(april, 'one estimated bar per bar series in the unfinished column').toHaveLength(2);
   for (const bar of april) {
-    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'),
-      'an unfinished bar keeps the ramp every other bar is painted with').toMatch(/^url\(#/);
+    const final = bars.find((b) => toneOf(b) === toneOf(bar) && !b.classList.contains('is-estimated'))!;
+    expect((bar as SVGElement).getAttribute('style'),
+      'an unfinished bar keeps the paint every final bar of its series has').toBe(final.getAttribute('style'));
   }
   const css = readRepo('../../src/styles/chart.css');
   expect(css, 'no mark draws a dash: not a bar, a line, a segment or a key').not.toContain('dasharray');
@@ -624,6 +625,130 @@ it('reads the state with the same word in the hover, keyboard and table readouts
     .toEqual(['Incomplete', 'Projected', 'Projected', 'Projected — from the signed contracts']);
 });
 
+// #841, Forecast boundary: one solid line stands before the first period that is
+// not final, and "Not final" stands over that group. JSDOM has no layout, so the
+// plot is the unmeasured 48px a column; the drawn pixels are in the PR captures.
+it('draws one solid boundary and the words "Not final" before the first unfinished period', () => {
+  const { container } = forecastChart();
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const lines = svg.querySelectorAll('line.ui-chart__boundary');
+  expect(lines, 'one boundary').toHaveLength(1);
+  const columnWidth = Number(svg.getAttribute('width')) / forecast.length;
+  expect(Number(lines[0].getAttribute('x1')), 'before Nov, the incomplete period').toBeCloseTo(columnWidth, 1);
+  expect(lines[0].getAttribute('x1')).toBe(lines[0].getAttribute('x2'));
+  const label = svg.querySelector('text.ui-chart__group')!;
+  expect(label).toHaveTextContent(/^Not final$/);
+  expect(Number(label.getAttribute('x')), 'the words stand over the group').toBeGreaterThan(columnWidth);
+  const top = Math.min(...[...svg.querySelectorAll('path.ui-chart__bar')].map((b) => boxOf(b).y));
+  expect(top, 'the bars stay under the words').toBeGreaterThan(Number(lines[0].getAttribute('y1')));
+  const css = readRepo('../../src/styles/chart.css');
+  expect(/\.ui-chart__boundary\s*\{([^}]*)\}/.exec(css)![1]).toContain('stroke: var(--chart-neutral)');
+
+  showTable();
+  expect(container.querySelector('.ui-chart__frame'), 'the table hides the group label with the plot')
+    .not.toBeVisible();
+  cleanup();
+  const plain = render(<Chart title="Cash" periods={forecast.map((p) => ({ label: p.label }))}
+    series={forecastSeries} format={eur} />).container;
+  expect(plain.querySelector('.ui-chart__boundary, .ui-chart__group'), 'none when every period is final').toBeNull();
+  cleanup();
+  const line = render(<Chart variant="line" title="Cash" periods={forecast} series={costs} format={eur} />).container;
+  expect(line.querySelector('.ui-chart__boundary'), 'the months chart draws it').toBeNull();
+});
+
+it('prints a period with compare: false with its value and no comparison text', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<Chart title="Margin" format={eur}
+    periods={MONTHS.map((label) => ({ label, compare: false }))}
+    series={[{ id: 'm', name: 'Margin', values: INCOME }, { id: 'net', name: 'Net', values: NET, shape: 'line' }]} />);
+  for (const id of ['m-1', 'net-1']) {
+    hover(id);
+    const tip = screen.getByRole('tooltip');
+    expect(tip.querySelector('.ui-tip__value'), id).not.toBeNull();
+    expect(tip.querySelector('.ui-tip__detail'), `${id} has no comparison`).toBeNull();
+  }
+  await tabToFrame(user);
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.getByRole('status')).toHaveTextContent(/^Feb 2026\. Margin €1,500\. Net €600\.$/);
+  expect(container.textContent).not.toMatch(/% on/);
+});
+
+const values = (width: number, extra: Partial<React.ComponentProps<typeof Chart>> = {}) => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+  return months({ values: true, formatAxis: (n: number) => `€${n}`, ...extra } as object);
+};
+const printed = (root: Element) => [...root.querySelectorAll('text.ui-chart__value')].map((t) => t.textContent);
+
+it('prints each bar\'s value over its end in formatAxis, and under a bar hung below zero', () => {
+  const { container } = values(400);
+  expect(printed(container)).toEqual([...INCOME, ...SPEND].map((n) => `€${n}`));
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  const texts = [...svg.querySelectorAll('text.ui-chart__value')];
+  texts.forEach((t, i) => {
+    const bar = bars[i];
+    expect(Number(t.getAttribute('x')), 'centred on its bar').toBeCloseTo(bar.x + bar.width / 2, 1);
+    const below = i >= INCOME.length;
+    expect(classOf(t).includes('ui-chart__value--below'), 'a spend value hangs under its bar').toBe(below);
+    if (below) expect(Number(t.getAttribute('y'))).toBeGreaterThan(bar.y + bar.height);
+    else expect(Number(t.getAttribute('y'))).toBeLessThan(bar.y);
+  });
+  expect(Math.min(...bars.map((b) => b.y)), 'the plot keeps room over the tallest bar').toBeGreaterThan(14);
+  const style = container.querySelector<HTMLElement>('.ui-chart')!.style;
+  expect(parseFloat(style.getPropertyValue('--ui-chart-top')), 'the axis follows the room').toBeGreaterThan(2);
+  expect(parseFloat(style.getPropertyValue('--ui-chart-bottom'))).toBeGreaterThan(2);
+  cleanup();
+  vi.restoreAllMocks();
+  expect(printed(months().container), 'no value without the prop').toEqual([]);
+});
+
+it('leaves out only the values that do not fit, and keeps every exact value elsewhere', () => {
+  // 4 columns of 30px: a two-figure value fits, a four-figure one does not.
+  const { container } = values(120, {
+    series: [{ id: 'in', name: 'Income', values: [12, 1500, 14, 1300], tone: 'good' }],
+  });
+  expect(printed(container), 'the short values stay at the text size').toEqual(['€12', '€14']);
+  hover('in-1');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__value')).toHaveTextContent('€1,500');
+  showTable();
+  expect(screen.getByRole('table')).toHaveTextContent('€1,500');
+});
+
+it('fits 24 months in a 154px plot with no scroll, every bar, and fewer labels', () => {
+  const months24: ChartPeriod[] = Array.from({ length: 24 }, (_, i) => ({
+    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2025 + Math.floor(i / 12)}`,
+    estimated: i === 20 ? 'incomplete' as const : i > 20 ? 'projected' as const : undefined,
+  }));
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(154);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(154);
+  const { container } = render(<Chart title="Cash in" height={154} periods={months24} format={eur}
+    series={[{ id: 'in', name: 'Cash in', values: months24.map((_, i) => 30 + i), tone: 'good' }]} />);
+  const svg = container.querySelector('.ui-chart__svg')!;
+  expect(svg.getAttribute('width')).toBe('154');
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  expect(bars, 'every bar').toHaveLength(24);
+  expect(Math.max(...bars.map((b) => b.x + b.width)), 'inside the plot').toBeLessThanOrEqual(154);
+  expect(container.querySelector('.ui-chart__scroll'), 'no inner scroll').not.toHaveAttribute('role');
+  expect(readRepo('../../src/styles/chart.css')).toMatch(/\.ui-chart--months \.ui-chart__plot \{ min-width: 0; \}/);
+  const row = container.querySelector('.ui-chart__periods')!;
+  expect(classOf(row)).toContain('ui-chart__periods--step');
+  const labels = [...row.children].map((c) => c.textContent);
+  expect(labels, 'one track for each period').toHaveLength(24);
+  const shown = labels.flatMap((l, i) => (l ? [i] : []));
+  expect(shown.length, 'fewer labels').toBeLessThan(24);
+  expect(shown.length).toBeGreaterThan(1);
+  expect(shown, 'the incomplete period keeps its label').toContain(20);
+  const every = shown[1] - shown[0];
+  expect(shown.every((i, k) => k === 0 || i - shown[k - 1] === every), 'evenly stepped').toBe(true);
+  expect(classOf(row.children[shown[0]]), 'the first label keeps to the plot\'s edge').toContain('is-start');
+  cleanup();
+  vi.restoreAllMocks();
+  const wide = months().container.querySelector('.ui-chart__periods')!;
+  expect(classOf(wide), 'every label prints where each fits').not.toContain('ui-chart__periods--step');
+  expect([...wide.children].map((c) => c.textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
+});
+
 it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
   const { container } = render(<Chart variant="spark" title="Cash" periods={forecast}
     series={forecastSeries.slice(1)} format={eur} />);
@@ -635,8 +760,8 @@ it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
 // at the data end. The data end, the zero line and the base carry the value.
 it('paints each bar with a ramp from its base on zero to its data end', () => {
   const { container } = render(<>
-    <Chart title="One" periods={periods} series={series} format={eur} />
-    <Chart title="Two" periods={periods} series={series} format={eur} />
+    <Chart variant="spark" title="One" periods={periods} series={series} format={eur} />
+    <Chart variant="spark" title="Two" periods={periods} series={series} format={eur} />
   </>);
   const [one, two] = [...container.querySelectorAll('svg.ui-chart__svg')];
   const ramps = (svg: Element) => [...svg.querySelectorAll('linearGradient')];
@@ -664,6 +789,15 @@ it('paints each bar with a ramp from its base on zero to its data end', () => {
     .toContain('fill: var(--ui-chart-paint, var(--ui-chart-tone))');
   expect(css).toMatch(/\.ui-chart__fade-base\s*\{\s*stop-color: var\(--ui-chart-fade\);/);
   expect(css).toMatch(/\.ui-chart__fade-end\s*\{\s*stop-color: var\(--ui-chart-tone\);/);
+});
+
+// #841, look A: a months chart's columns are one flat fill of the series tone.
+it('paints a months chart\'s bars flat, with no ramp', () => {
+  const { container } = months();
+  expect(container.querySelectorAll('linearGradient')).toHaveLength(0);
+  for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toBe('');
+  }
 });
 
 // A bridge bar fades from the previous running total to the new one, so the full
@@ -770,10 +904,11 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
-    // The data end is fully round: the radius is half the bar's width, unless
-    // the bar is too short to spend it. An arc leaves the edge it rounds exactly
-    // that far, so the radius is also the tolerance for where the arc sits.
-    const radius = Math.min(box.width / 2, box.height);
+    // Look A (#841): the data end takes the --radius-xs corner, or a quarter of
+    // the bar when the bar is narrow, so every width keeps one shape. An arc
+    // leaves the edge it rounds exactly that far, so the radius is also the
+    // tolerance for where the arc sits.
+    const radius = Math.min(6, box.width / 4, box.height);
     for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
       expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
     }
@@ -1225,11 +1360,10 @@ it('centres a band that has fewer lanes than the chart\'s widest', () => {
     'and every bar in the chart is still one width').toBe(1);
 });
 
-// A column grows with the card; a mark does not. Without the cap, twelve months
-// at a desktop width were twelve 45px blocks and the plot read as one mass.
+// Look A (#841): a bar takes two thirds of its column, up to --space-12.
 it('caps a bar at a mark\'s width however wide its column is', () => {
-  const cap = Number(/const BAR_MAX = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
-  const share = Number(/const BAR_SHARE = ([\d.]+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const cap = Number(/const FIT_MAX = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const share = 2 / 3;
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
   const columnWidth = Number(svg.getAttribute('width')) / MONTHS.length;

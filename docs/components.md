@@ -1209,7 +1209,7 @@ chart has the title. `format` prints exact values in the readout, the live regio
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | none: bars per period with a line across them | |
+| `months` | `periods`, `series` | none: columns per period with a line across them, fitted to the card | |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
 | `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
@@ -1232,17 +1232,25 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** A bar is never wider than a mark, so a wider card adds space between
-columns. `legend` shows the legend. A period with `estimated` keeps its solid mark in the series
+**What the user sees.** In `months`, every period shares the card's width, so the plot never
+scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
+Where the period labels do not fit, the chart prints every second, third or later label, counted
+from the first period that is not final, or from the latest period. Set `values` to print each
+bar's value over the bar, in `formatAxis`. A value that does not fit its bar's share of the
+column at the 12px text size is left out. The readout and the table always show it. `legend`
+shows the legend. A period with `estimated` keeps its solid mark in the series
 ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
-future period, or to `true` for any other estimate. The chart at rest prints no state. The hover
-and keyboard readout and each table row say "Incomplete", "Projected" or "Estimated", followed by
-the `note`. Name the state on the screen where it matters. A switch at the top right
+future period, or to `true` for any other estimate. In `months`, one solid line stands before the
+first period that is not final, and the words "Not final" stand over that group. Put the periods
+that are not final last. The hover and keyboard readout and each table row say "Incomplete",
+"Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
+the period before it. Set `compare: false` on a period to show its value with no comparison text.
+A switch at the top right
 shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
-and `onSelect` lets the user pick a column, which gets a band behind it. At phone widths the plot
-scrolls and the value axis stays. A chart of periods that is wider than its card opens at its
-latest period. A bridge opens at its opening total.
+and `onSelect` lets the user pick a column, which gets a band behind it. In the other variants, at
+phone widths the plot scrolls and the value axis stays. A chart of periods that is wider than its
+card opens at its latest period. A bridge opens at its opening total.
 
 **Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when
