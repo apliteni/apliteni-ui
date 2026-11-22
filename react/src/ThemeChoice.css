@@ -1,7 +1,10 @@
+/* Each picture starts on the card's text edge, so the cards' fill and ring hang into the
+   card's padding, as a stacked choice's do. why: guidelines/spacing.md#put-text-on-the-column-edge */
 .ui-theme-choice {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
+  margin-inline: calc(-1 * var(--space-2));
 }
 .ui-theme-choice__option {
   display: flex;

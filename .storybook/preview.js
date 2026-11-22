@@ -5,6 +5,7 @@ import { createElement, useEffect } from 'react';
 import '@apliteni/apliteni-ui/css';
 import { wireStoryLinks } from '../stories/lib/story-link.js';
 import { redirectedSearch } from './redirects.js';
+import { drawnTheme } from './theme-choice.js';
 
 // A bare preview opened on an old component id (iframe.html?id=…) renders its React story.
 const moved = redirectedSearch(window.location.search);
@@ -166,12 +167,11 @@ const preview = {
       wireStoryLinks();
       // `auto` is a choice a page can make, so it stays `auto` and follows the browser.
       const choice = ctx.globals.theme === 'light' || ctx.globals.theme === 'auto' ? ctx.globals.theme : 'dark';
-      const prefersLight = window.matchMedia?.('(prefers-color-scheme: light)').matches;
       const accent = ctx.globals.accent || 'default';
       const root = document.documentElement;
       // The choice first, so the React ThemeToggle reads it rather than a stored one.
       root.setAttribute('data-theme-choice', choice);
-      root.setAttribute('data-theme', choice === 'auto' ? (prefersLight ? 'light' : 'dark') : choice);
+      root.setAttribute('data-theme', drawnTheme(choice));
       window.dispatchEvent(new Event('apliteni-theme-choice'));
       if (accent === 'default') root.removeAttribute('data-accent');
       else root.setAttribute('data-accent', accent);

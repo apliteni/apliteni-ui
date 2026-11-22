@@ -653,7 +653,9 @@ for other preferences.
 **What the user sees.** Three cards in one row at every width: System, Light and Dark. Each card is
 a small picture of a page in that theme, drawn from the theme's tokens, with its name under it.
 System is half light and half dark. The chosen card has a fill, and its name is in strong, heavier
-ink. Hover gives another card half that fill.
+ink. Hover gives another card half that fill. The first and last pictures sit on the card's text
+edges. The fill extends 8 px into the card's padding, and the focus ring extends 3 px more. So put
+the group in a padded container, such as `Card`.
 
 **Keyboard and screen reader.** One named radio group, with one Tab stop on the chosen card. The
 arrow keys move and choose. The focus ring is the kit's band around the card, and nothing else.

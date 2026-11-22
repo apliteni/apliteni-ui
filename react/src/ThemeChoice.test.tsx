@@ -69,4 +69,10 @@ it('marks the chosen card with a fill and keeps the edge for focus', () => {
   expect(hover).toContain('background: color-mix(in srgb, var(--surface-3) 50%, transparent)');
   expect(edges(hover)).toEqual([]);
   expect(decls(selector => /:focus-visible/.test(selector))).toEqual(['outline: var(--ring)', 'outline-offset: var(--ring-offset)']);
+  // The group hangs out by the card's own padding, so each picture starts on the text edge
+  // in every state. A browser measured the edge in the pull request.
+  const padding = decls(selector => selector === '.ui-theme-choice__option').filter(decl => decl.startsWith('padding'));
+  expect(padding).toEqual(['padding: var(--space-2)']);
+  expect(decls(selector => selector === '.ui-theme-choice')).toContain('margin-inline: calc(-1 * var(--space-2))');
+  expect(rules.filter(rule => rule.selector.startsWith('.ui-theme-choice__option:')).flatMap(rule => rule.decls).filter(({ prop }) => /^(padding|margin)/.test(prop))).toEqual([]);
 });
