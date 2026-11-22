@@ -1030,6 +1030,9 @@ export function Chart(props: ChartProps) {
         }}
         onBlur={(event) => {
           if (event.target !== event.currentTarget) return;
+          // A press on the plot moves focus to the scroller for a moment, and
+          // the click behind it brings focus back. The readout it opened stays.
+          if (pointerFocus.current) return;
           setOpenId(null);
           setSaid('');
         }}

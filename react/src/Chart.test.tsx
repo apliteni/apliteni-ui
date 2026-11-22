@@ -997,6 +997,9 @@ const tap = (id: string) => {
   fireEvent.pointerDown(markEl(id), { pointerType: 'touch' });
   fireEvent.touchStart(markEl(id));
   fireEvent.touchEnd(markEl(id));
+  // The mousedown behind a tap focuses the nearest focusable box, the scroller,
+  // before the click hands focus back to the frame.
+  act(() => plot().closest<HTMLElement>('.ui-chart__scroll')!.focus());
   fireEvent.click(markEl(id));
 };
 
@@ -1053,6 +1056,10 @@ it('an ordinary mouse click is not a tap, and still picks', async () => {
 
 it('a tap after Escape opens the same mark again', () => {
   months();
+  tap('income-1');
+  expect(frame(), 'the tap leaves focus on the chart').toHaveFocus();
+  tap('income-2');
+  expect(screen.getByRole('tooltip'), 'a tap with the chart focused moves the readout').toHaveTextContent('Mar 2026');
   tap('income-1');
   fireEvent.keyDown(document, { key: 'Escape' });
   expect(screen.queryByRole('tooltip')).toBeNull();
