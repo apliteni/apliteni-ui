@@ -556,6 +556,7 @@
     background: Highlight;
     color: HighlightText;
     --ring: var(--ring-width) solid CanvasText;
+    --ring-scroll: var(--ring); /* the row draws --ring-scroll, which the root resolved (#852) */
   }
   .ui-dropdown__item:is(.is-selected, .is-active) :is(.ui-dropdown__label, .ui-dropdown__desc, .ui-dropdown__aside, .ui-dropdown__ic, .ui-dropdown__more, .ui-dropdown__tick) { color: HighlightText; }
   .ui-dropdown__item:is(.is-selected, .is-active) :is(.ui-dropdown__badge, .ui-dropdown__badge.is-state) { background: HighlightText; color: Highlight; }
