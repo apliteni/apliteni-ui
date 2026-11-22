@@ -494,3 +494,21 @@ it('a closing Drawer keeps its layer over the Modal while it leaves', async () =
   expect(root()).toHaveAttribute('aria-hidden', 'true');
   expect(zOf('Payment date')).toBeGreaterThan(zOf('New payment'));
 });
+
+it('keeps a Confirm above a Drawer that closes beneath it', async () => {
+  layers();
+  const style = document.createElement('style');
+  style.dataset.fixture = '';
+  style.textContent = '.ui-drawer__panel { transition-duration: 10s; }';
+  document.head.appendChild(style);
+  const confirm = <Confirm open title="Delete payment?" body="This cannot be undone." confirmLabel="Delete"
+    cancelLabel="Keep" onConfirm={noop} onCancel={noop} />;
+  const { rerender } = render(
+    <Modal open title="New payment" onClose={noop}><Drawer open title="Payment date" onClose={noop}>{confirm}</Drawer></Modal>,
+  );
+  rerender(
+    <Modal open title="New payment" onClose={noop}><Drawer open={false} title="Payment date" onClose={noop}>{confirm}</Drawer></Modal>,
+  );
+  await waitFor(() => expect(root()).toHaveAttribute('aria-hidden', 'true'));
+  expect(zOf('Delete payment?')).toBeGreaterThan(zOf('Payment date'));
+});
