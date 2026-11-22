@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:262",
+    "ref": "src/styles/table.css:265",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -173,7 +173,7 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme \u00d7 accent cells"
+    "pattern": "theme × accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:131",
+    "ref": "stories/apps/Access.stories.tsx:134",
     "pattern": "Revoke access"
    }
   ],
@@ -374,17 +374,17 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:220",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
   "three-lines": [
    {
-    "ref": "src/styles/drawer.css:130",
+    "ref": "src/styles/drawer.css:143",
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:210",
+    "ref": "src/styles/drawer.css:223",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -394,7 +394,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:274",
+    "ref": "src/styles/drawer.css:290",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -554,17 +554,17 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:141",
+    "ref": "src/styles/card.css:192",
     "pattern": "rank: card-title"
    }
   ],
   "title-is-heading": [
    {
-    "ref": "react/src/primitives/Card.tsx:45",
+    "ref": "react/src/primitives/Card.tsx:50",
     "pattern": "h${[2, 3, 4, 5, 6].includes(n)"
    },
    {
-    "ref": "react/src/primitives/Card.tsx:45",
+    "ref": "react/src/primitives/Card.tsx:50",
     "pattern": "const Heading"
    }
   ],
@@ -636,7 +636,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:518",
+    "ref": "src/styles/layout.css:522",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -660,11 +660,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:459",
+    "ref": "src/styles/layout.css:463",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }"
    },
    {
-    "ref": "src/styles/layout.css:460",
+    "ref": "src/styles/layout.css:464",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -784,7 +784,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:287",
+    "ref": "src/styles/drawer.css:303",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -939,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:142",
+    "ref": "src/styles/stat.css:148",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:143",
+    "ref": "src/styles/stat.css:149",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -951,7 +951,7 @@
  "_empty-states.js": {
   "next-action": [
    {
-    "ref": "react/src/EmptyState.tsx:21",
+    "ref": "react/src/EmptyState.tsx:22",
     "pattern": "export function EmptyState("
    }
   ]
@@ -1057,7 +1057,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:173",
+    "ref": "src/styles/card.css:228",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1079,7 +1079,7 @@
     "pattern": "ui-btn__label-slot"
    },
    {
-    "ref": "react/src/primitives/Button.test.tsx:227",
+    "ref": "react/src/primitives/Button.test.tsx:232",
     "pattern": "lets an explicit aria-label win over the children fallback"
    }
   ],
@@ -1135,7 +1135,7 @@
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:293",
+    "ref": "src/styles/table.css:296",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
