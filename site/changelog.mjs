@@ -11,7 +11,9 @@ export const RELEASES = [
       ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],
       ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the running period and `estimated: \'projected\'` for a future one. The readout and the table then say "Incomplete" or "Projected". A period with `compare: false` shows its value in the readout with no comparison text. Resolves #841.', ['Chart']],
       ['changed', 'A months `Chart` fits its card and no longer scrolls. Its bars are one flat fill, two thirds of the column wide and at most 48px. Where the period labels do not fit, it prints fewer of them. Resolves #841.', ['Chart']],
-      ['added', 'A months `Chart` takes `values` to print each bar\'s value over the bar, in `formatAxis`. A value that does not fit at the 12px text size is left out, and the readout and the table keep it. Resolves #841.', ['Chart']],
+      ['added', 'A months `Chart` takes `values` to print each bar\'s value over the bar, in `formatAxis`. A value that would meet the next value at the 12px text size is left out, and the readout and the table keep it. A chart that prints no value gives that room to its bars. Resolves #841.', ['Chart']],
+      ['fixed', 'A `Chart` readout opens above its mark whenever the window has room there, also over the chart\'s legend. Before, it opened below a mark near the top of the plot. Resolves #841.', ['Chart']],
+      ['fixed', 'On a touch screen, a new tap on a `Chart` mark opens its readout after Escape closed it. Resolves #841.', ['Chart']],
     ],
   },
   {
