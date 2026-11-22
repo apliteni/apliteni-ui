@@ -306,7 +306,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 151: Component choice lost one-category (#832).
   // 152: The page gained sidebar (#843).
   // 153: The page gained bar-end (#847). Labels and titles gained category-compact (#852).
-  assert.equal(count, 154, 'update the rule count when adding or removing a rule');
+  // 155: The page gained branded-background (#850).
+  assert.equal(count, 155, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

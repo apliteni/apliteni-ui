@@ -653,10 +653,13 @@
 }
 
 /* #850: a card on the page draws no box, so a chip inside one sits on the page and takes
- * the same surface a chip on the page takes. */
+ * the same surface a chip on the page takes. The split auth's plain half and its shell
+ * paint the page for the same reason. */
 .ui-card,
 .ui-card--accent,
-.ui-card--live {
+.ui-card--live,
+.ui-auth--split,
+.ui-auth--split .ui-auth__pane {
   --code-bg: var(--code-chip-page);
 }
 

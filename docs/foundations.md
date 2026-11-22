@@ -301,6 +301,9 @@ themes, fields, code blocks, navigation labels and segmented controls use those 
 surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A status chip
 is the named exception. It uses a soft fill, and neutral chip tones use
 `--chip-neutral-fill`, which stays visible on a card and on a floating panel in both themes.
+A code block in the light theme is the other exception: it keeps the quiet `--surface-3`
+fill, because a reader never writes in one. Its ink clears 4.5:1 on that fill, with the
+lowest value 5.22:1.
 
 **A selected item is the one exception.** Selection is marked by a background highlight. An
 enabled chosen segmented pill takes the primary button's pair, `--accent-strong` with

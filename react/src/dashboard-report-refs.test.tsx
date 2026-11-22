@@ -625,7 +625,7 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   pick(doc, 'status', 'Paid');
   assert.equal(doc.querySelectorAll('tbody tr').length, 3);
   assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every((badge) => badge.textContent === 'Paid'));
-  assert.deepEqual(figures(), ['68,487.95 €', '2,433.39 €', '66,054.56 €'],
+  assert.deepEqual(figures(), ['66,054.56 €', '68,487.95 €', '2,433.39 €'],
     'the figures must describe the three Paid rows inside the 1Y window, not the unfiltered ledger');
   assert.notDeepEqual(figures(), atRest);
   pick(doc, 'currency', 'USD');
@@ -635,7 +635,7 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.ok(clear, 'the filter row offers no way to clear it');
   act(() => { fireEvent.click(clear!); });
   assert.equal(doc.querySelectorAll('tbody tr').length, 6, 'clearing the filters still leaves the 1Y window in force');
-  assert.deepEqual(figures(), ['100,275.34 €', '3,461.47 €', '96,813.87 €']);
+  assert.deepEqual(figures(), ['96,813.87 €', '100,275.34 €', '3,461.47 €']);
   assert.deepEqual(figures(), atRest,
     'the first paint already holds to the 1Y window, so clearing the filters returns to exactly what was there at rest');
   // The search reads the reference and the payout ID, and the figures follow it too.
@@ -643,7 +643,7 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.ok(search, 'the ledger bar has no search field');
   act(() => { fireEvent.change(search!, { target: { value: 'po-1165' } }); });
   assert.deepEqual([...doc.querySelectorAll('tbody tr td:first-child')].map((cell) => cell.textContent), ['PO-1165']);
-  assert.deepEqual(figures(), ['39,054.98 €', '1,369.76 €', '37,685.22 €']);
+  assert.deepEqual(figures(), ['37,685.22 €', '39,054.98 €', '1,369.76 €']);
   // The empty result's Clear all resets the search as well as the chips, or the ledger stays empty.
   act(() => { fireEvent.change(search!, { target: { value: 'no-match-xyz' } }); });
   pick(doc, 'status', 'Paid');

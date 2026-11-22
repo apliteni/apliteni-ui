@@ -641,6 +641,43 @@
      --ui-auth-ground with its own colour or gradient. why: docs/foundations.md#elevation */
   background: var(--ui-auth-ground, var(--bg));
 }
+/* The split auth page: the brand half wears the branded ground, and the task half is
+   the plain page with no card box. Below 860px the pair stacks, so the brand half
+   becomes a band at the top. why: docs/foundations.md#breakpoints */
+.ui-auth--split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  place-items: stretch;
+  padding: 0;
+  background: var(--bg);
+}
+.ui-auth--split .ui-auth__brand-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(48px, 7vw, 120px);
+  background: var(--ui-auth-ground, var(--bg));
+}
+.ui-auth--split .ui-auth__tagline {
+  margin: 18px 0 0;
+  font-size: var(--text-3xl);
+  line-height: 1.05;
+  letter-spacing: var(--tracking-tight);
+  font-weight: var(--weight-bold);
+  color: var(--strong);
+}
+.ui-auth--split .ui-auth__pane {
+  display: grid;
+  place-items: center;
+  padding: 40px 20px;
+  background: var(--bg);
+}
+.ui-auth--split .ui-auth__pane > * { width: 100%; max-width: var(--panel-md); }
+@media (max-width: 860px) {
+  .ui-auth--split { grid-template-columns: 1fr; place-items: start; }
+  .ui-auth--split .ui-auth__brand-pane { width: 100%; padding: 32px 20px; }
+  .ui-auth--split .ui-auth__pane { width: 100%; place-items: start; }
+}
 .ui-auth__card {
   position: relative;
   z-index: 1;

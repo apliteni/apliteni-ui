@@ -10,7 +10,7 @@ import { LIMITS } from '../guidelines/_the-page.js';
 // application at all. Anything else has built chrome of its own, which is the
 // `shell` rule's whole subject.
 export const kindOf = (doc) => (doc.querySelector('main.ui-app__main') ? 'app'
-  : doc.querySelector('.ui-auth__card') ? 'auth'
+  : doc.querySelector('.ui-auth__card, .ui-auth__pane') ? 'auth'
     : doc.querySelector('.ui-hero') ? 'marketing' : 'none');
 
 export const text = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
@@ -140,9 +140,10 @@ export const CHECKS = {
     }
 
     const shape = kids.map((el) => (el.matches('.ui-back') ? 'up'
-      : el.tagName === 'H1' ? 'title'
-        : el.matches('p.ui-app__sub') ? 'lede'
-          : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
+      : el.matches('.ui-app__title-row') ? 'title'
+        : el.tagName === 'H1' ? 'title'
+          : el.matches('p.ui-app__sub') ? 'lede'
+            : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
     // Each part may appear once, in this order: the index walks forward past the
     // one it just matched, so a second body — or a second title — is as much a
     // failure as one in the wrong place.
@@ -215,6 +216,16 @@ export const CHECKS = {
         + 'around one thing, and the kit has no rank for the inner one.');
     }
     return problems;
+  },
+
+  // A dialog-only page's branded ground carries the mark and a slogan, never a
+  // control: the reader acts inside the dialog the ground stands behind. #850
+  'branded-background'(s) {
+    if (s.kind !== 'auth') return [];
+    const onGround = [...s.doc.querySelectorAll('.ui-auth > button, .ui-auth > input, .ui-auth > select, .ui-auth > textarea, .ui-auth > .ui-btn')]
+      .filter((el) => !el.closest('.ui-auth__card, .ui-auth__pane'));
+    return onGround.map((el) => `${s.where} puts "${text(el)}" on the branded ground. `
+      + 'A control stays inside the dialog; the ground carries only the mark and a slogan.');
   },
 
   navs(s) {

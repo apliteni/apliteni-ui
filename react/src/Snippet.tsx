@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './primitives/Icon';
 
 export type SnippetProps = {
+  /** Optional bar title; a block with no title shows only the copy action. */
   label?: string;
   /** Original text to copy; displayed when children are absent. */
   code?: string;
@@ -13,7 +14,7 @@ export type SnippetProps = {
   copyLabel?: string;
 };
 
-export function Snippet({ label = 'shell', code = '', children, copy = true, reveal = false, copyLabel = 'Copy code' }: SnippetProps) {
+export function Snippet({ label, code = '', children, copy = true, reveal = false, copyLabel = 'Copy code' }: SnippetProps) {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const request = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -42,8 +43,8 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
 
   return (
     <div className={reveal ? 'ui-snippet ui-snippet--reveal' : 'ui-snippet'}>
-      <div className="ui-snippet__bar">
-        <span>{label}</span>
+      {(label || copy) && <div className="ui-snippet__bar">
+        {label && <span>{label}</span>}
         {/* Icon-only, the way the kit writes an allowed icon-only control:
             aria-label names what is copied and title repeats it as the tooltip.
             The confirmation is a glyph swap, so the button holds its 24px box; the
@@ -65,7 +66,7 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
             {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}
           </span>
         </>}
-      </div>
+      </div>}
       <pre>{children ?? code}</pre>
     </div>
   );

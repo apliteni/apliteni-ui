@@ -138,6 +138,20 @@
 
 **Except:** Use the spacing required by the busiest table.
 
+## Brand the background behind a dialog page
+
+<!-- rule: branded-background -->
+
+**Rule:** Give each product its own branded background behind a dialog-only page, static or in slow motion.
+
+**Why:** The kit ships one default gradient. A product's own background makes the sign-in or consent page recognisably theirs.
+
+**Do:** Set a product colour or a slow-moving gradient behind the dialog. The kit default stays when a product sets none.
+
+**Don't:** Put a field, a label or a button on the branded ground. Keep the task inside the dialog.
+
+**Except:** The brand wordmark and a slogan may stand on the ground. The dialog against its ground must clear 3:1 in both themes.
+
 ## Write a useful introduction
 
 <!-- rule: lede -->

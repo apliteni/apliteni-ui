@@ -48,6 +48,9 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* #850: a lead figure reads one rank above its siblings, so the first thing the
+   reader should see leads the band. why: docs/components.md#stat-bands */
+.ui-stat--lead .ui-stat__value { font-size: var(--text-4xl); }
 
 /* A figure's own words about its value, in the caption rank's size and weight
    with the band's tighter leading, as the label takes, so it claims no rank.

@@ -36,8 +36,10 @@ export const FILTER_BAR_FIELD = '.ui-toolbar > .ui-input-group > input.ui-input[
  * says whether a field is in a card or loose on the page: the card and the page
  * are one ground now. The rule reads the structure instead — a field must sit in
  * one of these surfaces, or be a live filter-bar search field on the page.
+ * The split sign-in's `.ui-auth__pane` is the plain half of a dialog-only page,
+ * and its fields stand on it by design (#850), so it is a surface too.
  */
-export const SURFACE = '.ui-card, .ui-auth__card, .ui-drawer__panel, .rx-modal';
+export const SURFACE = '.ui-card, .ui-auth__card, .ui-auth__pane, .ui-drawer__panel, .rx-modal';
 
 export const hex = (colour) => `#${colour.slice(0, 3).map((n) => Math.round(n).toString(16).padStart(2, '0')).join('')}`;
 export const same = (a, b) => hex(a) === hex(b);

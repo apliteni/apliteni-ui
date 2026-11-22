@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:263",
+    "ref": "src/styles/table.css:262",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,8 +12,8 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:323",
-    "pattern": "max-width: calc(100% + 2 * var(--space-3));"
+    "ref": "src/styles/table.css:14",
+    "pattern": "max-width: 100%;"
    }
   ],
   "filter-bar": [
@@ -30,7 +30,7 @@
  "_accessibility-floor.js": {
   "target-size": [
    {
-    "ref": "src/styles/button.css:115",
+    "ref": "src/styles/button.css:128",
     "pattern": ".ui-btn--sm"
    },
    {
@@ -70,15 +70,15 @@
   ],
   "disabled-legibility": [
    {
-    "ref": "src/styles/button.css:132",
+    "ref": "src/styles/button.css:145",
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:200",
+    "ref": "src/tokens/tokens.css:205",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:206",
+    "ref": "src/tokens/tokens.css:211",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:218",
+    "ref": "src/tokens/tokens.css:223",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -142,11 +142,11 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:47",
+    "ref": "src/styles/segmented.css:50",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:48",
+    "ref": "src/styles/segmented.css:51",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -173,7 +173,7 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme × accent cells"
+    "pattern": "theme \u00d7 accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
@@ -318,7 +318,7 @@
  "_destructive-actions.js": {
   "colour": [
    {
-    "ref": "src/styles/button.css:103",
+    "ref": "src/styles/button.css:116",
     "pattern": ".ui-btn--danger:hover"
    },
    {
@@ -554,7 +554,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:130",
+    "ref": "src/styles/card.css:141",
     "pattern": "rank: card-title"
    }
   ],
@@ -661,7 +661,7 @@
    },
    {
     "ref": "src/styles/layout.css:459",
-    "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }"
+    "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }"
    },
    {
     "ref": "src/styles/layout.css:460",
@@ -679,7 +679,7 @@
    },
    {
     "ref": "src/styles/tap-zone.css:152",
-    "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5, 20px)) !important; }"
+    "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }"
    },
    {
     "ref": "src/styles/tap-zone.css:153",
@@ -692,11 +692,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:117",
+    "ref": "src/styles/segmented.css:120",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:126",
+    "ref": "src/styles/segmented.css:129",
     "pattern": "padding: var(--space-3)"
    }
   ]
@@ -846,13 +846,13 @@
   ],
   "tone-not-direction": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:57",
+    "ref": "react/src/primitives/StatBand.tsx:60",
     "pattern": "delta.direction"
    }
   ],
   "say-the-basis": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:60",
+    "ref": "react/src/primitives/StatBand.tsx:63",
     "pattern": "aria-describedby={!own && basisId ? basisId : undefined}"
    }
   ]
@@ -868,7 +868,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:307",
+    "ref": "src/tokens/tokens.css:312",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -878,7 +878,7 @@
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
-    "ref": "src/styles/button.css:169",
+    "ref": "src/styles/button.css:182",
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
@@ -939,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:139",
+    "ref": "src/styles/stat.css:142",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:140",
+    "ref": "src/styles/stat.css:143",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -1057,7 +1057,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:162",
+    "ref": "src/styles/card.css:173",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1121,7 +1121,7 @@
  "_dashboards-and-reports.js": {
   "figures-and-exceptions": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:71",
+    "ref": "react/src/primitives/StatBand.tsx:74",
     "pattern": "export function StatBand("
    }
   ],
@@ -1135,7 +1135,7 @@
     "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
    },
    {
-    "ref": "src/styles/table.css:294",
+    "ref": "src/styles/table.css:293",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {

@@ -272,7 +272,9 @@ test('good news takes the success ink, bad news the danger ink, and nothing else
         `${tone} news is not painted with the ${ink} ink`);
     }
   }
-  const tones = new Set(rules.flatMap((r) => [...r.selector.matchAll(/\.ui-stat--([a-z]+)\b/g)].map((m) => m[1])));
+  // `lead` is a size rank (#850 layout A), not a tone, so it is not in the tone set.
+  const tones = new Set(rules.flatMap((r) => [...r.selector.matchAll(/\.ui-stat--([a-z]+)\b/g)].map((m) => m[1]))
+    .filter((t) => t !== 'lead'));
   assert.deepEqual([...tones].sort(), ['bad', 'good'],
     'the sheet paints a tone the component never sets, or stopped setting one it paints');
 });
