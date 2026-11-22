@@ -274,7 +274,8 @@ it('opens the account menu with the product rows first, and signs out', () => {
 
 it('keeps the rail account at its foot and removes repeated menu identity and rail counts', () => {
   const onSignOut = vi.fn();
-  render(<AppShell {...props} onSignOut={onSignOut} layout="rail" word="Demo" />);
+  render(<AppShell {...props} onSignOut={onSignOut} layout="rail" word="Demo" surface />);
+  expect(document.querySelector('.ui-app')).toHaveClass('ui-app--surface');
   const rail = within(screen.getByRole('region', { name: 'Sidebar' }));
   expect(rail.getByRole('link', { name: 'Demo' })).toBeInTheDocument();
   expect(rail.getByRole('link', { name: 'Reports' })).toHaveAttribute('aria-current', 'page');

@@ -18,7 +18,7 @@ export const FinanceShell = ({ active, title, sub, back, children, surface = fal
 }) =>
   // The portal's column is 960px, set the way the vanilla shell sets it: through the
   // shell's own --ui-app-main, which the main column reads.
-  <div style={{ '--ui-app-main': '960px', ...(surface && { '--bg': 'var(--surface)' }) } as CSSProperties}>
+  <div style={{ '--ui-app-main': '960px' } as CSSProperties}>
     <AppShell surface={surface} layout="rail" word="Finance" sections={sections} pathname={`/${active}`} title={title} lede={sub}
       back={back}
       account={FINANCE_READER} onSignOut={() => {}}

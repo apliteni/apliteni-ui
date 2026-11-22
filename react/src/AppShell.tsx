@@ -182,7 +182,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <div className="ui-app__body">{children}</div>
   </main>;
 
-  if (layout === 'rail') return <div className={`ui-app ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
+  if (layout === 'rail') return <div className={`ui-app ui-react-app${surface ? ' ui-app--surface' : ''}${collapsed ? ' is-collapsed' : ''}`}>
     <div className="ui-app__rail" role="region" aria-label="Sidebar">
       <div className="ui-app__head">{lockup}{foldControl}</div>
       {sidebar('Sections')}
