@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:265",
+    "ref": "src/styles/table.css:249",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:93",
+    "ref": "stories/apps/Access.stories.tsx:94",
     "pattern": "Revoke access"
    }
   ],
@@ -939,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:149",
+    "ref": "src/styles/stat.css:177",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:150",
+    "ref": "src/styles/stat.css:178",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -1137,11 +1137,7 @@
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:145",
-    "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
-   },
-   {
-    "ref": "src/styles/table.css:296",
+    "ref": "src/styles/table.css:280",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {

@@ -184,6 +184,9 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/FeedbackShowcase.css': { shadow: 11 },
   'react/src/FeedbackShowcase.stories.tsx': { shadow: 2 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
+  // The phone ground and one-row viewer toolbar need five more placements than the
+  // ceiling: the bleed, the clear space above the ground, and the tighter toolbar fit.
+  'react/src/showcases/SplitLayout.css': { glue: 26 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
 };

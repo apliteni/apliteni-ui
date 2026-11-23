@@ -24,11 +24,12 @@
 /* The document ground is the kit's .ui-document-ground, a bare full-bleed surface: no
    card, no round corner, no glue of its own. The viewer toolbar is a slim row at the
    top of the ground, and the A4 page sits below it at document size. The toolbar is
-   the kit's .ui-toolbar row; the glue below only splits its two groups and gives the
-   row the viewer's own air. why: #850 round 34 */
+   the kit's .ui-toolbar row; the glue below only keeps its two groups on one line,
+   splits them, and gives the row the viewer's own air. why: #850 round 34 */
 .split-layout__viewer {
   justify-content: space-between;
   padding: var(--space-2) var(--space-4);
+  flex-wrap: nowrap;
 }
 .split-layout__steps { display: flex; align-items: center; gap: var(--space-2); }
 .split-layout__sheet {
@@ -40,4 +41,16 @@
 @media (max-width: 860px) {
   .split-layout { grid-template-columns: minmax(0, 1fr); min-height: 0; margin: 0; }
   .split-layout__task { padding-block: 0; }
+}
+/* Below 720px the page's side padding is --space-4, so the ground cancels that to run
+   flush to the screen edges, with clear space above it. The viewer keeps one row at 360:
+   tighter sides and a smaller group gap. */
+@media (max-width: 720px) {
+  .split-layout__document { margin: var(--space-6) calc(-1 * var(--space-4)) 0; }
+  .split-layout__viewer { padding-inline: var(--space-2); gap: var(--space-1); }
+}
+/* Above 720px the page's side padding widens with the viewport, so the ground's bleed
+   matches that wider inset. */
+@media (min-width: 721px) and (max-width: 860px) {
+  .split-layout__document { margin: var(--space-6) calc(-1 * clamp(24px, 4vw, 56px)) 0; }
 }

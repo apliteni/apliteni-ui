@@ -121,7 +121,7 @@ const Controls = ({ query, onQuery, filters, onChange, onRemove, onClear }: {
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` is what
 // scrolls seven columns of ledger on a phone. The title is sr-only: the page title
 // already says what the ledger is, and layout A removes the repeated card title. #850
-const Sales = ({ rows, onReset }: { rows: Row[]; onReset: () => void }) => <Card className="ui-hairline" title={<span className="ui-sr">Sales</span>}>
+const Sales = ({ rows, onReset }: { rows: Row[]; onReset: () => void }) => <Card title={<span className="ui-sr">Sales</span>}>
   {rows.length ? <table className="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr><th>Reference</th><th>Sale ID</th><th>Date</th>
       <th className="ui-table__num">Gross</th><th className="ui-table__num">Fees</th>
@@ -175,6 +175,6 @@ export const Loading: StoryObj = {
     <div className="ui-hairline">
       <Controls onQuery={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
     </div>
-    <Card className="ui-hairline" title={<span className="ui-sr">Sales</span>}><BusyRegion busy label="Loading sales…" placeholder={<SkeletonTable rows={SALES.length} cols={7} />} /></Card>
+    <Card title={<span className="ui-sr">Sales</span>}><BusyRegion busy label="Loading sales…" placeholder={<SkeletonTable rows={SALES.length} cols={7} />} /></Card>
   </FinanceShell>,
 };

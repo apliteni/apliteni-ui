@@ -790,14 +790,14 @@ its label and hint. Use `ui-card__row--tight-choice` for a three-option row that
 line below 360px.
 
 **A row glyph.** Use `.ui-card__glyph` for a muted mark at the end of a card row, such as the
-chevron that opens a detail page. Use `.ui-card__glyph--success` for a granted check. The glyph
+chevron that opens a detail page. Use `SuccessCheck` (`circled`) for a granted check. The glyph
 is 18px with a 2-unit stroke, so it clears the glyph floor. Use `.ui-link--quiet` for a name in
 the row that links to its detail page: body ink at rest, underlined under the pointer.
 
 **A soft line between blocks.** Give the block the class `ui-hairline` to draw a straight line
 across the column width on its top edge, with one inner gap of air under it. Use it above a
 closing block, such as a revoke or delete area, and between tight page blocks, such as a row of
-figures, a filter row and a table. The line is `--border` in light and none in dark.
+figures and the filter row under it. The line is `--border` in light and none in dark.
 
 **A document in a card.** Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a
@@ -1173,9 +1173,10 @@ sortable header label is cut with an ellipsis before its sort mark is.
 selection boxes are kit checkboxes. The header box shows the dash when some rows of the page are
 selected. A dense table marks a selected row only with its box.
 
-**Links in cells.** A link in a cell uses the row's ink, gets an underline on hover and the ring on
-focus. A `.ui-table__sub` puts a second value under the first, such as an email under a name.
-`.ui-table__pair` groups a reference and a status, and stacks them when the cell is narrow.
+**Links in cells.** A link in a cell, including a reference, uses the row's ink, gets an underline
+on hover and the ring on focus. A `.ui-table__sub` puts a second value under the first, such as an
+email under a name. `.ui-table__pair` groups a reference and a status, and stacks them when the
+cell is narrow.
 
 **Keyboard and screen reader.** When its content overflows, the scroll region takes the focus and
 draws the ring inside its edge, so the arrow keys, a trackpad and a finger reach the same columns.
@@ -1225,7 +1226,8 @@ All figures read at one size.
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A
 figure with nothing to compare shows no change row, never `+0%`. A figure shows at most one line
 under its value. A row of tiles keeps a soft line around each tile, also on the light page where a
-lone card draws none. Use a caption only for a unit, a period or a limit that the figure cannot say.
+lone card draws none. An open band draws a vertical soft line between figures in a row on the
+light page. Use a caption only for a unit, a period or a limit that the figure cannot say.
 `trend` is a slot for a small chart, such as a `Chart variant="spark"`.
 
 **Say what a change compares with.** Put it once for the band in `basis`, or with `basisId` point

@@ -82,4 +82,16 @@ describe('split layout showcase', () => {
     // and the page scrolls instead of holding the min-height.
     expect(SHEET).toMatch(/@media \(max-width: 860px\) \{\s*\.split-layout \{ grid-template-columns: minmax\(0, 1fr\); min-height: 0; margin: 0; \}/);
   });
+
+  it('keeps the viewer toolbar on one row and bleeds the ground on a phone', () => {
+    // The two step groups never wrap, so the toolbar stays one row at 360 and 390.
+    expect(SHEET).toMatch(/\.split-layout__viewer \{[^}]*flex-wrap: nowrap;/);
+    // Below 720px the ground cancels the page's --space-4 side padding to run flush to
+    // the screen edges, with clear space above it.
+    expect(SHEET).toMatch(/\.split-layout__document \{ margin: var\(--space-6\) calc\(-1 \* var\(--space-4\)\) 0; \}/);
+    // The tighter sides and group gap let the one row fit at 360.
+    expect(SHEET).toMatch(/\.split-layout__viewer \{ padding-inline: var\(--space-2\); gap: var\(--space-1\); \}/);
+    // Above 720px the page's side padding widens, so the ground's bleed matches it.
+    expect(SHEET).toMatch(/\.split-layout__document \{ margin: var\(--space-6\) calc\(-1 \* clamp\(24px, 4vw, 56px\)\) 0; \}/);
+  });
 });

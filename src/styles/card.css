@@ -237,9 +237,11 @@
 /* #850: on the light page no hairline between rows of one list; the rows separate by
    their padding. */
 :root[data-theme="light"] .ui-card__row + .ui-card__row { border-top: 0; }
-/* A role badge follows the identity it names at --space-4, on the same line, instead of
-   standing at the far end of the row. why: docs/foundations.md#spacing-and-rhythm */
-.ui-card__row:has(> .ui-badge:last-child) { justify-content: flex-start; gap: var(--space-4); }
+/* A role badge or a row-end glyph follows the content it marks at --space-4, on the
+   same line, instead of standing at the far end of the row.
+   why: docs/foundations.md#spacing-and-rhythm */
+.ui-card__row:has(> .ui-badge:last-child),
+.ui-card__row:has(> .ui-card__glyph:last-child) { justify-content: flex-start; gap: var(--space-4); }
 .ui-card__row .lab { color: var(--strong); font-size: var(--text-md); font-weight: var(--weight-medium); }
 .ui-card__row .hint { color: var(--text); font-size: var(--text-sm); margin-top: 3px; }
 
@@ -257,8 +259,8 @@
 .ui-card__icon svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; }
 
 /* A line glyph leading or trailing a card row: 18px with a 2-unit stroke, which draws
-   the 1.5px graphic bar. A row glyph is a mark beside words, so it is muted unless a
-   state says otherwise; the success modifier is a check that confirms a granted item.
+   the 1.5px graphic bar. A row glyph is a mark beside words, so it is muted. A granted
+   check is the kit's SuccessCheck (circled), not this glyph.
    why: docs/foundations.md#icons-and-glyphs */
 .ui-card__glyph {
   display: inline-flex;
@@ -268,7 +270,6 @@
   color: var(--muted);
 }
 .ui-card__glyph svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
-.ui-card__glyph--success { color: var(--chip-success-ink); }
 
 /* A soft line between blocks: a straight hairline across the column width on the
    block's top edge, with one inner gap of air under it. A light card hangs --space-6

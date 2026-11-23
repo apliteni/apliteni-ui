@@ -131,22 +131,6 @@
   color: var(--strong);
   text-decoration: underline;
 }
-/* One exception, and it is the way through: a reference that opens another screen at
-   this row. The rule above was written to keep a LEDGER's identifiers out of the accent
-   — a whole column of them is an accent with no job (guidelines/density-and-accents.md,
-   give-accents-a-job) — but a dashboard's exceptions are three rows, and there the link
-   is how a reader reaches the row's own report. Left in the row's ink it was the plain
-   cell beside it to the pixel, resolving only on hover, which a phone does not have.
-   .ui-table__pair is the cell that carries a reference and its state, so the exception is
-   as narrow as that cell. The ink is base.css's own `a { color: var(--accent) }`, at
-   7.34:1 in light and 5.53:1 in dark on the table's ground.
-   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
-   held by: src/styles/table.test.js */
-.ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }
-.ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity):hover {
-  color: var(--accent);
-  text-decoration: underline;
-}
 /* A plain link — one carrying no class — is the link these rules are about. An inline-block
    box, so a title link that wraps paints one ring instead of one per line, and the kit's small
    corner for that ring to follow. Anchors the kit already styles (`.ui-btn`, `.ui-identity`,

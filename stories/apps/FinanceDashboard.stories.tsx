@@ -41,11 +41,11 @@ const Dashboard = () => {
     <StatBand id="fd-cashflow" variant="open" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
     {/* Each long table has its filter bar above it, under a soft line that separates
-        the figure row, the filters and the table. why: guidelines/dense-tables.md,
+        the figure row from the filters. why: guidelines/dense-tables.md,
         guidelines/dashboards-and-reports.md */}
     <div className="ui-hairline">{bar}</div>
     {/* Each reference opens its sale row in the report. */}
-    <Card className="ui-hairline" title="Needs a decision">
+    <Card title="Needs a decision">
       <table className="ui-table ui-table--dense ui-table--hover">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th></tr></thead>
         <tbody>{shown.map(([ref, net, tone, label, date]) => <tr key={ref}>
