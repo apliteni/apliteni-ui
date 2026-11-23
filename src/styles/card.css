@@ -32,12 +32,12 @@
    the section gap, not a box edge, separates one card from the next. The side inset stays
    and hangs outside the column, so its text lines up with the page title. --pad-lg is the
    centred landing card, which keeps its own inset and never hangs out. #850 */
-:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg) {
+:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
   padding-block: 0;
   margin-inline: calc(-1 * var(--space-6));
 }
 @media (max-width: 560px) {
-  :root[data-theme="light"] .ui-card:not(.ui-card--pad-lg) {
+  :root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
     padding-inline: var(--space-4);
     margin-inline: calc(-1 * var(--space-4));
   }

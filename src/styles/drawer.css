@@ -72,19 +72,6 @@
   transition: transform var(--dur-med) var(--ease);
 }
 .ui-drawer.is-open .ui-drawer__panel { transform: none; }
-/* A bottom sheet carries a drag grip at its top, so a phone reader knows the sheet moves.
-   It is a drawn affordance, not a control; the sheet closes by the close button or Escape. */
-.ui-drawer--bottom .ui-drawer__panel::before {
-  content: "";
-  display: block;
-  flex: none;
-  width: 36px;
-  height: 3px;
-  margin: var(--space-2) auto 0;
-  border-radius: var(--radius-pill);
-  /* muted-ink: chrome — the grip is a hint of the sheet's motion, not text */
-  background: var(--muted);
-}
 
 /* -- Edge anchoring + slide-in direction ---------------------------------- */
 .ui-drawer--right .ui-drawer__panel,

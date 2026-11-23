@@ -34,6 +34,15 @@ export const Links: StoryObj = {
   </>),
 };
 
+// The outline variant keeps a visible edge on a flat ground, for a glyph-only button.
+export const Outline: StoryObj = {
+  name: 'Outline (icon only)',
+  render: () => canvas(<>
+    {specimen('Outline — idle', <Button variant="outline" icon="copy" iconOnly ariaLabel="Copy" />)}
+    {specimen('Outline — focus', <Button variant="outline" icon="chevronRight" iconOnly ariaLabel="Next" />)}
+  </>),
+};
+
 function BusyExample() {
   const [busy, setBusy] = useState(false);
   return canvas(<>

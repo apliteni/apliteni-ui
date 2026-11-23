@@ -374,17 +374,17 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:220",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
   "three-lines": [
    {
-    "ref": "src/styles/drawer.css:143",
+    "ref": "src/styles/drawer.css:130",
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:223",
+    "ref": "src/styles/drawer.css:210",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -394,7 +394,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:290",
+    "ref": "src/styles/drawer.css:277",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -784,7 +784,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:303",
+    "ref": "src/styles/drawer.css:290",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -939,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:148",
+    "ref": "src/styles/stat.css:149",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:149",
+    "ref": "src/styles/stat.css:150",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -951,7 +951,7 @@
  "_empty-states.js": {
   "next-action": [
    {
-    "ref": "react/src/EmptyState.tsx:25",
+    "ref": "react/src/EmptyState.tsx:26",
     "pattern": "export function EmptyState("
    }
   ]

@@ -251,7 +251,7 @@ These fill ratios describe separation, not text contrast.
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
   therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1, because
   the light page is now as white as the field's fill, so only the edge draws the box.
-  **Put a form on a card.** A filter bar above a table is the one exception. See
+  **Put a form on a named surface: a card, a drawer panel or a modal.** A filter bar above a table is the one exception. See
   [Forms](components.md#fields).
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
@@ -350,7 +350,7 @@ declares it:
 | --- | --- | --- |
 | the page | the card in dark, a quiet fill in light | `--code-bg: var(--code-chip-page)` on `:root` |
 | a painted container | the page in dark, a quiet fill in light | `--code-bg: var(--code-chip-surface)` |
-| a card on the page | the page | `--code-bg: var(--code-chip-page)` |
+| a card on the page | the page in dark, a quiet fill in light | `--code-bg: var(--code-chip-surface)` |
 | a table | the card in dark, the page in light | `--table-code-bg`, the pair of `--table-bg` |
 | a tinted card or snippet | the card it is a variant of | `--code-bg: var(--surface)` |
 | a translucent wash over any of them | the page in dark, the card in light | `--wash-code-bg` |

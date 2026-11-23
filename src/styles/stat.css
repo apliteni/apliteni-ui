@@ -53,8 +53,9 @@
 .ui-stat--lead .ui-stat__value { font-size: var(--text-4xl); }
 /* #850: the siblings sit on the lead's baseline. The band's cards are one height,
    and a value reads digits — the only descender is the comma — so its bottom is its
-   baseline. Seating the value on the card's foot lines the three baselines up. */
-.ui-stats__list:has(> .ui-stat--lead) .ui-stat__value:last-child { margin-top: auto; }
+   baseline. Seating the value on the card's foot lines the three baselines up, and
+   the change row after the value moves down with it. */
+.ui-stats__list:has(> .ui-stat--lead) .ui-stat__value { margin-top: auto; }
 
 /* A figure's own words about its value, in the caption rank's size and weight
    with the band's tighter leading, as the label takes, so it claims no rank.

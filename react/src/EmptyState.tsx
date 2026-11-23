@@ -10,8 +10,9 @@ export type EmptyStateProps = {
   art?: ReactNode;
   actions?: ReactNode;
   className?: string;
-  /** Heading level for the title, as Card's `level`. 0 renders a plain div, for a
-   *  title that must not be a heading, such as one inside a menu. */
+  /** Heading level for the title, as Card's `level`. The default 0 renders a plain div,
+   *  so an empty state keeps the face and heading level it always had; give 2 for a
+   *  display-face heading, as the #850 no-results and blank states do. */
   level?: number;
 };
 
@@ -22,7 +23,7 @@ const cases = {
   'not-yet-built': { title: 'Not available yet', sub: 'This screen ships in a later release.', icon: 'clock' },
 };
 
-export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions, className, level = 2 }: EmptyStateProps) {
+export function EmptyState({ variant = 'first-run', title, sub, icon, art, actions, className, level = 0 }: EmptyStateProps) {
   const preset = cases[variant];
   const heading = title ?? preset.title;
   const guidance = sub ?? preset.sub;

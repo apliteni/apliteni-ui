@@ -702,16 +702,12 @@
 }
 .ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
 .ui-auth__brand span { font-size: var(--text-md); font-weight: 600; color: var(--strong); }
-/* Consent: the brand stands on the gradient above the card, and the card's title is
-   centred with a hairline under it. why: docs/foundations.md#elevation */
+/* Consent: the brand stands on the gradient above the card, and the card's title
+   and its text line under it are centred. why: docs/foundations.md#elevation */
 .ui-auth--brand-above { grid-template-rows: auto 1fr; row-gap: var(--space-5); }
 .ui-auth--brand-above > .ui-auth__brand { margin-bottom: 0; }
-.ui-auth--brand-above .ui-auth__title {
-  text-align: center;
-  padding-bottom: var(--space-4);
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border);
-}
+.ui-auth--brand-above .ui-auth__title { text-align: center; }
+.ui-auth--brand-above .ui-auth__sub { text-align: center; }
 .ui-auth__title {
   color: var(--strong);
   /* rank: page-title */

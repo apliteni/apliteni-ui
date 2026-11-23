@@ -146,7 +146,7 @@ export function InvoiceReview({ initialState = 'start' }: { initialState?: Invoi
     body = <><p>INV-1042.pdf</p><Callout variant="danger">The document cannot be read.</Callout>
       <p>Replace the file or enter its fields.</p></>;
     actions = <><Button variant="secondary" onClick={() => navigate('start')}>Replace file</Button>
-      <Button variant="primary" onClick={() => { setDraft({ supplier: '', number: '', date: '', total: '' }); navigate('edit'); }}>Enter fields</Button></>;
+      <Button variant="primary" onClick={() => { setOrigin('unreadable'); setDraft({ supplier: '', number: '', date: '', total: '' }); navigate('edit'); }}>Enter fields</Button></>;
     showDocument = false;
   } else if (screen === 'supplier' || screen === 'supplier-added') {
     const name = screen === 'supplier-added' && invoice.supplier === 'Cedar Studio' ? 'Cedar Studio Europe' : invoice.supplier;
