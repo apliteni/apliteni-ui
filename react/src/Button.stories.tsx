@@ -38,8 +38,8 @@ export const Links: StoryObj = {
 export const Outline: StoryObj = {
   name: 'Outline (icon only)',
   render: () => canvas(<>
-    {specimen('Outline — idle', <Button variant="outline" icon="copy" iconOnly ariaLabel="Copy" />)}
-    {specimen('Outline — focus', <Button variant="outline" icon="chevronRight" iconOnly ariaLabel="Next" />)}
+    {specimen('Outline — idle', <Button variant="outline" icon="copy" iconOnly aria-label="Copy" />)}
+    {specimen('Outline — focus', <Button variant="outline" icon="chevronRight" iconOnly aria-label="Next" />)}
   </>),
 };
 
