@@ -38,12 +38,14 @@ const Dashboard = () => {
       <Segmented label="Period" options={(PERIODS as string[]).map(p => ({ label: p, value: p }))} value={period} onChange={setPeriod} />
       <p className="ui-sr" id={PERIOD_BASIS} data-period-basis="">{periodBasis(period)}</p>
     </div>
-    <StatBand id="fd-cashflow" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
+    <StatBand id="fd-cashflow" variant="open" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
-    {/* Each long table has its filter bar directly above it. why: guidelines/dense-tables.md */}
-    {bar}
+    {/* Each long table has its filter bar above it, under a soft line that separates
+        the figure row, the filters and the table. why: guidelines/dense-tables.md,
+        guidelines/dashboards-and-reports.md */}
+    <div className="ui-hairline">{bar}</div>
     {/* Each reference opens its sale row in the report. */}
-    <Card title="Needs a decision">
+    <Card className="ui-hairline" title="Needs a decision">
       <table className="ui-table ui-table--dense ui-table--hover">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th></tr></thead>
         <tbody>{shown.map(([ref, net, tone, label, date]) => <tr key={ref}>

@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './primitives/Icon';
 
 export type SnippetProps = {
-  /** Optional bar title; a block with no title floats the copy action over the
-   *  first line of code, so the copy icon sits on the code's own line. */
+  /** Optional bar title; a block with no title keeps the copy action in flow
+   *  beside the code, so the copy icon reserves its own space. */
   label?: string;
   /** Original text to copy; displayed when children are absent. */
   code?: string;
@@ -74,8 +74,8 @@ export function Snippet({ label, code = '', children, copy = true, reveal = fals
         <span>{label}</span>
         {copyControl()}
       </div>}
-      {/* A title is optional: with none, the copy icon floats over the first line
-          of code, on the code's own line rather than in a bar above it. */}
+      {/* A title is optional: with none, the copy icon stays in flow beside the
+          first line of code, on the code's own line rather than in a bar above it. */}
       {!label && copyControl()}
       <pre>{children ?? code}</pre>
     </div>

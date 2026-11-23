@@ -45,7 +45,7 @@ it('renders token children and copies the original code, not the rendered text',
   expect(write).toHaveBeenCalledWith(code);
 });
 
-it('shows no title when no label is given, floating the copy action over the code', () => {
+it('shows no title when no label is given, keeping the copy action in flow beside the code', () => {
   const { container } = render(<Snippet code="npm install example" />);
   expect(container.querySelector('.ui-snippet__bar')).toBeNull();
   expect(container.querySelector('.ui-snippet__copy')).not.toBeNull();

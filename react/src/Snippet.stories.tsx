@@ -51,8 +51,8 @@ export const Plain: Story = {
   args: { code: 'npm install @apliteni/apliteni-ui', children: undefined },
 };
 
-// A title is optional: with none, the copy button floats over the first line of
-// code, on the code's own line rather than in a bar above it.
+// A title is optional: with none, the copy button stays in flow beside the
+// code, reserving its own space so the code never runs under it.
 export const NoTitle: Story = {
   name: 'No title',
   render: () => <div style={{ maxWidth: 620 }}>

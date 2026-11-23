@@ -270,7 +270,17 @@
 .ui-card__glyph svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 .ui-card__glyph--success { color: var(--chip-success-ink); }
 
-/* A block that must stand apart from the one above it, drawn as a hairline on its top
-   edge. Dark cards are boxed and already separate; the light card is unboxed, so only
-   the light rule draws. why: docs/components.md#card */
-:root[data-theme="light"] .ui-card.ui-hairline { border-top: 1px solid var(--border); }
+/* A soft line between blocks: a straight hairline across the column width on the
+   block's top edge, with one inner gap of air under it. A light card hangs --space-6
+   outside the column, but its own padding keeps the line on the column's width, and
+   the ::before draws straight where a border would follow the rounded corner. Dark
+   cards are boxed and already separate, so only the light rule draws.
+   why: docs/components.md#card, guidelines/dashboards-and-reports.md */
+:root[data-theme="light"] .ui-hairline::before {
+  content: "";
+  display: block;
+  flex: none;
+  width: 100%;
+  height: var(--space-8);
+  border-top: 1px solid var(--border);
+}

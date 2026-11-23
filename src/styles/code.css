@@ -8,9 +8,15 @@
   background: var(--code-bg); /* code-bg: inherit — a block reads the ground its container hands a chip, and holds no chip. */
   border-radius: var(--radius-md);
   overflow: hidden;
-  /* A titleless block floats its copy button over the first line of code. */
+  /* The bar and the titleless flex row position the copy button; a titleless
+     block holds the button in flow beside the code. */
   position: relative;
 }
+/* #850: with no title the copy button reserves its own space instead of floating
+   over the code, so a short command is never covered at any width. The block is a
+   flex row: the code grows, and the button sits at the row's end. */
+.ui-snippet:not(:has(.ui-snippet__bar)) { display: flex; align-items: flex-start; }
+.ui-snippet:not(:has(.ui-snippet__bar)) pre { flex: 1 1 auto; min-width: 0; order: -1; }
 .ui-snippet__bar {
   display: flex;
   justify-content: space-between;
@@ -98,13 +104,14 @@
 /* The drawn confirmation: check and the word Copied for about 2s. The word is a
    state the button shows, not its name, which stays the copy action. */
 .ui-snippet__copied { margin-inline-start: 4px; }
-/* #850: a title is optional, so a block with none puts the copy button on the
-   first line of code — the bar is gone, and the button floats at the line's end.
-   It grows leftward while it shows the word, so the code is never covered. */
+/* #850: a title is optional, so a block with none puts the copy button at the
+   end of the code's own row — the bar is gone, and the button is in flow, so it
+   reserves its space and the code never runs under it. It grows leftward while
+   it shows the word, shrinking the code row rather than covering it. */
 .ui-snippet:not(:has(.ui-snippet__bar)) .ui-snippet__copy {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
+  position: static;
+  flex: none;
+  margin: var(--space-2) var(--space-2) 0 0;
 }
 
 /* Shell token highlighting (matches viz/account.mjs classes) */

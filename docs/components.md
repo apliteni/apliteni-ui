@@ -794,8 +794,10 @@ chevron that opens a detail page. Use `.ui-card__glyph--success` for a granted c
 is 18px with a 2-unit stroke, so it clears the glyph floor. Use `.ui-link--quiet` for a name in
 the row that links to its detail page: body ink at rest, underlined under the pointer.
 
-**A block that ends a card.** Give a `Card` the class `ui-hairline` to draw a top line above a
-closing block, such as a revoke or delete area. The line is `--border` in light and none in dark.
+**A soft line between blocks.** Give the block the class `ui-hairline` to draw a straight line
+across the column width on its top edge, with one inner gap of air under it. Use it above a
+closing block, such as a revoke or delete area, and between tight page blocks, such as a row of
+figures, a filter row and a table. The line is `--border` in light and none in dark.
 
 **A document in a card.** Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a

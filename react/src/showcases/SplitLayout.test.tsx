@@ -60,7 +60,10 @@ describe('split layout showcase', () => {
     // The figures cancel .ui-app__main's own padding.
     expect(SHEET).toMatch(/margin-block: -40px -72px;/);
     expect(SHEET).toMatch(/margin-inline-end: calc\(-1 \* clamp\(24px, 4vw, 56px\)\);/);
-    // The one documented breakpoint the kit ships: below 860px the panes stack.
-    expect(SHEET).toMatch(/@media \(max-width: 860px\) \{\s*\.split-layout \{ grid-template-columns: minmax\(0, 1fr\); margin: 0; \}/);
+    // The ground fills the whole main area below the band, so it never stops halfway.
+    expect(SHEET).toMatch(/min-height: calc\(100vh - var\(--ui-app-band, 52px\)\);/);
+    // The one documented breakpoint the kit ships: below 860px the panes stack,
+    // and the page scrolls instead of holding the min-height.
+    expect(SHEET).toMatch(/@media \(max-width: 860px\) \{\s*\.split-layout \{ grid-template-columns: minmax\(0, 1fr\); min-height: 0; margin: 0; \}/);
   });
 });

@@ -121,7 +121,7 @@ const Controls = ({ query, onQuery, filters, onChange, onRemove, onClear }: {
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` is what
 // scrolls seven columns of ledger on a phone. The title is sr-only: the page title
 // already says what the ledger is, and layout A removes the repeated card title. #850
-const Sales = ({ rows, onReset }: { rows: Row[]; onReset: () => void }) => <Card title={<span className="ui-sr">Sales</span>}>
+const Sales = ({ rows, onReset }: { rows: Row[]; onReset: () => void }) => <Card className="ui-hairline" title={<span className="ui-sr">Sales</span>}>
   {rows.length ? <table className="ui-table ui-table--dense ui-table--zebra ui-table--hover">
     <thead><tr><th>Reference</th><th>Sale ID</th><th>Date</th>
       <th className="ui-table__num">Gross</th><th className="ui-table__num">Fees</th>
@@ -148,9 +148,11 @@ const Report = () => {
   const reset = () => { setQuery(''); clear(); };
   return <FinanceShell active="sales" title="Sales"
     tools={<Segmented label="Period" options={periods} value={period} onChange={setPeriod} />}>
-    <StatBand id="fr-cashflow" basis={periodBasis(period)} stats={salesStats(period, rows, values, query)} />
-    <Controls query={query} onQuery={setQuery} filters={filters}
-      onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
+    <StatBand id="fr-cashflow" variant="open" basis={periodBasis(period)} stats={salesStats(period, rows, values, query)} />
+    <div className="ui-hairline">
+      <Controls query={query} onQuery={setQuery} filters={filters}
+        onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
+    </div>
     <div ref={ledger} style={{ display: 'contents' }}>
       <Sales rows={rows} onReset={() => { reset(); ledger.current?.closest('.ui-app__body')?.querySelector<HTMLElement>('.ui-filter-bar [data-dropdown-trigger]')?.focus(); }} />
     </div>
@@ -165,12 +167,14 @@ export const Default: StoryObj = { render: () => <Report /> };
 export const Loading: StoryObj = {
   render: () => <FinanceShell active="sales" title="Sales"
     tools={<Segmented label="Period" options={periods} value={INITIAL_PERIOD} onChange={noop} />}>
-    <div className="ui-stats ui-stats--tiles">
+    <div className="ui-stats ui-stats--open">
       <p className="ui-stats__basis"><Skeleton lines={['36%']} /></p>
       <BusyRegion busy label="Loading cashflow for the last year…" placeholder={<div className="ui-stats__list">{[0, 1, 2].map(i =>
-        <div key={i} className="ui-stat ui-card ui-card--pad-sm"><Skeleton lines={['40%']} /><Skeleton lines={['72%']} height="36px" /><Skeleton lines={['44%']} /></div>)}</div>} />
+        <div key={i} className="ui-stat"><Skeleton lines={['40%']} /><Skeleton lines={['72%']} height="36px" /><Skeleton lines={['44%']} /></div>)}</div>} />
     </div>
-    <Controls onQuery={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
-    <Card title={<span className="ui-sr">Sales</span>}><BusyRegion busy label="Loading sales…" placeholder={<SkeletonTable rows={SALES.length} cols={7} />} /></Card>
+    <div className="ui-hairline">
+      <Controls onQuery={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
+    </div>
+    <Card className="ui-hairline" title={<span className="ui-sr">Sales</span>}><BusyRegion busy label="Loading sales…" placeholder={<SkeletonTable rows={SALES.length} cols={7} />} /></Card>
   </FinanceShell>,
 };
