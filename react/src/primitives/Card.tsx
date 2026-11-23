@@ -17,11 +17,6 @@ export type CardProps = {
   href?: string;
   /** Controls at the end of the title row, such as an icon-only button. Needs a `title`. */
   tools?: ReactNode;
-  /** A decorative end mark, such as a chevron on a link card. A link holds no button, so
-   *  this slot takes only inert artwork. */
-  trailing?: ReactNode;
-  /** Runs when the card is activated; a link card still follows its href. */
-  onClick?: (event: React.MouseEvent<HTMLAnchorElement | HTMLDivElement>) => void;
   className?: string;
   children?: ReactNode;
 };
@@ -35,7 +30,7 @@ export const CardTools = createContext<CardToolsSlot | null>(null);
 // otherwise. why: docs/foundations.md#labels-and-titles
 // A caller's `className` is merged with the kit class rather than replacing it, the way
 // Button merges one, so a page can mark one card without losing `.ui-card`.
-export function Card({ title, sub, level = 2, variant, pad, icon, href, tools, trailing, onClick, className, children }: CardProps) {
+export function Card({ title, sub, level = 2, variant, pad, icon, href, tools, className, children }: CardProps) {
   const [claims, setClaims] = useState<string[]>([]);
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   // The first child to claim the slot keeps it, so two charts draw one switch there between them.
@@ -53,7 +48,6 @@ export function Card({ title, sub, level = 2, variant, pad, icon, href, tools, t
     .filter(Boolean).join(' ');
   // A link holds no button, so a link card offers no tools.
   const withTools = titled && href == null;
-  const withTrailing = titled && href != null && trailing != null;
   const heading = titled && <Heading className="ui-card__title">
     {icon && <span className="ui-card__icon" aria-hidden="true" dangerouslySetInnerHTML={{ __html: kitIcon(icon) }} />}
     {title}
@@ -61,13 +55,11 @@ export function Card({ title, sub, level = 2, variant, pad, icon, href, tools, t
   const inner = <>
     {withTools && (tools != null || owner != null)
       ? <div className="ui-card__head">{heading}<div className="ui-card__tools" ref={setSlot}>{tools}</div></div>
-      : withTrailing
-        ? <div className="ui-card__head">{heading}<div className="ui-card__trailing" aria-hidden="true">{trailing}</div></div>
-        : heading}
+      : heading}
     {sub != null && <div className="ui-card__sub">{sub}</div>}
     {children}
   </>;
   return href != null
-    ? <a className={classes} href={safeUrl(href)} onClick={onClick}>{inner}</a>
-    : <div className={classes} onClick={onClick}>{withTools ? <CardTools.Provider value={offer}>{inner}</CardTools.Provider> : inner}</div>;
+    ? <a className={classes} href={safeUrl(href)}>{inner}</a>
+    : <div className={classes}>{withTools ? <CardTools.Provider value={offer}>{inner}</CardTools.Provider> : inner}</div>;
 }
