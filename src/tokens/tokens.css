@@ -657,13 +657,12 @@
  * paint, so a chip inside one takes the page, the rung below it — --code-chip-surface is
  * the page's chip in dark and the page's chip in light, where the two agree. The split
  * auth's plain half and its shell paint the page for the same reason, and a tinted card
- * or a blank empty state's tinted panel keeps the plain card as its step. */
+ * keeps the plain card as its step. */
 .ui-card {
   --code-bg: var(--code-chip-surface);
 }
 .ui-card--accent,
 .ui-card--live,
-.ui-empty--panel,
 .ui-auth--split,
 .ui-auth--split .ui-auth__pane {
   --code-bg: var(--code-chip-page);

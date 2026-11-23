@@ -15,8 +15,10 @@ export const RELEASES = [
       ['added', 'A sign-in page takes a split layout: a branded panel with the wordmark and a tagline stands beside the form on wide screens and above it on phones. Resolves #850.', ['Card']],
       ['added', '`Button` takes `outline`, a transparent fill with a visible edge, for a glyph-only button on a flat ground. Resolves #850.', ['Button']],
       ['changed', '`Snippet` no longer needs a `label`. A `Snippet` without one now shows no title; it used to show "shell". Resolves #850.', ['Snippet']],
+      ['changed', 'A `Snippet` bar title now reads as a muted caption instead of a label, so it names the block without competing with its code. Resolves #850.', ['Snippet']],
+      ['changed', 'A card that holds a table directly now has square top corners, so the table reads as a straight data grid instead of a rounded card. Resolves #850.', ['Card', 'Table']],
       ['added', '`StatBand` takes `lead` for a figure that leads a report row. Resolves #850.', ['StatBand']],
-      ['added', 'The page guideline has a new rule, Brand the background behind a dialog page, and the colour guideline now lets a code block keep its grey fill in the light theme. Resolves #850.', ['Guidelines']],
+      ['added', 'The page guideline gains two rules: Brand the background behind a dialog page, and The sign-in note names who can sign in. The colour guideline lets a code block keep its grey fill in light. Resolves #850.', ['Guidelines']],
     ],
   },
   {

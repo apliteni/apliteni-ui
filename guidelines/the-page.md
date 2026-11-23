@@ -152,6 +152,18 @@
 
 **Except:** A wordmark and a slogan may stand on the ground. A dialog clears 3:1 against its ground in both themes, except the sign-in and Consent ground C, which the owner chose at 1.60:1 to 1.51:1 light and 1.08:1 to 1.04:1 dark.
 
+## The sign-in note names who can sign in
+
+<!-- rule: sign-in-note -->
+
+**Rule:** The sign-in note states who can sign in without naming the product.
+
+**Why:** A product name ties the note to one product, and the note breaks when another app uses the screen.
+
+**Do:** Write "Only work accounts can sign in."
+
+**Don't:** Name the product or its domain in the note.
+
 ## Write a useful introduction
 
 <!-- rule: lede -->

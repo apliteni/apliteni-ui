@@ -554,7 +554,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:167",
+    "ref": "src/styles/card.css:171",
     "pattern": "rank: card-title"
    }
   ],
@@ -1057,7 +1057,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:199",
+    "ref": "src/styles/card.css:203",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1191,7 +1191,7 @@
  "_session-expired.js": {
   "skeleton-behind-dialog": [
    {
-    "ref": "stories/apps/SignIn.stories.tsx:68",
+    "ref": "stories/apps/SignIn.stories.tsx:78",
     "pattern": "waitingForSignIn ? <SkeletonTable"
    },
    {

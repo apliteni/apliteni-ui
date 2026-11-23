@@ -143,6 +143,15 @@ const Branded = ({ control }: { control: boolean }) => <Stage><div className="ui
   </div>
 </div></Stage>;
 
+// The sign-in note: it names who can sign in, never the product. #850
+const SignNote = ({ named }: { named: boolean }) => <Stage><div className="ui-auth tp-auth">
+  <div className="ui-auth__card tp-auth-card">
+    <h1 className="ui-auth__title">Sign in</h1>
+    <Button variant="primary" block>Continue</Button>
+    <div className="ui-auth__foot">{named ? 'Only apliteni.com accounts can sign in.' : 'Only work accounts can sign in.'}</div>
+  </div>
+</div></Stage>;
+
 // The page as it first paints, with or without a drawer already over it.
 const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="gl-stage tp-rest">
   <div className="ui-app__main tp-head">
@@ -175,6 +184,7 @@ const specimens = [
   { id: 'at-rest', do: () => <AtLoad open={false} />, dont: () => <AtLoad open /> },
   { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
   { id: 'branded-background', do: () => <Branded control={false} />, dont: () => <Branded control /> },
+  { id: 'sign-in-note', do: () => <SignNote />, dont: () => <SignNote named /> },
   { id: 'lede', do: () => <Lede sub="Payouts arrive within three business days." />,
     dont: () => <Lede sub="This is the payouts page." /> },
 ];

@@ -80,22 +80,6 @@
   font-weight: var(--weight-semibold);
   margin-top: 0;
 }
-/* #850: a blank first-run state holds its words in a tinted panel with a display-face
-   title, one rung above the page like an accent card. The title is an h2, so
-   base.css gives it the display face. */
-.ui-empty--panel {
-  align-items: flex-start;
-  text-align: left;
-  padding: var(--space-6);
-  background: color-mix(in srgb, var(--accent) var(--card-tint), var(--surface));
-  border: 1px solid var(--card-edge);
-  border-radius: var(--radius-xl);
-}
-.ui-empty--panel .ui-empty__title {
-  font-size: var(--text-xl);
-  font-weight: var(--weight-semibold);
-  margin-top: 0;
-}
 
 /* Legacy line-icon slot — kept so existing .ui-empty__icon markup still works.
    44px until #148. The icon inside is `width: 100%`, and that rule lost to the

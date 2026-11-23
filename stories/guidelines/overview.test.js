@@ -101,7 +101,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 153: The page gained bar-end (#847). Labels and titles gained category-compact (#852).
   // 155: The page gained branded-background (#850).
   // 160: Session expired added five rules (#854).
-  assert.equal(rules, 160);
+  // 161: The page gained sign-in-note (#850).
+  assert.equal(rules, 161);
   // Each is named. Dashboards and reports asks every report for an export and
   // the Stock screener has none (#555). The kit has no unread row weight and no
   // dropdown error part (#798). This list empties as each lands.

@@ -116,6 +116,16 @@ describe('the page: React screens', () => {
     expect(CHECKS['branded-background']({ ...drawn[0], where: 'brand', doc })).toHaveLength(1);
   });
 
+  // `sign-in-note` reads the foot under the sign-in form, so a note that names
+  // one domain must fail it.
+  it('the sign-in-note check reaches the foot and refuses a product domain', () => {
+    const drawn = screens.filter((s) => s.kind === 'auth');
+    const doc = document.implementation.createHTMLDocument('named');
+    doc.body.innerHTML = '<div class="ui-auth__card"><h1>Sign in</h1>'
+      + '<div class="ui-auth__foot">Only apliteni.com accounts can sign in.</div></div>';
+    expect(CHECKS['sign-in-note']({ ...drawn[0], where: 'named', doc })).toHaveLength(1);
+  });
+
   for (const rule of GATED) {
     it(`${rule.id}: ${rule.says}`, () => {
       expect(screens.flatMap((s) => CHECKS[rule.id](s))).toEqual([]);

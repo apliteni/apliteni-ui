@@ -47,6 +47,10 @@
    the rounded corners / clipping its last column. Clipping to the card's
    border-box also keeps zebra stripes from escaping the radius. */
 .ui-card:has(> .ui-table) { overflow-x: auto; }
+/* A card that frames a table directly is the table's frame, so its top edge is
+   square: the data grid reads as a straight edge at both ends, not a rounded
+   card. The bottom corners keep the card's own radius. #850 */
+.ui-card:has(> .ui-table) { border-top-left-radius: 0; border-top-right-radius: 0; }
 /* Which makes the card a keyboard stop whenever no cell holds a control, so it
    answered with the native outline. It is a scroll region, so it takes --ring-scroll:
    the band drawn inward, inside the card's 24px padding and clear of the table.

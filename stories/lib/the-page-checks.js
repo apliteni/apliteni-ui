@@ -229,6 +229,21 @@ export const CHECKS = {
       + 'A control stays inside the dialog; the ground carries only the mark and a slogan.');
   },
 
+  // The sign-in note says who may sign in. Naming one domain ties the note to
+  // one product, and the note breaks when another app uses the screen. #850
+  'sign-in-note'(s) {
+    if (s.kind !== 'auth') return [];
+    const foots = [...s.doc.querySelectorAll('.ui-auth__foot')].filter((el) => !inOverlay(el));
+    return foots.flatMap((el) => {
+      const words = text(el);
+      if (/\b[\w-]+\.[a-z]{2,}\b/i.test(words)) {
+        return [`${s.where} names a domain in the sign-in note ("${words}"). `
+          + 'The note states who can sign in without naming the product.'];
+      }
+      return [];
+    });
+  },
+
   navs(s) {
     const problems = [];
     const seen = new Map();

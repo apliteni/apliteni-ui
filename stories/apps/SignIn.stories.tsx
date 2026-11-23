@@ -28,7 +28,7 @@ function SignInPage({ sub, ...args }: SignInArgs & { sub: string }) {
     <p className="ui-auth__sub">{sub}</p>
     {done ? <Callout variant="success">You are signed in. The app opens next.</Callout>
       : <SignInBlock {...args} onDone={() => setDone(true)} />}
-    <div className="ui-auth__foot">Only <b>apliteni.com</b> accounts can sign in.</div>
+    <div className="ui-auth__foot">Only work accounts can sign in.</div>
   </>);
 }
 const page = (sub: string, args: SignInArgs) => <SignInPage sub={sub} {...args} />;
@@ -38,7 +38,7 @@ const splitPage = (tagline: string, args: SignInArgs) => {
     <h1 className="ui-auth__title">Sign in</h1>
     {done ? <Callout variant="success">You are signed in. The app opens next.</Callout>
       : <SignInBlock {...args} onDone={() => setDone(true)} />}
-    <div className="ui-auth__foot">Only <b>apliteni.com</b> accounts can sign in.</div>
+    <div className="ui-auth__foot">Only work accounts can sign in.</div>
   </>, tagline);
 };
 

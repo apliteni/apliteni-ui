@@ -23,10 +23,9 @@ const FilteredListScreen = () => <FinanceShell active="invoices" title="Invoices
   </FinanceShell>;
 export const FilteredList: StoryObj = { render: () => <FilteredListScreen /> };
 
-// A first-run page with no rows yet: illustration, guidance and a clear action, in a
-// tinted panel with a display-face title. #517, #850 B
+// A first-run page with no rows yet: people illustration, one short line and a clear
+// action, on the page with no panel. #517, #850
 const FirstRunScreen = () => <FinanceShell active="prefs" title="People" sub="Contractors and staff, for cost attribution.">
-    <EmptyState className="ui-empty--panel" art="people" level={2} title="No people yet" sub="Contractors and staff you add show up here for attribution."
-      actions={<Button variant="primary">+ Add person</Button>} />
+    <EmptyState art="people" title="No people yet" actions={<Button variant="primary">+ Add person</Button>} />
   </FinanceShell>;
 export const FirstRun: StoryObj = { render: () => <FirstRunScreen /> };
