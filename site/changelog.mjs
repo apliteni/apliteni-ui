@@ -29,6 +29,7 @@ export const RELEASES = [
       ['changed', 'An open `StatBand` in light now separates figures in a row with a vertical soft line. Dark keeps its rule over each figure. Resolves #850.', ['StatBand']],
       ['added', '`--ui-document-ground` token and `.ui-document-ground` class paint a bare full-bleed backdrop behind a document sheet, so a page reads its own ground instead of re-declaring a surface. Resolves #850.', ['Card']],
       ['changed', 'A one-column `KeyValueList` keeps each value beside its label at every width. On a phone it used to stack the label above the value; only the two-column variant still stacks there. Resolves #850.', ['KeyValueList']],
+      ['changed', 'On a phone, a card row that ends in a row glyph keeps the glyph on the row\'s first line at the right end, vertically centred, instead of dropping it under the content. Resolves #850.', ['Card']],
     ],
   },
   {

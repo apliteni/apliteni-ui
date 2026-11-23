@@ -242,6 +242,19 @@
    why: docs/foundations.md#spacing-and-rhythm */
 .ui-card__row:has(> .ui-badge:last-child),
 .ui-card__row:has(> .ui-card__glyph:last-child) { justify-content: flex-start; gap: var(--space-4); }
+/* On a phone the row-end glyph keeps its place on the row's first line, at the
+   row's right end and vertically centred, instead of dropping under the content. */
+@media (max-width: 560px) {
+  .ui-card__row:has(> .ui-card__glyph:last-child) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ui-card__row:has(> .ui-card__glyph:last-child) > :first-child {
+    width: auto;
+    min-width: 0;
+  }
+}
 .ui-card__row .lab { color: var(--strong); font-size: var(--text-md); font-weight: var(--weight-medium); }
 .ui-card__row .hint { color: var(--text); font-size: var(--text-sm); margin-top: 3px; }
 
