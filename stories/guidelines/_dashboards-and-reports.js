@@ -30,6 +30,8 @@ export const SPEC_CSS = `${CHART_CSS}
     .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
       margin-bottom: var(--space-2); }
     .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
+    /* The Don't removes the tiles' soft edge, so three figures run together. */
+    :root[data-theme="light"] .gd-no-lines .ui-stats--tiles .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) { border-color: transparent; }
   </style>`;
 
 // Made-up monthly spend for the made-up portal, in thousands of euros.

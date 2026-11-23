@@ -846,13 +846,13 @@
   ],
   "tone-not-direction": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:60",
+    "ref": "react/src/primitives/StatBand.tsx:57",
     "pattern": "delta.direction"
    }
   ],
   "say-the-basis": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:63",
+    "ref": "react/src/primitives/StatBand.tsx:60",
     "pattern": "aria-describedby={!own && basisId ? basisId : undefined}"
    }
   ]
@@ -1121,8 +1121,14 @@
  "_dashboards-and-reports.js": {
   "figures-and-exceptions": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:74",
+    "ref": "react/src/primitives/StatBand.tsx:71",
     "pattern": "export function StatBand("
+   }
+  ],
+  "soft-lines-between-blocks": [
+   {
+    "ref": "src/styles/stat.css:124",
+    "pattern": "border: 1px solid var(--card-edge);"
    }
   ],
   "link-to-the-report": [

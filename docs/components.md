@@ -1208,12 +1208,13 @@ totals of a list in the table's footer rows, not in a stat band.
 
 `variant` is `tiles`, the default, with each figure on its own card, `band` on one card, or `open`
 with no surface and a larger value. A figure has `label`, `value`, `caption`, `delta` and `trend`.
-`lead` reads the value one display rank above its siblings, and the siblings sit on its baseline.
+All figures read at one size.
 
 **What the user sees.** A value never wraps and is never cut. The words under it give way first. A
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A
 figure with nothing to compare shows no change row, never `+0%`. A figure shows at most one line
-under its value. Use a caption only for a unit, a period or a limit that the figure cannot say.
+under its value. A row of tiles keeps a soft line around each tile, also on the light page where a
+lone card draws none. Use a caption only for a unit, a period or a limit that the figure cannot say.
 `trend` is a slot for a small chart, such as a `Chart variant="spark"`.
 
 **Say what a change compares with.** Put it once for the band in `basis`, or with `basisId` point

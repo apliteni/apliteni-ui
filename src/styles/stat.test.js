@@ -61,31 +61,6 @@ test('each part of a figure keeps the spacing its own rule gives it', async () =
   }
 });
 
-/* The lead's baseline promise, docs/components.md: "the siblings sit on its
- * baseline." A value reads digits, so its bottom is its baseline, and seating
- * the value at the card's foot lines the bottoms up. #850 gave every report
- * figure a change row after its value, so the seating reaches the value, not
- * the last child — a value followed by a change row is no longer the last
- * child, and a rule ending at :last-child stopped matching the moment the
- * change row arrived. jsdom lays nothing out; this holds the cascade that
- * seats it. */
-test('a lead seats every value on its baseline, change row and all', async () => {
-  const sheet = substitute(RAW, tokensFor('dark', 'default'));
-  const mount = async (stats) => new JSDOM(`<!doctype html><html><head><style>${sheet}</style></head><body>${await statBand({ stats })}</body></html>`).window;
-  const withLead = await mount([
-    { label: 'Net result', value: '€ 80,137.25', lead: true, delta: { value: '+347.0%' } },
-    { label: 'Money in', value: '€ 83,054.61', delta: { value: '+347.6%' } },
-  ]);
-  const withoutLead = await mount([{ label: 'Money in', value: '€ 83,054.61', delta: { value: '+347.6%' } }]);
-  const margin = (win, sel) => win.getComputedStyle(win.document.querySelector(sel)).marginTop;
-  assert.equal(margin(withLead, '.ui-stat:not(.ui-stat--lead) .ui-stat__value'), 'auto',
-    'a sibling value is not seated on the lead baseline');
-  assert.equal(margin(withLead, '.ui-stat--lead .ui-stat__value'), 'auto',
-    'the lead value is not seated the same way, so the bottoms cannot line up');
-  assert.notEqual(margin(withoutLead, '.ui-stat__value'), 'auto',
-    'a value with no lead is seated too, so the rule reaches past the lead case');
-});
-
 // The markup order — caption, then figures — is held in react/src/primitives/StatBand.test.tsx.
 // This is the other half of it: a leading caption's air belongs under it, or the
 // gap it used to open between itself and the figures moves outside the band.
@@ -297,9 +272,7 @@ test('good news takes the success ink, bad news the danger ink, and nothing else
         `${tone} news is not painted with the ${ink} ink`);
     }
   }
-  // `lead` is a size rank (#850 layout A), not a tone, so it is not in the tone set.
-  const tones = new Set(rules.flatMap((r) => [...r.selector.matchAll(/\.ui-stat--([a-z]+)\b/g)].map((m) => m[1]))
-    .filter((t) => t !== 'lead'));
+  const tones = new Set(rules.flatMap((r) => [...r.selector.matchAll(/\.ui-stat--([a-z]+)\b/g)].map((m) => m[1])));
   assert.deepEqual([...tones].sort(), ['bad', 'good'],
     'the sheet paints a tone the component never sets, or stopped setting one it paints');
 });

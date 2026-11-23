@@ -69,7 +69,7 @@ const previousStart = (period: string): string | null => {
 };
 
 // The three figures are the rows' own sums, fixed at two decimals beside the Net (EUR)
-// column. #850 layout A: Net result leads, one display rank above Money in and Money out.
+// column. #850 layout A: Net result, Money in and Money out all use one size.
 // A failed or refunded sale is not income, so Paid and Pending rows alone reach the
 // figures. Each figure carries the change against the same-length window before it, and
 // the band's caption states that basis. why: #850, guidelines/stat-bands.md
@@ -87,13 +87,12 @@ const salesStats = (period: string, rows: Row[], values: Record<string, string |
   const before = previousStart(period);
   const current = income(rows);
   const previous = before ? income(narrowSales(SALES, values, query).filter(row => row[2] >= before && row[2] < start)) : [];
-  return ([['Net result', 5], ['Money in', 3], ['Money out', 4]] as const).map(([label, column], at) => {
+  return ([['Net result', 5], ['Money in', 3], ['Money out', 4]] as const).map(([label, column]) => {
     const value = sum(current, column);
     const old = sum(previous, column);
     const change = old ? (value - old) / Math.abs(old) * 100 : 0;
     return {
       label,
-      lead: at === 0,
       value: twoDecimals(value),
       ...(previous.length ? { delta: {
         value: `${change >= 0 ? '+' : '−'}${Math.abs(change).toFixed(1)}%`,

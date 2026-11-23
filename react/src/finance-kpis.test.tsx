@@ -22,7 +22,7 @@ describe('the finance report figures', () => {
   it('are a stat band, one figure per term', () => {
     const band = mount(Report.Default).querySelector('.ui-stats');
     expect(band, 'the screen no longer draws its figures with the kit band').not.toBeNull();
-    // #850 layout A: Net result leads, then Money in and Money out step down.
+    // #850 layout A: Net result, Money in and Money out, all at one size.
     expect([...band!.querySelectorAll('dt')].map((d) => d.textContent)).toEqual(['Net result', 'Money in', 'Money out']);
   });
 

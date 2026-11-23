@@ -8,7 +8,7 @@
 
 **Why:** A shared layout puts every figure's value, change and basis in the same place.
 
-**Do:** One card per figure: the figure largest, an arrow, a signed change, one caption above the row.
+**Do:** One card per figure: one size, a soft line each, arrow, signed change, caption above the row.
 
 **Don't:** Heading-sized figures, a capitalised 10px status chip, no comparison basis.
 

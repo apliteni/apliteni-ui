@@ -21,9 +21,6 @@ export interface StatDelta {
 export interface StatFigure {
   label: string;
   value: ReactNode;
-  /** Lead figure: the value takes the display size one rank above its siblings,
-   *  so the first thing to read leads the band. #850 */
-  lead?: boolean;
   /** Context that is not a change, such as "of revenue": no arrow, no tone. It
    *  takes the row a change would take, and leads that row beside one. A short
    *  phrase: the row is one line, and a longer caption is clipped. */
@@ -82,7 +79,7 @@ export function StatBand({ stats, variant = 'tiles', basis, basisId: sharedBasis
       <dl className="ui-stats__list">
         {stats.map((s, i) => {
           const tone = hasChange(s.delta) && (s.delta.tone === 'good' || s.delta.tone === 'bad') ? s.delta.tone : '';
-          const cls = ['ui-stat', s.lead && 'ui-stat--lead', tone && `ui-stat--${tone}`, v === 'tiles' && 'ui-card ui-card--pad-sm']
+          const cls = ['ui-stat', tone && `ui-stat--${tone}`, v === 'tiles' && 'ui-card ui-card--pad-sm']
             .filter(Boolean).join(' ');
           return (
             <div className={cls} key={`${s.label}-${i}`}>

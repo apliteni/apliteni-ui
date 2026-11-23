@@ -26,6 +26,18 @@
 
 **Don't:** The whole ledger and a paragraph about it.
 
+## Separate tight blocks with a soft line
+
+<!-- rule: soft-lines-between-blocks -->
+
+**Rule:** Draw a soft line between blocks closer than the page's group gap.
+
+**Why:** Space alone does not separate tight blocks on the white page.
+
+**Do:** A row of figure tiles, each with its soft edge.
+
+**Don't:** The same tiles with no line, so three figures read as one band.
+
 ## Link each reference to its row
 
 <!-- rule: link-to-the-report -->
