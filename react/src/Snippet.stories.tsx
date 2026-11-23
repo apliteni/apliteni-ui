@@ -56,6 +56,7 @@ export const Plain: Story = {
 export const NoTitle: Story = {
   name: 'No title',
   render: () => <div style={{ maxWidth: 620 }}>
+    <p>Install the kit with one command.</p>
     <Snippet code="npm install @apliteni/apliteni-ui" copyLabel="Copy command" />
   </div>,
 };
