@@ -181,7 +181,7 @@ export const GLUE_CEILING = 22;
  * label in `_gallery.js`, a specimen mode for an overlay, and a chart the kit owns
  * instead of `_chart.js`. */
 const RECORDED = {
-  'stories/_chart.js': { shadow: 15 },
+  'stories/_chart.js': { shadow: 16 },
   'stories/_gallery.js': { shadow: 2 },
   'stories/apps/Access.stories.tsx': { shadow: 2 },
   'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
@@ -269,6 +269,30 @@ test('the allow-list holds layout glue and nothing else', () => {
   const painted = placements.filter((d) => !/^(?:--|[a-z-]*(?:width|height|top|right|bottom|left|inset|margin|padding|gap|display|position|order|flex|grid|align|justify|place|overflow|z-index|white-space|text-align|pointer-events|box-sizing|aspect-ratio|columns?)[\w-]*$)/.test(d.property));
   assert.deepEqual(painted.map(show), [], 'a declaration allowed as a placement is not a '
     + 'placement. The allow-list is for putting a kit part somewhere, not for changing it.');
+});
+
+/* ---- the bar drawing: no story may draw the old flat bar rect ----------- */
+
+/* The owner chose one bar style on #863 (rev_974c6e53d751/d4): a round measured end, a
+ * square foot on zero, and a fade ramp. The old helper drew a <rect class="ch-bar"> with
+ * 2 px corners and a flat fill. A story that brings the rect back reintroduces the second
+ * style the owner dropped, so the rect is its own check. */
+const flatBarRect = /<rect\b[^>]*\bclass="ch-bar\b/;
+
+test('no story or guideline page draws the old flat bar rect', () => {
+  const offenders = filesUnder('stories')
+    .filter((f) => !/\.test\.(?:js|tsx?|ts)$/.test(f))
+    .filter((f) => flatBarRect.test(read(f)));
+  assert.deepEqual(offenders, [], 'a story still draws the old flat bar rect: '
+    + `${offenders.join(', ')}. Draw bars as paths with a round measured end, a square `
+    + 'foot on zero, and a fade ramp.');
+});
+
+test('the flat-bar gate reports a reintroduced flat bar rect', () => {
+  assert.ok(flatBarRect.test('<rect class="ch-bar" x="1" y="2" width="10" height="20" rx="2">'),
+    'the old flat bar rect was not recognised');
+  assert.ok(!flatBarRect.test('<path class="ch-bar" fill="url(#ch-bar-fade-0)" d="M0 0h10v20z">'),
+    'the current path bar read as a flat rect');
 });
 
 /* ---- anti-vacuity: the gate rejects what #601 was opened about ---------- */

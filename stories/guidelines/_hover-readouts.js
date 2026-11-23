@@ -25,4 +25,8 @@ export const SPEC_CSS = `${CHART_CSS}
        card body does, with less room above the tallest bar than a readout needs. */
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-8) var(--space-3) 0; }
+    /* The open readouts are placed in pixels at their measured anchors, so a long one
+       can reach past the page on a phone. Clip the page sideways, as the live wiring
+       clamps the readout into the viewport; the page never scrolls sideways. */
+    .gl-page { overflow-x: clip; }
   </style>`;
