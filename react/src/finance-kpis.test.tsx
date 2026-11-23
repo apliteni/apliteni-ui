@@ -47,8 +47,10 @@ describe('the finance report figures', () => {
     sanity.innerHTML = renderToStaticMarkup(<StatBand id="fk-sanity" basis="sanity" stats={[{ label: 'A', value: '1' }]} />);
     const captions = (root: Element) => root.querySelectorAll('.ui-stats__basis').length;
     expect(captions(sanity), '.ui-stats__basis no longer matches the caption a band with a basis draws').toBe(1);
-    expect(captions(figures), 'the report totals carry no caption (round r32), so its band must draw none').toBe(0);
+    expect(captions(figures), 'the report band carries no caption above its figures').toBe(1);
     expect(captions(loading), 'the skeleton reserves a different number of caption lines than the figures carry').toBe(captions(figures));
+    // #850 review line 24: each of the three figures carries a change.
+    expect(figures.querySelectorAll('.ui-stat__delta').length, 'the report band figures carry no change').toBe(3);
     expect(band!.querySelectorAll('.ui-stats__list > .ui-stat').length, 'the skeleton reserves a different number of figures than arrive')
       .toBe(figures.querySelectorAll('.ui-stat').length);
   });

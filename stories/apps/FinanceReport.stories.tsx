@@ -14,7 +14,7 @@ import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 // @ts-expect-error -- plain JS story module
-import { PERIODS, periodStart } from './_finance-data.js';
+import { PERIODS, periodBasis, periodStart } from './_finance-data.js';
 // @ts-expect-error -- plain JS story module
 import { salesRowId } from './_finance-nav.js';
 
@@ -46,18 +46,62 @@ type Row = typeof SALES[number];
 
 // What the period, the search and the filters together leave on the ledger, for the
 // figures and the rows alike. The search reads the reference and the sale ID.
-const filterSales = (period: string, values: Record<string, string | undefined> = {}, query = '') =>
-  SALES.filter(row => row[2] >= periodStart(period) && (!values.status || row[7] === values.status)
+// The same narrowing a figure and its change both read, so a change stays about
+// the rows the reader sees. why: guidelines/dashboards-and-reports.md
+const narrowSales = (rows: Row[], values: Record<string, string | undefined> = {}, query = '') =>
+  rows.filter(row => (!values.status || row[7] === values.status)
     && (!values.currency || values.currency === 'EUR')
     && `${row[0]} ${row[1]}`.toLowerCase().includes(query.trim().toLowerCase()));
 
+const filterSales = (period: string, values: Record<string, string | undefined> = {}, query = '') =>
+  narrowSales(SALES, values, query).filter(row => row[2] >= periodStart(period));
+
+// The window of the same length before the chosen one, for the change each figure
+// carries. All has no window before it, so its figures draw no change. why: guidelines/stat-bands.md
+const MONTHS_PER_PERIOD: Record<string, number> = { '3M': 3, '6M': 6, '1Y': 12, All: 0 };
+const previousStart = (period: string): string | null => {
+  const months = MONTHS_PER_PERIOD[period] ?? 0;
+  if (!months) return null;
+  const start = periodStart(period);
+  const [year, month] = start.split('-').map(Number);
+  const index = year * 12 + (month - 1) - months;
+  return `${String(Math.floor(index / 12)).padStart(4, '0')}-${String((index % 12) + 1).padStart(2, '0')}-01`;
+};
+
 // The three figures are the rows' own sums, fixed at two decimals beside the Net (EUR)
 // column. #850 layout A: Net result leads, one display rank above Money in and Money out.
-// A failed or refunded sale is not income, so Paid and Pending rows alone reach the figures. why: #850
+// A failed or refunded sale is not income, so Paid and Pending rows alone reach the
+// figures. Each figure carries the change against the same-length window before it, and
+// the band's caption states that basis. why: #850, guidelines/stat-bands.md
 const amount = (value: string) => Number.parseFloat(value.replace(/,/g, ''));
 const twoDecimals = (value: number) => `${value < 0 ? '−' : ''}${Math.abs(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
-const salesStats = (rows: Row[]) => ([['Net result', 5], ['Money in', 3], ['Money out', 4]] as const)
-  .map(([label, column], at) => ({ label, lead: at === 0, value: twoDecimals(rows.filter((row) => row[7] === 'Paid' || row[7] === 'Pending').reduce((sum, row) => sum + amount(row[column]), 0)) }));
+const income = (rows: Row[]) => rows.filter(row => row[7] === 'Paid' || row[7] === 'Pending');
+const sum = (rows: Row[], column: number) => rows.reduce((total, row) => total + amount(row[column]), 0);
+// Income up is good news, fees up is bad news, and Net result stays grey: income less
+// fees already explains it. why: guidelines/stat-bands.md
+const toneFor = (label: string, column: number, change: number): 'good' | 'bad' | 'neutral' =>
+  label === 'Net result' ? 'neutral' : (column === 3 ? change >= 0 : change <= 0) ? 'good' : 'bad';
+
+const salesStats = (period: string, rows: Row[], values: Record<string, string | undefined>, query: string) => {
+  const start = periodStart(period);
+  const before = previousStart(period);
+  const current = income(rows);
+  const previous = before ? income(narrowSales(SALES, values, query).filter(row => row[2] >= before && row[2] < start)) : [];
+  return ([['Net result', 5], ['Money in', 3], ['Money out', 4]] as const).map(([label, column], at) => {
+    const value = sum(current, column);
+    const old = sum(previous, column);
+    const change = old ? (value - old) / Math.abs(old) * 100 : 0;
+    return {
+      label,
+      lead: at === 0,
+      value: twoDecimals(value),
+      ...(previous.length ? { delta: {
+        value: `${change >= 0 ? '+' : '−'}${Math.abs(change).toFixed(1)}%`,
+        tone: toneFor(label, column, change),
+      } } : {}),
+    };
+  });
+};
 
 const noop = () => {};
 const periods = (PERIODS as string[]).map(p => ({ label: p, value: p }));
@@ -105,8 +149,7 @@ const Report = () => {
   const reset = () => { setQuery(''); clear(); };
   return <FinanceShell active="sales" title="Sales"
     tools={<Segmented label="Period" options={periods} value={period} onChange={setPeriod} />}>
-    {/* No caption over the figures: they are totals, not changes. why: Artur, round r32 */}
-    <StatBand id="fr-cashflow" stats={salesStats(rows)} />
+    <StatBand id="fr-cashflow" basis={periodBasis(period)} stats={salesStats(period, rows, values, query)} />
     <Controls query={query} onQuery={setQuery} filters={filters}
       onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
     <div ref={ledger} style={{ display: 'contents' }}>
@@ -124,8 +167,9 @@ export const Loading: StoryObj = {
   render: () => <FinanceShell active="sales" title="Sales"
     tools={<Segmented label="Period" options={periods} value={INITIAL_PERIOD} onChange={noop} />}>
     <div className="ui-stats ui-stats--tiles">
+      <p className="ui-stats__basis"><Skeleton lines={['36%']} /></p>
       <BusyRegion busy label="Loading cashflow for the last year…" placeholder={<div className="ui-stats__list">{[0, 1, 2].map(i =>
-        <div key={i} className="ui-stat ui-card ui-card--pad-sm"><Skeleton lines={['40%']} /><Skeleton lines={['72%']} height="36px" /></div>)}</div>} />
+        <div key={i} className="ui-stat ui-card ui-card--pad-sm"><Skeleton lines={['40%']} /><Skeleton lines={['72%']} height="36px" /><Skeleton lines={['44%']} /></div>)}</div>} />
     </div>
     <Controls onQuery={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
     <Card title={<span className="ui-sr">Sales</span>}><BusyRegion busy label="Loading sales…" placeholder={<SkeletonTable rows={SALES.length} cols={7} />} /></Card>
