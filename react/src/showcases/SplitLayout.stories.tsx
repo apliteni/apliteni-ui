@@ -49,6 +49,22 @@ export const Default: StoryObj = {
           </div>
         </div>
         <div className="split-layout__document ui-document-ground">
+          {/* The viewer toolbar is a slim row at the top of the ground, above the
+              document page: page steps at the start, zoom and download at the end. The
+              kit's .ui-toolbar gives the row; the ground gives the surface, no card. */}
+          <div className="ui-toolbar split-layout__viewer">
+            <div className="split-layout__steps">
+              <Button variant="ghost" iconOnly icon="chevronLeft" aria-label="Previous page" disabled />
+              <span>Page 1 of 1</span>
+              <Button variant="ghost" iconOnly icon="chevronRight" aria-label="Next page" disabled />
+            </div>
+            <div className="split-layout__steps">
+              <Button variant="ghost" iconOnly icon="minus" aria-label="Zoom out" />
+              <span>100%</span>
+              <Button variant="ghost" iconOnly icon="plus" aria-label="Zoom in" />
+              <Button variant="ghost" iconOnly icon="download" aria-label="Download" />
+            </div>
+          </div>
           {/* The document page sits at document size on the full-bleed ground. */}
           <article className="ui-card__page split-layout__sheet" aria-label="Document">
             <h2>Service agreement</h2>

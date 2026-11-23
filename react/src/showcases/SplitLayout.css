@@ -22,14 +22,19 @@
   margin-top: var(--space-6);
 }
 /* The document ground is the kit's .ui-document-ground, a bare full-bleed surface: no
-   card, no round corner. The A4 page sits on it at document size. */
-.split-layout__document {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  padding: var(--space-6);
+   card, no round corner, no glue of its own. The viewer toolbar is a slim row at the
+   top of the ground, and the A4 page sits below it at document size. The toolbar is
+   the kit's .ui-toolbar row; the glue below only splits its two groups and gives the
+   row the viewer's own air. why: #850 round 34 */
+.split-layout__viewer {
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
 }
-.split-layout__sheet { width: var(--panel-md); max-width: 100%; }
+.split-layout__steps { display: flex; align-items: center; gap: var(--space-2); }
+.split-layout__sheet {
+  width: min(var(--panel-md), calc(100% - 2 * var(--space-6)));
+  margin: var(--space-6) auto;
+}
 /* On a phone the two panes stack, and the page scrolls: the document is taller than
    one screen. The ground keeps the page's own inset again. */
 @media (max-width: 860px) {

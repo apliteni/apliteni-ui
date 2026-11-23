@@ -47,6 +47,22 @@ describe('split layout showcase', () => {
     expect(within(documentPane).getByRole('article', { name: 'Document' })).toBeInTheDocument();
   });
 
+  it('sits the kit viewer toolbar above the document, without a card', () => {
+    render(<Default />);
+    const documentPane = document.querySelector('.split-layout__document') as HTMLElement;
+    const toolbar = documentPane.querySelector('.split-layout__viewer') as HTMLElement;
+    // The row is the kit's .ui-toolbar on the bare ground, not the card viewer.
+    expect(toolbar.classList.contains('ui-toolbar')).toBe(true);
+    expect(documentPane.querySelector('.ui-card__viewer')).toBeNull();
+    // Page count and steps lead; zoom and download follow.
+    expect(within(toolbar).getByRole('button', { name: 'Previous page' })).toBeDisabled();
+    expect(within(toolbar).getByText('Page 1 of 1')).toBeInTheDocument();
+    expect(within(toolbar).getByRole('button', { name: 'Next page' })).toBeDisabled();
+    expect(within(toolbar).getByRole('button', { name: 'Zoom out' })).toBeInTheDocument();
+    expect(within(toolbar).getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
+    expect(within(toolbar).getByRole('button', { name: 'Download' })).toBeInTheDocument();
+  });
+
   it('puts the document on the kit document ground, not a showcase paint', () => {
     render(<Default />);
     const documentPane = document.querySelector('.split-layout__document') as HTMLElement;
