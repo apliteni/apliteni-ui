@@ -21,6 +21,7 @@
 /* The document ground is a bare full-bleed surface: no card, no round corner. The
    A4 page sits on it at document size. */
 .split-layout__document {
+  /* code-bg: inherit — the document page sits on this bare backdrop, so no chip stands on it directly. */
   background: var(--ui-document-ground, var(--surface-2));
   display: flex;
   justify-content: center;

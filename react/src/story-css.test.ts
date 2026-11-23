@@ -93,8 +93,9 @@ const subjects: string[] = [...new Set([
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
-// three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 75, declarations: 533, carriers: 52, sheets: 6 };
+// three filter-bar inset declarations left with its bar's move onto a card (#736). The
+// Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet.
+const FOUND = { subjects: 75, declarations: 553, carriers: 52, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -190,7 +191,7 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   // names the token so the part can be adopted. #850
   'react/src/showcases/SplitLayout.css': { shadow: 1 },
   // The showcases' figures as the vanilla gate recorded them for the same screens.
-  'stories/apps/Access.stories.tsx': { shadow: 2 },
+  'stories/apps/Access.stories.tsx': { shadow: 7 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };

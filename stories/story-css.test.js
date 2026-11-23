@@ -177,7 +177,7 @@ export const GLUE_CEILING = 22;
 const RECORDED = {
   'stories/_chart.js': { shadow: 15 },
   'stories/_gallery.js': { shadow: 2 },
-  'stories/apps/Access.stories.tsx': { shadow: 2 },
+  'stories/apps/Access.stories.tsx': { shadow: 7 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };
@@ -319,20 +319,21 @@ test('the gate reports a story whose layout glue goes over the ceiling', () => {
 
 test('the gate reports a recorded story that grows, shrinks, or comes clean', () => {
   const file = 'stories/apps/Access.stories.tsx';
-  assert.equal(measured.find((s) => s.file === file).shadows.length, 2, `${file} was the `
-    + 'two-shadow subject these mutations need — pick another and say so here.');
+  assert.equal(measured.find((s) => s.file === file).shadows.length, 7, `${file} was the `
+    + 'seven-shadow subject these mutations need — pick another and say so here.');
 
   const grown = withEdit(file, (src) => src.replace(
-    'export const', '/* */ const MUTANT = `<style>.bl-x { color: #ff0000; }</style>`;\nexport const',
+    '.acc-revoke {', '/* */ .mut-x { color: #ff0000; } .acc-revoke {',
   ));
-  assert.ok(grown.some((p) => p.includes(file) && p.includes('more than the 2 recorded')),
+  assert.ok(grown.some((p) => p.includes(file) && p.includes('more than the 7 recorded')),
     `a recorded story that grew was not reported:\n${grown.join('\n')}`);
 
-  const shrunk = withEdit(file, (src) => src.replace("color: 'var(--muted)'", 'marginTop: 0'));
-  assert.ok(shrunk.some((p) => p.includes(file) && p.includes('down from the 2 recorded')),
+  const shrunk = withEdit(file, (src) => src.replace('color: var(--chip-success-ink);', 'margin-top: 0;'));
+  assert.ok(shrunk.some((p) => p.includes(file) && p.includes('down from the 7 recorded')),
     `a recorded story that came under its figure was not reported:\n${shrunk.join('\n')}`);
 
-  const clear = withEdit(file, (src) => src.replace("color: 'var(--muted)', fontSize: 13", 'marginTop: 0'));
+  const clear = withEdit(file, (src) => src.replace(
+    /color: [^;]+;|text-decoration: [^;]+;|border-top: [^;]+;|font-size: [^;]+;|stroke-width: [^;]+;/g, 'margin-top: 0;'));
   assert.ok(clear.some((p) => p.includes(file) && p.includes('writes no paint')),
     `a story that has nothing left to record was not reported:\n${clear.join('\n')}`);
 });

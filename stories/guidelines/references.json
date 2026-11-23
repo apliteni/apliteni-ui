@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:39",
+    "ref": "stories/apps/Access.stories.tsx:102",
     "pattern": "Revoke access"
    }
   ],
@@ -414,7 +414,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:180",
+    "ref": "react/src/AppShell.tsx:182",
     "pattern": "back && <BackLink"
    }
   ],
@@ -1023,7 +1023,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:63",
+    "ref": "react/src/AppShell.tsx:65",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {

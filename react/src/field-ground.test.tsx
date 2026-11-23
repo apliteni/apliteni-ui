@@ -60,11 +60,12 @@ const THEMES = ['dark', 'light'] as const;
 // 64 base fields, one Card setting row Switch and the four
 // sign-in TextFields, then four from the foundation pages (#429 PR 4): one Switch on
 // each of the four Sub-themes panels. The Signal contrast field went with its page
-// (#758). Then six from the showcases (#429 PR 4): the agent name field on two Access screens and the four
-// Preferences switches. The sign-in fields moved to the showcases with their stories.
+// (#758). Then four from the showcases (#429 PR 4): the four Preferences switches. The
+// sign-in fields moved to the showcases with their stories.
 // Then two from the KeyValueList control-values story (#631): its select and text field.
-// Then 23 search fields, one above each payouts or agents table (#736): fifteen AppShell
-// stories, five Shell layouts and three Access screens. Then 21 more search fields, one
+// Then 20 search fields, one above each payouts or agents table (#736): fifteen AppShell
+// stories and five Shell layouts. The three Access search fields went with the list rework
+// (#850). Then 21 more search fields, one
 // above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
 // went with the stack layout, and the pinned scroll ledger took one), five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
@@ -96,8 +97,10 @@ const THEMES = ['dark', 'light'] as const;
 // Then the native unit select of the Dropdown's Muted Item story (#852).
 // Then the two form fields of the split Sign in story (#850).
 // Then the email and password fields in the two Session ended dialogs (#854).
+// Then the three form fields of the Access Create key screen: its name, preset and
+// expiry (#850).
 // Move this count with the specimens.
-const FIELD_COUNT = 186;
+const FIELD_COUNT = 184;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
