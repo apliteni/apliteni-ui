@@ -15,6 +15,14 @@ it('renders nothing when closed', () => {
   expect(container.querySelector('[role="dialog"]')).toBeNull();
 });
 
+it('uses the small panel only when size is small', () => {
+  const { rerender } = render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  expect(screen.getByRole('dialog')).not.toHaveClass('rx-modal--lg');
+  expect(screen.getByRole('dialog')).not.toHaveClass('rx-modal--sm');
+  rerender(<Modal open title="New campaign" size="sm" onClose={() => {}}>body</Modal>);
+  expect(screen.getByRole('dialog')).toHaveClass('rx-modal--sm');
+});
+
 // ---- motion ------------------------------------------------------------------
 // Modal.css fades the scrim and raises the panel on `is-open`. jsdom runs no
 // transition and computes only the longhands, never the shorthand the sheet writes,

@@ -51,18 +51,19 @@ export const NoticePicture = ({ tone = 'neutral', glyph, title, text, action, cl
 /* A confirm drawn in place, as a picture of the React Confirm: the Modal's head,
  * body and foot with the same parts. The live one is a portal over a scrim that
  * owns the page, so a page with three of them draws them instead. */
-export const ConfirmPicture = ({ title, body, cancelLabel, confirmLabel }: {
-  title: string; body?: string; cancelLabel: string; confirmLabel: string;
-}) => <div className="rx-modal" role="group" aria-label={title}>
+export const ConfirmPicture = ({ title, body, children, cancelLabel, confirmLabel, confirmVariant = 'danger', size = 'lg' }: {
+  title: string; body?: string; children?: ReactNode; cancelLabel?: string; confirmLabel?: string;
+  confirmVariant?: 'danger' | 'primary'; size?: 'sm' | 'lg';
+}) => <div className={size === 'sm' ? 'rx-modal rx-modal--sm' : 'rx-modal'} role="group" aria-label={title}>
   <div className="rx-modal__head">
     <h2 className="rx-modal__title">{title}</h2>
     <Button variant="ghost" size="sm" iconOnly icon="x" aria-label="Close" />
   </div>
-  {body && <div className="rx-modal__body"><p>{body}</p></div>}
-  <div className="rx-modal__foot">
-    <Button variant="ghost">{cancelLabel}</Button>
-    <Button variant="danger">{confirmLabel}</Button>
-  </div>
+  {(body || children) && <div className="rx-modal__body">{body && <p>{body}</p>}{children}</div>}
+  {(cancelLabel || confirmLabel) && <div className="rx-modal__foot">
+    {cancelLabel && <Button variant="ghost">{cancelLabel}</Button>}
+    {confirmLabel && <Button variant={confirmVariant}>{confirmLabel}</Button>}
+  </div>}
 </div>;
 
 /* A drawer drawn in place, as a picture of the React Drawer: the same markup,

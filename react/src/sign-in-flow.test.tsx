@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { composeStories } from '@storybook/react';
 import * as stories from '../../stories/apps/SignIn.stories';
 
-const { Default, ProviderError, Error: WithError, InUse, SignedOut } = composeStories(stories);
+const { Default, ProviderError, Error: WithError, InUse, SessionEnded, SignedOut } = composeStories(stories);
 afterEach(cleanup);
 
 // The provider's answer is a 1200ms timer in the story, so each wait outlasts it.
@@ -17,11 +17,15 @@ describe('sign-in flow', () => {
   it('walks a session from in use to ended, error, retry and back, and keeps the search text', async () => {
     const { rerender } = render(<InUse />);
     const search = screen.getByRole('searchbox', { name: 'Search payouts' });
-    fireEvent.change(search, { target: { value: 'PO-1170' } });
+    fireEvent.change(search, { target: { value: 'PO-1171' } });
+    expect(search).toHaveValue('PO-1171');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     rerender(<InUse session="ended" />);
     const dialog = await screen.findByRole('dialog', { name: 'Sign in again' });
+    expect(document.querySelector('.ui-skel--table')).toBeInTheDocument();
+    expect(screen.queryByRole('searchbox', { name: 'Search payouts' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Filtered to pending, this week.')).not.toBeInTheDocument();
     const google = within(dialog).getByRole('button', { name: 'Continue with Google' });
     fireEvent.click(google);
     expect(google).toHaveAttribute('aria-busy', 'true');
@@ -34,7 +38,9 @@ describe('sign-in flow', () => {
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), ANSWER);
     expect(screen.queryByText(/You are signed out/)).not.toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1170');
+    expect(document.querySelector('.ui-skel--table')).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1171');
+    expect(screen.getByText('Filtered to pending, this week.')).toBeInTheDocument();
   });
 
   it('recovers from the page error and completes the sign-in', async () => {
@@ -53,6 +59,17 @@ describe('sign-in flow', () => {
     render(<WithError />);
     expect(screen.queryByRole('button', { name: /^Continue with / })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Sign in' })).toHaveClass('ui-btn--primary');
+  });
+
+  it('uses the narrow sign-in dialog with Google and email', async () => {
+    render(<SessionEnded />);
+    const dialog = await screen.findByRole('dialog', { name: 'Sign in again' });
+    expect(dialog).toHaveClass('rx-modal--sm');
+    expect(within(dialog).getByRole('button', { name: 'Continue with Google' })).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/^Work email/)).toBeInTheDocument();
+    expect(within(dialog).getByLabelText(/^Password/)).toBeInTheDocument();
+    expect(within(dialog).getByRole('button', { name: 'Continue with Google' })).toHaveClass('ui-btn--block');
+    expect(within(dialog).getByRole('button', { name: 'Sign in' })).toHaveClass('ui-btn--block');
   });
 
   it('names the email and the password for a password manager, and shows one text for a failure', () => {
