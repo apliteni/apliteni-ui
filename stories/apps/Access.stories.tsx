@@ -7,7 +7,7 @@ import { ACCOUNT_NAV } from '@apliteni/apliteni-ui';
 import { DemoShell, type DemoNavItem } from './_demo-shell';
 import { Sheet } from '../_guideline';
 import { Snippet } from '../../react/src/Snippet';
-import { BusyRegion, Denied as DeniedState, SkeletonTable } from '../../react/src/Loading';
+import { BusyRegion, Denied as DeniedState, Skeleton } from '../../react/src/Loading';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
@@ -159,12 +159,13 @@ export const Empty: StoryObj = {
 };
 
 // The state this screen is in for as long as the key list is in flight (#128).
-// The skeleton takes the shape of the list that is coming, and the Create-key
-// button is busy in the same breath: one flag, two scales.
+// The skeleton holds the shape of the rows that are coming.
 export const Loading: StoryObj = {
   render: () => <Screen tools={CREATE_TOOL}>
     <Card title="Your agents">
-      <BusyRegion busy label="Loading your agents…" placeholder={<SkeletonTable rows={3} cols={4} />} />
+      <BusyRegion busy label="Loading your agents…" placeholder={<>{[0, 1, 2].map((i) => (
+        <div className="ui-card__row" key={i}><Skeleton lines={['34%', '46%', '30%']} /></div>
+      ))}</>} />
     </Card>
   </Screen>,
 };
