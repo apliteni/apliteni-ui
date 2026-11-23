@@ -122,6 +122,7 @@ type Theme = (typeof THEMES)[number];
 
 type Reading = {
   story: string; path: string; leaf: string; disabled: boolean; filterBar: boolean; onPage: boolean;
+  inSurface: boolean; inTitledCard: boolean;
   ground: string; fill: string | null; border: string | null;
   edge: number | null; ink: number | null;
 };
@@ -392,14 +393,15 @@ describe('field ground: React coverage', () => {
   /* The one field the rule lets stand on the page: a filter bar's live search field.
    * Its edge is recorded rather than held to a bar, as the disabled field's is above,
    * and there has to be one, or the exception is a hole nobody measures. A filter bar
-   * in a card fails: the bar stands on the page above its table card (#814). Limit: it
-   * finds a bar only by a search field in the bar, so a bar of chips alone is not read. */
+   * stands on the page above its table card, or inside a card whose title names the
+   * table (#850 round 39). A filter bar in a titleless card fails. Limit: it finds a
+   * bar only by a search field in the bar, so a bar of chips alone is not read. */
   it('reads a filter bar search field on the page, and records its edge there', () => {
     for (const theme of THEMES) {
       const bars = readings[theme].filter((f) => f.filterBar && f.onPage);
       expect(bars.length, `${theme}: no filter bar search field stood on the page`).toBeGreaterThan(0);
-      expect(readings[theme].filter((f) => f.filterBar && !f.onPage).map((f) => `${f.story} → ${f.path}`),
-        `${theme}: a filter bar sits in a card, not on the page`).toEqual([]);
+      expect(readings[theme].filter((f) => f.filterBar && !f.onPage && !f.inTitledCard).map((f) => `${f.story} → ${f.path}`),
+        `${theme}: a filter bar sits in a card with no title`).toEqual([]);
       for (const f of bars) {
         expect(f.disabled, `${theme}: ${f.story} → a disabled filter bar field on the page`).toBe(false);
         expect({ ground: f.ground, fill: f.fill, border: f.border, edge: f.edge, ink: f.ink },

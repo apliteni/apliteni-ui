@@ -765,7 +765,7 @@ row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, a
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
-toolbar stands 8px above the block that it controls, or 20px on a touch phone below 560px.
+toolbar stands 8px above the block that it controls, on the page or inside its card, or 20px on a touch phone below 560px.
 
 ### Floating bar
 
@@ -1255,7 +1255,8 @@ at text before the figures. A caption comes before the figures. A hover `title` 
 When a period control already states the window, do not repeat it.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
-flex row or an `auto` grid track:
+flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
+keeps one group gap of air below the figures, on top of the body's own gap.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|

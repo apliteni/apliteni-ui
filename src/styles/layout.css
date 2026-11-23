@@ -436,6 +436,10 @@
 /* #850: on the light page a card draws no box, so the body opens to the page's group gap.
    why: docs/foundations.md#spacing-and-rhythm */
 :root[data-theme="light"] .ui-app__body { gap: var(--space-10); }
+/* A stat band closes one section, so the block after it keeps the group gap on
+   top of the body's: the air the old soft line used to give, now as space alone.
+   why: guidelines/dashboards-and-reports.md, #850 */
+.ui-app__body > .ui-stats + * { margin-top: var(--space-8); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
    inside itself. This is what keeps the shell narrower than the window. */
@@ -462,6 +466,9 @@
 :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
 :root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }
 .ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
+/* A filter bar inside its table's card sits one inner gap above the table, the
+   same step the card title keeps above the bar. why: guidelines/dense-tables.md */
+.ui-card > .ui-toolbar:not(:last-child) { margin-bottom: var(--space-2); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 /* A row that offers the block two unrelated things — what to narrow it by, and

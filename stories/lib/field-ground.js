@@ -74,6 +74,7 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
   const inkOn = fill && fill[3] >= 0.999 ? fill : ground;
   const ink = fadeOnto(parseColour(own.color), Number(own.opacity), inkOn);
   const path = selectorPath(el);
+  const card = el.closest('.ui-card');
   return {
     story,
     path,
@@ -82,6 +83,7 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
     filterBar: el.matches(FILTER_BAR_FIELD),
     onPage: same(ground, page),
     inSurface: el.closest(SURFACE) != null,
+    inTitledCard: card != null && card.querySelector('.ui-card__title') != null,
     groundRgb: ground,
     fade: Number.isFinite(fade) ? fade : 1,
     ground: hex(ground),

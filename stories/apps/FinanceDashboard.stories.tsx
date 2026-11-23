@@ -30,7 +30,7 @@ const EXCEPTIONS: [string, string, 'danger' | 'pending', string, string][] = [
 const Dashboard = () => {
   const [period, setPeriod] = useState('1Y');
   const { bar, shown } = useTableFilters(EXCEPTIONS, {
-    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref, width: '14ch',
+    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref, width: '22ch',
     facets: [{ id: 'status', label: 'Status', any: 'Any status', of: ([, , , label]) => label }],
   });
   return <FinanceShell active="dashboard" title="Dashboard">
@@ -40,12 +40,12 @@ const Dashboard = () => {
     </div>
     <StatBand id="fd-cashflow" variant="open" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
-    {/* Each long table has its filter bar above it, one small step from the table it
-        filters, and one larger step below the figure row. why: guidelines/dense-tables.md,
-        guidelines/dashboards-and-reports.md */}
-    {bar}
-    {/* Each reference opens its sale row in the report. */}
+    {/* The filter bar groups with its table, so it sits inside the card: one small
+        step under the heading and one small step above the table it filters. The
+        card itself keeps the section step below the figure row.
+        why: guidelines/dense-tables.md, guidelines/dashboards-and-reports.md */}
     <Card title="Needs a decision">
+      {bar}
       <table className="ui-table ui-table--dense ui-table--hover">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th></tr></thead>
         <tbody>{shown.map(([ref, net, tone, label, date]) => <tr key={ref}>

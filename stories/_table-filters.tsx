@@ -9,7 +9,8 @@ type Options<Row> = { search: string; placeholder: string; label: string; text: 
 /** The filter bar every long table has directly above it: a search field and the chips
  *  that fit the table's columns, each chip offering the values its column holds.
  *  A table with no column worth a chip gets the search field alone. The caller puts
- *  `bar` on the page above the table card, with no card of its own.
+ *  `bar` on the page above the table card, or inside a titled card between its title
+ *  and the table it filters.
  *  why: guidelines/dense-tables.md */
 export function useTableFilters<Row>(rows: Row[], { search, placeholder, label, text, facets, width }: Options<Row>) {
   const [query, setQuery] = useState('');

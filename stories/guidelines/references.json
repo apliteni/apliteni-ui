@@ -636,7 +636,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:544",
+    "ref": "src/styles/layout.css:551",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -660,11 +660,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:463",
+    "ref": "src/styles/layout.css:467",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }"
    },
    {
-    "ref": "src/styles/layout.css:464",
+    "ref": "src/styles/layout.css:468",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],

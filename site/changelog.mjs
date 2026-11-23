@@ -32,7 +32,9 @@ export const RELEASES = [
       ['changed', 'On a phone, a card row that ends in a row glyph keeps the glyph on the row\'s first line at the right end, vertically centred, instead of dropping it under the content. Resolves #850.', ['Card']],
       ['added', '`SearchField` takes `width`, a CSS width for the whole group, for a field that should fit its expected input instead of growing across the toolbar row. Resolves #850.', ['SearchField']],
       ['added', '`.ui-float-bar` is a slim control row that docks at the bottom of its scroll region and floats over the content above it, so a viewer\'s page steps stay visible while the document scrolls. Resolves #850.', ['Toolbar']],
-      ['changed', 'The Finance report and dashboard separate their figures, filter row and table with space alone, and the report sizes its search field to a reference or sale ID instead of the row width. Resolves #850.', ['Toolbar', 'SearchField']],
+      ['changed', 'The Finance report and dashboard separate their figures, filter row and table with space alone, and each sizes its search field to a reference or sale ID instead of the row width. Resolves #850.', ['Toolbar', 'SearchField']],
+      ['changed', 'A filter bar placed inside a card now sits one inner gap above the table it filters, the same step the card title keeps above it, instead of meeting the table with no gap. Resolves #850.', ['Toolbar', 'Card']],
+      ['changed', 'A block after a `StatBand` on a page now keeps one group gap of air below the figures, on top of the body\'s own gap, so the figures read as their own section on the white page. Resolves #850.', ['StatBand']],
     ],
   },
   {
