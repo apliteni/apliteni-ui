@@ -277,6 +277,10 @@ Add a general, composable kit component only when all three checks are true:
 Otherwise, build the UI by composition and add a Storybook showcase. Keep the vanilla kit's
 existing look.
 
+A showcase is a screen that Storybook shows and an app copies. The npm package does not ship
+showcases. A showcase shows a general case that almost all apps need, and never a
+product-specific flow.
+
 Keep explicit Storybook IDs stable. Give every React component a test and a story. Run the slop
 detector on new example pages. When overriding styles, check every existing state. Remove
 obsolete guideline `unmet` markers when closing an issue.

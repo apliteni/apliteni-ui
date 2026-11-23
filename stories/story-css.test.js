@@ -119,7 +119,7 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
  * React showcases are the subjects. #758 removed the Signal contrast page. */
-const FOUND = { subjects: 17, served: 48, declarations: 66, carriers: 8, sheets: 0 };
+const FOUND = { subjects: 17, served: 48, declarations: 67, carriers: 8, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -183,6 +183,7 @@ export const GLUE_CEILING = 22;
 const RECORDED = {
   'stories/_chart.js': { shadow: 15 },
   'stories/_gallery.js': { shadow: 2 },
+  'stories/apps/Access.stories.tsx': { shadow: 2 },
   'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
@@ -324,7 +325,7 @@ test('the gate reports a story whose layout glue goes over the ceiling', () => {
 });
 
 test('the gate reports a recorded story that grows, shrinks, or comes clean', () => {
-  const file = 'stories/_gallery.js';
+  const file = 'stories/apps/Access.stories.tsx';
   assert.equal(measured.find((s) => s.file === file).shadows.length, 2, `${file} was the `
     + 'two-shadow subject these mutations need — pick another and say so here.');
 
@@ -334,11 +335,11 @@ test('the gate reports a recorded story that grows, shrinks, or comes clean', ()
   assert.ok(grown.some((p) => p.includes(file) && p.includes('more than the 2 recorded')),
     `a recorded story that grew was not reported:\n${grown.join('\n')}`);
 
-  const shrunk = withEdit(file, (src) => src.replace('color:var(--text)', 'margin-top:0'));
+  const shrunk = withEdit(file, (src) => src.replace("color: 'var(--muted)'", 'marginTop: 0'));
   assert.ok(shrunk.some((p) => p.includes(file) && p.includes('down from the 2 recorded')),
     `a recorded story that came under its figure was not reported:\n${shrunk.join('\n')}`);
 
-  const clear = withEdit(file, (src) => src.replace('font:600 11px/1 var(--font-sans);color:var(--text)', 'margin-top:0'));
+  const clear = withEdit(file, (src) => src.replace("color: 'var(--muted)', fontSize: 13", 'marginTop: 0'));
   assert.ok(clear.some((p) => p.includes(file) && p.includes('writes no paint')),
     `a story that has nothing left to record was not reported:\n${clear.join('\n')}`);
 });

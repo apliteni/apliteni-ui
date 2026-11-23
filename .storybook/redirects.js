@@ -139,16 +139,16 @@ export const REDIRECTS = {
   'foundations-signal-contrast--diagnosis': 'foundations-colors--semantic',
   'react-breadcrumbs--trail': 'react-backlink--short',
   'react-breadcrumbs--with-icon': 'react-backlink--short',
-  'apps-access-agents--denied': 'apps-access-agents--empty',
-  'apps-access-agents--loading': 'apps-access-agents--default',
-  'apps-access-agents--new-token': 'apps-access-agents--key',
 };
 
 /** Old ids the one Storybook still publishes as they were: foundations, guidelines,
  *  showcases and the feature grid. */
 export const KEPT = [
   'apps-access-agents--default',
+  'apps-access-agents--denied',
   'apps-access-agents--empty',
+  'apps-access-agents--loading',
+  'apps-access-agents--new-token',
   'apps-collapsible-rail--collapsed',
   'apps-collapsible-rail--expanded',
   'apps-consent--grant',

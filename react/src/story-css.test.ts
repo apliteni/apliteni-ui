@@ -94,7 +94,7 @@ const subjects: string[] = [...new Set([
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 77, declarations: 567, carriers: 53, sheets: 7 };
+const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -178,9 +178,7 @@ const GLUE_CEILING = 22;
 //
 // The invoice showcase's sheet is recorded at 24 glue declarations, two over the ceiling.
 // The record form keeps its two columns down to the phone step (#458), which takes a grid
-// declaration for the fields and one for their phone rule. It paints nothing. The invoice
-// review showcase's sheet is recorded at the same figure: its data column and document
-// column sit side by side, then fold at 860px, which the kit offers no single utility for.
+// declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   // The bento grid and phone stack place six kit cards with demos at their feet.
   // The closing card has a page width of its own.
@@ -197,8 +195,8 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
   'react/src/showcases/InvoiceFlow.css': { glue: 24 },
-  'react/src/showcases/InvoiceReview.css': { glue: 24 },
   // The showcases' figures as the vanilla gate recorded them for the same screens.
+  'stories/apps/Access.stories.tsx': { shadow: 2 },
   'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
@@ -217,8 +215,7 @@ describe('story CSS', () => {
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
-      'react/src/showcases/InvoiceFlow.css', 'react/src/showcases/InvoiceReview.css',
-      'react/src/showcases/Notifications.css',
+      'react/src/showcases/InvoiceFlow.css', 'react/src/showcases/Notifications.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.

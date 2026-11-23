@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:134",
+    "ref": "stories/apps/Access.stories.tsx:39",
     "pattern": "Revoke access"
    }
   ],
