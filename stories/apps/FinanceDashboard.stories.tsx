@@ -30,7 +30,7 @@ const EXCEPTIONS: [string, string, 'danger' | 'pending', string, string][] = [
 const Dashboard = () => {
   const [period, setPeriod] = useState('1Y');
   const { bar, shown } = useTableFilters(EXCEPTIONS, {
-    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref, width: '22ch',
+    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref, width: '22ch', size: 'sm',
     facets: [{ id: 'status', label: 'Status', any: 'Any status', of: ([, , , label]) => label }],
   });
   return <FinanceShell active="dashboard" title="Dashboard">

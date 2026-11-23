@@ -103,7 +103,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 160: Session expired added five rules (#854).
   // 161: The page gained sign-in-note (#850).
   // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
-  assert.equal(rules, 162);
+  // 163: Text length gained field-length (#850).
+  assert.equal(rules, 163);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

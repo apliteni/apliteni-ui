@@ -310,7 +310,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 160: Session expired added five rules (#854).
   // 161: The page gained sign-in-note (#850).
   // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
-  assert.equal(count, 162, 'update the rule count when adding or removing a rule');
+  // 163: Text length gained field-length (#850).
+  assert.equal(count, 163, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

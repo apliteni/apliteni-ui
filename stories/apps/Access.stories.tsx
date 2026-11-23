@@ -15,7 +15,6 @@ import { Icon } from '../../react/src/primitives/Icon';
 import { KeyValueList } from '../../react/src/KeyValueList';
 import { TextField, SelectField } from '../../react/src/Field';
 import { Confirm } from '../../react/src/Confirm';
-import { SuccessCheck } from '../../react/src/Success';
 
 const meta: Meta = { title: 'Showcases/Access & Agents', id: 'apps-access-agents', parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -23,14 +22,14 @@ export default meta;
 // The showcase's own layout glue: it places kit parts, and paints nothing. The
 // name and status lead each row in body ink via `.lab`, the scope and the facts
 // take `.hint`, the row-end chevron is the kit's `.ui-card__glyph`, and the
-// granted check is the kit's SuccessCheck (circled) at its 20px label size.
-// Each row's content shares the widest row's width (255px), so every chevron
-// lines up one spacing step after its content. #850
+// granted check is the kit's bare `check` glyph in body ink, sized 22px so its
+// stroke keeps the 1.5px floor. Each row's content shares the widest row's
+// width (255px), so every chevron lines up one spacing step after its content. #850
 const CSS = `<style>
 .acc-name { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .acc-agent { flex: none; width: 255px; }
 .acc-check { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
-.acc-check svg { width: 20px; height: 20px; }
+.acc-check svg { width: 22px; height: 22px; }
 .acc-facts { display: flex; flex-wrap: wrap; column-gap: var(--space-4); }
 .acc-narrow { max-width: 30rem; }
 .acc-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
@@ -88,7 +87,7 @@ export const AgentPage: StoryObj = {
     <Card title="Access">
       {SCOPES.map((scope) => (
         <div className="ui-card__row" key={scope}>
-          <span className="acc-check"><SuccessCheck variant="circled" /><span className="lab">{scope}</span></span>
+          <span className="acc-check"><Icon name="check" /><span className="lab">{scope}</span></span>
         </div>
       ))}
     </Card>

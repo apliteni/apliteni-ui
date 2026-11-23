@@ -22,7 +22,7 @@ export const RELEASES = [
       ['changed', 'A `StatBand` tile row draws every figure at one size and, in light, keeps a soft line around each tile, so tightly placed figures stay separate. Resolves #850.', ['StatBand']],
       ['added', '`AppShell` no longer needs a `title`. Omit it and the shell draws no title band, so a full-bleed page can own its own heading. Resolves #850.', ['AppShell']],
       ['added', 'The page guideline gains two rules: Brand the background behind a dialog page, and The sign-in note names who can sign in. The colour guideline lets a code block keep its grey fill in light. Resolves #850.', ['Guidelines']],
-      ['added', '`Card` gains `.ui-card__glyph` for a muted 18px row glyph with a 2-unit stroke. A granted check in a row is the kit\'s `SuccessCheck` (`circled`), not a glyph colour. `.ui-link--quiet` draws a name link in body ink, underlined only on hover. Resolves #850.', ['Card']],
+      ['added', '`Card` gains `.ui-card__glyph` for a muted 18px row glyph with a 2-unit stroke. A granted check in a row is the kit\'s bare `check` glyph in body ink. `.ui-link--quiet` draws a name link in body ink, underlined only on hover. Resolves #850.', ['Card']],
       ['added', '`.ui-hairline` draws a straight soft line across the column width in light above a block that stands apart from the one above it — a closing card, or a row of figures above the filter row — with one inner gap of air under it. Dark keeps the card box. Resolves #850.', ['Card']],
       ['changed', 'A card row that ends in a role badge or a row glyph now keeps that mark beside the content it names, at one spacing step, instead of pushing it to the row\'s far edge. Resolves #850.', ['Card']],
       ['changed', 'A link inside `.ui-table__pair` — a reference beside a status — now reads in the row\'s ink like any other cell link, underlined only on hover, instead of accent ink. Resolves #850.', ['Table']],
@@ -35,6 +35,8 @@ export const RELEASES = [
       ['changed', 'The Finance report and dashboard separate their figures, filter row and table with space alone, and each sizes its search field to a reference or sale ID instead of the row width. Resolves #850.', ['Toolbar', 'SearchField']],
       ['changed', 'A filter bar placed inside a card now sits one inner gap above the table it filters, the same step the card title keeps above it, instead of meeting the table with no gap. Resolves #850.', ['Toolbar', 'Card']],
       ['changed', 'A block after a `StatBand` on a page now keeps one group gap of air below the figures, on top of the body\'s own gap, so the figures read as their own section on the white page. Resolves #850.', ['StatBand']],
+      ['added', 'The Text length guideline gains a rule: size a field to its expected input, so a short code gets a short field. Resolves #850.', ['Guidelines']],
+      ['changed', 'The Finance report and dashboard now draw their search field, filter selects and export button at the kit\'s small size, and the export is a ghost icon button with no outline, matching their dense tables. Resolves #850.', ['Toolbar', 'Button', 'SearchField']],
     ],
   },
   {

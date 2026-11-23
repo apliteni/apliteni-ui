@@ -113,9 +113,9 @@ const Controls = ({ query, onQuery, filters, onChange, onRemove, onClear }: {
   query?: string; onQuery: (q: string) => void; filters: typeof FILTERS & { value?: string }[];
   onChange: (id: string, value: string | undefined) => void; onRemove: (id: string) => void; onClear: () => void;
 }) => <div className="ui-toolbar ui-toolbar--split">
-  <SearchField width="26ch" ariaLabel="Search sales" placeholder="Reference or sale ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
+  <SearchField size="sm" width="26ch" ariaLabel="Search sales" placeholder="Reference or sale ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
   <div><FilterBar filters={filters} label="Sale filters" clearLabel="Clear all" onChange={onChange} onRemove={onRemove} onClear={onClear} /></div>
-  <Button icon="download" iconOnly>Export rows</Button>
+  <Button variant="ghost" size="sm" icon="download" iconOnly>Export rows</Button>
 </div>;
 
 // The table stays a direct child of the card: `.ui-card:has(> .ui-table)` is what
