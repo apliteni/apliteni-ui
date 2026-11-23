@@ -261,8 +261,9 @@
 }
 /* A control in the value column has its own border and padding, so its first line sits lower
    than a label's. A row whose value holds a field or a dropdown lines both first lines up on
-   their baseline, whatever the control is, and a row of text keeps its place. At 560px and
-   below the label stacks over the value and there is nothing to align. A field's own label
+   their baseline, whatever the control is, and a row of text keeps its place. In the
+   two-pairs-to-a-row variant at 560px and below the label stacks over the value and there is
+   nothing to align. A field's own label
    stays for a screen reader only when one field fills the value cell. With two
    fields, each label remains visible to name its control. */
 .ui-drawer__row:has(> dd :is(.ui-input, .ui-textarea, .ui-select, .ui-dropdown)) > :is(dt, dd) { align-self: baseline; }

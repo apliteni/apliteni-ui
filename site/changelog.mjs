@@ -28,6 +28,7 @@ export const RELEASES = [
       ['changed', 'A link inside `.ui-table__pair` — a reference beside a status — now reads in the row\'s ink like any other cell link, underlined only on hover, instead of accent ink. Resolves #850.', ['Table']],
       ['changed', 'An open `StatBand` in light now separates figures in a row with a vertical soft line. Dark keeps its rule over each figure. Resolves #850.', ['StatBand']],
       ['added', '`--ui-document-ground` token and `.ui-document-ground` class paint a bare full-bleed backdrop behind a document sheet, so a page reads its own ground instead of re-declaring a surface. Resolves #850.', ['Card']],
+      ['changed', 'A one-column `KeyValueList` keeps each value beside its label at every width. On a phone it used to stack the label above the value; only the two-column variant still stacks there. Resolves #850.', ['KeyValueList']],
     ],
   },
   {

@@ -23,10 +23,12 @@ export default meta;
 // The showcase's own layout glue: it places kit parts, and paints nothing. The
 // name and status lead each row in body ink via `.lab`, the scope and the facts
 // take `.hint`, the row-end chevron is the kit's `.ui-card__glyph`, and the
-// granted check is the kit's SuccessCheck (circled) at its 20px label size. #850
+// granted check is the kit's SuccessCheck (circled) at its 20px label size.
+// Each row's content shares the widest row's width (255px), so every chevron
+// lines up one spacing step after its content. #850
 const CSS = `<style>
 .acc-name { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
-.acc-agent { min-width: 0; }
+.acc-agent { flex: none; width: 255px; }
 .acc-check { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .acc-check svg { width: 20px; height: 20px; }
 .acc-facts { display: flex; flex-wrap: wrap; column-gap: var(--space-4); }

@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:94",
+    "ref": "stories/apps/Access.stories.tsx:96",
     "pattern": "Revoke access"
    }
   ],
@@ -394,7 +394,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:277",
+    "ref": "src/styles/drawer.css:278",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -784,7 +784,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:290",
+    "ref": "src/styles/drawer.css:291",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
