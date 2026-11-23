@@ -24,11 +24,13 @@ export default meta;
 // take `.hint`, the row-end chevron is the kit's `.ui-card__glyph`, and the
 // granted check is the kit's bare `check` glyph in body ink, sized 22px so its
 // stroke keeps the 1.5px floor. Each row's content shares the widest row's
-// width (255px), so every chevron lines up one spacing step after its content. #850
+// width (255px), so every chevron lines up one spacing step after its content.
+// The granted rows stack one inner gap apart, the kit's list rhythm. #850
 const CSS = `<style>
 .acc-name { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .acc-agent { flex: none; width: 255px; }
-.acc-check { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.acc-check { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.acc-check + .acc-check { margin-top: var(--space-2); }
 .acc-check svg { width: 22px; height: 22px; }
 .acc-facts { display: flex; flex-wrap: wrap; column-gap: var(--space-4); }
 .acc-narrow { max-width: 30rem; }
@@ -86,9 +88,7 @@ export const AgentPage: StoryObj = {
   render: () => <Screen title="Invoice reader" sub="A key that reads invoices over MCP." back={{ href: '#agents', label: 'Access & agents' }}>
     <Card title="Access">
       {SCOPES.map((scope) => (
-        <div className="ui-card__row" key={scope}>
-          <span className="acc-check"><Icon name="check" /><span className="lab">{scope}</span></span>
-        </div>
+        <div className="acc-check" key={scope}><Icon name="check" /><span>{scope}</span></div>
       ))}
     </Card>
     <Card title="Details"><KeyValueList rows={FACTS} /></Card>

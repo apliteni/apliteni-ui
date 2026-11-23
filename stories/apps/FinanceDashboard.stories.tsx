@@ -41,10 +41,11 @@ const Dashboard = () => {
     <StatBand id="fd-cashflow" variant="open" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
     {/* The filter bar groups with its table, so it sits inside the card: one small
-        step under the heading and one small step above the table it filters. The
-        card itself keeps the section step below the figure row.
+        step above the table it filters. The heading is sr-only, because the page
+        title already says what the card is, and the sr-only title keeps the table's
+        accessible name. The card itself keeps the section step below the figures.
         why: guidelines/dense-tables.md, guidelines/dashboards-and-reports.md */}
-    <Card title="Needs a decision">
+    <Card title={<span className="ui-sr">Needs a decision</span>}>
       {bar}
       <table className="ui-table ui-table--dense ui-table--hover">
         <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th></tr></thead>

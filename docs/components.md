@@ -810,8 +810,8 @@ its label and hint. Use `ui-card__row--tight-choice` for a three-option row that
 line below 360px.
 
 **A row glyph.** Use `.ui-card__glyph` for a muted mark at the end of a card row, such as the
-chevron that opens a detail page. Use `SuccessCheck` (`circled`) for a granted check. The glyph
-is 18px with a 2-unit stroke, so it clears the glyph floor. Use `.ui-link--quiet` for a name in
+chevron that opens a detail page; it is 18px with a 2-unit stroke, so it clears the glyph floor.
+Use the bare `check` glyph in body ink for a granted check. Use `.ui-link--quiet` for a name in
 the row that links to its detail page: body ink at rest, underlined under the pointer.
 
 **A soft line between blocks.** Give the block the class `ui-hairline` to draw a straight line
