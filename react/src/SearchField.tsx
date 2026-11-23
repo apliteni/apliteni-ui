@@ -8,6 +8,9 @@ export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type
   /** `sm` is the toolbar above a dense table: 32px with 13px text to a mouse, and
       the full field on a touch screen. */
   size?: 'sm';
+  /** The whole group's width, for a field that sizes to its expected input instead
+      of growing across the toolbar row. */
+  width?: string;
 };
 
 /**
@@ -23,11 +26,11 @@ export type SearchFieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type
  * why: docs/components.md#search-field
  */
 export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(function SearchField(
-  { ariaLabel, size, className, ...props }, ref,
+  { ariaLabel, size, width, className, ...props }, ref,
 ) {
   // icon() already marks the svg aria-hidden, so the slot adds no name of its
   // own and `ariaLabel` stays the control's whole name.
-  return <div className="ui-input-group">
+  return <div className="ui-input-group" style={width ? { width, flex: 'none' } : undefined}>
     <span className="ui-input-group__icon" dangerouslySetInnerHTML={{ __html: icon('search') }} />
     <input ref={ref} {...props} type="search" aria-label={ariaLabel}
       className={['ui-input', size === 'sm' && 'ui-input--sm', className].filter(Boolean).join(' ')} />

@@ -503,6 +503,28 @@
   .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; }
 }
 
+/* A floating bar: a slim control row that docks at the bottom of its scroll region and
+   floats over the content above it — a viewer's page steps, a sheet's primary actions.
+   It stays visible while the content scrolls, and reads as the elevated surface the
+   kit's menus take. why: docs/foundations.md#elevation, #850 */
+.ui-float-bar {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+  margin-bottom: var(--space-4);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--float-edge);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
+}
+
 /* -- The phone shell ------------------------------------------------------ */
 /* Below this width there is no rail and no strip. A band at the top holds the menu
    control and the brand's mark, the control opens the same rail in the kit's left

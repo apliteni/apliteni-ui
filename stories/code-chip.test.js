@@ -275,7 +275,7 @@ const LEDGER = [{
 }, {
   id: 'C',
   washLight: true,
-  count: 3225,
+  count: 3315,
   worst: 1.0982364,
   why: 'The white page (#850) lifts every translucent wash and status fill toward white in '
     + 'LIGHT, and the kit\'s rule against a grey chip (#455) leaves no reading surface that '
@@ -312,7 +312,7 @@ test('the ground discovery refuses a painted container that hands a chip nothing
 });
 
 test('the chip gate discovers every ground, wash, context and theme', () => {
-  assert.equal(grounds.length, 42, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811); #850 adds the split auth shell and its plain pane as page-ground containers; and #850\'s review restores the dark card, accent and live paints. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
+  assert.equal(grounds.length, 43, 'painted-ground discovery changed; the code block reads the hand-off and is no ground of its own (#800); the row table of #770 adds its hover and two selected fills; the branch-added .ui-card__page hands an inline code chip var(--bg) in the design-variable sheet; a drawer group adds its dark and light row hover (#811); #850 adds the split auth shell and its plain pane as page-ground containers; and #850\'s review restores the dark card, accent and live paints, and #850\'s .ui-float-bar joins the floating surfaces on the elevated step. A new painted container must say which surface it hands an inline code chip, or carry the note saying it hands nothing on');
   // The page entry is named, not discovered, so it is held against the rule that paints it.
   const bodyRule = rulesIn('src/styles/base.css').find((rule) => rule.selector === 'body');
   assert.equal(paintOf(bodyRule.body), PAGE.paint, 'the page no longer paints var(--bg); re-read PAGE');

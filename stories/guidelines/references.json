@@ -636,7 +636,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:522",
+    "ref": "src/styles/layout.css:544",
     "pattern": "@media (max-width: 720px)"
    },
    {

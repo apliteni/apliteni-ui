@@ -30,7 +30,7 @@ const EXCEPTIONS: [string, string, 'danger' | 'pending', string, string][] = [
 const Dashboard = () => {
   const [period, setPeriod] = useState('1Y');
   const { bar, shown } = useTableFilters(EXCEPTIONS, {
-    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref,
+    search: 'Search exceptions', placeholder: 'Reference', label: 'Exception filters', text: ([ref]) => ref, width: '14ch',
     facets: [{ id: 'status', label: 'Status', any: 'Any status', of: ([, , , label]) => label }],
   });
   return <FinanceShell active="dashboard" title="Dashboard">
@@ -40,10 +40,10 @@ const Dashboard = () => {
     </div>
     <StatBand id="fd-cashflow" variant="open" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
-    {/* Each long table has its filter bar above it, under a soft line that separates
-        the figure row from the filters. why: guidelines/dense-tables.md,
+    {/* Each long table has its filter bar above it, one small step from the table it
+        filters, and one larger step below the figure row. why: guidelines/dense-tables.md,
         guidelines/dashboards-and-reports.md */}
-    <div className="ui-hairline">{bar}</div>
+    {bar}
     {/* Each reference opens its sale row in the report. */}
     <Card title="Needs a decision">
       <table className="ui-table ui-table--dense ui-table--hover">

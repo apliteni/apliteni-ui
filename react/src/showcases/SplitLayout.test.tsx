@@ -47,20 +47,22 @@ describe('split layout showcase', () => {
     expect(within(documentPane).getByRole('article', { name: 'Document' })).toBeInTheDocument();
   });
 
-  it('sits the kit viewer toolbar above the document, without a card', () => {
+  it('floats the kit viewer bar at the foot of the document, without a card', () => {
     render(<Default />);
     const documentPane = document.querySelector('.split-layout__document') as HTMLElement;
-    const toolbar = documentPane.querySelector('.split-layout__viewer') as HTMLElement;
-    // The row is the kit's .ui-toolbar on the bare ground, not the card viewer.
-    expect(toolbar.classList.contains('ui-toolbar')).toBe(true);
+    const bar = documentPane.querySelector('.split-layout__viewer') as HTMLElement;
+    // The bar is the kit's floating bar on the bare ground, not the card viewer.
+    expect(bar.classList.contains('ui-float-bar')).toBe(true);
     expect(documentPane.querySelector('.ui-card__viewer')).toBeNull();
+    // The document reads before the bar that floats over it.
+    expect(bar.compareDocumentPosition(documentPane.querySelector('article')!) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
     // Page count and steps lead; zoom and download follow.
-    expect(within(toolbar).getByRole('button', { name: 'Previous page' })).toBeDisabled();
-    expect(within(toolbar).getByText('Page 1 of 1')).toBeInTheDocument();
-    expect(within(toolbar).getByRole('button', { name: 'Next page' })).toBeDisabled();
-    expect(within(toolbar).getByRole('button', { name: 'Zoom out' })).toBeInTheDocument();
-    expect(within(toolbar).getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
-    expect(within(toolbar).getByRole('button', { name: 'Download' })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Previous page' })).toBeDisabled();
+    expect(within(bar).getByText('Page 1 of 1')).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Next page' })).toBeDisabled();
+    expect(within(bar).getByRole('button', { name: 'Zoom out' })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Zoom in' })).toBeInTheDocument();
+    expect(within(bar).getByRole('button', { name: 'Download' })).toBeInTheDocument();
   });
 
   it('puts the document on the kit document ground, not a showcase paint', () => {
@@ -83,14 +85,15 @@ describe('split layout showcase', () => {
     expect(SHEET).toMatch(/@media \(max-width: 860px\) \{\s*\.split-layout \{ grid-template-columns: minmax\(0, 1fr\); min-height: 0; margin: 0; \}/);
   });
 
-  it('keeps the viewer toolbar on one row and bleeds the ground on a phone', () => {
-    // The two step groups never wrap, so the toolbar stays one row at 360 and 390.
-    expect(SHEET).toMatch(/\.split-layout__viewer \{[^}]*flex-wrap: nowrap;/);
+  it('keeps the viewer bar on one row and bleeds the ground on a phone', () => {
+    // The kit's floating bar never wraps, and the column pins it to the ground's foot.
+    expect(SHEET).toMatch(/\.split-layout__document \{[^}]*flex-direction: column;/);
+    expect(SHEET).toMatch(/\.split-layout__viewer \{[^}]*margin-top: auto;/);
     // Below 720px the ground cancels the page's --space-4 side padding to run flush to
     // the screen edges, with clear space above it.
     expect(SHEET).toMatch(/\.split-layout__document \{ margin: var\(--space-6\) calc\(-1 \* var\(--space-4\)\) 0; \}/);
-    // The tighter sides and group gap let the one row fit at 360.
-    expect(SHEET).toMatch(/\.split-layout__viewer \{ padding-inline: var\(--space-2\); gap: var\(--space-1\); \}/);
+    // The smaller group gap lets the one row fit at 360.
+    expect(SHEET).toMatch(/\.split-layout__viewer \{ gap: var\(--space-1\); \}/);
     // Above 720px the page's side padding widens, so the ground's bleed matches it.
     expect(SHEET).toMatch(/\.split-layout__document \{ margin: var\(--space-6\) calc\(-1 \* clamp\(24px, 4vw, 56px\)\) 0; \}/);
   });

@@ -113,7 +113,7 @@ const Controls = ({ query, onQuery, filters, onChange, onRemove, onClear }: {
   query?: string; onQuery: (q: string) => void; filters: typeof FILTERS & { value?: string }[];
   onChange: (id: string, value: string | undefined) => void; onRemove: (id: string) => void; onClear: () => void;
 }) => <div className="ui-toolbar ui-toolbar--split">
-  <SearchField ariaLabel="Search sales" placeholder="Reference or sale ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
+  <SearchField width="26ch" ariaLabel="Search sales" placeholder="Reference or sale ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
   <div><FilterBar filters={filters} label="Sale filters" clearLabel="Clear all" onChange={onChange} onRemove={onRemove} onClear={onClear} /></div>
   <Button icon="download" iconOnly>Export rows</Button>
 </div>;
@@ -149,10 +149,8 @@ const Report = () => {
   return <FinanceShell active="sales" title="Sales"
     tools={<Segmented label="Period" options={periods} value={period} onChange={setPeriod} />}>
     <StatBand id="fr-cashflow" variant="open" basis={periodBasis(period)} stats={salesStats(period, rows, values, query)} />
-    <div className="ui-hairline">
-      <Controls query={query} onQuery={setQuery} filters={filters}
-        onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
-    </div>
+    <Controls query={query} onQuery={setQuery} filters={filters}
+      onChange={(id, value) => setValues(v => ({ ...v, [id]: value }))} onRemove={id => setValues(v => ({ ...v, [id]: '' }))} onClear={clear} />
     <div ref={ledger} style={{ display: 'contents' }}>
       <Sales rows={rows} onReset={() => { reset(); ledger.current?.closest('.ui-app__body')?.querySelector<HTMLElement>('.ui-filter-bar [data-dropdown-trigger]')?.focus(); }} />
     </div>
@@ -172,9 +170,7 @@ export const Loading: StoryObj = {
       <BusyRegion busy label="Loading cashflow for the last year…" placeholder={<div className="ui-stats__list">{[0, 1, 2].map(i =>
         <div key={i} className="ui-stat"><Skeleton lines={['40%']} /><Skeleton lines={['72%']} height="36px" /><Skeleton lines={['44%']} /></div>)}</div>} />
     </div>
-    <div className="ui-hairline">
-      <Controls onQuery={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
-    </div>
+    <Controls onQuery={noop} filters={FILTERS.map(f => ({ ...f, value: '' }))} onChange={noop} onRemove={noop} onClear={noop} />
     <Card title={<span className="ui-sr">Sales</span>}><BusyRegion busy label="Loading sales…" placeholder={<SkeletonTable rows={SALES.length} cols={7} />} /></Card>
   </FinanceShell>,
 };

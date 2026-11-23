@@ -110,7 +110,8 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // card drops its own --elev-rest read to `none` (it is a grouping of space now); #850's
 // review restored the dark card's cast, so the rung count below moves 2 -> 1 -> 2.
 // 26 -> 27: the dark card's cast is back, and the light card's `none` sits beside it.
-  assert.equal(sweep.length, 27,
+// 27 -> 28: #850's .ui-float-bar paints the floating treatment (line and drop).
+  assert.equal(sweep.length, 28,
     `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 25. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
@@ -168,7 +169,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   assert.deepStrictEqual(got, {
     'var(--elev-rest)': 2,   // .ui-card (dark) and .ui-card__page
     'var(--elev-rail)': 1,   // .ui-app__rail
-    'var(--elev-drop)': 12,  // the floating surfaces, each saying it once
+    'var(--elev-drop)': 13,  // the floating surfaces, each saying it once
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '
     + 'was added, move the number and check it against docs/foundations.md#elevation.');
 });
@@ -507,8 +508,8 @@ const ELEVATED = STYLE_FILES.flatMap((file) =>
   }));
 
 test('every surface painted on the floating step carries the floating treatment', () => {
-  assert.equal(ELEVATED.length, 6,
-    `${ELEVATED.length} rules paint background: var(--bg-elevated), not the pinned 6. `
+  assert.equal(ELEVATED.length, 7,
+    `${ELEVATED.length} rules paint background: var(--bg-elevated), not the pinned 7. `
     + 'A surface added to or removed from the floating step is fine — move the number, and '
     + 'check the new rule against docs/foundations.md#elevation.');
   const offences = ELEVATED
@@ -528,7 +529,7 @@ test('a surface put on the floating step without the rung is refused', () => {
   assert.equal(found.length, 1, 'the mutation is not seen by the sweep above');
   assert.ok(!layersOf(bodyShadow(found[0][2])).includes(TREATMENT_DROP),
     'the mutation carries the rung, so it proves nothing');
-  // The positive half: the kit's own six are all clean.
+  // The positive half: the kit's own seven are all clean.
   assert.deepStrictEqual(
     ELEVATED.filter(({ body }) => !layersOf(bodyShadow(body)).includes(TREATMENT_DROP)), [],
     'the kit\'s own elevated surfaces do not all carry the rung');

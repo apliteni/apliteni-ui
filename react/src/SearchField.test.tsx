@@ -95,6 +95,17 @@ it('takes the toolbar row rule at both of its widths', () => {
   expect(css).toMatch(/@media \(max-width: 560px\) \{\s*\.ui-toolbar > \.ui-input,\s*\.ui-toolbar > \.ui-input-group \{[^}]*flex-basis: 100%/);
 });
 
+// A caller sizes the whole group, icon included, when the field should fit its
+// expected input instead of growing across the row.
+it('sizes the group when width is set, and leaves the width to the row otherwise', () => {
+  const sized = render(<SearchField ariaLabel="Search sales" width="24ch" />).container.firstElementChild as HTMLElement;
+  expect(sized.style.width).toBe('24ch');
+  expect(sized.style.flex).toMatch(/none|0 0 auto/);
+  cleanup();
+  const plain = render(<SearchField ariaLabel="Search invoices" />).container.firstElementChild as HTMLElement;
+  expect(plain.getAttribute('style')).toBeNull();
+});
+
 it('passes axe with no visible label', async () => {
   const { container } = render(<SearchField ariaLabel="Search invoices" placeholder="Vendor" />);
   const results = await axe.run(container, {

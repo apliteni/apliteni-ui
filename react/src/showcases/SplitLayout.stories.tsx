@@ -49,10 +49,18 @@ export const Default: StoryObj = {
           </div>
         </div>
         <div className="split-layout__document ui-document-ground">
-          {/* The viewer toolbar is a slim row at the top of the ground, above the
-              document page: page steps at the start, zoom and download at the end. The
-              kit's .ui-toolbar gives the row; the ground gives the surface, no card. */}
-          <div className="ui-toolbar split-layout__viewer">
+          {/* The document page sits at document size on the full-bleed ground. */}
+          <article className="ui-card__page split-layout__sheet" aria-label="Document">
+            <h2>Service agreement</h2>
+            <p>Cedar Studio prepares the brand refresh for the Workspace.</p>
+            <p>Reference DEMO-1042, issued 18 September 2026 and due 28 September 2026.</p>
+            <p>The work covers interface design, prototype review and developer handoff.</p>
+            <p><strong>Total: EUR 1,440.00</strong></p>
+          </article>
+          {/* The viewer is the kit's floating bar at the foot of the ground: page steps
+              at the start, zoom and download after them, one row that stays over the
+              document while it scrolls. */}
+          <div className="ui-float-bar split-layout__viewer">
             <div className="split-layout__steps">
               <Button variant="ghost" iconOnly icon="chevronLeft" aria-label="Previous page" disabled />
               <span>Page 1 of 1</span>
@@ -65,14 +73,6 @@ export const Default: StoryObj = {
               <Button variant="ghost" iconOnly icon="download" aria-label="Download" />
             </div>
           </div>
-          {/* The document page sits at document size on the full-bleed ground. */}
-          <article className="ui-card__page split-layout__sheet" aria-label="Document">
-            <h2>Service agreement</h2>
-            <p>Cedar Studio prepares the brand refresh for the Workspace.</p>
-            <p>Reference DEMO-1042, issued 18 September 2026 and due 28 September 2026.</p>
-            <p>The work covers interface design, prototype review and developer handoff.</p>
-            <p><strong>Total: EUR 1,440.00</strong></p>
-          </article>
         </div>
       </div>
     </AppShell>

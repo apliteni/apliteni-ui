@@ -30,6 +30,9 @@ export const RELEASES = [
       ['added', '`--ui-document-ground` token and `.ui-document-ground` class paint a bare full-bleed backdrop behind a document sheet, so a page reads its own ground instead of re-declaring a surface. Resolves #850.', ['Card']],
       ['changed', 'A one-column `KeyValueList` keeps each value beside its label at every width. On a phone it used to stack the label above the value; only the two-column variant still stacks there. Resolves #850.', ['KeyValueList']],
       ['changed', 'On a phone, a card row that ends in a row glyph keeps the glyph on the row\'s first line at the right end, vertically centred, instead of dropping it under the content. Resolves #850.', ['Card']],
+      ['added', '`SearchField` takes `width`, a CSS width for the whole group, for a field that should fit its expected input instead of growing across the toolbar row. Resolves #850.', ['SearchField']],
+      ['added', '`.ui-float-bar` is a slim control row that docks at the bottom of its scroll region and floats over the content above it, so a viewer\'s page steps stay visible while the document scrolls. Resolves #850.', ['Toolbar']],
+      ['changed', 'The Finance report and dashboard separate their figures, filter row and table with space alone, and the report sizes its search field to a reference or sale ID instead of the row width. Resolves #850.', ['Toolbar', 'SearchField']],
     ],
   },
   {

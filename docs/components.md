@@ -559,7 +559,9 @@ Use `TextField type="search"` with a label there.
 
 `ariaLabel` is required, because no visible label names the field. `size="sm"` is the field above
 a dense table. With a mouse it is 32px high with `--text-sm`. On a touch screen it is 40px high with
-16px text, because iOS zooms into a field with smaller text. The field has no clear button of its
+16px text, because iOS zooms into a field with smaller text. `width` sizes the whole group, icon
+included, for a field that should fit its expected input instead of growing across the toolbar row;
+give it a CSS width such as `24ch`. The field has no clear button of its
 own, because the browser draws one. See [Toolbar](#toolbar).
 
 ### Checkbox and switch
@@ -764,6 +766,24 @@ row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, a
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
 toolbar stands 8px above the block that it controls, or 20px on a touch phone below 560px.
+
+### Floating bar
+
+Use `.ui-float-bar` for a slim control row that docks at the bottom of its scroll region and
+floats over the content above it: a viewer's page steps and zoom, or a sheet's primary actions. It
+stays visible while the content scrolls.
+
+```tsx
+<div className="ui-float-bar">
+  <Button variant="ghost" iconOnly icon="minus" aria-label="Zoom out" />
+  <span>100%</span>
+  <Button variant="ghost" iconOnly icon="plus" aria-label="Zoom in" />
+</div>
+```
+
+**What the user sees.** The bar is a centred pill on the kit's floating surface, so it reads above
+the content it floats over. Put it last in a column and pin it with `margin-top: auto` so it docks
+at the column's foot. It never wraps, and it sits one spacing step above the edge it docks to.
 
 ## Content and status
 
