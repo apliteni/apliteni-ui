@@ -16,8 +16,6 @@ import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { ESTIMATED, LEDGER, SPEC_CSS, SPEND } from './_dashboards-and-reports.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { bars } from '../_chart.js';
-// @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { payoutHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { cashflowStats } from '../apps/_finance-data.js';
@@ -36,7 +34,7 @@ type Figure = { label: string; value: string; delta: { value: string; tone?: 'go
 const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowStats('1Y', true) as Figure[]).slice(0, 2)
   .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <Raw html={figure.trend} /> }))} />;
 
-const LedgerTable = () => <div className="ui-table-scroll" role="region" aria-label="Payouts" tabIndex={0}>
+const LedgerTable = ({ label = 'Payouts' }: { label?: string }) => <div className="ui-table-scroll" role="region" aria-label={label} tabIndex={0}>
   <table className="ui-table ui-table--dense ui-table--zebra">
     <thead><tr><th>Reference</th><th className="ui-table__num">Fees</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
     <tbody>{(LEDGER as string[][]).map(([ref, , fees, net, tone, label]) => <tr key={ref}>
@@ -71,12 +69,15 @@ const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder=
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
-// bars() lays one slot per value across the full width, so a flex row of equal
-// cells puts each name under its own bar.
-const MonthChart = () => <div className="gd-chart">
-  <Raw html={bars({ values: NET_BY_MONTH, width: 320, height: 96, fluid: true, label: 'Net settled by month, first half of the year' }).svg} />
-  <div className="gd-chart__months ui-stat__label" aria-hidden="true">{MONTHS.map(month => <span key={month}>{month}</span>)}</div>
-</div>;
+// The kit's months chart draws the bar and its month under it, so the page keeps
+// one bar style across the switch and the label specimens.
+const netK = (n: number) => `${n}k €`;
+// The chart's title is never drawn, so each specimen names itself distinctly for
+// a reader listing the landmarks, without changing what the page shows.
+const MonthChart = ({ chartLabel }: { chartLabel?: string }) => <Chart variant="months"
+  title={`Net settled by month, first half of the year${chartLabel ? `, ${chartLabel}` : ''}`}
+  periods={PERIODS} series={[{ id: 'net', name: 'Net settled', values: NET_BY_MONTH, tone: 'accent' }]}
+  format={netK} table={false} />;
 const MonthTable = () => (
   // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar
   <table className="ui-table ui-table--dense">
@@ -91,11 +92,13 @@ const MonthTable = () => (
 // tab roles, because the kit's Tabs cannot sit in a block's title row.
 // The wrapper keeps the row's baseline, which the strip's own stretch would drop.
 // The table's panel is the kit's scroll box, which keeps the dense table's bleed to the card edge.
-const VIEWS = [{ label: 'Chart', value: 'chart', panel: <MonthChart />, box: 'ui-tabs__panel' },
-  { label: 'Table', value: 'table', panel: <MonthTable />, box: 'ui-table-scroll ui-tabs__panel' }];
-const MonthBlock = ({ view: initial }: { view: string }) => {
+const VIEWS = [{ label: 'Chart', value: 'chart', box: 'ui-tabs__panel' },
+  { label: 'Table', value: 'table', box: 'ui-table-scroll ui-tabs__panel' }];
+const MonthBlock = ({ view: initial, chartLabel }: { view: string; chartLabel?: string }) => {
   const [view, setView] = useState(initial);
   const id = useId();
+  // The panel closes over this block's chart label, so each specimen names itself.
+  const panels = [<MonthChart chartLabel={chartLabel} />, <MonthTable />];
   return <Card><div className="gd-block-head">
     <h2 className="ui-card__title">Net settled by month</h2>
     <div><div className="ui-seg ui-seg--sm ui-seg--underline" role="tablist" aria-label="Net settled by month view">
@@ -109,7 +112,7 @@ const MonthBlock = ({ view: initial }: { view: string }) => {
         }}>{option.label}</button>)}
     </div></div>
   </div>{VIEWS.map((option, i) => <div key={option.value} className={option.box} role="tabpanel" id={`${id}-panel-${i}`}
-    aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? option.panel : null}</div>)}</Card>;
+    aria-labelledby={`${id}-tab-${i}`} tabIndex={0} hidden={option.value !== view}>{option.value === view ? panels[i] : null}</div>)}</Card>;
 };
 
 // The kit's line chart. `legend` draws the key that names the lines. The labels
@@ -129,10 +132,11 @@ const SEASON_SERIES: ChartLookSeries[] = [
   { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8, 18.1, 19.7, 20.6] },
 ];
 const HALF_YEAR = MONTHS.map(month => ({ label: month, short: month }));
-const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS }:
-  { title: string; sub?: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS }) =>
+const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS, chartLabel }:
+  { title: string; sub?: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS; chartLabel?: string }) =>
   <Card title={title} sub={sub}>
-    <Chart variant="line" look={look} legend={legend} title={`${title}, ${span}, thousands of euros`}
+    <Chart variant="line" look={look} legend={legend}
+      title={`${title}, ${span}, thousands of euros${chartLabel ? `, ${chartLabel}` : ''}`}
       periods={periods} series={series} format={kEur} />
   </Card>;
 
@@ -158,7 +162,8 @@ const REGION_NET = [48.2, 39.1, -6.4, -7.1, 41.8, 32.0];
 const RegionNetCard = ({ short = false }: { short?: boolean }) => (
   <div style={{ maxWidth: 'var(--panel-sm)' }}>
     <Card title="Net by region" level={3}>
-      <Chart title="Net by region, six bars" periods={REGION_LABELS.map((label, i) => ({
+      <Chart title={short ? 'Net by region, six bars, short names' : 'Net by region, six bars, full names'}
+        periods={REGION_LABELS.map((label, i) => ({
         label, compare: false, ...(short ? { short: REGION_SHORT[i] } : {}),
       }))} series={[{ id: 'net', name: 'Net', values: REGION_NET, tone: 'info' }]} format={kEur} />
     </Card>
@@ -171,16 +176,16 @@ const specimens = [
   // the first screen ends, which a picture in a page cannot.
   { id: 'fast-glance',
     do: () => <Stage><Period /><Cashflow id="gd-fast-do" /><Attention /></Stage>,
-    dont: () => <Stage><Period /><Cashflow id="gd-fast-dont" /><MonthBlock view="chart" />
-      <LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend />
+    dont: () => <Stage><Period /><Cashflow id="gd-fast-dont" /><MonthBlock view="chart" chartLabel="below the fold" />
+      <LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="long page" />
+      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend chartLabel="long page" />
       <div className="gl-cursor">The first screen has ended. The exceptions start here</div><Attention /></Stage> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
-    dont: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></div></Stage> },
+    dont: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable label="Payouts ledger" /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></div></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable /></Card></div></Stage>,
+    do: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable label="Payouts report rows" /></Card></div></Stage>,
     dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
       { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on
@@ -190,8 +195,8 @@ const specimens = [
     do: () => <Stage><div className="ui-card-stack"><div className="ui-toolbar ui-toolbar--split">
       <FilterBar filters={FILTERS} label="Payout filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Export rows</Button>
-    </div><Card title="Payouts"><LedgerTable /></Card></div></Stage>,
-    dont: () => <Stage><Card title="Payouts, 2026"><LedgerTable /></Card></Stage> },
+    </div><Card title="Payouts"><LedgerTable label="Payouts with filters" /></Card></div></Stage>,
+    dont: () => <Stage><Card title="Payouts, 2026"><LedgerTable label="Payouts, 2026" /></Card></Stage> },
   // "Download PDF" does not start with "Export", so export-at-the-row-end does not count this row.
   { id: 'export-icon',
     do: () => <Stage><div className="ui-toolbar ui-toolbar--split">
@@ -203,19 +208,19 @@ const specimens = [
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',
-    do: () => <Stage><MonthBlock view="chart" /><MonthBlock view="table" /></Stage>,
-    dont: () => <Stage><Card title="Net settled by month"><MonthChart /><MonthTable /></Card></Stage> },
+    do: () => <Stage><MonthBlock view="chart" chartLabel="chart view" /><MonthBlock view="table" /></Stage>,
+    dont: () => <Stage><Card title="Net settled by month"><div className="gd-chart"><MonthChart chartLabel="stacked, no switch" /></div><MonthTable /></Card></Stage> },
   // The chart's own title still names the span: it is read aloud, never drawn.
   { id: 'no-range-on-chart',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend /></Stage>,
-    dont: () => <Stage><LineCard title="Spend against estimate" sub="First half of 2026" series={SPEND_SERIES} legend /></Stage> },
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="no range" /></Stage>,
+    dont: () => <Stage><LineCard title="Spend against estimate" sub="First half of 2026" series={SPEND_SERIES} legend chartLabel="range in subtitle" /></Stage> },
   { id: 'value-not-legend',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="with values" />
       <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,
-    dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend /></Stage> },
+    dont: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} look="thin" legend chartLabel="key only" /></Stage> },
   { id: 'two-lines-at-most',
-    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
-      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend /></Stage>,
+    do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="two lines" />
+      <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend chartLabel="two lines" /></Stage>,
     dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} look="thin" legend /></Stage> },
   { id: 'bar-labels-distinct',
     do: () => <Stage><RegionNetCard short /></Stage>,

@@ -280,15 +280,28 @@ describe('guideline pages in React: Dashboards and reports', () => {
 
   // #863: the four wide ledgers scroll sideways, so each gets the kit's keyboard
   // stop: a named, focusable region (Accessibility minimums, keyboard first).
-  it('gives every wide ledger a named keyboard stop', () => {
+  // #863 P3: each region also carries a distinct name, so a reader listing the
+  // landmarks can tell one Payouts ledger from the next (landmark-unique).
+  it('gives every wide ledger a distinct named keyboard stop', () => {
     const frames = [...mount(page).querySelectorAll('.ui-table-scroll')]
       .filter(frame => frame.querySelector('table thead th')?.textContent?.trim() === 'Reference');
     expect(frames.length, 'four ledger scroll regions on the page').toBe(4);
     for (const frame of frames) {
       expect(frame.getAttribute('role')).toBe('region');
-      expect(frame.getAttribute('aria-label')).toBe('Payouts');
       expect(frame.getAttribute('tabindex')).toBe('0');
     }
+    expect(frames.map(frame => frame.getAttribute('aria-label')).sort(), 'each ledger names itself distinctly')
+      .toEqual(['Payouts ledger', 'Payouts report rows', 'Payouts with filters', 'Payouts, 2026'].sort());
+  });
+
+  // #863 P3: the repeated bar-label, line and months charts name themselves
+  // distinctly, so a reader listing the landmarks can tell one specimen from the next.
+  it('names every repeated specimen chart distinctly', () => {
+    const names = [...mount(page).querySelectorAll('[role="group"][aria-label]')]
+      .map(group => group.getAttribute('aria-label')!);
+    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six bars|Net settled by month, first half of the year), /.test(name));
+    expect(repeats.length, 'the repeated charts the page draws').toBe(13);
+    expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(13);
   });
 });
 
