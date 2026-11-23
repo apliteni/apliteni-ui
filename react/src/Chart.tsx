@@ -1015,11 +1015,18 @@ export function Chart(props: ChartProps) {
   );
   const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
 
-  /* The period row. Where the widest label does not fit its column, every n-th
-     label is printed, counted from the first period that is not final, or from
-     the latest one, so the period a reader came for keeps its label. */
+  /* The period row. The months and bridge charts print every bar's short name,
+     wrapped at a word break inside its column, so no bar goes unnamed. Where one
+     word alone is wider than the column, wrapping cannot help, so those charts
+     step by the whole label, counted from the first period that is not final,
+     or from the latest one, so the period a reader came for keeps its label.
+     The other variants keep that stepping for every label that does not fit. */
+  const wrapAtWords = variant === 'months' || variant === 'bridge';
   const labelRoom = Math.max(0, ...columns.map((c) => textWidth(c.short))) + LABEL_GAP;
-  const every = labelRoom > colWidth ? Math.ceil(labelRoom / colWidth) : 1;
+  const widestWord = wrapAtWords
+    ? Math.max(0, ...columns.flatMap((c) => c.short.split(/\s+/).map((word) => textWidth(word)))) + LABEL_GAP
+    : labelRoom;
+  const every = widestWord <= colWidth ? 1 : Math.ceil(labelRoom / colWidth);
   const anchor = groupFrom >= 0 ? groupFrom : count - 1;
   const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
   /** A stepped label wider than its column stands centred on it, or on the

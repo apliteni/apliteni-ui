@@ -223,6 +223,43 @@ export const Bridge: StoryObj = {
   ),
 };
 
+/* The narrow-card fixtures from #863: a four-step bridge and a six-bar months
+   chart, each with a 20-character full name per bar and a distinct short name
+   under it, so every bar keeps its label at a phone width. A short name wraps
+   at a word break where it does not fit its column. All names and figures are
+   fabricated. */
+const NARROW_REGIONS: ChartPeriod[] = [
+  { label: 'North region revenue', short: 'N rev', compare: false },
+  { label: 'South region revenue', short: 'S rev', compare: false },
+  { label: 'North region refunds', short: 'N ref', compare: false },
+  { label: 'South region refunds', short: 'S ref', compare: false },
+  { label: 'North region balance', short: 'N bal', compare: false },
+  { label: 'South region balance', short: 'S bal', compare: false },
+];
+const NARROW_NET = [48200, 39100, -6400, -7100, 41800, 32000];
+
+export const ShortNames: StoryObj = {
+  render: () => (
+    <div style={{ maxWidth: 'var(--panel-sm)' }}>
+      <Card title="Cash">
+        <Chart variant="bridge" title="Cash from opening to closing, narrow card"
+          format={eur} formatAxis={eurAxis} legend
+          steps={[
+            { label: 'Opening cash balance', short: 'Open', value: 120000 },
+            { label: 'Customer cash inflow', short: 'In', value: 42600 },
+            { label: 'Supplier cash spends', short: 'Out', value: -21600 },
+            { label: 'Closing cash balance', short: 'Close', kind: 'total' },
+          ]} />
+      </Card>
+      <Card title="Net by region">
+        <Chart title="Net by region, narrow card"
+          periods={NARROW_REGIONS} format={eur} formatAxis={eurAxis}
+          series={[{ id: 'net', name: 'Net', values: NARROW_NET, tone: 'info' }]} />
+      </Card>
+    </div>
+  ),
+};
+
 /** The phone width the acceptance names. The plot takes the card's width, so
  *  every month is drawn and nothing scrolls; the labels step where they do not fit. */
 export const Narrow: StoryObj = {

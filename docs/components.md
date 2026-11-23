@@ -1269,7 +1269,11 @@ values and hangs them under the line.
 **What the user sees.** In `months`, every period shares the card's width, so the plot never
 scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
 Where the period labels do not fit, the chart prints every second, third or later label, counted
-from the first period that is not final, or from the latest period. Set `values` to print each
+from the first period that is not final, or from the latest period. In `months` and `bridge`, the
+chart prints every bar's `short` name under its bar, and a short name that does not fit its column
+wraps at a word break. Give each bar a distinct `short` name, never one cut to a fixed length. Where
+one word alone is wider than the column, wrapping cannot help, so the chart steps the labels as
+above. The readout and the table keep the full name. Set `values` to print each
 bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
 that grows down. A value takes at most half the space to the next value,
 at the 12px text size, and stays inside the plot. A value that does not fit there is left out.

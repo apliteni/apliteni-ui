@@ -145,6 +145,24 @@ const FILTERS = [
 const Period = () => <div><Segmented label="Period" size="sm" value="1Y" onChange={noop}
   options={['1M', '3M', '1Y'].map(label => ({ label, value: label }))} /></div>;
 
+// The narrow-card months chart for the bar-labels rule: one fabricated net per
+// region, with a distinct short name under each bar. The Don't gives no short
+// name, so the 20-character labels step and leave bars unnamed. Both halves
+// keep the same phone card width, so the one difference is the short name.
+const REGION_LABELS = ['North region revenue', 'South region revenue', 'North region refunds',
+  'South region refunds', 'North region balance', 'South region balance'];
+const REGION_SHORT = ['N rev', 'S rev', 'N ref', 'S ref', 'N bal', 'S bal'];
+const REGION_NET = [48.2, 39.1, -6.4, -7.1, 41.8, 32.0];
+const RegionNetCard = ({ short = false }: { short?: boolean }) => (
+  <div style={{ maxWidth: 'var(--panel-sm)' }}>
+    <Card title="Net by region">
+      <Chart title="Net by region, six bars" periods={REGION_LABELS.map((label, i) => ({
+        label, compare: false, ...(short ? { short: REGION_SHORT[i] } : {}),
+      }))} series={[{ id: 'net', name: 'Net', values: REGION_NET, tone: 'info' }]} format={kEur} />
+    </Card>
+  </div>
+);
+
 const specimens = [
   // The figures are a year, so the period control stands on 1Y. The Don't puts
   // three blocks between the figures and the exceptions, and the note says where
@@ -197,6 +215,9 @@ const specimens = [
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend />
       <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend /></Stage>,
     dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} look="thin" legend /></Stage> },
+  { id: 'bar-labels-distinct',
+    do: () => <Stage><RegionNetCard short /></Stage>,
+    dont: () => <Stage><RegionNetCard /></Stage> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Dashboards and reports', parameters: { layout: 'fullscreen' } };

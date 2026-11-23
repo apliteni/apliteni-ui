@@ -842,6 +842,38 @@ it('fits 24 months in a 154px plot with no scroll, every bar, and fewer labels',
   expect([...wide.children].map((c) => c.textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
 });
 
+// #863: the months and bridge charts keep every bar named. A short name whose
+// words each fit its column prints and wraps; the old fit rule stepped by the
+// whole label, so a two-word short name lost its bars even where it could wrap.
+it('keeps every bar named on a months and bridge chart, stepping only where a word is too wide', () => {
+  const regions: ChartPeriod[] = [
+    { label: 'North region revenue', short: 'North rev', compare: false },
+    { label: 'South region revenue', short: 'South rev', compare: false },
+    { label: 'North region refunds', short: 'North ref', compare: false },
+    { label: 'South region refunds', short: 'South ref', compare: false },
+  ];
+  const { container } = render(<>
+    <Chart title="Net by region" periods={regions}
+      series={[{ id: 'net', name: 'Net', values: [48200, 39100, -6400, -7100] }]} format={eur} />
+    <Chart variant="bridge" title="Cash" format={eur}
+      steps={[
+        { label: 'Opening cash balance', short: 'Open cash', value: 120000 },
+        { label: 'Customer cash inflow', short: 'Cash in', value: 42600 },
+        { label: 'Supplier cash spends', short: 'Cash out', value: -21600 },
+        { label: 'Closing cash balance', short: 'Close cash', kind: 'total' },
+      ]} />
+  </>);
+  const rows = [...container.querySelectorAll('.ui-chart__periods')];
+  expect(rows, 'one period row per chart').toHaveLength(2);
+  for (const row of rows) {
+    expect(classOf(row), 'every short name fits its column').not.toContain('ui-chart__periods--step');
+  }
+  expect([...rows[0].children].map((c) => c.textContent), 'the months chart keeps every short name')
+    .toEqual(['North rev', 'South rev', 'North ref', 'South ref']);
+  expect([...rows[1].children].map((c) => c.textContent), 'the bridge keeps every short name')
+    .toEqual(['Open cash', 'Cash in', 'Cash out', 'Close cash']);
+});
+
 it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
   const { container } = render(<Chart variant="spark" title="Cash" periods={forecast}
     series={forecastSeries.slice(1)} format={eur} />);

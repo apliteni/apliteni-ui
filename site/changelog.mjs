@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.190.0', date: '2026-11-23',
+    changes: [
+      ['changed', 'A `months` or `bridge` `Chart` now prints every bar\'s `short` name under its bar, and a short name that does not fit its column wraps at a word break. Where one word alone is wider than the column, the chart steps the labels. Give each bar a distinct short name; the readout and the table keep the full name. Resolves #863.', ['Chart']],
+      ['added', 'The dashboards and reports guideline has a new rule, Keep every bar labelled: give each bar a distinct short name, never one cut to a fixed length. Resolves #863.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.189.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],

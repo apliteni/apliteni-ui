@@ -125,3 +125,17 @@
 **Do:** Spend against Estimated, then revenue against expenses on a second chart.
 
 **Don't:** All four lines on one chart.
+
+## Keep every bar labelled
+
+<!-- rule: bar-labels-distinct -->
+
+**Rule:** Give each bar a distinct short name, never cut to a fixed length.
+
+**Why:** A bar without a name loses meaning.
+
+**Do:** Short names under every bar, full names in readout and table.
+
+**Don't:** Long names that step past bars, so bars go unnamed.
+
+**Except:** Where one word is wider than its column, use shorter names or fewer bars.

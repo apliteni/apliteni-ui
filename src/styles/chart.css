@@ -129,6 +129,13 @@
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
+/* The months and bridge charts print every bar's short name and wrap it at a
+   word break, so a word is never cut. Where one word alone is wider than its
+   column, the component steps the labels instead. */
+.ui-chart--months .ui-chart__period,
+.ui-chart--bridge .ui-chart__period {
+  overflow-wrap: normal;
+}
 /* The picked column's label: the body ink the rest of the row gives up, at the
    weight a reader who separates no colours still reads. Selection is otherwise
    the band behind the column and the band alone — the outline the chart draws
