@@ -8,6 +8,8 @@
   background: var(--code-bg); /* code-bg: inherit — a block reads the ground its container hands a chip, and holds no chip. */
   border-radius: var(--radius-md);
   overflow: hidden;
+  /* A titleless block floats its copy button over the first line of code. */
+  position: relative;
 }
 .ui-snippet__bar {
   display: flex;
@@ -93,6 +95,17 @@
 .ui-snippet--reveal .ui-snippet__copy:hover { color: var(--strong); }
 .ui-snippet__copy:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .ui-snippet__copy svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; }
+/* The drawn confirmation: check and the word Copied for about 2s. The word is a
+   state the button shows, not its name, which stays the copy action. */
+.ui-snippet__copied { margin-inline-start: 4px; }
+/* #850: a title is optional, so a block with none puts the copy button on the
+   first line of code — the bar is gone, and the button floats at the line's end.
+   It grows leftward while it shows the word, so the code is never covered. */
+.ui-snippet:not(:has(.ui-snippet__bar)) .ui-snippet__copy {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+}
 
 /* Shell token highlighting (matches viz/account.mjs classes) */
 .ui-snippet pre .k { color: var(--purple-mid); font-weight: var(--weight-medium); }

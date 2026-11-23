@@ -45,10 +45,10 @@ it('renders token children and copies the original code, not the rendered text',
   expect(write).toHaveBeenCalledWith(code);
 });
 
-it('shows no title when no label is given, leaving the bar to the copy action', () => {
+it('shows no title when no label is given, floating the copy action over the code', () => {
   const { container } = render(<Snippet code="npm install example" />);
-  expect(container.querySelector('.ui-snippet__bar > span:not([class])')).toBeNull();
-  expect(container.querySelector('.ui-snippet__bar')).not.toBeNull();
+  expect(container.querySelector('.ui-snippet__bar')).toBeNull();
+  expect(container.querySelector('.ui-snippet__copy')).not.toBeNull();
 });
 
 it('treats string children as text and preserves empty display content', () => {
@@ -92,10 +92,11 @@ it('is icon-only at rest, named and tooltipped by copyLabel', () => {
   expect(container.querySelector('.ui-snippet__copy')).toBe(button);
 });
 
-// The confirmation is announced beside the button, not written into it: a
-// permanent aria-label outranks the contents, so a word in the button would show
-// on screen and never reach the name — and it would jerk the 24px box 35px wider.
-it('announces the confirmation in the live region and keeps the button still', async () => {
+// The drawn confirmation is the check and the word Copied for about 2s, announced
+// beside the button. The word does not become the button's name: a permanent
+// aria-label outranks the contents, so a word in the button would show on screen
+// and never reach the name — the button stays the copy action.
+it('announces the confirmation and shows the check with the word Copied', async () => {
   vi.useFakeTimers();
   clipboard();
   const { container } = render(<Snippet code="npm install example" copyLabel="Copy command" />);
@@ -104,16 +105,18 @@ it('announces the confirmation in the live region and keeps the button still', a
   expect(status).toHaveAttribute('role', 'status');
   expect(status).toHaveAttribute('aria-live', 'polite');
   expect(status).toHaveTextContent('');
+  expect(button).toHaveTextContent('');
 
   await act(async () => { fireEvent.click(button); });
   expect(status).toHaveTextContent('Copied');
-  // Same button, same name, no words of its own — only the glyph changed.
+  // Same button, same name — the drawn state is the check plus the word.
   expect(screen.getByRole('button', { name: 'Copy command' })).toBe(button);
-  expect(button).toHaveTextContent('');
+  expect(button).toHaveTextContent('Copied');
   expect(button).toHaveAttribute('title', 'Copy command');
 
-  act(() => { vi.advanceTimersByTime(1400); });
+  act(() => { vi.advanceTimersByTime(2000); });
   expect(status).toHaveTextContent('');
+  expect(button).toHaveTextContent('');
   expect(screen.getByRole('button', { name: 'Copy command' })).toBe(button);
 });
 
@@ -125,7 +128,7 @@ it('swaps the glyph rather than the name, so the copy stays reachable', async ()
   const resting = glyph();
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy command' })); });
   expect(glyph()).not.toEqual(resting);
-  act(() => { vi.advanceTimersByTime(1400); });
+  act(() => { vi.advanceTimersByTime(2000); });
   expect(glyph()).toEqual(resting);
 });
 
@@ -141,7 +144,7 @@ it('copies raw text and announces success briefly without hiding the value', asy
   const button = screen.getByRole('button', { name: 'Copy code' });
   expect(container.querySelector('.ui-snippet__status')).toHaveTextContent('Copied');
   expect(button.querySelector('svg')).not.toBeNull();
-  act(() => { vi.advanceTimersByTime(1400); });
+  act(() => { vi.advanceTimersByTime(2000); });
   expect(screen.getByRole('button', { name: 'Copy code' })).toBe(button);
   expect(container.querySelector('.ui-snippet__status')).toHaveTextContent('');
   expect(container.querySelector('pre')?.textContent).toBe(code);

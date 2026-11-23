@@ -71,8 +71,8 @@ describe('React Snippet stories copy what they display', () => {
   // The count is the coverage check: a story added with a Copy button and no
   // measurement, or one quietly dropped, changes this number.
   it('measures every React copy button in the story file', () => {
-    expect(measured).toHaveLength(13);
-    expect(new Set(measured).size).toBe(10);
+    expect(measured).toHaveLength(14);
+    expect(new Set(measured).size).toBe(11);
   });
 });
 
