@@ -766,6 +766,10 @@ function tableWidths(css) {
     ['.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'margin-inline', 'calc(-1 * var(--space-2))'],
     ['.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'max-width', 'calc(100% + 2 * var(--space-2))'],
     [':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)', 'margin-inline', '0'],
+    // #850: the row table's vertical bleed must also give way in light, or the card's
+    // removed bottom padding leaves the last row clipped by the card's overflow.
+    [':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child', 'margin-top', '0'],
+    [':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child', 'margin-bottom', '0'],
   ]) {
     const rule = rulesIn(css).find((candidate) => candidate.selector === selector);
     const found = rule && rule.body.match(new RegExp(`(?:^|;|\\s)${property}\\s*:\\s*([^;}]+)`));
@@ -835,6 +839,9 @@ test('the width gate rejects a table stretched back to its container', () => {
   for (const [name, mutation] of [
     ['the flush width at a bleed', CSS.replace(FLUSH, FLUSH.replace('width: 100%;', 'width: calc(100% + 2 * var(--space-3));'))],
     ['the flush margin at a bleed', CSS.replace(FLUSH, FLUSH.replace('margin-inline: 0;', 'margin-inline: calc(-1 * var(--space-3));'))],
+    // The vertical flush is the other half of the same defect: the row table's last row.
+    ['the row table top flush at a bleed', CSS.replace(':first-child { margin-top: 0; }', ':first-child { margin-top: calc(-1 * var(--space-6)); }')],
+    ['the row table bottom flush at a bleed', CSS.replace(':last-child { margin-bottom: 0; }', ':last-child { margin-bottom: calc(-1 * var(--space-6)); }')],
   ]) {
     assert.notEqual(mutation, CSS, `${name}: the mutation must change the sheet`);
     assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);
