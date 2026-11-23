@@ -240,7 +240,7 @@ const NARROW_NET = [48200, 39100, -6400, -7100, 41800, 32000];
 
 export const ShortNames: StoryObj = {
   render: () => (
-    <div style={{ maxWidth: 'var(--panel-sm)' }}>
+    <div style={{ maxWidth: 'var(--panel-sm)' }}><div className="ui-card-stack">
       <Card title="Cash">
         <Chart variant="bridge" title="Cash from opening to closing, narrow card"
           format={eur} formatAxis={eurAxis} legend
@@ -256,7 +256,7 @@ export const ShortNames: StoryObj = {
           periods={NARROW_REGIONS} format={eur} formatAxis={eurAxis}
           series={[{ id: 'net', name: 'Net', values: NARROW_NET, tone: 'info' }]} />
       </Card>
-    </div>
+    </div></div>
   ),
 };
 

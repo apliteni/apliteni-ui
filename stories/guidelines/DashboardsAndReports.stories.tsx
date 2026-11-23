@@ -36,13 +36,15 @@ type Figure = { label: string; value: string; delta: { value: string; tone?: 'go
 const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowStats('1Y', true) as Figure[]).slice(0, 2)
   .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <Raw html={figure.trend} /> }))} />;
 
-const LedgerTable = () => <table className="ui-table ui-table--dense ui-table--zebra">
-  <thead><tr><th>Reference</th><th className="ui-table__num">Fees</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
-  <tbody>{(LEDGER as string[][]).map(([ref, , fees, net, tone, label]) => <tr key={ref}>
-    <td>{ref}</td><td className="ui-table__num">{fees}</td><td className="ui-table__num ui-table__num--strong">{net}</td>
-    <td><Badge variant={tone}>{label}</Badge></td>
-  </tr>)}</tbody>
-</table>;
+const LedgerTable = () => <div className="ui-table-scroll" role="region" aria-label="Payouts" tabIndex={0}>
+  <table className="ui-table ui-table--dense ui-table--zebra">
+    <thead><tr><th>Reference</th><th className="ui-table__num">Fees</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
+    <tbody>{(LEDGER as string[][]).map(([ref, , fees, net, tone, label]) => <tr key={ref}>
+      <td>{ref}</td><td className="ui-table__num">{fees}</td><td className="ui-table__num ui-table__num--strong">{net}</td>
+      <td><Badge variant={tone}>{label}</Badge></td>
+    </tr>)}</tbody>
+  </table>
+</div>;
 
 // The rows that need a decision, which is all a dashboard carries of a ledger.
 // `onward={false}` removes the row links, so the Don't offers no way in. Its filter
@@ -155,7 +157,7 @@ const REGION_SHORT = ['N rev', 'S rev', 'N ref', 'S ref', 'N bal', 'S bal'];
 const REGION_NET = [48.2, 39.1, -6.4, -7.1, 41.8, 32.0];
 const RegionNetCard = ({ short = false }: { short?: boolean }) => (
   <div style={{ maxWidth: 'var(--panel-sm)' }}>
-    <Card title="Net by region">
+    <Card title="Net by region" level={3}>
       <Chart title="Net by region, six bars" periods={REGION_LABELS.map((label, i) => ({
         label, compare: false, ...(short ? { short: REGION_SHORT[i] } : {}),
       }))} series={[{ id: 'net', name: 'Net', values: REGION_NET, tone: 'info' }]} format={kEur} />

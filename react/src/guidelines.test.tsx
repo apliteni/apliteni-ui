@@ -268,6 +268,28 @@ describe('guideline pages in React: Dashboards and reports', () => {
     fireEvent.keyDown(chart, { key: 'ArrowRight' });
     expect([table.getAttribute('aria-selected'), document.activeElement === table, table.tabIndex, chart.tabIndex]).toEqual(['true', true, 0, -1]);
   });
+
+  // #863: the two new bar-label cards sit inside the rule's own h2 section, so
+  // their titles are h3, one level under it (Labels and titles, heading levels).
+  it('the bar-labels cards are headings one level under the rule', () => {
+    const section = mount(page).querySelector('[data-rule="bar-labels-distinct"]');
+    expect(section, 'no rule "bar-labels-distinct" on the page: the gate is checking nothing').toBeTruthy();
+    const titles = [...section!.querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.map(t => t.tagName.toLowerCase()), 'one card title per specimen half').toEqual(['h3', 'h3']);
+  });
+
+  // #863: the four wide ledgers scroll sideways, so each gets the kit's keyboard
+  // stop: a named, focusable region (Accessibility minimums, keyboard first).
+  it('gives every wide ledger a named keyboard stop', () => {
+    const frames = [...mount(page).querySelectorAll('.ui-table-scroll')]
+      .filter(frame => frame.querySelector('table thead th')?.textContent?.trim() === 'Reference');
+    expect(frames.length, 'four ledger scroll regions on the page').toBe(4);
+    for (const frame of frames) {
+      expect(frame.getAttribute('role')).toBe('region');
+      expect(frame.getAttribute('aria-label')).toBe('Payouts');
+      expect(frame.getAttribute('tabindex')).toBe('0');
+    }
+  });
 });
 
 /* Stands in for the structure reading-surface.test.js measures: every carrier of
