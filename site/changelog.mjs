@@ -22,6 +22,9 @@ export const RELEASES = [
       ['changed', 'A `StatBand` tile row draws every figure at one size and, in light, keeps a soft line around each tile, so tightly placed figures stay separate. Resolves #850.', ['StatBand']],
       ['added', '`AppShell` no longer needs a `title`. Omit it and the shell draws no title band, so a full-bleed page can own its own heading. Resolves #850.', ['AppShell']],
       ['added', 'The page guideline gains two rules: Brand the background behind a dialog page, and The sign-in note names who can sign in. The colour guideline lets a code block keep its grey fill in light. Resolves #850.', ['Guidelines']],
+      ['added', '`Card` gains `.ui-card__glyph` for a muted 18px row glyph with a 2-unit stroke, and `.ui-card__glyph--success` for a granted check in success ink. `.ui-link--quiet` draws a name link in body ink, underlined only on hover. Resolves #850.', ['Card']],
+      ['added', '`.ui-hairline` draws a top line in light above a card that ends in a closing block, such as a revoke area. Dark keeps the card box. Resolves #850.', ['Card']],
+      ['added', '`--ui-document-ground` token and `.ui-document-ground` class paint a bare full-bleed backdrop behind a document sheet, so a page reads its own ground instead of re-declaring a surface. Resolves #850.', ['Card']],
     ],
   },
   {
