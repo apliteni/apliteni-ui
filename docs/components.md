@@ -1267,7 +1267,8 @@ values and hangs them under the line.
 3:1 on the card and the page in both themes.
 
 **What the user sees.** In `months`, every period shares the card's width, so the plot never
-scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
+scrolls. A bar fades from a tint of its tone at the zero line to the full tone at its data end, as
+every bar does. It takes two thirds of its column, and at most 48px.
 Where the period labels do not fit, the chart prints every second, third or later label, counted
 from the first period that is not final, or from the latest period. In `months` and `bridge`, the
 chart prints every bar's `short` name under its bar, and a short name that does not fit its column

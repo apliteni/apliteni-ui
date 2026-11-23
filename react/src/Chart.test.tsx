@@ -916,12 +916,20 @@ it('paints each bar with a ramp from its base on zero to its data end', () => {
   expect(css).toMatch(/\.ui-chart__fade-end\s*\{\s*stop-color: var\(--ui-chart-tone\);/);
 });
 
-// #841, look A: a months chart's columns are one flat fill of the series tone.
-it('paints a months chart\'s bars flat, with no ramp', () => {
+// #740, #863: every bar fades from its base on zero to its data end, including
+// a months chart's fitted columns, which before #863 stayed flat.
+it('paints a months chart\'s bars with a ramp, like every other bar', () => {
   const { container } = months();
-  expect(container.querySelectorAll('linearGradient')).toHaveLength(0);
+  const ramps = [...container.querySelectorAll('linearGradient')];
+  expect(ramps, 'one ramp per tone and direction a months bar uses').toHaveLength(2);
+  const paintOf = (bar: Element) => /^url\(#(.+)\)$/
+    .exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1] ?? '';
   for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
-    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toBe('');
+    const g = container.querySelector(`linearGradient[id="${paintOf(bar)}"]`)!;
+    expect(g, 'every months bar names a ramp').not.toBeNull();
+    expect(classOf(g), 'the ramp reads the bar\'s own tone').toContain(`ui-chart__tone--${toneOf(bar)}`);
+    const up = toneOf(bar) === 'good';
+    expect([g.getAttribute('y1'), g.getAttribute('y2')], 'the base sits on zero').toEqual(up ? ['1', '0'] : ['0', '1']);
   }
 });
 
@@ -1029,11 +1037,11 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
-    // Look A (#841): the data end takes the --radius-xs corner, or a quarter of
-    // the bar when the bar is narrow, so every width keeps one shape. An arc
-    // leaves the edge it rounds exactly that far, so the radius is also the
-    // tolerance for where the arc sits.
-    const radius = Math.min(6, box.width / 4, box.height);
+    // The data end is fully round: its radius is half the bar's width, which
+    // keeps the shape a narrow bar has at any width. An arc leaves the edge it
+    // rounds exactly that far, so the radius is also the tolerance for where
+    // the arc sits.
+    const radius = Math.min(box.width / 2, box.height);
     for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
       expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
     }

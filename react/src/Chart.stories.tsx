@@ -99,8 +99,7 @@ export const SparkInScrollingTable: StoryObj = {
 };
 
 /** The same months with no unfinished period, so no readout names a state.
- *  The story's id is kept from the round that named it after the fade it no
- *  longer draws. */
+ *  The story's id is kept from the round that first named it. */
 export const Solid: StoryObj = {
   render: () => (
     <Card title="Income and spend">
@@ -130,8 +129,9 @@ const CASH_IN = [31200, 33850, 30410, 35120, 36240, 29980, 37310, 38860, 40120, 
 
 /** Look A, with a value on each bar and no comparison in the readout (#841).
  *  One solid line stands before November, the running month, and "Not final"
- *  stands over it and the three projected months. Every bar stays solid in the
- *  series tone; the readout and the table say "Incomplete" or "Projected". */
+ *  stands over it and the three projected months. Every bar keeps the same fade
+ *  to its data end, final or projected; the readout and the table say
+ *  "Incomplete" or "Projected". */
 export const Forecast: StoryObj = {
   render: () => (
     <Card title="Revenue">

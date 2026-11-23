@@ -258,12 +258,10 @@ const BAR_MAX_BRIDGE = 22;
 /**
  * The months chart's columns (#841, look A): the plot takes the card's width and
  * every period shares it, so nothing scrolls. A bar takes two thirds of its
- * column up to --space-12, and its corner is --radius-xs or a quarter of the
- * bar, whichever is smaller, so a narrow bar keeps the same shape.
+ * column up to --space-12.
  */
 const FIT_SHARE = 2 / 3;
 const FIT_MAX = 48;
-const FIT_CORNER = 6;
 /** The ground a value or a period label keeps beside its neighbour: --space-1, --space-2. */
 const TEXT_GAP = 4;
 const LABEL_GAP = 8;
@@ -833,8 +831,7 @@ export function Chart(props: ChartProps) {
   }, [geometry, frame, lines, keys, columns, centre, barX, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
-  // Look A's columns are one flat fill of the series' tone.
-  const fadeFor = useCallback((m: Mark) => (fit ? null : fadeOf(uid, m, variant === 'bridge')), [fit, uid, variant]);
+  const fadeFor = useCallback((m: Mark) => fadeOf(uid, m, variant === 'bridge'), [uid, variant]);
   const fades = useMemo(() => new Map(marks.filter((m) => m.kind === 'bar')
     .map(fadeFor)
     .filter((f) => f !== null).map((f) => [f.id, f])), [marks, fadeFor]);
@@ -1245,7 +1242,7 @@ export function Chart(props: ChartProps) {
                     className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
                       mark.estimated && 'is-estimated')}
                     style={fade ? { '--ui-chart-paint': `url(#${fade.id})` } as CSSProperties : undefined}
-                    d={fit ? barPath(mark, px(Math.min(FIT_CORNER, mark.w / 4))) : barPath(mark)}
+                    d={barPath(mark)}
                   />
                 );
               })}
