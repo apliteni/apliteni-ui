@@ -1,4 +1,4 @@
-// The finance dashboard showcase in React, under the vanilla page's title and id.
+// The dashboard showcase in React, under the vanilla page's title and id.
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { FinanceShell } from './_finance-shell';
@@ -12,7 +12,7 @@ import { cashflowStats, PERIODS, periodBasis } from './_finance-data.js';
 // @ts-expect-error -- plain JS story module
 import { salesHref } from './_finance-nav.js';
 
-const meta: Meta = { title: 'Showcases/Finance dashboard', id: 'apps-finance-dashboard', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Showcases/Dashboard', id: 'apps-finance-dashboard', parameters: { layout: 'fullscreen' } };
 export default meta;
 
 const PERIOD_BASIS = 'fd-period-basis';

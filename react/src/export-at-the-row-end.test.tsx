@@ -19,9 +19,9 @@ import * as Guideline from '../../stories/guidelines/DashboardsAndReports.storie
 
 /** The screens the kit draws an export on, and the dashboard, which draws none. */
 const SCREENS: Record<string, unknown> = {
-  'Finance report': Report.Default,
-  'Finance report, loading': Report.Loading,
-  'Finance dashboard': Dashboard.Default,
+  'Report': Report.Default,
+  'Report, loading': Report.Loading,
+  'Dashboard': Dashboard.Default,
   'Dashboards and reports guideline': Guideline.DashboardsAndReports,
 };
 

@@ -24,7 +24,7 @@ import { cashflowStats } from '../apps/_finance-data.js';
 
 const content = await loadGuideline('dashboards-and-reports.md', new URL('../../guidelines/dashboards-and-reports.md', import.meta.url));
 
-// One made-up portal supplies every specimen, and the Finance report showcase
+// One made-up portal supplies every specimen, and the Report showcase
 // prints the same sales with the same fees and nets: the ledger is the one
 // LEDGER export that stories/dashboard-report-refs.test.js holds in step.
 const Stage = ({ children }: { children: ReactNode }) => <div className="gd-stage">{children}</div>;

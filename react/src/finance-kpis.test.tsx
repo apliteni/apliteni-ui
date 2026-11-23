@@ -1,4 +1,4 @@
-/* Rule: the finance report's figures are the kit's stat band, and so is the skeleton
+/* Rule: the report's figures are the kit's stat band, and so is the skeleton
  * that holds their place. The band owns the fold, measured and pinned in
  * src/styles/stat.test.js, so what is left to hold here is that the screen uses it and
  * brings no layout of its own. The React half of stories/apps/finance-kpis.test.js (#429).
@@ -18,7 +18,7 @@ const mount = (story: unknown) => {
   return box;
 };
 
-describe('the finance report figures', () => {
+describe('the report figures', () => {
   it('are a stat band, one figure per term', () => {
     const band = mount(Report.Default).querySelector('.ui-stats');
     expect(band, 'the screen no longer draws its figures with the kit band').not.toBeNull();

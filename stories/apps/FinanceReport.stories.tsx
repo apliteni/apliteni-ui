@@ -1,4 +1,4 @@
-// The finance report showcase in React, under the vanilla page's title and id.
+// The report showcase in React, under the vanilla page's title and id.
 // A report, not a dashboard: it answers why and exactly how much, so it carries the
 // ledger in full, a filter row and one export. why: guidelines/dashboards-and-reports.md
 import type { Meta, StoryObj } from '@storybook/react';
@@ -18,7 +18,7 @@ import { PERIODS, periodBasis, periodStart } from './_finance-data.js';
 // @ts-expect-error -- plain JS story module
 import { salesRowId } from './_finance-nav.js';
 
-const meta: Meta = { title: 'Showcases/Finance report', id: 'apps-finance-report', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'Showcases/Report', id: 'apps-finance-report', parameters: { layout: 'fullscreen' } };
 export default meta;
 
 // What a reader narrows the ledger by. Both chips start unset: the ledger is every
@@ -29,8 +29,8 @@ const FILTERS = [
 ];
 const INITIAL_PERIOD = '1Y';
 
-// Net is gross less fees in every row. The references are the ones the Finance
-// dashboard and the Dashboards and reports guideline print, and every row carries
+// Net is gross less fees in every row. The references are the ones the Dashboard
+// and the Dashboards and reports guideline print, and every row carries
 // salesRowId()'s id, the name the dashboard's link uses for it.
 type Tone = 'success' | 'pending' | 'danger';
 const SALES: [string, string, string, string, string, string, Tone, string][] = [

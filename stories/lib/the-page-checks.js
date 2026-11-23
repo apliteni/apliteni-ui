@@ -313,7 +313,7 @@ export const CHECKS = {
     // required one, and this check used to. A line added only to satisfy a gate
     // is the restatement the rule exists to stop. The coverage test below is
     // what keeps the when-present half from passing on an empty set.
-    // why: Artur's r28 review of the Finance report, #505
+    // why: Artur's r28 review of the Report, #505
     if (!lede) return [];
     const problems = [];
     // Abbreviations end in a full stop and do not end a sentence. Counting

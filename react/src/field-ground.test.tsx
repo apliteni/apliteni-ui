@@ -57,7 +57,7 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-// 64 base fields, twelve invoice fields, one Card setting row Switch and the four
+// 64 base fields, one Card setting row Switch and the four
 // sign-in TextFields, then four from the foundation pages (#429 PR 4): one Switch on
 // each of the four Sub-themes panels. The Signal contrast field went with its page
 // (#758). Then six from the showcases (#429 PR 4): the agent name field on two Access screens and the four
@@ -68,8 +68,8 @@ const THEMES = ['dark', 'light'] as const;
 // above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
 // went with the stack layout, and the pinned scroll ledger took one), five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
-// the invoice table, the finance dashboard and Labels and titles. Then three search fields
-// in bars that had only chips (#736): two Finance report stories and the Finance
+// the dashboard and Labels and titles. Then three search fields
+// in bars that had only chips (#736): two Report stories and the Finance
 // comparison. The Stock screener's seven went with the showcase (#850).
 // Then three from the AccountWindow story (#736): the Profile section's two text fields and
 // its select. The other sections mount only when a reader opens them.
@@ -97,7 +97,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then the two form fields of the split Sign in story (#850).
 // Then the email and password fields in the two Session ended dialogs (#854).
 // Move this count with the specimens.
-const FIELD_COUNT = 199;
+const FIELD_COUNT = 186;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

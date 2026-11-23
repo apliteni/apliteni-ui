@@ -1,6 +1,6 @@
 /* Rule (the React half of stories/dashboard-report-refs.test.js, #429, read off the TSX
- * screens): a reference the Finance dashboard shows resolves to a row in the
- * Finance report it links to, and the Dashboards and reports guideline prints
+ * screens): a reference the Dashboard shows resolves to a row in the
+ * Report it links to, and the Dashboards and reports guideline prints
  * those same rows with the same figures and the same status.
  *
  * The kit's own pair did not: a reference the dashboard sent a reader after had
@@ -114,7 +114,7 @@ export const disagreements = (shown, report, where) => {
   for (const [reference, row] of shown) {
     const theirs = report.get(reference);
     if (!theirs) {
-      problems.push(`${where}: ${reference} is drawn and the Finance report has no such row`);
+      problems.push(`${where}: ${reference} is drawn and the Report has no such row`);
       continue;
     }
     for (const column of Object.keys(row)) {
@@ -133,7 +133,7 @@ const oneTable = (html, where) => {
   return rowsByReference(tables[0], where);
 };
 
-const reportLedger = () => oneTable(Report.render(), 'the Finance report');
+const reportLedger = () => oneTable(Report.render(), 'the Report');
 
 /** Every table on the guideline page that keys its rows by a reference. */
 const guidelineTables = () => {
@@ -144,7 +144,7 @@ const guidelineTables = () => {
 };
 
 test('every reference the dashboard shows is a row of the report, and says the same about it', () => {
-  const shown = oneTable(Dashboard.render(), 'the Finance dashboard');
+  const shown = oneTable(Dashboard.render(), 'the Dashboard');
   assert.ok(shown.size > 0, 'the dashboard lists no exceptions, so this gate is checking nothing');
 
   const compared = [...shown.values()][0];
@@ -171,7 +171,7 @@ test('the guideline prints the report\'s own rows, with its own figures and stat
   // the anti-vacuity guard — a walk that stops finding tables passes every
   // assertion above it.
   assert.equal(checked, 35, 'the guideline draws a different number of referenced rows; count the new specimen by hand');
-  assert.deepEqual(problems, [], `the guideline page and the Finance report disagree:\n  ${problems.join('\n  ')}`);
+  assert.deepEqual(problems, [], `the guideline page and the Report disagree:\n  ${problems.join('\n  ')}`);
 });
 
 // The gross is the one column the guideline keeps and never draws, so a
@@ -216,7 +216,7 @@ const blockLinks = (html, where) => {
       found.push({ where, kind: 'reference', text: plainText(a), href: a.getAttribute('href') });
     }
   }
-  // Round 38 removed the Finance dashboard's own card-head link, which lived
+  // Round 38 removed the Dashboard's own card-head link, which lived
   // here rather than in a control row under the table. No rendered screen puts
   // one in `.ui-card__sub` any more, so this finds nothing on the dashboard
   // today; it stays for a card that gains one again. why: Artur, round r33 (the
@@ -237,7 +237,7 @@ export const linkProblems = (links, rows) => {
   for (const { where, kind, text, href } of links) {
     const [path, row] = href.split('#');
     if (!path.includes(`id=${REPORT_STORY}`)) {
-      problems.push(`${where}: the ${kind} "${text}" links to ${href}, which is not the Finance report`);
+      problems.push(`${where}: the ${kind} "${text}" links to ${href}, which is not the Report`);
       continue;
     }
     if (kind === 'onward') {
@@ -263,7 +263,7 @@ test('every link in an exceptions block opens the report, and every reference op
   assert.equal(rows.size, 6, 'the report draws a different number of identified rows; count them by hand');
 
   const links = [
-    ...blockLinks(Dashboard.render(), 'the Finance dashboard'),
+    ...blockLinks(Dashboard.render(), 'the Dashboard'),
     ...blockLinks(DashboardsAndReports.render(), 'the guideline page'),
   ];
   // Three dashboard references and three in each of the four exceptions cards that link onward.
@@ -277,9 +277,9 @@ test('every link in an exceptions block opens the report, and every reference op
 test('a reference that still points at nothing is a finding', () => {
   const rows = reportRowIds();
   assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'SAL-1046', href: '#' }], rows),
-    ['x: the reference "SAL-1046" links to #, which is not the Finance report']);
+    ['x: the reference "SAL-1046" links to #, which is not the Report']);
   assert.deepEqual(linkProblems([{ where: 'x', kind: 'onward', text: 'All sales', href: '#' }], rows),
-    ['x: the onward "All sales" links to #, which is not the Finance report']);
+    ['x: the onward "All sales" links to #, which is not the Report']);
 });
 
 test('a reference opening the wrong row, or no row, is a finding', () => {
@@ -297,7 +297,7 @@ test('a reference opening the wrong row, or no row, is a finding', () => {
  * names it — the comparison itself, not a paraphrase of it. A source mutation
  * would be stronger still, and is what a reviewer runs; what these hold is that
  * the function every test above leans on cannot pass a changed value. */
-const dashboardRows = () => oneTable(Dashboard.render(), 'the Finance dashboard');
+const dashboardRows = () => oneTable(Dashboard.render(), 'the Dashboard');
 const withRow = (rows, reference, change) => new Map(rows).set(reference, { ...rows.get(reference), ...change });
 
 test('a renamed row leaves the dashboard pointing at nothing, and the gate says so', () => {
@@ -310,7 +310,7 @@ test('a renamed row leaves the dashboard pointing at nothing, and the gate says 
   renamed.delete(target);
   renamed.set(`${target}-renamed`, report.get(target));
   assert.deepEqual(disagreements(shown, renamed, 'x'),
-    [`x: ${target} is drawn and the Finance report has no such row`]);
+    [`x: ${target} is drawn and the Report has no such row`]);
 });
 
 test('a status that drifts between the two screens turns the gate red', () => {
@@ -411,7 +411,7 @@ export const arrivalProblems = ({ text, row, landed, doc, scrolled }) => {
 };
 
 test('every reference the dashboard draws lands a reader on its own row of the report', () => {
-  const references = blockLinks(Dashboard.render(), 'the Finance dashboard').filter((l) => l.kind === 'reference');
+  const references = blockLinks(Dashboard.render(), 'the Dashboard').filter((l) => l.kind === 'reference');
   // Three exceptions on the dashboard, and the count is the anti-vacuity guard: a walk
   // that stops finding links passes every assertion under it.
   assert.equal(references.length, 3, `found ${references.length} references on the dashboard, not the three it draws`);
@@ -615,7 +615,7 @@ const pick = (root: Element, id: string, value: string) => {
   act(() => { fireEvent.click(row!); });
 };
 
-test('the Finance report filters Paid rows and clears both filters, and its figures follow', () => {
+test('the Report filters Paid rows and clears both filters, and its figures follow', () => {
   const doc = live(ReportStories.Default);
   const figures = () => [...doc.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
   const atRest = figures();
@@ -656,7 +656,7 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.deepEqual(figures(), atRest);
 });
 
-test('the Finance dashboard period changes its totals and trends', () => {
+test('the Dashboard period changes its totals and trends', () => {
   const dashboard = live(DashboardStories.Default);
   const figures = () => [...dashboard.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
   const yearly = figures();

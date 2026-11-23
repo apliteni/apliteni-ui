@@ -6,7 +6,7 @@ export const RULES = content.rules;
 // The shape of a rule and the gates that walk this page: docs/components.md
 import { CHART_CSS } from '../_chart.js';
 
-// One made-up portal supplies every specimen, and the Finance report showcase
+// One made-up portal supplies every specimen, and the Report showcase
 // prints the same sales with the same fees and nets —
 // react/src/dashboard-report-refs.test.tsx holds the two in step. The halves of a
 // pair differ in one decision.
@@ -40,7 +40,7 @@ export const ESTIMATED = [17.5, 17.8, 18.1, 18.4, 18.7, 19.0];
 
 // Reference, fees, net, status. A fifth column does not fit a specimen cell,
 // so the gross stays here undrawn: it is what makes each net checkable, and
-// the Finance report prints it in a column this cell has no room for.
+// the Report prints it in a column this cell has no room for.
 // react/src/dashboard-report-refs.test.tsx reads it from this export and holds it
 // against the report's, so the agreement is measured rather than asserted.
 export const LEDGER = [
