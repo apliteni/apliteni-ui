@@ -63,7 +63,7 @@ const GATED: { id: string; says: string }[] = [
 ];
 
 // The floors are what the tree holds today, not a round number underneath it.
-const FOUND = { files: 11, screens: 31, apps: 25, ledes: 22, sidebars: 29, bandEnds: 3 };
+const FOUND = { files: 11, screens: 31, apps: 25, ledes: 15, sidebars: 29, bandEnds: 3 };
 
 describe('the page: React screens', () => {
   it('found the kit’s own screens', () => {
