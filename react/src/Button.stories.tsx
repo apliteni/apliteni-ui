@@ -39,7 +39,7 @@ export const Outline: StoryObj = {
   name: 'Outline (icon only)',
   render: () => canvas(<>
     {specimen('Outline — idle', <Button variant="outline" icon="copy" iconOnly aria-label="Copy" />)}
-    {specimen('Outline — focus', <Button variant="outline" icon="chevronRight" iconOnly aria-label="Next" />)}
+    {specimen('Outline — second glyph', <Button variant="outline" icon="chevronRight" iconOnly aria-label="Next" />)}
   </>),
 };
 
