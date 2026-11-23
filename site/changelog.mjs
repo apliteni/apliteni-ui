@@ -20,6 +20,7 @@ export const RELEASES = [
       ['fixed', 'In light, a hover table held directly in a card no longer clips its last row against the card edge. The dark theme keeps its full-bleed table. Resolves #850.', ['Table']],
       ['changed', 'A `Snippet` copy button now shows a check with the word "Copied" for about two seconds after a copy, then returns to the copy glyph. Resolves #850.', ['Snippet']],
       ['changed', 'A `StatBand` tile row draws every figure at one size and, in light, keeps a soft line around each tile, so tightly placed figures stay separate. Resolves #850.', ['StatBand']],
+      ['added', '`AppShell` no longer needs a `title`. Omit it and the shell draws no title band, so a full-bleed page can own its own heading. Resolves #850.', ['AppShell']],
       ['added', 'The page guideline gains two rules: Brand the background behind a dialog page, and The sign-in note names who can sign in. The colour guideline lets a code block keep its grey fill in light. Resolves #850.', ['Guidelines']],
     ],
   },

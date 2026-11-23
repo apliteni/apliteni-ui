@@ -1,0 +1,36 @@
+/* A general split layout: the task column on the page ground, and a document on its
+   own full-bleed ground. The document ground is the proposed token
+   --ui-document-ground, which today is var(--surface-2). why: #850 round 31 */
+.split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* The document ground cancels the page's own padding and runs flush to the page
+     edge, the top and the bottom. The figures match .ui-app__main's padding. */
+  margin-block: -40px -72px;
+  margin-inline-end: calc(-1 * clamp(24px, 4vw, 56px));
+}
+/* The task keeps the page's own top and bottom inset, so its title reads at the
+   page's normal x and y. */
+.split-layout__task { padding-block: 40px 72px; }
+.split-layout__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+/* The document ground is a bare full-bleed surface: no card, no round corner. The
+   A4 page sits on it at document size. */
+.split-layout__document {
+  background: var(--ui-document-ground, var(--surface-2));
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--space-6);
+}
+.split-layout__sheet { width: var(--panel-md); max-width: 100%; }
+/* On a phone the two panes stack, and the page scrolls: the document is taller than
+   one screen. The ground keeps the page's own inset again. */
+@media (max-width: 860px) {
+  .split-layout { grid-template-columns: minmax(0, 1fr); margin: 0; }
+  .split-layout__task { padding-block: 0; }
+}

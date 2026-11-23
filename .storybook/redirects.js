@@ -168,6 +168,7 @@ export const KEPT = [
   'apps-sign-in-oauth2--default',
   'apps-sign-in-oauth2--error',
   'apps-sign-in-oauth2--google-only',
+  'apps-split-layout--default',
   'components-feature-grid--default',
   'foundations-backgrounds--default',
   'foundations-backgrounds--dots',

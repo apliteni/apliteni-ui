@@ -94,7 +94,7 @@ const subjects: string[] = [...new Set([
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 73, declarations: 514, carriers: 51, sheets: 5 };
+const FOUND = { subjects: 75, declarations: 533, carriers: 52, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -185,6 +185,10 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
+  // The full-bleed document ground paints the proposed --ui-document-ground token
+  // (var(--surface-2) today). The kit has no bare full-bleed surface yet; the PR
+  // names the token so the part can be adopted. #850
+  'react/src/showcases/SplitLayout.css': { shadow: 1 },
   // The showcases' figures as the vanilla gate recorded them for the same screens.
   'stories/apps/Access.stories.tsx': { shadow: 2 },
 };
@@ -204,7 +208,7 @@ describe('story CSS', () => {
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
-      'react/src/showcases/Notifications.css',
+      'react/src/showcases/Notifications.css', 'react/src/showcases/SplitLayout.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.
