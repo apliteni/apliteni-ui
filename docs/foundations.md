@@ -298,6 +298,10 @@ The ladder, from bottom to top:
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
 
+`--ui-document-ground` names the bare backdrop behind a document sheet, and aliases
+`--surface-2` in both themes. Use the class `.ui-document-ground` to paint it, so a page reads
+its own ground rather than re-declaring the token. #850
+
 **The auth ground sits outside the ladder.** `--ui-auth-ground` is the gradient behind a
 sign-in or consent page, and the auth card floats over it. The default split sign-in ground C
 measures 1.60:1 to 1.51:1 in light and 1.08:1 to 1.04:1 in dark against the card, below the

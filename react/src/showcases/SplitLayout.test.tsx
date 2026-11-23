@@ -47,9 +47,12 @@ describe('split layout showcase', () => {
     expect(within(documentPane).getByRole('article', { name: 'Document' })).toBeInTheDocument();
   });
 
-  it('paints the document ground with the proposed token, falling back to the kit surface', () => {
-    expect(SHEET).toMatch(/\.split-layout__document \{\s*background: var\(--ui-document-ground, var\(--surface-2\)\);/);
-    // The ground is bare: no card class, no round corner.
+  it('puts the document on the kit document ground, not a showcase paint', () => {
+    render(<Default />);
+    const documentPane = document.querySelector('.split-layout__document') as HTMLElement;
+    expect(documentPane.classList.contains('ui-document-ground')).toBe(true);
+    // The showcase sheet places the pane; the kit class paints the ground.
+    expect(SHEET).not.toMatch(/\.split-layout__document[^}]*background/);
     expect(SHEET).not.toMatch(/\.split-layout__document[^}]*border-radius/);
   });
 

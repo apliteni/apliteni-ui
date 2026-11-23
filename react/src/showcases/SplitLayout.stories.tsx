@@ -6,7 +6,7 @@ import './SplitLayout.css';
 
 // A general split layout: the task (title, fields, Approve and Request changes) on the
 // page ground, beside a document on its own full-bleed ground. The document ground is
-// the proposed token --ui-document-ground (var(--surface-2) today), named in the PR.
+// the kit's .ui-document-ground, which paints --ui-document-ground.
 // why: #850 round 31, split-c
 const fields = [
   { label: 'Prepared by', value: 'Cedar Studio' },
@@ -48,7 +48,7 @@ export const Default: StoryObj = {
             <Button variant="ghost">Request changes</Button>
           </div>
         </div>
-        <div className="split-layout__document">
+        <div className="split-layout__document ui-document-ground">
           {/* The document page sits at document size on the full-bleed ground. */}
           <article className="ui-card__page split-layout__sheet" aria-label="Document">
             <h2>Service agreement</h2>

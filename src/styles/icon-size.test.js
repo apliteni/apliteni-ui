@@ -60,7 +60,9 @@ const src = path.resolve(here, '..');
 // `.ui-seg button svg` sizes a segment's glyph, a width and a height in one rule).
 // 72 under #736: the breadcrumb styles are removed, with the crumb glyph's width
 // and height.
-const EXPECTED_SUBJECTS = 72;
+// 74 (#850): `.ui-card__glyph svg` sizes a card row's leading or trailing glyph, a
+// width and a height in one rule.
+const EXPECTED_SUBJECTS = 74;
 
 const SHEETS = kitSheetNames(src);
 

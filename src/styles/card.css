@@ -255,3 +255,22 @@
   flex: none;
 }
 .ui-card__icon svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* A line glyph leading or trailing a card row: 18px with a 2-unit stroke, which draws
+   the 1.5px graphic bar. A row glyph is a mark beside words, so it is muted unless a
+   state says otherwise; the success modifier is a check that confirms a granted item.
+   why: docs/foundations.md#icons-and-glyphs */
+.ui-card__glyph {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  /* muted-ink: glyph — a row glyph is a mark beside words */
+  color: var(--muted);
+}
+.ui-card__glyph svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+.ui-card__glyph--success { color: var(--chip-success-ink); }
+
+/* A block that must stand apart from the one above it, drawn as a hairline on its top
+   edge. Dark cards are boxed and already separate; the light card is unboxed, so only
+   the light rule draws. why: docs/components.md#card */
+:root[data-theme="light"] .ui-card.ui-hairline { border-top: 1px solid var(--border); }

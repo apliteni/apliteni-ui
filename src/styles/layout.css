@@ -725,6 +725,10 @@
 .ui-divider { display: flex; align-items: center; gap: 14px; margin: var(--space-10) 0; color: var(--text); font-size: var(--text-sm); font-weight: var(--weight-medium); }
 .ui-divider::before, .ui-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
+/* The document page's bare full-bleed backdrop, behind the A4 sheet it carries.
+   why: docs/foundations.md#elevation */
+.ui-document-ground { background: var(--ui-document-ground); /* code-bg: inherit — a backdrop behind the document sheet; nothing reads a ground from it. */ }
+
 /* App scope grant list (OAuth consent) */
 .ui-scopes { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 8px; }
 .ui-scope { display: flex; gap: 13px; padding: 13px 4px; }

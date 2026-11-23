@@ -95,7 +95,7 @@ const subjects: string[] = [...new Set([
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736). The
 // Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet.
-const FOUND = { subjects: 75, declarations: 553, carriers: 52, sheets: 6 };
+const FOUND = { subjects: 75, declarations: 541, carriers: 52, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -186,12 +186,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
-  // The full-bleed document ground paints the proposed --ui-document-ground token
-  // (var(--surface-2) today). The kit has no bare full-bleed surface yet; the PR
-  // names the token so the part can be adopted. #850
-  'react/src/showcases/SplitLayout.css': { shadow: 1 },
-  // The showcases' figures as the vanilla gate recorded them for the same screens.
-  'stories/apps/Access.stories.tsx': { shadow: 7 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };

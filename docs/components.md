@@ -789,9 +789,18 @@ titled card puts its Chart and Table switch there.
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
 line below 360px.
 
+**A row glyph.** Use `.ui-card__glyph` for a muted mark at the end of a card row, such as the
+chevron that opens a detail page. Use `.ui-card__glyph--success` for a granted check. The glyph
+is 18px with a 2-unit stroke, so it clears the glyph floor. Use `.ui-link--quiet` for a name in
+the row that links to its detail page: body ink at rest, underlined under the pointer.
+
+**A block that ends a card.** Give a `Card` the class `ui-hairline` to draw a top line above a
+closing block, such as a revoke or delete area. The line is `--border` in light and none in dark.
+
 **A document in a card.** Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a
-white sheet with dark text in both themes, with A4 proportions at the least.
+white sheet with dark text in both themes, with A4 proportions at the least. For a document on a
+bare full-bleed backdrop instead of a card, use `.ui-document-ground`.
 
 ### Badge, pill and status dot
 

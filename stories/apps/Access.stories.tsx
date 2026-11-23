@@ -12,28 +12,22 @@ import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
+import { KeyValueList } from '../../react/src/KeyValueList';
 import { TextField, SelectField } from '../../react/src/Field';
 import { Confirm } from '../../react/src/Confirm';
 
 const meta: Meta = { title: 'Showcases/Access & Agents', id: 'apps-access-agents', parameters: { layout: 'fullscreen' } };
 export default meta;
 
-// The showcase's own glue and the paints the kit has no part for. A granted access
-// check reads in success ink, the agent name keeps body ink with its underline only
-// under the pointer, the row-end chevron is muted, and the revoke area stands apart
-// behind a hairline. The check and chevron sit at 18px so their 2-unit stroke clears
-// the 1.5px floor. #850
+// The showcase's own layout glue: it places kit parts, and paints nothing. The
+// name and status lead each row in body ink via `.lab`, the scope and the facts
+// take `.hint`, the row-end chevron is the kit's `.ui-card__glyph`, and the
+// granted check is its success modifier. #850
 const CSS = `<style>
-.acc-check { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; color: var(--chip-success-ink); }
-.acc-check svg, .acc-chevron svg { width: 18px; height: 18px; stroke-width: 2; }
-.acc-link { color: inherit; }
-.acc-link:hover { text-decoration: underline; }
 .acc-name { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .acc-agent { flex: 1; min-width: 0; }
-.acc-chevron { display: inline-flex; flex: none; color: var(--muted); }
-.acc-value { font-size: var(--text-sm); }
+.acc-check { display: inline-flex; align-items: center; gap: var(--space-2); min-width: 0; }
 .acc-facts { display: flex; flex-wrap: wrap; column-gap: var(--space-4); }
-.acc-revoke { border-top: 1px solid var(--border); }
 .acc-narrow { max-width: 30rem; }
 .acc-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
 </style>`;
@@ -59,11 +53,11 @@ const AGENTS = [
 const AgentRow = ({ agent }: { agent: (typeof AGENTS)[number] }) => (
   <div className="ui-card__row">
     <div className="acc-agent">
-      <div className="lab acc-name"><a className="acc-link" href="#agent">{agent.name}</a> <Badge variant={agent.live ? 'live' : 'archive'}>{agent.live ? 'Active' : 'Revoked'}</Badge></div>
+      <div className="lab acc-name"><a className="ui-link--quiet" href="#agent">{agent.name}</a> <Badge variant={agent.live ? 'live' : 'archive'}>{agent.live ? 'Active' : 'Revoked'}</Badge></div>
       <div className="hint">{agent.scope}</div>
       <div className="hint acc-facts"><span>{agent.last}</span><span>{agent.exp}</span></div>
     </div>
-    <span className="acc-chevron"><Icon name="chevronRight" /></span>
+    <span className="ui-card__glyph"><Icon name="chevronRight" /></span>
   </div>
 );
 
@@ -74,10 +68,10 @@ const AgentList = () => (
 const CREATE_TOOL = <Button variant="primary" icon="key">Create key</Button>;
 
 const SCOPES = ['Read invoices', 'Send invoices'];
-const FACTS: [string, string][] = [
-  ['Created', '12 Sep 2026'],
-  ['Last use', 'Today'],
-  ['Expires', '30 Sep 2027'],
+const FACTS = [
+  { label: 'Created', value: '12 Sep 2026' },
+  { label: 'Last use', value: 'Today' },
+  { label: 'Expires', value: '30 Sep 2027' },
 ];
 
 export const Default: StoryObj = {
@@ -90,16 +84,12 @@ export const AgentPage: StoryObj = {
     <Card title="Access">
       {SCOPES.map((scope) => (
         <div className="ui-card__row" key={scope}>
-          <span className="acc-check"><Icon name="circleCheck" /><span className="lab">{scope}</span></span>
+          <span className="acc-check"><span className="ui-card__glyph ui-card__glyph--success"><Icon name="circleCheck" /></span><span className="lab">{scope}</span></span>
         </div>
       ))}
     </Card>
-    <Card title="Details">
-      {FACTS.map(([label, value]) => (
-        <div className="ui-card__row" key={label}><span className="lab">{label}</span><span className="acc-value">{value}</span></div>
-      ))}
-    </Card>
-    <Card className="acc-revoke" title="Revoke access" sub="The key stops at once. The agent loses its access.">
+    <Card title="Details"><KeyValueList rows={FACTS} /></Card>
+    <Card className="ui-hairline" title="Revoke access" sub="The key stops at once. The agent loses its access.">
       <Button variant="danger">Revoke access</Button>
     </Card>
   </Screen>,

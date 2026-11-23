@@ -64,7 +64,7 @@
   ],
   "ring-contrast": [
    {
-    "ref": "src/styles/base.css:158",
+    "ref": "src/styles/base.css:164",
     "pattern": "outline: var(--ring);"
    }
   ],
@@ -74,11 +74,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:205",
+    "ref": "src/tokens/tokens.css:208",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:211",
+    "ref": "src/tokens/tokens.css:214",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:223",
+    "ref": "src/tokens/tokens.css:226",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:102",
+    "ref": "stories/apps/Access.stories.tsx:93",
     "pattern": "Revoke access"
    }
   ],
@@ -524,7 +524,7 @@
  "_labels-and-titles.js": {
   "text-ink": [
    {
-    "ref": "src/styles/base.css:123",
+    "ref": "src/styles/base.css:129",
     "pattern": "color: var(--text);"
    }
   ],
@@ -536,7 +536,7 @@
   ],
   "sentence-case": [
    {
-    "ref": "src/styles/base.css:117",
+    "ref": "src/styles/base.css:123",
     "pattern": "in sentence case like every"
    },
    {
@@ -570,7 +570,7 @@
   ],
   "eyebrow-names-the-kind": [
    {
-    "ref": "src/styles/base.css:120",
+    "ref": "src/styles/base.css:126",
     "pattern": "rank: label"
    }
   ],
@@ -588,7 +588,7 @@
  "_layout-and-density.js": {
   "container": [
    {
-    "ref": "src/styles/base.css:114",
+    "ref": "src/styles/base.css:120",
     "pattern": "max-width: var(--container)"
    },
    {
@@ -860,15 +860,15 @@
  "_state-set.js": {
   "focus-visible": [
    {
-    "ref": "src/styles/base.css:151",
+    "ref": "src/styles/base.css:157",
     "pattern": ".ui-focusable:focus-visible,"
    },
    {
-    "ref": "src/styles/base.css:158",
+    "ref": "src/styles/base.css:164",
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:312",
+    "ref": "src/tokens/tokens.css:315",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],

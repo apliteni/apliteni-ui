@@ -155,6 +155,9 @@
   --code-chip-surface: var(--bg);    /* a chip in a painted container takes the page */
   /* The auth page's branded ground, brand C: a 135-degree gradient a product may override. */
   --ui-auth-ground: linear-gradient(135deg, color-mix(in srgb, var(--color-apliteni-violet-1) 32%, var(--bg)), color-mix(in srgb, var(--color-apliteni-blue-1) 24%, var(--bg)));
+  /* The document page's bare backdrop, behind the A4 sheet: the same sunken rung a
+     table takes inside a viewer, named once so a page reads it as its own ground. */
+  --ui-document-ground: var(--surface-2);
   --surface-2: #161520;     /* non-text sunken marks and tracks */
   --surface: #211e2d;       /* the card */
   --bg-elevated: #2a2639;   /* FLOATING — menus, panels, drawer, modal, toasts */
@@ -410,6 +413,9 @@
   --code-chip-surface: var(--surface-3);
   /* The auth page's branded ground, brand C: a 135-degree gradient a product may override. */
   --ui-auth-ground: linear-gradient(135deg, var(--color-apliteni-violet-7), var(--color-apliteni-blue-8));
+  /* The document page's bare backdrop, behind the A4 sheet: the same sunken rung a
+     table takes inside a viewer, named once so a page reads it as its own ground. */
+  --ui-document-ground: var(--surface-2);
   --surface-2: #e9ecf3;     /* non-text sunken marks and tracks */
   --surface: #ffffff;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
