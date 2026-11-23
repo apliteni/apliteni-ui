@@ -118,8 +118,9 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
 /* Measured, not guessed: the figures as this gate last audited them. Every one is a
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
- * React showcases are the subjects. #758 removed the Signal contrast page. */
-const FOUND = { subjects: 17, served: 48, declarations: 67, carriers: 8, sheets: 0 };
+ * React showcases are the subjects. #758 removed the Signal contrast page. #850 removed
+ * the Stock screener showcase. */
+const FOUND = { subjects: 16, served: 47, declarations: 58, carriers: 7, sheets: 0 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -137,13 +138,6 @@ const ALLOWED = {
   // A card's width is the page's decision, not the card's: the kit gives .ui-card a
   // ground, a frame and padding, and lets the column it sits in say how wide it is.
   'stories/apps/EmptyStates.stories.tsx|.ui-toolbar': 'the page stacks the toolbar by hand',
-
-  // A fifteen-column table has to be wider than its scroll region or nothing scrolls,
-  // and the region has to say how tall it is. Both are the page answering a question the
-  // kit asks: src/styles/table.css reads --ui-table-height with a fallback.
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-table': 'fifteen columns are wider than the viewport',
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-table-scroll': 'the page stacks the scroll region by hand',
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-identity__name': 'a company name does not wrap mid-row',
 };
 
 /* ---- the glue ceiling --------------------------------------------------- */
@@ -184,7 +178,6 @@ const RECORDED = {
   'stories/_chart.js': { shadow: 15 },
   'stories/_gallery.js': { shadow: 2 },
   'stories/apps/Access.stories.tsx': { shadow: 2 },
-  'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };

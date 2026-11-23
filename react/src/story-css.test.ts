@@ -125,11 +125,6 @@ const ALLOWED: Record<string, string> = {
   'react/src/PeriodPicker.stories.tsx|.ui-card__title': 'the title is the first line of this card',
   'react/src/Landing.stories.tsx|.ui-section-head': 'the accent card closes its heading with the card padding',
   'stories/apps/EmptyStates.stories.tsx|.ui-toolbar': 'the page stacks the toolbar by hand',
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-table-scroll': 'the page stacks the scroll region by hand',
-
-  // Fifteen columns cannot fit a viewport, and a company name must not wrap mid-row.
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-table': 'fifteen columns are wider than the viewport',
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-identity__name': 'a company name does not wrap mid-row',
 
   // One column of one table reads left because it holds text. The kit right-aligns a
   // footer label on the assumption it spans to sit against its figure; here it owns a
@@ -197,7 +192,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/showcases/InvoiceFlow.css': { glue: 24 },
   // The showcases' figures as the vanilla gate recorded them for the same screens.
   'stories/apps/Access.stories.tsx': { shadow: 2 },
-  'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };

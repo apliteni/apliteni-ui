@@ -68,9 +68,9 @@ const THEMES = ['dark', 'light'] as const;
 // above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
 // went with the stack layout, and the pinned scroll ledger took one), five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
-// the invoice table, the finance dashboard and Labels and titles. Then ten search fields
-// in bars that had only chips (#736): seven Stock screener stories, two Finance report
-// stories and the Finance comparison.
+// the invoice table, the finance dashboard and Labels and titles. Then three search fields
+// in bars that had only chips (#736): two Finance report stories and the Finance
+// comparison. The Stock screener's seven went with the showcase (#850).
 // Then three from the AccountWindow story (#736): the Profile section's two text fields and
 // its select. The other sections mount only when a reader opens them.
 // Then four search fields from the DataTable members stories (#770), one above each
@@ -97,7 +97,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then the two form fields of the split Sign in story (#850).
 // Then the email and password fields in the two Session ended dialogs (#854).
 // Move this count with the specimens.
-const FIELD_COUNT = 206;
+const FIELD_COUNT = 199;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

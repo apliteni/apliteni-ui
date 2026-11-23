@@ -70,8 +70,6 @@
 
 **Why:** Narrowing the question, or taking the rows away, needs no second screen.
 
-**Gap #555:** The kit's Stock screener is a report with filters and no export.
-
 **Do:** A filter row above the table, the export at its end.
 
 **Don't:** A table alone, its period fixed when it was built.
