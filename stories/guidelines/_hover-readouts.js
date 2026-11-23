@@ -25,8 +25,20 @@ export const SPEC_CSS = `${CHART_CSS}
        card body does, with less room above the tallest bar than a readout needs. */
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
       box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-8) var(--space-3) 0; }
-    /* The open readouts are placed in pixels at their measured anchors, so a long one
-       can reach past the page on a phone. Clip the page sideways, as the live wiring
-       clamps the readout into the viewport; the page never scrolls sideways. */
-    .gl-page { overflow-x: clip; }
+    /* The open readouts sit at fixed pixel anchors, so on a phone the long one can
+       reach past the column. Clamp it the way the wiring does: the horizontal
+       translate is the smaller of the centred half-width and the distance that
+       keeps the box inside the column, and max-width makes it wrap to the column.
+       why: docs/foundations.md#boxes-below-the-page */
+    @media (max-width: 560px) {
+      .gh-host .ui-tip {
+        max-width: calc(100vw - var(--space-10) * 2);
+        translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--ui-tip-x) - 100%))
+          calc(-100% - var(--ui-tip-gap));
+      }
+      .gh-host .ui-tip.is-below {
+        translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--ui-tip-x) - 100%))
+          var(--ui-tip-gap);
+      }
+    }
   </style>`;

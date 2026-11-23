@@ -119,7 +119,7 @@ const sourceAmong = (invented = {}) => (file) => invented[file]
  * lower bound, so the gate fails when the reading stops reaching something rather than
  * when the collection grows. #429 PR 5b re-audited: the vanilla stories left, and the
  * React showcases are the subjects. #758 removed the Signal contrast page. */
-const FOUND = { subjects: 17, served: 48, declarations: 67, carriers: 8, sheets: 0 };
+const FOUND = { subjects: 17, served: 48, declarations: 67, carriers: 8, sheets: 0, flatBar: 131 };
 
 const tokens = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -276,23 +276,67 @@ test('the allow-list holds layout glue and nothing else', () => {
 /* The owner chose one bar style on #863 (rev_974c6e53d751/d4): a round measured end, a
  * square foot on zero, and a fade ramp. The old helper drew a <rect class="ch-bar"> with
  * 2 px corners and a flat fill. A story that brings the rect back reintroduces the second
- * style the owner dropped, so the rect is its own check. */
-const flatBarRect = /<rect\b[^>]*\bclass="ch-bar\b/;
+ * style the owner dropped, so the rect is its own check.
+ *
+ * Source-only limit: this reads the files under stories/, not rendered paint. A rect whose
+ * class list is assembled at run time, or that reaches its class through a variable, walks
+ * past it — and so does a rect whose class sits after a `>` inside a quoted attribute
+ * value. The subject count below fails the gate when the sweep stops reaching files, so a
+ * sweep that discovers nothing does not read as a page with no old rect. */
+
+/** The files the flat-bar sweep measures: every file under stories/ that is not a test. */
+const flatBarFiles = (files) => files.filter((f) => !/\.test\.(?:js|tsx?|ts)$/.test(f));
+
+/** Does `source` draw the old flat bar rect? The whole, space-separated class list of
+ * each <rect> is read, so `class="other ch-bar"` and `class="ch-bar other"` are the old
+ * rect, and a class that merely starts with `ch-bar` is not. */
+const drawsFlatBarRect = (source) => {
+  for (const m of source.matchAll(/<rect\b[^>]*?\sclass="([^"]*)"[^>]*>/g)) {
+    if (m[1].split(/\s+/).includes('ch-bar')) return true;
+  }
+  return false;
+};
+
+/** The offenders among `files`, read through `sourceOf` — the same two functions the real
+ * sweep uses, so a mutation runs the gate, not a copy of it. */
+const flatBarOffenders = (files, sourceOf) => flatBarFiles(files).filter((f) => drawsFlatBarRect(sourceOf(f)));
+
+const barFiles = filesUnder('stories');
 
 test('no story or guideline page draws the old flat bar rect', () => {
-  const offenders = filesUnder('stories')
-    .filter((f) => !/\.test\.(?:js|tsx?|ts)$/.test(f))
-    .filter((f) => flatBarRect.test(read(f)));
+  const offenders = flatBarOffenders(barFiles, read);
   assert.deepEqual(offenders, [], 'a story still draws the old flat bar rect: '
     + `${offenders.join(', ')}. Draw bars as paths with a round measured end, a square `
     + 'foot on zero, and a fade ramp.');
 });
 
-test('the flat-bar gate reports a reintroduced flat bar rect', () => {
-  assert.ok(flatBarRect.test('<rect class="ch-bar" x="1" y="2" width="10" height="20" rx="2">'),
-    'the old flat bar rect was not recognised');
-  assert.ok(!flatBarRect.test('<path class="ch-bar" fill="url(#ch-bar-fade-0)" d="M0 0h10v20z">'),
-    'the current path bar read as a flat rect');
+test('the flat-bar sweep measured subjects', () => {
+  assert.ok(flatBarFiles(barFiles).length >= FOUND.flatBar, `only ${flatBarFiles(barFiles).length} `
+    + `files under stories/ were measured for the old flat bar rect, against ${FOUND.flatBar} `
+    + 'when this gate was written. A sweep that stops reaching files passes every story.');
+});
+
+test('the flat-bar gate reports a reintroduced flat bar rect, whatever class it sits next to', () => {
+  const file = 'stories/invented/Flat.stories.tsx';
+  for (const tag of [
+    '<rect class="ch-bar" x="1" y="2" width="10" height="20" rx="2">',
+    '<rect class="other ch-bar" x="1" y="2" width="10" height="20" rx="2">',
+    '<rect class="ch-bar other" x="1" y="2" width="10" height="20" rx="2">',
+  ]) {
+    const offenders = flatBarOffenders([...files, file], sourceAmong({ [file]: tag }));
+    assert.ok(offenders.includes(file), `\`${tag}\` read as no old flat bar rect`);
+  }
+  assert.deepEqual(
+    flatBarOffenders([...files, file], sourceAmong({ [file]: '<path class="ch-bar" fill="url(#x)" d="M0 0h10v20z"></path>' })),
+    [], 'the current path bar read as a flat rect');
+  assert.deepEqual(
+    flatBarOffenders([...files, file], sourceAmong({ [file]: '<rect class="ch-bar-other" x="1" y="2" width="10" height="20" rx="2">' })),
+    [], 'a rect whose class merely starts with ch-bar read as the old flat bar rect');
+});
+
+test('the flat-bar gate fails when it discovers no files', () => {
+  assert.ok(flatBarFiles([]).length < FOUND.flatBar, 'an empty sweep read as enough measured subjects');
+  assert.deepEqual(flatBarOffenders([], read), [], 'an empty sweep reported an offender');
 });
 
 /* ---- anti-vacuity: the gate rejects what #601 was opened about ---------- */

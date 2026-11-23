@@ -18,7 +18,7 @@ const content = await loadGuideline('hover-readouts.md', new URL('../../guidelin
 // readout placed in pixels has to sit on a chart drawn in pixels.
 const HOT = 10;
 type Text = { label: string; value: string; detail: string };
-const Host = ({ children }: { children: ReactNode }) => <div className="ui-tip-host" style={{ width: 'max-content' }}>{children}</div>;
+const Host = ({ children }: { children: ReactNode }) => <div className="ui-tip-host gh-host" style={{ width: 'max-content' }}>{children}</div>;
 
 // The KPI card from the finance portal's overview, and the card under it: the
 // one that moves when a readout is written into the first.
