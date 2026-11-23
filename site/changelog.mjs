@@ -6,8 +6,10 @@
 
 export const RELEASES = [
   {
-    v: '0.189.0', date: '2026-11-22',
+    v: '0.190.0', date: '2026-11-22',
     changes: [
+      ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],
+      ['added', '`Modal` takes `size="sm"` for a 360px panel when a short sign-in form must stay narrow. Other Modals keep their default width. Resolves #854.', ['Modal']],
       ['changed', 'The light theme page is now white, and the card surface is the same white. A page groups its content with space and edges instead of card fills. This changes the look of every light-theme screen, so a screen that sized or shaded against the old grey page or the old white cards must be reviewed. The dark theme is unchanged. Resolves #850.', ['Card', 'Table']],
       ['changed', 'In the light theme, a code block keeps its quiet grey fill: a reader never writes in one, so the grey does not read as disabled, and its ink still clears 4.5:1. Resolves #850.', ['Snippet']],
       ['added', 'A sign-in page takes a split layout: a branded panel with the wordmark and a tagline stands beside the form on wide screens and above it on phones. Resolves #850.', ['Card']],

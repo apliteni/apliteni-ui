@@ -51,7 +51,7 @@ const prose = (root: Element) => {
 
 describe('guideline pages in React: the collection', () => {
   it('finds every guideline page, the Overview included', () => {
-    expect(files.length, 'update the count when a guideline page is added').toBe(28); // 28: Notifications added (#798).
+    expect(files.length, 'update the count when a guideline page is added').toBe(29); // 29: Session expired added (#854).
   });
 
   // Stands in for stories/guidelines/overview.test.js: every page keeps the id its
@@ -154,6 +154,38 @@ describe('guideline pages in React: the confirm picture is the Modal', () => {
     const { container } = render(<ConfirmPicture title="Delete?" body="It goes." cancelLabel="Keep" confirmLabel="Delete" />);
     const drawn = new Set([...container.querySelectorAll('[class]')].flatMap(el => [...el.classList]).filter(name => name.startsWith('rx-')));
     expect([...drawn].sort()).toEqual([...declared].sort());
+  });
+});
+
+/* The session-ended pair is a page fragment, not an application shell. The dialog
+ * stays over that fragment, so the reader can see where work continues in a cell. */
+describe('guideline pages in React: Session expired', () => {
+  const page = pages.find(p => p.file.endsWith('/SessionExpired.stories.tsx'))!;
+  it('keeps the sign-in dialog over a page-only picture', () => {
+    const doSide = mount(page).querySelector('[data-rule="sign-in-same-page"] [data-specimen="do"]')!;
+    const picture = doSide.querySelector('.se-page')!;
+    const dialog = picture.querySelector('.se-page__dialog .rx-modal');
+    expect(picture, 'the session picture has no page area').toBeTruthy();
+    expect(picture).toHaveClass('se-page--dialog-tall');
+    expect(doSide.querySelector('.ui-app'), 'a specimen must not compress the full application shell').toBeNull();
+    expect(picture.querySelector('.se-page__title')?.textContent).toBe('Payouts');
+    expect(picture.querySelectorAll('.ui-skel').length).toBeGreaterThan(1);
+    expect(picture.querySelector('.se-page__scrim')).toBeTruthy();
+    expect(dialog, 'the dialog must be inside the page picture').toBeTruthy();
+    expect(dialog).toHaveClass('rx-modal--sm');
+    expect([...dialog!.querySelectorAll('button')].some(button => button.textContent?.includes('Continue with Google'))).toBe(true);
+    expect(dialog?.querySelector('input[type="email"]')).toBeTruthy();
+    expect(dialog?.querySelector('input[type="password"]')).toBeTruthy();
+  });
+  it('keeps an empty page frame behind the shell-and-title Don\'t dialog', () => {
+    const dontSide = mount(page).querySelector('[data-rule="skeleton-behind-dialog"] [data-specimen="dont"]')!;
+    const picture = dontSide.querySelector('.se-page')!;
+    expect(picture).toBeTruthy();
+    expect(picture).toHaveClass('se-page--dialog-tall');
+    expect(picture.querySelector('.se-page__scrim')).toBeTruthy();
+    expect(picture.querySelector('.se-page__dialog .rx-modal')).toHaveClass('rx-modal--sm');
+    expect(picture.querySelector('.se-page__title')).toBeNull();
+    expect(picture.querySelector('.ui-skel')).toBeNull();
   });
 });
 

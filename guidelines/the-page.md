@@ -122,7 +122,7 @@
 
 **Don't:** Open one automatically when the page loads.
 
-**Except:** When a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was.
+**Except:** When a session ends while the reader works, open a sign-in dialog over the page, keep its shell and title, and replace its data with skeleton shapes until sign-in.
 
 ## Keep table density consistent
 
