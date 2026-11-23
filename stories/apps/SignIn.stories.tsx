@@ -56,7 +56,7 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
     {waitingForSignIn && <Skeleton lines={1} width="12rem" />}
     {/* The callout stays under a reopened modal, so its Sign in button gets the focus back. */}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setOpen(true)}>Sign in</Button>}>
-      You are signed out. Sign in to approve payouts. This screen stays as it is.
+      You are signed out. Sign in to approve payouts.
     </Callout>}
     {/* The ledger's filter bar stands on the page directly above it. why: guidelines/dense-tables.md */}
     <div className="ui-toolbar">
@@ -75,7 +75,7 @@ function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
       }
     </Card>
     <Modal open={open} title="Sign in again" size="sm" onClose={() => { setOpen(false); setSignedOut(true); }}>
-      <div className="ui-stack sign-in-dialog">
+      <div className="ui-stack">
         <p>Your session ended. Sign in to keep working.</p>
         <SignInBlock {...args} onDone={() => { setOpen(false); setSignedOut(false); }} />
       </div>

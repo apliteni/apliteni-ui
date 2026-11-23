@@ -20,6 +20,11 @@ const DialogPicture = ({ text = 'Your session ended. Sign in to keep working.' }
 const SignIn = ({ text = 'Your session ended. Sign in to keep working.' }: { text?: string }) =>
   <div className="gl-stage gl-stage--confirm"><DialogPicture text={text} /></div>;
 
+const BlankPage = () => <Stage><div className="se-page se-page--dialog-tall">
+  <div className="se-page__scrim" />
+  <div className="se-page__dialog"><DialogPicture /></div>
+</div></Stage>;
+
 const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
   loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean; tall?: boolean;
 }) => <Stage><div className={tall ? 'se-page se-page--dialog-tall' : 'se-page'}>
@@ -56,7 +61,7 @@ const specimens = [
   { id: 'say-session-ended', do: () => <SignIn />,
     dont: () => <SignIn text="Sign in required." /> },
   { id: 'skeleton-behind-dialog', do: () => <Payouts loading dialog tall />,
-    dont: () => <SignIn /> },
+    dont: () => <BlankPage /> },
   { id: 'lasting-sign-in', do: () => <Payouts loading signedOut />,
     dont: () => <Stage><NoticePicture tone="warn" title="You are signed out" /></Stage> },
 ];

@@ -177,6 +177,16 @@ describe('guideline pages in React: Session expired', () => {
     expect(dialog?.querySelector('input[type="email"]')).toBeTruthy();
     expect(dialog?.querySelector('input[type="password"]')).toBeTruthy();
   });
+  it('keeps an empty page frame behind the shell-and-title Don\'t dialog', () => {
+    const dontSide = mount(page).querySelector('[data-rule="skeleton-behind-dialog"] [data-specimen="dont"]')!;
+    const picture = dontSide.querySelector('.se-page')!;
+    expect(picture).toBeTruthy();
+    expect(picture).toHaveClass('se-page--dialog-tall');
+    expect(picture.querySelector('.se-page__scrim')).toBeTruthy();
+    expect(picture.querySelector('.se-page__dialog .rx-modal')).toHaveClass('rx-modal--sm');
+    expect(picture.querySelector('.se-page__title')).toBeNull();
+    expect(picture.querySelector('.ui-skel')).toBeNull();
+  });
 });
 
 // The notice picture has no component to read, so its glyphs are held to the Toast's own table.

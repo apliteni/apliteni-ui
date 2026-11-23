@@ -18,7 +18,7 @@
 
 **Rule:** After sign-in, return the reader to the same place with the same input and filters.
 
-**Why:** A session end must not discard work that the reader already set.
+**Why:** The reader loses time when they must set the search and filter again.
 
 **Do:** Keep the search text and the pending filter.
 
