@@ -158,6 +158,15 @@ it('supports keyboard copying without submitting its form', async () => {
   expect(submit).not.toHaveBeenCalled();
 });
 
+it('calls onCopy only after a successful copy', async () => {
+  const write = clipboard();
+  const onCopy = vi.fn();
+  render(<Snippet code="example" onCopy={onCopy} />);
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Copy code' })); });
+  expect(write).toHaveBeenCalledWith('example');
+  expect(onCopy).toHaveBeenCalledTimes(1);
+});
+
 it('reports a rejected write and allows retry', async () => {
   const write = clipboard(vi.fn().mockRejectedValueOnce(new Error('Denied')).mockResolvedValue(undefined));
   const { container } = render(<Snippet code="example" />);
