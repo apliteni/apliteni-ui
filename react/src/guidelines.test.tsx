@@ -305,6 +305,18 @@ describe('guideline pages in React: Dashboards and reports', () => {
   });
 });
 
+/* The Hover readouts specimens stand inside each rule's own h2 section, so their
+ * six card titles are h3, one level under it (Labels and titles, heading levels). */
+describe('guideline pages in React: Hover readouts', () => {
+  const page = pages.find(p => p.file.endsWith('/HoverReadouts.stories.tsx'))!;
+  it('the specimen cards are headings one level under the rule', () => {
+    const titles = [...mount(page).querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.length, 'six specimen cards on the page').toBe(6);
+    expect(titles.map(t => t.tagName.toLowerCase()), 'each card title is an h3')
+      .toEqual(Array(6).fill('h3'));
+  });
+});
+
 /* Stands in for the structure reading-surface.test.js measures: every carrier of
  * the page's own prose stands inside the reading surface, and that surface's sheet
  * is on the page and paints it. */

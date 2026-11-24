@@ -550,6 +550,21 @@ it('opens the kit readout on the mark the pointer rests on, with one comparison'
   expect(tip.querySelectorAll('.ui-tip__detail'), 'one comparison at most').toHaveLength(1);
 });
 
+// #863: a bridge readout names the step once. The old label printed the step
+// twice — `${open.name}, ${columns[open.column]?.label}` — because both carry
+// the step's full name on a bridge, where each bar is a step and not a series.
+it('a bridge readout says the step name once', () => {
+  render(<Chart variant="bridge" title="Cash" format={eur}
+    steps={[{ label: 'Opening cash balance', value: 120000 },
+      { label: 'Customer cash inflow', value: 42600 }]} />);
+  hover('step-0');
+  const tip = screen.getByRole('tooltip');
+  expect(tip).toHaveClass('ui-tip', 'is-open');
+  expect(tip.querySelector('.ui-tip__label')!.textContent!.trim(), 'the step name once, not twice')
+    .toBe('Opening cash balance');
+  expect(tip.querySelector('.ui-tip__value')).toHaveTextContent('€120,000');
+});
+
 it('prints the unfinished state in the readout instead of a comparison, and draws no legend key for it', () => {
   expect(months().container.querySelector('.ui-chart__legend'), 'a legend only when asked for').toBeNull();
   cleanup();

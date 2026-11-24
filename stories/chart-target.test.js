@@ -271,11 +271,15 @@ test(
        * pixel — not by reading the rect's attributes back, which is the check
        * that passed over this defect in the first place. The corners are taken
        * on pixel centres: a tap lands on a pixel, and an edge at 249.56 sampled
-       * at 249.06 flaps between runs that differ nowhere else. */
+       * at 249.06 flaps between runs that differ nowhere else. Each probe sits
+       * at least half a pixel inside its edge, so a point whose box shares an
+       * edge with its neighbour never probes that shared edge itself: at x=327.5
+       * the right edge of income-9 and spend-9 lands exactly on the next
+       * point's left edge, and Chromium hands that pixel to the next point. */
       const points = await page.evaluate((floor) => {
         const inset = (lo, hi) => {
-          const a = Math.ceil(lo) + 0.5 > lo + 1 ? Math.floor(lo) + 0.5 : Math.ceil(lo) + 0.5;
-          const b = Math.floor(hi) - 0.5 < hi - 1 ? Math.ceil(hi) - 0.5 : Math.floor(hi) - 0.5;
+          const a = Math.ceil(lo) + 0.5;
+          const b = Math.floor(hi) - 0.5;
           return [a, b];
         };
         return [...document.querySelectorAll('.ui-chart__hit')].map((hit) => {

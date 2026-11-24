@@ -1317,7 +1317,7 @@ export function Chart(props: ChartProps) {
           {open && (
             <>
               <span className="ui-tip__label">
-                {spark || look ? columns[open.column]?.label : `${open.name}, ${columns[open.column]?.label}`}
+                {spark || look || variant === 'bridge' ? columns[open.column]?.label : `${open.name}, ${columns[open.column]?.label}`}
               </span>
               {open.rows ? (
                 <>
