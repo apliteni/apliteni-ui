@@ -6,8 +6,10 @@
 
 export const RELEASES = [
   {
-    v: '0.191.0', date: '2026-11-24',
+    v: '0.193.0', date: '2026-11-24',
     changes: [
+      ['fixed', 'On a touch phone in the dark theme, a toolbar in the page body or in a card stack keeps 20px to the next block again, so a small button\'s tap zone no longer runs into the field under it. A stack now declares its gap once as `--ui-block-gap`, and the toolbar margin follows it in each theme. Resolves #849.', ['Toolbar']],
+      ['fixed', 'A `Tooltip` or `Chart` readout now keeps at least 8px from each edge of the screen. On a 360px or 390px phone it could touch the edge. Resolves #849.', ['Tooltip', 'Chart']],
       ['changed', 'An open `StatBand` draws no rule and no 16px over its figures in either theme. It keeps 24px below a page toolbar, in the page body and in a card stack. Resolves #849.', ['StatBand']],
       ['changed', 'The Stat bands guideline accepts a tooltip on a change as its basis, and that tooltip now also opens from the arrow. On a touch phone, such a change is a 44px target in the layout, so its figure is taller there. Resolves #849.', ['StatBand', 'Guidelines']],
     ],

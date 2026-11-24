@@ -1114,9 +1114,9 @@ itself: the readout then adds no Tab stop and no description.
 
 **What the user sees.** A pointer that rests for 300ms opens the readout, and it closes at once when
 the pointer leaves. Within 300ms after one closes, the next opens at once. The readout is in the
-top layer, over a sticky cell. It stays inside the viewport and moves with a scroll or a resize. It
-never moves anything else on the page. On a touch screen, a tap opens the readout and does not
-also run the mark's action.
+top layer, over a sticky cell. It stays inside the viewport, at least 8px from each edge, and moves
+with a scroll or a resize. It never moves anything else on the page. On a touch screen, a tap
+opens the readout and does not also run the mark's action.
 
 **Keyboard and screen reader.** Keyboard focus opens the readout at once, and the trigger gets it
 as its description. Escape closes only the readout and keeps the focus on the trigger. The next

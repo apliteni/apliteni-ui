@@ -260,7 +260,7 @@ test('the open form draws no rule over a figure', () => {
 // a recorded exception to the 8px inner gap (#849), in the page body and in a card stack. At rest the gap is layout.css's. On a
 // touch phone tap-zone.css is read with its media query open, as jsdom evaluates none.
 // Limits: jsdom lays nothing out, so this adds the parent's gap and the two margins.
-test('a toolbar keeps 24px to an open band, in both themes, at rest and on a touch phone', () => {
+test('a toolbar keeps 24px to an open band and 20px to a block on a touch phone, in both themes', () => {
   const sheet = (name) => decomment(readFileSync(path.join(here, name), 'utf8'));
   const layout = sheet('card.css') + sheet('layout.css');
   const tap = sheet('tap-zone.css').replace(/@media[^{]*\{([\s\S]*)\}\s*$/, '$1');
@@ -281,6 +281,9 @@ test('a toolbar keeps 24px to an open band, in both themes, at rest and on a tou
       assert.equal(gapTo(layout, theme, parent, OPEN), 24, `${where}, at rest`);
       assert.equal(gapTo(layout + tap, theme, parent, OPEN), 24, `${where}, on a touch phone`);
       assert.equal(gapTo(layout, theme, parent, '<div class="ui-card"></div>'), 8, `${where}: the inner gap moved, or this measures nothing`);
+      // A toolbar over a block opens to --tap-gap, 20px, in both themes. The margin once took
+      // the light gap back in the dark theme too, so the toolbar met the next block with 0px.
+      assert.equal(gapTo(layout + tap, theme, parent, '<div class="ui-card"></div>'), 20, `${where}: a toolbar over a block on a touch phone`);
       assert.equal(gapTo(before, theme, parent, OPEN), 8, `${where}: the gap without the rule`);
     }
   }

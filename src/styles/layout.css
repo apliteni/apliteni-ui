@@ -432,10 +432,12 @@
 .ui-app__main .ui-app__title-row > h1 { flex: 1 1 auto; min-width: 0; margin-bottom: 0; }
 /* The tools wrap at the narrowest phone, so a period picker and a view action stay in the column. #832 */
 .ui-app__tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: var(--space-3); max-width: 100%; }
-.ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
+/* --ui-block-gap is the gap between two blocks. A control row above a block reads it, so
+   its margin holds in each theme. */
+.ui-app__body { --ui-block-gap: var(--space-5); display: flex; flex-direction: column; gap: var(--ui-block-gap); }
 /* #850: on the light page a card draws no box, so the body opens to the page's group gap.
    why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-app__body { gap: var(--space-10); }
+:root[data-theme="light"] .ui-app__body { --ui-block-gap: var(--space-10); gap: var(--ui-block-gap); }
 /* A stat band closes one section, so the block after it keeps the group gap on
    top of the body's: the air the old soft line used to give, now as space alone.
    why: guidelines/dashboards-and-reports.md, #850 */
@@ -463,13 +465,11 @@
    on the page meets its table card at the same distance. Not on the last row:
    there the gap is the page's bottom and nothing is being narrowed. tap-zone.css
    widens it on a touch phone. why: docs/foundations.md#spacing-and-rhythm */
-:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
-:root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }
+:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }
 .ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
 /* An open figure has no surface and no padding, so the row keeps 24px to its label: a
    recorded exception to the inner gap, also on a touch phone. why: docs/components.md#stat-bands, #849 */
-:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:has(+ .ui-stats--open) { margin-bottom: calc(var(--space-6) - var(--space-5)); }
-:root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:has(+ .ui-stats--open) { margin-bottom: calc(var(--space-6) - var(--space-10)); }
+:is(.ui-app__body, .ui-card-stack) > .ui-toolbar:has(+ .ui-stats--open) { margin-bottom: calc(var(--space-6) - var(--ui-block-gap)); }
 /* A filter bar inside its table's card sits one inner gap above the table, the
    same step the card title keeps above the bar. why: guidelines/dense-tables.md */
 .ui-card > .ui-toolbar:not(:last-child) { margin-bottom: var(--space-2); }

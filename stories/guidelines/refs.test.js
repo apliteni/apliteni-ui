@@ -356,3 +356,14 @@ test('interrupt guidance sends a short form to a modal or a drawer and a long on
     'Use a content-sized modal or a drawer for a short form, and a page for a long one.',
   );
 });
+
+// accessibility-coverage.json names a test file for each gate and cites more in its text.
+// #724 deleted 30 of them and the list went on naming them. A cited file must exist.
+// Limits: checks that each path exists, not that the file still does what the entry says.
+test('every test file the accessibility coverage list cites exists', () => {
+  const coverage = readFileSync(path.join(here, 'accessibility-coverage.json'), 'utf8');
+  const { GATES } = JSON.parse(coverage);
+  const cited = [...new Set(coverage.match(/(?:stories|react|src|scripts)\/[\w./-]+\.test\.(?:js|tsx?)\b/g))];
+  assert.ok(GATES.length > 50 && cited.length >= GATES.length, `read ${GATES.length} gates and ${cited.length} cited files`);
+  assert.deepEqual(cited.filter((file) => !existsSync(path.join(root, file))), [], 'the coverage list cites a test file that is gone');
+});

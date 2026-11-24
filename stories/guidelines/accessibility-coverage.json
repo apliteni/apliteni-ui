@@ -27,17 +27,6 @@
       ]
     },
     {
-      "file": "stories/inline-link-ring.test.js",
-      "name": "Inline link focus",
-      "does": "Renders every story the vanilla catalogue exports, collects every anchor they draw, and resolves the kit's focus rules over each one by specificity and document order: a link has to draw var(--ring) on :focus-visible, never the browser's own outline and never an outline of its own beside it. Counts the stories rendered, the stories that draw a link and the links judged, so a catalogue that stopped drawing links could not leave it green. Deletes the element-wide rule from the sheet it lives in and requires the walk to go red, and judges the four verdicts one declaration apart on a fixture link.",
-      "blind": [
-        "The source resolver models specificity and source order. It does not model !important, inline styles, query conditions, other interaction states or token expansion.",
-        "The accessibility-floor gate calculates ring contrast from source colours. Neither gate measures browser pixels.",
-        "Only the vanilla catalogue, and only markup a story renders synchronously: a link a script adds after render is unwalked, and React's anchors are judged in react/src/focus-ring.test.tsx.",
-        "Line wrapping is not measured. A link split across lines needs a separate browser check of its focus outline."
-      ]
-    },
-    {
       "file": "stories/snippet-focus.test.js",
       "name": "Snippet focus",
       "does": "Discovers fourteen focusable targets in Snippet fixtures. In both themes and two accents, checks that the shared outline follows the card for a focused code region and follows other controls themselves. Rejects duplicate outlines and focus shadows. Checks the declared radius and clipping. Four missing-rule or clipping mutations prove rejection.",
@@ -204,18 +193,6 @@
       ]
     },
     {
-      "file": "stories/segmented-wrap.test.js",
-      "name": "Underline strips fit their column",
-      "does": "Under SEG_WRAP=1, drives a browser over every story that renders an underline segmented strip, plus two fixtures carrying the long labels no story has, and reads each strip against its own box at 320, 390 and 1280. No tab is drawn outside the box, no tab is wider than the box can hold, the page never scrolls sideways, the strip is not a scroll box clipping the focus outline, and on a wrapped strip the chosen tab's rail is read against the ink of its own label and of the next row's, so it cannot sit close enough to both to read as either row's mark. It holds the issue's own case, and re-runs every check at 320 against four mutations — the sheet put back to one row and a scroll box, the rows closed to the track's own gap, and the tab label put back to `nowrap` and to `break-word` — all of which have to fail.",
-      "blind": [
-        "The measuring half is off unless SEG_WRAP=1, because Playwright is deliberately not a dependency of this package, so CI runs nothing here and the measurement is reported by hand in the pull request.",
-        "One engine and one theme. Firefox and Safari are not measured here, and neither is the ring's rendered contrast, which belongs to the contrast ledger.",
-        "It sweeps stories/ only, so no React strip is measured. React's Segmented emits the same markup against the same sheet, so it moves with it by construction, but nothing here holds that.",
-        "Every subject the sweep discovers has a label of one or two short words. A tab that cannot fit its column at all is shown only by the two fixtures beside them, so if those are dropped the containment checks go green against the defect they were written for.",
-        "It reads geometry and never paint. A strip whose tabs all fit while being illegible, mis-coloured or wrongly ordered passes every check in this file."
-      ]
-    },
-    {
       "file": "react/src/BackLink.test.tsx",
       "name": "React: BackLink",
       "does": "Checks the React back link against the factory rule: the arrow is aria-hidden so its meaning is spoken in words; the accessible name includes the visible text as WCAG 2.5.3 requires; and a name already saying \"Back to\" is not repeated.",
@@ -241,27 +218,9 @@
       ]
     },
     {
-      "file": "stories/palette-keyboard.test.js",
-      "name": "Palette keyboard",
-      "does": "Dispatches keyboard events in JSDOM. Checks opening shortcuts, active-row movement, Enter, top-overlay Escape, the Tab trap, and live-region text.",
-      "blind": [
-        "Whether requested focus lands. As with the drawer gate, JSDOM has no layout or transition, so a focus() that a browser would reject is counted as successful.",
-        "The pointer. Hovering changes the active row and clicking runs it; this gate does neither."
-      ]
-    },
-    {
-      "file": "stories/guidelines/command-palette.test.js",
-      "name": "Command palette",
-      "does": "Checks the palette guidelines against the component: its keyboard contract matches the keys the sources compare, its grouping uses the claimed label role, and every rendered palette row goes somewhere, runs something, asks something or says it is unavailable.",
-      "blind": [
-        "What a key does. It checks which keys are handled, not the result; the palette keyboard gate presses them.",
-        "A row a story does not render. The sweep is the catalogue, so a product’s own palette is covered only where the kit renders it."
-      ]
-    },
-    {
-      "file": "stories/guidelines/the-page.test.js",
-      "name": "The page",
-      "does": "Renders app stories and checks page structure, heading order, named navigation landmarks with distinct names, shell order, and initially closed overlays. It also checks page limits and their documentation references.",
+      "file": "react/src/the-page.test.tsx",
+      "name": "React: The page",
+      "does": "Mounts every showcase screen under stories/apps/ and the React landing page, and reads each from a copy of the whole document. Every page rule owns one check: the head in one order, one h1, one primary action, one density and no overlay open at load. Fixtures prove that each check can fail.",
       "blind": [
         "CSS behaviour. It reads story markup without resolving stylesheets, so display:none content is still a heading and an off-screen landmark is still present.",
         "What headings say. A correct rank and an incorrect title look the same here; the letter-case gate checks the words.",
@@ -269,76 +228,11 @@
       ]
     },
     {
-      "file": "stories/contrast-dark.test.js",
-      "name": "Contrast (dark)",
-      "does": "Resolves source colours for text-owning elements in rendered vanilla stories, in the dark theme, against the background composited above it. Split from one combined file so each theme's walk stays inside its own time budget (#562); stories/contrast-light.test.js is the light half and carries the self-checks that do not depend on a theme.",
-      "blind": [
-        "Layout, including a toast over the page, a dropdown over a card or a drawer over its scrim. DOM ancestry stands in for visual stacking and is wrong where the two differ. This is the gate’s largest gap; only a browser closes it (#131).",
-        "Paint layers the walk cannot see, such as a ::before backdrop or sibling glow. Nine pairs per backdrop are judged against the wrong ground.",
-        "Gradients and images an element owns or inherits. These are reported as unjudgeable, not passed.",
-        "Filters. .ui-btn--primary:hover brightens, but the gate reads the pre-filter colour.",
-        "Inactive components and everything inside them. This is the gap filled by this page’s third number.",
-        "Non-text contrast such as borders, focus rings and icon strokes, which requires geometry.",
-        "More than one accent and any state beyond hover, focus-visible, focus and active."
-      ]
-    },
-    {
-      "file": "stories/contrast-light.test.js",
-      "name": "Contrast (light)",
-      "does": "Resolves source colours for text-owning elements in rendered vanilla stories, in the light theme, against the background composited above it. The other half of the split in stories/contrast-dark.test.js (#562); this file also carries the toast, success-panel and chip self-checks that run once over both themes because they do not depend on either theme's walk.",
-      "blind": [
-        "Layout, including a toast over the page, a dropdown over a card or a drawer over its scrim. DOM ancestry stands in for visual stacking and is wrong where the two differ. This is the gate’s largest gap; only a browser closes it (#131).",
-        "Paint layers the walk cannot see, such as a ::before backdrop or sibling glow. Nine pairs per backdrop are judged against the wrong ground.",
-        "Gradients and images an element owns or inherits. These are reported as unjudgeable, not passed.",
-        "Filters. .ui-btn--primary:hover brightens, but the gate reads the pre-filter colour.",
-        "Inactive components and everything inside them. This is the gap filled by this page’s third number.",
-        "Non-text contrast such as borders, focus rings and icon strokes, which requires geometry.",
-        "The default run uses one accent. CONTRAST_ACCENTS=1 enables both themes under each alternate accent. States beyond hover, focus-visible, focus and active remain unmeasured."
-      ]
-    },
-    {
-      "file": "stories/a11y.test.js",
-      "name": "A11y",
-      "does": "Runs axe over every story in both themes for WCAG 2.0/2.1 A and AA. It asserts that the check count equals stories × themes so nothing disappears silently.",
-      "blind": [
-        "Accents. It uses only the default accent in two themes; testing every accent repaints tokens and costs runtime.",
-        "color-contrast, deliberately. Axe cannot resolve var() in a headless DOM and would treat the kit tokens as having no colour.",
-        "Anything static markup cannot show. Axe passed a tablist that controlled nothing."
-      ]
-    },
-    {
-      "file": "stories/keyboard.test.js",
-      "name": "Keyboard",
-      "does": "Dispatches keyboard events in JSDOM to wired segmented controls and tabs. Checks roving tab stops, arrow wrapping, Home and End, panel selection, and field naming, required and invalid attributes.",
-      "blind": [
-        "Synthetic events and DOM focus do not prove browser keyboard behavior. Other components require their separate gates."
-      ]
-    },
-    {
-      "file": "stories/drawer-rules.test.js",
-      "name": "Drawer separators and footer",
-      "does": "Discovers drawer panels in every story in both themes, checks header and group separators and an unfilled footer without a rule, and rejects deliberately broken specimens.",
+      "file": "react/src/drawer-rules.test.tsx",
+      "name": "React: Drawer separators and footer",
+      "does": "Mounts every React story, including an open drawer in its portal, and a guideline picture of the React Drawer. Checks the header and group separators, and a footer without a rule.",
       "blind": [
         "Footer fill is compared with the panel surface; text contrast, rendered spacing, shadows and pseudo-elements are not measured."
-      ]
-    },
-    {
-      "file": "stories/dashboard-report-refs.test.js",
-      "name": "Dashboard references",
-      "does": "Drives the links between the kit's dashboard and the report behind it in JSDOM, in both frames a story can be looked at from, and reads back what each click arrives at: that the row the reference names is marked, brought to the middle of the view and never sideways, and given the keyboard, so a screen reader arrives on the row with the reader rather than at the top of the report.",
-      "blind": [
-        "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "No layout and no paint. JSDOM ships no scrollIntoView, so what is held is the ask and not where the row lands on a screen; a browser run in the pull request carries that, at 1280, 390 and 320.",
-        "Not whether a screen reader announces the row it was moved to. What is read is document.activeElement, which is markup, not speech.",
-        "Not the Storybook manager. That selecting a story keeps the manager's globals, and so the theme, is Storybook's own behaviour; this only holds that the click asks the manager to select the story instead of replacing the frame with a bare preview URL, which is what dropped the theme."
-      ]
-    },
-    {
-      "file": "stories/drawer-focus.test.js",
-      "name": "Drawer focus",
-      "does": "Checks that opening the drawer requests focus inside its panel.",
-      "blind": [
-        "Whether focus really lands. JSDOM has no CSS or transitions, and the original bug involved transitioned visibility making focus() a no-op in Chrome. This gate can prove only the request."
       ]
     },
     {
@@ -377,53 +271,22 @@
       ]
     },
     {
-      "file": "stories/stat-basis.test.js",
-      "name": "Stat basis",
-      "does": "Requires every change shown in a stat band to state its comparison basis in reachable text, either beside the change or in the caption it points to, never only in a hover title.",
+      "file": "react/src/stat-basis.test.tsx",
+      "name": "React: Stat basis",
+      "does": "Walks every React story and requires every change in a stat band to state its comparison basis in reachable text: a figure basis, a band caption, a period-control basis, or a kit Tooltip with screen-reader text. A hover title does not count. Fixtures prove that each shape can fail.",
       "blind": [
         "Whether the named comparison is correct. It checks only that one exists and is reachable."
       ]
     },
     {
-      "file": "stories/glyph-stroke.test.js",
-      "name": "Glyph stroke",
-      "does": "Renders every story and calculates the declared width of every stroked glyph, resolving inheritance and the icon factory’s default, against the stroke-width rule’s 1.5 CSS px line.",
+      "file": "react/src/glyph-stroke.test.tsx",
+      "name": "React: Glyph stroke",
+      "does": "Mounts every React story into a document with the kit stylesheets, and resolves the cascade for every stroked glyph against the 1.5 CSS px line of the stroke-width rule. Counts the corpus and holds the narrowest glyph, so a walk that measures less fails.",
       "blind": [
         "Colour. It measures only width; the stroke-width rule determines the relevant bar.",
         "Anything no story renders, so it also rejects a sizing rule without a specimen.",
         "State. Stories render at rest, so a stroke declared only in :hover is unseen.",
         "Widths come from source CSS and SVG attributes. No browser layout or painted stroke pixels are measured."
-      ]
-    },
-    {
-      "file": "stories/guidelines/accessibility-floor.test.js",
-      "name": "Accessibility minimums",
-      "does": "Pins three page numbers: target size for every rendered control, using its box UNION generated pseudo-elements; ring contrast against every ground; and the composite left by a disabled control. Each disabled control is measured as rendered and again without its disabled attribute, so the pair must change — the ink, the fill and the edge around the box, because a state can be said by the line as well as by the ink. A rule that says it with that line alone is asked about its own box and not about the labels inside it, which are painted by whichever rule paints THEIR ink. Every control in a folded rail is measured separately, with its name read while the label is off-screen.",
-      "blind": [
-        "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "A disabled input’s value. The walk measures text nodes, while an input stores its value in a property. Thus .ui-input:disabled is found and repainted but contributes no pair; its tokens are measured on other controls using them.",
-        "Width for anything sized by a line of text. It is reported unmeasurable, not passed. An overlay may widen known width but cannot provide one.",
-        "The 2.5.8 spacing exception, which is entirely a layout question.",
-        "Overlay position. Size is read but offset is not, so both a clear overlay and one covering a neighbour count without that distinction being reported.",
-        "Clipping. An overflow:hidden ancestor can cut an overlay, but boxes are not composited here. .ui-toast clips, and its close control was checked by hand.",
-        "The ring’s inner edge. Only the outside ground is measured.",
-        "What an unavailable edge measures against the ground behind it. The comparison is the state’s own paint against the live one, so a rule changing an edge to an equally faint ink still counts as a repaint. stories/filter-row-edge.test.js resolves which token each box on the filter row draws, and the contrast walk owns the ratios."
-      ]
-    },
-    {
-      "file": "stories/confirm-keyboard.test.js",
-      "name": "Confirm keyboard",
-      "does": "Uses the same key-pressing method as the keyboard gate for confirm(): focus enters the question, Escape answers it and Tab cannot leave.",
-      "blind": [
-        "Browser behaviour JSDOM lacks, including transitions, paint and scrolling."
-      ]
-    },
-    {
-      "file": "stories/overlay-stack.test.js",
-      "name": "Overlay stack",
-      "does": "Checks two overlays open together: who owns Escape, what is inert, where Tab goes and what remains after one closes out of order.",
-      "blind": [
-        "Focus that is requested but does not land, due to the same JSDOM limit as the drawer gate."
       ]
     },
     {
@@ -435,19 +298,11 @@
       ]
     },
     {
-      "file": "stories/dropdown-state-contrast.test.js",
-      "name": "Dropdown state chip contrast",
-      "does": "Discovers non-live chips in Dropdown stories and measures text at 4.5:1, soft fill separation in both themes, absence of edges and standard badge dimensions. Selected labels and non-status badges use body ink. Missing-fill and border mutations prove rejection.",
-      "blind": [
-        "Browser layout, hover and focus paint, anti-aliasing, and consumer overrides. JSDOM resolves the resting story cascade only."
-      ]
-    },
-    {
       "file": "stories/badge-tones.test.js",
       "name": "Badge tone family",
       "does": "Discovers every badge and pill tone from the stylesheet and every accent from accents.css, then requires each fill to leave its ground in one direction — lighter in dark, darker in light — inside a soft separation band, with no edge and ink above 4.5:1 on its own fill. It measures three grounds (the page, a card and a floating panel) under both themes and all four accents, asserts the case count is the product of those three dimensions, and checks the grounds composite to distinct surfaces rather than silently collapsing to one. It names the thirteen tones it expects. Two mutations prove rejection: re-pointing a tone at the opaque card surface, and putting accent ink back on the neutral fill, which fails on a dark floating panel under three accents of four.",
       "blind": [
-        "Browser layout, anti-aliasing and consumer overrides. This gate, stories/contrast-dark.test.js, stories/contrast-light.test.js and stories/dropdown-state-contrast.test.js resolve source colours in JSDOM. None measures browser pixels. Browser measurements require separate evidence.",
+        "Browser layout, anti-aliasing and consumer overrides. This gate, react/src/contrast.test.tsx and react/src/Dropdown.badges.test.tsx resolve source colours in JSDOM. None measures browser pixels. Browser measurements require separate evidence.",
         "Whether a tone is the right one for a status. It measures the paint, not the meaning.",
         "The separation floor on the light page is 1.03 rather than 1.1, because the light glow washes sit close to --bg there: warn and pending measure 1.043 today. Tightening it means moving those alphas.",
         "The 7:1 light-success aim is a written consumer rule only. This gate enforces 4.5:1 and would accept the previous success pair at 5.29:1."
@@ -469,28 +324,6 @@
       "blind": [
         "Everything else in the foot. It asks one question of one slot, not about rows, trigger or keyboard.",
         "A control on which axe has no opinion. The rule uses aria-required-children, which counts children by role rather than behaviour."
-      ]
-    },
-    {
-      "file": "stories/dropdown-reach.test.js",
-      "name": "Dropdown reach",
-      "does": "Opens a select in a Modal, a Drawer, a page and a wrapper inside a body, in both kits, and checks that the whole panel, the field's label and the trigger stay in view through End and Escape. In the React half it runs axe's aria-input-field-name rule on the open listbox.",
-      "blind": [
-        "Every other axe rule. It asks only whether the open listbox has a name.",
-        "Touch, a real phone, Safari and Firefox. The browser half runs only on request, in Chromium."
-      ]
-    },
-    {
-      "file": "stories/field-zoom.test.js",
-      "name": "Field zoom",
-      "does": "Mounts stories without styles and checks whether the touch-zoom selector matches their fields. Reads declarations for the 16px important net. Rejects larger field sizes that the net would shrink, competing important font sizes, and other coarse-pointer field-size rules.",
-      "blind": [
-        "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "The cascade. Nothing is resolved; jsdom does not rank !important between rules and would return the component size. Declarations are compared directly. The gate proves only that the net is the kit’s sole important font size, not that a browser resolves it so.",
-        "Whether a browser matches (pointer: coarse). jsdom evaluates no media query, and this gate reads the net block as text. The device evidence is the screenshots under the touch-zoom documentation.",
-        "Safari’s threshold. 16px is observed browser behaviour, not a standard, so this gate cannot measure the number itself.",
-        "Layout. Larger text can grow its box, but no box is laid out. The phone pager strip is a review question, not a gate failure.",
-        "A field rendered only by a host page. The selector can reach it, but this walk cannot see it."
       ]
     },
     {
@@ -527,7 +360,7 @@
         "A third way of writing a panel's attributes. The marked element is found by walking the source for tags and attribute lists rather than by parsing it, and a marker it cannot tie to exactly one class attribute stops the gate instead of being named by a neighbour's class.",
         "A fourth shape of comment. Code is told from text by a walk rather than by a parser: a `//` or `/*` inside a string, a template or a regex literal is markup and stays, only a comment is blanked, and source the walk cannot finish — a template, a string or a block comment with no end — stops the gate rather than being read half lexed. Which of a regex literal and a division a `/` opens is read off the code before it: a value divides, and a keyword or a control statement's head does not. A head is read from a fixed list of keywords and the two pairs the language opens one with, `else if` and `for await`; a head the walk did not know would read as a value, and a `/*` inside the regex after it as a comment. A `/` the walk cannot be sure of, which in TSX is the one in `</span>` or after `{...rest}`, costs the stripping of its own line and never the code; an apostrophe in JSX text it takes for a string costs that line too.",
         "A panel hand-written into an example page or a story. The source reading covers src/ and react/src/, the two trees the package ships; those pages compose the factories, which are read.",
-        "Whether the rows take the ring at all. `.ui-dropdown__item:focus-visible` never names `.vsw__menu`, so pairing a panel to its rows from selectors alone would be guesswork; the keyboard walk in stories/focus-ring.test.js is what asks every stop for a ring."
+        "Whether the rows take the ring at all. `.ui-dropdown__item:focus-visible` never names `.vsw__menu`, so pairing a panel to its rows from selectors alone would be guesswork; the keyboard walk in react/src/focus-ring.test.tsx is what asks every stop for a ring."
       ]
     },
     {
@@ -541,22 +374,13 @@
       ]
     },
     {
-      "file": "stories/tooltip-specimens.test.js",
-      "name": "Tooltip specimens",
-      "does": "Renders every story, wires it as the preview does and opens each readout with pointer, focus and Escape. A picture of a readout must be open and unchanged at the end, and a live readout on the same pages must open under the pointer.",
-      "blind": [
-        "Where the readout sits. JSDOM lays out nothing, so it proves only that the picture remains visible.",
-        "Whether a live readout is keyboard reachable. The wiring adds no tab stop to a mark, which is the open question on #282."
-      ]
-    },
-    {
       "file": "stories/nav-cascade.test.js",
       "name": "Nav cascade",
       "does": "Resolves the sidebar rail’s own cascade and reads four things out of it: that a nested group is indented, that the current row’s plate is a measured step above the ground the rail stands on with a hovered row strictly quieter than it and no outline on either, on a top-level row and a nested one alike, with no pseudo-element left painting on an open rail, that every focusable row shows the kit ring on :focus-visible, and that the current row keeps the heavier weight. Each rule gated here was once present in the stylesheet and ineffective, including a cancelled focus ring and a plate painted the colour of its own rail.",
       "blind": [
         "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
         "JSDOM ranks author rules faithfully but does not rank by origin. The user-agent boundary is a known exception, documented in the contribution guide’s cascade section.",
-        "How large the mark looks to an eye. The step is composited down the ancestor chain and read as a contrast ratio, which is a number and not a perceptual distance — 1.19:1 is ΔL* 8.3 in dark and 1.11:1 is ΔL* 4.2 in light, so the same floor buys less in light. The rail inside the page shell stands on a different ground and is measured in stories/apps/shell-states.test.js; the browser captures on the pull request show both."
+        "How large the mark looks to an eye. The step is composited down the ancestor chain and read as a contrast ratio, which is a number and not a perceptual distance — 1.19:1 is ΔL* 8.3 in dark and 1.11:1 is ΔL* 4.2 in light, so the same floor buys less in light. The rail inside the page shell stands on a different ground and is measured by no gate since #724; the browser captures on the pull request show both."
       ]
     },
     {
@@ -568,62 +392,11 @@
       ]
     },
     {
-      "file": "stories/button-chrome.test.js",
-      "name": "Button chrome",
-      "does": "Mounts every clickable class the kit ships where a story renders it, once with browser button chrome and once without. It requires equal background, border, font-family, font-size, line-height, text-align and width. The three font facets are separate because Chrome writes them as one shorthand, `font: 400 13.3333px Arial`; a font-family longhand restores the face but leaves size and leading. Width also requires rejecting `width: auto` and `width: fit-content`, even when readings match. Four failing classes and three excluded classes are pinned by name, so the derived count remains stable.",
-      "blind": [
-        "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "Layout. JSDOM computes no boxes, so shrink-to-fit is modelled with a width declaration. A row filling its line for another reason may look repaired.",
-        "The chrome itself. Stand-in values are Chromium’s, measured on the branch that created this gate and not updated afterward. A browser restyle would leave the stand-in stale.",
-        "Weight and style. `font: inherit` resets both, so rules preserving either must come after the shorthand; this gate does not read whether they do.",
-        "State. Readings are at rest, so chrome only shown on :hover is unseen.",
-        "Rows in its own ledger. A class rendered as a `<button>` is measured and counted rather than failed. Sixteen rows retain chrome nobody is repairing: twelve on text-align and four on line-height.",
-        "Deferred classes are measured in one ancestry each. Their rendering and ancestry counts are reported by the gate, not pinned. Other ancestries remain unmeasured.",
-        "Discovery starts at cursor: pointer. Moving that declaration can remove a class from discovery. Four failing subject classes are pinned by name.",
-        "The deliberate exclusion bucket: browser-owned form controls or their decoration, including the `select` behind .ui-select, the `label` around the checkbox in .ui-check and the `span` drawn by .ui-switch__track. Earlier, many more were excluded for markup reasons, leaving .ui-fbpill unmeasured while carrying the whole defect."
-      ]
-    },
-    {
-      "file": "stories/apps/shell.test.js",
-      "name": "Shell",
-      "does": "Checks one main landmark, named navigation, row names and the fold toggle. The toggle appears by default unless disabled. It must be a named native button outside the navigation landmark.",
-      "blind": [
-        "How markup looks after meeting the stylesheet; the shell states gate checks that."
-      ]
-    },
-    {
-      "file": "stories/apps/shell-states.test.js",
-      "name": "Shell states",
-      "does": "Resolves the shell through the real cascade at every width, theme and accent so nothing disappears. It also checks the folded rail against the narrow-rail rule for each property and every element, both at rest and focused, and measures the contrast of the rail against the page and of the current and hovered rail rows against the rail.",
-      "blind": [
-        "Layout. Width is represented by a class, not a viewport."
-      ]
-    },
-    {
-      "file": "stories/apps/shell-rail.test.js",
-      "name": "Shell rail",
-      "does": "Presses the fold toggle through wireShell() and checks the rail, announced state, focus location, the absence of added tooltip attributes, cookie and path, opt-out and ui-rail event. It then draws the next page and checks that the state was remembered.",
-      "blind": [
-        "Enter and Space. The toggle is native, but JSDOM performs no key activation, so a press is treated as a click.",
-        "It checks that folding adds no title attribute. It does not measure the label presentation in a browser.",
-        "The paint before script. A server that does not read the cookie paints the rail open for one frame; only a browser shows that."
-      ]
-    },
-    {
       "file": "stories/danger-colour.test.js",
       "name": "Danger colour",
       "does": "Reads danger declarations and rejects accent values. At rest, signal paint requires a named exemption. It checks that every exemption still names a rule.",
       "blind": [
         "Whether the hover colour clears AA where it lands; the contrast gate checks that."
-      ]
-    },
-    {
-      "file": "stories/accent-mark.test.js",
-      "name": "Vanilla accent selection mark",
-      "does": "Checks, with the page on a DIFFERENT accent from the one selected, that the vanilla picker marks the selected swatch with a tick in an ink that is no accent and clears 3:1 against both stops of the gradient the circle wears, in each theme, and that the mark stays inside the circle once it is turned. Rejects a mark in the selected accent, one in the page accent, one the colour of the swatch under it, one grown past the rim, a picker that draws no mark, and a second pseudo-element rule able to cancel the first.",
-      "blind": [
-        "Browser paint, antialiasing, subpixel placement of the turned tick and host overrides; source CSS is resolved in JSDOM, which computes no pseudo-element, so the mark is read as the winning declaration rather than as a computed style.",
-        "The two gradient stops are read as flat colours and the mark is measured against each; the fade between them is not sampled, and the fit is measured against the circle's inscribed square, which is sufficient rather than tightest."
       ]
     },
     {
@@ -633,15 +406,6 @@
       "blind": [
         "Browser paint, antialiasing, subpixel placement of the turned tick and host overrides; source CSS is resolved in JSDOM, which computes no pseudo-element.",
         "The two gradient stops are read as flat colours; the fade between them is not sampled."
-      ]
-    },
-    {
-      "file": "stories/accent-focus.test.js",
-      "name": "Vanilla accent swatch: one accent edge under focus",
-      "does": "Measures the bands a selected vanilla swatch draws while it also holds keyboard focus, with the page on a DIFFERENT accent: the kit ring's band has to be there, no band may paint the selected swatch's own accent, exactly one band may paint an accent at all, the bands have to paint outward in source order, every pair that touches — including the outermost band against the ground — has to clear 3:1, and the focused selected edge has to equal the focused unselected one. Rejects both selection-band compositions #472 shipped, a second band laid against the ring in nearly its own colour, and an edge with no ring on it.",
-      "blind": [
-        "JSDOM resolves declared widths, colours and source stacking order. It cannot measure browser pixels, antialiasing, band placement or consumer overrides. The gate requires an outline and zero halo layers.",
-        "The gradient beneath the unpainted outline offset is not sampled. Browser measurements require separate evidence."
       ]
     },
     {
@@ -858,33 +622,6 @@
       ]
     },
     {
-      "file": "stories/filter-selected-mark.test.js",
-      "name": "A chosen filter value is never marked by colour alone",
-      "does": "Sweeps every story that draws a filter bar, opens each chip’s menu and measures the chosen row in both themes: the accent wash is painted and stays a wash rather than becoming a fill, the kit’s check is drawn and clears 3:1 over that wash (WCAG 2.2 SC 1.4.11), and the chosen label holds --strong at AA over it. It then drives hover, the keyboard cursor and focus, and fails a state that takes the wash off the row, loses hover’s edge or the cursor’s bar, or falls back to the browser’s own outline instead of the kit ring. It also reads the slot the cascade gives the check in each of the three geometries a chip’s panel has, and fails a mark allowed to shrink or be clipped while the menu is open or still fading out, or one that stops giving way in the shut panel #467 bounded to a 48px trigger. Eleven mutations, each re-breaking one guarantee, have to be rejected.",
-      "blind": [
-        "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "Pixels. JSDOM lays nothing out, so a 16px glyph is measured as a colour on a ground and as the declarations around its slot, never as a drawn mark. What width that slot comes out as, at four viewports in both themes and in the frames a menu is still painted in as it closes, is the browser fixture’s measurement.",
-        "Colour-vision simulation. It measures luminance contrast, which is what 1.4.11 is written in. That a dichromat cannot separate the two hues is the reason the check exists, and is not itself computed here.",
-        "The React half. The rule is one kit declaration both faces load; React’s own tests match the class and the mark against its rendered tree, never the paint.",
-        "Accents other than the default. The other five redefine --glow-purple and are walked by the accent arm of the contrast ledger, not here."
-      ]
-    },
-    {
-      "file": "stories/focus-ring.test.js",
-      "name": "Focus ring: the keyboard walk",
-      "does": "Walks the keyboard stops of the landing page and of the shell, footer and topbar stories, and fails a stop that lacks the shared outline or declares a retired focus shadow. It then resolves the cascade for each stop over the sheets in the order a page loads them, and fails a stop whose ring is written but outranked by an always-on rule. It also discovers every box the kit makes scrollable, holds the list of those with and without a ring, and checks that every accent swatch is named and says whether it is on.",
-      "blind": [
-        "The source resolver models specificity and source order. It does not model !important, inline styles, query conditions, other interaction states or token expansion.",
-        "A ring the kit paints on another box. Where the focus rule targets a child, a sibling or a pseudo-element, the declaration belongs to that element's cascade; the walk still credits the stop, and the count of such rings is held so it cannot grow unseen.",
-        "The ring's contrast, its shape on screen, and whether a clipping ancestor hides it. Those are the accessibility floor's own numbers and a browser's.",
-        "Only the landing, shell, footer and topbar fixtures are walked. Inline-link coverage across the vanilla catalogue belongs to stories/inline-link-ring.test.js.",
-        "Scrollable selectors are classified by source rules. The shell rail is the sole no-stop exception and must contain focusable rows. Browser scroll behavior remains unmeasured.",
-        "A roving row whose role is not in ROVING_ROLES. The list holds the roles the kit uses today; #487's re-review added `option` to it, which is what brought the version switcher's rows into the walk at all.",
-        "A control a script adds after load. Nothing runs here.",
-        "The keyboard-stop walk does not assert outline-offset. The ring-carrier gate checks offset declarations separately."
-      ]
-    },
-    {
       "file": "react/src/focus-ring.test.tsx",
       "name": "React: focus ring",
       "does": "Mounts every React story and applies the same keyboard walk to the real tree, including a portalled dialog, against the kit's stylesheets and this workspace's own.",
@@ -955,20 +692,12 @@
       ]
     },
     {
-      "file": "stories/phone-shell.test.js",
-      "name": "Phone shell controls",
-      "does": "Measures the React phone band in Chromium at 320 and 390 with fine and coarse pointers. Checks the brand link, full accessible names, visible ellipsis, tap targets, viewport bounds, Dropdown panel hit testing, and native Tab and Shift+Tab in a shadow-root drawer. Checks the brand and reading column across 720 and 721.",
-      "blind": [
-        "The source half reads only declarations and markup. The browser half needs PHONE_SHELL=1, a built Storybook and Playwright, so routine CI does not prove these measurements. Other consumer band controls are not measured."
-      ]
-    },
-    {
       "file": "stories/rail-ring-room.test.js",
       "name": "Rail ring room",
       "does": "Resolves source CSS in JSDOM in both themes. Discovers rail rows whose outline matches a reference control. Checks row coverage, declared widths, and space for the outline through padding or an unclipped rail. Checks the border-box premise. Four failing mutations cover clipping, oversized rows, padding spent inside the rail, and unreadable percentage widths. A padded rail with narrower rows is a passing control.",
       "blind": [
         "JSDOM resolves declared widths and outlines. Required clearance comes from ring-width and gap-width tokens, not computed outline-offset. Browser layout and pixels remain unmeasured.",
-        "Whether a row takes the ring at all, which is stories/focus-ring.test.js's question. This gate reads the rows that already draw it, and the row count it reconciles is what stops it passing over rows that lost it.",
+        "Whether a row takes the ring at all, which is react/src/focus-ring.test.tsx's question. This gate reads the rows that already draw it, and the row count it reconciles is what stops it passing over rows that lost it.",
         "The column, not the outline. A row is measured against the width the rail lays it out in — its own width less padding and border — and the premise that the kit makes every box a border box is read off base.css and held by a test of its own, because JSDOM does not apply that universal rule.",
         "Ancestors. A rail that clips nothing itself can still stand inside something that clips, and this gate asks the rail.",
         "The shell rail is outside this gate. Historical shell-ring measurements reported on #575 are unverified here and do not prove the current head.",
@@ -980,7 +709,7 @@
       "name": "A selected item's highlight",
       "does": "Reads selected-fill declarations from both workspaces and classifies every discovered rule. Measures ten subject selectors in both themes against named grounds at 1.1:1. These cover open and folded rails, three segmented spellings, dropdown rows and palette rows. Every declared background for each subject is checked. Mutations reject a flat fill, a later flat override, and a later removed fill. Subject and exclusion selectors must still exist.",
       "blind": [
-        "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by stories/contrast-dark.test.js and stories/contrast-light.test.js instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
+        "1.1:1 is not a WCAG number and does not stand in for one: WCAG sets no contrast requirement for a background that carries no information by itself, and the ink ON these items is measured by react/src/contrast.test.tsx instead. The grounds are named here rather than discovered, because which container an item ends up inside is not in the stylesheets; an item whose ground its own component does not fix — the pager, which stands on the page in one showcase and on a card in another — is a named exclusion and says so beside its rule.",
         "The pager current-page mark is the only named exclusion. Its containing ground varies. Accent fills and rules that remove a fill are classified separately.",
         "Nothing is laid out or painted: this reads declared values with the tokens substituted. It cannot see a fill covered by a pseudo-element, one a width query makes unreachable, or what any of them looks like on a real screen. A box painted WITHIN a selected item rather than being its mark — a count badge, an icon tile — is not discovered at all, because its marker sits on an ancestor compound."
       ]
@@ -1102,6 +831,10 @@
     {
       "what": "Stacking",
       "note": "The contrast gate calls this its largest single gap. Only a real browser closes it (#131)."
+    },
+    {
+      "what": "Checks that #724 removed",
+      "note": "No gate holds these since the vanilla gates went: an underline strip that wraps, two overlays open together, a select in a Modal or a Drawer through End and Escape, a picture of a readout, browser button chrome, the folded rail in each theme and accent, and the phone band in a browser."
     }
   ]
 }
