@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.193.0', date: '2026-11-24',
+    changes: [
+      ['fixed', 'On a touch phone in the dark theme, a toolbar in the page body or in a card stack keeps 20px to the next block again, so a small button\'s tap zone no longer runs into the field under it. A stack now declares its gap once as `--ui-block-gap`, and the toolbar margin follows it in each theme. Resolves #849.', ['Toolbar']],
+      ['fixed', 'A `Tooltip`, and a `Chart` readout inside the chart frame, now keep at least 8px from each screen edge, which they could touch on a 360px or 390px phone. A `Chart` readout on the top layer can still touch the edge. Resolves #849.', ['Tooltip', 'Chart']],
+      ['changed', 'An open `StatBand` draws no rule and no 16px over its figures in either theme. It keeps 24px below a page toolbar, in the page body and in a card stack. Resolves #849.', ['StatBand']],
+      ['changed', 'The Stat bands guideline accepts a tooltip on a change as its basis, and that tooltip now also opens from the arrow. On a touch phone, such a change is a 44px target in the layout, so its figure is taller there. Resolves #849.', ['StatBand', 'Guidelines']],
+    ],
+  },
+  {
     v: '0.190.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],

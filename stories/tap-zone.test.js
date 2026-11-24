@@ -204,6 +204,9 @@ test('every family that carries a layer has something to hang it on', () => {
   const RELATIVE = /position:\s*(relative|absolute|sticky|fixed)/;
   for (const sel of carriers) {
     if (positioned.includes(sel)) continue;
+    // A `host > control` carrier measures against its host, which then has to be the box.
+    const host = / ([.\w-]+) > [.\w-]+$/.exec(sel)?.[1];
+    if (host && new RegExp(`\\${host} \\{[^}]*position:\\s*relative`).test(kitCss)) continue;
     // `.ui-check input` and friends are handled by their own rule; these are the
     // :where() carriers, each of which must already be a containing block.
     const block = kitCss.split(/(?=\n\S)/).filter((r) => r.trimStart().startsWith(`${sel} {`));
@@ -551,7 +554,7 @@ test('the shrink check reads an edge-stopped side as a lower bound', async () =>
 const RUN = process.env.TAP_ZONES === '1';
 
 test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' }, async (t) => {
-  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name, shrinks } =
+  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name, shrinks, STAT_VARIANTS, STAT_PLACES, STAT_CARDS } =
     await import('./lib/tap-zone.js');
 
   const pw = await playwright();
@@ -582,7 +585,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 13,
+    fixtures.length >= 45,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -706,6 +709,44 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         + 'below one row’s checkbox selects the next row. Keep the layer inside the room the '
         + 'rows leave: a table that shares an edge between rows grows no layer down.',
       );
+    });
+
+    // A stat band's change with a tooltip is its own 44px target in the row on a touch phone,
+    // also the short `1%`: in a folded band, over a trend, in each variant in each container
+    // in both themes, and in a Card with its own padding or paint. No layer reaches past it.
+    // The limit: the fixtures fold to one column, at 390 only.
+    const statCases = [...STAT_VARIANTS.flatMap((variant) => STAT_PLACES.map((place) => `${variant}-${place}`)),
+      ...STAT_CARDS.map(([card]) => `card-${card}`)].flatMap((id) => ['dark', 'light'].map((theme) => `stat-${id}-${theme}`));
+    const changes = (rows, id) => rows.filter((r) => r.story === `fixture:${id}` && r.cls.split(/\s+/).includes('ui-focusable'));
+    const shortChanges = (rows) => [['stat-links', 3], ['stat-trend', 2], ...statCases.map((id) => [id, 3])]
+      .flatMap(([id, count]) => {
+        const mine = changes(rows, id);
+        if (mine.length !== count) return [`${id}: ${mine.length} changes measured, ${count} expected`];
+        return mine.filter((b) => Math.min(...b.drawn, ...b.reach) < TAP_MIN).map((b) => `${id}: draws ${b.drawn.join('x')}, reaches ${b.reach.join('x')}`);
+      });
+    const statRows = (rows) => rows.filter((r) => /^fixture:stat-/.test(r.story));
+    const takenByChange = (rows) => statRows(rows).flatMap((r) => r.lostTo.map(([, to]) => `${r.story} — ${name(r)} ← ${to}`));
+    // Two drawn boxes in one fixture that share more than an edge. A control inside another is not counted.
+    const overlaps = (rows) => statRows(rows).flatMap((a, i, all) => all.slice(i + 1)
+      .filter((b) => b.story === a.story && Math.min(a.box[0] + a.drawn[0], b.box[0] + b.drawn[0]) - Math.max(a.box[0], b.box[0]) > 1
+        && Math.min(a.box[1] + a.drawn[1], b.box[1] + b.drawn[1]) - Math.max(a.box[1], b.box[1]) > 1)
+      .map((b) => `${a.story} — ${name(a)} over ${name(b)}`));
+
+    await t.test('a stat change is a 44px target in the row and overlaps no other target', () => {
+      assert.equal(statCases.length, 30, 'Three variants in four containers and three Cards, in two themes.');
+      assert.deepEqual(shortChanges(B), []);
+      assert.deepEqual(takenByChange(B), []);
+      assert.deepEqual(overlaps(B), []);
+      t.diagnostic(`stat changes draw ${['stat-links', 'stat-trend', ...statCases]
+        .map((id) => `${id} ${changes(B, id).map((b) => b.drawn.join('x')).join(', ')}`).join(' / ')}`);
+    });
+
+    await t.test('a stat change without its touch size is rejected', async () => {
+      const own = fixtures.filter((f) => /^fixture:stat-/.test(f.id));
+      const sheet = withCss.replace(/@media \(max-width: 560px\) and \(pointer: coarse\) \{\s*\.ui-stat__delta [^}]*\}/, '@media (max-width: 560px) and (pointer: coarse) {');
+      assert.notEqual(sheet, withCss, 'The mutation did not apply, so it proves nothing.');
+      const short = new Set(shortChanges(flatten((await at(390, true, sheet, own)).rows)).map((p) => p.split(':')[0]));
+      assert.equal(short.size, 2 + statCases.length, `A change at its line height passed in some fixtures: ${[...short]}`);
     });
 
     await t.test('every density of a selectable table is measured, header and rows', () => {

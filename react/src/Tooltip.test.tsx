@@ -141,11 +141,11 @@ it('toggles on touch, ignoring the following compatibility mouse and focus event
   expect(tip).not.toHaveClass('is-open');
 });
 
-function geometry(trigger: HTMLElement, tip: HTMLElement, top: number) {
-  vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({ top, bottom: top + 20, left: 100, right: 160, width: 60, height: 20 } as DOMRect);
+function geometry(trigger: HTMLElement, tip: HTMLElement, top: number, left = 100, view = 800) {
+  vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({ top, bottom: top + 20, left, right: left + 60, width: 60, height: 20 } as DOMRect);
   vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(30);
   vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(100);
-  vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(800);
+  vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(view);
   vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(600);
 }
 
@@ -157,6 +157,19 @@ it.each([[100, false], [10, true]])('places a trigger at %spx on the available s
   expect(tip.style.getPropertyValue('--ui-tip-y')).toBe(`${below ? top + 20 : top}px`);
 });
 
+// A mark at a phone's edge: the readout keeps 8px to each edge of the view. At the top, 40px
+// of room holds the 30px readout and its 8px gap only with no room to the edge, so it flips.
+// Limits: JSDOM supplies the geometry, so this reads the numbers placeTip writes, not paint.
+it.each([[360, 0], [360, 300], [390, 0], [390, 330]])('keeps 8px to each edge of a %spx view, for a mark at %spx', (view, left) => {
+  const { trigger, tip } = mount();
+  geometry(trigger, tip, 40, left, view);
+  hover(trigger);
+  const start = left + 30 - 50 + parseFloat(tip.style.getPropertyValue('--ui-tip-shift'));
+  expect(start).toBeGreaterThanOrEqual(8);
+  expect(start + 100).toBeLessThanOrEqual(view - 8);
+  expect(tip).toHaveClass('is-below');
+});
+
 it('repositions on scroll and resize while open', () => {
   const { trigger, tip } = mount();
   geometry(trigger, tip, 100);
@@ -164,7 +177,7 @@ it('repositions on scroll and resize while open', () => {
   vi.mocked(trigger.getBoundingClientRect).mockReturnValue({ top: 5, bottom: 25, left: 0, width: 20 } as DOMRect);
   fireEvent.scroll(window);
   expect(tip).toHaveClass('is-below');
-  expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('40px');
+  expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('48px');
   vi.mocked(trigger.getBoundingClientRect).mockReturnValue({ top: 100, bottom: 120, left: 100, width: 60 } as DOMRect);
   fireEvent.resize(window);
   expect(tip).not.toHaveClass('is-below');
@@ -234,9 +247,10 @@ it('places the readout again when it or its mark changes size, as when a font lo
     hover(trigger);
     expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('0px');
     // The font arrives and the readout is 300px wide: centred on 130, it would start at -20.
+    // It starts 8px in from the view's edge.
     vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(300);
     resized();
-    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('20px');
+    expect(tip.style.getPropertyValue('--ui-tip-shift')).toBe('28px');
   } finally {
     if (was) Object.defineProperty(window, 'ResizeObserver', was);
     else delete (window as { ResizeObserver?: unknown }).ResizeObserver;
@@ -383,8 +397,9 @@ it('drops the document listeners when the last readout unmounts', () => {
 
 it('honours a gap of zero instead of falling back to the sheet default', () => {
   const { trigger, tip } = mount();
-  // 35px of room above, a 30px readout: it fits with no gap and not with 8px.
-  geometry(trigger, tip, 35);
+  // 35px of room above, inside the view's 8px edge, and a 30px readout: it fits with no gap
+  // and not with 8px.
+  geometry(trigger, tip, 43);
   tip.style.setProperty('--ui-tip-gap', '0px');
   hover(trigger);
   expect(tip).not.toHaveClass('is-below');

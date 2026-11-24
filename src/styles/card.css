@@ -60,10 +60,10 @@
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
    (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */
-.ui-card-stack { display: flex; flex-direction: column; gap: var(--space-5); }
+.ui-card-stack { --ui-block-gap: var(--space-5); display: flex; flex-direction: column; gap: var(--ui-block-gap); }
 /* #850: on the light page a card draws no box, so the stack opens to the page's group gap.
    why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-card-stack { gap: var(--space-10); }
+:root[data-theme="light"] .ui-card-stack { --ui-block-gap: var(--space-10); gap: var(--ui-block-gap); }
 
 /* A padding modifier moves the vertical rhythm and keeps the text edge, so cards of
    different padding line up in one column. --pad-lg is the centred landing card, never

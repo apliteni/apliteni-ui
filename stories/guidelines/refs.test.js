@@ -356,3 +356,25 @@ test('interrupt guidance sends a short form to a modal or a drawer and a long on
     'Use a content-sized modal or a drawer for a short form, and a page for a long one.',
   );
 });
+
+// accessibility-coverage.json names a test file for each gate and cites more in its text.
+// #724 deleted 30 of them and the list went on naming them. A cited file must exist.
+// Each gate's file is checked by itself, whatever its folder, and a text citation in any folder.
+// Limits: checks that each path exists, not that the file still does what the entry says.
+const missingCited = (coverage) => {
+  const { GATES } = JSON.parse(coverage);
+  const cited = [...new Set([
+    ...GATES.map((gate) => gate.file),
+    ...(coverage.match(/(?:[\w-]+\/)+[\w.-]+\.test\.(?:js|tsx?)\b/g) || []),
+  ])];
+  return { gates: GATES.length, cited: cited.length, missing: cited.filter((file) => !existsSync(path.join(root, file))) };
+};
+
+test('every test file the accessibility coverage list cites exists', () => {
+  const { gates, cited, missing } = missingCited(readFileSync(path.join(here, 'accessibility-coverage.json'), 'utf8'));
+  assert.ok(gates > 50 && cited >= gates, `read ${gates} gates and ${cited} cited files`);
+  assert.deepEqual(missing, [], 'the coverage list cites a test file that is gone');
+  // A gate file and a text citation outside the usual folders must still be found missing.
+  const fixture = JSON.stringify({ GATES: [{ file: 'site/missing.test.js', does: 'See docs/gone.test.ts.' }] });
+  assert.deepEqual(missingCited(fixture).missing, ['site/missing.test.js', 'docs/gone.test.ts']);
+});

@@ -2,7 +2,7 @@
  * Stat band — .ui-stats  (a row of key figures: label, value, change, trend)
  *   .ui-stats--tiles  one card per figure — the default
  *   .ui-stats--band   one card, figures divided by space
- *   .ui-stats--open   no surface; a rule over each figure
+ *   .ui-stats--open   no surface and no rule; space and a larger value divide
  * why: docs/components.md#stat-bands
  * ========================================================================== */
 
@@ -77,6 +77,17 @@ dd.ui-stat__caption { margin-top: var(--space-2); }
   line-height: var(--leading-snug);
 }
 .ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/foundations.md#icons-and-glyphs */
+/* A change with a tooltip holds its arrow inside the focus target, set as the row sets it.
+   The focus ring's block padding is lent back, so focus moves no line. #849 */
+.ui-stat__delta .ui-tip-host > .ui-focusable { display: inline-flex; align-items: center; gap: var(--space-1); vertical-align: top; }
+.ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible { margin-block: calc(-1 * var(--space-1)); }
+/* On a touch phone the change is its own 44px target in the row, as an underline tab is.
+   The figure grows by the difference, and no layer reaches past the target into a
+   neighbour. The ring goes round the target's own box, so it lends no padding. #849 */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-stat__delta .ui-tip-host > .ui-focusable { min-inline-size: var(--tap-min, 44px); min-block-size: var(--tap-min, 44px); }
+  .ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible { padding: 0; margin: 0; }
+}
 .ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
 .ui-stat__basis { color: var(--text); font-weight: var(--weight-normal); }
 
@@ -126,13 +137,7 @@ dd.ui-stat__caption { contain: inline-size; }
   margin-inline: 0;
 }
 
-.ui-stats--open .ui-stat {
-  border-top: 1px solid var(--border-strong);
-  padding-top: var(--space-4);
-}
-/* #850: on the light page no hairline above an open stat; the value is the signal. */
-:root[data-theme="light"] .ui-stats--open .ui-stat { border-top: 0; }
-/* #850 round 34: without that rule the light open figures read as one band, so a
+/* #850 round 34: on one white ground the light open figures read as one band, so a
    vertical soft line between figures in a row keeps the columns apart. The line
    stops where a figure starts a new row: the odd fold stacks every figure, and the
    pairs fold starts its second row at the third figure. The column gap halves so the

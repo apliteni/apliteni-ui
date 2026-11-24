@@ -1,7 +1,9 @@
+import { useId } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { StatBand, type StatBandProps } from './primitives/StatBand';
 
-const meta: Meta = { title: 'React/Stat band' };
+// A band folds by its own width, and a centred canvas gives it none.
+const meta: Meta = { title: 'React/Stat band', parameters: { layout: 'padded' } };
 export default meta;
 
 const STATS: StatBandProps['stats'] = [
@@ -10,21 +12,31 @@ const STATS: StatBandProps['stats'] = [
   { label: 'Net cashflow', value: '+€ 2,331,521', delta: { value: '+168.0%' } },
   { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', tone: 'good' } },
 ];
-const BASIS = 'Change against the previous 12 months';
+const BASIS = 'vs. previous 12 months';
+
+// Each change shows the basis in its tooltip, and points at the same words for a screen
+// reader. A change with a basis of its own keeps it.
+function BasedBand({ stats, ...band }: StatBandProps) {
+  const basisId = useId();
+  return <>
+    <p className="ui-sr" id={basisId}>{BASIS}</p>
+    <StatBand {...band} basisId={basisId} stats={stats.map(figure => (
+      figure.delta ? { ...figure, delta: { tooltip: BASIS, ...figure.delta } } : figure))} />
+  </>;
+}
 
 // A figure's value can be a link to its drill-down, which the HTML factory cannot take.
 // Tiles is the default, so it is the story that names no variant.
-export const Tiles: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} /> };
-export const Band: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="band" /> };
-export const Open: StoryObj = { render: () => <StatBand stats={STATS} basis={BASIS} variant="open" /> };
+export const Tiles: StoryObj = { render: () => <BasedBand stats={STATS} /> };
+export const Band: StoryObj = { render: () => <BasedBand stats={STATS} variant="band" /> };
+export const Open: StoryObj = { render: () => <BasedBand stats={STATS} variant="open" /> };
 
 // A caption earns the row a change would have taken only by giving a unit, a
 // period or a limit the figure cannot: a rate could be of income or of orders.
 // Gross margin names its own denominator, so it takes none.
 export const Caption: StoryObj = {
   render: () => (
-    <StatBand
-      basis={BASIS}
+    <BasedBand
       stats={[
         { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
         { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%', tone: 'good' } },
@@ -41,8 +53,7 @@ export const Caption: StoryObj = {
 // keyboard focus and on touch.
 export const CaptionLength: StoryObj = {
   render: () => (
-    <StatBand
-      basis={BASIS}
+    <BasedBand
       stats={[
         { label: 'Gross margin', value: '36.1%', delta: { value: '+1.2 pts', tone: 'good' } },
         { label: 'Refunds', value: '2.4%', caption: 'of income, net of disputes', delta: { value: '+0.3 pts', tone: 'bad' } },
@@ -64,8 +75,7 @@ export const CaptionLength: StoryObj = {
 // nothing to compare is the caller's to say, in a caption, or to leave unsaid.
 export const NothingToCompare: StoryObj = {
   render: () => (
-    <StatBand
-      basis={BASIS}
+    <BasedBand
       stats={[
         STATS[1],
         { label: 'New entity', value: '€ 12,040', caption: 'since 1 March', delta: { value: null } },

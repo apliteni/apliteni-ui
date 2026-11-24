@@ -1114,9 +1114,9 @@ itself: the readout then adds no Tab stop and no description.
 
 **What the user sees.** A pointer that rests for 300ms opens the readout, and it closes at once when
 the pointer leaves. Within 300ms after one closes, the next opens at once. The readout is in the
-top layer, over a sticky cell. It stays inside the viewport and moves with a scroll or a resize. It
-never moves anything else on the page. On a touch screen, a tap opens the readout and does not
-also run the mark's action.
+top layer, over a sticky cell. It stays inside the viewport, at least 8px from each edge, and moves
+with a scroll or a resize. It never moves anything else on the page. On a touch screen, a tap
+opens the readout and does not also run the mark's action.
 
 **Keyboard and screen reader.** Keyboard focus opens the readout at once, and the trigger gets it
 as its description. Escape closes only the readout and keeps the focus on the trigger. The next
@@ -1246,17 +1246,24 @@ All figures read at one size.
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A
 figure with nothing to compare shows no change row, never `+0%`. A figure shows at most one line
 under its value. A row of tiles keeps a soft line around each tile, also on the light page where a
-lone card draws none. An open band draws a vertical soft line between figures in a row on the
-light page. Use a caption only for a unit, a period or a limit that the figure cannot say.
+lone card draws none. An open band draws no rule over a figure, on a page or in a card: space and
+the value divide the figures. On the light page it also draws a vertical soft line between figures
+in a row, and none where the figures fold onto a new row. Use a caption only for a unit, a period or a limit that the figure cannot say.
 `trend` is a slot for a small chart, such as a `Chart variant="spark"`.
 
 **Say what a change compares with.** Put it once for the band in `basis`, or with `basisId` point
 at text before the figures. A caption comes before the figures. A hover `title` does not count.
-When a period control already states the window, do not repeat it.
+When a period control already states the window, do not repeat it. To show no caption, put the basis
+in the `tooltip` of each `delta`, and with `basisId` point at screen-reader-only text that says it.
+The arrow and the change are one target, so the tooltip opens from either on hover, focus and tap.
+On a touch phone, the change is a 44 by 44px target in the layout, in every variant and
+container. The figure is taller there by the difference. With a mouse, the figure keeps its size.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
 flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
-keeps one group gap of air below the figures, on top of the body's own gap.
+keeps one group gap of air below the figures, on top of the body's own gap. A toolbar directly before
+an open band keeps 24px to the figure labels, in the page body and in a card stack, also on a touch
+phone.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
