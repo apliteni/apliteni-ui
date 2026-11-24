@@ -184,7 +184,7 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: var(--ui-dropdown-pad);
   /* The cap, and the whole of #489: a panel took its content's height until that
      height ran off the screen, and then it took what was left. Two numbers decide
@@ -455,12 +455,12 @@
 .ui-dropdown__panel > .ui-dropdown__head {
   margin: calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1) 5px;
   border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 .ui-dropdown__panel > .ui-dropdown__foot {
   margin: 5px calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1);
   border-top: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 /* Search — `search: true` pins a field above the rows and filters them as the
@@ -497,7 +497,7 @@
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
-  border-radius: var(--radius-md); /* The field corner, as .ui-input. #836 */
+  border-radius: var(--radius-lg); /* The one-line field corner, as .ui-input. #836 */
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
@@ -561,9 +561,16 @@
 
 /* A dropdown that is a form control takes its field's width, and its panel the
    trigger's. why: docs/components.md#avatar */
-.ui-field > .ui-dropdown { display: grid; }
+.ui-field > .ui-dropdown { display: inline-grid; max-width: 100%; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
+
+@supports (corner-shape: squircle) {
+  .ui-dropdown__panel,
+  .ui-dropdown__panel > .ui-dropdown__head,
+  .ui-dropdown__panel > .ui-dropdown__foot,
+  .ui-dropdown__search-input { corner-shape: squircle; }
+}
 /* In a form the trigger takes the text input's block padding and type, so the two
    stand at one height. It keeps the pill, and the input has the field corner. #812, #836
    why: docs/components.md#fields */

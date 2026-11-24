@@ -110,8 +110,12 @@
   min-height: var(--space-8);
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-sm);
-  border-radius: var(--radius-md); /* The field corner, as .ui-input. #836 */
+  border-radius: var(--radius-lg); /* The one-line field corner, as .ui-input. #836 */
   text-align: center;
+}
+
+@supports (corner-shape: squircle) {
+  .ui-pager__jump-input { corner-shape: squircle; }
 }
 
 /* A pager directly after a table stands off it. The strip owns no margin of its

@@ -532,8 +532,13 @@ picker or by drop. `accept` only filters the system picker, so check the file be
 **`Field` with your own control.** The child function gets the `id`, `required`, `aria-invalid`
 and `aria-describedby`. Spread them on the control. A dropdown or date picker trigger then has the
 label and the value as its name, and the error gives it the invalid edge. In a field, a dropdown
-trigger has the height of a text input and keeps the pill corner. A long value stays on one line
-and ends with an ellipsis.
+trigger has the height of a text input and keeps the pill corner. It fits its longest option up to
+the field width, so a value change does not change its width. A native select has the same width
+rule. A long value stays on one line and ends with an ellipsis.
+
+**Corners.** A one-line field has the 16px field corner. A text area and message box have the
+24px message corner. Cards and floating panels have the 12px surface corner. Where supported,
+these corners use the squircle shape. Other browsers use round corners.
 
 **A list of options in `SelectField`.** The browser draws the open list, so the kit does not
 style an `<option>`. For an option that the user can still pick but that is no longer current,

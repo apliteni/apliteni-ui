@@ -15,7 +15,7 @@
   --sx-green: var(--green);
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: var(--radius-md);
   background: var(--bg-elevated);   /* Elevated surface for the confirmation and its actions. */
   /* The floating treatment, like every other surface on that step.
      why: docs/foundations.md#elevation */
@@ -26,6 +26,9 @@
 
 /* ---- Layout shell -------------------------------------------------------- */
 .ui-sx__inner { position: relative; z-index: 1; }
+@supports (corner-shape: squircle) {
+  .ui-sx { corner-shape: squircle; }
+}
 .ui-sx__content { min-width: 0; }
 .ui-sx__title {
   color: var(--strong); font-size: var(--text-xl); font-weight: var(--weight-semibold);

@@ -6,7 +6,7 @@
  * The subjects are discovered: every `border-radius` the shipped style sheets declare
  * (src/styles/*.css and react/src/*.css) on a selector whose subject, its last compound,
  * carries a control class. Each must be `var(--radius-pill)`, or `var(--radius-md)` for a
- * class in FIELDS. A later rule that gives a control another corner fails here, whatever
+ * class in FIELDS. A text area has the larger message corner. A later rule that gives a control another corner fails here, whatever
  * its specificity.
  *
  * Limits: the gate reads declarations, not layout. It does not prove that the padding
@@ -36,8 +36,9 @@ const KEEPS = {
   'ui-app__user-trigger': 'In the side rail it is a rail row and keeps the rail rows’ corner. In the band it is a circle, held below.',
 };
 const PILL = 'var(--radius-pill)';
-const FIELD = 'var(--radius-md)';
-const cornerOf = (cls) => (FIELDS.includes(cls) ? FIELD : PILL);
+const FIELD = 'var(--radius-lg)';
+const MESSAGE = 'var(--radius-2xl)';
+const cornerOf = (cls) => (cls === 'ui-textarea' ? MESSAGE : FIELDS.includes(cls) ? FIELD : PILL);
 
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const classesOf = (selector) => {
@@ -93,7 +94,8 @@ test('every control is a pill and every field has the field corner, except the c
   // What the tree holds today. A lower count means a control lost its declaration.
   // 18 since #847: a band action's Button and dropdown trigger take the band's 40px pill on a phone.
   assert.equal(corners.filter((c) => c.value === PILL).length, 18, 'pill corners read');
-  assert.equal(corners.filter((c) => c.value === FIELD).length, 5, 'field corners read');
+  assert.equal(corners.filter((c) => c.value === FIELD).length, 4, 'one-line field corners read');
+  assert.equal(corners.filter((c) => c.value === MESSAGE).length, 1, 'message box corners read');
   assert.ok(SHEETS.length >= 45, `${SHEETS.length} style sheets read`);
 });
 
@@ -103,8 +105,9 @@ const MUTATIONS = [
   ['the large button on --radius-md', 'src/styles/button.css', /(--btn-font: var\(--text-md\);) \}/, '$1 border-radius: var(--radius-md); }'],
   ['the field trigger on the old input corner', 'src/styles/dropdown.css', /(\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{\n)/, '$1  border-radius: var(--radius-md);\n'],
   ['the filter chip back on --radius-sm', 'src/styles/filter-bar.css', /(var\(--control-edge\); border-radius: )var\(--radius-pill\)/, '$1var(--radius-sm)'],
-  ['the text input back on the pill', 'src/styles/input.css', /(\.ui-input,\n\.ui-textarea \{ border-radius: )var\(--radius-md\)/, '$1var(--radius-pill)'],
-  ['the dropdown search field back on the pill', 'src/styles/dropdown.css', /(border-radius: )var\(--radius-md\)(; \/\* The field corner)/, '$1var(--radius-pill)$2'],
+  ['the text input back on the pill', 'src/styles/input.css', /(\.ui-input \{ border-radius: )var\(--radius-lg\)/, '$1var(--radius-pill)'],
+  ['the message box back on the one-line corner', 'src/styles/input.css', /(\.ui-textarea \{ border-radius: )var\(--radius-2xl\)/, '$1var(--radius-lg)'],
+  ['the dropdown search field back on the pill', 'src/styles/dropdown.css', /(border-radius: )var\(--radius-lg\)(; \/\* The one-line field corner)/, '$1var(--radius-pill)$2'],
   ['the select on the field corner', 'src/styles/input.css', /(\.ui-select \{\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-md)'],
   ['the account button in the band on --radius-sm', 'src/styles/layout.css', /(justify-content: center;\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-sm)'],
   ['the back link on --radius-sm', 'src/styles/back.css', /(\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-sm)'],

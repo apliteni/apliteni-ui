@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.194.0', date: '2026-11-24',
+    changes: [
+      ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],
+      ['changed', 'A form Dropdown and native select now fit their longest option up to the field width. Their pill shape stays unchanged, and a value change does not change their width. Part of #874.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.193.0', date: '2026-11-24',
     changes: [
       ['fixed', 'On a touch phone in the dark theme, a toolbar in the page body or in a card stack keeps 20px to the next block again, so a small button\'s tap zone no longer runs into the field under it. A stack now declares its gap once as `--ui-block-gap`, and the toolbar margin follows it in each theme. Resolves #849.', ['Toolbar']],
