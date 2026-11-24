@@ -93,8 +93,9 @@ const subjects: string[] = [...new Set([
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
-// three filter-bar inset declarations left with its bar's move onto a card (#736).
-const FOUND = { subjects: 67, declarations: 517, carriers: 49, sheets: 6 };
+// three filter-bar inset declarations left with its bar's move onto a card (#736). The
+// Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet.
+const FOUND = { subjects: 75, declarations: 541, carriers: 52, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -125,11 +126,6 @@ const ALLOWED: Record<string, string> = {
   'react/src/PeriodPicker.stories.tsx|.ui-card__title': 'the title is the first line of this card',
   'react/src/Landing.stories.tsx|.ui-section-head': 'the accent card closes its heading with the card padding',
   'stories/apps/EmptyStates.stories.tsx|.ui-toolbar': 'the page stacks the toolbar by hand',
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-table-scroll': 'the page stacks the scroll region by hand',
-
-  // Fifteen columns cannot fit a viewport, and a company name must not wrap mid-row.
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-table': 'fifteen columns are wider than the viewport',
-  'stories/apps/StockScreener.stories.tsx|.screener .ui-identity__name': 'a company name does not wrap mid-row',
 
   // One column of one table reads left because it holds text. The kit right-aligns a
   // footer label on the assumption it spans to sit against its figure; here it owns a
@@ -175,10 +171,6 @@ const GLUE_CEILING = 22;
 // FeedbackShowcase's shadow, 1 to 2, for a `transition` inherited through a spread; and
 // SwitchCheckbox's glue, newly 26, for the three properties each of two rows inherits
 // from the object it spreads. The follow-ups and the reasons are on #601.
-//
-// The invoice showcase's sheet is recorded at 24 glue declarations, two over the ceiling.
-// The record form keeps its two columns down to the phone step (#458), which takes a grid
-// declaration for the fields and one for their phone rule. It paints nothing.
 const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   // The bento grid and phone stack place six kit cards with demos at their feet.
   // The closing card has a page width of its own.
@@ -189,15 +181,14 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
   'react/src/DocumentReview.css': { shadow: 1 },
   'react/src/DocumentReview.stories.tsx': { shadow: 11, glue: 31 },
-  'react/src/FeedbackShowcase.css': { shadow: 12 },
+  'react/src/FeedbackShowcase.css': { shadow: 11 },
   'react/src/FeedbackShowcase.stories.tsx': { shadow: 2 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
+  // The phone ground and one-row viewer toolbar need five more placements than the
+  // ceiling: the bleed, the clear space above the ground, and the tighter toolbar fit.
+  'react/src/showcases/SplitLayout.css': { glue: 26 },
   'react/src/SwitchCheckbox.stories.tsx': { glue: 26 },
   'react/src/Success.stories.tsx': { shadow: 1, glue: 31 },
-  'react/src/showcases/InvoiceFlow.css': { glue: 24 },
-  // The showcases' figures as the vanilla gate recorded them for the same screens.
-  'stories/apps/Access.stories.tsx': { shadow: 2 },
-  'stories/apps/StockScreener.stories.tsx': { shadow: 9 },
 };
 
 const against = { allowed: ALLOWED, recorded: RECORDED, ceiling: GLUE_CEILING, where: 'this gate' };
@@ -215,7 +206,7 @@ describe('story CSS', () => {
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
-      'react/src/showcases/InvoiceFlow.css', 'react/src/showcases/Notifications.css',
+      'react/src/showcases/Notifications.css', 'react/src/showcases/SplitLayout.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.
@@ -224,9 +215,9 @@ describe('story CSS', () => {
   });
 
   it('reads a showcase sheet its own module imports', () => {
-    // InvoiceFlow.tsx imports InvoiceFlow.css, so the story-only rule alone skips it. The
-    // showcases folder is read whoever imports it, or a showcase could paint in its sheet.
-    const sheet = 'react/src/showcases/InvoiceFlow.css';
+    // Notifications.tsx imports Notifications.css, so the story-only rule alone skips it.
+    // The showcases folder is read whoever imports it, or a showcase could paint in its sheet.
+    const sheet = 'react/src/showcases/Notifications.css';
     expect(storyOnlySheet(sheet), 'the sheet should be imported by its module').toBe(false);
     expect(subjects).toContain(sheet);
     expect(isShowcaseSheet('react/src/showcases/New.css')).toBe(true);
@@ -234,9 +225,9 @@ describe('story CSS', () => {
   });
 
   it('reports a showcase sheet that paints something of its own', () => {
-    const sheet = 'react/src/showcases/InvoiceFlow.css';
+    const sheet = 'react/src/showcases/Notifications.css';
     expect(measured.find((s) => s.file === sheet)!.shadows.length).toBe(0);
-    const problems = withEdit(sheet, (src) => `${src}\n.invoice-flow__paper { background: #f00; }\n`);
+    const problems = withEdit(sheet, (src) => `${src}\n.notifications__panel { background: #f00; }\n`);
     expect(problems.join('\n')).toMatch(/declaration\(s\) paint, type or animate[\s\S]*background/);
   });
 

@@ -19,11 +19,14 @@
   stroke-width: 2.25;
 }
 @media (max-width: 560px) {
-  .ui-kv {
+  /* Two pairs to a row cannot fit on a phone, so only that variant stacks. A
+     single column keeps its value beside its label: the pair stays on one row
+     where it fits, and a long value wraps in its own column. */
+  .ui-kv--two-columns {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--space-3);
   }
-  .ui-kv > .ui-drawer__row {
+  .ui-kv--two-columns > .ui-drawer__row {
     display: block;
   }
 }

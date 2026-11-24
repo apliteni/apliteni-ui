@@ -10,7 +10,7 @@ import { SuccessCheck } from '../../react/src/Success';
 import '../../react/src/showcases/Auth.css';
 
 const brandMark = <span dangerouslySetInnerHTML={{ __html: brand({ p: 'consent', word: 'apliteni-ui', href: '#' }) }} />;
-const shell = (body: ReactNode) => <AuthShell brand={brandMark}>{body}</AuthShell>;
+const shell = (body: ReactNode) => <AuthShell brand={brandMark} brandAbove>{body}</AuthShell>;
 
 const meta: Meta<typeof AuthShell> = { title: 'Showcases/Consent', id: 'apps-consent', component: AuthShell, parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -23,9 +23,9 @@ const scope = (glyph: string, title: string, detail: string) => <div className="
 
 export const Grant: Story = { name: 'Grant access', render: () => shell(<>
   <div className="auth-actors">
-    <Avatar personKey="research-bot" name="Research bot" size={32} />
+    <Avatar personKey="research-bot" name="Research bot" size={48} />
     <Icon name="arrowRight" />
-    <Avatar personKey="ada-example" name="Ada Example" size={32} />
+    <Avatar personKey="ada-example" name="Ada Example" size={48} />
   </div>
   <h1 className="ui-auth__title">Research bot wants to read your account</h1>
   <p className="ui-auth__sub">Signed in as <b>ada@apliteni.com</b>. This agent is asking to:</p>

@@ -17,6 +17,7 @@ import '../../react/src/showcases/Auth.css';
 
 const brandMark = <span dangerouslySetInnerHTML={{ __html: brand({ p: 'signin', word: 'apliteni-ui', href: '#' }) }} />;
 const shell = (body: ReactNode) => <AuthShell brand={brandMark}>{body}</AuthShell>;
+const shellSplit = (body: ReactNode, tagline: string) => <AuthShell brand={brandMark} split tagline={tagline}>{body}</AuthShell>;
 
 
 /** The sign-in page. A provider's answer stands in for the move to the app. */
@@ -27,49 +28,58 @@ function SignInPage({ sub, ...args }: SignInArgs & { sub: string }) {
     <p className="ui-auth__sub">{sub}</p>
     {done ? <Callout variant="success">You are signed in. The app opens next.</Callout>
       : <SignInBlock {...args} onDone={() => setDone(true)} />}
-    <div className="ui-auth__foot">Only <b>apliteni.com</b> accounts can sign in.</div>
+    <div className="ui-auth__foot">Only work accounts can sign in.</div>
   </>);
 }
 const page = (sub: string, args: SignInArgs) => <SignInPage sub={sub} {...args} />;
+const splitPage = (tagline: string, args: SignInArgs) => {
+  const [done, setDone] = useState(false);
+  return shellSplit(<>
+    <h1 className="ui-auth__title">Sign in</h1>
+    {done ? <Callout variant="success">You are signed in. The app opens next.</Callout>
+      : <SignInBlock {...args} onDone={() => setDone(true)} />}
+    <div className="ui-auth__foot">Only work accounts can sign in.</div>
+  </>, tagline);
+};
 
-// The app screen that the session ends on: payouts with a filter that the person set.
+// The app screen that the session ends on: sales with a filter that the person set.
 const PENDING: [string, string, string][] = [
-  ['PO-1171', '4,200.00', '2026-11-09'],
-  ['PO-1170', '860.00', '2026-11-08'],
-  ['PO-1168', '1,975.50', '2026-11-06'],
+  ['SAL-1171', '4,200.00', '2026-11-09'],
+  ['SAL-1170', '860.00', '2026-11-08'],
+  ['SAL-1168', '1,975.50', '2026-11-06'],
 ];
 
 type Session = 'active' | 'ended' | 'closed';
 
 /**
- * Payouts while the session is active, when it ends, and after the modal closes. A change of the
+ * Sales while the session is active, when it ends, and after the modal closes. A change of the
  * `session` arg moves the same mounted screen, so its search text stays. A provider answer closes
  * the modal. Close keeps the screen and a way back in.
  */
 function EndedScreen({ session, ...args }: SignInArgs & { session: Session }) {
   const [open, setOpen] = useState(session === 'ended');
   const [signedOut, setSignedOut] = useState(session === 'closed');
-  const [search, setSearch] = useState('PO-1170');
+  const [search, setSearch] = useState('SAL-1170');
   useEffect(() => { setOpen(session === 'ended'); setSignedOut(session === 'closed'); }, [session]);
   const waitingForSignIn = open || signedOut;
-  return <FinanceShell active="payouts" title="Payouts" sub={waitingForSignIn ? undefined : 'Filtered to pending, this week.'}>
+  return <FinanceShell active="sales" title="Sales" sub={waitingForSignIn ? undefined : 'Filtered to pending, this week.'}>
     {waitingForSignIn && <Skeleton lines={1} width="12rem" />}
     {/* The callout stays under a reopened modal, so its Sign in button gets the focus back. */}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={() => setOpen(true)}>Sign in</Button>}>
-      You are signed out. Sign in to approve payouts.
+      You are signed out. Sign in to keep working.
     </Callout>}
     {/* The ledger's filter bar stands on the page directly above it. why: guidelines/dense-tables.md */}
     <div className="ui-toolbar">
       {waitingForSignIn ? <Skeleton className="ui-input-group" lines={1} width="100%" /> :
-        <SearchField ariaLabel="Search payouts" placeholder="Reference or payout ID" value={search}
+        <SearchField ariaLabel="Search sales" placeholder="Reference or sale ID" value={search}
           onChange={event => setSearch(event.currentTarget.value)} />}
     </div>
-    <Card title="Pending payouts">
+    <Card title="Pending sales">
       {waitingForSignIn ? <SkeletonTable rows={PENDING.length} cols={4} /> :
         <table className="ui-table ui-table--dense">
-        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Arrival</th><th>Status</th></tr></thead>
-        <tbody>{PENDING.map(([ref, net, arrival]) => <tr key={ref}>
-          <td>{ref}</td><td className="ui-table__num">{net}</td><td>{arrival}</td><td><Badge variant="pending">Pending</Badge></td>
+        <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th><th>Date</th><th>Status</th></tr></thead>
+        <tbody>{PENDING.map(([ref, net, date]) => <tr key={ref}>
+          <td>{ref}</td><td className="ui-table__num">{net}</td><td>{date}</td><td><Badge variant="pending">Pending</Badge></td>
         </tr>)}</tbody>
         </table>
       }
@@ -92,6 +102,8 @@ export default meta;
 type Story = StoryObj<SignInArgs>;
 
 export const Default: Story = { render: args => page('Access the Apliteni design system with your work account.', args) };
+
+export const Split: Story = { name: 'Split layout', render: args => splitPage('Access the Apliteni design system with your work account.', args) };
 
 export const ProviderError: Story = { name: 'Provider error', args: { failed: true },
   render: args => page('Access the Apliteni design system with your work account.', args) };

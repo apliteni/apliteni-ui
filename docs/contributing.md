@@ -63,6 +63,10 @@ Stories are grouped by `title` into four sections: **Foundations**, **Guidelines
 **React** (one component each) and **Showcases** (whole pages that use the components, with
 shared scaffolding in `stories/apps/_*.tsx`).
 
+A showcase is a screen that Storybook shows and an app copies. The npm package does not ship
+showcases. A showcase shows a general case that almost all apps need, and never a
+product-specific flow.
+
 ```bash
 npm run storybook          # dev, on port 6006
 npm run build-storybook    # static, into storybook-static/

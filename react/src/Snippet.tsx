@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Icon } from './primitives/Icon';
 
 export type SnippetProps = {
+  /** Optional bar title; a block with no title keeps the copy action in flow
+   *  beside the code, so the copy icon reserves its own space. */
   label?: string;
   /** Original text to copy; displayed when children are absent. */
   code?: string;
@@ -9,11 +11,15 @@ export type SnippetProps = {
   children?: ReactNode;
   copy?: boolean;
   reveal?: boolean;
+  /** Wraps the code instead of scrolling it, for a command a reader copies whole. */
+  wrap?: boolean;
+  /** Called after a successful copy, so a page can show its own result. */
+  onCopy?: () => void;
   /** Accessible name and tooltip for the icon-only copy button; name what it copies. */
   copyLabel?: string;
 };
 
-export function Snippet({ label = 'shell', code = '', children, copy = true, reveal = false, copyLabel = 'Copy code' }: SnippetProps) {
+export function Snippet({ label, code = '', children, copy = true, reveal = false, wrap = false, onCopy, copyLabel = 'Copy code' }: SnippetProps) {
   const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const request = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -34,38 +40,43 @@ export function Snippet({ label = 'shell', code = '', children, copy = true, rev
       await navigator.clipboard.writeText(code);
       if (current !== request.current) return;
       setStatus('copied');
-      timer.current = setTimeout(() => setStatus('idle'), 1400);
+      onCopy?.();
+      timer.current = setTimeout(() => setStatus('idle'), 2000);
     } catch {
       if (current === request.current) setStatus('failed');
     }
   }
 
+  // aria-label names what is copied and title repeats it as the tooltip. The
+  // drawn confirmation is a glyph swap plus the word Copied for about 2s; the
+  // word also goes to the live region below, which ships empty because a
+  // role="status" inserted together with its text is silent on several screen
+  // readers. The button's name stays the action, which is still available.
+  const copyControl = () => copy && <>
+    <button
+      type="button"
+      className="ui-snippet__copy"
+      aria-label={copyLabel}
+      title={copyLabel}
+      onClick={handleCopy}
+    >
+      <Icon name={status !== 'copied' ? 'copy' : 'check'} />
+      {status === 'copied' && <span className="ui-snippet__copied">Copied</span>}
+    </button>
+    <span className="ui-sr ui-snippet__status" role="status" aria-live="polite">
+      {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}
+    </span>
+  </>;
+
   return (
-    <div className={reveal ? 'ui-snippet ui-snippet--reveal' : 'ui-snippet'}>
-      <div className="ui-snippet__bar">
+    <div className={reveal ? 'ui-snippet ui-snippet--reveal' : wrap ? 'ui-snippet ui-snippet--wrap' : 'ui-snippet'}>
+      {label && <div className="ui-snippet__bar">
         <span>{label}</span>
-        {/* Icon-only, the way the kit writes an allowed icon-only control:
-            aria-label names what is copied and title repeats it as the tooltip.
-            The confirmation is a glyph swap, so the button holds its 24px box; the
-            word goes to the live region below, which ships empty because a
-            role="status" inserted together with its text is silent on several
-            screen readers. The button's name stays the action, which is still
-            available. Same markup and classes as snippet(). */}
-        {copy && <>
-          <button
-            type="button"
-            className="ui-snippet__copy"
-            aria-label={copyLabel}
-            title={copyLabel}
-            onClick={handleCopy}
-          >
-            <Icon name={status !== 'copied' ? 'copy' : 'check'} />
-          </button>
-          <span className="ui-sr ui-snippet__status" role="status" aria-live="polite">
-            {status === 'copied' ? 'Copied' : status === 'failed' ? 'Copy failed' : ''}
-          </span>
-        </>}
-      </div>
+        {copyControl()}
+      </div>}
+      {/* A title is optional: with none, the copy icon stays in flow beside the
+          first line of code, on the code's own line rather than in a bar above it. */}
+      {!label && copyControl()}
       <pre>{children ?? code}</pre>
     </div>
   );

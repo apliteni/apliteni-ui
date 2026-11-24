@@ -20,8 +20,11 @@
   color: var(--signal-solid-ink);
 }
 .ui-avatar--32 { --ui-avatar-size: 32px; font-size: var(--text-base); }
-/* Two letters in 24px leave the type at the kit's smallest step; in 32px one step down. */
+.ui-avatar--48 { --ui-avatar-size: 48px; font-size: var(--text-xl); }
+/* Two letters in 24px leave the type at the kit's smallest step; in 32px one step down,
+   in 48px two steps down. */
 .ui-avatar--32[data-initials="2"] { font-size: var(--text-sm); }
+.ui-avatar--48[data-initials="2"] { font-size: var(--text-lg); }
 .ui-avatar--h0 { --ui-avatar-hue: var(--person-0); }
 .ui-avatar--h1 { --ui-avatar-hue: var(--person-1); }
 .ui-avatar--h2 { --ui-avatar-hue: var(--person-2); }

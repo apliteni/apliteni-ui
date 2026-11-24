@@ -16,15 +16,15 @@ const ANSWER = { timeout: 4000 };
 describe('sign-in flow', () => {
   it('walks a session from in use to ended, error, retry and back, and keeps the search text', async () => {
     const { rerender } = render(<InUse />);
-    const search = screen.getByRole('searchbox', { name: 'Search payouts' });
-    fireEvent.change(search, { target: { value: 'PO-1171' } });
-    expect(search).toHaveValue('PO-1171');
+    const search = screen.getByRole('searchbox', { name: 'Search sales' });
+    fireEvent.change(search, { target: { value: 'SAL-1170' } });
+    expect(search).toHaveValue('SAL-1170');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
     rerender(<InUse session="ended" />);
     const dialog = await screen.findByRole('dialog', { name: 'Sign in again' });
     expect(document.querySelector('.ui-skel--table')).toBeInTheDocument();
-    expect(screen.queryByRole('searchbox', { name: 'Search payouts' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('searchbox', { name: 'Search sales' })).not.toBeInTheDocument();
     expect(screen.queryByText('Filtered to pending, this week.')).not.toBeInTheDocument();
     const google = within(dialog).getByRole('button', { name: 'Continue with Google' });
     fireEvent.click(google);
@@ -39,7 +39,7 @@ describe('sign-in flow', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument(), ANSWER);
     expect(screen.queryByText(/You are signed out/)).not.toBeInTheDocument();
     expect(document.querySelector('.ui-skel--table')).not.toBeInTheDocument();
-    expect(screen.getByRole('searchbox', { name: 'Search payouts' })).toHaveValue('PO-1171');
+    expect(screen.getByRole('searchbox', { name: 'Search sales' })).toHaveValue('SAL-1170');
     expect(screen.getByText('Filtered to pending, this week.')).toBeInTheDocument();
   });
 

@@ -1030,8 +1030,8 @@ it('the boxes an open menu is fitted from are the ones that are watched', async 
 });
 
 it('a row that settles after the event is measured again', async () => {
-  // The screener: opened at 1280, narrowed, and the rail still widening the column
-  // under the menu. The menu has to end up at the row it settles at.
+  // A filter row opened at a wide viewport, then narrowed: the column under the
+  // menu keeps moving. The menu has to end up at the row it settles at.
   const row = chipRow({ observer: true });
   await row.user.click(row.trigger);
   expect(row.fit()).toEqual(['1054px', '0px', '240px']);

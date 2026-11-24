@@ -396,8 +396,8 @@ async function measure({ url, width, theme, mutate, deaf }) {
   const seen = await page.evaluate(probe);
   /* Open each menu in the row in turn and measure again: a panel that only fits
    * while it is shut fits nothing, and the chip that overflows is not always the
-   * second one — the widest option list in the kit sits on the screener's
-   * `Sector`. The add control (#496) is a menu in the row like the chips', and
+   * second one — a later chip can hold the widest option list. The add control (#496)
+   * is a menu in the row like the chips', and
    * the only one that asks for a panel's width, so it is walked with them. */
   const opens = [];
   /* Every trigger in the row, not only a chip's: a menu anchored to the row

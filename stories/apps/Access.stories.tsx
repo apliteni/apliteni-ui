@@ -1,113 +1,165 @@
 // The access and agents showcase in React, under the vanilla page's title and id.
+// Keys replace the old token vocabulary: the page mints one key per agent, shows it
+// once, and revokes it to stop the agent. #850
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState, type ReactNode } from 'react';
-import { ACCOUNT_NAV, codeTokens } from '@apliteni/apliteni-ui';
+import { type ReactNode } from 'react';
+import { ACCOUNT_NAV } from '@apliteni/apliteni-ui';
 import { DemoShell, type DemoNavItem } from './_demo-shell';
+import { Sheet } from '../_guideline';
 import { Snippet } from '../../react/src/Snippet';
-import { FilterBar } from '../../react/src/FilterBar';
-import { SearchField } from '../../react/src/SearchField';
-import { EmptyState } from '../../react/src/EmptyState';
-import { BusyRegion, Denied as DeniedState, SkeletonTable } from '../../react/src/Loading';
+import { BusyRegion, Denied as DeniedState, Skeleton } from '../../react/src/Loading';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
+import { KeyValueList } from '../../react/src/KeyValueList';
+import { TextField, SelectField } from '../../react/src/Field';
+import { Confirm } from '../../react/src/Confirm';
 
 const meta: Meta = { title: 'Showcases/Access & Agents', id: 'apps-access-agents', parameters: { layout: 'fullscreen' } };
 export default meta;
 
+// The showcase's own layout glue: it places kit parts, and paints nothing. The
+// name and status lead each row in body ink via `.lab`, the scope and the facts
+// take `.hint`, the row-end chevron is the kit's `.ui-card__glyph`, and the
+// granted check is the kit's bare `check` glyph in body ink, sized 22px so its
+// stroke keeps the 1.5px floor. Each row's content shares the widest row's
+// width (255px), so every chevron lines up one spacing step after its content.
+// The granted rows stack one inner gap apart, the kit's list rhythm. #850
+const CSS = `<style>
+.acc-name { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.acc-agent { flex: none; width: 255px; }
+.acc-check { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.acc-check + .acc-check { margin-top: var(--space-2); }
+.acc-check svg { width: 22px; height: 22px; }
+.acc-facts { display: flex; flex-wrap: wrap; column-gap: var(--space-4); }
+.acc-narrow { max-width: 30rem; }
+.acc-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+</style>`;
+
 // Overview is this demo's own screen, not the kit's default: a consuming /account
 // page that took ACCOUNT_NAV whole would get a link to nothing.
 const NAV: DemoNavItem[] = [{ id: 'overview', icon: 'chart', label: 'Overview' }, ...(ACCOUNT_NAV as DemoNavItem[])];
-const Screen = ({ sub, children }: { sub: string; children: ReactNode }) =>
-  <DemoShell layout="rail" nav={NAV} active="access" title="Access & agents" lede={sub}>{children}</DemoShell>;
+const LIST_TITLE = 'Access & agents';
+const LIST_LEDE = 'Keys let an agent read this workspace. Revoke a key to stop it.';
+
+const Screen = ({ title = LIST_TITLE, sub = LIST_LEDE, back, tools, children }: {
+  title?: string; sub?: string; back?: { href: string; label: string }; tools?: ReactNode; children: ReactNode;
+}) => <DemoShell layout="rail" nav={NAV} active="access" title={title} lede={sub} back={back} tools={tools}>
+  <Sheet css={CSS} />{children}
+</DemoShell>;
 
 const AGENTS = [
-  ['Research bot', 'Read only', '2 hours ago', 'live'],
-  ['Deck summariser', 'Read only', 'Yesterday', 'live'],
-  ['Old integration', 'Read only', '3 weeks ago', 'dead'],
+  { name: 'Invoice reader', scope: 'Read invoices', last: 'Last use today', exp: 'Expires 30 Sep 2027', live: true },
+  { name: 'Sales reporter', scope: 'Read orders', last: 'Last use yesterday', exp: 'Expires 12 Oct 2027', live: true },
+  { name: 'Data loader', scope: 'Import products', last: 'Last use 3 weeks ago', exp: 'Expired 1 Jan 2027', live: false },
 ];
-const LABEL = { live: 'Active', dead: 'Revoked' } as Record<string, string>;
-// The state chip starts unset, so the table opens on every agent.
-const STATE = { id: 'state', label: 'State', items: [{ label: 'Any state', value: '' }, { label: 'Active', value: 'Active' }, { label: 'Revoked', value: 'Revoked' }] };
-const TokenTable = ({ rows }: { rows: string[][] }) => <table className="ui-table ui-table--hover">
-  <thead><tr><th>Agent</th><th>Scope</th><th>Last used</th><th></th></tr></thead>
-  <tbody>{rows.map(([name, scope, used, state]) => <tr key={name} className={state === 'dead' ? 'is-dead' : ''}>
-    <td className="ui-table__title">{name}</td><td>{scope}</td><td>{used}</td>
-    <td className="ui-table__act">{state === 'dead'
-      ? <span style={{ color: 'var(--muted)', fontSize: 13 }}>Revoked</span>
-      : <Button variant="danger" size="sm">Revoke access</Button>}</td>
-  </tr>)}</tbody>
-</table>;
-// Each long table has its filter bar directly above it, the loading one included, on a
-// card because a field never stands on the page ground. why: guidelines/dense-tables.md
-const Agents = ({ loading = false, children }: { loading?: boolean; children?: ReactNode }) => {
-  const [query, setQuery] = useState('');
-  const [state, setState] = useState('');
-  const term = query.trim().toLowerCase();
-  const rows = AGENTS.filter(([name, , , live]) => (!state || LABEL[live] === state) && name.toLowerCase().includes(term));
-  const clear = () => { setQuery(''); setState(''); };
-  return <>
-    <div className="ui-toolbar">
-      <SearchField ariaLabel="Search agents" placeholder="Agent" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-      <FilterBar filters={[{ ...STATE, value: state }]} label="Agent filters"
-        onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
-    </div>
-    <Card title="Your agents">
-      {loading ? <BusyRegion busy label="Loading your agents…" placeholder={<SkeletonTable rows={3} cols={4} />} />
-        : rows.length ? <TokenTable rows={rows} />
-        : <EmptyState title="No agents match" sub="" icon="" actions={<Button size="sm" onClick={clear}>Clear all</Button>} />}
-      {children}
-    </Card>
-  </>;
-};
-const NewAgent = ({ busy = false }: { busy?: boolean }) => <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-  <input className="ui-input" type="text" placeholder="New agent name — e.g. Research bot" aria-label="New agent name" disabled={busy} />
-  <Button variant="primary" icon="key" busy={busy}>Create token</Button>
-</div>;
 
-const CONNECT = 'claude mcp add apliteni \\\n  --url "https://ui.apli.tech/mcp" \\\n  --header "Authorization: Bearer $TOKEN"';
-const highlighted = (code: string) => codeTokens(code, 'shell').map(({ cls, text }: { cls?: string; text: string }, at: number) =>
-  (cls ? <span key={at} className={cls}>{text}</span> : text));
+const AgentRow = ({ agent }: { agent: (typeof AGENTS)[number] }) => (
+  <div className="ui-card__row">
+    <div className="acc-agent">
+      <div className="lab acc-name"><a className="ui-link--quiet" href="#agent">{agent.name}</a> <Badge variant={agent.live ? 'live' : 'archive'}>{agent.live ? 'Active' : 'Revoked'}</Badge></div>
+      <div className="hint">{agent.scope}</div>
+      <div className="hint acc-facts"><span>{agent.last}</span><span>{agent.exp}</span></div>
+    </div>
+    <span className="ui-card__glyph"><Icon name="chevronRight" /></span>
+  </div>
+);
+
+const AgentList = () => (
+  <Card title="Your agents">{AGENTS.map((agent) => <AgentRow key={agent.name} agent={agent} />)}</Card>
+);
+
+const CREATE_TOOL = <Button variant="primary" icon="key">Create key</Button>;
+
+const SCOPES = ['Read invoices', 'Send invoices'];
+const FACTS = [
+  { label: 'Created', value: '12 Sep 2026' },
+  { label: 'Last use', value: 'Today' },
+  { label: 'Expires', value: '30 Sep 2027' },
+];
 
 export const Default: StoryObj = {
-  render: () => <Screen sub="Connect agents to read over MCP. Each gets a scoped, revocable token.">
-    <Card title={<>Connect over MCP <Badge variant="live">Live</Badge></>} icon="plug" sub="Paste this into your agent. It reads as you — read-only.">
-      <Snippet label="Terminal" code={CONNECT}>{highlighted(CONNECT)}</Snippet>
+  render: () => <Screen tools={CREATE_TOOL}><AgentList /></Screen>,
+};
+
+export const AgentPage: StoryObj = {
+  name: 'Agent page',
+  render: () => <Screen title="Invoice reader" sub="A key that reads invoices over MCP." back={{ href: '#agents', label: 'Access & agents' }}>
+    <Card title="Access">
+      {SCOPES.map((scope) => (
+        <div className="acc-check" key={scope}><Icon name="check" /><span>{scope}</span></div>
+      ))}
     </Card>
-    <Agents><NewAgent /></Agents>
+    <Card title="Details"><KeyValueList rows={FACTS} /></Card>
+    <Card className="ui-hairline" title="Revoke access" sub="The key stops at once. The agent loses its access.">
+      <Button variant="danger">Revoke access</Button>
+    </Card>
+  </Screen>,
+};
+
+export const Create: StoryObj = {
+  name: 'Create key',
+  render: () => <Screen title="Create key" sub="Name the agent, pick a preset, then set an expiry.">
+    <Card className="acc-narrow" title="Create key">
+      <TextField label="Agent name" defaultValue="Invoice reader" />
+      <SelectField label="Preset" defaultValue="Read invoices">
+        <option>Read invoices</option><option>Read orders</option><option>Full access</option>
+      </SelectField>
+      <SelectField label="Expiry" defaultValue="90 days">
+        <option>30 days</option><option>90 days</option><option>1 year</option><option>Never</option>
+      </SelectField>
+      <div className="acc-actions">
+        <Button variant="primary" icon="key">Create key</Button>
+        <Button variant="secondary">Cancel</Button>
+      </div>
+    </Card>
   </Screen>,
 };
 
 export const NewToken: StoryObj = {
-  name: 'New token revealed',
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Card variant="live" title={<>Token created <Badge variant="warn">Copy now</Badge></>} icon="key"
-      sub="This is the only time you'll see it. Paste it into your agent's config.">
-      <Snippet label="Research bot — shown once" reveal code="apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83" />
-      <div style={{ marginTop: 14, display: 'flex', gap: 10 }}><Button variant="primary" icon="copy">Copy token</Button><Button variant="secondary">Done</Button></div>
+  name: 'Key created',
+  render: () => <Screen title="Key created" sub="Copy it once, then store it in the agent.">
+    <Card className="acc-narrow" variant="live" title={<>Key created <Badge variant="warn">Copy now</Badge></>}
+      sub="This is the only time you will see it. Paste it into your agent.">
+      <Snippet label="Invoice reader" reveal code="apli_sk_live_9f2c4b7e1a06d8f3c5b2e9a1d4f70c83" copyLabel="Copy key" />
+      <div className="acc-actions">
+        <Button variant="primary" icon="copy">Copy key</Button>
+        <Button variant="secondary">Done</Button>
+      </div>
     </Card>
-    <Agents />
+  </Screen>,
+};
+
+export const Revoke: StoryObj = {
+  name: 'Revoke access',
+  render: () => <Screen tools={CREATE_TOOL}>
+    <AgentList />
+    <Confirm open title="Revoke Invoice reader?" body="The key stops at once, and the agent loses its access."
+      confirmLabel="Revoke access" cancelLabel="Cancel" danger onConfirm={() => {}} onCancel={() => {}} />
   </Screen>,
 };
 
 export const Empty: StoryObj = {
-  render: () => <Screen sub="Connect agents to read over MCP.">
+  render: () => <Screen>
     <Card><div className="ui-empty">
-      <div className="ui-empty__icon"><Icon name="plug" /></div>
+      <div className="ui-empty__icon"><Icon name="key" /></div>
       <div className="ui-empty__title">No agents connected yet</div>
-      <div className="ui-empty__sub">Create a token, then paste the MCP connect command into your agent.</div>
-      <div style={{ marginTop: 18 }}><Button variant="primary" icon="key">Create token</Button></div>
+      <div className="ui-empty__sub">Create a key, then paste it into your agent.</div>
+      <div className="ui-empty__actions"><Button variant="primary" icon="key">Create key</Button></div>
     </div></Card>
   </Screen>,
 };
 
-// The state this screen is in for as long as the token list is in flight (#128).
-// The skeleton takes the shape of the table that is coming, and the Create-token
-// button is busy in the same breath: one flag, two scales.
+// The state this screen is in for as long as the key list is in flight (#128).
+// The skeleton holds the shape of the rows that are coming.
 export const Loading: StoryObj = {
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Agents loading><NewAgent busy /></Agents>
+  render: () => <Screen tools={CREATE_TOOL}>
+    <Card title="Your agents">
+      <BusyRegion busy label="Loading your agents…" placeholder={<>{[0, 1, 2].map((i) => (
+        <div className="ui-card__row" key={i}><Skeleton lines={['34%', '46%', '30%']} /></div>
+      ))}</>} />
+    </Card>
   </Screen>,
 };
 
@@ -116,10 +168,10 @@ export const Loading: StoryObj = {
 // "Loading…" announces it.
 export const Denied: StoryObj = {
   name: 'Permission denied',
-  render: () => <Screen sub="Connect agents to read over MCP.">
-    <Card><BusyRegion busy={false} message="You don’t have access to agent tokens.">
-      <DeniedState title="You don’t have access to agent tokens" need="tokens.read"
-        sub="Tokens are managed by account owners and admins. Your role can read the account, but not the credentials that reach it.">
+  render: () => <Screen>
+    <Card><BusyRegion busy={false} message="You don’t have access to agent keys.">
+      <DeniedState title="You don’t have access to agent keys" need="keys.read"
+        sub="Keys are managed by account owners and admins. Your role can read the account, but not the credentials that reach it.">
         <Button variant="primary" icon="mail">Request access</Button>
         <Button variant="secondary" href="#overview">Back to overview</Button>
       </DeniedState>

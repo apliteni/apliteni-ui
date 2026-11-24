@@ -20,6 +20,13 @@ it('keeps the agreed markup for custom copy and omits empty text', () => {
   expect(container.innerHTML).toMatchSnapshot();
 });
 
+it('keeps the title a plain div by default and makes it a heading at level 2', () => {
+  const { container, rerender } = render(<EmptyState title="Nothing here" />);
+  expect(container.querySelector('.ui-empty__title')!.tagName).toBe('DIV');
+  rerender(<EmptyState title="Nothing here" level={2} />);
+  expect(container.querySelector('.ui-empty__title')!.tagName).toBe('H2');
+});
+
 it('uses the illustration slot and hides its artwork', () => {
   const { container, queryByRole } = render(<EmptyState art={<svg role="img" aria-label="Folder" />} />);
   expect(container.querySelector('.ui-empty__art')).toHaveAttribute('aria-hidden', 'true');

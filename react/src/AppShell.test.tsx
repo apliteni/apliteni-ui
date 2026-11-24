@@ -35,6 +35,14 @@ it('puts page tools at the end of the title row and the lede under it', () => {
   expect(read('./AppShell.css')).not.toMatch(/ui-app__title-row|ui-app__tools/);
 });
 
+// A page that owns its own heading, such as a full-bleed split layout, passes no title
+// and the shell draws no title band, so the page keeps one h1 (#850).
+it('draws no title band when the page owns its heading', () => {
+  render(<AppShell {...props} title={undefined} lede={undefined} />);
+  expect(screen.getByRole('main').querySelector('h1')).toBeNull();
+  expect(screen.getByRole('main').querySelector('.ui-app__sub')).toBeNull();
+});
+
 // axe's label-content-name-mismatch needs a layout, so JSDOM checks its cause: an account
 // trigger has no aria-label, and the name from its content holds each visible line.
 it('names each account trigger by its content, so the name holds its visible text', () => {

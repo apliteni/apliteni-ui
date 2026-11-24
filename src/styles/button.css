@@ -84,6 +84,19 @@
   color: var(--strong);
 }
 
+/* An outline button draws its edge and no fill, so an icon-only control keeps a
+   visible boundary on a ground that is now one flat surface (#850). The hover
+   takes the same accent edge as a plain button. */
+.ui-btn--outline {
+  background: transparent;
+  border-color: var(--control-edge);
+  color: var(--text);
+}
+.ui-btn--outline:hover {
+  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  color: var(--strong);
+}
+
 .ui-btn--link {
   background: transparent;
   border-color: transparent;

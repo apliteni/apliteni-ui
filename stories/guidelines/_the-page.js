@@ -99,6 +99,12 @@ export const SPEC_CSS = `
       /* rank: caption */
       font-size: var(--text-sm); font-weight: var(--weight-normal);
       line-height: inherit; color: var(--text); }
+
+    /* The branded-ground specimen: the auth page shrunk to a cell, so the dialog
+       and the ground it stands on are both on the card without a viewport. */
+    .tp-auth { min-height: 0; height: 230px; padding: var(--space-4); place-items: start; }
+    .tp-auth-card { max-width: 100%; padding: var(--space-4); }
+    .tp-on-ground { position: absolute; top: var(--space-3); right: var(--space-3); }
   </style>`;
 
 // Two limits the same gate walks that this page does not draw. They are not

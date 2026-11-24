@@ -305,9 +305,14 @@ name, and its menu shows each name with its badge and a tick on the chosen one. 
 ### Auth shell
 
 Use `AuthShell` for a sign-in or sign-up page. It centres one card and puts the brand above it.
+`split` puts the brand on the branded ground beside the task, which stands on the plain page with
+no card box, and `tagline` is the slogan under the brand. `brandAbove` stands the brand on the
+ground above the card and centres the title with a line under it. The ground is
+`--ui-auth-ground`, a gradient that a product may override with its own colour or gradient.
 
 ```tsx
 <AuthShell brand={<img src="/logo.svg" alt="Example" />}><SignInForm /></AuthShell>
+<AuthShell split tagline="Access the design system with your work account." brand={logo}><SignInForm /></AuthShell>
 ```
 
 ### Footer
@@ -336,8 +341,9 @@ action goes to another page. Use [`Dropdown`](#dropdown) for a list of actions, 
 <Button variant="primary" icon="download" busy={exporting} onClick={exportRows}>Export</Button>
 ```
 
-`variant` is `primary`, `secondary`, `ghost`, `danger` or `link`. `size` is `xs`, `sm`, `md` or
-`lg`. `icon` puts a glyph before the label and `iconRight` after it. `leading` puts your own
+`variant` is `primary`, `secondary`, `outline`, `ghost`, `danger` or `link`. `outline` draws an
+edge and no fill, so an icon-only control keeps a boundary on a flat ground. `size` is `xs`,
+`sm`, `md` or `lg`. `icon` puts a glyph before the label and `iconRight` after it. `leading` puts your own
 decorative content before the label, and it wins over `icon`. `block` fills the row.
 
 **Links.** With `href`, the button is an `<a>` with the button classes. Without `href`, it is a
@@ -553,7 +559,9 @@ Use `TextField type="search"` with a label there.
 
 `ariaLabel` is required, because no visible label names the field. `size="sm"` is the field above
 a dense table. With a mouse it is 32px high with `--text-sm`. On a touch screen it is 40px high with
-16px text, because iOS zooms into a field with smaller text. The field has no clear button of its
+16px text, because iOS zooms into a field with smaller text. `width` sizes the whole group, icon
+included, for a field that should fit its expected input instead of growing across the toolbar row;
+give it a CSS width such as `24ch`. The field has no clear button of its
 own, because the browser draws one. See [Toolbar](#toolbar).
 
 ### Checkbox and switch
@@ -757,7 +765,25 @@ row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, a
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
-toolbar stands 8px above the block that it controls, or 20px on a touch phone below 560px.
+toolbar stands 8px above the block that it controls, on the page or inside its card, or 20px on a touch phone below 560px.
+
+### Floating bar
+
+Use `.ui-float-bar` for a slim control row that docks at the bottom of its scroll region and
+floats over the content above it: a viewer's page steps and zoom, or a sheet's primary actions. It
+stays visible while the content scrolls.
+
+```tsx
+<div className="ui-float-bar">
+  <Button variant="ghost" iconOnly icon="minus" aria-label="Zoom out" />
+  <span>100%</span>
+  <Button variant="ghost" iconOnly icon="plus" aria-label="Zoom in" />
+</div>
+```
+
+**What the user sees.** The bar is a centred pill on the kit's floating surface, so it reads above
+the content it floats over. Put it last in a column and pin it with `margin-top: auto` so it docks
+at the column's foot. It never wraps, and it sits one spacing step above the edge it docks to.
 
 ## Content and status
 
@@ -783,9 +809,20 @@ titled card puts its Chart and Table switch there.
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
 line below 360px.
 
+**A row glyph.** Use `.ui-card__glyph` for a muted mark at the end of a card row, such as the
+chevron that opens a detail page; it is 18px with a 2-unit stroke, so it clears the glyph floor.
+Use the bare `check` glyph in body ink for a granted check. Use `.ui-link--quiet` for a name in
+the row that links to its detail page: body ink at rest, underlined under the pointer.
+
+**A soft line between blocks.** Give the block the class `ui-hairline` to draw a straight line
+across the column width on its top edge, with one inner gap of air under it. Use it above a
+closing block, such as a revoke or delete area, and between tight page blocks, such as a row of
+figures and the filter row under it. The line is `--border` in light and none in dark.
+
 **A document in a card.** Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a
-white sheet with dark text in both themes, with A4 proportions at the least.
+white sheet with dark text in both themes, with A4 proportions at the least. For a document on a
+bare full-bleed backdrop instead of a card, use `.ui-document-ground`.
 
 ### Badge, pill and status dot
 
@@ -808,8 +845,8 @@ Use `Avatar` to show a person beside their name. Do not use it in place of the n
 <Avatar personKey={user.id} name="Dana Reyes" src={user.photo} size={32} />
 ```
 
-**What the user sees.** A filled circle with the first and last initials, 24px or 32px. The hue
-comes from `personKey`, the stable id of the person, so one person keeps one hue on every screen.
+**What the user sees.** A filled circle with the first and last initials, 24px, 32px or 48px. The
+hue comes from `personKey`, the stable id of the person, so one person keeps one hue on every screen.
 The letters are readable on each hue in both themes and under every accent. A name with no letters
 shows the `user` glyph. `empty` shows a dashed ring for "no one". A `src` photo covers the letters,
 and the letters show when the photo does not load. The top bar account button, its menu and the
@@ -1156,9 +1193,10 @@ sortable header label is cut with an ellipsis before its sort mark is.
 selection boxes are kit checkboxes. The header box shows the dash when some rows of the page are
 selected. A dense table marks a selected row only with its box.
 
-**Links in cells.** A link in a cell uses the row's ink, gets an underline on hover and the ring on
-focus. A `.ui-table__sub` puts a second value under the first, such as an email under a name.
-`.ui-table__pair` groups a reference and a status, and stacks them when the cell is narrow.
+**Links in cells.** A link in a cell, including a reference, uses the row's ink, gets an underline
+on hover and the ring on focus. A `.ui-table__sub` puts a second value under the first, such as an
+email under a name. `.ui-table__pair` groups a reference and a status, and stacks them when the
+cell is narrow.
 
 **Keyboard and screen reader.** When its content overflows, the scroll region takes the focus and
 draws the ring inside its edge, so the arrow keys, a trackpad and a finger reach the same columns.
@@ -1202,11 +1240,14 @@ totals of a list in the table's footer rows, not in a stat band.
 
 `variant` is `tiles`, the default, with each figure on its own card, `band` on one card, or `open`
 with no surface and a larger value. A figure has `label`, `value`, `caption`, `delta` and `trend`.
+All figures read at one size.
 
 **What the user sees.** A value never wraps and is never cut. The words under it give way first. A
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A
 figure with nothing to compare shows no change row, never `+0%`. A figure shows at most one line
-under its value. Use a caption only for a unit, a period or a limit that the figure cannot say.
+under its value. A row of tiles keeps a soft line around each tile, also on the light page where a
+lone card draws none. An open band draws a vertical soft line between figures in a row on the
+light page. Use a caption only for a unit, a period or a limit that the figure cannot say.
 `trend` is a slot for a small chart, such as a `Chart variant="spark"`.
 
 **Say what a change compares with.** Put it once for the band in `basis`, or with `basisId` point
@@ -1214,7 +1255,8 @@ at text before the figures. A caption comes before the figures. A hover `title` 
 When a period control already states the window, do not repeat it.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
-flex row or an `auto` grid track:
+flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
+keeps one group gap of air below the figures, on top of the body's own gap.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
