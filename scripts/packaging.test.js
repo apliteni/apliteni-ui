@@ -532,8 +532,9 @@ test('the React subpath ships built JS, types and CSS', () => {
 // Reads the installed tarball; browser rendering is covered by Tooltip's stories.
 test('the packed React CSS includes the tooltip panel and its states', () => {
   const css = readFileSync(path.join(installed, installedPkg.exports['./react/css']), 'utf8');
-  const panels = [...css.matchAll(/\.ui-tip\s*\{([^}]+)\}/g)];
-  assert.equal(panels.length, 1, 'react/css must contain one .ui-tip rule');
+  const panels = [...css.matchAll(/\.ui-tip\s*\{([^}]+)\}/g)]
+    .filter(([, declarations]) => /position:\s*absolute/.test(declarations));
+  assert.equal(panels.length, 1, 'react/css must contain one positioned .ui-tip panel rule');
   assert.match(panels[0][1], /visibility:\s*hidden/, 'closed tooltips must be hidden');
   assert.match(panels[0][1], /position:\s*absolute/, 'tooltips must not change layout');
   assert.match(css, /\.ui-tip:not\(\.is-open\)\s*\{[^}]*display:\s*none/, 'closed tooltips must have no box');

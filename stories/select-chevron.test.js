@@ -319,7 +319,7 @@ test('the #511 mutation breaks the disabled select in both themes, differently',
   const mutated = SHEET_CSS.replace(/background-color:(\s*var\(--disabled-surface\))/, 'background:$1');
   assert.notEqual(mutated, SHEET_CSS, 'the #511 mutation no longer edits anything');
 
-  const disabled = measure(mutated).filter((m) => m.state === ':disabled' && m.flavour.name === 'ui-select');
+  const disabled = measure(mutated).filter((m) => m.state === ':disabled' && m.flavour.name === 'ui-select' && m.context === '');
   assert.equal(disabled.length, THEMES.length, 'the disabled select was not measured in every theme');
 
   for (const m of disabled) {
