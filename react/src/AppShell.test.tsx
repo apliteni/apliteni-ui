@@ -59,6 +59,18 @@ it('puts a full-width page\'s title in the band as its h1', () => {
   expect(document.querySelector('.ui-app__bar .ui-react-app__title')).toHaveAttribute('aria-hidden', 'true');
 });
 
+// The band holds a full-width page's title row, so the page's tools follow its h1 there.
+it('keeps a full-width page\'s tools beside its title in the band', () => {
+  render(<AppShell {...props} width="full" tools={<button type="button">Customize</button>} />);
+  const bar = document.querySelector('.ui-app__bar') as HTMLElement;
+  const tools = within(bar).getByRole('button', { name: 'Customize' }).parentElement!;
+  expect(tools).toHaveClass('ui-app__tools');
+  expect(tools.previousElementSibling).toBe(within(bar).getByRole('heading', { level: 1, name: 'Weekly report' }));
+  expect(screen.getAllByRole('button', { name: 'Customize' })).toHaveLength(1);
+  // The band publishes where its h1 starts, so the page can put its first label there.
+  expect(read('./AppShell.css')).toMatch(/\.ui-app__bar:has\(> \.ui-react-app__title--page\) \+ \.ui-app__main--full \{ --ui-app-title-inset: clamp\(24px, 4vw, 56px\); \}/);
+});
+
 // axe's label-content-name-mismatch needs a layout, so JSDOM checks its cause: an account
 // trigger has no aria-label, and the name from its content holds each visible line.
 it('names each account trigger by its content, so the name holds its visible text', () => {

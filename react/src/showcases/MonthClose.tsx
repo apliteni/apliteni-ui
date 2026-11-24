@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
 import { DataTable } from '../DataTable';
+import { EmptyState } from '../EmptyState';
 import { Button } from '../primitives/Button';
 import { SearchField } from '../SearchField';
 import { Segmented } from '../Segmented';
@@ -38,9 +39,13 @@ export function monthChecks(stage: MonthCloseStage, onAct: () => void): WizardSt
   });
 }
 
-export function MonthCloseChecks({ stage, onStage, month = 'October' }: { stage: MonthCloseStage; onStage: (stage: MonthCloseStage) => void; month?: string }) {
+/** The check to work on at a stage, or the final step's id. */
+export const workingCheck = (stage: MonthCloseStage) => CHECKS[STAGES.indexOf(stage)]?.id ?? 'final';
+
+export function MonthCloseChecks({ stage, onStage, month = 'October', open, onOpenChange }: {
+  stage: MonthCloseStage; onStage: (stage: MonthCloseStage) => void; month?: string; open?: string; onOpenChange?: (id: string) => void }) {
   const next = () => onStage(STAGES[Math.min(STAGES.indexOf(stage) + 1, STAGES.length - 1)]);
-  return <Wizard label="Month checks" steps={monthChecks(stage, next)} final={{
+  return <Wizard label="Month checks" steps={monthChecks(stage, next)} open={open} onOpenChange={onOpenChange} final={{
     label: 'Finish', action: 'Close month', onAction: next, done: stage === 'closed',
     reason: 'Complete all four checks to close this month.',
     content: stage === 'closed' ? <p role="status">{month} is closed.</p> : stage === 'ready' ? <p>Closing locks this month.</p> : undefined,
@@ -53,11 +58,17 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
   const [month, setMonth] = useState('October');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
+  // The work area shows the open step, which the reader can open without completing a check.
+  const [step, setStep] = useState(() => workingCheck(start));
+  const searchField = useRef<HTMLInputElement>(null);
+  const clear = () => { setSearch(''); setFilter('all'); searchField.current?.focus(); };
+  // A completed check opens the next one in the same render, so the work heading never lags.
+  const advance = (next: MonthCloseStage) => { setStage(next); setStep(workingCheck(next)); };
   const fixed = STAGES.indexOf(stage) >= STAGES.indexOf('rates');
   const short = month.slice(0, 3);
   const rows = ROWS.map(row => fixed && !row.doc ? { ...row, doc: 'INV-106', status: 'Ready' as const } : row)
     .filter(row => (filter === 'all' || row.status === filter) && `${row.name} ${row.doc}`.toLowerCase().includes(search.toLowerCase()));
-  const open = CHECKS[STAGES.indexOf(stage)]?.label ?? 'Reviewed rows';
+  const open = CHECKS.find(check => check.id === step)?.label ?? 'Reviewed rows';
   return <AppShell word="Ledger" width="full" title="Reconciliation" pathname="/close"
     sections={[{ href: '/close', label: 'Month close', icon: 'calendar' }, { href: '/documents', label: 'Documents', icon: 'doc' },
       { href: '/reports', label: 'Reports', icon: 'chart' }, { href: '/settings', label: 'Settings', icon: 'gear' }]}
@@ -67,20 +78,21 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
         {MONTHS.map(name => <li key={name}><button type="button" aria-pressed={name === month}
           className={`ui-nav__item${name === month ? ' is-active' : ''}`} onClick={() => setMonth(name)}>{name}</button></li>)}
       </ul></div> }}
-      steps={{ title: 'Month checks', link: 'Checks', children: <MonthCloseChecks stage={stage} onStage={setStage} month={month} /> }}
+      steps={{ title: 'Month checks', link: 'Checks', children: <MonthCloseChecks stage={stage} onStage={advance} month={month} open={step} onOpenChange={setStep} /> }}
       work={{ title: open, link: 'Rows', children: <>
         <div className="ui-toolbar">
-          <SearchField ariaLabel="Search rows" size="sm" value={search} onChange={event => setSearch(event.target.value)} />
+          <SearchField ref={searchField} ariaLabel="Search rows" size="sm" value={search} onChange={event => setSearch(event.target.value)} />
           <Segmented label="Document" size="sm" value={filter} onChange={setFilter}
             options={[{ value: 'all', label: 'All' }, { value: 'Ready', label: 'Ready' }, { value: 'Missing', label: 'Missing' }]} />
         </div>
-        <DataTable<Row> selectable={false} density="compact" stickyHeader pager={false} scrollLabel="Rows" caption={`Rows for ${month}`}
-          empty="No matching rows." rows={rows} columns={[
-            { key: 'day', label: 'Date', render: row => `${row.day} ${short}` },
+        {rows.length ? <DataTable<Row> selectable={false} density="compact" stickyHeader pinnedIdentity="name" pager={false}
+          scrollLabel="Rows" caption={`Rows for ${month}`} rows={rows} columns={[
             { key: 'name', label: 'Payee', cell: 'title' },
+            { key: 'day', label: 'Date', render: row => `${row.day} ${short}` },
             { key: 'doc', label: 'Document', render: row => row.doc || 'Missing' },
             { key: 'amount', label: 'Amount', num: true, render: row => `€${row.amount}` },
-          ]} />
+          ]} /> : <EmptyState variant="no-matches" level={3} icon="" title="No rows match the search."
+            sub="Clear the filters to see all rows." actions={<Button onClick={clear}>Clear filters</Button>} />}
       </> }} />
   </AppShell>;
 }

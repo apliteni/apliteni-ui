@@ -158,7 +158,7 @@ rail, with the sections and the account at its foot. The rail layout has no sear
 command palette, no Cmd+K, no theme switch, no section counts, and takes no `bandControl` and no
 `headControl`. `width="wide"` removes the limit on the content column. `width="full"` also
 removes the content column's padding, for a page whose parts reach its edges, and in the topbar
-layout with a sidebar it puts `title` in the band as the page's `h1`. `centered` is the default.
+layout with a sidebar it puts `title` in the band as the page's `h1`, with `tools` after it. `centered` is the default.
 
 **The title row.** `title` is the page's one `h1`. `lede` is one line under it. `tools` puts small
 tools for the whole page at the end of the title row, such as a version badge, a period picker or
@@ -342,16 +342,20 @@ view is `steps`.
 **What the user sees.**
 
 - Above 860px, the flow half holds the list and the steps. It takes 41% of the page
-  and at most 560px. The list takes one third of it, and the steps take two thirds. The work half
-  takes the rest. A 1px `--border` line stands between the list and the steps, and another between
+  and at most 560px. The list takes one third of it, and the steps take two thirds. The list
+  never cuts a month's name. When the list and the steps cannot both fit, for example at 984px
+  or with large text, the steps go under the list. The work half takes the rest. A 1px `--border` line stands between the list and the steps, and another between
   the halves. Both halves stand on the page ground, with no card.
 - At 860px and below, for example at 820px, the list is its own view, the steps stand above the
-  work, and Months, Checks and Rows links stand at the top of the flow half.
+  work, and Months, Checks and Rows links stand at the top of the flow half. The first link's
+  words start where the band's title starts.
 - At 560px and below, for example at 390px, each area is its own view. The steps open first.
 
 **Keyboard and screen reader.** Each area is a region named by its heading. A link is a button
-with `aria-pressed`, and a press moves the focus to the heading of its area.
+with `aria-pressed`, and a press moves the focus to the heading of its area. On a touch phone each
+link is a 44px target.
 
+### Footer
 
 Use `Footer` at the end of a site page or an app page. `variant` is `full`, `slim` or `app`.
 
@@ -1049,12 +1053,16 @@ no outline. To do is an empty grey circle, current is an accent circle with a do
 is a grey circle with a green check, and blocked is an alert circle in the danger ink. The state's
 word stands under the step's name, so no state rests on colour alone.
 
-**Keyboard and screen reader.** The steps are an ordered list. Each step is a button named "Step 2
-of 5: Documents, Blocked", with `aria-expanded` and `aria-controls` for its content. The step to
+**Keyboard and screen reader.** The steps are an ordered list. Each step is a button named "2.
+Documents, Blocked, step 2 of 5", so the name starts with the words on screen. It has
+`aria-expanded` and `aria-controls` for its content. The step to
 work on has `aria-current="step"`. Up and Down move the focus between the steps and wrap, and Home
 and End go to the first and the last step. Enter and Space open a step. When the step to work on
-moves on, the focus goes to it if the focus was in the wizard or on the page body.
+moves on, the focus goes to it if the focus was in the wizard or on the page body. When an action
+in the wizard goes away with the focus on it, such as the final action, the focus goes to the open
+step.
 
+### Icon
 
 Use `Icon` for a line glyph beside words. Use `Button icon` for a glyph in a button.
 

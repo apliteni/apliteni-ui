@@ -63,18 +63,23 @@ export function Wizard({ label, steps, final, open, onOpenChange, className }: W
   const list = useRef<HTMLOListElement>(null);
   const button = (id: string) => list.current?.querySelector<HTMLButtonElement>(`[data-step="${CSS.escape(id)}"]`) ?? null;
 
+  // Read while rendering, before the commit can take the focused control away.
+  const held = typeof document !== 'undefined' && Boolean(list.current?.contains(document.activeElement));
+
   // When the step to work on moves, the open step follows it. Focus goes with it when the
-  // reader was working in the wizard, or when the control they pressed has gone.
+  // reader was working in the wizard or on the page body. When an action takes away the
+  // control that had the focus and the step stays, the focus goes to the open step.
   const last = useRef(target);
   useEffect(() => {
-    if (last.current === target) return;
-    last.current = target;
     const active = document.activeElement;
-    const held = active === document.body || active === null || Boolean(list.current?.contains(active));
-    if (open === undefined) setOwn(target);
-    onOpenChange?.(target);
-    if (held) button(target)?.focus();
-  }, [target]); // eslint-disable-line react-hooks/exhaustive-deps
+    const lost = active === document.body || active === null;
+    if (last.current !== target) {
+      last.current = target;
+      if (open === undefined) setOwn(target);
+      onOpenChange?.(target);
+      if (lost || list.current?.contains(active)) button(target)?.focus();
+    } else if (held && lost) button(shown)?.focus();
+  });
 
   const choose = (id: string) => {
     if (open === undefined) setOwn(id);
@@ -97,13 +102,14 @@ export function Wizard({ label, steps, final, open, onOpenChange, className }: W
       return <li key={step.id} className={`ui-wizard__item ui-wizard__item--${step.state}`}>
         <button type="button" id={head} data-step={step.id}
           className={`ui-nav__item ui-wizard__step${shown === step.id ? ' is-active' : ''}`}
-          aria-label={`Step ${index + 1} of ${all.length}: ${step.label}, ${words[step.state]}`}
+          aria-label={`${index + 1}. ${step.label}, ${words[step.state]}, step ${index + 1} of ${all.length}`}
           aria-expanded={shown === step.id} aria-controls={panel}
           aria-current={position === step.id ? 'step' : undefined}
           onClick={() => choose(step.id)} onKeyDown={event => move(event, index)}>
           <Mark state={step.state} />
           <span className="ui-wizard__text">
-            <span className="ui-wizard__name">{index + 1}. {step.label}</span>
+            {/* The space keeps the two lines two words in the visible text that axe and voice control read. */}
+            <span className="ui-wizard__name">{index + 1}. {step.label}</span>{' '}
             <span className="ui-wizard__state">{words[step.state]}</span>
           </span>
         </button>

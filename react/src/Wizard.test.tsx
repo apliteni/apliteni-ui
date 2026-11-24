@@ -15,13 +15,15 @@ const steps = (states: WizardStep['state'][]): WizardStep[] => ['Sources', 'Rows
   ({ id: label.toLowerCase(), label, state: states[i], content: <p>{label} text</p> }));
 const final = (over: Partial<WizardFinal> = {}): WizardFinal =>
   ({ label: 'Finish', action: 'Close month', onAction: () => {}, reason: 'Complete all three checks first.', ...over });
-const rows = () => within(screen.getByRole('list', { name: 'Month checks' })).getAllByRole('button', { name: /^Step/ });
+const rows = () => within(screen.getByRole('list', { name: 'Month checks' })).getAllByRole('button', { name: /, step \d+ of \d+$/ });
 
-it('names each step by its place, its name and its state, in an ordered list', () => {
+// The name starts with the visible words, so a voice command that says them reaches the
+// step (axe's label-content-name-mismatch). stories/three-column.test.js runs that rule.
+it('names each step by its visible words, its state and its place, in an ordered list', () => {
   render(<Wizard label="Month checks" steps={steps(['done', 'blocked', 'todo'])} final={final()} />);
   expect(screen.getByRole('list', { name: 'Month checks' }).tagName).toBe('OL');
   expect(rows().map(row => row.getAttribute('aria-label'))).toEqual([
-    'Step 1 of 4: Sources, Done', 'Step 2 of 4: Rows, Blocked', 'Step 3 of 4: Documents, To do', 'Step 4 of 4: Finish, To do']);
+    '1. Sources, Done, step 1 of 4', '2. Rows, Blocked, step 2 of 4', '3. Documents, To do, step 3 of 4', '4. Finish, To do, step 4 of 4']);
   // The state is a word as well as a mark, so it never rests on colour alone.
   expect(rows().map(row => row.querySelector('.ui-wizard__state')?.textContent)).toEqual(['Done', 'Blocked', 'To do', 'To do']);
   expect(rows().map(row => row.querySelector('.ui-wizard__mark')?.className.split('--')[1])).toEqual(['done', 'blocked', 'todo', 'todo']);
@@ -48,7 +50,7 @@ it('keeps the final action off and says why until every earlier step is done', (
   const off = screen.getByRole('button', { name: 'Close month' });
   expect(off).toBeDisabled();
   expect(off).toHaveAccessibleDescription('Complete all three checks first.');
-  expect(rows()[3]).toHaveAttribute('aria-label', 'Step 4 of 4: Finish, To do');
+  expect(rows()[3]).toHaveAttribute('aria-label', '4. Finish, To do, step 4 of 4');
   rerender(<Wizard label="Month checks" steps={steps(['done', 'done', 'done'])} final={final({ onAction })} />);
   const on = screen.getByRole('button', { name: 'Close month' });
   expect(on).toBeEnabled();
@@ -59,14 +61,14 @@ it('keeps the final action off and says why until every earlier step is done', (
   expect(onAction).toHaveBeenCalledTimes(1);
   rerender(<Wizard label="Month checks" steps={steps(['done', 'done', 'done'])} final={final({ onAction, done: true, content: <p role="status">October is closed.</p> })} />);
   expect(screen.queryByRole('button', { name: 'Close month' })).toBeNull();
-  expect(rows()[3]).toHaveAttribute('aria-label', 'Step 4 of 4: Finish, Done');
+  expect(rows()[3]).toHaveAttribute('aria-label', '4. Finish, Done, step 4 of 4');
   expect(screen.getByRole('status')).toHaveTextContent('October is closed.');
 });
 
 it('with no steps before it, the final step is the step to work on', () => {
   render(<Wizard label="Month checks" steps={[]} final={final()} />);
   expect(rows()).toHaveLength(1);
-  expect(rows()[0]).toHaveAttribute('aria-label', 'Step 1 of 1: Finish, Current');
+  expect(rows()[0]).toHaveAttribute('aria-label', '1. Finish, Current, step 1 of 1');
   expect(screen.getByRole('button', { name: 'Close month' })).toBeEnabled();
 });
 

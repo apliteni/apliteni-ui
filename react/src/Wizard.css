@@ -73,5 +73,5 @@
 @media (max-width: 560px) and (pointer: coarse) {
   .ui-wizard,
   .ui-wizard__panel,
-  .ui-wizard__final { gap: var(--tap-gap); }
+  .ui-wizard__final { gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 }

@@ -16,6 +16,10 @@
  * Playwright's list, and a two-screen phone of 466×678 and 890×626 at scale 3 with touch.
  * The shell chrome is every fixed or sticky element outside the page, found in the page.
  *
+ * At each subject it also runs axe's label-content-name-mismatch rule on the page, so a step's
+ * name starts with its visible words. At 860px and below it checks that the first link's
+ * words start on the band h1's edge, within 1px.
+ *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
  * that a press causes on purpose is not measured. The page opens no layer, so Escape is
@@ -53,15 +57,15 @@ const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnim
 
 // The actions, in order. Each runs only where its control is shown, and names the state
 // it waits for, so no step waits on time.
-const step = (page, n) => page.getByRole('button', { name: new RegExp(`^Step ${n} of 5:`) });
+const step = (page, n) => page.getByRole('button', { name: new RegExp(`, step ${n} of 5$`) });
 const linksShown = (page) => page.getByRole('group', { name: 'Page columns' }).isVisible();
 const ACTIONS = [
   ['key: Down', async (page) => { await step(page, 1).focus(); await page.keyboard.press('ArrowDown'); await step(page, 2).and(page.locator(':focus')).waitFor(); }],
-  ['key: Enter', async (page) => { await page.keyboard.press('Enter'); await page.locator('[aria-expanded="true"][aria-label^="Step 2 of 5"]').waitFor(); }],
+  ['key: Enter', async (page) => { await page.keyboard.press('Enter'); await page.locator('[aria-expanded="true"][aria-label$="step 2 of 5"]').waitFor(); }],
   ['key: End', async (page) => { await page.keyboard.press('End'); await step(page, 5).and(page.locator(':focus')).waitFor(); }],
   ['key: Home', async (page) => { await page.keyboard.press('Home'); await step(page, 1).and(page.locator(':focus')).waitFor(); }],
-  ['key: Space', async (page) => { await page.keyboard.press(' '); await page.locator('[aria-expanded="true"][aria-label^="Step 1 of 5"]').waitFor(); }],
-  ['click: Check', async (page) => { await page.getByRole('button', { name: 'Check', exact: true }).click(); await page.locator('[aria-current="step"][aria-label^="Step 2 of 5"]:focus').waitFor(); }],
+  ['key: Space', async (page) => { await page.keyboard.press(' '); await page.locator('[aria-expanded="true"][aria-label$="step 1 of 5"]').waitFor(); }],
+  ['click: Check', async (page) => { await page.getByRole('button', { name: 'Check', exact: true }).click(); await page.locator('[aria-current="step"][aria-label$="step 2 of 5"]:focus').waitFor(); }],
   ['screen: Rows', async (page) => { if (!await linksShown(page)) return false; await page.getByRole('button', { name: 'Rows', exact: true }).click(); await page.locator('[data-area="work"] > h2:focus').waitFor(); }],
   ['send: search', async (page) => { const box = page.getByRole('searchbox', { name: 'Search rows' }); await box.fill('Aster'); await box.press('Enter'); await page.locator('tbody tr').filter({ hasText: 'Birch Studio' }).waitFor({ state: 'detached' }); }],
   ['screen: Months', async (page) => { if (!await linksShown(page)) return false; await page.getByRole('button', { name: 'Months', exact: true }).click(); await page.locator('[data-area="nav"] > h2:focus').waitFor(); }],
@@ -80,6 +84,26 @@ async function open(browser, port, vitals, context) {
     && window.__STORYBOOK_PREVIEW__.currentRender.id === id, STORY);
   await page.locator('.ui-columns').waitFor();
   return { ctx, page };
+}
+
+const AXE = readFileSync(path.join(root, 'node_modules/axe-core/axe.min.js'), 'utf8');
+// The page's own checks before any action: axe's name rule, and at 860px and below the
+// first link's words on the band h1's edge.
+async function inspect(page, label) {
+  const found = [];
+  await page.addScriptTag({ content: AXE });
+  const axe = await page.evaluate(() => window.axe.run(document, { runOnly: { type: 'rule', values: ['label-content-name-mismatch'] } })
+    .then((r) => ({ ran: r.passes.length + r.violations.length + r.incomplete.length, bad: r.violations.flatMap((v) => v.nodes.map((n) => n.target.join(' '))) })));
+  if (axe.ran === 0) found.push(`${label}: axe label-content-name-mismatch measured nothing`);
+  for (const target of axe.bad) found.push(`${label}: label-content-name-mismatch on ${target}`);
+  const edge = await page.evaluate(() => {
+    const link = document.querySelector('.ui-columns__views > button');
+    if (!link.checkVisibility()) return null;
+    const x = (el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().left; };
+    return x(link) - x(document.querySelector('.ui-app__bar h1'));
+  });
+  if (edge !== null && Math.abs(edge) > 1) found.push(`${label}: the first link's words stand ${edge.toFixed(1)}px from the band h1's edge`);
+  return { found, edge: edge !== null };
 }
 
 // Runs every action and returns the findings and the actions that ran.
@@ -101,7 +125,7 @@ async function walk(page, label, { only } = {}) {
     }
     if (!(after.cls < 0.1)) found.push(`${label} ${name}: the layout shift is ${after.cls}`);
     if (after.over > 0) found.push(`${label} ${name}: the page scrolls ${after.over}px sideways`);
-    if (name === 'key: Escape' && (after.view !== before.view || !after.focus?.startsWith('Step 2 of 5'))) found.push(`${label} ${name}: Escape changed the page`);
+    if (name === 'key: Escape' && (after.view !== before.view || !after.focus?.endsWith('step 2 of 5'))) found.push(`${label} ${name}: Escape changed the page`);
     before = after;
   }
   return { found, ran };
@@ -138,6 +162,9 @@ test('the three-column page keeps focus, chrome, layout and width through each i
       const expected = { wide: ['nav', 'steps', 'work'], tablet: ['steps', 'work'], phone: ['steps'] }[kind];
       if (shown.join() !== expected.join()) findings.push(`${label}: shows ${shown.join(', ')} at ${width}px, expected ${expected.join(', ')}`);
       views[kind] += 1;
+      const own = await inspect(page, label);
+      findings.push(...own.found);
+      if (own.edge !== (kind !== 'wide')) findings.push(`${label}: the link edge was ${own.edge ? '' : 'not '}measured at ${width}px`);
       const { found, ran } = await walk(page, label);
       findings.push(...found);
       // Every action runs on a tablet or a phone. Above 860px the links are hidden.
@@ -162,6 +189,17 @@ test('the three-column page keeps focus, chrome, layout and width through each i
       await ctx.close();
     };
     const wide = { viewport: { width: 1280, height: 800 } };
+    const inspected = async (context, setup, says) => {
+      const { ctx, page } = await open(browser, server.port, vitals, context);
+      await setup(page);
+      caught.push([says, (await inspect(page, 'mutated')).found.some((f) => f.includes(says))]);
+      await ctx.close();
+    };
+    // The name this rule caught: the place before the visible words.
+    await inspected(wide, (page) => page.evaluate(() => document.querySelectorAll('.ui-wizard__step').forEach((b, i) => {
+      b.setAttribute('aria-label', `Step ${i + 1} of 5: ${b.querySelector('.ui-wizard__name').textContent.replace(/^\d+\. /, '')}, ${b.querySelector('.ui-wizard__state').textContent}`);
+    })), 'label-content-name-mismatch');
+    await inspected({ viewport: { width: 390, height: 844 } }, (page) => page.addStyleTag({ content: '.ui-columns__views { margin-inline-start: -12px; }' }), 'band h1');
     await mutate(wide, (page) => page.addStyleTag({ content: '.ui-columns__area--work { min-width: 1400px; }' }), ['key: Down'], 'sideways');
     await mutate(wide, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');
     await mutate(wide, (page) => page.evaluate(() => document.addEventListener('keydown', () => {

@@ -157,7 +157,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
   // reader can actually go, and it takes aria-current="true" rather than "page"
   // through activeIs above. why: guidelines/going-back.md#keep-the-section-active
   const navigable = links.length > 1 || Boolean(back);
-  // A full-width page has no padded title row, so the band carries its h1.
+  // A full-width page has no padded title row, so the band carries its h1 and its tools.
   const bandTitle = width === 'full' && layout === 'topbar' && navigable && title != null;
   // Written once and placed twice: with no list to head, the rail is a column of
   // brand, so the lockup moves to the band the page already has.
@@ -232,7 +232,8 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
           <a className="ui-app__brand ui-app__brand--band" href={brandHref} aria-label={word}>
             {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-band`, 24) }} />}
           </a>
-          {bandTitle ? <h1 className="ui-react-app__title ui-react-app__title--page">{title}</h1>
+          {bandTitle ? <><h1 className="ui-react-app__title ui-react-app__title--page">{title}</h1>
+            {tools && <div className="ui-app__tools ui-react-app__band-tools">{tools}</div>}</>
             : <span className="ui-react-app__title" aria-hidden="true">{title}</span>}
         </> : lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
