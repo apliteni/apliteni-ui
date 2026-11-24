@@ -1255,7 +1255,8 @@ in a row, and none where the figures fold onto a new row. Use a caption only for
 at text before the figures. A caption comes before the figures. A hover `title` does not count.
 When a period control already states the window, do not repeat it. To show no caption, put the basis
 in the `tooltip` of each `delta`, and with `basisId` point at screen-reader-only text that says it.
-The tooltip opens on hover, focus and tap.
+The tooltip opens on hover, focus and tap. On a phone, the change has a 44 by 44px tap zone. Its zone
+is 36px tall over a trend, and in the last two figures of an unpadded band in a `.ui-stack`.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
 flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it

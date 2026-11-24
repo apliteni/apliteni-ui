@@ -112,6 +112,43 @@ test('the bordered clearance reaches the floor from a padding box', () => {
   );
 });
 
+/* The room a stat change's layer has, from the sheets: 18.2px of line, the row gap below
+ * it, and the trend's own padding. The limit: 2px up is half of the 4px that a browser
+ * measured between an open band's value link and its change, at 390. */
+const statChange = (sheet) => {
+  const vars = readdirSync(path.join(root, 'src'), { recursive: true }).map(String).sort()
+    .filter((f) => f.endsWith('.css')).map((f) => decomment(read(`src/${f}`))).join('\n');
+  const num = (name) => Number.parseFloat(new RegExp(`${name}:\\s*([\\d.]+)`).exec(vars)?.[1]);
+  const px = (v) => new Function(`return ${v.replace(/var\((--[\w-]+)[^)]*\)/g, (_, name) => num(name))
+    .replace(/calc|px/g, '')}`)();
+  const stat = decomment(read('src/styles/stat.css'));
+  const of = (text, re) => px(re.exec(text)?.[1] ?? '0');
+  const line = of(stat, /\.ui-stat__delta \{[^}]*font-size:\s*([^;]+)/) * of(stat, /\.ui-stat__delta \{[^}]*line-height:\s*([^;]+)/);
+  const up = -of(sheet, /\.ui-stat__delta [^{}]*::after \{ top:\s*([^;]+)/);
+  const layer = (re) => Math.min(TAP_MIN, line + of(sheet, re));
+  const full = layer(/\n\s*\.ui-stat__delta \{[^}]*--tap-clear-y:\s*([^;]+)/);
+  const short = layer(/\.ui-stat__delta:has\(\+ \.ui-stat__trend\)[^{]*\{[^}]*--tap-clear-y:\s*([^;]+)/);
+  const wrong = [];
+  if (full < TAP_MIN) wrong.push(`the layer is ${full}px tall`);
+  if (up !== 2) wrong.push(`the layer reaches ${up}px up`);
+  if (full - line - up > of(stat, /\.ui-stats__list \{[^}]*gap:\s*(\S+)/)) wrong.push('the layer passes the row gap');
+  if (Math.abs(short - line - up - of(stat, /\.ui-stat__trend \{[^}]*padding-top:\s*([^;]+)/)) > 0.5) wrong.push(`the short layer is ${short}px tall, and does not end at the trend`);
+  return wrong;
+};
+
+test('a stat change reaches 44 inside the room its figure leaves', () => {
+  assert.deepEqual(statChange(css), []);
+  for (const [from, to] of [
+    [/\n\s*\.ui-stat__delta \{[^}]*\}/, ''],
+    [/(\.ui-stat__delta [^{}]*::after \{) top: -2px;/, '$1'],
+    [/\n\s*\.ui-stat__delta:has\([^{]*\{[^}]*\}/, ''],
+  ]) {
+    const broken = css.replace(from, to);
+    assert.notEqual(broken, css, `${SHEET} no longer matches ${from}, so this mutation proves nothing.`);
+    assert.notDeepEqual(statChange(broken), [], `${from} taken out of ${SHEET} passed.`);
+  }
+});
+
 test('both floors are tokens, each written once', () => {
   const aa = css.match(/--tap-aa:\s*(\d+(?:\.\d+)?)px\s*;/);
   assert.ok(
@@ -204,6 +241,9 @@ test('every family that carries a layer has something to hang it on', () => {
   const RELATIVE = /position:\s*(relative|absolute|sticky|fixed)/;
   for (const sel of carriers) {
     if (positioned.includes(sel)) continue;
+    // A `host > control` carrier measures against its host, which then has to be the box.
+    const host = / ([.\w-]+) > [.\w-]+$/.exec(sel)?.[1];
+    if (host && new RegExp(`\\${host} \\{[^}]*position:\\s*relative`).test(kitCss)) continue;
     // `.ui-check input` and friends are handled by their own rule; these are the
     // :where() carriers, each of which must already be a containing block.
     const block = kitCss.split(/(?=\n\S)/).filter((r) => r.trimStart().startsWith(`${sel} {`));
@@ -582,7 +622,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 13,
+    fixtures.length >= 16,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -706,6 +746,45 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         + 'below one row’s checkbox selects the next row. Keep the layer inside the room the '
         + 'rows leave: a table that shares an edge between rows grows no layer down.',
       );
+    });
+
+    // A stat band's change: 44 both ways in a folded band, and 36 down where 16px lies below.
+    // A walk counts one pixel inside each edge, so 2 comes off a reach.
+    // The limit: the fixtures fold to one column in the dark theme, at 390 only.
+    const across = (b) => Math.floor(b.reach[0] - 2);
+    const downOf = (b) => Math.round(b.reach[1] - 2);
+    const CHANGE = '.ui-stat__delta .ui-tip-host > .ui-focusable';
+    const changes = (rows, id) => rows.filter((r) => r.story === `fixture:${id}` && r.fam.includes(CHANGE));
+    const shortChanges = (rows) => [['stat-links', [44, 44, 44]], ['stat-trend', [36, 36]], ['stat-stack', [44, 36, 36]]]
+      .flatMap(([id, down]) => {
+        const mine = changes(rows, id);
+        if (mine.length !== down.length) return [`${id}: ${mine.length} changes measured, ${down.length} expected`];
+        return mine.filter((b, i) => across(b) < TAP_MIN || downOf(b) < down[i]).map((b) => `${id}: reaches ${across(b)}x${downOf(b)}`);
+      });
+    const takenByChange = (rows) => rows.filter((r) => /^fixture:stat-/.test(r.story))
+      .flatMap((r) => r.lostTo.map(([, to]) => `${r.story} — ${name(r)} ← ${to}`));
+
+    await t.test('a stat change reaches the floor and takes no pixel from its neighbours', () => {
+      assert.deepEqual(shortChanges(B), []);
+      assert.deepEqual(takenByChange(B), []);
+      t.diagnostic(`stat changes reach ${['stat-links', 'stat-trend', 'stat-stack']
+        .map((id) => changes(B, id).map((b) => `${across(b)}x${downOf(b)}`).join(', ')).join(' / ')}`);
+    });
+
+    await t.test('a stat change with no clearance, a centred layer or a full layer in 16px is rejected', async () => {
+      const own = fixtures.filter((f) => /^fixture:stat-/.test(f.id));
+      const broken = async (from, to) => {
+        const sheet = withCss.replace(from, to);
+        assert.notEqual(sheet, withCss, 'The mutation did not apply, so it proves nothing.');
+        return flatten((await at(390, true, sheet, own)).rows);
+      };
+      assert.ok(shortChanges(await broken(/\n  \.ui-stat__delta \{[^}]*\}/, '')).length > 0,
+        'A change with no clearance kept its reach, so the check above reads nothing.');
+      const centred = takenByChange(await broken(/(\.ui-focusable::after \{) top: -2px; transform: [^;]+;/, '$1'));
+      assert.ok(centred.some((p) => /stat-links — a/.test(p)), `A centred layer took no pixel of the value link: ${centred}`);
+      const full = takenByChange(await broken(/\.ui-stat__delta:has\([^{]*\{[^}]*\}/, ''));
+      assert.ok(full.some((p) => /stat-trend — a/.test(p)) && full.some((p) => /stat-stack — a/.test(p)),
+        `A full layer took no pixel of the trend or the next block: ${full}`);
     });
 
     await t.test('every density of a selectable table is measured, header and rows', () => {
