@@ -37,6 +37,7 @@ export const RELEASES = [
       ['changed', 'A block after a `StatBand` on a page now keeps one group gap of air below the figures, on top of the body\'s own gap, so the figures read as their own section on the white page. Resolves #850.', ['StatBand']],
       ['added', 'The Text length guideline gains a rule: size a field to its expected input, so a short code gets a short field. Resolves #850.', ['Guidelines']],
       ['changed', 'The Finance report and dashboard now draw their search field, filter selects and export button at the kit\'s small size, and the export is a ghost icon button with no outline, matching their dense tables. Resolves #850.', ['Toolbar', 'Button', 'SearchField']],
+      ['added', 'The Finance dashboard now draws a spend-by-category chart from the kit `Chart` between its figures and its exceptions table, with the legend on and the chart-and-table switch available. Resolves #850.', ['Chart']],
     ],
   },
   {

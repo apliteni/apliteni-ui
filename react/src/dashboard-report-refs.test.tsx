@@ -661,7 +661,7 @@ test('the Dashboard period changes its totals and trends', () => {
   const figures = () => [...dashboard.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
   const yearly = figures();
   const yearlyTrend = dashboard.querySelector('.ui-stat__trend')!.innerHTML;
-  const periods = () => [...dashboard.querySelectorAll('.ui-seg button')];
+  const periods = () => [...dashboard.querySelectorAll('.ui-toolbar .ui-seg button')];
   act(() => { fireEvent.click(periods()[0]); });
   assert.notDeepEqual(figures(), yearly);
   assert.notEqual(dashboard.querySelector('.ui-stat__trend')!.innerHTML, yearlyTrend);

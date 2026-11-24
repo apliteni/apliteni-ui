@@ -6,6 +6,7 @@ import { Segmented } from '../../react/src/Segmented';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
+import { Chart } from '../../react/src/Chart';
 import { useTableFilters } from '../_table-filters';
 // @ts-expect-error -- plain JS story module
 import { cashflowStats, PERIODS, periodBasis } from './_finance-data.js';
@@ -27,6 +28,25 @@ const EXCEPTIONS: [string, string, 'danger' | 'pending', string, string][] = [
   ['SAL-1039', '2,180.00', 'danger', 'Refunded', '2025-07-15'],
 ];
 
+// Fabricated spend split four ways over 12 months. The chart stays on those
+// months; the period control changes the figures above it, not the chart.
+// why: #850 round 42, the owner's approved option A
+const CATEGORY_MONTHS = ['Dec 2024', 'Jan 2025', 'Feb 2025', 'Mar 2025', 'Apr 2025', 'May 2025',
+  'Jun 2025', 'Jul 2025', 'Aug 2025', 'Sep 2025', 'Oct 2025', 'Nov 2025'];
+const CATEGORY_PERIODS = CATEGORY_MONTHS.map((label) => ({ label }));
+const CATEGORY_PAYROLL = [17200, 17200, 17600, 17600, 18100, 18100, 18400, 18400, 18400, 18900, 18900, 19400];
+const CATEGORY_HOSTING = [5420, 5560, 5710, 5830, 6020, 6110, 6240, 6380, 6450, 6610, 6720, 6880];
+const CATEGORY_MARKETING = [4890, 5190, 5370, 4980, 5420, 4920, 5640, 5980, 5310, 5770, 5810, 5900];
+const CATEGORY_OFFICE = CATEGORY_PAYROLL.map((_, i) => 34880 - CATEGORY_PAYROLL[i] - CATEGORY_HOSTING[i] - CATEGORY_MARKETING[i]);
+const categoryEur = (value: number) => `€${value.toLocaleString('en-US')}`;
+const categoryEurAxis = (value: number) => (value === 0 ? '€0' : `€${Math.round(value / 1000)}k`);
+const CATEGORIES = [
+  { id: 'payroll', name: 'Payroll', values: CATEGORY_PAYROLL, tone: 'accent' as const },
+  { id: 'hosting', name: 'Hosting', values: CATEGORY_HOSTING, tone: 'accent-soft' as const },
+  { id: 'marketing', name: 'Marketing', values: CATEGORY_MARKETING, tone: 'info' as const },
+  { id: 'office', name: 'Office', values: CATEGORY_OFFICE, tone: 'warn' as const },
+];
+
 const Dashboard = () => {
   const [period, setPeriod] = useState('1Y');
   const { bar, shown } = useTableFilters(EXCEPTIONS, {
@@ -40,6 +60,10 @@ const Dashboard = () => {
     </div>
     <StatBand id="fd-cashflow" variant="open" basisId={PERIOD_BASIS} stats={(cashflowStats(period, true) as Figure[])
       .map(figure => ({ ...figure, trend: figure.trend && <span style={{ display: 'contents' }} dangerouslySetInnerHTML={{ __html: figure.trend }} /> }))} />
+    <Card title="Spend by category">
+      <Chart variant="stacked" look="columns" legend title="Spend by category and month, last 12 months"
+        periods={CATEGORY_PERIODS} series={CATEGORIES} format={categoryEur} formatAxis={categoryEurAxis} />
+    </Card>
     {/* The filter bar groups with its table, so it sits inside the card: one small
         step above the table it filters. The heading is sr-only, because the page
         title already says what the card is, and the sr-only title keeps the table's
