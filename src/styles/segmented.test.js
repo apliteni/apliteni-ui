@@ -229,3 +229,21 @@ test('underline strips wrap and clip nothing', () => {
   assert.equal(valueOf('.ui-seg--underline', 'flex-wrap'), 'wrap', 'underline tabs must wrap rather than hide the ones past the fold');
   assert.equal(valueOf('.ui-seg--underline', 'overflow'), 'visible', 'a scroll box would clip the focus ring against the strip padding');
 });
+
+test('the neutral pill marks the chosen option with the strong ink on the surface, and no accent edge', () => {
+  const pill = ruleBody(baseCss, '.ui-seg--neutral button.is-active');
+  assert.equal(decl(pill, 'color'), 'var(--surface)', 'the neutral ink is the surface, not accent contrast');
+  assert.equal(decl(pill, 'background'), 'var(--strong)', 'the neutral fill is the strong ink, not the accent');
+  assert.equal(decl(pill, 'box-shadow'), 'none', 'the neutral pill draws no accent edge');
+  const pressed = ruleBody(baseCss, '.ui-seg--neutral button[aria-pressed="true"]');
+  assert.equal(decl(pressed, 'color'), 'var(--surface)');
+  assert.equal(decl(pressed, 'background'), 'var(--strong)');
+  const selected = ruleBody(baseCss, '.ui-seg--neutral button[aria-selected="true"]');
+  assert.equal(decl(selected, 'color'), 'var(--surface)');
+  assert.equal(decl(selected, 'background'), 'var(--strong)');
+});
+
+test('the neutral underline bar is the strong ink, not the accent', () => {
+  const bar = ruleBody(baseCss, '.ui-seg--neutral.ui-seg--underline button::before');
+  assert.equal(decl(bar, 'background'), 'var(--strong)', 'the neutral bar draws the strong ink');
+});

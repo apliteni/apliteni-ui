@@ -16,8 +16,8 @@ it('preserves the default presentation and exposes both size and width modifiers
   const { rerender } = render(<Segmented {...props} />);
   const toolbar = screen.getByRole('toolbar', { name: 'Language' });
   expect(toolbar).toHaveAttribute('class', 'ui-seg');
-  rerender(<Segmented {...props} size="sm" block appearance="underline" />);
-  expect(toolbar).toHaveClass('ui-seg--sm', 'ui-seg--block', 'ui-seg--underline');
+  rerender(<Segmented {...props} size="sm" block appearance="underline" neutral />);
+  expect(toolbar).toHaveClass('ui-seg--sm', 'ui-seg--block', 'ui-seg--underline', 'ui-seg--neutral');
   rerender(<Segmented {...props} />);
   expect(toolbar).toHaveAttribute('class', 'ui-seg');
 });

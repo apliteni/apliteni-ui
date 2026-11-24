@@ -52,7 +52,8 @@ export type ChartPeriod = {
   /**
    * The period is not final. `incomplete` is the period still running,
    * `projected` a future one, and `true` any other estimate. The readout and
-   * the table name the state; the chart at rest prints none.
+   * the table name the state; the chart at rest prints only the group's
+   * `Not final` label above the unfinished group, not a word per period.
    */
   estimated?: ChartEstimate;
   /** Why it is not final. Printed in the readout and in the table. */
@@ -997,7 +998,7 @@ export function Chart(props: ChartProps) {
     </ul>
   );
   const viewSwitch = showTable && (
-    <Segmented size="sm" label={`${title}, view`} value={view}
+    <Segmented neutral size="sm" label={`${title}, view`} value={view}
       onChange={(next) => setView(next as 'chart' | 'table')} options={[
         { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
         { value: 'table', label: 'Table', icon: 'table', iconOnly: true },

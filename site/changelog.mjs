@@ -10,6 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'A `months` or `bridge` `Chart` now prints every bar\'s `short` name under its bar, and a short name that does not fit its column wraps at a word break. Where one word alone is wider than the column, the chart steps the labels. Give each bar a distinct short name; the readout and the table keep the full name. Resolves #863.', ['Chart']],
       ['added', 'The dashboards and reports guideline has a new rule, Keep every bar labelled: give each bar a distinct short name, never one cut to a fixed length. Resolves #863.', ['Guidelines']],
+      ['added', '`Segmented` takes `neutral`, a selected pill or underline bar drawn in the strong ink on the surface, for a view switch that must not compete with a page\'s accent button. `ViewSwitch` and the `Chart` chart-and-table switch use it; a filter or a setting keeps the accent. Resolves #867.', ['Segmented', 'TopBar', 'Chart']],
     ],
   },
   {

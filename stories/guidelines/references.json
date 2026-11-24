@@ -173,11 +173,25 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme × accent cells"
+    "pattern": "theme \u00d7 accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
     "pattern": "'color-contrast': { enabled: false }"
+   }
+  ],
+  "neutral-selection": [
+   {
+    "ref": "react/src/Segmented.tsx:5",
+    "pattern": "neutral?: boolean"
+   },
+   {
+    "ref": "src/styles/segmented.css:59",
+    "pattern": ".ui-seg--neutral button.is-active"
+   },
+   {
+    "ref": "src/styles/topbar.css:74",
+    "pattern": ".dtsw a.cur { color: var(--surface); background: var(--strong); }"
    }
   ]
  },
@@ -274,7 +288,7 @@
   ],
   "panels": [
    {
-    "ref": "react/src/Segmented.tsx:9",
+    "ref": "react/src/Segmented.tsx:10",
     "pattern": "role=\"toolbar\" aria-label={label}"
    },
    {
@@ -692,11 +706,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:120",
+    "ref": "src/styles/segmented.css:134",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:129",
+    "ref": "src/styles/segmented.css:143",
     "pattern": "padding: var(--space-3)"
    }
   ]

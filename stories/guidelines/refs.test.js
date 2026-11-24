@@ -312,7 +312,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
   // 163: Text length gained field-length (#850).
   // 164: Dashboards and reports gained bar-labels (#863).
-  assert.equal(count, 164, 'update the rule count when adding or removing a rule');
+  // 165: Colour and theming gained neutral-selection (#867).
+  assert.equal(count, 165, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

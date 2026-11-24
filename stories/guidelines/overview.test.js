@@ -105,7 +105,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
   // 163: Text length gained field-length (#850).
   // 164: Dashboards and reports gained bar-labels (#863).
-  assert.equal(rules, 164);
+  // 165: Colour and theming gained neutral-selection (#867).
+  assert.equal(rules, 165);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

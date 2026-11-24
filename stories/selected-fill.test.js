@@ -170,6 +170,11 @@ const SUBJECTS = [
     rule: `.ui-seg button${state}:where(:disabled)`, ground: '--surface',
     paintedBy: '.ui-seg, which paints --surface',
   })),
+  ...['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]'].map((state) => ({
+    name: `the chosen neutral segmented pill (${state})`,
+    rule: `.ui-seg--neutral button${state}`, ground: '--surface',
+    paintedBy: '.ui-seg, which paints --surface',
+  })),
   {
     name: 'the disabled current page of a busy pager',
     rule: '.ui-pager__page.is-current[disabled]', ground: '--surface',
@@ -512,7 +517,7 @@ const forcedSubjects = [...new Set(readRules(dropForcedColours(forcedSource))
   .map((selector) => selector.replace(/::(?:before|after)$/, '')))];
 const row = '<a href="#" class="ui-nav__item is-active">Selected</a>';
 const forcedFixtures = [
-  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline'].map((kind) => [
+  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline', 'ui-seg--neutral'].map((kind) => [
     `segmented ${kind} ${state}`, `<div class="ui-seg ${kind}"><button ${state === 'is-active' ? 'class="is-active"' : state}>Selected</button></div>`,
   ])),
   ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].map((state) => [

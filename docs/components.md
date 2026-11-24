@@ -298,7 +298,8 @@ put it in an `AppShell` page, because a page has one band.
 ```
 
 Each slot is optional. A bar with no account is the signed-out bar. On a phone the bar has two rows.
-The current view in `ViewSwitch` has the accent fill. The version button shows only the chosen
+The current view in `ViewSwitch` has the neutral selected fill: the strong ink on the surface,
+never the accent. The version button shows only the chosen
 name, and its menu shows each name with its badge and a tick on the chosen one. They follow
 `value` until you change it. `AccountMenu` marks the page named by `current` in accent ink.
 
@@ -659,13 +660,17 @@ fit on one row. Use [`Tabs`](#tabs) when each choice shows a different panel. Se
   options={[{ value: 'm', label: 'Month' }, { value: 'q', label: 'Quarter' }, { value: 'y', label: 'Year' }]} />
 ```
 
-`appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller, and in
-the underline appearance it changes only the type size. `block` fills the row. An option's `icon`
+`appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller. The
+underline keeps one 13px type size in both sizes, so `size` does not change it. `block` fills the
+row. `neutral` marks the chosen option with the strong ink on the surface, for a view switch
+beside a page's main button; a filter or a setting keeps the accent. An option's `icon`
 draws a glyph before its label. With `iconOnly`, the glyph is the whole button and the label is
 its name and its hover title.
 
-**What the user sees.** The chosen pill has the accent fill of a primary button. The chosen
-underline tab is its label with a 2px accent bar under it, and no box. Hover changes only the
+**What the user sees.** The chosen pill has the accent fill of a primary button. With `neutral`,
+the chosen pill has the strong ink on the surface, with no accent. The chosen
+underline tab is its label with a 2px accent bar under it, and no box; with `neutral` the bar is
+the strong ink. Hover changes only the
 ink. When the options do not fit, they wrap onto more rows, so the strip never makes the column
 wider. A long label wraps inside its own option.
 

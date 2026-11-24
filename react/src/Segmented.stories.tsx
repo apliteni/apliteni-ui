@@ -9,6 +9,7 @@ const meta: Meta<typeof Segmented> = {
   argTypes: {
     size: { control: 'inline-radio', options: [undefined, 'sm'] },
     block: { control: 'boolean' },
+    neutral: { control: 'boolean' },
     appearance: { control: 'inline-radio', options: ['pill', 'underline'] },
   },
   // A block strip takes its container's width, so without one the chosen option draws a
@@ -41,6 +42,8 @@ export const UnderlineBlock: Story = { ...Block, args: { ...Block.args, appearan
 export const DisabledOption: Story = { ...SmallBlock, args: { ...SmallBlock.args, options: [
   { label: 'Overview', value: 'Overview' }, { label: 'Agents', value: 'Agents' }, { label: 'Billing', value: 'Billing', disabled: true },
 ] } };
+export const Neutral: Story = { ...Playground, args: { ...Playground.args, neutral: true } };
+export const NeutralUnderline: Story = { ...Underline, args: { ...Underline.args, neutral: true } };
 
 function Specimen({ label, children }: { label: string; children: ReactNode }) {
   return <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>

@@ -52,6 +52,20 @@
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
+/* The neutral form marks the chosen pill with the strong ink on the surface, so
+   a view switch never competes with a page's accent button. The shared disabled
+   override below restores the disabled fill, and the disabled-ink rule later
+   restores the muted ink, so these selectors need no :not(:disabled) guard. */
+.ui-seg--neutral button.is-active,
+.ui-seg--neutral button[aria-pressed="true"],
+.ui-seg--neutral button[aria-selected="true"] {
+  color: var(--surface);
+  background: var(--strong);
+  box-shadow: none;
+}
+/* The underline bar stays the one mark, drawn in the strong ink. */
+.ui-seg--neutral.ui-seg--underline button::before { background: var(--strong); }
+
 /* A disabled selection stays readable without the active accent fill. */
 .ui-seg button.is-active:where(:disabled),
 .ui-seg button[aria-pressed="true"]:where(:disabled),
