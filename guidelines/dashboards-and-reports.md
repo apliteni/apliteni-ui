@@ -146,6 +146,6 @@
 
 **Do:** Short names under every bar, full names in readout and table.
 
-**Don't:** Long names that step past bars, so bars go unnamed.
+**Don't:** Names that repeat North and South, so the bars read alike.
 
 **Except:** Where one word is wider than its column, use shorter names or fewer bars.

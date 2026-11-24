@@ -470,7 +470,7 @@ export const PROBE = ({ html, size, interior, families, within }) => {
  * kit untouched and call that a green.
  */
 /** The tallest page the rig lays out. A control below it has no reach to measure. */
-export const VIEW_CAP = 16000;
+export const VIEW_CAP = 20000;
 
 export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [] }) {
   const ctx = await browser.newContext({
@@ -493,6 +493,10 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
     }));
     const rows = [];
     for (const s of subjects) {
+      // Measure each story's height from the same fixed 900px box: a story sized
+      // in viewport units (min-height: 100vh) has to read its own height, not the
+      // previous story's grown viewport, or a tall neighbour makes it look cut.
+      await page.setViewportSize({ width, height: 900 });
       // The viewport has to hold the whole story before anything is asked of
       // it: elementFromPoint answers about the VIEWPORT, and returns null below
       // the fold. Measured with a fixed 900px box, every control on the lower

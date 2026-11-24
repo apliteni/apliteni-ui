@@ -139,6 +139,8 @@ it.each([
   expect(toolbar).toContainElement(chart);
   expect(container.querySelector(slot)).toContainElement(toolbar);
   expect(container.querySelectorAll('.ui-seg'), 'one switch, drawn once').toHaveLength(1);
+  expect(container.querySelector('.ui-seg'), 'the view switch keeps the neutral form, not the accent')
+    .toHaveClass('ui-seg--neutral');
   expect(chart.textContent, 'the glyph is the whole label').toBe('');
   expect(chart, 'the chart is the view a reader opens on').toHaveAttribute('aria-pressed', 'true');
   expect(screen.queryByRole('table')).toBeNull();

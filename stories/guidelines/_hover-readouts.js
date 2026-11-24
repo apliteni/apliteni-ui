@@ -40,5 +40,17 @@ export const SPEC_CSS = `${CHART_CSS}
         translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--ui-tip-x) - 100%))
           var(--ui-tip-gap);
       }
+      /* The clipping region's own side inset: a readout clamped to the page
+         column would sit on the box's edge and lose its border under the clip's
+         inset edge. Clamp it to the box's content, inset included. */
+      .gh-clip .gh-host .ui-tip {
+        max-width: calc(100vw - var(--space-10) * 2 - var(--space-3) * 2);
+        translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--space-3) - var(--ui-tip-x) - 100%))
+          calc(-100% - var(--ui-tip-gap));
+      }
+      .gh-clip .gh-host .ui-tip.is-below {
+        translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--space-3) - var(--ui-tip-x) - 100%))
+          var(--ui-tip-gap);
+      }
     }
   </style>`;

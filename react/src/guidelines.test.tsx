@@ -269,6 +269,23 @@ describe('guideline pages in React: Dashboards and reports', () => {
     expect([table.getAttribute('aria-selected'), document.activeElement === table, table.tabIndex, chart.tabIndex]).toEqual(['true', true, 0, -1]);
   });
 
+  // #867: the block's Chart and Table switch keeps the neutral form, the way the
+  // Chart component's own switch draws — a view switch stays off the page's accent.
+  it('the block switch keeps the neutral form, not the accent', () => {
+    const strip = block().querySelector('[role="tablist"]');
+    expect(strip).toHaveClass('ui-seg--neutral');
+  });
+
+  // #863: the switch rule's cards sit inside the rule's own h2 section, so their
+  // titles are h3, one level under it (Labels and titles, heading levels).
+  it('the chart-table-switch card titles are headings one level under the rule', () => {
+    const section = mount(page).querySelector('[data-rule="chart-table-switch"]');
+    expect(section, 'no rule "chart-table-switch" on the page: the gate is checking nothing').toBeTruthy();
+    const titles = [...section!.querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.map(t => t.tagName.toLowerCase()), 'one card title per specimen block')
+      .toEqual(['h3', 'h3', 'h3']);
+  });
+
   // #863: the two new bar-label cards sit inside the rule's own h2 section, so
   // their titles are h3, one level under it (Labels and titles, heading levels).
   it('the bar-labels cards are headings one level under the rule', () => {
@@ -299,7 +316,7 @@ describe('guideline pages in React: Dashboards and reports', () => {
   it('names every repeated specimen chart distinctly', () => {
     const names = [...mount(page).querySelectorAll('[role="group"][aria-label]')]
       .map(group => group.getAttribute('aria-label')!);
-    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six bars|Net settled by month, first half of the year), /.test(name));
+    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six bars|Net settled by month, first (?:half of the year|four months of the year)), /.test(name));
     expect(repeats.length, 'the repeated charts the page draws').toBe(13);
     expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(13);
   });

@@ -14,11 +14,12 @@
 //
 // LIMITS:
 //  - Markup, not paint. JSDOM lays nothing out, so the drawn bar's true colour
-//    is not measured. The corner is read from the `d` path's arc radius, which
-//    look A caps at --radius-xs (6px). A bar shorter than --radius-xs keeps its
-//    corner capped by its height, so a round end on a very short step is not
-//    told apart here; `keeps short floating bridge steps rectangular` in
-//    Chart.test.tsx holds that edge.
+//    is not measured. The corner is read from the `d` path: each arc radius must
+//    stay at --radius-xs (6px) or a quarter of the bar's width or the bar's
+//    height, whichever is smallest, read with a 0.1px rounding tolerance. A bar
+//    shorter than --radius-xs keeps its corner capped by its height, so a round
+//    end on a very short step is not told apart here; `keeps short floating
+//    bridge steps rectangular` in Chart.test.tsx holds that edge.
 //  - Only the render body is run. A story whose bars appear only after a
 //    Storybook `play` is not measured that far; none of the bar-drawing stories
 //    does, and each is read through its own `render`.
@@ -48,10 +49,39 @@ const BAR_CLASSES = ['ch-bar', 'ui-chart__bar'];
 /* Look A's corner: --radius-xs. A bar's corner is this or a quarter of the bar's
    width, whichever is smaller, so no arc in the path ever passes this radius. */
 const CORNER = 6;
+/* The path writes the radius rounded to one decimal, so a quarter of a rounded
+   width can land a tenth off; this is the slack the comparison allows. */
+const TOL = 0.1;
 
 /** Parse rendered markup the way a page would, and hand back its body. */
 const bodyOf = (markup: string): ParentNode =>
   new JSDOM(`<!doctype html><html><body>${markup}</body></html>`).window.document.body;
+
+/** A bar's box and corner radii, read off the path the component wrote. A bar is
+ *  a path, not a rect, because SVG gives a rect one radius for all four corners
+ *  and a bar standing on the zero line needs none at its foot. The bar paths use
+ *  only M, V/v, H/h, a and z, so walking those commands yields the box and each
+ *  arc's radius (rx, which equals ry on every bar). */
+function geometryOf(d: string) {
+  const xs: number[] = [];
+  const ys: number[] = [];
+  const radii: number[] = [];
+  let x = 0;
+  let y = 0;
+  for (const [, cmd, args] of d.matchAll(/([A-Za-z])([^A-Za-z]*)/g)) {
+    const n = (args.match(/-?\d*\.?\d+/g) ?? []).map(Number);
+    if (cmd === 'M') { [x, y] = n; }
+    else if (cmd === 'V') { [y] = n; }
+    else if (cmd === 'v') { y += n[0]; }
+    else if (cmd === 'H') { [x] = n; }
+    else if (cmd === 'h') { x += n[0]; }
+    else if (cmd === 'a') { radii.push(n[0]); x += n[5]; y += n[6]; }
+    xs.push(x);
+    ys.push(y);
+  }
+  return { x: Math.min(...xs), y: Math.min(...ys),
+    width: Math.max(...xs) - Math.min(...xs), height: Math.max(...ys) - Math.min(...ys), radii };
+}
 
 /** Every element under `root` whose own class list names a bar. */
 function barsIn(root: ParentNode): Element[] {
@@ -82,10 +112,11 @@ function barProblems(bar: Element): string[] {
   if ((bar.getAttribute('fill') ?? '').startsWith('url(#')) {
     problems.push(`a bar is painted by a ramp (${bar.getAttribute('fill')})`);
   }
-  for (const [, r] of d.matchAll(/a(-?\d*\.?\d+)/g)) {
-    if (Number(r) > CORNER) {
-      problems.push(`a bar's corner radius ${r} is larger than --radius-xs (${CORNER}), `
-        + 'so its end is fully round');
+  const { width, height, radii } = geometryOf(d);
+  for (const r of radii) {
+    const cap = Math.min(CORNER, width / 4, height);
+    if (r > cap + TOL) {
+      problems.push(`a bar's corner radius ${r} exceeds min(--radius-xs ${CORNER}, width/4 ${(width / 4).toFixed(1)}, height ${height}) = ${cap.toFixed(1)}`);
     }
   }
   return problems;
@@ -129,8 +160,10 @@ for (const [file, mod] of [
 
 /* Measured, not guessed: the floor as this gate first rendered the collection.
  * Every figure is a lower bound, so the gate fails when a subject stops drawing
- * bars, when the discovery stops reaching one, or when a reader drops bars. */
-const FOUND = { subjects: 14, bars: 349 };
+ * bars, when the discovery stops reaching one, or when a reader drops bars.
+ * #863 dropped two bars when the chart-table-switch Do shortened its months chart
+ * to four labelled bars, so the floor fell from 349 to 347. */
+const FOUND = { subjects: 14, bars: 347 };
 
 describe('flat bar', () => {
   it('found the bar-drawing subjects and drew each bar flat, small-cornered, with no ramp', () => {

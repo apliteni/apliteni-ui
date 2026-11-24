@@ -317,8 +317,10 @@ fill, because a reader never writes in one. Its ink clears 4.5:1 on that fill, w
 lowest value 5.22:1.
 
 **A selected item is the one exception.** Selection is marked by a background highlight. An
-enabled chosen segmented pill takes the primary button's pair, `--accent-strong` with
-`--accent-contrast` ink, and a 1px `--accent` edge. Where the fill is under 3:1 on the track, as
+enabled chosen segmented pill in the accent form takes the primary button's pair, `--accent-strong`
+with `--accent-contrast` ink, and a 1px `--accent` edge. The neutral form marks its chosen pill with
+the strong ink on the surface, `--strong` with `--surface` text, so a view switch stays off the page's
+accent button. Where the fill is under 3:1 on the track, as
 under the default accent in dark, the edge is the mark. A disabled chosen pill and an underline tab
 take no edge. A disabled chosen pill keeps `--surface-3` and the disabled
 ink.

@@ -73,35 +73,42 @@ const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
 // one bar style across the switch and the label specimens.
 const netK = (n: number) => `${n}k €`;
 // The chart's title is never drawn, so each specimen names itself distinctly for
-// a reader listing the landmarks, without changing what the page shows.
-const MonthChart = ({ chartLabel }: { chartLabel?: string }) => <Chart variant="months"
-  title={`Net settled by month, first half of the year${chartLabel ? `, ${chartLabel}` : ''}`}
-  periods={PERIODS} series={[{ id: 'net', name: 'Net settled', values: NET_BY_MONTH, tone: 'accent' }]}
+// a reader listing the landmarks, without changing what the page shows. The
+// months, their net and the span are the caller's, so the chart-table-switch Do
+// can name the first four months and keep every bar labelled on the narrowest phone.
+const periodsOf = (months: string[]) => months.map(month => ({ label: `${month} 2026`, short: month }));
+const MonthChart = ({ months = MONTHS, net = NET_BY_MONTH, span = 'first half of the year', chartLabel }:
+  { months?: string[]; net?: number[]; span?: string; chartLabel?: string }) => <Chart variant="months"
+  title={`Net settled by month, ${span}${chartLabel ? `, ${chartLabel}` : ''}`}
+  periods={periodsOf(months)} series={[{ id: 'net', name: 'Net settled', values: net, tone: 'accent' }]}
   format={netK} table={false} />;
-const MonthTable = () => (
+const MonthTable = ({ months = MONTHS, net = NET_BY_MONTH }: { months?: string[]; net?: number[] }) => (
   // No filter bar: the chart's Table view holds only the chart's own points. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar
   <table className="ui-table ui-table--dense">
     <thead><tr><th>Month</th><th className="ui-table__num">Net settled (k €)</th></tr></thead>
-    <tbody>{MONTHS.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{NET_BY_MONTH[i]}</td></tr>)}</tbody>
+    <tbody>{months.map((month, i) => <tr key={month}><td>{month}</td><td className="ui-table__num ui-table__num--strong">{net[i]}</td></tr>)}</tbody>
   </table>
 );
 
 // One block, one view at a time: the switch shares the title's row and opens on Chart.
-// Small underline tabs, not pills: an accent fill outweighed the chart and its title.
+// Small underline tabs, not pills, in the neutral form, the way the Chart component's
+// own switch draws: a view switch keeps off the page's accent.
 // Table replaces the chart, so each view is a panel: the kit's underline strip with
 // tab roles, because the kit's Tabs cannot sit in a block's title row.
 // The wrapper keeps the row's baseline, which the strip's own stretch would drop.
 // The table's panel is the kit's scroll box, which keeps the dense table's bleed to the card edge.
 const VIEWS = [{ label: 'Chart', value: 'chart', box: 'ui-tabs__panel' },
   { label: 'Table', value: 'table', box: 'ui-table-scroll ui-tabs__panel' }];
-const MonthBlock = ({ view: initial, chartLabel }: { view: string; chartLabel?: string }) => {
+const MonthBlock = ({ view: initial, chartLabel, months, net, span }:
+  { view: string; chartLabel?: string; months?: string[]; net?: number[]; span?: string }) => {
   const [view, setView] = useState(initial);
   const id = useId();
   // The panel closes over this block's chart label, so each specimen names itself.
-  const panels = [<MonthChart chartLabel={chartLabel} />, <MonthTable />];
+  const panels = [<MonthChart chartLabel={chartLabel} months={months} net={net} span={span} />,
+    <MonthTable months={months} net={net} />];
   return <Card><div className="gd-block-head">
-    <h2 className="ui-card__title">Net settled by month</h2>
-    <div><div className="ui-seg ui-seg--sm ui-seg--underline" role="tablist" aria-label="Net settled by month view">
+    <h3 className="ui-card__title">Net settled by month</h3>
+    <div><div className="ui-seg ui-seg--sm ui-seg--underline ui-seg--neutral" role="tablist" aria-label="Net settled by month view">
       {VIEWS.map((option, i) => <button key={option.value} type="button" role="tab" id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
         className={option.value === view ? 'is-active' : undefined} aria-selected={option.value === view} tabIndex={option.value === view ? 0 : -1}
         onClick={() => setView(option.value)} onKeyDown={e => {
@@ -124,7 +131,7 @@ const INCOME_SERIES: ChartLookSeries[] = [
   { id: 'expenses', name: 'Expenses', tone: 'accent-soft', values: [32.9, 33.4, 32.8, 34.0, 34.1, 31.9] },
 ];
 const ALL_SERIES: ChartLookSeries[] = [...SPEND_SERIES, { ...INCOME_SERIES[0], tone: 'warn' }, { ...INCOME_SERIES[1], tone: 'info' }];
-const PERIODS = MONTHS.map(month => ({ label: `${month} 2026`, short: month }));
+const PERIODS = periodsOf(MONTHS);
 const kEur = (n: number) => `${n.toFixed(1)}k €`;
 // Two past years over one half year: the shape is the point, and no one value is.
 const SEASON_SERIES: ChartLookSeries[] = [
@@ -211,8 +218,11 @@ const specimens = [
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',
-    do: () => <Stage><MonthBlock view="chart" chartLabel="chart view" /><MonthBlock view="table" /></Stage>,
-    dont: () => <Stage><Card title="Net settled by month"><div className="gd-chart"><MonthChart chartLabel="stacked, no switch" /></div><MonthTable /></Card></Stage> },
+    do: () => <Stage>
+      <MonthBlock view="chart" chartLabel="chart view" months={MONTHS.slice(0, 4)} net={NET_BY_MONTH.slice(0, 4)} span="first four months of the year" />
+      <MonthBlock view="table" months={MONTHS.slice(0, 4)} net={NET_BY_MONTH.slice(0, 4)} span="first four months of the year" />
+    </Stage>,
+    dont: () => <Stage><Card title="Net settled by month" level={3}><div className="gd-chart"><MonthChart chartLabel="stacked, no switch" /></div><MonthTable /></Card></Stage> },
   // The chart's own title still names the span: it is read aloud, never drawn.
   { id: 'no-range-on-chart',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="no range" /></Stage>,
