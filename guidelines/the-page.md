@@ -24,6 +24,18 @@
 
 **Don't:** Put Payouts and its sub-items under a Money label.
 
+## Keep the bar’s end for product alerts
+
+<!-- rule: bar-end -->
+
+**Rule:** Put only glyph controls that serve every page, such as the notification bell, at the right end of the bar.
+
+**Why:** The reader looks for the bell in the same place on every page, and a phone bar has room for two glyphs at most.
+
+**Do:** Put the bell at the bar’s end, after search.
+
+**Don't:** Put a page’s own button, such as New report, in the bar.
+
 ## Choose content width
 
 <!-- rule: width -->
@@ -110,7 +122,7 @@
 
 **Don't:** Open one automatically when the page loads.
 
-**Except:** When a session ends while the reader works, open a sign-in dialog over the page and keep the page as it was.
+**Except:** When a session ends while the reader works, open a sign-in dialog over the page, keep its shell and title, and replace its data with skeleton shapes until sign-in.
 
 ## Keep table density consistent
 
@@ -125,6 +137,32 @@
 **Don't:** Use compact rows in one table and roomy rows in another.
 
 **Except:** Use the spacing required by the busiest table.
+
+## Brand the background behind a dialog page
+
+<!-- rule: branded-background -->
+
+**Rule:** Give each product its own branded background behind a dialog-only page.
+
+**Why:** The kit's one default gradient does not distinguish a product.
+
+**Do:** Set a product colour or a slow-moving gradient behind the dialog. The kit default stays otherwise.
+
+**Don't:** Put no field, label or button on the branded ground. Keep the task inside the dialog.
+
+**Except:** A wordmark and a slogan may stand on the ground. A dialog clears 3:1 against its ground in both themes, except the sign-in and Consent ground C, which the owner chose at 1.60:1 to 1.51:1 light and 1.08:1 to 1.04:1 dark.
+
+## The sign-in note names who can sign in
+
+<!-- rule: sign-in-note -->
+
+**Rule:** The sign-in note states who can sign in without naming the product.
+
+**Why:** A product name ties the note to one product, and the note breaks when another app uses the screen.
+
+**Do:** Write "Only work accounts can sign in."
+
+**Don't:** Name the product or its domain in the note.
 
 ## Write a useful introduction
 

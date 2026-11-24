@@ -76,4 +76,17 @@ describe('the theme-sync addon it feeds', () => {
     expect(events).toContain(SET_GLOBALS);
     expect(events).toContain(GLOBALS_UPDATED);
   });
+
+  // A page sends System as `auto`. The chrome takes the theme that the page shows.
+  it.each([[true, 'light'], [false, 'dark']])('draws System in the theme the browser resolves (prefers light: %s)', (light, theme) => {
+    const media = window.matchMedia;
+    window.matchMedia = (query) => ({ matches: light && query.includes('light') });
+    try {
+      const onGlobals = channel.on.mock.calls.find(([event]) => event === GLOBALS_UPDATED)[1];
+      onGlobals({ globals: { theme: light ? 'dark' : 'light' } });
+      onGlobals({ globals: { theme: 'auto' } });
+      expect(document.documentElement.getAttribute('data-sbtheme')).toBe(theme);
+      expect(addons.setConfig.mock.lastCall[0].theme.base).toBe(theme);
+    } finally { window.matchMedia = media; }
+  });
 });

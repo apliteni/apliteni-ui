@@ -5,16 +5,17 @@
 // looking at the preview iframe, so `./iframe.html?id=…` replaces that frame with a bare
 // preview: the sidebar, the toolbar and the theme the manager is holding all go with it.
 // So a click is handed to Storybook's own navigation instead — SELECT_STORY on the preview
-// channel, which the manager answers by selecting the story the way its sidebar does. Its
-// globals are untouched, so the theme survives, and `scrollTo` rides along into the
-// manager's own fragment, which is where the row this link meant is read back from.
+// channel, which the manager answers by selecting the story the way its sidebar does. It
+// keeps its globals, and a theme that the page chose goes to it as a global first, so the
+// theme survives. `scrollTo` rides along into the manager's own fragment, which is where
+// the row this link meant is read back from.
 //
 // The href stays a real URL, because the preview is also opened on its own — by a deep
 // link into the static build, and by every capture script — and there the browser's own
 // navigation is the right one. It is also the href the gates read. What the click adds
 // there is the globals, which a bare preview carries in its URL and nowhere else.
 import { getChannel } from 'storybook/preview-api';
-import { SELECT_STORY, STORY_RENDERED } from 'storybook/internal/core-events';
+import { SELECT_STORY, STORY_RENDERED, UPDATE_GLOBALS } from 'storybook/internal/core-events';
 
 /** `./` resolves against /iframe.html, so this is the preview's own URL in dev and in a
  *  static build alike. `row` names an element in the story being opened. */
@@ -43,7 +44,7 @@ export const globalsParam = (root) => {
  *  the fragment `scrollTo` put there; on its own the preview carries its own.
  *
  *  The manager appends its query AFTER the fragment it navigates to — measured as
- *  `?path=/story/apps-finance-report--default#payout-po-1159&globals=theme:light&globals=theme:light`,
+ *  `?path=/story/apps-finance-report--default#sale-sal-1039&globals=theme:light&globals=theme:light`,
  *  globals twice over — so the row is the part of the fragment before that query starts. */
 export const askedRow = (win) => {
   let hash = '';
@@ -56,7 +57,7 @@ export const LANDED = 'is-target';
 
 /** Open a story at its top, and marked nowhere: what a link that names no row asks for.
  *  The manager keeps one preview frame and swaps stories inside it, so without this a
- *  reader who followed "All payouts" from the dashboard's exceptions card arrived
+ *  reader who followed "All sales" from the dashboard's exceptions card arrived
  *  part-way down the ledger, at whatever offset they had left behind. */
 export const landOnTop = (win) => {
   for (const was of win.document.querySelectorAll(`.${LANDED}`)) was.classList.remove(LANDED);
@@ -110,6 +111,8 @@ export const wireStoryLinks = ({ win = window, channel = channelOrNull() } = {})
   const state = { marked: '', toTop: false };
   frames.set(win, state);
 
+  // Captured, because a menu stops its clicks at its own panel: the account menu's
+  // Profile row never bubbled up to here, and the bare href took the theme with it.
   win.document.addEventListener('click', (event) => {
     if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
     const link = event.target?.closest?.('a[href]');
@@ -124,11 +127,15 @@ export const wireStoryLinks = ({ win = window, channel = channelOrNull() } = {})
       win.location.assign(previewHref(target.id, target.row, globals));
       return;
     }
+    // A page can choose the theme, and the manager holds only the theme it set. So the
+    // choice goes to the manager first, or the next story opens in the manager's theme.
+    const theme = win.document.documentElement.getAttribute('data-theme-choice');
+    if (theme) channel.emit(UPDATE_GLOBALS, { globals: { theme } });
     channel.emit(SELECT_STORY, { storyId: target.id, scrollTo: target.row || undefined });
     // Already on the story the link names — the manager re-renders nothing, so the row
     // is landed on here. On any other story the render below does it.
     if (landOnRow(win.document, target.row)) state.marked = target.row;
-  });
+  }, true);
 
   channel?.on(STORY_RENDERED, () => {
     if (state.toTop) {

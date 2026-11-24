@@ -55,6 +55,10 @@ export type DropdownItem = {
    *  letters, `src` a photo. `{ empty: true }` is the dashed ring of a "No one" row. */
   avatar?: DropdownAvatar;
   badge?: DropdownBadge;
+  /** A row that stays selectable but is no longer current, named by its state word, e.g.
+   *  'Archived'. The word takes the badge slot in state ink, and the trigger shows it after
+   *  the label. Use `disabled` for a row that cannot be picked. */
+  muted?: string;
   selected?: boolean;
   disabled?: boolean;
   danger?: boolean;
@@ -181,6 +185,12 @@ function RowBadge({ badge }: { badge: DropdownBadge }) {
   return <span className={`ui-dropdown__badge is-${tone}`}>{text}</span>;
 }
 
+/** A muted row's state word, or nothing for a blank one. */
+const mutedOf = (it: DropdownItem | undefined) => it?.muted?.trim() || '';
+
+/** The trigger's words for a chosen row: a muted row keeps its state word there too. */
+const shownOf = (it: DropdownItem | undefined) => (mutedOf(it) ? `${it?.label} (${mutedOf(it)})` : it?.label);
+
 /** What names a row across a re-render: its value, or its label when it has none. */
 const keyOf = (it: DropdownItem) => (it.value != null ? `v:${it.value}` : `l:${it.label}`);
 
@@ -254,6 +264,8 @@ export function Dropdown({
   const inField = useContext(FieldContext);
   const fieldName = inField && id === inField.id && !(ariaLabel && triggerContent != null)
     ? { id: `${uid}-trigger`, labelId: inField.labelId, labelledBy: `${inField.labelId} ${uid}-trigger` } : null;
+  // A trigger named by its own content, with no ariaLabel, also names its panel.
+  const byContent = !fieldName && !ariaLabel && triggerContent != null ? `${uid}-trigger` : undefined;
 
   const setOpen = useCallback((next: boolean) => {
     if (openProp === undefined) setSelfOpen(next);
@@ -423,7 +435,7 @@ export function Dropdown({
   const picked = pickedKey != null ? rows.find((it) => keyOf(it) === pickedKey) : undefined;
   const controlled = selectedValue !== undefined ? rows.find((it) => it.value === selectedValue) : undefined;
   const shown = value != null ? value
-    : (isSelect ? (selectedValue !== undefined ? controlled?.label : picked?.label ?? given?.label) : null);
+    : (isSelect ? shownOf(selectedValue !== undefined ? controlled : picked ?? given) : null);
   // A picker of people leads the trigger with the chosen row's mark, and with no value a
   // dashed ring beside the placeholder. why: docs/components.md#avatar
   const marked = isSelect && rows.some((it) => it.avatar);
@@ -821,7 +833,8 @@ export function Dropdown({
             <span className="ui-dropdown__label">{entry.label}</span>
             {entry.description && <span className="ui-dropdown__desc">{entry.description}</span>}
           </span>
-          {entry.badge ? <RowBadge badge={entry.badge} /> : null}
+          {mutedOf(entry) ? <RowBadge badge={{ text: mutedOf(entry), tone: 'state' }} />
+            : entry.badge ? <RowBadge badge={entry.badge} /> : null}
           {asOption && <Glyph name="check" className="ui-dropdown__tick" hidden />}
         </>
       ),
@@ -873,7 +886,7 @@ export function Dropdown({
         disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
-        id={fieldName?.id}
+        id={fieldName?.id ?? byContent}
         aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
         title={title}
         aria-labelledby={fieldName?.labelledBy}
@@ -899,7 +912,7 @@ export function Dropdown({
         data-dropdown-panel=""
         role={sx ? 'dialog' : listRole}
         aria-label={sx ? name : ariaLabel}
-        aria-labelledby={!sx && !ariaLabel ? fieldName?.labelId : undefined}
+        aria-labelledby={!sx && !ariaLabel ? fieldName?.labelId ?? byContent : undefined}
         style={sx ? undefined : cap}
         ref={panel}
         onClick={(e) => e.stopPropagation()}

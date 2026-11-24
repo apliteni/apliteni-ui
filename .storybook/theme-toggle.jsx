@@ -2,6 +2,7 @@ import React from 'react';
 import { useGlobals } from 'storybook/manager-api';
 import { Button } from 'storybook/internal/components';
 import { MoonIcon, SunIcon } from '@storybook/icons';
+import { drawnTheme } from './theme-choice.js';
 
 // Addon id, tool id and the title shown in the toolbar's overflow menu.
 export const THEME_TOOL_ID = 'apliteni/theme-toggle';
@@ -53,7 +54,8 @@ export const ThemeToggle = () => {
   // For those first frames there is nothing to flip, so the control sits inert
   // rather than guessing a value and writing the guess back.
   const ready = Boolean(globals) && 'theme' in globals;
-  const theme = globals && globals.theme === 'light' ? 'light' : 'dark';
+  // System shows the theme it resolves to, so the button names what the page shows.
+  const theme = drawnTheme(globals?.theme);
   const other = theme === 'light' ? 'dark' : 'light';
 
   // The icon shows where you are, not where the click takes you: moon = in dark.

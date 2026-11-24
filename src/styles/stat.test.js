@@ -242,12 +242,13 @@ test('a figure is never narrower than its value, so a band wraps rather than ove
   assert.deepEqual(zeroed.map((r) => r.selector), [], 'a later rule lets a figure shrink to nothing');
 });
 
-// Space and the value divide the figures in every form, so the open form draws no
-// rule over a figure (#849). Limits: reads this sheet only, so a line that another
-// sheet draws on a figure is not seen.
-test('no form draws a rule over a figure or between figures', () => {
+// Space and the value divide the figures, so the open form draws no rule over a figure in
+// either theme (#849). The vertical line between light columns is not a rule over a figure.
+// Limits: reads this sheet only, so a line that another sheet draws is not seen.
+test('the open form draws no rule over a figure', () => {
   const lines = rules.filter((r) => /\.ui-stat\b(?!_)|\.ui-stats__list/.test(r.selector)
-    && /(?:^|;)\s*(?:border(?:-top|-block-start)?|box-shadow|outline)\s*:/.test(r.body));
+    && !/\.ui-stats--tiles/.test(r.selector)
+    && /(?:^|;)\s*(?:border(?:-top|-block|-block-start)?|box-shadow|outline)\s*:(?!\s*(?:0|none)\s*(?:;|$))/.test(r.body));
   assert.deepEqual(lines.map((r) => r.selector), [], 'a figure carries a line that space and the value already give');
 });
 

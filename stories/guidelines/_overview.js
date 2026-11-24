@@ -27,6 +27,7 @@ import * as backContent from './_going-back.js';
 import * as pageContent from './_the-page.js';
 import * as accountContent from './_account-and-settings.js';
 import * as notificationsContent from './_notifications.js';
+import * as sessionExpiredContent from './_session-expired.js';
 import * as kindContent from './_dashboards-and-reports.js';
 import * as densityAccentContent from './_density-and-accents.js';
 
@@ -67,6 +68,7 @@ const ENTRIES = [
   [backContent, 'Guidelines/Going back', 'GoingBack', 'Pages', 'When to show a back link and where it goes'],
   [accountContent, 'Guidelines/Account and settings', 'AccountAndSettings', 'Panels', 'The account window and the account menu'],
   [notificationsContent, 'Guidelines/Notifications', 'Notifications', 'Controls and states', 'The bell, read state and a failed load'],
+  [sessionExpiredContent, 'Guidelines/Session expired', 'SessionExpired', 'Controls and states', 'The sign-in dialog, page state and a lasting notice'],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page

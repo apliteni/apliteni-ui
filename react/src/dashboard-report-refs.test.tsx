@@ -1,6 +1,6 @@
 /* Rule (the React half of stories/dashboard-report-refs.test.js, #429, read off the TSX
- * screens): a reference the Finance dashboard shows resolves to a row in the
- * Finance report it links to, and the Dashboards and reports guideline prints
+ * screens): a reference the Dashboard shows resolves to a row in the
+ * Report it links to, and the Dashboards and reports guideline prints
  * those same rows with the same figures and the same status.
  *
  * The kit's own pair did not: a reference the dashboard sent a reader after had
@@ -29,7 +29,7 @@
  *     theme; that the manager then keeps the theme is Storybook's, and measured
  *     in a browser.
  *   - The rail's Invoices and Preferences, which have no screen in the kit.
- *   - Row order, and the report's Payout ID column, which nothing else draws.
+ *   - Row order, and the report's Sale ID column, which nothing else draws.
  *   - Any screen outside these three. A consumer's dashboard is its own.
  *   - A column the guideline carries in source and never renders. The gross is
  *     the one of those, so it is read from the specimen's export instead and
@@ -45,12 +45,12 @@ import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import { fireEvent } from '@testing-library/react';
 import { JSDOM } from 'jsdom';
-import { SELECT_STORY, STORY_RENDERED } from 'storybook/internal/core-events';
+import { SELECT_STORY, STORY_RENDERED, UPDATE_GLOBALS } from 'storybook/internal/core-events';
 import * as DashboardStories from '../../stories/apps/FinanceDashboard.stories.tsx';
 import * as ReportStories from '../../stories/apps/FinanceReport.stories.tsx';
 import * as GuidelineStories from '../../stories/guidelines/DashboardsAndReports.stories.tsx';
 // @ts-expect-error -- plain JS modules shared with the stories.
-import { REPORT_STORY, payoutRowId } from '../../stories/apps/_finance-nav.js';
+import { REPORT_STORY, salesRowId } from '../../stories/apps/_finance-nav.js';
 // @ts-expect-error -- plain JS modules shared with the stories.
 import { LANDED, landOnRow, linkTarget, previewHref, wireStoryLinks } from '../../stories/lib/story-link.js';
 // @ts-expect-error -- plain JS modules shared with the stories.
@@ -69,7 +69,7 @@ const DashboardsAndReports = screen(GuidelineStories.DashboardsAndReports);
 const docOf = (html) => new JSDOM(`<!doctype html><html lang="en"><body>${html}</body></html>`).window.document;
 
 /** The columns a table is read for, by the heading each one sits under. */
-const COLUMNS = { net: 'net (eur)', fees: 'fees', status: 'status', arrival: 'arrival', gross: 'gross' };
+const COLUMNS = { net: 'net (eur)', fees: 'fees', status: 'status', date: 'date', gross: 'gross' };
 
 const headOf = (table) => [...table.querySelectorAll('thead th')].map((th) => th.textContent.trim().toLowerCase());
 
@@ -108,13 +108,13 @@ const rowsByReference = (table, where) => {
   }));
 };
 
-/** What two readings of the same payouts disagree about, as lines to print. */
+/** What two readings of the same sales disagree about, as lines to print. */
 export const disagreements = (shown, report, where) => {
   const problems = [];
   for (const [reference, row] of shown) {
     const theirs = report.get(reference);
     if (!theirs) {
-      problems.push(`${where}: ${reference} is drawn and the Finance report has no such row`);
+      problems.push(`${where}: ${reference} is drawn and the Report has no such row`);
       continue;
     }
     for (const column of Object.keys(row)) {
@@ -133,7 +133,7 @@ const oneTable = (html, where) => {
   return rowsByReference(tables[0], where);
 };
 
-const reportLedger = () => oneTable(Report.render(), 'the Finance report');
+const reportLedger = () => oneTable(Report.render(), 'the Report');
 
 /** Every table on the guideline page that keys its rows by a reference. */
 const guidelineTables = () => {
@@ -144,15 +144,15 @@ const guidelineTables = () => {
 };
 
 test('every reference the dashboard shows is a row of the report, and says the same about it', () => {
-  const shown = oneTable(Dashboard.render(), 'the Finance dashboard');
+  const shown = oneTable(Dashboard.render(), 'the Dashboard');
   assert.ok(shown.size > 0, 'the dashboard lists no exceptions, so this gate is checking nothing');
 
   const compared = [...shown.values()][0];
-  assert.deepEqual(Object.keys(compared).sort(), ['arrival', 'net', 'status'],
+  assert.deepEqual(Object.keys(compared).sort(), ['date', 'net', 'status'],
     'the dashboard draws a different set of comparable columns; check what the gate now reads');
 
   assert.deepEqual(disagreements(shown, reportLedger(), 'the dashboard'), [],
-    'the dashboard sends a reader to the payout report for a row that is missing or says something else there');
+    'the dashboard sends a reader to the sales report for a row that is missing or says something else there');
 });
 
 test('the guideline prints the report\'s own rows, with its own figures and statuses', () => {
@@ -171,7 +171,7 @@ test('the guideline prints the report\'s own rows, with its own figures and stat
   // the anti-vacuity guard — a walk that stops finding tables passes every
   // assertion above it.
   assert.equal(checked, 35, 'the guideline draws a different number of referenced rows; count the new specimen by hand');
-  assert.deepEqual(problems, [], `the guideline page and the Finance report disagree:\n  ${problems.join('\n  ')}`);
+  assert.deepEqual(problems, [], `the guideline page and the Report disagree:\n  ${problems.join('\n  ')}`);
 });
 
 // The gross is the one column the guideline keeps and never draws, so a
@@ -216,7 +216,7 @@ const blockLinks = (html, where) => {
       found.push({ where, kind: 'reference', text: plainText(a), href: a.getAttribute('href') });
     }
   }
-  // Round 38 removed the Finance dashboard's own card-head link, which lived
+  // Round 38 removed the Dashboard's own card-head link, which lived
   // here rather than in a control row under the table. No rendered screen puts
   // one in `.ui-card__sub` any more, so this finds nothing on the dashboard
   // today; it stays for a card that gains one again. why: Artur, round r33 (the
@@ -237,7 +237,7 @@ export const linkProblems = (links, rows) => {
   for (const { where, kind, text, href } of links) {
     const [path, row] = href.split('#');
     if (!path.includes(`id=${REPORT_STORY}`)) {
-      problems.push(`${where}: the ${kind} "${text}" links to ${href}, which is not the Finance report`);
+      problems.push(`${where}: the ${kind} "${text}" links to ${href}, which is not the Report`);
       continue;
     }
     if (kind === 'onward') {
@@ -257,13 +257,13 @@ export const linkProblems = (links, rows) => {
 
 test('every link in an exceptions block opens the report, and every reference opens its own row', () => {
   const rows = reportRowIds();
-  // Six, not all seven PAYOUTS: the first paint holds to the period control's own
-  // 1Y default (PR #552 design re-review, finding B), and PO-1167 alone sits
+  // Six, not all seven SALES: the first paint holds to the period control's own
+  // 1Y default (PR #552 design re-review, finding B), and SAL-1047 alone sits
   // outside that window.
   assert.equal(rows.size, 6, 'the report draws a different number of identified rows; count them by hand');
 
   const links = [
-    ...blockLinks(Dashboard.render(), 'the Finance dashboard'),
+    ...blockLinks(Dashboard.render(), 'the Dashboard'),
     ...blockLinks(DashboardsAndReports.render(), 'the guideline page'),
   ];
   // Three dashboard references and three in each of the four exceptions cards that link onward.
@@ -276,28 +276,28 @@ test('every link in an exceptions block opens the report, and every reference op
 
 test('a reference that still points at nothing is a finding', () => {
   const rows = reportRowIds();
-  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'PO-1166', href: '#' }], rows),
-    ['x: the reference "PO-1166" links to #, which is not the Finance report']);
-  assert.deepEqual(linkProblems([{ where: 'x', kind: 'onward', text: 'All payouts', href: '#' }], rows),
-    ['x: the onward "All payouts" links to #, which is not the Finance report']);
+  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'SAL-1046', href: '#' }], rows),
+    ['x: the reference "SAL-1046" links to #, which is not the Report']);
+  assert.deepEqual(linkProblems([{ where: 'x', kind: 'onward', text: 'All sales', href: '#' }], rows),
+    ['x: the onward "All sales" links to #, which is not the Report']);
 });
 
 test('a reference opening the wrong row, or no row, is a finding', () => {
   const rows = reportRowIds();
   const href = (row) => `./iframe.html?id=${REPORT_STORY}#${row}`;
-  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'PO-1166', href: href(payoutRowId('PO-1164')) }], rows),
-    ['x: the reference "PO-1166" opens the report at #payout-po-1164, which is PO-1164']);
-  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'PO-1166', href: href('payout-po-9999') }], rows),
-    ['x: the reference "PO-1166" opens the report at #payout-po-9999, which no row of it carries']);
-  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'PO-1166', href: `./iframe.html?id=${REPORT_STORY}` }], rows),
-    ['x: the reference "PO-1166" opens the report and names no row of it']);
+  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'SAL-1046', href: href(salesRowId('SAL-1044')) }], rows),
+    ['x: the reference "SAL-1046" opens the report at #sale-sal-1044, which is SAL-1044']);
+  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'SAL-1046', href: href('sale-sal-9999') }], rows),
+    ['x: the reference "SAL-1046" opens the report at #sale-sal-9999, which no row of it carries']);
+  assert.deepEqual(linkProblems([{ where: 'x', kind: 'reference', text: 'SAL-1046', href: `./iframe.html?id=${REPORT_STORY}` }], rows),
+    ['x: the reference "SAL-1046" opens the report and names no row of it']);
 });
 
 /* The rejection proofs. Each mutates one reading and asserts the comparison
  * names it — the comparison itself, not a paraphrase of it. A source mutation
  * would be stronger still, and is what a reviewer runs; what these hold is that
  * the function every test above leans on cannot pass a changed value. */
-const dashboardRows = () => oneTable(Dashboard.render(), 'the Finance dashboard');
+const dashboardRows = () => oneTable(Dashboard.render(), 'the Dashboard');
 const withRow = (rows, reference, change) => new Map(rows).set(reference, { ...rows.get(reference), ...change });
 
 test('a renamed row leaves the dashboard pointing at nothing, and the gate says so', () => {
@@ -310,7 +310,7 @@ test('a renamed row leaves the dashboard pointing at nothing, and the gate says 
   renamed.delete(target);
   renamed.set(`${target}-renamed`, report.get(target));
   assert.deepEqual(disagreements(shown, renamed, 'x'),
-    [`x: ${target} is drawn and the Finance report has no such row`]);
+    [`x: ${target} is drawn and the Report has no such row`]);
 });
 
 test('a status that drifts between the two screens turns the gate red', () => {
@@ -334,8 +334,8 @@ test('a net that drifts between the two screens turns the gate red', () => {
 });
 
 test('a column only one side draws is not a disagreement', () => {
-  const shown = new Map([['PO-1', { net: '1.00', status: 'Paid' }]]);
-  const report = new Map([['PO-1', { net: '1.00', status: 'Paid', gross: '2.00', arrival: '2026-06-01' }]]);
+  const shown = new Map([['SAL-1', { net: '1.00', status: 'Paid' }]]);
+  const report = new Map([['SAL-1', { net: '1.00', status: 'Paid', gross: '2.00', date: '2026-06-01' }]]);
   assert.deepEqual(disagreements(shown, report, 'x'), []);
 });
 
@@ -411,7 +411,7 @@ export const arrivalProblems = ({ text, row, landed, doc, scrolled }) => {
 };
 
 test('every reference the dashboard draws lands a reader on its own row of the report', () => {
-  const references = blockLinks(Dashboard.render(), 'the Finance dashboard').filter((l) => l.kind === 'reference');
+  const references = blockLinks(Dashboard.render(), 'the Dashboard').filter((l) => l.kind === 'reference');
   // Three exceptions on the dashboard, and the count is the anti-vacuity guard: a walk
   // that stops finding links passes every assertion under it.
   assert.equal(references.length, 3, `found ${references.length} references on the dashboard, not the three it draws`);
@@ -428,33 +428,36 @@ test('every reference the dashboard draws lands a reader on its own row of the r
 
 test('a reference naming a row the report no longer draws marks nothing', () => {
   const frame = frameOf(Report.render(), { framed: true });
-  const live = payoutRowId('PO-1159');
+  const live = salesRowId('SAL-1039');
   assert.ok(landOnRow(frame.doc, live), 'premise: a live reference lands on its row');
   assert.equal(frame.doc.querySelectorAll(`.${LANDED}`).length, 1, 'premise: landing marks exactly one row');
 
-  assert.equal(landOnRow(frame.doc, 'payout-po-9999'), null, 'a row the report does not draw was landed on');
+  assert.equal(landOnRow(frame.doc, 'sale-sal-9999'), null, 'a row the report does not draw was landed on');
   assert.equal(frame.doc.querySelectorAll(`.${LANDED}`).length, 0,
-    'a reference to a row that is gone left the previous row marked, so the mark now names the wrong payout');
+    'a reference to a row that is gone left the previous row marked, so the mark now names the wrong sale');
 });
 
 test('a reference followed inside the manager asks Storybook to select the story', () => {
   const frame = frameOf(Dashboard.render(), { framed: true, theme: 'light' });
-  const event = clickLink(frame.doc, 'PO-1159');
+  const event = clickLink(frame.doc, 'SAL-1039');
 
   assert.ok(event.defaultPrevented,
     'the click was left to the href, which replaces the manager\'s preview with a bare iframe and takes the theme with it');
   assert.equal(frame.win.assigned, undefined, 'the frame navigated itself instead of asking the manager to navigate');
-  assert.deepEqual(frame.emitted,
-    [{ type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: payoutRowId('PO-1159') } }]);
+  // The frame's theme goes to the manager first, so the report opens in it.
+  assert.deepEqual(frame.emitted, [
+    { type: UPDATE_GLOBALS, payload: { globals: { theme: 'light' } } },
+    { type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: salesRowId('SAL-1039') } },
+  ]);
 });
 
-test('the rail\'s Payouts entry opens the whole report, at its top and marked nowhere', () => {
+test('the rail\'s Sales entry opens the whole report, at its top and marked nowhere', () => {
   // Round 38 removed the card's own head link (the test above holds the onward-link
   // count at zero); the rail's nav entry is now the only control that opens the whole
   // report rather than one of its rows, so this test follows that one instead.
   const frame = frameOf(Dashboard.render(), { framed: true });
-  clickLink(frame.doc, 'Payouts');
-  assert.deepEqual(frame.emitted, [{ type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: undefined } }]);
+  clickLink(frame.doc, 'Sales');
+  assert.deepEqual(frame.emitted.at(-1), { type: SELECT_STORY, payload: { storyId: REPORT_STORY, scrollTo: undefined } });
 
   // The manager keeps one preview frame, so without this the reader arrives at whatever
   // offset the screen they left was scrolled to.
@@ -465,7 +468,7 @@ test('the rail\'s Payouts entry opens the whole report, at its top and marked no
 
 test('a report still loading is put back at its top once it has finished', () => {
   const frame = frameOf(Dashboard.render(), { framed: true, loading: true });
-  clickLink(frame.doc, 'Payouts');
+  clickLink(frame.doc, 'Sales');
   frame.render();
   frame.win.scrolledTo = null;
   frame.finishLoading();
@@ -474,7 +477,7 @@ test('a report still loading is put back at its top once it has finished', () =>
 });
 
 test('a row already marked is cleared when a link that names no row is followed', () => {
-  const row = payoutRowId('PO-1159');
+  const row = salesRowId('SAL-1039');
   const frame = frameOf(Report.render(), { framed: true, parentHash: `#${row}` });
   frame.render();
   assert.equal(frame.doc.querySelectorAll(`.${LANDED}`).length, 1, 'premise: the arrival marked its row');
@@ -487,33 +490,33 @@ test('a row already marked is cleared when a link that names no row is followed'
 
 test('a reference followed in a bare preview carries the theme and the accent it was read in', () => {
   const frame = frameOf(Dashboard.render(), { framed: false, theme: 'light', accent: 'ocean' });
-  const event = clickLink(frame.doc, 'PO-1166');
+  const event = clickLink(frame.doc, 'SAL-1046');
 
   assert.ok(event.defaultPrevented, 'the bare href was followed, and it names no globals');
-  assert.equal(frame.win.assigned, previewHref(REPORT_STORY, payoutRowId('PO-1166'), 'theme:light;accent:ocean'),
+  assert.equal(frame.win.assigned, previewHref(REPORT_STORY, salesRowId('SAL-1046'), 'theme:light;accent:ocean'),
     'a preview opened on its own carries its globals in its URL, so a link out of it that names none arrives on the default theme');
   assert.deepEqual(frame.emitted, [], 'a frame with no manager over it asked a manager to navigate');
 });
 
 test('a bare preview opened on a fragment lands on that row itself', () => {
-  const row = payoutRowId('PO-1164');
+  const row = salesRowId('SAL-1044');
   const frame = frameOf(Report.render(), { framed: false, hash: `#${row}` });
   frame.render();
-  assert.deepEqual(arrivalProblems({ text: 'PO-1164', row, landed: frame.doc.getElementById(row), doc: frame.doc, scrolled: frame.scrolled }), []);
+  assert.deepEqual(arrivalProblems({ text: 'SAL-1044', row, landed: frame.doc.getElementById(row), doc: frame.doc, scrolled: frame.scrolled }), []);
 });
 
 test('the row survives the query the manager appends after its own fragment', () => {
-  const row = payoutRowId('PO-1159');
+  const row = salesRowId('SAL-1039');
   // Measured in Chromium on the static build: the manager navigates to
-  // `?path=/story/…#payout-po-1159&globals=theme:light&globals=theme:light`, its query
+  // `?path=/story/…#sale-sal-1159&globals=theme:light&globals=theme:light`, its query
   // landing after the fragment and its globals written twice.
   const frame = frameOf(Report.render(), { framed: true, parentHash: `#${row}&globals=theme:light&globals=theme:light` });
   frame.render();
-  assert.deepEqual(arrivalProblems({ text: 'PO-1159', row, landed: frame.doc.getElementById(row), doc: frame.doc, scrolled: frame.scrolled }), []);
+  assert.deepEqual(arrivalProblems({ text: 'SAL-1039', row, landed: frame.doc.getElementById(row), doc: frame.doc, scrolled: frame.scrolled }), []);
 });
 
 test('a preview that is still loading draws the arrival again once it has finished', () => {
-  const row = payoutRowId('PO-1159');
+  const row = salesRowId('SAL-1039');
   const frame = frameOf(Report.render(), { framed: false, hash: `#${row}`, loading: true });
   frame.render();
   assert.deepEqual(frame.scrolled.map((s) => s.id), [row], 'premise: the row is brought into view as the story renders');
@@ -526,7 +529,7 @@ test('a preview that is still loading draws the arrival again once it has finish
 });
 
 test('a preview that has finished loading is not asked twice', () => {
-  const row = payoutRowId('PO-1164');
+  const row = salesRowId('SAL-1044');
   const frame = frameOf(Report.render(), { framed: false, hash: `#${row}` });
   frame.render();
   frame.finishLoading();
@@ -534,7 +537,7 @@ test('a preview that has finished loading is not asked twice', () => {
 });
 
 test('re-rendering the story a reader has arrived in does not scroll them back', () => {
-  const row = payoutRowId('PO-1166');
+  const row = salesRowId('SAL-1046');
   const frame = frameOf(Report.render(), { framed: true, parentHash: `#${row}` });
   frame.render();
   frame.render(); // what a theme toggle does: the same story, rendered again
@@ -545,8 +548,8 @@ test('re-rendering the story a reader has arrived in does not scroll them back',
 test('wiring a frame twice leaves one set of listeners', () => {
   const frame = frameOf(Dashboard.render(), { framed: true });
   wireStoryLinks({ win: frame.win, channel: frame.channel });
-  clickLink(frame.doc, 'PO-1159');
-  assert.equal(frame.emitted.length, 1, 'the decorator runs per story, so a second wiring would double every click');
+  clickLink(frame.doc, 'SAL-1039');
+  assert.equal(frame.emitted.filter((sent) => sent.type === SELECT_STORY).length, 1, 'the decorator runs per story, so a second wiring would double every click');
 });
 
 test('a link that is not a preview link is left alone', () => {
@@ -562,35 +565,35 @@ test('a link that is not a preview link is left alone', () => {
  * leans on cannot pass a row that was marked and never scrolled, or scrolled and never
  * marked. */
 const landing = (over = {}) => {
-  const row = payoutRowId('PO-1159');
+  const row = salesRowId('SAL-1039');
   const frame = frameOf(Report.render(), { framed: true, parentHash: `#${row}` });
   frame.render();
-  return { text: 'PO-1159', row, landed: frame.doc.getElementById(row), doc: frame.doc, scrolled: frame.scrolled, ...over };
+  return { text: 'SAL-1039', row, landed: frame.doc.getElementById(row), doc: frame.doc, scrolled: frame.scrolled, ...over };
 };
 
 test('a row that was scrolled to and never marked is a finding', () => {
   const base = landing();
   base.landed.classList.remove(LANDED);
-  assert.deepEqual(arrivalProblems(base), ['PO-1159: the row it landed on carries no mark']);
+  assert.deepEqual(arrivalProblems(base), ['SAL-1039: the row it landed on carries no mark']);
 });
 
 test('a row that was marked and never brought into view is a finding', () => {
-  assert.deepEqual(arrivalProblems(landing({ scrolled: [] })), ['PO-1159: the row was brought into view 0 times, not once']);
+  assert.deepEqual(arrivalProblems(landing({ scrolled: [] })), ['SAL-1039: the row was brought into view 0 times, not once']);
 });
 
 test('a row brought into view sideways, or not to the middle, is a finding', () => {
-  const row = payoutRowId('PO-1159');
+  const row = salesRowId('SAL-1039');
   assert.deepEqual(arrivalProblems(landing({ scrolled: [{ id: row, options: { block: 'start', inline: 'center' } }] })),
-    ['PO-1159: the row was not brought to the middle of the view', 'PO-1159: the row was brought into view sideways']);
+    ['SAL-1039: the row was not brought to the middle of the view', 'SAL-1039: the row was brought into view sideways']);
 });
 
 test('landing on the wrong row is a finding, and landing on none says so', () => {
-  const other = payoutRowId('PO-1164');
+  const other = salesRowId('SAL-1044');
   const frame = frameOf(Report.render(), { framed: true, parentHash: `#${other}` });
   frame.render();
-  assert.deepEqual(arrivalProblems({ ...landing(), landed: frame.doc.getElementById(other) }).slice(0, 1), ['PO-1159: landed on PO-1164']);
-  assert.deepEqual(arrivalProblems({ text: 'PO-1159', row: 'payout-po-9999', landed: null }),
-    ['PO-1159: no row of the report answers #payout-po-9999']);
+  assert.deepEqual(arrivalProblems({ ...landing(), landed: frame.doc.getElementById(other) }).slice(0, 1), ['SAL-1039: landed on SAL-1044']);
+  assert.deepEqual(arrivalProblems({ text: 'SAL-1039', row: 'sale-sal-9999', landed: null }),
+    ['SAL-1039: no row of the report answers #sale-sal-9999']);
 });
 
 // These checks exercise the sample controls in JSDOM. Browser evidence checks paint and focus.
@@ -612,35 +615,36 @@ const pick = (root: Element, id: string, value: string) => {
   act(() => { fireEvent.click(row!); });
 };
 
-test('the Finance report filters Paid rows and clears both filters, and its figures follow', () => {
+test('the Report filters Paid rows and clears both filters, and its figures follow', () => {
   const doc = live(ReportStories.Default);
   const figures = () => [...doc.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
   const atRest = figures();
   // The control starts on 1Y, and the first paint already holds to that window
-  // (PR #552 design re-review, finding B), so 1Y alone already drops PO-1167 before
+  // (PR #552 design re-review, finding B), so 1Y alone already drops SAL-1047 before
   // the status filter narrows further.
   pick(doc, 'status', 'Paid');
   assert.equal(doc.querySelectorAll('tbody tr').length, 3);
   assert.ok([...doc.querySelectorAll('tbody .ui-badge')].every((badge) => badge.textContent === 'Paid'));
-  assert.deepEqual(figures(), ['68,487.95 €', '2,433.39 €', '66,054.56 €'],
+  assert.deepEqual(figures(), ['66,054.56 €', '68,487.95 €', '2,433.39 €'],
     'the figures must describe the three Paid rows inside the 1Y window, not the unfiltered ledger');
   assert.notDeepEqual(figures(), atRest);
   pick(doc, 'currency', 'USD');
-  assert.match(doc.querySelector('.ui-empty')!.textContent!, /No payouts match/);
+  assert.match(doc.querySelector('.ui-empty')!.textContent!, /No sales match/);
   assert.deepEqual(figures(), ['0.00 €', '0.00 €', '0.00 €'], 'no row is shown, so no figure is drawn from one');
   const clear = [...doc.querySelectorAll('.ui-filter-bar button')].find((b) => /^Clear all/.test(b.textContent!.trim()));
   assert.ok(clear, 'the filter row offers no way to clear it');
   act(() => { fireEvent.click(clear!); });
   assert.equal(doc.querySelectorAll('tbody tr').length, 6, 'clearing the filters still leaves the 1Y window in force');
-  assert.deepEqual(figures(), ['100,275.34 €', '3,461.47 €', '96,813.87 €']);
+  assert.deepEqual(figures(), ['80,137.25 €', '83,054.61 €', '2,917.36 €'],
+    'the figures must leave a failed or refunded sale out of income');
   assert.deepEqual(figures(), atRest,
     'the first paint already holds to the 1Y window, so clearing the filters returns to exactly what was there at rest');
-  // The search reads the reference and the payout ID, and the figures follow it too.
+  // The search reads the reference and the sale ID, and the figures follow it too.
   const search = doc.querySelector<HTMLInputElement>('input[type="search"]');
   assert.ok(search, 'the ledger bar has no search field');
-  act(() => { fireEvent.change(search!, { target: { value: 'po-1165' } }); });
-  assert.deepEqual([...doc.querySelectorAll('tbody tr td:first-child')].map((cell) => cell.textContent), ['PO-1165']);
-  assert.deepEqual(figures(), ['39,054.98 €', '1,369.76 €', '37,685.22 €']);
+  act(() => { fireEvent.change(search!, { target: { value: 'sr-c2a8d9' } }); });
+  assert.deepEqual([...doc.querySelectorAll('tbody tr td:first-child')].map((cell) => cell.textContent), ['SAL-1045']);
+  assert.deepEqual(figures(), ['37,685.22 €', '39,054.98 €', '1,369.76 €']);
   // The empty result's Clear all resets the search as well as the chips, or the ledger stays empty.
   act(() => { fireEvent.change(search!, { target: { value: 'no-match-xyz' } }); });
   pick(doc, 'status', 'Paid');
@@ -652,12 +656,12 @@ test('the Finance report filters Paid rows and clears both filters, and its figu
   assert.deepEqual(figures(), atRest);
 });
 
-test('the Finance dashboard period changes its totals and trends', () => {
+test('the Dashboard period changes its totals and trends', () => {
   const dashboard = live(DashboardStories.Default);
   const figures = () => [...dashboard.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
   const yearly = figures();
   const yearlyTrend = dashboard.querySelector('.ui-stat__trend')!.innerHTML;
-  const periods = () => [...dashboard.querySelectorAll('.ui-seg button')];
+  const periods = () => [...dashboard.querySelectorAll('.ui-toolbar .ui-seg button')];
   act(() => { fireEvent.click(periods()[0]); });
   assert.notDeepEqual(figures(), yearly);
   assert.notEqual(dashboard.querySelector('.ui-stat__trend')!.innerHTML, yearlyTrend);

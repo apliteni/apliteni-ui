@@ -24,7 +24,7 @@ const NOTES = [
 const ITEMS: DropdownItem[] = NOTES.map(({ value, label }) => ({ value, label, href: '#' }));
 
 const Bell = () => <div className="gl-stage gl-stage--menu">
-  <Dropdown variant="menu" chevron={false} ariaLabel="Notifications, 120 unread" open onOpenChange={noop}
+  <Dropdown variant="menu" chevron={false} ariaLabel="Notifications, 99+ unread" open onOpenChange={noop}
     triggerContent={<span className="gn-bell"><span className="ui-nav__ic" aria-hidden="true"><Raw html={icon('bell')} /></span>
       <span aria-hidden="true"><Badge>99+</Badge></span></span>}
     header={<div className="ui-dropdown__head"><b>Notifications</b></div>}

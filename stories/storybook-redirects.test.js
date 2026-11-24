@@ -34,7 +34,7 @@ test('the walk reads the story files Storybook indexes', () => {
 });
 
 test('every id the one Storybook keeps is still published', () => {
-  assert.equal(KEPT.length, 79, 'foundations 20, guidelines 27, showcases 31 and the feature grid');
+  assert.equal(KEPT.length, 73, 'foundations 20, guidelines 27, showcases 25 and the feature grid');
   assert.deepEqual(KEPT.filter(id => !published.has(id)), []);
 });
 

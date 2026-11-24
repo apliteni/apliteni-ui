@@ -1,7 +1,9 @@
-// Rule: a field this workspace's catalogue renders is shown on a painted surface,
-// never on the page ground. One exception: a filter bar's live search field stands
-// on the page above its table card (rev_136bd26bc559/d24), and its edge there is
-// recorded below. The reading is in stories/lib/field-ground.js.
+// Rule: a field this workspace's catalogue renders sits inside a card or another
+// named surface (the auth card, a drawer panel, a modal), never loose on the page.
+// One exception: a filter bar's live search field stands on the page above its table
+// card (rev_136bd26bc559/d24), and its edge there is recorded below. #850 makes the
+// card a grouping of space with no fill of its own, so the reading no longer compares
+// colours — it reads structure, in stories/lib/field-ground.js.
 //
 // Cause and numbers: docs/foundations.md#colour-and-contrast. Raised by Artur in
 // round r28 of #551 — "Disabled fields almost invisible because of that." #556 moved
@@ -55,20 +57,21 @@ import {
 } from '../../stories/lib/field-ground.js';
 
 const THEMES = ['dark', 'light'] as const;
-// 64 base fields, twelve invoice fields, one Card setting row Switch and the four
+// 64 base fields, one Card setting row Switch and the four
 // sign-in TextFields, then four from the foundation pages (#429 PR 4): one Switch on
 // each of the four Sub-themes panels. The Signal contrast field went with its page
-// (#758). Then six from the showcases (#429 PR 4): the agent name field on two Access screens and the four
-// Preferences switches. The sign-in fields moved to the showcases with their stories.
+// (#758). Then four from the showcases (#429 PR 4): the four Preferences switches. The
+// sign-in fields moved to the showcases with their stories.
 // Then two from the KeyValueList control-values story (#631): its select and text field.
-// Then 23 search fields, one above each payouts or agents table (#736): fifteen AppShell
-// stories, five Shell layouts and three Access screens. Then 21 more search fields, one
+// Then 20 search fields, one above each payouts or agents table (#736): fifteen AppShell
+// stories and five Shell layouts. The three Access search fields went with the list rework
+// (#850). Then 21 more search fields, one
 // above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
 // went with the stack layout, and the pinned scroll ledger took one), five DataTable stories,
 // two DiffPreview, two Loading, two PeriodPicker, and one each in File drop, Finance,
-// the invoice table, the finance dashboard and Labels and titles. Then ten search fields
-// in bars that had only chips (#736): seven Stock screener stories, two Finance report
-// stories and the Finance comparison.
+// the dashboard and Labels and titles. Then three search fields
+// in bars that had only chips (#736): two Report stories and the Finance
+// comparison. The Stock screener's seven went with the showcase (#850).
 // Then three from the AccountWindow story (#736): the Profile section's two text fields and
 // its select. The other sections mount only when a reader opens them.
 // Then four search fields from the DataTable members stories (#770), one above each
@@ -76,8 +79,9 @@ const THEMES = ['dark', 'light'] as const;
 // Then the band's search field in the AppShell PhoneMenu story (#790).
 // Then sixteen checkboxes from the AccountWindow Long section story (#795), four in
 // each of its four groups.
-// Then the payouts search field in the four Sign In session stories, and the email
-// and password fields in the Sign In Default and Provider error stories (#799).
+// Then the sales search field in the active Sign In session story. The three signed-out
+// session stories render skeletons. The email and password fields are in Sign In Default
+// and Provider error stories (#799).
 // Then the text input in the Form Row and Form Row Long Value stories (#812).
 // Then the transfers search field in the DataTable ledgers Status Words story, and the
 // payees search field in the Tooltip In Table Cell story (#814).
@@ -88,8 +92,15 @@ const THEMES = ['dark', 'light'] as const;
 // Then the text input in the Form Row Invalid story (#835).
 // Then the payouts search field in the six AppShell sidebar form stories, Sub Items, Groups
 // and Rail Groups, each at 1280px and on a phone (#843).
+// Then the payouts search field in the thirteen AppShell Band Actions stories (#847).
+// Less the four Preferences switches, which left that page with its rework (#845).
+// Then the native unit select of the Dropdown's Muted Item story (#852).
+// Then the two form fields of the split Sign in story (#850).
+// Then the email and password fields in the two Session ended dialogs (#854).
+// Then the three form fields of the Access Create key screen: its name, preset and
+// expiry (#850).
 // Move this count with the specimens.
-const FIELD_COUNT = 192;
+const FIELD_COUNT = 184;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -104,13 +115,14 @@ const DISABLED: Record<string, unknown> = {
 // rev_136bd26bc559/d24. A token move changes a number here, and a person decides again.
 const FILTER_BAR: Record<string, unknown> = {
   dark: { ground: '#0e0d14', fill: '#211e2d', border: '#332f45', edge: 1.5, ink: 16.3 },
-  light: { ground: '#f2f3f6', fill: '#ffffff', border: '#cdd2dc', edge: 1.37, ink: 19.3 },
+  light: { ground: '#ffffff', fill: '#ffffff', border: '#cdd2dc', edge: 1.52, ink: 19.3 },
 };
 
 type Theme = (typeof THEMES)[number];
 
 type Reading = {
   story: string; path: string; leaf: string; disabled: boolean; filterBar: boolean; onPage: boolean;
+  inSurface: boolean; inTitledCard: boolean;
   ground: string; fill: string | null; border: string | null;
   edge: number | null; ink: number | null;
 };
@@ -353,16 +365,16 @@ describe('field ground: React coverage', () => {
     }
   });
 
-  /* What a disabled field reads on the card in this workspace, per theme, so a token
+  /* What a disabled field reads on its ground in this workspace, per theme, so a token
    * move changes a number here and a person decides whether it is acceptable. The
    * vanilla gate keeps the same record for its own galleries; neither reads the
    * other's, which is the point of checking the workspaces separately.
    *
-   * `edge` is --disabled-border against the card, below the 3:1 non-text floor that
+   * `edge` is --disabled-border against the ground, below the 3:1 non-text floor that
    * WCAG 1.4.11 exempts a disabled control from, so it is recorded rather than held
    * to a bar. `ink` is --disabled-ink on the field's own paint and must clear AA:
-   * that is the part a reader has to read. Dark reads 1.16:1 off --surface-3, not
-   * the 1.27:1 one token gave both states until #564 made the off box the fainter.
+   * that is the part a reader has to read. #850 restores the dark card's own paint,
+   * so dark reads 1.16:1 off the card ground it stands on.
    */
   it('reads a disabled field on the card, and its ink clears AA there', () => {
     for (const theme of THEMES) {
@@ -381,14 +393,15 @@ describe('field ground: React coverage', () => {
   /* The one field the rule lets stand on the page: a filter bar's live search field.
    * Its edge is recorded rather than held to a bar, as the disabled field's is above,
    * and there has to be one, or the exception is a hole nobody measures. A filter bar
-   * in a card fails: the bar stands on the page above its table card (#814). Limit: it
-   * finds a bar only by a search field in the bar, so a bar of chips alone is not read. */
+   * stands on the page above its table card, or inside a card whose title names the
+   * table (#850 round 39). A filter bar in a titleless card fails. Limit: it finds a
+   * bar only by a search field in the bar, so a bar of chips alone is not read. */
   it('reads a filter bar search field on the page, and records its edge there', () => {
     for (const theme of THEMES) {
       const bars = readings[theme].filter((f) => f.filterBar && f.onPage);
       expect(bars.length, `${theme}: no filter bar search field stood on the page`).toBeGreaterThan(0);
-      expect(readings[theme].filter((f) => f.filterBar && !f.onPage).map((f) => `${f.story} → ${f.path}`),
-        `${theme}: a filter bar sits in a card, not on the page`).toEqual([]);
+      expect(readings[theme].filter((f) => f.filterBar && !f.onPage && !f.inTitledCard).map((f) => `${f.story} → ${f.path}`),
+        `${theme}: a filter bar sits in a card with no title`).toEqual([]);
       for (const f of bars) {
         expect(f.disabled, `${theme}: ${f.story} → a disabled filter bar field on the page`).toBe(false);
         expect({ ground: f.ground, fill: f.fill, border: f.border, edge: f.edge, ink: f.ink },
@@ -398,12 +411,12 @@ describe('field ground: React coverage', () => {
     }
   });
 
-  it('rejects a field left on the page ground', () => {
-    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', onPage: false }])).toEqual([]);
-    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', onPage: true }]))
+  it('rejects a field left loose on the page', () => {
+    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', inSurface: true }])).toEqual([]);
+    expect(stranded([{ story: 'fx:A', path: 'div > input.ui-input', inSurface: false }]))
       .toEqual(['fx:A → div > input.ui-input']);
-    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', onPage: true, filterBar: true }])).toEqual([]);
-    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', onPage: true, filterBar: true, disabled: true }]))
+    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', inSurface: false, filterBar: true }])).toEqual([]);
+    expect(stranded([{ story: 'fx:A', path: 'input.ui-input', inSurface: false, filterBar: true, disabled: true }]))
       .toEqual(['fx:A → input.ui-input']);
   });
 });

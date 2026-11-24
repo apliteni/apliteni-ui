@@ -10,7 +10,7 @@
 
 **Except:** A toast for the reader's own action, such as Saved, stays out of the bell.
 
-**Do:** Show “99+” above 99, and name the bell “Notifications, 120 unread”.
+**Do:** Show “99+” above 99, and name it “Notifications, 99+ unread”.
 
 **Don't:** Report a failed run only in a toast.
 

@@ -21,11 +21,12 @@ import { fileURLToPath } from 'node:url';
 import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
 import { Card } from './primitives/Card';
 import type { ChartSlice } from './chart-looks';
-import { placeTip } from './tip';
+import { stubPopover } from './test/popover';
 // Plain JS outside this workspace's tsconfig, imported for its arithmetic the
 // way react/src/contrast.test.tsx imports it.
 // @ts-expect-error -- untyped JS module, deliberately shared across the gates.
 import { substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { LinePoints, LineThin } from './Chart.stories';
 
 const readRepo = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 
@@ -549,44 +550,311 @@ it('opens the kit readout on the mark the pointer rests on, with one comparison'
   expect(tip.querySelectorAll('.ui-tip__detail'), 'one comparison at most').toHaveLength(1);
 });
 
-it('prints the unfinished state in the readout instead of a comparison, and in the legend', () => {
+it('prints the unfinished state in the readout instead of a comparison, and draws no legend key for it', () => {
   expect(months().container.querySelector('.ui-chart__legend'), 'a legend only when asked for').toBeNull();
   cleanup();
   const { container } = months({ legend: true });
   hover('income-3');
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail'))
     .toHaveTextContent('Estimated — April is still running');
-  const key = [...container.querySelectorAll('.ui-chart__key')].find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(key.textContent?.trim()).toBe('Estimated');
+  expect([...container.querySelectorAll('.ui-chart__key')].map((k) => k.textContent),
+    'the words under the plot name the state, so the legend keys only the series')
+    .toEqual(['Income', 'Spend', 'Net']);
 });
 
-it('keeps the series fill on unfinished periods with a dashed ground edge', () => {
+// #841: an unfinished period keeps the solid mark every other period draws, and
+// the words under the plot say which periods are not final.
+const forecast: ChartPeriod[] = [
+  { label: 'Oct 2026' }, { label: 'Nov 2026', estimated: 'incomplete' },
+  { label: 'Dec 2026', estimated: 'projected' }, { label: 'Jan 2027', estimated: 'projected' },
+  { label: 'Feb 2027', estimated: 'projected', note: 'from the signed contracts' },
+];
+const forecastSeries: ChartSeries[] = [
+  { id: 'in', name: 'Cash in', values: [10, 12, 11, 13, 14], tone: 'good' },
+  { id: 'net', name: 'Net', values: [4, 5, 3, 6, 7], shape: 'line' },
+];
+const forecastChart = (extra: Partial<React.ComponentProps<typeof Chart>> = {}) => render(
+  <Chart title="Cash" periods={forecast} series={forecastSeries} format={eur} {...extra as object} />,
+);
+
+it('keeps the series fill and a solid edge on unfinished periods', () => {
   const { container } = months();
   const bars = [...container.querySelectorAll('path.ui-chart__bar')];
   const april = bars.filter((b) => b.classList.contains('is-estimated'));
   expect(april, 'one estimated bar per bar series in the unfinished column').toHaveLength(2);
-  const rule = /\.ui-chart__bar\.is-estimated\s*\{([^}]*)\}/.exec(readRepo('../../src/styles/chart.css'))![1];
-  expect(rule, 'an unfinished bar keeps the ramp every other bar is painted with')
-    .not.toContain('fill');
   for (const bar of april) {
-    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toMatch(/^url\(#/);
+    const final = bars.find((b) => toneOf(b) === toneOf(bar) && !b.classList.contains('is-estimated'))!;
+    expect((bar as SVGElement).getAttribute('style'),
+      'an unfinished bar keeps the paint every final bar of its series has').toBe(final.getAttribute('style'));
   }
-  expect(rule).toContain('stroke: var(--ui-chart-ground)');
-  expect(rule, 'the dash is the cue a reader who cannot see the tone still gets')
-    .toContain('stroke-dasharray: 3 2');
+  const css = readRepo('../../src/styles/chart.css');
+  expect(css, 'no mark draws a dash: not a bar, a line, a segment or a key').not.toContain('dasharray');
+  expect(css, 'no rule restyles an unfinished mark').not.toContain('is-estimated');
   expect(container.querySelectorAll('pattern'), 'no hatch is declared').toHaveLength(0);
   const segments = [...container.querySelectorAll('line.ui-chart__line')];
   expect(segments).toHaveLength(3);
-  expect(segments.filter((s) => s.classList.contains('is-estimated')),
-    'the segment into the unfinished month is dashed').toHaveLength(1);
+});
+
+// The owner struck the words under the plot from the accepted picture, so a
+// chart at rest prints no state: the readouts and the table name it.
+const restingWords = (root: Element) => root.textContent!.toLowerCase();
+
+it('prints no state words around the plot while no readout is open', () => {
+  const { container } = forecastChart();
+  expect(restingWords(container), 'no state words at rest').not.toMatch(/incomplete|projected|estimated/);
+  cleanup();
+  expect(restingWords(months().container), 'a plain estimate prints no word either').not.toMatch(/estimated/);
+});
+
+it('reads the state with the same word in the hover, keyboard and table readouts', async () => {
+  const user = userEvent.setup();
+  forecastChart();
+  hover('in-1');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail')).toHaveTextContent(/^Incomplete$/);
+  hover('in-4');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__detail'))
+    .toHaveTextContent('Projected — from the signed contracts');
+  await tabToFrame(user);
+  fireEvent.keyDown(frame(), { key: 'End' });
+  expect(screen.getByRole('status')).toHaveTextContent('Feb 2027. Cash in €14. Net €7. Projected — from the signed contracts.');
+  fireEvent.keyDown(frame(), { key: 'ArrowLeft' });
+  fireEvent.keyDown(frame(), { key: 'ArrowLeft' });
+  fireEvent.keyDown(frame(), { key: 'ArrowLeft' });
+  expect(screen.getByRole('status')).toHaveTextContent('Nov 2026. Cash in €12. Net €5. Incomplete.');
+  showTable();
+  expect([...document.querySelectorAll('.ui-chart__state')].map((s) => s.textContent))
+    .toEqual(['Incomplete', 'Projected', 'Projected', 'Projected — from the signed contracts']);
+});
+
+// #841, Forecast boundary: one solid line stands before the first period that is
+// not final, and "Not final" stands over that group. JSDOM has no layout, so the
+// plot is the unmeasured 48px a column; the drawn pixels are in the PR captures.
+it('draws one solid boundary and the words "Not final" before the first unfinished period', () => {
+  const { container } = forecastChart();
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const lines = svg.querySelectorAll('line.ui-chart__boundary');
+  expect(lines, 'one boundary').toHaveLength(1);
+  const columnWidth = Number(svg.getAttribute('width')) / forecast.length;
+  expect(Number(lines[0].getAttribute('x1')), 'before Nov, the incomplete period').toBeCloseTo(columnWidth, 1);
+  expect(lines[0].getAttribute('x1')).toBe(lines[0].getAttribute('x2'));
+  const label = svg.querySelector('text.ui-chart__group')!;
+  expect(label).toHaveTextContent(/^Not final$/);
+  expect(Number(label.getAttribute('x')), 'the words stand over the group').toBeGreaterThan(columnWidth);
+  const top = Math.min(...[...svg.querySelectorAll('path.ui-chart__bar')].map((b) => boxOf(b).y));
+  expect(top, 'the bars stay under the words').toBeGreaterThan(Number(lines[0].getAttribute('y1')));
+  const css = readRepo('../../src/styles/chart.css');
+  expect(/\.ui-chart__boundary\s*\{([^}]*)\}/.exec(css)![1]).toContain('stroke: var(--chart-neutral)');
+
+  showTable();
+  expect(container.querySelector('.ui-chart__frame'), 'the table hides the group label with the plot')
+    .not.toBeVisible();
+  cleanup();
+  const plain = render(<Chart title="Cash" periods={forecast.map((p) => ({ label: p.label }))}
+    series={forecastSeries} format={eur} />).container;
+  expect(plain.querySelector('.ui-chart__boundary, .ui-chart__group'), 'none when every period is final').toBeNull();
+  cleanup();
+  const line = render(<Chart variant="line" title="Cash" periods={forecast} series={costs} format={eur} />).container;
+  expect(line.querySelector('.ui-chart__boundary'), 'the months chart draws it').toBeNull();
+});
+
+// #842: the label is drawn at --weight-medium and was measured at the body
+// weight, so in a 154px plot its last letters ran past the plot's edge.
+it('keeps the words "Not final" inside a narrow plot, measured at their own weight', () => {
+  const ctx = { font: '', measureText(text: string) { return { width: text.length * (this.font.startsWith('500') ? 6 : 5) }; } };
+  vi.stubGlobal('OffscreenCanvas', class { getContext() { return ctx; } });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(154);
+  const { container } = render(<Chart title="Cash" format={eur}
+    periods={forecast.map((p, i) => (i < 4 ? { label: p.label } : p))} series={forecastSeries} />);
+  const label = container.querySelector('text.ui-chart__group')!;
+  expect(Number(label.getAttribute('x')) + 'Not final'.length * 6, 'the label ends inside the plot')
+    .toBeLessThanOrEqual(154);
+  vi.unstubAllGlobals();
+});
+
+it('prints a period with compare: false with its value and no comparison text', async () => {
+  const user = userEvent.setup();
+  const { container } = render(<Chart title="Margin" format={eur}
+    periods={MONTHS.map((label) => ({ label, compare: false }))}
+    series={[{ id: 'm', name: 'Margin', values: INCOME }, { id: 'net', name: 'Net', values: NET, shape: 'line' }]} />);
+  for (const id of ['m-1', 'net-1']) {
+    hover(id);
+    const tip = screen.getByRole('tooltip');
+    expect(tip.querySelector('.ui-tip__value'), id).not.toBeNull();
+    expect(tip.querySelector('.ui-tip__detail'), `${id} has no comparison`).toBeNull();
+  }
+  await tabToFrame(user);
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.getByRole('status')).toHaveTextContent(/^Feb 2026\. Margin €1,500\. Net €600\.$/);
+  expect(container.textContent).not.toMatch(/% on/);
+});
+
+const values = (width: number, extra: Partial<React.ComponentProps<typeof Chart>> = {}) => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+  return months({ values: true, formatAxis: (n: number) => `€${n}`, ...extra } as object);
+};
+const printed = (root: Element) => [...root.querySelectorAll('text.ui-chart__value')].map((t) => t.textContent);
+
+it('prints each bar\'s value over its end in formatAxis, and under a bar hung below zero', () => {
+  const { container } = values(400);
+  expect(printed(container)).toEqual([...INCOME, ...SPEND].map((n) => `€${n}`));
+  const svg = container.querySelector('.ui-chart__svg')!;
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  const texts = [...svg.querySelectorAll('text.ui-chart__value')];
+  texts.forEach((t, i) => {
+    const bar = bars[i];
+    expect(Number(t.getAttribute('x')), 'centred on its bar').toBeCloseTo(bar.x + bar.width / 2, 1);
+    const below = i >= INCOME.length;
+    expect(classOf(t).includes('ui-chart__value--below'), 'a spend value hangs under its bar').toBe(below);
+    if (below) expect(Number(t.getAttribute('y'))).toBeGreaterThan(bar.y + bar.height);
+    else expect(Number(t.getAttribute('y'))).toBeLessThan(bar.y);
+  });
+  expect(Math.min(...bars.map((b) => b.y)), 'the plot keeps room over the tallest bar').toBeGreaterThan(14);
+  const style = container.querySelector<HTMLElement>('.ui-chart')!.style;
+  expect(parseFloat(style.getPropertyValue('--ui-chart-top')), 'the axis follows the room').toBeGreaterThan(2);
+  expect(parseFloat(style.getPropertyValue('--ui-chart-bottom'))).toBeGreaterThan(2);
+  cleanup();
+  vi.restoreAllMocks();
+  expect(printed(months().container), 'no value without the prop').toEqual([]);
+});
+
+// #842 re-review: an ordinary bar of -60000 printed its value under itself, but
+// the room was kept over the plot, so the value fell out of the SVG. The test
+// reads the text's anchor against a line box of 18px, not the drawn glyphs.
+it('keeps the room for each value on the side it prints, for signed bars and signed hanging bars', () => {
+  const k = (n: number) => `${n / 1000}k`;
+  const inside = (root: Element, expected: [string, boolean][]) => {
+    const svg = root.querySelector('.ui-chart__svg')!;
+    const height = Number(svg.getAttribute('height'));
+    const texts = [...svg.querySelectorAll('text.ui-chart__value')];
+    expect(texts.map((t) => [t.textContent, classOf(t).includes('ui-chart__value--below')])).toEqual(expected);
+    for (const t of texts) {
+      const y = Number(t.getAttribute('y'));
+      if (classOf(t).includes('ui-chart__value--below')) expect(y + 18, `${t.textContent} inside the plot`).toBeLessThanOrEqual(height);
+      else expect(y - 12, `${t.textContent} inside the plot`).toBeGreaterThanOrEqual(0);
+    }
+  };
+  inside(values(400, { periods: periods.slice(0, 1), formatAxis: k,
+    series: [{ id: 'in', name: 'Income', values: [-60000], tone: 'good' }] }).container, [['-60k', true]]);
+  cleanup();
+  vi.restoreAllMocks();
+  inside(values(640, { periods, formatAxis: k,
+    series: [
+      { id: 'in', name: 'Income', values: [40000, -20000, NaN, NaN], tone: 'good' },
+      { id: 'out', name: 'Spend', values: [NaN, NaN, -30000, 50000], shape: 'bars-below', tone: 'bad' },
+    ] }).container, [['40k', false], ['-20k', true], ['-30k', false], ['50k', true]]);
+  cleanup();
+  vi.restoreAllMocks();
+  // A hanging bar of -30000 grows up beside the 40000 bar, so the two values
+  // print on one side at one x, and neither prints.
+  inside(values(640, { periods: periods.slice(0, 1), formatAxis: k,
+    series: [
+      { id: 'in', name: 'Income', values: [40000], tone: 'good' },
+      { id: 'out', name: 'Spend', values: [-30000], shape: 'bars-below', tone: 'bad' },
+    ] }).container, []);
+});
+
+it('leaves out only the values that do not fit, and keeps every exact value elsewhere', () => {
+  // 4 columns of 30px: a two-figure value fits, a four-figure one does not.
+  const { container } = values(120, {
+    series: [{ id: 'in', name: 'Income', values: [12, 1500, 14, 1300], tone: 'good' }],
+  });
+  expect(printed(container), 'the short values stay at the text size').toEqual(['€12', '€14']);
+  hover('in-1');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__value')).toHaveTextContent('€1,500');
+  showTable();
+  expect(screen.getByRole('table')).toHaveTextContent('€1,500');
+});
+
+// #842 review: two bars in one column sit 50px apart, so their two 74px values
+// met although each one fitted half the column.
+it('prints no two values over each other, and gives the room of hidden values back to the bars', () => {
+  const pair = (width: number) => values(width, {
+    periods: periods.slice(0, 1), formatAxis: eur,
+    series: [
+      { id: 'a', name: 'Income', values: [1234567], tone: 'good' },
+      { id: 'b', name: 'Fees', values: [1234567], tone: 'neutral' },
+    ],
+  });
+  const tops = (root: Element) => [...root.querySelectorAll('path.ui-chart__bar')].map((p) => boxOf(p).y);
+  const { container } = pair(300);
+  expect(printed(container), 'neither value fits the 50px between the bars').toEqual([]);
+  hover('a-0');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__value')).toHaveTextContent('€1,234,567');
+  showTable();
+  expect(screen.getByRole('table')).toHaveTextContent('€1,234,567');
+  cleanup();
+  vi.restoreAllMocks();
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+  const plain = tops(render(<Chart title="Fees" periods={periods.slice(0, 1)} format={eur}
+    series={[{ id: 'a', name: 'Income', values: [1234567], tone: 'good' },
+      { id: 'b', name: 'Fees', values: [1234567], tone: 'neutral' }]} />).container);
+  cleanup();
+  vi.restoreAllMocks();
+  expect(tops(pair(300).container), 'no value prints, so no room is kept for one').toEqual(plain);
+  cleanup();
+  vi.restoreAllMocks();
+
+  // Wider bars in four columns: every value that prints keeps its own ground.
+  const { container: wide } = values(640, { formatAxis: eur });
+  const texts = [...wide.querySelectorAll('text.ui-chart__value:not(.ui-chart__value--below)')];
+  expect(texts.length).toBeGreaterThan(1);
+  const spans = texts.map((t) => {
+    const x = Number(t.getAttribute('x'));
+    const half = (t.textContent!.length * 12 * 0.62) / 2;
+    return [x - half, x + half];
+  }).sort((a, b) => a[0] - b[0]);
+  spans.slice(1).forEach(([left], i) => expect(left, 'apart from the value before it')
+    .toBeGreaterThanOrEqual(spans[i][1]));
+});
+
+it('fits 24 months in a 154px plot with no scroll, every bar, and fewer labels', () => {
+  const months24: ChartPeriod[] = Array.from({ length: 24 }, (_, i) => ({
+    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2025 + Math.floor(i / 12)}`,
+    estimated: i === 20 ? 'incomplete' as const : i > 20 ? 'projected' as const : undefined,
+  }));
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(154);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(154);
+  const { container } = render(<Chart title="Cash in" height={154} periods={months24} format={eur}
+    series={[{ id: 'in', name: 'Cash in', values: months24.map((_, i) => 30 + i), tone: 'good' }]} />);
+  const svg = container.querySelector('.ui-chart__svg')!;
+  expect(svg.getAttribute('width')).toBe('154');
+  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+  expect(bars, 'every bar').toHaveLength(24);
+  expect(Math.max(...bars.map((b) => b.x + b.width)), 'inside the plot').toBeLessThanOrEqual(154);
+  expect(container.querySelector('.ui-chart__scroll'), 'no inner scroll').not.toHaveAttribute('role');
+  expect(readRepo('../../src/styles/chart.css')).toMatch(/\.ui-chart--months \.ui-chart__plot \{ min-width: 0; \}/);
+  const row = container.querySelector('.ui-chart__periods')!;
+  expect(classOf(row)).toContain('ui-chart__periods--step');
+  const labels = [...row.children].map((c) => c.textContent);
+  expect(labels, 'one track for each period').toHaveLength(24);
+  const shown = labels.flatMap((l, i) => (l ? [i] : []));
+  expect(shown.length, 'fewer labels').toBeLessThan(24);
+  expect(shown.length).toBeGreaterThan(1);
+  expect(shown, 'the incomplete period keeps its label').toContain(20);
+  const every = shown[1] - shown[0];
+  expect(shown.every((i, k) => k === 0 || i - shown[k - 1] === every), 'evenly stepped').toBe(true);
+  expect(classOf(row.children[shown[0]]), 'the first label keeps to the plot\'s edge').toContain('is-start');
+  cleanup();
+  vi.restoreAllMocks();
+  const wide = months().container.querySelector('.ui-chart__periods')!;
+  expect(classOf(wide), 'every label prints where each fits').not.toContain('ui-chart__periods--step');
+  expect([...wide.children].map((c) => c.textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
+});
+
+it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
+  const { container } = render(<Chart variant="spark" title="Cash" periods={forecast}
+    series={forecastSeries.slice(1)} format={eur} />);
+  expect(container.querySelector('line.ui-chart__line.is-estimated'), 'the line stays one solid stroke')
+    .not.toBeNull();
 });
 
 // #740: a bar fades from a tint of its tone at the base on zero to the full tone
 // at the data end. The data end, the zero line and the base carry the value.
 it('paints each bar with a ramp from its base on zero to its data end', () => {
   const { container } = render(<>
-    <Chart title="One" periods={periods} series={series} format={eur} />
-    <Chart title="Two" periods={periods} series={series} format={eur} />
+    <Chart variant="spark" title="One" periods={periods} series={series} format={eur} />
+    <Chart variant="spark" title="Two" periods={periods} series={series} format={eur} />
   </>);
   const [one, two] = [...container.querySelectorAll('svg.ui-chart__svg')];
   const ramps = (svg: Element) => [...svg.querySelectorAll('linearGradient')];
@@ -614,6 +882,15 @@ it('paints each bar with a ramp from its base on zero to its data end', () => {
     .toContain('fill: var(--ui-chart-paint, var(--ui-chart-tone))');
   expect(css).toMatch(/\.ui-chart__fade-base\s*\{\s*stop-color: var\(--ui-chart-fade\);/);
   expect(css).toMatch(/\.ui-chart__fade-end\s*\{\s*stop-color: var\(--ui-chart-tone\);/);
+});
+
+// #841, look A: a months chart's columns are one flat fill of the series tone.
+it('paints a months chart\'s bars flat, with no ramp', () => {
+  const { container } = months();
+  expect(container.querySelectorAll('linearGradient')).toHaveLength(0);
+  for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint')).toBe('');
+  }
 });
 
 // A bridge bar fades from the previous running total to the new one, so the full
@@ -720,10 +997,11 @@ it('spends a bar\'s corner radius on the end away from zero, and none on the foo
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
-    // The data end is fully round: the radius is half the bar's width, unless
-    // the bar is too short to spend it. An arc leaves the edge it rounds exactly
-    // that far, so the radius is also the tolerance for where the arc sits.
-    const radius = Math.min(box.width / 2, box.height);
+    // Look A (#841): the data end takes the --radius-xs corner, or a quarter of
+    // the bar when the bar is narrow, so every width keeps one shape. An arc
+    // leaves the edge it rounds exactly that far, so the radius is also the
+    // tolerance for where the arc sits.
+    const radius = Math.min(6, box.width / 4, box.height);
     for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
       expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
     }
@@ -770,6 +1048,9 @@ const tap = (id: string) => {
   fireEvent.pointerDown(markEl(id), { pointerType: 'touch' });
   fireEvent.touchStart(markEl(id));
   fireEvent.touchEnd(markEl(id));
+  // The mousedown behind a tap focuses the nearest focusable box, the scroller,
+  // before the click hands focus back to the frame.
+  act(() => plot().closest<HTMLElement>('.ui-chart__scroll')!.focus());
   fireEvent.click(markEl(id));
 };
 
@@ -822,6 +1103,19 @@ it('an ordinary mouse click is not a tap, and still picks', async () => {
   months({ selectable: true, onSelect });
   await user.click(markEl('income-1'));
   expect(onSelect).toHaveBeenCalledWith(1);
+});
+
+it('a tap after Escape opens the same mark again', () => {
+  months();
+  tap('income-1');
+  expect(frame(), 'the tap leaves focus on the chart').toHaveFocus();
+  tap('income-2');
+  expect(screen.getByRole('tooltip'), 'a tap with the chart focused moves the readout').toHaveTextContent('Mar 2026');
+  tap('income-1');
+  fireEvent.keyDown(document, { key: 'Escape' });
+  expect(screen.queryByRole('tooltip')).toBeNull();
+  tap('income-1');
+  expect(screen.getByRole('tooltip'), 'a new tap is a deliberate press').toHaveTextContent('Feb 2026');
 });
 
 it('Escape dismisses the readout, and the pointer does not bring it straight back', () => {
@@ -892,14 +1186,14 @@ describe('bridge', () => {
 
 /* -- the narrow width ------------------------------------------------------ */
 
-it('scrolls the plot and opens a labels look at its latest period', () => {
+it('scrolls the plot and opens a chart of periods at its latest period', () => {
   const { container } = months();
   expect(container.querySelector('.ui-chart__plot')).toHaveStyle({ '--ui-chart-cols': '4' });
   cleanup();
 
-  // A labels look opens on its latest period, where its labels are; the others
-  // open on the first. The widths are set before the render, so the opening
-  // scroll reads them.
+  // A chart of periods wider than its box opens on its latest period, the one
+  // a reader came for (#841); a bridge reads from its opening total. The widths
+  // are set before the render, so the opening scroll reads them.
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(576);
   const opening = (look: string) => {
@@ -908,8 +1202,31 @@ it('scrolls the plot and opens a labels look at its latest period', () => {
     return left;
   };
   expect(opening('labels'), 'the labels look opens at the end').toBe(376);
-  expect(opening('thin'), 'the thin look opens at the start').toBe(0);
-  expect(opening('points'), 'the points look opens at the start').toBe(0);
+  expect(opening('thin'), 'the thin look opens at the end').toBe(376);
+  expect(opening('points'), 'the points look opens at the end').toBe(376);
+  const scrollOf = (el: HTMLElement) => (el.querySelector('.ui-chart__scroll') as HTMLDivElement).scrollLeft;
+  expect(scrollOf(months().container), 'a months chart opens at the end').toBe(376);
+  cleanup();
+  expect(scrollOf(render(<Chart variant="bridge" title="Cash" format={eur}
+    steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 }]} />).container),
+  'a bridge opens at its opening total').toBe(0);
+});
+
+// A chart that opens at its end must not open a readout on a period scrolled out
+// of view: focus starts on the nearest column the reader can see.
+it('opens the keyboard readout on a column in view when the plot opens at its end', async () => {
+  const user = userEvent.setup();
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  // Every box reads 200px and the scroller holds 300px, so the plot opens at 100
+  // and its 40px columns 3 and 4 are in view; column 0 is scrolled away.
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(300);
+  forecastChart({ table: false });
+  const scroll = document.querySelector('.ui-chart__scroll') as HTMLDivElement;
+  expect(scroll.scrollLeft, 'the plot opens at its end').toBe(100);
+  await user.tab();
+  expect(screen.getByRole('status'), 'not Oct, which is scrolled away').toHaveTextContent(/^Jan 2027\./);
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent('Cash in, Jan 2027');
+  vi.restoreAllMocks();
 });
 
 it('keeps the value axis out of the scroller, so it stays put', () => {
@@ -1152,11 +1469,10 @@ it('centres a band that has fewer lanes than the chart\'s widest', () => {
     'and every bar in the chart is still one width').toBe(1);
 });
 
-// A column grows with the card; a mark does not. Without the cap, twelve months
-// at a desktop width were twelve 45px blocks and the plot read as one mass.
+// Look A (#841): a bar takes two thirds of its column, up to --space-12.
 it('caps a bar at a mark\'s width however wide its column is', () => {
-  const cap = Number(/const BAR_MAX = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
-  const share = Number(/const BAR_SHARE = ([\d.]+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const cap = Number(/const FIT_MAX = (\d+)/.exec(readRepo('./Chart.tsx'))![1]);
+  const share = 2 / 3;
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
   const columnWidth = Number(svg.getAttribute('width')) / MONTHS.length;
@@ -1215,30 +1531,14 @@ it('lays every line casing under every line stroke, and makes it the wider of th
     .toMatch(/\.ui-chart--spark \.ui-chart__line-casing \{ display: none; \}/);
 });
 
-it('draws the Estimated key in the tone of the series it describes, not in body ink', () => {
-  const { container } = months({ legend: true });
-  const key = [...container.querySelectorAll('.ui-chart__key')]
-    .find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(classOf(key), 'the key takes the tone of the unfinished bar it stands for')
-    .toContain('ui-chart__tone--good');
-  const css = readRepo('../../src/styles/chart.css');
-  const rule = /\.ui-chart__key-estimated\s*\{([^}]*)\}/.exec(css)![1];
-  expect(rule, 'the key cuts dashes into the fill').toContain('stroke: var(--ui-chart-ground)');
-  expect(rule, 'the key keeps the series fill')
-    .toContain('fill: var(--ui-chart-tone)');
-  expect(rule, 'the key draws no maximum-contrast outline').not.toMatch(/var\(--(text|strong)\)/);
-});
-
-it('a bridge draws its Estimated key in the tone of the step that is not final', () => {
+it('a bridge prints no word for its step that is not final, and keys no state', () => {
   const { container } = render(
     <Chart variant="bridge" title="Cash" format={eur}
       steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
         { label: 'Fees', value: -150, estimated: true }, { label: 'Closing', kind: 'total' }]} legend />,
   );
-  const key = [...container.querySelectorAll('.ui-chart__key')]
-    .find((k) => k.textContent?.startsWith('Estimated'))!;
-  expect(classOf(key), 'a falling step is the bad tone, not the first key in the legend')
-    .toContain('ui-chart__tone--bad');
+  expect(restingWords(container), 'the readout names the step, not the resting chart').not.toMatch(/estimated/);
+  expect(container.querySelector('.ui-chart__key-estimated')).toBeNull();
 });
 
 it('a cursor left past the end of a shortened series still announces', async () => {
@@ -1258,42 +1558,11 @@ it('a cursor left past the end of a shortened series still announces', async () 
     .toHaveTextContent('Jan 2026.');
 });
 
-it('keeps the readout inside the part it belongs to', () => {
-  // JSDOM has no layout, so the viewport and the three boxes are all given: a
-  // frame whose top edge is the legend's bottom, and a mark just under it.
-  // Nothing between the frame and the body clips, so without the bound the clip
-  // box is the viewport and the readout is free to open over the chart's own
-  // legend and top tick.
-  for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
-    Object.defineProperty(document.documentElement, prop, { value, configurable: true });
-  }
-  const host = document.createElement('div');
-  const mark = document.createElement('div');
-  const tip = document.createElement('span');
-  host.append(mark, tip);
-  document.body.append(host);
-  const box = (top: number, bottom: number) =>
-    ({ top, bottom, left: 100, right: 200, width: 100, height: bottom - top }) as DOMRect;
-  vi.spyOn(host, 'getBoundingClientRect').mockReturnValue(box(120, 400));
-  vi.spyOn(mark, 'getBoundingClientRect').mockReturnValue(box(130, 130));
-  vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
-  vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(120);
-
-  placeTip(host, mark, tip);
-  expect(tip.classList.contains('is-below'),
-    'unbounded, the viewport is the only ceiling and the readout opens upward over the legend')
-    .toBe(false);
-
-  placeTip(host, mark, tip, host);
-  expect(tip.classList.contains('is-below'),
-    'bounded by the frame, a mark with no room above flips below instead of leaving it')
-    .toBe(true);
-});
-
-it('hands its own frame to the readout as that bound', () => {
-  // The same case, through the component rather than through placeTip: a mark
-  // with the legend just above it. JSDOM reports every box as zero, so the
-  // frame, the anchor and the readout are given the geometry a browser would.
+it('opens the readout above its mark when the view has room there, over the legend', () => {
+  // JSDOM has no layout, so the viewport and the boxes are given: a frame whose
+  // top edge is the legend's bottom, and a mark just under it. Nothing between
+  // the frame and the body clips, so the view is the only ceiling.
+  // why: guidelines/hover-readouts.md#prefer-above-the-mark
   for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
     Object.defineProperty(document.documentElement, prop, { value, configurable: true });
   }
@@ -1309,8 +1578,31 @@ it('hands its own frame to the readout as that bound', () => {
   vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(120);
 
   hover('income-0');
-  expect(tip.classList.contains('is-below'),
-    'the readout flips below rather than opening over the legend above the frame').toBe(true);
+  expect(tip.classList.contains('is-below'), 'the frame is no ceiling for the readout').toBe(false);
+});
+
+it('opens a spark readout in the top layer over a scrolling table', () => {
+  const layer = stubPopover();
+  try {
+    const { container } = render(
+      <div className="ui-table-scroll">
+        <table><tbody><tr><td><Chart variant="spark" title="Cash trend" periods={periods}
+          series={[series[0]]} format={eur} /></td></tr></tbody></table>
+      </div>,
+    );
+    hover('income-0');
+    const tip = screen.getByRole('tooltip', { hidden: true });
+    expect(layer.show, 'the table scroll frame cannot clip a top-layer readout').toHaveBeenCalledWith();
+    expect(tip.matches(':popover-open'), 'the readout is in the browser top layer').toBe(true);
+    expect(tip).toHaveAttribute('popover', 'manual');
+  expect(container.querySelector('.ui-table-scroll')?.contains(tip)).toBe(true);
+  fireEvent.scroll(container.querySelector('.ui-table-scroll')!);
+  expect(tip.matches(':popover-open'), 'a scrolling table closes its fixed readout').toBe(false);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(layer.hide, 'Escape closes the top-layer readout').toHaveBeenCalledWith();
+  } finally {
+    layer.restore();
+  }
 });
 
 it('says under the pointer that a selectable column can be picked', () => {
@@ -1415,7 +1707,6 @@ it('draws a line look as lines only, with points or end labels where the look as
     const { container } = lookChart('line', look);
     const got = {
       bars: container.querySelectorAll('.ui-chart__bar, .ui-chart__segment').length,
-      /* A line is drawn a segment a column step, so the estimated step can dash alone. */
       lines: container.querySelectorAll('line.ui-chart__line').length,
       dots: container.querySelectorAll('.ui-chart__dot').length,
     };
@@ -1554,4 +1845,17 @@ it('shrinks the labels ring\'s box with its ring on a narrow plot', () => {
   const narrow = box(300);
   expect(narrow.h, 'the narrow box is shorter').toBeLessThan(wide.h);
   expect(wide.h - narrow.h, 'by what the ring lost across').toBeCloseTo(2 * (wide.r - narrow.r), 0);
+});
+
+// #842 design review: a two-line story named its lines only in the readout.
+// The labels look names them by their final values; the others need a key.
+it('names the lines of a two-line story in a key while no readout is open', () => {
+  for (const story of [LineThin, LinePoints]) {
+    const { container } = render(<>{story.render!({} as never, {} as never)}</>);
+    const key = container.querySelector('.ui-chart__legend');
+    expect(key, 'a key').not.toBeNull();
+    expect(key).toHaveTextContent('Income');
+    expect(key).toHaveTextContent('Spend');
+    cleanup();
+  }
 });

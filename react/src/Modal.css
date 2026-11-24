@@ -22,6 +22,8 @@
   border-radius: var(--radius-md); overflow: hidden;
   transform: translateY(var(--space-2)); transition: transform var(--dur-med) var(--ease); }
 .rx-scrim.is-open .rx-modal { transform: none; }
+/* A short sign-in form uses 320px plus the 40px control clearance: 360px. */
+.rx-modal--sm { width: min(calc(var(--panel-sm) + var(--space-10)), 96vw); }
 .rx-modal__head { display: flex; align-items: center; justify-content: space-between;
   gap: var(--space-3); flex: none;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
@@ -37,3 +39,9 @@
   padding: var(--space-4); }
 .rx-modal__head > .ui-btn { width: calc(var(--space-10) + var(--space-1));
   height: calc(var(--space-10) + var(--space-1)); flex: none; }
+/* The foot's buttons are 36px: to a coarse pointer, the layer in tap-zone.css takes
+ * 4px of the foot's 16px padding above and below each one. Across, a labelled button is
+ * already wider than the floor. why: docs/foundations.md#a-tap-reaches-the-floor-below-the-phone-step */
+@media (max-width: 560px) and (pointer: coarse) {
+  .rx-modal__foot { --tap-clear-y: var(--tap-gap); }
+}

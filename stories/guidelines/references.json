@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:263",
+    "ref": "src/styles/table.css:249",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -12,8 +12,8 @@
     "pattern": "width: auto;"
    },
    {
-    "ref": "src/styles/table.css:323",
-    "pattern": "max-width: calc(100% + 2 * var(--space-3));"
+    "ref": "src/styles/table.css:14",
+    "pattern": "max-width: 100%;"
    }
   ],
   "filter-bar": [
@@ -30,7 +30,7 @@
  "_accessibility-floor.js": {
   "target-size": [
    {
-    "ref": "src/styles/button.css:115",
+    "ref": "src/styles/button.css:128",
     "pattern": ".ui-btn--sm"
    },
    {
@@ -64,21 +64,21 @@
   ],
   "ring-contrast": [
    {
-    "ref": "src/styles/base.css:158",
+    "ref": "src/styles/base.css:164",
     "pattern": "outline: var(--ring);"
    }
   ],
   "disabled-legibility": [
    {
-    "ref": "src/styles/button.css:132",
+    "ref": "src/styles/button.css:145",
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:198",
+    "ref": "src/tokens/tokens.css:208",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:204",
+    "ref": "src/tokens/tokens.css:214",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:216",
+    "ref": "src/tokens/tokens.css:226",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -142,11 +142,11 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:47",
+    "ref": "src/styles/segmented.css:50",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:48",
+    "ref": "src/styles/segmented.css:51",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -318,7 +318,7 @@
  "_destructive-actions.js": {
   "colour": [
    {
-    "ref": "src/styles/button.css:103",
+    "ref": "src/styles/button.css:116",
     "pattern": ".ui-btn--danger:hover"
    },
    {
@@ -336,7 +336,7 @@
     "pattern": "'Revoke demo token?'"
    },
    {
-    "ref": "stories/apps/Access.stories.tsx:39",
+    "ref": "stories/apps/Access.stories.tsx:96",
     "pattern": "Revoke access"
    }
   ],
@@ -394,7 +394,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:274",
+    "ref": "src/styles/drawer.css:278",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -414,7 +414,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:177",
+    "ref": "react/src/AppShell.tsx:182",
     "pattern": "back && <BackLink"
    }
   ],
@@ -444,11 +444,11 @@
   ],
   "above-the-mark": [
    {
-    "ref": "react/src/tip.ts:55",
+    "ref": "react/src/tip.ts:47",
     "pattern": "const flip = prefersBelow"
    },
    {
-    "ref": "react/src/tip.ts:62",
+    "ref": "react/src/tip.ts:54",
     "pattern": "const left = Math.max(clip.left"
    }
   ],
@@ -524,7 +524,7 @@
  "_labels-and-titles.js": {
   "text-ink": [
    {
-    "ref": "src/styles/base.css:123",
+    "ref": "src/styles/base.css:129",
     "pattern": "color: var(--text);"
    }
   ],
@@ -536,7 +536,7 @@
   ],
   "sentence-case": [
    {
-    "ref": "src/styles/base.css:117",
+    "ref": "src/styles/base.css:123",
     "pattern": "in sentence case like every"
    },
    {
@@ -554,7 +554,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:130",
+    "ref": "src/styles/card.css:171",
     "pattern": "rank: card-title"
    }
   ],
@@ -570,7 +570,17 @@
   ],
   "eyebrow-names-the-kind": [
    {
-    "ref": "src/styles/base.css:120",
+    "ref": "src/styles/base.css:126",
+    "pattern": "rank: label"
+   }
+  ],
+  "category-compact": [
+   {
+    "ref": "src/styles/dropdown.css:432",
+    "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
+   },
+   {
+    "ref": "src/styles/dropdown.css:434",
     "pattern": "rank: label"
    }
   ]
@@ -578,7 +588,7 @@
  "_layout-and-density.js": {
   "container": [
    {
-    "ref": "src/styles/base.css:114",
+    "ref": "src/styles/base.css:120",
     "pattern": "max-width: var(--container)"
    },
    {
@@ -626,7 +636,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:518",
+    "ref": "src/styles/layout.css:551",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -650,11 +660,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:459",
-    "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }"
+    "ref": "src/styles/layout.css:467",
+    "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }"
    },
    {
-    "ref": "src/styles/layout.css:460",
+    "ref": "src/styles/layout.css:468",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -669,7 +679,7 @@
    },
    {
     "ref": "src/styles/tap-zone.css:152",
-    "pattern": "> .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5, 20px)) !important; }"
+    "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }"
    },
    {
     "ref": "src/styles/tap-zone.css:153",
@@ -682,11 +692,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:117",
+    "ref": "src/styles/segmented.css:120",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:126",
+    "ref": "src/styles/segmented.css:129",
     "pattern": "padding: var(--space-3)"
    }
   ]
@@ -774,7 +784,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:287",
+    "ref": "src/styles/drawer.css:291",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -850,15 +860,15 @@
  "_state-set.js": {
   "focus-visible": [
    {
-    "ref": "src/styles/base.css:151",
+    "ref": "src/styles/base.css:157",
     "pattern": ".ui-focusable:focus-visible,"
    },
    {
-    "ref": "src/styles/base.css:158",
+    "ref": "src/styles/base.css:164",
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:305",
+    "ref": "src/tokens/tokens.css:315",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -868,7 +878,7 @@
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
-    "ref": "src/styles/button.css:169",
+    "ref": "src/styles/button.css:182",
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
@@ -929,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:135",
+    "ref": "src/styles/stat.css:171",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:136",
+    "ref": "src/styles/stat.css:172",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -941,7 +951,7 @@
  "_empty-states.js": {
   "next-action": [
    {
-    "ref": "react/src/EmptyState.tsx:21",
+    "ref": "react/src/EmptyState.tsx:26",
     "pattern": "export function EmptyState("
    }
   ]
@@ -1013,12 +1023,12 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/Modal.tsx:17",
-    "pattern": "export function Modal("
+    "ref": "react/src/AppShell.tsx:65",
+    "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
-    "ref": "react/src/Modal.css:18",
-    "pattern": ".rx-modal { width: min("
+    "ref": "react/src/AccountWindow.tsx:33",
+    "pattern": "export function AccountWindow("
    }
   ],
   "nav": [
@@ -1047,7 +1057,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:162",
+    "ref": "src/styles/card.css:203",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1069,7 +1079,7 @@
     "pattern": "ui-btn__label-slot"
    },
    {
-    "ref": "react/src/primitives/Button.test.tsx:227",
+    "ref": "react/src/primitives/Button.test.tsx:232",
     "pattern": "lets an explicit aria-label win over the children fallback"
    }
   ],
@@ -1115,21 +1125,23 @@
     "pattern": "export function StatBand("
    }
   ],
+  "soft-lines-between-blocks": [
+   {
+    "ref": "src/styles/stat.css:124",
+    "pattern": "border: 1px solid var(--card-edge);"
+   }
+  ],
   "link-to-the-report": [
    {
     "ref": "src/styles/table.css:126",
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:145",
-    "pattern": ".ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }"
-   },
-   {
-    "ref": "src/styles/table.css:294",
+    "ref": "src/styles/table.css:280",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
-    "ref": "stories/lib/story-link.js:71",
+    "ref": "stories/lib/story-link.js:72",
     "pattern": "export const landOnRow = (doc, rowId) => {"
    }
   ],
@@ -1149,7 +1161,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:140",
+    "ref": "react/src/Dropdown.tsx:144",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1175,6 +1187,18 @@
    {
     "ref": "src/styles/callout.css:29",
     "pattern": ".ui-callout--danger {"
+   }
+  ]
+ },
+ "_session-expired.js": {
+  "skeleton-behind-dialog": [
+   {
+    "ref": "stories/apps/SignIn.stories.tsx:78",
+    "pattern": "waitingForSignIn ? <SkeletonTable"
+   },
+   {
+    "ref": "react/src/Loading.tsx:49",
+    "pattern": "export function SkeletonTable"
    }
   ]
  }

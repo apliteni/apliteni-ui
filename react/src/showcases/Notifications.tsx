@@ -53,8 +53,11 @@ const START = { campaigns: '/campaigns', notifications: '/notifications', record
 /* A bare glyph strokes under 1.5px, so each takes a kit glyph class that sets its box and stroke:
    the bell the nav glyph's, as the head control does, and a page row the panel row's. */
 const Glyph = ({ name, className }: { name: string; className?: string }) => <span className={className} aria-hidden="true" dangerouslySetInnerHTML={{ __html: icon(name) }} />;
-/** The bell's accessible name: the count is in the sentence, never only in the badge. */
-export const bellName = (count: number) => count > 0 ? `Notifications, ${count} unread` : 'Notifications';
+/** The count the badge shows: 99+ above 99. */
+export const bellCount = (count: number) => count > 99 ? '99+' : String(count);
+/** The bell's accessible name: the count is in the sentence, never only in the badge, and it
+ *  is the count the badge shows, so a name heard and a count seen agree. */
+export const bellName = (count: number) => count > 0 ? `Notifications, ${bellCount(count)} unread` : 'Notifications';
 /* A control in the head or foot of a role=menu panel is one of its items, so the arrows reach it.
    A Button with href is always a link, so a panel control is a button that opens the page.
    why: docs/components.md, "A dropdown row you write yourself" */
@@ -104,16 +107,16 @@ function Screen({ layout = 'side', initialPage = 'campaigns', initialLoad = 'unr
   /* A menu may own only its items, so the danger callout, an alert, cannot stand in the panel.
      The panel says it with the empty state. The PR names the kit gap. */
   const failed = (where: 'panel' | 'page') => where === 'panel'
-    ? <EmptyState icon="circleAlert" title="Notifications did not load" sub="Check the connection, then try again." actions={retry('panel')} />
+    ? <EmptyState level={0} icon="circleAlert" title="Notifications did not load" sub="Check the connection, then try again." actions={retry('panel')} />
     : <Callout variant="danger" actions={retry('page')}><strong>Error:</strong> {FAILED}</Callout>;
-  const nothing = (where: 'panel' | 'page') => <EmptyState icon="bell" title="No notifications" sub="Mentions, assignments and failed runs show here."
+  const nothing = (where: 'panel' | 'page') => <EmptyState level={where === 'panel' ? 0 : 2} icon="bell" title="No notifications" sub="Mentions, assignments and failed runs show here."
     actions={where === 'panel' ? <Button variant="secondary" size="sm" {...asItem} onClick={() => go('/settings')}>Settings</Button>
       : <Button variant="secondary" size="sm" href="/settings" onClick={follow('/settings')}>Settings</Button>} />;
 
   const items: DropdownItem[] = notes.map(note => ({ label: note.title, value: note.id, href: note.path }));
   const bell = <Dropdown variant="menu" chevron={false} ariaLabel={bellName(count)} align={layout === 'top' ? 'end' : 'start'}
     panelClass="notifications__panel" scroll={480} open={open} onOpenChange={setOpen}
-    triggerContent={<span className="notifications__bell"><Glyph name="bell" className="ui-nav__ic" />{count > 0 && <span className="notifications__count" aria-hidden="true"><Badge>{count}</Badge></span>}</span>}
+    triggerContent={<span className="notifications__bell"><Glyph name="bell" className="ui-nav__ic" />{count > 0 && <span className="notifications__count" aria-hidden="true"><Badge>{bellCount(count)}</Badge></span>}</span>}
     header={<div className="ui-dropdown__head notifications__head"><b>Notifications</b>
       {count > 0 && <Button variant="secondary" size="sm" {...asItem} onClick={markAllRead('panel')}>Mark all read</Button>}</div>}
     footer={<>

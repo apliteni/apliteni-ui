@@ -6,6 +6,7 @@ import './Modal.css';
 
 export type ModalProps = {
   open: boolean; title: string; onClose: () => void; footer?: ReactNode; children?: ReactNode;
+  size?: 'sm';
   role?: 'dialog' | 'alertdialog';
   initialFocusRef?: RefObject<HTMLElement | null>;
 };
@@ -14,7 +15,7 @@ export type ModalProps = {
 // enter/exit motion live in ./dialog, shared with Drawer. The scope tells a dialog
 // rendered inside this one that it sits above it. `is-open` on the scrim is what
 // Modal.css transitions on.
-export function Modal({ open, title, onClose, footer, children, initialFocusRef, role = 'dialog' }: ModalProps) {
+export function Modal({ open, title, onClose, footer, children, initialFocusRef, role = 'dialog', size }: ModalProps) {
   const id = useId();
   const titleId = `${id}-title`;
   const bodyId = `${id}-body`;
@@ -28,7 +29,7 @@ export function Modal({ open, title, onClose, footer, children, initialFocusRef,
   return createPortal(
     <DialogScope.Provider value={scope}>
       <div className={shown ? 'rx-scrim is-open' : 'rx-scrim'} ref={root} onMouseDown={dismissOnScrim(onClose)}>
-        <div className="rx-modal" role={role} aria-modal="true" aria-labelledby={titleId}
+        <div className={`rx-modal${size === 'sm' ? ' rx-modal--sm' : ''}`} role={role} aria-modal="true" aria-labelledby={titleId}
           aria-describedby={role === 'alertdialog' ? bodyId : undefined} tabIndex={-1} ref={panel}>
           <div className="rx-modal__head">
             <h2 className="rx-modal__title" id={titleId}>{title}</h2>

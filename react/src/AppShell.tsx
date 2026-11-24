@@ -34,7 +34,9 @@ export type AppShellProps = AppShellNav & {
   drawerSide?: 'left' | 'right';
   /** Current router pathname; the longest matching section or sub-item wins. */
   pathname: string;
-  title: string;
+  /** The page title. Omit it when the page owns its own heading, such as a full-bleed
+   *  split layout whose title stands in one column (#850). */
+  title?: string;
   children?: ReactNode;
   word?: string;
   brand?: ReactNode;
@@ -50,6 +52,9 @@ export type AppShellProps = AppShellNav & {
   /** One glyph control in the sidebar head, before the fold button, drawn as the fold is.
    *  On a phone it stands in the menu panel's head. Topbar layout only (#732). */
   headControl?: ReactNode;
+  /** Glyph controls at the right end of the band, such as a notification bell, in every
+   *  sidebar structure and at every width. Topbar layout only (#847). */
+  bandActions?: ReactNode;
   /** The band trigger's words and its name at every width. Below 560px the trigger shows
    *  only its glyph (#729), and the words stay its accessible name. */
   searchLabel?: string;
@@ -72,7 +77,7 @@ export type AppShellProps = AppShellNav & {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
-  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, account, accountItems = [], onSignOut,
+  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
   const uid = useId();
@@ -175,7 +180,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
   </button></div>;
   const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
     {back && <BackLink {...back} />}
-    {tools ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div> : <h1>{title}</h1>}
+    {title != null && (tools
+      ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div>
+      : <h1>{title}</h1>)}
     {lede && <p className="ui-app__sub">{lede}</p>}
     {actions && <div className="ui-react-app__actions">{actions}</div>}
     <div className="ui-app__body">{children}</div>
@@ -203,9 +210,10 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
 
   // The sidebar holds the shell's own controls (#732): the head control before the fold,
   // the band control under the head, and the account at its foot, with the theme switch
-  // in the account menu. The band keeps search in its centre, and on a phone the mark, the
-  // page title, search and Menu. The menu panel puts the head control in its own head.
+  // in the account menu. The band keeps search in its centre and the band actions at its
+  // right end, and on a phone the mark, the page title, search, the actions and Menu. The menu panel puts the head control in its own head.
   // With no sidebar, the band keeps them all.
+  const ends = bandActions && <div className="ui-react-app__band-actions">{bandActions}</div>;
   const control = bandControl && <div className="ui-react-app__control" inert={collapsed}>{bandControl}</div>;
   return <div className={`ui-app ui-app--topbar ui-react-app${collapsed ? ' is-collapsed' : ''}`}>
     {navigable && <div className="ui-app__rail" role="region" aria-label="Sidebar">
@@ -228,14 +236,16 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
           <kbd className="ui-cmdk__key">{paletteHotkey()}</kbd>
         </button>
         <span className="ui-app__bar-gap" />
+        {navigable && ends}
         {navigable ? <Button ref={menuButton} variant="ghost" icon="menu" iconOnly aria-label="Menu" className="ui-app__menu"
           aria-haspopup="dialog" aria-expanded={menu} onClick={() => setMenu(true)} /> : <>
           {bandControl && <span className="ui-react-app__band-control">{bandControl}</span>}
           {headControl && <span className="ui-react-app__band-control">{headControl}</span>}
+          {ends}
           <ThemeToggle />
           <div className="ui-app__user ui-app__user--bar"><Dropdown variant="menu" align="end" chevron={false}
-            ariaLabel={`Signed in as ${account.name}, ${account.email}`} title={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
-            triggerContent={<span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span>}
+            title={`Signed in as ${account.name}, ${account.email}`} triggerClass="ui-app__user-trigger" panelClass="ui-app__user-panel"
+            triggerContent={<><span className="ui-sr">{`Signed in as ${account.name}, ${account.email}`}</span><span className="ui-app__av" aria-hidden="true"><Avatar personKey={account.email || account.name} name={account.name} size={32} /></span></>}
             header={<div className="ui-dropdown__head"><b>{account.name}</b><span>{account.email}</span></div>}
             items={[...ownItems, { label: 'Sign out', value: 'sign-out', icon: 'logout', danger: true }]} onSelect={pick} />
           </div>

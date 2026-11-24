@@ -7,6 +7,7 @@ import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
 import { StatBand } from '../../react/src/primitives/StatBand';
 import { FileDrop } from '../../react/src/FileDrop';
+import { TextField } from '../../react/src/Field';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 
@@ -26,6 +27,9 @@ const Delete = ({ text }: { text: string }) => <Stage>
 const Export = ({ sub }: { sub: string }) => <Stage><Card title="Export payouts" sub={sub}>
   <div className="ui-toolbar"><Button icon="download">Export CSV</Button></div>
 </Card></Stage>;
+const Code = ({ width }: { width?: string }) => <Stage><Card title="Bank details">
+  <TextField label="Currency code" defaultValue="EUR" style={width ? { width } : undefined} />
+</Card></Stage>;
 
 const specimens = [
   { id: 'short-controls', do: () => <Save label="Save invoice" />, dont: () => <Save label="Click here to save your invoice" /> },
@@ -37,6 +41,7 @@ const specimens = [
     dont: () => <Delete text="Think carefully before proceeding." /> },
   { id: 'remove-filler', do: () => <Export sub="Exports include only filtered rows." />,
     dont: () => <Export sub="Export quickly and easily." /> },
+  { id: 'field-length', do: () => <Code width="8ch" />, dont: () => <Code /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Text length', parameters: { layout: 'fullscreen' } };

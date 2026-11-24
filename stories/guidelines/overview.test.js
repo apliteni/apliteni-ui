@@ -98,13 +98,18 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 152: Dense tables gained control-size (#822). Button labels gained one-shape (#823).
   // 151: Component choice lost one-category (#832).
   // 152: The page gained sidebar (#843).
-  assert.equal(rules, 152);
-  // Each is named. Dashboards and reports asks every report for an export and
-  // the Stock screener has none (#555). The kit has no unread row weight and no
-  // dropdown error part (#798). This list empties as each lands.
+  // 153: The page gained bar-end (#847). Labels and titles gained category-compact (#852).
+  // 155: The page gained branded-background (#850).
+  // 160: Session expired added five rules (#854).
+  // 161: The page gained sign-in-note (#850).
+  // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
+  // 163: Text length gained field-length (#850).
+  assert.equal(rules, 163);
+  // Each is named. The kit has no unread row weight and no dropdown error part
+  // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);
   assert.deepEqual(gaps.map(rule => `${rule.id} #${rule.unmet.issue}`),
-    ['report-offers #555', 'read-state #798', 'failed-load #798'],
+    ['read-state #798', 'failed-load #798'],
     'update the Overview when a rule becomes unmet or its gap closes');
 });
 

@@ -61,6 +61,28 @@ test('a panel rule that pins `bottom` releases `top` in the same rule', () => {
   }
 });
 
+/* A row names its item in the body weight, as the browser's own list does; the closed
+   field's value keeps its own rule (#852). Every rule that weighs a row label is a subject.
+   Limit: this reads this sheet only; a consumer rule or an inline style is outside it. */
+test('a row label takes the body weight in every rule that weighs it', () => {
+  const subjects = RULES.filter((r) => /\.ui-dropdown__label$/.test(r.selector) && decl(r, 'font-weight'));
+  assert.ok(subjects.some((r) => r.selector === '.ui-dropdown__label'), 'the sheet must weigh the row label itself');
+  for (const rule of subjects) {
+    assert.match(decl(rule, 'font-weight'), /^(var\(--weight-normal\)|400|normal)$/, `${rule.selector} sets a heavier row label`);
+  }
+});
+
+/* Groups are set apart by space, not a rule (#852). Limit: reads the declaration, not layout. */
+test('a group stands apart from the one before it by space and draws no rule', () => {
+  const subjects = RULES.filter((r) => /\.ui-dropdown__section\b/.test(r.selector));
+  const between = subjects.find((r) => /~\s*\.ui-dropdown__section/.test(r.selector));
+  assert.ok(between, 'the sheet has no rule between two groups');
+  assert.equal(decl(between, 'margin-top'), 'var(--space-4)');
+  for (const rule of subjects) {
+    assert.equal(decl(rule, 'border-top'), null, `${rule.selector} draws a rule between groups`);
+  }
+});
+
 test('both directions read one gap, so neither can drift from the other', () => {
   const panel = RULES.find((r) => splitSelectorList(r.selector).includes('.ui-dropdown__panel'));
   const gap = decl(panel, '--ui-dropdown-gap');

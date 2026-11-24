@@ -16,11 +16,10 @@ const TIP_GAP = 8;
  * beside the mark, such as a cut table cell, does not bound it.
  *
  * Otherwise `host` must be the box the readout is positioned in: the three custom
- * properties below are written in its coordinates. `bound` narrows the
- * measurement to one element, for a part that keeps its readout inside itself.
+ * properties below are written in its coordinates.
  * why: docs/components.md#tooltip
  */
-export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bound?: Element, placement: 'top' | 'bottom' = 'top'): void {
+export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, placement: 'top' | 'bottom' = 'top'): void {
   const mrect = mark.getBoundingClientRect();
   const view = host.ownerDocument.documentElement;
   const declared = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap'));
@@ -41,13 +40,6 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, bou
     clip.left = Math.max(clip.left, left);
     clip.right = Math.min(clip.right, left + el.clientWidth);
     clip.bottom = Math.min(clip.bottom, top + el.clientHeight);
-  }
-  if (bound) {
-    const edge = bound.getBoundingClientRect();
-    clip.top = Math.max(clip.top, edge.top);
-    clip.left = Math.max(clip.left, edge.left);
-    clip.right = Math.min(clip.right, edge.right);
-    clip.bottom = Math.min(clip.bottom, edge.bottom);
   }
   const above = mrect.top - clip.top;
   const below = clip.bottom - mrect.bottom;

@@ -115,7 +115,9 @@
 /* ============================================================================
  * DARK THEME (default) — deck palette from viz/index.html
  * ========================================================================== */
+/* A ThemeChoice scene draws this theme inside a page of either theme. */
 :root,
+.ui-theme-choice__scene--dark,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
@@ -149,11 +151,19 @@
      hold over EVERY opaque ground, which is why this is a token and not a context rule.
      Measured in stories/code-chip.test.js. */
   --wash-code-bg: var(--bg);
+  --code-chip-page: var(--surface);  /* a chip on the page takes the card */
+  --code-chip-surface: var(--bg);    /* a chip in a painted container takes the page */
+  /* The auth page's branded ground, brand C: a 135-degree gradient a product may override. */
+  --ui-auth-ground: linear-gradient(135deg, color-mix(in srgb, var(--color-apliteni-violet-1) 32%, var(--bg)), color-mix(in srgb, var(--color-apliteni-blue-1) 24%, var(--bg)));
+  /* The document page's bare backdrop, behind the A4 sheet: the same sunken rung a
+     table takes inside a viewer, named once so a page reads it as its own ground. */
+  --ui-document-ground: var(--surface-2);
   --surface-2: #161520;     /* non-text sunken marks and tracks */
   --surface: #211e2d;       /* the card */
   --bg-elevated: #2a2639;   /* FLOATING — menus, panels, drawer, modal, toasts */
   --surface-3: #2d293c;     /* non-text quiet fills */
   --seg-active-bg: #383350; /* raised pill — clearly above the inset track in dark */
+  --nav-active-fill: var(--surface); /* one rung off the page the open rail stands on */
   /* The raised handle on a control track (switch knob). White in both themes and under
      every accent: it reads on the plain track AND on the accent fill of an on control. */
   --control-knob: #ffffff;
@@ -369,6 +379,7 @@
  * A document sheet (.ui-card__page) takes this palette in both themes: the document
  * is paper, so it stays white with dark ink on a dark stage too. Decided on #736.
  * ========================================================================== */
+.ui-theme-choice__scene--light,
 .ui-card__page,
 :root[data-theme="light"] {
   color-scheme: light;
@@ -394,15 +405,23 @@
      ON, and separates the panel that floats over it by role — its two-step edge and
      its drop — rather than by a rung it has nothing left to pay for. See issue #448.
      why: docs/foundations.md#elevation */
-  --bg: #f2f3f6;
-  --table-bg: #ffffff;
-  --table-code-bg: var(--bg);
-  --wash-code-bg: var(--surface);
+  --bg: #ffffff;           /* the page takes the card's white, #850: --surface is #ffffff here, written out because gates read --bg without var() substitution */
+  --table-bg: var(--bg);   /* a table is flush with the page */
+  --table-code-bg: var(--surface-3); /* a chip in a table takes a quiet fill: page and card are one white now */
+  --wash-code-bg: var(--surface-3);   /* a chip on a wash takes a quiet fill for the same reason */
+  --code-chip-page: var(--surface-3); /* #850: page and card are one white, so a chip takes the quiet fill */
+  --code-chip-surface: var(--surface-3);
+  /* The auth page's branded ground, brand C: a 135-degree gradient a product may override. */
+  --ui-auth-ground: linear-gradient(135deg, var(--color-apliteni-violet-7), var(--color-apliteni-blue-8));
+  /* The document page's bare backdrop, behind the A4 sheet: the same sunken rung a
+     table takes inside a viewer, named once so a page reads it as its own ground. */
+  --ui-document-ground: var(--surface-2);
   --surface-2: #e9ecf3;     /* non-text sunken marks and tracks */
   --surface: #ffffff;       /* the card */
   --bg-elevated: #ffffff;   /* FLOATING — menus, panels, drawer, modal, toasts */
   --surface-3: #eef0f5;     /* non-text quiet fills */
   --seg-active-bg: #ffffff; /* white pill raised above the grey track in light */
+  --nav-active-fill: var(--surface-3); /* one rung off the white page, #850 */
   --control-knob: #ffffff;
   --border: #e4e7ee;
   --border-strong: #cdd2dc;
@@ -603,7 +622,7 @@
  * it is not using itself, and the chip keeps a step wherever it is written. The page hands
  * over the card below; every painted container hands over the page, in the recipe under it.
  * Held by stories/code-chip.test.js. why: docs/foundations.md#elevation */
-:root { --code-bg: var(--surface); }
+:root { --code-bg: var(--code-chip-page); }
 
 /* Every painted container hands an inline code chip the page. One recipe keeps surface
  * propagation cheap and consistent. The ring is not in this list since #578: an outline
@@ -614,9 +633,6 @@
 .ui-app__rail,
 .ui-auth__card,
 .ui-callout,
-.ui-card,
-.ui-card--accent,
-.ui-card--live,
 .ui-card__page,
 .ui-cmdk__panel,
 .ui-confirm__panel,
@@ -625,6 +641,7 @@
 .ui-dropdown__panel,
 .ui-fbcomposer,
 .ui-filter-bar__chip,
+.ui-float-bar,
 .ui-footer--app,
 .ui-seg,
 .ui-snippet--reveal,
@@ -639,7 +656,23 @@
 .ui-toast--outline,
 .ui-toast--solid,
 .vsw__menu {
-  --code-bg: var(--bg);
+  --code-bg: var(--code-chip-surface);
+}
+
+/* #850: a card on the page draws no box, so a chip inside one sits on the page and takes
+ * the same surface a chip on the page takes. #850's review keeps the dark card's own
+ * paint, so a chip inside one takes the page, the rung below it — --code-chip-surface is
+ * the page's chip in dark and the page's chip in light, where the two agree. The split
+ * auth's plain half and its shell paint the page for the same reason, and a tinted card
+ * keeps the plain card as its step. */
+.ui-card {
+  --code-bg: var(--code-chip-surface);
+}
+.ui-card--accent,
+.ui-card--live,
+.ui-auth--split,
+.ui-auth--split .ui-auth__pane {
+  --code-bg: var(--code-chip-page);
 }
 
 /* The two painted grounds that are not a plain card, and what each has left to hand over.
@@ -669,10 +702,8 @@
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:not(.is-target):has(> .ui-table__selection :checked):hover > :is(td, th) { --code-bg: var(--table-bg); }
 /* A hovered row in a drawer group takes --surface in dark, so a chip there keeps the page.
    The drawer adds no weight, so a checked row keeps the hand-off above. */
-:where(.ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--bg); }
+:where(.ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--code-chip-surface); }
 :where(:root[data-theme="light"] .ui-drawer .ui-drawer__section) .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) tbody tr:hover:not(.is-target) > :is(td, th) { --code-bg: var(--surface); }
-.ui-card--accent,
-.ui-card--live,
 .ui-snippet--reveal { --code-bg: var(--surface); }
 
 /* A wash is not a rung: it is a layer the kit paints OVER one, and it paints behind a chip

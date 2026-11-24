@@ -4,6 +4,7 @@ import { SET_GLOBALS, GLOBALS_UPDATED } from 'storybook/internal/core-events';
 import { INSPECTOR_TOOL_ID, INSPECTOR_TOOL_TITLE, renderInspectorToggle } from './inspector-toggle.jsx';
 import { THEME_TOOL_ID, THEME_TOOL_TITLE, renderThemeToggle } from './theme-toggle.jsx';
 import { redirectedSearch } from './redirects.js';
+import { drawnTheme } from './theme-choice.js';
 
 // An old component link lands on its React story. This runs as the manager's entry
 // loads, before its router reads the address, so the reader never sees "not found".
@@ -122,7 +123,7 @@ const CONFIG = {
 // can adapt its accent tints too.
 let current = 'dark';
 const apply = (t) => {
-  const next = t === 'light' ? 'light' : 'dark';
+  const next = drawnTheme(t);
   if (next === current) return;
   current = next;
   try { document.documentElement.setAttribute('data-sbtheme', next); } catch (e) { /* no-op */ }

@@ -5,6 +5,7 @@ import { Button } from '../../react/src/primitives/Button';
 import { Segmented } from '../../react/src/Segmented';
 import { Pad, Title } from '../_page';
 import { ACCENT, accentVars, type AccentStops } from './sub-themes.js';
+import { drawnTheme } from '../../.storybook/theme-choice.js';
 
 const meta: Meta = { title: 'Foundations/Sub-themes', parameters: { layout: 'fullscreen' } };
 export default meta;
@@ -45,7 +46,7 @@ function Panel({ name, theme }: { name: keyof typeof ACCENT; theme: 'dark' | 'li
 
 export const Overview: StoryObj = {
   render: (_args, ctx) => {
-    const theme = ctx?.globals?.theme === 'light' ? 'light' : 'dark';
+    const theme = drawnTheme(ctx?.globals?.theme);
     return <Pad>
       <Title>Accent sub-themes</Title>
       <p style={{ color: 'var(--dim)', marginBottom: 32, maxWidth: '64ch' }}>The <code style={{ fontFamily: 'var(--font-mono)' }}>data-accent</code> attribute works independently of dark and light. Here are all four accents at once. Only the accent family moves; surfaces, text and signal colours (green = live) stay put. Flip <b>Theme</b> in the toolbar to see them in light or dark.</p>

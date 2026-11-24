@@ -8,7 +8,15 @@
   background: var(--code-bg); /* code-bg: inherit — a block reads the ground its container hands a chip, and holds no chip. */
   border-radius: var(--radius-md);
   overflow: hidden;
+  /* The bar and the titleless flex row position the copy button; a titleless
+     block holds the button in flow beside the code. */
+  position: relative;
 }
+/* #850: with no title the copy button reserves its own space instead of floating
+   over the code, so a short command is never covered at any width. The block is a
+   flex row: the code grows, and the button sits at the row's end. */
+.ui-snippet:not(:has(.ui-snippet__bar)) { display: flex; align-items: flex-start; }
+.ui-snippet:not(:has(.ui-snippet__bar)) pre { flex: 1 1 auto; min-width: 0; order: -1; }
 .ui-snippet__bar {
   display: flex;
   justify-content: space-between;
@@ -18,11 +26,18 @@
   border-bottom: 1px solid var(--card-edge);
 }
 .ui-snippet__bar > span {
-  /* rank: label */
+  /* rank: caption */
   font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--text);
+  font-weight: var(--weight-normal);
+  /* muted-ink: chrome — the title names the block, not its content */
+  color: var(--muted);
 }
+/* #850: the light page is one white ground, so a code block takes the quiet grey fill
+   --surface-3 and drops the line under its bar. The grey is the one exception to "Keep
+   text off grey fills": a block is a sample a reader does not write inside, and its own
+   inks clear 4.5:1 on the grey (the lowest is 5.22:1). why: docs/foundations.md#elevation */
+:root[data-theme="light"] .ui-snippet:not(.ui-snippet--reveal) { --code-bg: var(--surface-3); }
+:root[data-theme="light"] .ui-snippet:not(.ui-snippet--reveal) .ui-snippet__bar { border-bottom: 0; }
 .ui-snippet pre {
   margin: 0;
   padding: var(--space-3) 15px 14px;
@@ -48,6 +63,8 @@
 :root[data-theme="light"] .ui-snippet pre { --ui-snippet-edge: color-mix(in srgb, var(--shadow-ink) 13%, transparent); }
 /* The reveal block wraps, so it never scrolls and draws no shade. */
 .ui-snippet--reveal pre { background-image: none; }
+/* #850: a command a reader copies whole wraps instead of scrolling one cut line. */
+.ui-snippet--wrap pre { white-space: pre-wrap; word-break: break-all; }
 /* Scrollable code is a keyboard target, but a <pre> flush with the card and
    without its radius draws a square ring that cuts across the card and squares
    its corners. The card carries the ring instead, so it follows --radius-md and
@@ -84,6 +101,18 @@
 .ui-snippet--reveal .ui-snippet__copy:hover { color: var(--strong); }
 .ui-snippet__copy:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .ui-snippet__copy svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.8; }
+/* The drawn confirmation: check and the word Copied for about 2s. The word is a
+   state the button shows, not its name, which stays the copy action. */
+.ui-snippet__copied { margin-inline-start: 4px; }
+/* #850: a title is optional, so a block with none puts the copy button at the
+   end of the code's own row — the bar is gone, and the button is in flow, so it
+   reserves its space and the code never runs under it. It grows leftward while
+   it shows the word, shrinking the code row rather than covering it. */
+.ui-snippet:not(:has(.ui-snippet__bar)) .ui-snippet__copy {
+  position: static;
+  flex: none;
+  margin: var(--space-2) var(--space-2) 0 0;
+}
 
 /* Shell token highlighting (matches viz/account.mjs classes) */
 .ui-snippet pre .k { color: var(--purple-mid); font-weight: var(--weight-medium); }

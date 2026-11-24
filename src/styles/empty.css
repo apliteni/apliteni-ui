@@ -67,6 +67,20 @@
   margin-top: 12px;
 }
 
+/* #850: a no-results state sits on the column edge with a larger display-face title
+   and no picture, so the words lead and the action stands on the reading line.
+   The title is an h2, so base.css gives it the display face. */
+.ui-empty--edge {
+  align-items: flex-start;
+  text-align: left;
+  padding: var(--space-6) 0;
+}
+.ui-empty--edge .ui-empty__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  margin-top: 0;
+}
+
 /* Legacy line-icon slot — kept so existing .ui-empty__icon markup still works.
    44px until #148. The icon inside is `width: 100%`, and that rule lost to the
    base.css reset for as long as this slot has existed, so the slot's number was

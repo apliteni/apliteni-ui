@@ -147,9 +147,11 @@ describe('links: React stories', () => {
     expect(bad, 'the link keeps no ring without the delegation').not.toEqual([]);
   });
 
-  // The stories are dealt over eight tests so none judges them all; the last reads their results.
+  // The stories are dealt over several tests so none judges them all; the last reads
+  // their results. The catalogue grew past eight parts (#850 added the split sign-in),
+  // so a part of eight re-judged enough stories to pass its 5s ceiling under load.
   const after: { id: string; bad: string[] }[] = [];
-  const PARTS = 8;
+  const PARTS = 16;
   for (let part = 0; part < PARTS; part++) {
     it(`deleting the element-wide rule is judged on its share of stories, part ${part + 1} of ${PARTS}`, () => {
       expect(carrier, `no kit sheet claims the ring for ${sel}`).toBeTruthy();

@@ -433,6 +433,13 @@
 /* The tools wrap at the narrowest phone, so a period picker and a view action stay in the column. #832 */
 .ui-app__tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: var(--space-3); max-width: 100%; }
 .ui-app__body { display: flex; flex-direction: column; gap: var(--space-5); }
+/* #850: on the light page a card draws no box, so the body opens to the page's group gap.
+   why: docs/foundations.md#spacing-and-rhythm */
+:root[data-theme="light"] .ui-app__body { gap: var(--space-10); }
+/* A stat band closes one section, so the block after it keeps the group gap on
+   top of the body's: the air the old soft line used to give, now as space alone.
+   why: guidelines/dashboards-and-reports.md, #850 */
+.ui-app__body > .ui-stats + * { margin-top: var(--space-8); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
    inside itself. This is what keeps the shell narrower than the window. */
@@ -457,7 +464,11 @@
    there the gap is the page's bottom and nothing is being narrowed. tap-zone.css
    widens it on a touch phone. why: docs/foundations.md#spacing-and-rhythm */
 :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
+:root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }
 .ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
+/* A filter bar inside its table's card sits one inner gap above the table, the
+   same step the card title keeps above the bar. why: guidelines/dense-tables.md */
+.ui-card > .ui-toolbar:not(:last-child) { margin-bottom: var(--space-2); }
 .ui-toolbar > .ui-input,
 .ui-toolbar > .ui-input-group { flex: 1 1 6rem; min-width: 0; }
 /* A row that offers the block two unrelated things — what to narrow it by, and
@@ -497,6 +508,28 @@
   .ui-toolbar--split > :nth-last-child(2) { flex: 1 1 60%; min-width: 0; }
   .ui-toolbar--split > .ui-seg:nth-last-child(2) { max-width: max-content; }
   .ui-toolbar--split > :last-child { margin-inline-start: 0; align-self: start; }
+}
+
+/* A floating bar: a slim control row that docks at the bottom of its scroll region and
+   floats over the content above it — a viewer's page steps, a sheet's primary actions.
+   It stays visible while the content scrolls, and reads as the elevated surface the
+   kit's menus take. why: docs/foundations.md#elevation, #850 */
+.ui-float-bar {
+  position: sticky;
+  bottom: var(--space-4);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: max-content;
+  max-width: 100%;
+  margin-inline: auto;
+  margin-bottom: var(--space-4);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  border: 1px solid var(--float-edge);
+  box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
 }
 
 /* -- The phone shell ------------------------------------------------------ */
@@ -637,6 +670,50 @@
   padding: 40px 20px;
   position: relative;
   overflow: hidden;
+  /* Brand C: the branded ground behind a dialog-only page. A product may override
+     --ui-auth-ground with its own colour or gradient. why: docs/foundations.md#elevation */
+  background: var(--ui-auth-ground, var(--bg));
+}
+/* The split auth page: the brand half wears the branded ground, and the task half is
+   the plain page with no card box. Below 860px the pair stacks, so the brand half
+   becomes a band at the top. why: docs/foundations.md#breakpoints */
+.ui-auth--split {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  place-items: stretch;
+  padding: 0;
+  background: var(--bg);
+}
+.ui-auth--split .ui-auth__brand-pane {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: clamp(48px, 7vw, 120px);
+  background: var(--ui-auth-ground, var(--bg));
+}
+.ui-auth--split .ui-auth__tagline {
+  margin: 0;
+  /* display: brand — the slogan on the branded half is the brand's own voice, set like
+     the wordmark beside it and not as reading prose. */
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: 1.05;
+  letter-spacing: var(--tracking-tight);
+  font-weight: var(--weight-bold);
+  color: var(--strong);
+}
+.ui-auth--split .ui-auth__pane {
+  display: grid;
+  place-items: center;
+  place-content: center;
+  padding: 40px 20px;
+  background: var(--bg);
+}
+.ui-auth--split .ui-auth__pane > * { width: 100%; max-width: var(--panel-md); }
+@media (max-width: 860px) {
+  .ui-auth--split { grid-template-columns: 1fr; place-items: start; }
+  .ui-auth--split .ui-auth__brand-pane { width: 100%; padding: 32px 20px; }
+  .ui-auth--split .ui-auth__pane { width: 100%; place-items: start; }
 }
 .ui-auth__card {
   position: relative;
@@ -654,17 +731,39 @@
 }
 .ui-auth__brand { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; }
 .ui-auth__brand span { font-size: var(--text-md); font-weight: 600; color: var(--strong); }
-.ui-auth__title { color: var(--strong); font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.01em; margin-bottom: 7px; }
+/* Consent: the brand stands on the gradient above the card, and the card's title
+   and its text line under it are centred. why: docs/foundations.md#elevation */
+.ui-auth--brand-above { grid-template-rows: auto 1fr; row-gap: var(--space-5); }
+.ui-auth--brand-above > .ui-auth__brand { margin-bottom: 0; }
+.ui-auth--brand-above .ui-auth__title { text-align: center; }
+.ui-auth--brand-above .ui-auth__sub { text-align: center; }
+.ui-auth__title {
+  color: var(--strong);
+  /* rank: page-title */
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  letter-spacing: var(--tracking-tight);
+  margin-bottom: 7px;
+}
 .ui-auth__sub { color: var(--text); font-size: var(--text-base); line-height: 1.55; margin-bottom: 26px; }
 .ui-auth__foot { margin-top: 24px; text-align: center; font-size: var(--text-sm); color: var(--text); }
 .ui-auth__foot a { color: var(--accent); }
-.ui-divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--text); font-size: var(--text-xs); }
+/* #850: "or" keeps its two lines and stands centred at the label rank, with the group gap
+   above and below it. why: docs/foundations.md#spacing-and-rhythm */
+.ui-divider { display: flex; align-items: center; gap: 14px; margin: var(--space-10) 0; color: var(--text); font-size: var(--text-sm); font-weight: var(--weight-medium); }
 .ui-divider::before, .ui-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+/* The document page's bare full-bleed backdrop, behind the A4 sheet it carries.
+   why: docs/foundations.md#elevation */
+.ui-document-ground { background: var(--ui-document-ground); /* code-bg: inherit — a backdrop behind the document sheet; nothing reads a ground from it. */ }
 
 /* App scope grant list (OAuth consent) */
 .ui-scopes { display: flex; flex-direction: column; gap: 2px; margin: 4px 0 8px; }
 .ui-scope { display: flex; gap: 13px; padding: 13px 4px; }
 .ui-scope + .ui-scope { border-top: 1px solid var(--border); }
+/* #850: on the light page no hairline between scope rows; the rows separate by space. */
+:root[data-theme="light"] .ui-scope + .ui-scope { border-top: 0; }
 .ui-scope__icon {
   width: 38px; height: 38px; flex: none;
   border-radius: 11px;

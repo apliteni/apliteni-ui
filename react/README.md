@@ -682,6 +682,20 @@ cannot change an earlier paint.
 <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
 ```
 
+## ThemeChoice
+
+ThemeChoice shows the theme as three picture cards on a settings page: System, Light
+and Dark. It reads and stores the choice as ThemeToggle does, with the same key, the
+same root attributes and the same event.
+
+```tsx
+import { Card, ThemeChoice } from '@apliteni/apliteni-ui/react';
+
+<Card title="Theme"><ThemeChoice /></Card>
+```
+
+`label` names the radio group, `Theme` by default.
+
 ## AppShell
 
 AppShell includes the kit’s rail and top band. Pass the current router pathname so the longest matching section path becomes active. Spread the props from `renderLink` onto your router link. The rail’s folded state is saved in a shared cookie. On phones, the bar shows up to four sections. If there are more, it shows three sections and a More sheet. Provide no more than one primary page action. The palette defaults to section links; pass `palette` to add custom commands. Import both the kit CSS and React CSS.
@@ -924,8 +938,14 @@ one series at text size with no axis, for a stat band's `trend` slot.
 The numbers are yours and so is the wording. `format` prints exact values in the readout, the
 live region and the table; `formatAxis` prints the ticks, which are whole units, and defaults
 to `format`. A `bars-below` series takes positive magnitudes and is drawn under the zero line.
-A period marked `estimated` keeps its series fill with a dashed edge. The legend names the state.
-The readout and the optional table show the state and its `note`.
+A period marked `estimated` keeps its solid mark in the series ink. `estimated: 'incomplete'` marks
+the period that is still running, `'projected'` a future period, and `true` any other estimate.
+A months chart draws one solid line before the first period that is not final, with "Not final"
+over that group. The readout and the optional table say "Incomplete", "Projected" or
+"Estimated", followed by the `note`. A period with `compare: false` shows its value in the
+readout with no comparison. A months chart fits its card and does not scroll: it prints fewer
+period labels where they do not fit, and `values` prints each bar's value where it fits. Any
+other chart of periods that is wider than its card opens at its latest period.
 
 A bar series names a tone. Each tone has its own hue: `accent` is blue and `accent-soft` is
 cyan, so two series read apart by hue. `good` and `bad` say which way

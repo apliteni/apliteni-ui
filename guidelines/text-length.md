@@ -61,3 +61,15 @@
 **Do:** “Exports include only filtered rows.”
 
 **Don't:** “Export quickly and easily.”
+
+## Size a field to its input
+
+<!-- rule: field-length -->
+
+**Rule:** Size a field to its expected input, so a short code gets a short field.
+
+**Why:** A field wider than its input reads as an empty box, and it takes the width denser controls need.
+
+**Do:** A short field that fits a currency code.
+
+**Don't:** The same field grown across the card.

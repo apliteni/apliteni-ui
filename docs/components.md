@@ -58,8 +58,9 @@ Neither attribute changes the type. `--font-display` is for headings and brand m
 `--font-sans` is for all text that the user reads, and `--font-mono` is for code. The package
 does not ship the font files, so your page loads them. See [Typefaces](foundations.md#typefaces).
 
-Use `ThemeToggle` to let the user choose the theme. Put `THEME_INIT_SCRIPT` in a `<script>` in
-the `<head>`, so the first paint has the stored theme. Use `AccentPicker` to let the user choose
+Use `ThemeToggle` to let the user choose the theme from a bar. Use [`ThemeChoice`](#theme-choice)
+on a settings page. Put `THEME_INIT_SCRIPT` in a `<script>` in the `<head>`, so the first paint has
+the stored theme. Use `AccentPicker` to let the user choose
 the accent. It calls `onChange`. Your page sets `data-accent` and stores the choice. `ACCENTS`
 from the root entry lists the accent names.
 
@@ -164,7 +165,8 @@ in their own row under the title. `back` puts a [back link](#back-link) above th
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top
 of every account menu. A row takes `href` to go to a page, or `onSelect` to open something in
 place. A separator stands before Sign out. In the topbar layout, a Theme row opens a submenu with
-Auto, Light and Dark.
+Auto, Light and Dark. The account button's name is "Signed in as", the name and the address. It
+holds each line of text that the button shows, and the menu takes the same name.
 
 **Topbar layout only.**
 
@@ -177,6 +179,19 @@ Auto, Light and Dark.
   reload. If your `palette` sets its own `onNavigate`, the shell uses that one.
 - `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
   head, before the fold button.
+- `bandActions` puts glyph controls, such as a notification bell, at the right end of the band,
+  in each sidebar structure and at every width. With a sidebar, they stand before the menu
+  button, and search keeps the centre of the band while it has room. Where the band is short of
+  room, search moves off the centre and shrinks, and never goes under an action. With no
+  sidebar, they stand before the theme switch. Put one or two there, and give each one a hover
+  title. Each action there is a 40px square with a 17px glyph, a `Button` and a dropdown trigger
+  alike, and the glyph stays in the centre of its square with or without a count. A count in a
+  dropdown trigger is a red pill on the trigger's top end corner, with a 2px ring in the band's
+  colour that cuts it from the glyph. The focus ring passes under it, so no ring line crosses the
+  digits. A long count, such as 99+, grows over the glyph and stays clear of the next control.
+  Give the trigger a name that holds the count it shows, such as "Notifications, 99+ unread".
+  Below 560px,
+  each action is a 40px glyph with no border and keeps a 44 by 44px tap zone.
 
 **Routing.** `renderLink` lets your router draw each section and sub-item link.
 
@@ -187,7 +202,7 @@ Auto, Light and Dark.
   name and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
   column, so a click beside it reaches the page.
 - At 720px and below, the sidebar goes away and a 52px band shows. In the topbar layout, the band
-  holds the brand mark, the page title on one line, the search trigger and a menu button. In the
+  holds the brand mark, the page title on one line, the search trigger, the band actions and a menu button. In the
   rail layout, it holds only the menu button and the mark. The menu button opens the full section
   list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
   layout and the left in the rail layout. `drawerSide` chooses the side in either layout. The
@@ -290,9 +305,14 @@ name, and its menu shows each name with its badge and a tick on the chosen one. 
 ### Auth shell
 
 Use `AuthShell` for a sign-in or sign-up page. It centres one card and puts the brand above it.
+`split` puts the brand on the branded ground beside the task, which stands on the plain page with
+no card box, and `tagline` is the slogan under the brand. `brandAbove` stands the brand on the
+ground above the card and centres the title with a line under it. The ground is
+`--ui-auth-ground`, a gradient that a product may override with its own colour or gradient.
 
 ```tsx
 <AuthShell brand={<img src="/logo.svg" alt="Example" />}><SignInForm /></AuthShell>
+<AuthShell split tagline="Access the design system with your work account." brand={logo}><SignInForm /></AuthShell>
 ```
 
 ### Footer
@@ -321,8 +341,9 @@ action goes to another page. Use [`Dropdown`](#dropdown) for a list of actions, 
 <Button variant="primary" icon="download" busy={exporting} onClick={exportRows}>Export</Button>
 ```
 
-`variant` is `primary`, `secondary`, `ghost`, `danger` or `link`. `size` is `xs`, `sm`, `md` or
-`lg`. `icon` puts a glyph before the label and `iconRight` after it. `leading` puts your own
+`variant` is `primary`, `secondary`, `outline`, `ghost`, `danger` or `link`. `outline` draws an
+edge and no fill, so an icon-only control keeps a boundary on a flat ground. `size` is `xs`,
+`sm`, `md` or `lg`. `icon` puts a glyph before the label and `iconRight` after it. `leading` puts your own
 decorative content before the label, and it wins over `icon`. `block` fills the row.
 
 **Links.** With `href`, the button is an `<a>` with the button classes. Without `href`, it is a
@@ -393,8 +414,8 @@ dropdown must have a search field: [Component choice](../guidelines/component-ch
 ```
 
 `items` is a list of rows. A row has `label`, and can have `value`, `description`, `icon`,
-`avatar`, `badge`, `selected` and `disabled`. `'---'` is a separator. `sections` groups rows under
-captions. `header` and `footer` add content above and below the rows. `onSelect` gets the value
+`avatar`, `badge`, `muted`, `selected` and `disabled`. `'---'` is a separator. `sections` groups
+rows under captions, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
 trigger off: no keyboard stop, no panel and the disabled paint.
 
@@ -422,8 +443,17 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
   or a transition.
+- A row names its item in the body weight, as a native list does. A group caption is a compact
+  label in body ink.
 - Each row answers the pointer with a fill and draws no edge. A destructive row turns `--pink` on
   hover and focus. In forced colours a separator stays a visible line.
+
+**Muted or disabled.** Use `muted` for a row that the user can still pick but that is no
+longer current, such as an archived unit for a late invoice. Give it the state word:
+`muted: 'Archived'`. The row keeps its name in body ink and shows the word in a state badge after
+it. The row stays in the keyboard order. After a pick, the trigger shows `Cedar Studio (Archived)`.
+Use `disabled` for a row that the user cannot pick now. A disabled row is faded, and the arrow
+keys skip it.
 
 **Search.** `search` adds a text field above the rows. Typing filters the rows, and the focus stays
 in the field. The match is anywhere in the label, without case or accents. Descriptions are not
@@ -505,6 +535,11 @@ label and the value as its name, and the error gives it the invalid edge. In a f
 trigger has the height of a text input and keeps the pill corner. A long value stays on one line
 and ends with an ellipsis.
 
+**A list of options in `SelectField`.** The browser draws the open list, so the kit does not
+style an `<option>`. For an option that the user can still pick but that is no longer current,
+write the state word in its text: `<option>Cedar Studio (Archived)</option>`. Do not disable it.
+Name a group with `<optgroup label="Studios">`, not with a disabled option.
+
 **Keyboard and screen reader.** The component makes the ids and points the label, the hint and the
 error at the control. The error has `role="alert"`, so a new error is announced and the focus does
 not move.
@@ -524,7 +559,9 @@ Use `TextField type="search"` with a label there.
 
 `ariaLabel` is required, because no visible label names the field. `size="sm"` is the field above
 a dense table. With a mouse it is 32px high with `--text-sm`. On a touch screen it is 40px high with
-16px text, because iOS zooms into a field with smaller text. The field has no clear button of its
+16px text, because iOS zooms into a field with smaller text. `width` sizes the whole group, icon
+included, for a field that should fit its expected input instead of growing across the toolbar row;
+give it a CSS width such as `24ch`. The field has no clear button of its
 own, because the browser draws one. See [Toolbar](#toolbar).
 
 ### Checkbox and switch
@@ -636,6 +673,29 @@ wider. A long label wraps inside its own option.
 keys move and choose, wrap at the ends and skip disabled options. Home and End go to the first and
 last enabled option. In forced colours the chosen option uses the system highlight colours.
 
+### Theme choice
+
+Use `ThemeChoice` for the theme on a settings page. Use `ThemeToggle` in a bar. Use `Segmented`
+for other preferences.
+
+```tsx
+<Card title="Theme"><ThemeChoice /></Card>
+```
+
+`label` names the group, `Theme` by default. The choice applies and is stored at once, as with
+`ThemeToggle`, so the page needs no Save.
+
+**What the user sees.** Three cards in one row at every width: System, Light and Dark. Each card is
+a small picture of a page in that theme, drawn from the theme's tokens, with its name under it.
+System is half light and half dark. The chosen card has a fill, and its name is in strong, heavier
+ink. Hover gives another card half that fill. The first and last pictures sit on the card's text
+edges. The fill extends 8 px into the card's padding, and the focus ring extends 3 px more. So put
+the group in a padded container, such as `Card`.
+
+**Keyboard and screen reader.** One named radio group, with one Tab stop on the chosen card. The
+arrow keys move and choose. The focus ring is the kit's band around the card, and nothing else.
+In forced colours the chosen card's name takes the system highlight colour.
+
 ### Tabs
 
 Use `Tabs` when each choice shows a different block of content on the same page. Use
@@ -705,7 +765,25 @@ row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, a
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
-toolbar stands 8px above the block that it controls, or 20px on a touch phone below 560px.
+toolbar stands 8px above the block that it controls, on the page or inside its card, or 20px on a touch phone below 560px.
+
+### Floating bar
+
+Use `.ui-float-bar` for a slim control row that docks at the bottom of its scroll region and
+floats over the content above it: a viewer's page steps and zoom, or a sheet's primary actions. It
+stays visible while the content scrolls.
+
+```tsx
+<div className="ui-float-bar">
+  <Button variant="ghost" iconOnly icon="minus" aria-label="Zoom out" />
+  <span>100%</span>
+  <Button variant="ghost" iconOnly icon="plus" aria-label="Zoom in" />
+</div>
+```
+
+**What the user sees.** The bar is a centred pill on the kit's floating surface, so it reads above
+the content it floats over. Put it last in a column and pin it with `margin-top: auto` so it docks
+at the column's foot. It never wraps, and it sits one spacing step above the edge it docks to.
 
 ## Content and status
 
@@ -731,9 +809,20 @@ titled card puts its Chart and Table switch there.
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
 line below 360px.
 
+**A row glyph.** Use `.ui-card__glyph` for a muted mark at the end of a card row, such as the
+chevron that opens a detail page; it is 18px with a 2-unit stroke, so it clears the glyph floor.
+Use the bare `check` glyph in body ink for a granted check. Use `.ui-link--quiet` for a name in
+the row that links to its detail page: body ink at rest, underlined under the pointer.
+
+**A soft line between blocks.** Give the block the class `ui-hairline` to draw a straight line
+across the column width on its top edge, with one inner gap of air under it. Use it above a
+closing block, such as a revoke or delete area, and between tight page blocks, such as a row of
+figures and the filter row under it. The line is `--border` in light and none in dark.
+
 **A document in a card.** Wrap a `.ui-toolbar` and a `.ui-table-scroll` in `.ui-card__viewer`, and
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a
-white sheet with dark text in both themes, with A4 proportions at the least.
+white sheet with dark text in both themes, with A4 proportions at the least. For a document on a
+bare full-bleed backdrop instead of a card, use `.ui-document-ground`.
 
 ### Badge, pill and status dot
 
@@ -756,8 +845,8 @@ Use `Avatar` to show a person beside their name. Do not use it in place of the n
 <Avatar personKey={user.id} name="Dana Reyes" src={user.photo} size={32} />
 ```
 
-**What the user sees.** A filled circle with the first and last initials, 24px or 32px. The hue
-comes from `personKey`, the stable id of the person, so one person keeps one hue on every screen.
+**What the user sees.** A filled circle with the first and last initials, 24px, 32px or 48px. The
+hue comes from `personKey`, the stable id of the person, so one person keeps one hue on every screen.
 The letters are readable on each hue in both themes and under every accent. A name with no letters
 shows the `user` glyph. `empty` shows a dashed ring for "no one". A `src` photo covers the letters,
 and the letters show when the photo does not load. The top bar account button, its menu and the
@@ -930,6 +1019,12 @@ destructive question.
 body scrolls, and the title, the close control and the footer stay visible. The title is an `h2`.
 `initialFocusRef` chooses the first focus.
 
+`size="sm"` gives a 360px panel for a short sign-in form. Without `size`, Modal uses its default
+wide panel.
+
+**On a phone.** At 560px and narrower, with a coarse pointer, each footer button has a 44px tap
+zone. The buttons keep their drawn size.
+
 ### Confirm
 
 Use `Confirm` before a destructive action that the page must stop for. Use
@@ -941,7 +1036,8 @@ Use `Confirm` before a destructive action that the page must stop for. Use
 ```
 
 It is an `alertdialog`. The safe action gets the focus and stands before the committing action.
-`onConfirm` only reports the press. You save, show errors and close.
+`onConfirm` only reports the press. You save, show errors and close. The answers are the modal's
+footer buttons, so on a phone each one has a 44px tap zone.
 
 ### Drawer
 
@@ -978,8 +1074,10 @@ tooltip or a picker already used closes only that overlay. The next Escape close
 
 ### Account window
 
-Use `AccountWindow` for account and settings. Do not make account and settings a page of the
-product: [Account and settings](../guidelines/account-and-settings.md).
+Use `AccountWindow` for an account area of several groups. When the account area is only a
+profile and a few preferences, open a Profile page and a Preferences page in the app shell from
+the account menu, with no second navigation column:
+[Account and settings](../guidelines/account-and-settings.md).
 
 ```tsx
 <AccountWindow open={open} onClose={close} reader={{ name: 'Dana Reyes', email: 'dana@example.com' }}
@@ -1079,7 +1177,8 @@ least 4.5:1 on a plain or a selected row.
 **Scrolling.** With `stickyHeader` or `pinnedIdentity`, the table stands in a named scroll region.
 `pinnedIdentity` pins the first column, or the column whose key you give. A table wider than its
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
-region can scroll. Below 720px a pinned cell keeps one line and is cut at
+region can scroll. When the region is scrolled, the next column's text stops one cell padding
+short of the divider. Below 720px a pinned cell keeps one line and is cut at
 `--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
 frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
@@ -1094,14 +1193,19 @@ sortable header label is cut with an ellipsis before its sort mark is.
 selection boxes are kit checkboxes. The header box shows the dash when some rows of the page are
 selected. A dense table marks a selected row only with its box.
 
-**Links in cells.** A link in a cell uses the row's ink, gets an underline on hover and the ring on
-focus. A `.ui-table__sub` puts a second value under the first, such as an email under a name.
-`.ui-table__pair` groups a reference and a status, and stacks them when the cell is narrow.
+**Links in cells.** A link in a cell, including a reference, uses the row's ink, gets an underline
+on hover and the ring on focus. A `.ui-table__sub` puts a second value under the first, such as an
+email under a name. `.ui-table__pair` groups a reference and a status, and stacks them when the
+cell is narrow.
 
-**Keyboard and screen reader.** The scroll region takes the focus and draws the ring inside its
-edge, so the arrow keys, a trackpad and a finger reach the same columns.
+**Keyboard and screen reader.** When its content overflows, the scroll region takes the focus and
+draws the ring inside its edge, so the arrow keys, a trackpad and a finger reach the same columns.
+When the content fits, also after a resize, the region is not a Tab stop. A control in the region
+that takes the focus by keyboard or by script scrolls fully into view.
 
 **In a card.** The table reaches the card's edges, and its end cells keep the card's text edge.
+At 560px and narrower, a row table's end cells pad by 16px, so its first column starts 8px
+outside the card's text edge. A row table has hover and is neither zebra nor dense.
 `.ui-card--fit` makes the card end at the table's content.
 
 ### Pagination
@@ -1135,14 +1239,16 @@ totals of a list in the table's footer rows, not in a stat band.
 ```
 
 `variant` is `tiles`, the default, with each figure on its own card, `band` on one card, or `open`
-with no surface and a larger value. No variant draws a rule over a figure or between figures. Space
-and the value divide them, also in a card and when the figures fold. A figure has `label`, `value`,
-`caption`, `delta` and `trend`.
+with no surface and a larger value. A figure has `label`, `value`, `caption`, `delta` and `trend`.
+All figures read at one size.
 
 **What the user sees.** A value never wraps and is never cut. The words under it give way first. A
 change shows an arrow from the sign that you print, and its colour follows your `tone` only. A
 figure with nothing to compare shows no change row, never `+0%`. A figure shows at most one line
-under its value. Use a caption only for a unit, a period or a limit that the figure cannot say.
+under its value. A row of tiles keeps a soft line around each tile, also on the light page where a
+lone card draws none. An open band draws no rule over a figure, on a page or in a card: space and
+the value divide the figures. On the light page it also draws a vertical soft line between figures
+in a row, and none where the figures fold onto a new row. Use a caption only for a unit, a period or a limit that the figure cannot say.
 `trend` is a slot for a small chart, such as a `Chart variant="spark"`.
 
 **Say what a change compares with.** Put it once for the band in `basis`, or with `basisId` point
@@ -1150,7 +1256,8 @@ at text before the figures. A caption comes before the figures. A hover `title` 
 When a period control already states the window, do not repeat it.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
-flex row or an `auto` grid track:
+flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
+keeps one group gap of air below the figures, on top of the body's own gap.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
@@ -1179,10 +1286,10 @@ chart has the title. `format` prints exact values in the readout, the live regio
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | none: bars per period with a line across them | |
+| `months` | `periods`, `series` | none: columns per period with a line across them, fitted to the card | |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
-| `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end, and a chart that scrolls opens on its latest period | `thin` |
+| `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
 | `area` | `periods`, `series` | `flat`, each series from zero; `curves`, each series from zero as a smooth curve with a point on each value; `stacked`; `share`, each column is 100% | `stacked` |
 | `stacked` | `periods`, `series` | `columns`; `share`, each column is 100%; `rows`, a bar for each period | `columns` |
 | `donut` | `slices` | `thin`, the total in the centre; `table`, a list of the shares beside the ring; `labels`, the name, value and share at each slice | `table` |
@@ -1202,18 +1309,36 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** A bar is never wider than a mark, so a wider card adds space between
-columns. `legend` shows the legend. A period with `estimated` keeps its fill with a dashed edge, and
-the readout and the table show its `note`. A switch at the top right shows the same numbers as a
-chart or as a table. In a titled `Card`, the switch stands in the card's title row. `table={false}`
-removes the switch and the table. `selectable` with `selected` and `onSelect` lets the user pick a
-column, which gets a band behind it. At phone widths the plot scrolls and the value axis stays.
+**What the user sees.** In `months`, every period shares the card's width, so the plot never
+scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
+Where the period labels do not fit, the chart prints every second, third or later label, counted
+from the first period that is not final, or from the latest period. Set `values` to print each
+bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
+that grows down. A value takes at most half the space to the next value,
+at the 12px text size, and stays inside the plot. A value that does not fit there is left out.
+The readout and the table always show it. A chart that prints no value gives that room to its
+bars. `legend`
+shows the legend. A period with `estimated` keeps its solid mark in the series
+ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
+future period, or to `true` for any other estimate. In `months`, one solid line stands before the
+first period that is not final, and the words "Not final" stand over that group. Put the periods
+that are not final last. The hover and keyboard readout and each table row say "Incomplete",
+"Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
+the period before it. Set `compare: false` on a period to show its value with no comparison text.
+A switch at the top right
+shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
+card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
+and `onSelect` lets the user pick a column, which gets a band behind it. In the other variants, at
+phone widths the plot scrolls and the value axis stays. A chart of periods that is wider than its
+card opens at its latest period. A bridge opens at its opening total.
 
 **Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when
 `selectable` is set. A plot that scrolls adds one more Tab stop for the scroll box. On a touch
-screen, the first tap on a mark opens its readout and does not call `onSelect`. Every value is
-reachable at full strength by pointer or keyboard.
+screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
+new tap on the same mark opens its readout again. Every value is
+reachable at full strength by pointer or keyboard. A readout in a scrolling region stays fully
+visible over the region and opens above its mark when that space is available.
 
 ### Table values
 

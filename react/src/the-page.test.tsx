@@ -63,7 +63,7 @@ const GATED: { id: string; says: string }[] = [
 ];
 
 // The floors are what the tree holds today, not a round number underneath it.
-const FOUND = { files: 11, screens: 31, apps: 25, ledes: 22, sidebars: 29 };
+const FOUND = { files: 11, screens: 31, apps: 25, ledes: 15, sidebars: 29, bandEnds: 3 };
 
 describe('the page: React screens', () => {
   it('found the kit’s own screens', () => {
@@ -92,6 +92,38 @@ describe('the page: React screens', () => {
     doc.body.innerHTML = '<nav class="ui-nav ui-nav--side" aria-label="Sections"><div class="ui-nav__section">'
       + '<div class="ui-nav__cap">Money</div><ul class="ui-nav__list"><li><ul class="ui-nav__sub"></ul></li></ul></div></nav>';
     expect(CHECKS.sidebar({ ...drawn[0], where: 'mixed', doc })).toHaveLength(1);
+  });
+
+  // `bar-end` only reads a band with actions, so this counts them, and a worded page
+  // button or a third control at the band's end must fail it.
+  it('the bar-end check reaches band actions and refuses a page button', () => {
+    const drawn = screens.filter((s) => s.doc.querySelector('.ui-react-app__band-actions'));
+    expect(drawn.length, 'screens with band actions').toBeGreaterThanOrEqual(FOUND.bandEnds);
+    const doc = document.implementation.createHTMLDocument('worded');
+    doc.body.innerHTML = '<header class="ui-app__bar"><div class="ui-react-app__band-actions">'
+      + '<button aria-label="Notifications">3</button><button>New report</button><button aria-label="Help"></button></div></header>';
+    expect(CHECKS['bar-end']({ ...drawn[0], where: 'worded', doc })).toHaveLength(2);
+  });
+
+  // `branded-background` also reads the split layout's brand half, so a control
+  // standing on that branded ground must fail it.
+  it('the branded-background check reaches the split brand pane and refuses a control', () => {
+    const drawn = screens.filter((s) => s.kind === 'auth');
+    const doc = document.implementation.createHTMLDocument('brand');
+    doc.body.innerHTML = '<div class="ui-auth ui-auth--split">'
+      + '<aside class="ui-auth__brand-pane"><div class="ui-auth__brand">Example</div><button>Sign in</button></aside>'
+      + '<div class="ui-auth__pane"><h1>Sign in</h1></div></div>';
+    expect(CHECKS['branded-background']({ ...drawn[0], where: 'brand', doc })).toHaveLength(1);
+  });
+
+  // `sign-in-note` reads the foot under the sign-in form, so a note that names
+  // one domain must fail it.
+  it('the sign-in-note check reaches the foot and refuses a product domain', () => {
+    const drawn = screens.filter((s) => s.kind === 'auth');
+    const doc = document.implementation.createHTMLDocument('named');
+    doc.body.innerHTML = '<div class="ui-auth__card"><h1>Sign in</h1>'
+      + '<div class="ui-auth__foot">Only apliteni.com accounts can sign in.</div></div>';
+    expect(CHECKS['sign-in-note']({ ...drawn[0], where: 'named', doc })).toHaveLength(1);
   });
 
   for (const rule of GATED) {

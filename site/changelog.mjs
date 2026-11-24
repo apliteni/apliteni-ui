@@ -6,9 +6,94 @@
 
 export const RELEASES = [
   {
-    v: '0.183.0', date: '2026-11-21',
+    v: '0.191.0', date: '2026-11-24',
     changes: [
-      ['changed', 'An open `StatBand` no longer draws a rule over each figure. Space and the larger value divide the figures, on a page and in a card. Each product that shows `variant="open"` loses the rules when it updates. Resolves #849.', ['StatBand']],
+      ['changed', 'In the dark theme, an open `StatBand` no longer draws a rule over each figure, so neither theme draws one. Space and the larger value divide the figures, also in a card. Each product that shows `variant="open"` loses the rules when it updates. Resolves #849.', ['StatBand']],
+    ],
+  },
+  {
+    v: '0.190.0', date: '2026-11-22',
+    changes: [
+      ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],
+      ['added', '`Modal` takes `size="sm"` for a 360px panel when a short sign-in form must stay narrow. Other Modals keep their default width. Resolves #854.', ['Modal']],
+      ['changed', 'The light theme page is now white, and the card surface is the same white. A page groups its content with space and edges instead of card fills. This changes the look of every light-theme screen, so a screen that sized or shaded against the old grey page or the old white cards must be reviewed. The dark theme is unchanged. Resolves #850.', ['Card', 'Table']],
+      ['changed', 'In the light theme, a code block keeps its quiet grey fill: a reader never writes in one, so the grey does not read as disabled, and its ink still clears 4.5:1. Resolves #850.', ['Snippet']],
+      ['added', 'A sign-in page takes a split layout: a branded panel with the wordmark and a tagline stands beside the form on wide screens and above it on phones. Resolves #850.', ['Card']],
+      ['added', '`Button` takes `outline`, a transparent fill with a visible edge, for a glyph-only button on a flat ground. Resolves #850.', ['Button']],
+      ['changed', '`Snippet` no longer needs a `label`. A `Snippet` without one now shows no title; it used to show "shell". Resolves #850.', ['Snippet']],
+      ['changed', 'A `Snippet` bar title now reads as a muted caption instead of a label, so it names the block without competing with its code. Resolves #850.', ['Snippet']],
+      ['changed', 'A card that holds a table directly now has square top corners, so the table reads as a straight data grid instead of a rounded card. Resolves #850.', ['Card', 'Table']],
+      ['fixed', 'In light, a hover table held directly in a card no longer clips its last row against the card edge. The dark theme keeps its full-bleed table. Resolves #850.', ['Table']],
+      ['changed', 'A `Snippet` copy button now shows a check with the word "Copied" for about two seconds after a copy, then returns to the copy glyph. Resolves #850.', ['Snippet']],
+      ['changed', 'A `StatBand` tile row draws every figure at one size and, in light, keeps a soft line around each tile, so tightly placed figures stay separate. Resolves #850.', ['StatBand']],
+      ['added', '`AppShell` no longer needs a `title`. Omit it and the shell draws no title band, so a full-bleed page can own its own heading. Resolves #850.', ['AppShell']],
+      ['added', 'The page guideline gains two rules: Brand the background behind a dialog page, and The sign-in note names who can sign in. The colour guideline lets a code block keep its grey fill in light. Resolves #850.', ['Guidelines']],
+      ['added', '`Card` gains `.ui-card__glyph` for a muted 18px row glyph with a 2-unit stroke. A granted check in a row is the kit\'s bare `check` glyph in body ink. `.ui-link--quiet` draws a name link in body ink, underlined only on hover. Resolves #850.', ['Card']],
+      ['added', '`.ui-hairline` draws a straight soft line across the column width in light above a block that stands apart from the one above it — a closing card, or a row of figures above the filter row — with one inner gap of air under it. Dark keeps the card box. Resolves #850.', ['Card']],
+      ['changed', 'A card row that ends in a role badge or a row glyph now keeps that mark beside the content it names, at one spacing step, instead of pushing it to the row\'s far edge. Resolves #850.', ['Card']],
+      ['changed', 'A link inside `.ui-table__pair` — a reference beside a status — now reads in the row\'s ink like any other cell link, underlined only on hover, instead of accent ink. Resolves #850.', ['Table']],
+      ['changed', 'An open `StatBand` in light now separates figures in a row with a vertical soft line. Dark keeps its rule over each figure. Resolves #850.', ['StatBand']],
+      ['added', '`--ui-document-ground` token and `.ui-document-ground` class paint a bare full-bleed backdrop behind a document sheet, so a page reads its own ground instead of re-declaring a surface. Resolves #850.', ['Card']],
+      ['changed', 'A one-column `KeyValueList` keeps each value beside its label at every width. On a phone it used to stack the label above the value; only the two-column variant still stacks there. Resolves #850.', ['KeyValueList']],
+      ['changed', 'On a phone, a card row that ends in a row glyph keeps the glyph on the row\'s first line at the right end, vertically centred, instead of dropping it under the content. Resolves #850.', ['Card']],
+      ['added', '`SearchField` takes `width`, a CSS width for the whole group, for a field that should fit its expected input instead of growing across the toolbar row. Resolves #850.', ['SearchField']],
+      ['added', '`.ui-float-bar` is a slim control row that docks at the bottom of its scroll region and floats over the content above it, so a viewer\'s page steps stay visible while the document scrolls. Resolves #850.', ['Toolbar']],
+      ['changed', 'The Finance report and dashboard separate their figures, filter row and table with space alone, and each sizes its search field to a reference or sale ID instead of the row width. Resolves #850.', ['Toolbar', 'SearchField']],
+      ['changed', 'A filter bar placed inside a card now sits one inner gap above the table it filters, the same step the card title keeps above it, instead of meeting the table with no gap. Resolves #850.', ['Toolbar', 'Card']],
+      ['changed', 'A block after a `StatBand` on a page now keeps one group gap of air below the figures, on top of the body\'s own gap, so the figures read as their own section on the white page. Resolves #850.', ['StatBand']],
+      ['added', 'The Text length guideline gains a rule: size a field to its expected input, so a short code gets a short field. Resolves #850.', ['Guidelines']],
+      ['changed', 'The Finance report and dashboard now draw their search field, filter selects and export button at the kit\'s small size, and the export is a ghost icon button with no outline, matching their dense tables. Resolves #850.', ['Toolbar', 'Button', 'SearchField']],
+      ['added', 'The Finance dashboard now draws a spend-by-category chart from the kit `Chart` between its figures and its exceptions table, with the legend on and the chart-and-table switch available. Resolves #850.', ['Chart']],
+    ],
+  },
+  {
+    v: '0.188.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'A `Chart` readout in a scrolling table now opens over the table and above its mark when room is available. The readout stays fully visible instead of being cut on the last row. Part of #853.', ['Chart', 'Table']],
+    ],
+  },
+  {
+    v: '0.187.0', date: '2026-11-22',
+    changes: [
+      ['fixed', 'On a phone, Modal and Confirm foot buttons have a 44px tap zone and keep the same look. Part of #853.', ['Modal', 'Confirm']],
+    ],
+  },
+  {
+    v: '0.186.0', date: '2026-11-22',
+    changes: [
+      ['added', 'A `Dropdown` row takes `muted`, a state word such as `\'Archived\'`, for an item that the user can still pick but that is no longer current. The row keeps its name in body ink, shows the word in a state badge and stays in the keyboard order. After a pick, the trigger shows the word after the name. Resolves #852.', ['Dropdown']],
+      ['changed', '`Dropdown` rows now name their items in the normal weight, as a native list does. The chosen value in a closed field keeps its weight. Space now sets a group apart from the one before it, in place of a rule. Resolves #852.', ['Dropdown']],
+      ['fixed', 'In light, a state badge on the row that Enter picks in a search dropdown now reads 4.5:1 or more. It was 4.37:1. Resolves #852.', ['Dropdown']],
+      ['added', 'The labels and titles guideline has a new rule, Keep category labels compact: a compact, nonselectable label in body ink, with space before the next category. The components guide says when to use a muted item and when to use a disabled item. Resolves #852.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.185.0', date: '2026-11-22',
+    changes: [
+      ['added', '`AppShell` takes `bandActions`: glyph controls, such as a notification bell, at the right end of the band, in each sidebar structure and at every width. With a sidebar they stand before the menu button and search keeps the centre while it has room; with no sidebar they stand before the theme switch. Each action is a 40px square, and a count stands above the bell’s top corner, clear of the next control. Topbar layout only. Resolves #847.', ['AppShell']],
+      ['changed', 'With no sidebar, the band gives search 12px more room from 561px, so its words stay whole beside a band action. Refs #847.', ['AppShell']],
+      ['added', 'The page guideline has a new rule, Keep the bar’s end for product alerts: only glyph controls that serve every page, such as the bell, go there. Resolves #847.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.184.0', date: '2026-11-22',
+    changes: [
+      ['changed', 'A `Chart` period marked `estimated` keeps its solid mark in the series ink, with no dashed edge, dashed line or legend key. In a months chart, one solid line stands before the first period that is not final, and the words "Not final" stand over that group. Resolves #841.', ['Chart']],
+      ['added', 'A `Chart` period takes `estimated: \'incomplete\'` for the running period and `estimated: \'projected\'` for a future one. The readout and the table then say "Incomplete" or "Projected". A period with `compare: false` shows its value in the readout with no comparison text. Resolves #841.', ['Chart']],
+      ['changed', 'A months `Chart` fits its card and no longer scrolls. Its bars are one flat fill, two thirds of the column wide and at most 48px. Where the period labels do not fit, it prints fewer of them. Resolves #841.', ['Chart']],
+      ['added', 'A months `Chart` takes `values` to print each bar\'s value past its end, in `formatAxis`: over a bar that grows up from zero, and under one that grows down. A value that would meet the next value at the 12px text size is left out, and the readout and the table keep it. A chart that prints no value gives that room to its bars. Resolves #841.', ['Chart']],
+      ['fixed', 'A `Chart` readout opens above its mark whenever the window has room there, also over the chart\'s legend. Before, it opened below a mark near the top of the plot. Resolves #841.', ['Chart']],
+      ['fixed', 'On a touch screen, a new tap on a `Chart` mark opens its readout after Escape closed it, and a tap on another mark moves the readout while the chart has focus. Resolves #841.', ['Chart']],
+    ],
+  },
+  {
+    v: '0.181.0', date: '2026-11-21',
+    changes: [
+      ['added', 'React `ThemeChoice` shows the theme as three picture cards, System, Light and Dark, in one radio group. A choice applies and is stored at once, as with `ThemeToggle`. Resolves #845.', ['ThemeChoice']],
+      ['added', 'A Profile showcase and a reworked Preferences showcase. Each opens from the account menu as one page inside the app shell, with no second navigation column. Preferences chooses the theme with `ThemeChoice` and lists connections as setting rows. The account guideline now says to use these pages for a small account area and the account window for several groups. The account menu keeps a Theme submenu only where no page holds the theme. Resolves #845.', ['Guidelines']],
+      ['changed', 'At 560px and narrower, a segmented choice that stacks under its label in a card settings row now starts its first label on the row text edge. The choice moves 16px to the left, and its first pill extends into the card padding.'],
+      ['changed', 'A `DataTable` scroll region is a Tab stop only while its content overflows, also after a resize. A control in the region that takes the focus by keyboard or by script now scrolls fully into view. When a region with a pinned column is scrolled, the next column\'s text stops one cell padding short of the divider. Resolves #845.', ['DataTable']],
+      ['fixed', 'The `AppShell` account button takes its name from its content, so the name holds the text that the button shows. The name stays "Signed in as", the name and the address, and the account menu now has the same name. A `Dropdown` with `triggerContent` and no `ariaLabel` names its panel by the trigger. Resolves #845.', ['AppShell', 'Dropdown']],
     ],
   },
   {

@@ -117,8 +117,9 @@ for (const file of new Set(result.subjects.map(subject => subject.file))) {
 test('the chrome class stays on a drawing\'s own furniture', () => {
   // The fourth class was agreed for one shape: the scale and the key a chart
   // prints beside its marks, where every value it names is also given in full
-  // in the readout and in the values table. The one other use is a supporting
-  // card's title, as recorded in #458. A class with no bound is a second
+  // in the readout and in the values table. The other uses are a supporting
+  // card's title (#458) and a code block's bar title, which names the block
+  // rather than its content (#850). A class with no bound is a second
   // default, so the declarations taking it are listed rather than counted.
   // The caption is the rows look's periods and steps and the ring's caption, and
   // the shares' percent is the donut's key: both are in the values table (#742).
@@ -130,6 +131,7 @@ test('the chrome class stays on a drawing\'s own furniture', () => {
     'src/styles/chart.css .ui-chart__legend',
     'src/styles/chart.css .ui-chart__period',
     'src/styles/chart.css .ui-chart__shares-pct',
+    'src/styles/code.css .ui-snippet__bar > span',
   ]);
 });
 

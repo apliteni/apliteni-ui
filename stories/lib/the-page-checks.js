@@ -10,7 +10,7 @@ import { LIMITS } from '../guidelines/_the-page.js';
 // application at all. Anything else has built chrome of its own, which is the
 // `shell` rule's whole subject.
 export const kindOf = (doc) => (doc.querySelector('main.ui-app__main') ? 'app'
-  : doc.querySelector('.ui-auth__card') ? 'auth'
+  : doc.querySelector('.ui-auth__card, .ui-auth__pane') ? 'auth'
     : doc.querySelector('.ui-hero') ? 'marketing' : 'none');
 
 export const text = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
@@ -75,6 +75,20 @@ export const CHECKS = {
         + 'and sub-items. It takes one or the other.');
   },
 
+  // The band's right end holds glyph controls for every page, one or two of them, and
+  // no page's own button (#847). A word on a control there is a page action; a count
+  // such as 3 or 99+ is the bell's. A dropdown's panel is not on the band.
+  'bar-end'(s) {
+    return [...s.doc.querySelectorAll('.ui-react-app__band-actions')].flatMap((end) => {
+      const controls = [...end.querySelectorAll('button, a')].filter((el) => !el.closest('.ui-dropdown__panel'));
+      const worded = controls.filter((el) => /\p{L}/u.test(text(el)));
+      return [
+        ...(controls.length > 2 ? [`${s.where} puts ${controls.length} controls at the band's end. It takes two at most.`] : []),
+        ...worded.map((el) => `${s.where} puts "${text(el)}" at the band's end. A page's own button goes on the page.`),
+      ];
+    });
+  },
+
   // The column is the shell's, and the screen does not write one of its own. A page
   // that sets a width inside its own <main> has left the two names behind and is
   // carrying a third number nothing else in the kit knows about.
@@ -126,9 +140,10 @@ export const CHECKS = {
     }
 
     const shape = kids.map((el) => (el.matches('.ui-back') ? 'up'
-      : el.tagName === 'H1' ? 'title'
-        : el.matches('p.ui-app__sub') ? 'lede'
-          : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
+      : el.matches('.ui-app__title-row') ? 'title'
+        : el.tagName === 'H1' ? 'title'
+          : el.matches('p.ui-app__sub') ? 'lede'
+            : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
     // Each part may appear once, in this order: the index walks forward past the
     // one it just matched, so a second body — or a second title — is as much a
     // failure as one in the wrong place.
@@ -203,6 +218,32 @@ export const CHECKS = {
     return problems;
   },
 
+  // A dialog-only page's branded ground carries the mark and a slogan, never a
+  // control: the reader acts inside the dialog the ground stands behind. #850
+  'branded-background'(s) {
+    if (s.kind !== 'auth') return [];
+    const onGround = [...s.doc.querySelectorAll('.ui-auth > :is(button, input, select, textarea, .ui-btn), '
+      + '.ui-auth__brand-pane > :is(button, input, select, textarea, .ui-btn)')]
+      .filter((el) => !el.closest('.ui-auth__card, .ui-auth__pane'));
+    return onGround.map((el) => `${s.where} puts "${text(el)}" on the branded ground. `
+      + 'A control stays inside the dialog; the ground carries only the mark and a slogan.');
+  },
+
+  // The sign-in note says who may sign in. Naming one domain ties the note to
+  // one product, and the note breaks when another app uses the screen. #850
+  'sign-in-note'(s) {
+    if (s.kind !== 'auth') return [];
+    const foots = [...s.doc.querySelectorAll('.ui-auth__foot')].filter((el) => !inOverlay(el));
+    return foots.flatMap((el) => {
+      const words = text(el);
+      if (/\b[\w-]+\.[a-z]{2,}\b/i.test(words)) {
+        return [`${s.where} names a domain in the sign-in note ("${words}"). `
+          + 'The note states who can sign in without naming the product.'];
+      }
+      return [];
+    });
+  },
+
   navs(s) {
     const problems = [];
     const seen = new Map();
@@ -272,7 +313,7 @@ export const CHECKS = {
     // required one, and this check used to. A line added only to satisfy a gate
     // is the restatement the rule exists to stop. The coverage test below is
     // what keeps the when-present half from passing on an empty set.
-    // why: Artur's r28 review of the Finance report, #505
+    // why: Artur's r28 review of the Report, #505
     if (!lede) return [];
     const problems = [];
     // Abbreviations end in a full stop and do not end a sentence. Counting

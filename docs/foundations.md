@@ -135,8 +135,8 @@ sentence case and renders as written. A word that is capitalised in itself stays
 | `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `AppShell` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
-| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title, a code sample's label |
-| `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav or menu caption, a footer column title |
+| `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot; a code block's title |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
 On the kit's scale, these are 30, 18, 14.5, 13, 13 and 12px. When two ranks share a size,
@@ -249,9 +249,10 @@ These fill ratios describe separation, not text contrast.
   provides legibility. The paint provides the state.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
-  therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1. This is
-  a white box on a grey page. **Put a form on a card.** A filter bar above a table is the one
-  exception. See [Forms](components.md#fields).
+  therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1, because
+  the light page is now as white as the field's fill, so only the edge draws the box.
+  **Put a form on a named surface: a card, a drawer panel or a modal.** A filter bar above a table is the one exception. See
+  [Forms](components.md#fields).
 - **The box reports the state, so a field that is off draws the fainter edge of the two.** The
   same two tokens paint a button, so a button that is off drops a rung with the field.
 - **A disabled select carries the kit's own paint and no fade**, also in Chromium, which fades
@@ -277,30 +278,43 @@ where columns scroll under its frame or its pinned column, in both themes. A ste
 | Level | Light line | Light shadow | Dark line | Dark shadow |
 | --- | --- | --- | --- | --- |
 | page | none | none | none | none |
-| card | `--level-line` | `--elev-rest` | `--border` | none |
+| card | none | none | `--border` | none |
 | rail | `--level-line`, right side | `--elev-rail` | `--border` | none |
 | menu, popover, drawer, toast | `--level-line`, one line | `--elev-drop` | `--border-strong` outside, `--border` inside | `--elev-drop` |
 | modal | `--level-line`, one line | `--elev-drop` | none, the deep scrim separates it | `--elev-drop` |
 
 Each level reads its line from one token in both themes: `--card-edge`, `--rail-edge`,
 `--float-edge`, `--float-edge-inner` and `--modal-edge`. Re-point the token to change the line
-of a level. The modal draws `--modal-edge` as an inset line.
+of a level. The modal draws `--modal-edge` as an inset line. On the light page, a card is a
+grouping of space, so it draws no line and no shadow; dark keeps the card's line. #850
 
 The ladder, from bottom to top:
 
 | Token | The step | Dark | Light |
 | --- | --- | --- | --- |
-| `--bg` | the page | `#0e0d14` | `#f2f3f6` |
+| `--bg` | the page | `#0e0d14` | `#ffffff` |
 | `--surface-2` | non-text sunken marks and tracks | `#161520` | `#e9ecf3` |
 | `--surface` | a card | `#211e2d` | `#ffffff` |
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
+
+`--ui-document-ground` names the bare backdrop behind a document sheet, and aliases
+`--surface-2` in both themes. Use the class `.ui-document-ground` to paint it, so a page reads
+its own ground rather than re-declaring the token. #850
+
+**The auth ground sits outside the ladder.** `--ui-auth-ground` is the gradient behind a
+sign-in or consent page, and the auth card floats over it. The default split sign-in ground C
+measures 1.60:1 to 1.51:1 in light and 1.08:1 to 1.04:1 in dark against the card, below the
+3:1 floor, and the owner chose C with those figures.
 
 **Text sits on the page, card or floating panel surface, never on a grey inset.** In both
 themes, fields, code blocks, navigation labels and segmented controls use those reading
 surfaces. `--surface-2` and `--surface-3` are for non-text fills and tracks. A status chip
 is the named exception. It uses a soft fill, and neutral chip tones use
 `--chip-neutral-fill`, which stays visible on a card and on a floating panel in both themes.
+A code block in the light theme is the other exception: it keeps the quiet `--surface-3`
+fill, because a reader never writes in one. Its ink clears 4.5:1 on that fill, with the
+lowest value 5.22:1.
 
 **A selected item is the one exception.** Selection is marked by a background highlight. An
 enabled chosen segmented pill takes the primary button's pair, `--accent-strong` with
@@ -338,8 +352,9 @@ declares it:
 
 | The ground | What it hands a chip | Token |
 | --- | --- | --- |
-| the page | the card | `--code-bg: var(--surface)` on `:root` |
-| a card, a panel, any painted container | the page | `--code-bg: var(--bg)` |
+| the page | the card in dark, a quiet fill in light | `--code-bg: var(--code-chip-page)` on `:root` |
+| a painted container | the page in dark, a quiet fill in light | `--code-bg: var(--code-chip-surface)` |
+| a card on the page | the page in dark, a quiet fill in light | `--code-bg: var(--code-chip-surface)` |
 | a table | the card in dark, the page in light | `--table-code-bg`, the pair of `--table-bg` |
 | a tinted card or snippet | the card it is a variant of | `--code-bg: var(--surface)` |
 | a translucent wash over any of them | the page in dark, the card in light | `--wash-code-bg` |
@@ -350,8 +365,8 @@ If you paint your own reading surface, give `--code-bg` the other surface. A tab
 draws, in both themes.
 
 **A tinted card stays above the page.** `.ui-card--accent` and `.ui-card--live` mix their
-colour into `--surface` through `--card-tint`. Dark can spend 9%. Light can spend 5%. Each
-variant edges itself in its own colour.
+colour into `--surface` through `--card-tint`. Dark can spend 9%. Light can spend 5%. On
+the light page, where a plain card draws no box, the tint is the one paint the card keeps.
 
 **The ladder is capped by ink.** `--muted` carries state and placeholder information. It
 clears AA on every step that the ladder raises. It is re-picked against the top of the

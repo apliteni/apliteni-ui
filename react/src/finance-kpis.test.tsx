@@ -1,4 +1,4 @@
-/* Rule: the finance report's figures are the kit's stat band, and so is the skeleton
+/* Rule: the report's figures are the kit's stat band, and so is the skeleton
  * that holds their place. The band owns the fold, measured and pinned in
  * src/styles/stat.test.js, so what is left to hold here is that the screen uses it and
  * brings no layout of its own. The React half of stories/apps/finance-kpis.test.js (#429).
@@ -18,11 +18,12 @@ const mount = (story: unknown) => {
   return box;
 };
 
-describe('the finance report figures', () => {
+describe('the report figures', () => {
   it('are a stat band, one figure per term', () => {
     const band = mount(Report.Default).querySelector('.ui-stats');
     expect(band, 'the screen no longer draws its figures with the kit band').not.toBeNull();
-    expect([...band!.querySelectorAll('dt')].map((d) => d.textContent)).toEqual(['Money in', 'Money out', 'Net result']);
+    // #850 layout A: Net result, Money in and Money out, all at one size.
+    expect([...band!.querySelectorAll('dt')].map((d) => d.textContent)).toEqual(['Net result', 'Money in', 'Money out']);
   });
 
   it('bring no layout of their own', () => {
@@ -46,8 +47,10 @@ describe('the finance report figures', () => {
     sanity.innerHTML = renderToStaticMarkup(<StatBand id="fk-sanity" basis="sanity" stats={[{ label: 'A', value: '1' }]} />);
     const captions = (root: Element) => root.querySelectorAll('.ui-stats__basis').length;
     expect(captions(sanity), '.ui-stats__basis no longer matches the caption a band with a basis draws').toBe(1);
-    expect(captions(figures), 'the report totals carry no caption (round r32), so its band must draw none').toBe(0);
+    expect(captions(figures), 'the report band carries no caption above its figures').toBe(1);
     expect(captions(loading), 'the skeleton reserves a different number of caption lines than the figures carry').toBe(captions(figures));
+    // #850 review line 24: each of the three figures carries a change.
+    expect(figures.querySelectorAll('.ui-stat__delta').length, 'the report band figures carry no change').toBe(3);
     expect(band!.querySelectorAll('.ui-stats__list > .ui-stat').length, 'the skeleton reserves a different number of figures than arrive')
       .toBe(figures.querySelectorAll('.ui-stat').length);
   });

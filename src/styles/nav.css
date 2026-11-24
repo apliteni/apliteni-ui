@@ -75,9 +75,9 @@
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/components.md#page-shell */
-.ui-nav__item:hover { background: color-mix(in srgb, var(--surface) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ color: var(--strong); }
+.ui-nav__item:hover { background: color-mix(in srgb, var(--nav-active-fill) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ color: var(--strong); }
 .ui-nav__item.is-active {
-  background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+  background: var(--nav-active-fill); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--strong);
   font-weight: 500;
 }
@@ -276,7 +276,7 @@
   height: 100%;
   border-radius: 10px;
   transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
-  background: var(--surface); /* code-bg: inherit — The plate contains no focus target. */
+  background: var(--nav-active-fill); /* code-bg: inherit — The plate contains no focus target. */
   z-index: -1;
 }
 /* Nothing switches the hover wash off here: since #588 a folded row is only as wide

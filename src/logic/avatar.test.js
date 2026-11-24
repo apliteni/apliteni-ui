@@ -34,13 +34,16 @@ test('letters: first and last word, one for a one-word name, none for no name', 
   assert.equal(avatarInitials(null), '');
 });
 
-const block = (start) => {
-  const i = TOKENS.indexOf(start);
+// A theme block opens on the last selector of its list, so other selectors may join the
+// list above it.
+const block = (last) => {
+  const i = TOKENS.indexOf(`${last} {`);
+  assert.ok(i >= 0, `tokens.css has a block that ends its selectors with ${last}`);
   return TOKENS.slice(i, TOKENS.indexOf('\n}', i));
 };
 const THEMES = {
-  dark: block(':root,\n:root[data-theme="dark"] {'),
-  light: block(':root[data-theme="light"] {'),
+  dark: block(':root[data-theme="dark"]'),
+  light: block(':root[data-theme="light"]'),
 };
 const lum = (hex) => {
   const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)

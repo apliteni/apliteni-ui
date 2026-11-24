@@ -351,9 +351,10 @@ test('a focused trigger draws no edge inside its ring, also invalid or under the
 
 test('an unavailable trigger keeps its off edge or borderless box in every scope', () => {
   // Six scopes since #812: the trigger in a form field is a scope of its own. Seven
-  // since #822: the small row's chip.
-  assert.equal(BY_SCOPE.size, 7, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 56);
+  // since #822: the small row's chip. Nine since #847: the band actions' borderless trigger,
+  // and its 40px phone glyph.
+  assert.equal(BY_SCOPE.size, 9, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 72);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
@@ -479,11 +480,11 @@ test('the live edge and the off edge are measured against each other and every g
     'dark off on --surface': 1.16,
     'dark off on --surface-2': 1.29,
     'dark off on --surface-3': 1.00,
-    'light rest on --bg': 1.37,
+    'light rest on --bg': 1.52,
     'light rest on --surface': 1.52,
     'light rest on --surface-2': 1.28,
     'light rest on --surface-3': 1.33,
-    'light off on --bg': 1.12,
+    'light off on --bg': 1.24,
     'light off on --surface': 1.24,
     'light off on --surface-2': 1.05,
     'light off on --surface-3': 1.09,
