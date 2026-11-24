@@ -268,9 +268,8 @@ only this gate's source half.
 
 No new factories, no parity tests for new React work. See #429.
 
-Add a general, composable kit component only when all three checks are true:
+Add a general, composable kit component only when both checks are true:
 
-- The issue names at least two products that use it or have requested it.
 - Existing components cannot provide it without copying their markup or logic.
 - It contains no domain-specific data or rules.
 
