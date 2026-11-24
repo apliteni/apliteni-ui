@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 93,
+    PARENTHESISED.length, 95,
     'the kit\'s parenthesised selector lists changed; the current set is one field-zoom rule, '
-    + 'six layout rail rules, two layout filter-bar gap rules, three layout rules for a wordless button on a toolbar (#831), four nav rules, fifty-eight table rules, five of them a table in a drawer group (#811), two the gap after a pinned divider (#832), three the column-flush table of #850 and two the restored dense-and-zebra flush, four finance composition rules, three tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule, one rule for the touch height of the button and segmented control of a small toolbar (#832) and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
+    + 'six layout rail rules, two layout filter-bar gap rules, three layout rules for a wordless button on a toolbar (#831), two layout rules for a toolbar before an open band (#849), four nav rules, fifty-eight table rules, five of them a table in a drawer group (#811), two the gap after a pinned divider (#832), three the column-flush table of #850 and two the restored dense-and-zebra flush, four finance composition rules, three tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule, one rule for the touch height of the button and segmented control of a small toolbar (#832) and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
