@@ -138,6 +138,8 @@ export async function storySubjects({ theme = 'dark' } = {}) {
 /** The stat band cases that the gate measures: each variant in each container. */
 export const STAT_VARIANTS = ['open', 'band', 'tiles'];
 export const STAT_PLACES = ['stack', 'card-stack', 'body', 'card'];
+/** And an open band in each Card that sets its own padding or paint. */
+export const STAT_CARDS = [['pad-lg', { pad: 'lg' }], ['accent', { variant: 'accent' }], ['live', { variant: 'live' }]];
 
 export async function rowFixtures() {
   const row = (id, html, style = '', theme) =>
@@ -181,8 +183,8 @@ export async function rowFixtures() {
     h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
   ] }));
   // A folded open band whose values are links, and one whose trend is a target: two
-  // neighbours a change's layer can reach. The first change is the short `1%`, the
-  // narrowest that a band draws (#849).
+  // neighbours of a change. The first change is the short `1%`, the narrowest that a
+  // band draws (#849).
   const stat = (n, extra) => ({ label: `Figure ${n}`, value: `€ ${n},000`, delta: { value: n === 1 ? '1%' : '+4%', tooltip: 'vs. last year' }, ...extra });
   const statLinks = await markup(({ h, kit }) => h(kit.StatBand, { variant: 'open',
     stats: [1, 2, 3].map((n) => stat(n, { value: h('a', { href: `#${n}` }, `€ ${n},000`) })) }));
@@ -202,6 +204,12 @@ export async function rowFixtures() {
       });
       for (const theme of ['dark', 'light']) statPlaces.push(row(`stat-${variant}-${place}-${theme}`, html, '', theme));
     }
+  }
+  for (const [name, props] of STAT_CARDS) {
+    const html = await markup(({ h, kit }) => h('div', { className: 'ui-stack' },
+      h(kit.Card, props, h(kit.StatBand, { variant: 'open', stats: [1, 2, 3].map((n) => stat(n)) })),
+      h('a', { href: '#next', style: { display: 'block' } }, 'Next block')));
+    for (const theme of ['dark', 'light']) statPlaces.push(row(`stat-card-${name}-${theme}`, html, '', theme));
   }
 
   return [

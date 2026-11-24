@@ -81,7 +81,6 @@
     .ui-datepicker__opt,
     .ui-app__search,
     .ui-back,
-    .ui-stat__delta .ui-tip-host > .ui-focusable,
     .toggle
   )::after {
     content: "";
@@ -291,23 +290,6 @@
      the room the shell leaves above the link and the room the page leaves below it.
      Across, it keeps the width it draws. #834 */
   .ui-back { --tap-clear-y: var(--space-3, 12px); }
-
-  /* A stat band's change that opens a tooltip is one 18px line. A value link ends 4px
-     above it and 24px of row gap lies below it, so the layer hangs down: 2px up, half
-     the gap to the link, and the rest into the row gap. It measures against the tooltip
-     host, whose box the focus ring's padding does not move. The host holds the arrow too,
-     so the shortest change, `0`, is 26 wide and reaches 44 across. The band opens nothing. #849 */
-  .ui-stat__delta { --tap-clear-x: var(--tap-gap); --tap-clear-y: calc(var(--tap-min) - 18px); }
-  .ui-stat__delta .ui-tip-host > .ui-focusable::after { top: -2px; transform: translateX(-50%); }
-  /* The layer needs 24px below the line. Over a trend 16px is all the room. Under the last
-     figures of a band with no padding below them, a .ui-stack leaves 16px and a dark card
-     stack 20: an open band, and on the light page a band or a card that ends in one. There
-     the layer stops at 36. A padded band or card, a tile, a light card stack's gap and a
-     page body's gap leave room for 44. */
-  .ui-stat__delta:has(+ .ui-stat__trend),
-  .ui-stack > .ui-stats--open:has(+ *) .ui-stat:nth-last-child(-n + 2) > .ui-stat__delta,
-  :root:not([data-theme="light"]) .ui-card-stack > .ui-stats--open:has(+ *) .ui-stat:nth-last-child(-n + 2) > .ui-stat__delta,
-  :root[data-theme="light"] .ui-stack > :is(.ui-stats--band, .ui-card:has(> :is(.ui-stats--open, .ui-stats--band):last-child)):has(+ *) .ui-stat:nth-last-child(-n + 2) > .ui-stat__delta { --tap-clear-y: calc(var(--space-4, 16px) + 2px); }
 
   .ui-app__bar,
   .topbar__in { --tap-clear-x: var(--space-3, 12px); --tap-clear-y: var(--space-3, 12px); }

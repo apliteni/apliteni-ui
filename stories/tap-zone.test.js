@@ -112,53 +112,6 @@ test('the bordered clearance reaches the floor from a padding box', () => {
   );
 });
 
-/* The room a stat change's layer has, from the sheets: 18.2px of line, the row gap below
- * it, and the trend's own padding. The limit: 2px up is half of the 4px that a browser
- * measured between an open band's value link and its change, at 390. */
-const statChange = (sheet) => {
-  const vars = readdirSync(path.join(root, 'src'), { recursive: true }).map(String).sort()
-    .filter((f) => f.endsWith('.css')).map((f) => decomment(read(`src/${f}`))).join('\n');
-  const num = (name) => Number.parseFloat(new RegExp(`${name}:\\s*([\\d.]+)`).exec(vars)?.[1]);
-  const px = (v) => new Function(`return ${v.replace(/var\((--[\w-]+)[^)]*\)/g, (_, name) => num(name))
-    .replace(/calc|px/g, '')}`)();
-  const stat = decomment(read('src/styles/stat.css'));
-  const of = (text, re) => px(re.exec(text)?.[1] ?? '0');
-  const line = of(stat, /\.ui-stat__delta \{[^}]*font-size:\s*([^;]+)/) * of(stat, /\.ui-stat__delta \{[^}]*line-height:\s*([^;]+)/);
-  const up = -of(sheet, /\.ui-stat__delta [^{}]*::after \{ top:\s*([^;]+)/);
-  const layer = (re) => Math.min(TAP_MIN, line + of(sheet, re));
-  const full = layer(/\n\s*\.ui-stat__delta \{[^}]*--tap-clear-y:\s*([^;]+)/);
-  const short = layer(/\.ui-stat__delta:has\(\+ \.ui-stat__trend\)[^{]*\{[^}]*--tap-clear-y:\s*([^;]+)/);
-  const wrong = [];
-  if (full < TAP_MIN) wrong.push(`the layer is ${full}px tall`);
-  if (up !== 2) wrong.push(`the layer reaches ${up}px up`);
-  if (full - line - up > of(stat, /\.ui-stats__list \{[^}]*gap:\s*(\S+)/)) wrong.push('the layer passes the row gap');
-  if (Math.abs(short - line - up - of(stat, /\.ui-stat__trend \{[^}]*padding-top:\s*([^;]+)/)) > 0.5) wrong.push(`the short layer is ${short}px tall, and does not end at the trend`);
-  // The short layer is for less than 24px of room: over a trend, or under a band with no
-  // padding in a .ui-stack or a dark card stack. An open band has none in either theme, and
-  // a light card none above or below. A light card stack's 40px leaves room for 44.
-  const shortList = /\n\s*(\.ui-stat__delta:has\(\+ \.ui-stat__trend\)[^{]*)\{/.exec(sheet)?.[1] ?? '';
-  for (const sel of splitSelectorList(shortList).slice(1)) {
-    if (!/^(?:\.ui-stack > \.ui-stats--open[:\s]|:root:not\(\[data-theme="light"\]\) \.ui-card-stack > \.ui-stats--open[:\s]|:root\[data-theme="light"\] \.ui-stack > )/.test(sel)) wrong.push(`the short layer reaches ${sel}`);
-  }
-  return wrong;
-};
-
-test('a stat change reaches 44 inside the room its figure leaves', () => {
-  assert.deepEqual(statChange(css), []);
-  for (const [from, to] of [
-    [/\n\s*\.ui-stat__delta \{[^}]*\}/, ''],
-    [/(\.ui-stat__delta [^{}]*::after \{) top: -2px;/, '$1'],
-    [/\n\s*\.ui-stat__delta:has\([^{]*\{[^}]*\}/, ''],
-    [/\.ui-stack > \.ui-stats--open:has/, '.ui-stats:not(.ui-stats--tiles):has'],
-    [/:root\[data-theme="light"\] (\.ui-stack > :is\(\.ui-stats--band)/, '$1'],
-    [/:root:not\(\[data-theme="light"\]\) (\.ui-card-stack > \.ui-stats--open)/, '$1'],
-  ]) {
-    const broken = css.replace(from, to);
-    assert.notEqual(broken, css, `${SHEET} no longer matches ${from}, so this mutation proves nothing.`);
-    assert.notDeepEqual(statChange(broken), [], `${from} taken out of ${SHEET} passed.`);
-  }
-});
-
 test('both floors are tokens, each written once', () => {
   const aa = css.match(/--tap-aa:\s*(\d+(?:\.\d+)?)px\s*;/);
   assert.ok(
@@ -601,7 +554,7 @@ test('the shrink check reads an edge-stopped side as a lower bound', async () =>
 const RUN = process.env.TAP_ZONES === '1';
 
 test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' }, async (t) => {
-  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name, shrinks, STAT_VARIANTS, STAT_PLACES } =
+  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name, shrinks, STAT_VARIANTS, STAT_PLACES, STAT_CARDS } =
     await import('./lib/tap-zone.js');
 
   const pw = await playwright();
@@ -632,7 +585,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 39,
+    fixtures.length >= 45,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -758,59 +711,42 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       );
     });
 
-    // A stat band's change: 44 both ways in a folded band, also the short `1%`, and 36 down
-    // where less than 24px lies below. That is under a trend, and under the last figures of
-    // a band with no padding in a .ui-stack or a dark card stack: an open band, and a light
-    // band or a light card that ends in one. Every other case leaves room for 44.
-    // A walk counts one pixel inside each edge, so 2 comes off a reach.
+    // A stat band's change with a tooltip is its own 44px target in the row on a touch phone,
+    // also the short `1%`: in a folded band, over a trend, in each variant in each container
+    // in both themes, and in a Card with its own padding or paint. No layer reaches past it.
     // The limit: the fixtures fold to one column, at 390 only.
-    const across = (b) => Math.floor(b.reach[0] - 2);
-    const downOf = (b) => Math.round(b.reach[1] - 2);
-    const CHANGE = '.ui-stat__delta .ui-tip-host > .ui-focusable';
-    const changes = (rows, id) => rows.filter((r) => r.story === `fixture:${id}` && r.fam.includes(CHANGE));
-    const unpadded = (variant, place, theme) => (place === 'stack' && (variant === 'open' || (variant === 'band' && theme === 'light')))
-      || (place === 'card-stack' && variant === 'open' && theme === 'dark')
-      || (place === 'card' && variant !== 'tiles' && theme === 'light');
-    const statCases = STAT_VARIANTS.flatMap((variant) => STAT_PLACES.flatMap((place) => ['dark', 'light']
-      .map((theme) => [`stat-${variant}-${place}-${theme}`, unpadded(variant, place, theme) ? [44, 36, 36] : [44, 44, 44]])));
-    const shortCases = statCases.filter(([, down]) => down.includes(36)).map(([id]) => id);
-    const shortChanges = (rows) => [['stat-links', [44, 44, 44]], ['stat-trend', [36, 36]], ...statCases]
-      .flatMap(([id, down]) => {
+    const statCases = [...STAT_VARIANTS.flatMap((variant) => STAT_PLACES.map((place) => `${variant}-${place}`)),
+      ...STAT_CARDS.map(([card]) => `card-${card}`)].flatMap((id) => ['dark', 'light'].map((theme) => `stat-${id}-${theme}`));
+    const changes = (rows, id) => rows.filter((r) => r.story === `fixture:${id}` && r.cls.split(/\s+/).includes('ui-focusable'));
+    const shortChanges = (rows) => [['stat-links', 3], ['stat-trend', 2], ...statCases.map((id) => [id, 3])]
+      .flatMap(([id, count]) => {
         const mine = changes(rows, id);
-        if (mine.length !== down.length) return [`${id}: ${mine.length} changes measured, ${down.length} expected`];
-        return mine.filter((b, i) => across(b) < TAP_MIN || downOf(b) < down[i]).map((b) => `${id}: reaches ${across(b)}x${downOf(b)}`);
+        if (mine.length !== count) return [`${id}: ${mine.length} changes measured, ${count} expected`];
+        return mine.filter((b) => Math.min(...b.drawn, ...b.reach) < TAP_MIN).map((b) => `${id}: draws ${b.drawn.join('x')}, reaches ${b.reach.join('x')}`);
       });
-    const takenByChange = (rows) => rows.filter((r) => /^fixture:stat-/.test(r.story))
-      .flatMap((r) => r.lostTo.map(([, to]) => `${r.story} — ${name(r)} ← ${to}`));
-    const nextTaken = (taken, ids) => ids.filter((id) => !taken.some((p) => p.startsWith(`fixture:${id} — a`)));
+    const statRows = (rows) => rows.filter((r) => /^fixture:stat-/.test(r.story));
+    const takenByChange = (rows) => statRows(rows).flatMap((r) => r.lostTo.map(([, to]) => `${r.story} — ${name(r)} ← ${to}`));
+    // Two drawn boxes in one fixture that share more than an edge. A control inside another is not counted.
+    const overlaps = (rows) => statRows(rows).flatMap((a, i, all) => all.slice(i + 1)
+      .filter((b) => b.story === a.story && Math.min(a.box[0] + a.drawn[0], b.box[0] + b.drawn[0]) - Math.max(a.box[0], b.box[0]) > 1
+        && Math.min(a.box[1] + a.drawn[1], b.box[1] + b.drawn[1]) - Math.max(a.box[1], b.box[1]) > 1)
+      .map((b) => `${a.story} — ${name(a)} over ${name(b)}`));
 
-    await t.test('a stat change reaches the floor and takes no pixel from its neighbours', () => {
-      assert.equal(statCases.length, 24, 'Three variants in four containers in two themes.');
-      assert.equal(shortCases.length, 6, 'Six cases leave less than 24px under the last figures.');
+    await t.test('a stat change is a 44px target in the row and overlaps no other target', () => {
+      assert.equal(statCases.length, 30, 'Three variants in four containers and three Cards, in two themes.');
       assert.deepEqual(shortChanges(B), []);
       assert.deepEqual(takenByChange(B), []);
-      t.diagnostic(`stat changes reach ${['stat-links', 'stat-trend', ...statCases.map(([id]) => id)]
-        .map((id) => `${id} ${changes(B, id).map((b) => `${across(b)}x${downOf(b)}`).join(', ')}`).join(' / ')}`);
+      assert.deepEqual(overlaps(B), []);
+      t.diagnostic(`stat changes draw ${['stat-links', 'stat-trend', ...statCases]
+        .map((id) => `${id} ${changes(B, id).map((b) => b.drawn.join('x')).join(', ')}`).join(' / ')}`);
     });
 
-    await t.test('a stat change with no clearance, a centred layer or a full layer in 16px is rejected', async () => {
+    await t.test('a stat change without its touch size is rejected', async () => {
       const own = fixtures.filter((f) => /^fixture:stat-/.test(f.id));
-      const broken = async (from, to) => {
-        const sheet = withCss.replace(from, to);
-        assert.notEqual(sheet, withCss, 'The mutation did not apply, so it proves nothing.');
-        return flatten((await at(390, true, sheet, own)).rows);
-      };
-      assert.ok(shortChanges(await broken(/\n  \.ui-stat__delta \{[^}]*\}/, '')).length > 0,
-        'A change with no clearance kept its reach, so the check above reads nothing.');
-      const centred = takenByChange(await broken(/(\.ui-focusable::after \{) top: -2px; transform: [^;]+;/, '$1'));
-      assert.ok(centred.some((p) => /stat-links — a/.test(p)), `A centred layer took no pixel of the value link: ${centred}`);
-      const full = takenByChange(await broken(/\.ui-stat__delta:has\([^{]*\{[^}]*\}/, ''));
-      assert.ok(full.some((p) => /stat-trend — a/.test(p)), `A full layer took no pixel of the trend: ${full}`);
-      assert.deepEqual(nextTaken(full, shortCases), [], 'A full layer took no pixel of the next block in these cases.');
-      // The other cases alone: a sheet that gives 36 only to an open band in a stack misses them.
-      const others = shortCases.filter((id) => !id.startsWith('stat-open-stack-'));
-      const openOnly = takenByChange(await broken(/,\n\s*:root:not\(\[data-theme="light"\]\) \.ui-card-stack > [^{]*/, ' '));
-      assert.deepEqual(nextTaken(openOnly, others), [], 'A sheet with 36 only in a stack took no pixel of the next block in these cases.');
+      const sheet = withCss.replace(/@media \(max-width: 560px\) and \(pointer: coarse\) \{\s*\.ui-stat__delta [^}]*\}/, '@media (max-width: 560px) and (pointer: coarse) {');
+      assert.notEqual(sheet, withCss, 'The mutation did not apply, so it proves nothing.');
+      const short = new Set(shortChanges(flatten((await at(390, true, sheet, own)).rows)).map((p) => p.split(':')[0]));
+      assert.equal(short.size, 2 + statCases.length, `A change at its line height passed in some fixtures: ${[...short]}`);
     });
 
     await t.test('every density of a selectable table is measured, header and rows', () => {

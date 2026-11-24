@@ -81,6 +81,13 @@ dd.ui-stat__caption { margin-top: var(--space-2); }
    The focus ring's block padding is lent back, so focus moves no line. #849 */
 .ui-stat__delta .ui-tip-host > .ui-focusable { display: inline-flex; align-items: center; gap: var(--space-1); vertical-align: top; }
 .ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible { margin-block: calc(-1 * var(--space-1)); }
+/* On a touch phone the change is its own 44px target in the row, as an underline tab is.
+   The figure grows by the difference, and no layer reaches past the target into a
+   neighbour. The ring goes round the target's own box, so it lends no padding. #849 */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-stat__delta .ui-tip-host > .ui-focusable { min-inline-size: var(--tap-min, 44px); min-block-size: var(--tap-min, 44px); }
+  .ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible { padding: 0; margin: 0; }
+}
 .ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
 .ui-stat__basis { color: var(--text); font-weight: var(--weight-normal); }
 

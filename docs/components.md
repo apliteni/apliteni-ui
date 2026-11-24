@@ -1256,10 +1256,8 @@ at text before the figures. A caption comes before the figures. A hover `title` 
 When a period control already states the window, do not repeat it. To show no caption, put the basis
 in the `tooltip` of each `delta`, and with `basisId` point at screen-reader-only text that says it.
 The arrow and the change are one target, so the tooltip opens from either on hover, focus and tap.
-On a phone, the change has a 44 by 44px tap zone. Its zone is 36px tall over a trend, and in the
-last two figures of a band with no padding below them where less than 24px follows: in a `.ui-stack`
-or a dark `.ui-card-stack`. An open band has no padding, and on the light page a `band` or a card
-that ends in one has none.
+On a touch phone, the change is a 44 by 44px target in the layout, in every variant and
+container. The figure is taller there by the difference. With a mouse, the figure keeps its size.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
 flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
