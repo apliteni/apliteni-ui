@@ -99,8 +99,9 @@ const THEMES = ['dark', 'light'] as const;
 // Then the email and password fields in the two Session ended dialogs (#854).
 // Then the three form fields of the Access Create key screen: its name, preset and
 // expiry (#850).
+// Then the rows search field in the four Three-column page stories (#871).
 // Move this count with the specimens.
-const FIELD_COUNT = 184;
+const FIELD_COUNT = 188;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
