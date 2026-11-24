@@ -500,6 +500,8 @@ or a dense table's action cell opens across. Some families get no layer. The Acc
 minimums page names all of them. Rows that share an edge have no space outside a row for a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
+A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target
+in the layout, so its figure is taller there.
 
 The whole system applies only below 560px with a coarse pointer, because a coarse pointer has
 no hover. `--tap-min` is a token, and you can move it.

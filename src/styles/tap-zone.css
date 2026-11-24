@@ -124,8 +124,7 @@
      and declared SMALL on purpose: the pill rule above hands every strip
      --tap-gap, and this one has 4px of row to give, not 20. So a layer here can
      never reach past the gap it was promised, whatever a tab draws. A pill draws
-     31 tall and does want the full 20. #527, measured in
-     stories/segmented-wrap.test.js. */
+     31 tall and does want the full 20. #527 */
   .ui-seg--underline { row-gap: var(--space-1, 4px) !important; --tap-clear-y: var(--space-1, 4px); }
 
   /* Tabs are wide enough across; down, the panel under them has the room. */
@@ -148,13 +147,9 @@
   .ui-toolbar--split .ui-filter-bar { column-gap: calc(var(--tap-gap) + var(--space-1) + 1px) !important; }
   /* The table under a filter bar moves down with the chips: the bar's inner gap
      opens to --tap-gap too, so the last row's layers stop short of the table.
-     In .ui-stack the bar's margin collapses with the block's 8px one. */
-  /* The dark stack's gap is --space-5; only the light page opens to --space-10
-     (#850), so the bar's bottom margin opens to --tap-gap minus its OWN theme's
-     gap. The one figure for both themes pulled the light card up and, in dark,
-     closed the gap to zero and laid the card over the bar's last row. */
-  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5)) !important; }
-  :root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }
+     The stack's own gap is --ui-block-gap in each theme, so the margin takes it back.
+     In .ui-stack the bar's margin collapses with the block's 8px one. An open band keeps its 24px. */
+  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
   /* Inside a chip there is nothing to open: parting the value from its remove

@@ -59,10 +59,10 @@ function ContextRow({ caption, delta, basisId }: { caption?: string; delta?: Sta
   return (
     <dd className="ui-stat__delta" aria-describedby={!own && basisId ? basisId : undefined}>
       {lead}
-      <Icon name={GLYPH[dir]} />
+      {/* With a tooltip the arrow is part of the focus target, so the ring goes round both. */}
       {delta.tooltip
-        ? <Tooltip text={delta.tooltip}><span className="ui-stat__change">{delta.value}</span></Tooltip>
-        : <span className="ui-stat__change">{delta.value}</span>}
+        ? <Tooltip text={delta.tooltip}><Icon name={GLYPH[dir]} /><span className="ui-stat__change">{delta.value}</span></Tooltip>
+        : <><Icon name={GLYPH[dir]} /><span className="ui-stat__change">{delta.value}</span></>}
       {own ? <>{' '}<span className="ui-stat__basis">{own}</span></> : null}
     </dd>
   );
