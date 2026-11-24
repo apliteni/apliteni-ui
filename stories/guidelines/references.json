@@ -1215,17 +1215,17 @@
     "pattern": "grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:47",
+    "ref": "react/src/ThreeColumnPage.css:51",
     "pattern": ".ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0;"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:60",
+    "ref": "react/src/ThreeColumnPage.css:64",
     "pattern": "@media (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:80",
+    "ref": "react/src/ThreeColumnPage.css:85",
     "pattern": "@media (max-width: 560px) {"
    },
    {

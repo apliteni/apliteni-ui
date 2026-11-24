@@ -18,7 +18,9 @@
  *
  * At each subject it also runs axe's label-content-name-mismatch rule on the page, so a step's
  * name starts with its visible words. At 860px and below it checks that the first link's
- * words start on the band h1's edge, within 1px.
+ * words start on the band h1's edge, within 1px. When the steps wrap under the list, their
+ * heading starts on the list heading's edge, within 1px, and at least one size must wrap them.
+ * An area that starts a line must not answer a hit on its own separator, so none shows there.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
@@ -103,7 +105,25 @@ async function inspect(page, label) {
     return x(link) - x(document.querySelector('.ui-app__bar h1'));
   });
   if (edge !== null && Math.abs(edge) > 1) found.push(`${label}: the first link's words stand ${edge.toFixed(1)}px from the band h1's edge`);
-  return { found, edge: edge !== null };
+  // Steps that wrap under the list start on the list's edge, with no separator before them.
+  const under = await page.evaluate(() => {
+    const [nav, steps] = ['nav', 'steps'].map((key) => document.querySelector(`[data-area="${key}"]`));
+    if (!nav.checkVisibility() || !steps.checkVisibility()) return null;
+    if (steps.getBoundingClientRect().top < nav.getBoundingClientRect().bottom - 1) return null;
+    const x = (area) => area.querySelector(':scope > h2').getBoundingClientRect().left;
+    return x(steps) - x(nav);
+  });
+  if (under !== null && Math.abs(under) > 1) found.push(`${label}: the steps under the list stand ${under.toFixed(1)}px from its edge`);
+  // An area that starts a line draws no separator: a hit on its edge reaches the page, not the area.
+  const lined = await page.evaluate(() => {
+    const areas = [...document.querySelectorAll('.ui-columns__pair > .ui-columns__area')].filter((a) => a.checkVisibility());
+    return areas.filter((a) => parseFloat(getComputedStyle(a).borderInlineStartWidth) > 0)
+      .filter((a) => !areas.some((b) => b !== a && Math.abs(b.getBoundingClientRect().top - a.getBoundingClientRect().top) < 1 && b.getBoundingClientRect().left < a.getBoundingClientRect().left))
+      .filter((a) => { const r = a.getBoundingClientRect(); return a.contains(document.elementFromPoint(r.left + 0.5, r.top + 4)); })
+      .map((a) => a.dataset.area);
+  });
+  for (const area of lined) found.push(`${label}: a separator shows before the ${area} area at the start of its line`);
+  return { found, edge: edge !== null, under: under !== null };
 }
 
 // Runs every action and returns the findings and the actions that ran.
@@ -153,6 +173,7 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     const findings = [];
     const table = [];
     const views = { wide: 0, tablet: 0, phone: 0 };
+    let stacked = 0;
     for (const [label, context] of subjects) {
       const { ctx, page } = await open(browser, server.port, vitals, context);
       const width = await page.evaluate(() => innerWidth);
@@ -165,6 +186,7 @@ test('the three-column page keeps focus, chrome, layout and width through each i
       const own = await inspect(page, label);
       findings.push(...own.found);
       if (own.edge !== (kind !== 'wide')) findings.push(`${label}: the link edge was ${own.edge ? '' : 'not '}measured at ${width}px`);
+      stacked += own.under ? 1 : 0;
       const { found, ran } = await walk(page, label);
       findings.push(...found);
       // Every action runs on a tablet or a phone. Above 860px the links are hidden.
@@ -177,6 +199,7 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     // THREE_COLUMN_ONLY=<label> runs one size while a fault is found; it skips the counts.
     if (!process.env.THREE_COLUMN_ONLY) assert.equal(table.length, SIZES.length + DEVICES.length + DUO.length, 'a size or a device was not measured');
     if (!process.env.THREE_COLUMN_ONLY) assert.ok(views.wide >= 4 && views.tablet >= 2 && views.phone >= 4, `too few sizes in a band: ${JSON.stringify(views)}`);
+    if (!process.env.THREE_COLUMN_ONLY) assert.ok(stacked >= 1, 'no size put the steps under the list, so their edge was not measured');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -200,6 +223,10 @@ test('the three-column page keeps focus, chrome, layout and width through each i
       b.setAttribute('aria-label', `Step ${i + 1} of 5: ${b.querySelector('.ui-wizard__name').textContent.replace(/^\d+\. /, '')}, ${b.querySelector('.ui-wizard__state').textContent}`);
     })), 'label-content-name-mismatch');
     await inspected({ viewport: { width: 390, height: 844 } }, (page) => page.addStyleTag({ content: '.ui-columns__views { margin-inline-start: -12px; }' }), 'band h1');
+    // The separator and inset on the steps alone, as before the pair clipped them.
+    await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns__pair { clip-path: none; }' }), 'separator shows');
+    await inspected({ viewport: { width: 984, height: 1016 } }, (page) => page.addStyleTag({
+      content: '.ui-columns__pair { margin-inline-start: 0; clip-path: none; } .ui-columns__pair > .ui-columns__area--nav { padding-inline-start: 0; border-inline-start: 0; }' }), 'under the list');
     await mutate(wide, (page) => page.addStyleTag({ content: '.ui-columns__area--work { min-width: 1400px; }' }), ['key: Down'], 'sideways');
     await mutate(wide, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');
     await mutate(wide, (page) => page.evaluate(() => document.addEventListener('keydown', () => {

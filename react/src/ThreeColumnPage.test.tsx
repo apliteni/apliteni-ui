@@ -68,6 +68,10 @@ it('holds the widths: the flow half at most --panel-lg, the work half the rest',
   expect(css).toMatch(/\.ui-columns__pair > \.ui-columns__area--steps \{ flex: 2 1 0; min-width: min\(100%, calc\(var\(--prose-display\) \+ 3 \* var\(--space-6\)\)\); \}/);
   // The two separators are the divider's line.
   expect(css.match(/border-inline-start: 1px solid var\(--border\)/g)).toHaveLength(2);
+  // Each area in the pair draws its separator and inset, and the pair clips the one that
+  // starts a line, so steps under the list start on its edge. Measured at 984px in the browser.
+  expect(css).toMatch(/\.ui-columns__pair > \.ui-columns__area \{ padding-inline-start: var\(--space-4\); border-inline-start: 1px solid var\(--border\); \}/);
+  expect(css).toMatch(/\.ui-columns__pair \{[^}]*margin-inline-start: calc\(-1 \* \(var\(--space-4\) \+ 1px\)\);\s*clip-path: inset\(0 0 0 calc\(var\(--space-4\) \+ 1px\)\);/);
 });
 
 it('collapses at 860px and 560px only, in the documented order', () => {
@@ -127,7 +131,7 @@ it('pins the payee, puts the unit in the header, and a search with no rows offer
   render(<MonthClose />);
   expect(screen.getByRole('columnheader', { name: 'Payee' })).toHaveClass('ui-table__identity');
   // The unit stands once, small, in the header, so each amount is a plain number.
-  expect(screen.getByRole('columnheader', { name: 'Amount EUR' }).querySelector('.ui-value__unit')).toHaveTextContent('EUR');
+  expect(screen.getByRole('columnheader', { name: 'Amount€' }).querySelector('.ui-value__unit')).toHaveTextContent('€');
   expect(screen.getByRole('cell', { name: '184.20' })).toBeInTheDocument();
   const search = screen.getByRole('searchbox', { name: 'Search rows' });
   fireEvent.change(search, { target: { value: 'zzzznomatch' } });

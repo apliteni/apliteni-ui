@@ -39,6 +39,10 @@
   gap: var(--space-4);
   align-items: stretch;
   flex: 1 1 auto;
+  /* Each area draws the separator and its inset before it. The pair starts that far out and
+     clips that strip, so the area that starts a line, the list or the steps under it, shows neither. */
+  margin-inline-start: calc(-1 * (var(--space-4) + 1px));
+  clip-path: inset(0 0 0 calc(var(--space-4) + 1px));
 }
 /* The list takes a third and the steps two thirds. The list never cuts a month's name, and
    a step keeps 14 characters of its name beside its mark. When the two cannot fit side by
@@ -48,7 +52,7 @@
 .ui-columns__area { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .ui-columns__pair > .ui-columns__area { padding-bottom: var(--space-10); }
 .ui-columns__area > h2 { margin: 0; scroll-margin-block-start: calc(var(--ui-app-band, 0px) + var(--space-4)); }
-.ui-columns__area--steps { padding-inline-start: var(--space-4); border-inline-start: 1px solid var(--border); }
+.ui-columns__pair > .ui-columns__area { padding-inline-start: var(--space-4); border-inline-start: 1px solid var(--border); }
 .ui-columns__area--work {
   align-self: stretch;
   padding: var(--space-10) var(--space-6);
@@ -61,9 +65,10 @@
   .ui-columns { --ui-columns-edge: var(--ui-app-title-inset, var(--space-6)); grid-template-columns: minmax(0, 1fr); align-content: start; }
   .ui-columns__flow { padding-inline-end: var(--ui-columns-edge); }
   .ui-columns__views { display: flex; }
-  .ui-columns__pair > .ui-columns__area { padding-bottom: 0; }
+  .ui-columns__pair { margin-inline-start: 0; clip-path: none; }
+  .ui-columns__pair > .ui-columns__area { padding-bottom: 0; padding-inline-start: 0; border-inline-start: 0; }
   .ui-columns__area--nav { display: none; }
-  .ui-columns__area--steps { max-width: var(--panel-sm); padding-inline-start: 0; border-inline-start: 0; }
+  .ui-columns__area--steps { max-width: var(--panel-sm); }
   .ui-columns__area--work { padding: var(--space-8) var(--ui-columns-edge) var(--space-10); border-inline-start: 0; }
   .ui-columns[data-view='nav'] .ui-columns__area--nav { display: flex; }
   .ui-columns[data-view='nav'] .ui-columns__area--steps,
