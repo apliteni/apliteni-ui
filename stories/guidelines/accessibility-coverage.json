@@ -834,7 +834,7 @@
     },
     {
       "what": "Checks that #724 removed",
-      "note": "No gate holds these since the vanilla gates went: an underline strip that wraps, two overlays open together apart from Escape, a select in a Modal or a Drawer through End and Escape, a picture of a readout, browser button chrome, the folded rail in each theme and accent, and the phone band in a browser. For two overlays, react/src/Drawer.test.tsx holds only Escape: in a Modal over a Drawer and with a Tooltip in a Drawer, Escape closes only the top one."
+      "note": "No gate holds these since the vanilla gates went: an underline strip that wraps, a select in a Modal or a Drawer through End and Escape, a picture of a readout, browser button chrome, the folded rail in each theme and accent, and the phone band in a browser. For two overlays, react/src/Drawer.test.tsx holds the keyboard in JSDOM: Escape closes only the top Modal or Tooltip, Tab moves and wraps inside a Modal over a Drawer, and closing that Modal gives focus and the keyboard back to the Drawer and makes the Drawer not inert. No gate opens two overlays together in a real browser."
     }
   ]
 }
