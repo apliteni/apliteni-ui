@@ -135,8 +135,8 @@ const statChange = (sheet) => {
   if (Math.abs(short - line - up - of(stat, /\.ui-stat__trend \{[^}]*padding-top:\s*([^;]+)/)) > 0.5) wrong.push(`the short layer is ${short}px tall, and does not end at the trend`);
   // The short layer is for 16px of room: over a trend, or under an open band, which has no
   // padding, in a .ui-stack. A card's padding leaves room for 44.
-  const shortSelectors = /\n\s*(\.ui-stat__delta:has\(\+ \.ui-stat__trend\)[^{]*)\{/.exec(sheet)?.[1].split(',').map((x) => x.trim()) ?? [];
-  for (const sel of shortSelectors.slice(1)) {
+  const shortList = /\n\s*(\.ui-stat__delta:has\(\+ \.ui-stat__trend\)[^{]*)\{/.exec(sheet)?.[1] ?? '';
+  for (const sel of splitSelectorList(shortList).slice(1)) {
     if (!/^\.ui-stack > \.ui-stats--open[:\s]/.test(sel)) wrong.push(`the short layer reaches ${sel}`);
   }
   return wrong;
