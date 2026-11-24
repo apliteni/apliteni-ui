@@ -220,7 +220,7 @@
     {
       "file": "react/src/the-page.test.tsx",
       "name": "React: The page",
-      "does": "Mounts every showcase screen under stories/apps/ and the React landing page, and reads each from a copy of the whole document. Every page rule owns one check: the head in one order, one h1, one primary action, one density and no overlay open at load. Fixtures prove that each check can fail.",
+      "does": "Mounts every showcase screen under stories/apps/ and the React landing page, and reads each from a copy of the whole document. Every page rule owns one check, such as the head in one order, one h1, one primary action, one density and no overlay open at load. The test 'every page rule owns a check' holds this. Fixtures prove that 4 of the 16 checks can fail: the sidebar, the band end, the branded background and the note in the form foot, each in its own 'refuses' test. No fixture proves that the other 12 checks can fail.",
       "blind": [
         "CSS behaviour. It reads story markup without resolving stylesheets, so display:none content is still a heading and an off-screen landmark is still present.",
         "What headings say. A correct rank and an incorrect title look the same here; the letter-case gate checks the words.",
@@ -834,7 +834,7 @@
     },
     {
       "what": "Checks that #724 removed",
-      "note": "No gate holds these since the vanilla gates went: an underline strip that wraps, two overlays open together, a select in a Modal or a Drawer through End and Escape, a picture of a readout, browser button chrome, the folded rail in each theme and accent, and the phone band in a browser."
+      "note": "No gate holds these since the vanilla gates went: an underline strip that wraps, two overlays open together apart from Escape, a select in a Modal or a Drawer through End and Escape, a picture of a readout, browser button chrome, the folded rail in each theme and accent, and the phone band in a browser. For two overlays, react/src/Drawer.test.tsx holds only Escape: in a Modal over a Drawer and with a Tooltip in a Drawer, Escape closes only the top one."
     }
   ]
 }
