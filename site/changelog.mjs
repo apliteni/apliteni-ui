@@ -9,7 +9,7 @@ export const RELEASES = [
     v: '0.191.0', date: '2026-11-24',
     changes: [
       ['changed', 'An open `StatBand` draws no rule and no 16px over its figures in either theme. It keeps 24px below a page toolbar, in the page body and in a card stack. Resolves #849.', ['StatBand']],
-      ['changed', 'The Stat bands guideline accepts a tooltip on a change as its basis, and that tooltip now also opens from the arrow. On a touch phone, such a change gets a 44px tap zone, but only 36px tall over a trend and under the last figures of an open band in a `.ui-stack`. Resolves #849.', ['StatBand', 'Guidelines']],
+      ['changed', 'The Stat bands guideline accepts a tooltip on a change as its basis, and that tooltip now also opens from the arrow. On a touch phone, such a change gets a 44px tap zone, but only 36px tall over a trend and under the last figures of a band with no padding in a `.ui-stack` or a dark `.ui-card-stack`. Resolves #849.', ['StatBand', 'Guidelines']],
     ],
   },
   {

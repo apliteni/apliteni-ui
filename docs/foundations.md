@@ -500,7 +500,7 @@ layer. `input`, `select` and `textarea` generate no pseudo-element and use their
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
 A stat band's change with a tooltip draws one line. Its layer reaches 2 above the line and 24 below
 it, to make 44.
-Where 16 lies below the line, the layer makes 36.
+Where less than 24 lies below the line, the layer makes 36.
 
 The whole system applies only below 560px with a coarse pointer, because a coarse pointer has
 no hover. `--tap-min` is a token, and you can move it.
