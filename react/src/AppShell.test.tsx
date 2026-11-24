@@ -43,6 +43,22 @@ it('draws no title band when the page owns its heading', () => {
   expect(screen.getByRole('main').querySelector('.ui-app__sub')).toBeNull();
 });
 
+// A full-width page has no padded title row: the band's title is the page's one h1, and
+// the main takes no cap and no padding (rev_80635b1e54ca/d2).
+it('puts a full-width page\'s title in the band as its h1', () => {
+  render(<AppShell {...props} width="full" />);
+  const h1s = screen.getAllByRole('heading', { level: 1 });
+  expect(h1s.map(h => h.textContent)).toEqual(['Weekly report']);
+  expect(h1s[0].closest('.ui-app__bar')).not.toBeNull();
+  expect(screen.getByRole('main')).toHaveClass('ui-app__main--full');
+  expect(read('./AppShell.css')).toMatch(/\.ui-react-app \.ui-app__main--full \{ max-width: none; padding: 0;/);
+  cleanup();
+  // A centered page keeps its title row, and the band's copy stays hidden from a reader.
+  render(<AppShell {...props} />);
+  expect(screen.getByRole('main').querySelector('h1')).toHaveTextContent('Weekly report');
+  expect(document.querySelector('.ui-app__bar .ui-react-app__title')).toHaveAttribute('aria-hidden', 'true');
+});
+
 // axe's label-content-name-mismatch needs a layout, so JSDOM checks its cause: an account
 // trigger has no aria-label, and the name from its content holds each visible line.
 it('names each account trigger by its content, so the name holds its visible text', () => {

@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.192.0', date: '2026-11-24',
+    changes: [
+      ['added', '`ThreeColumnPage` puts a list and its ordered steps on one half of a split page and the work of the open step on the other half. At 860px the list becomes its own view, and at 560px each area is its own view. A new Three-column page guideline states the widths and the collapse order. Resolves #871.', ['Page shell']],
+      ['added', '`AppShell` takes `width="full"` for a page whose parts reach its edges: the content column has no cap and no padding, and the page title stands in the band as its `h1`. Resolves #871.', ['Page shell']],
+      ['added', '`Wizard` shows ordered steps as done, current, blocked or to do, keeps one step open on the selected-control tint and holds the final action until each earlier step is done. A new Wizard guideline page gives its rules. Resolves #871.', ['Wizard']],
+    ],
+  },
+  {
     v: '0.190.0', date: '2026-11-22',
     changes: [
       ['added', 'A Session expired guideline page tells products to keep the reader on the same page, save their work, use skeleton shapes behind a sign-in dialog, and leave a sign-in notice after close. The Sign in showcase now shows that background. Resolves #854.', ['Guidelines']],

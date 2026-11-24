@@ -1,0 +1,73 @@
+/* A split page in the shell's wide main: the flow half holds the title, the list and the
+   steps, and the work half holds the rows. Both halves stand on the page ground, with no
+   card box. The two separators are the divider's line: 1px of --border.
+   why: docs/components.md#three-column-page */
+.ui-columns {
+  display: grid;
+  /* The flow half takes 41% of the main and at most --panel-lg, so the work half's table
+     keeps its columns beside an open sidebar at 1280px. */
+  grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-columns__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  /* The bottom space sits in the areas, so the separator between them reaches the page's foot. */
+  padding: var(--space-10) var(--space-6) 0;
+}
+.ui-columns__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+/* With no title and no tools, the row holds only the links, so it takes no gap when they hide. */
+.ui-columns__head:not(:has(> h1)):not(:has(> .ui-app__tools)) { display: contents; }
+.ui-columns .ui-columns__head > h1 { flex: 1 1 auto; min-width: 0; margin: 0; }
+/* The links draw no box at rest, so their words start on the title's edge and the plate
+   hangs into the margin by the row's 12px inset. why: guidelines/spacing.md#put-text-on-the-column-edge */
+.ui-columns__views { display: none; flex-basis: 100%; flex-wrap: wrap; gap: var(--space-2); margin-inline-start: calc(-1 * var(--space-3)); }
+.ui-columns__views > .ui-nav__item { width: auto; }
+.ui-columns__pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  align-items: stretch;
+  flex: 1 1 auto;
+}
+.ui-columns__area { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ui-columns__pair > .ui-columns__area { padding-bottom: var(--space-10); }
+.ui-columns__area > h2 { margin: 0; scroll-margin-block-start: calc(var(--ui-app-band, 0px) + var(--space-4)); }
+.ui-columns__area--steps { padding-inline-start: var(--space-4); border-inline-start: 1px solid var(--border); }
+.ui-columns__area--work {
+  align-self: stretch;
+  padding: var(--space-10) var(--space-6);
+  border-inline-start: 1px solid var(--border);
+}
+
+/* Tablet: the list becomes its own view, the steps stand above the work, and the links
+   reach each area. */
+@media (max-width: 860px) {
+  .ui-columns { grid-template-columns: minmax(0, 1fr); align-content: start; }
+  .ui-columns__views { display: flex; }
+  .ui-columns__pair > .ui-columns__area { padding-bottom: 0; }
+  .ui-columns__pair { grid-template-columns: minmax(0, 1fr); }
+  .ui-columns__area--nav { display: none; }
+  .ui-columns__area--steps { max-width: var(--panel-sm); padding-inline-start: 0; border-inline-start: 0; }
+  .ui-columns__area--work { padding-top: var(--space-8); border-inline-start: 0; }
+  .ui-columns[data-view='nav'] .ui-columns__area--nav { display: flex; }
+  .ui-columns[data-view='nav'] .ui-columns__area--steps,
+  .ui-columns[data-view='nav'] .ui-columns__area--work { display: none; }
+}
+
+/* Phone: each area is its own view. */
+@media (max-width: 560px) {
+  .ui-columns__flow { padding: var(--space-6) var(--space-4) 0; }
+  .ui-columns__area--work { padding: var(--space-6) var(--space-4); }
+  .ui-columns .ui-columns__area { display: none; }
+  .ui-columns[data-view='nav'] .ui-columns__area--nav,
+  .ui-columns[data-view='steps'] .ui-columns__area--steps,
+  .ui-columns[data-view='work'] .ui-columns__area--work { display: flex; }
+  .ui-columns[data-view='work'] .ui-columns__pair { display: none; }
+}
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-columns__views { gap: var(--tap-gap); }
+}

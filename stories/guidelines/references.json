@@ -414,7 +414,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:182",
+    "ref": "react/src/AppShell.tsx:186",
     "pattern": "back && <BackLink"
    }
   ],
@@ -1023,7 +1023,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:65",
+    "ref": "react/src/AppShell.tsx:67",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
@@ -1199,6 +1199,76 @@
    {
     "ref": "react/src/Loading.tsx:49",
     "pattern": "export function SkeletonTable"
+   }
+  ]
+ },
+ "_three-column-page.js": {
+  "three-columns": [
+   {
+    "ref": "react/src/ThreeColumnPage.tsx:79",
+    "pattern": "<div className=\"ui-columns__pair\">{area('nav')}{area('steps')}</div>"
+   }
+  ],
+  "column-widths": [
+   {
+    "ref": "react/src/ThreeColumnPage.css:9",
+    "pattern": "grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);"
+   },
+   {
+    "ref": "react/src/ThreeColumnPage.css:31",
+    "pattern": "grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);"
+   }
+  ],
+  "collapse-order": [
+   {
+    "ref": "react/src/ThreeColumnPage.css:48",
+    "pattern": "@media (max-width: 860px) {"
+   },
+   {
+    "ref": "react/src/ThreeColumnPage.css:62",
+    "pattern": "@media (max-width: 560px) {"
+   },
+   {
+    "ref": "react/src/ThreeColumnPage.tsx:38",
+    "pattern": "defaultView = 'steps'"
+   }
+  ]
+ },
+ "_wizard.js": {
+  "step-states": [
+   {
+    "ref": "react/src/Wizard.tsx:41",
+    "pattern": "const words: Record<WizardStepState, string>"
+   },
+   {
+    "ref": "react/src/Wizard.css:39",
+    "pattern": ".ui-wizard__mark--todo {"
+   }
+  ],
+  "one-open": [
+   {
+    "ref": "react/src/Wizard.tsx:101",
+    "pattern": "aria-expanded={shown === step.id}"
+   },
+   {
+    "ref": "react/src/Wizard.tsx:74",
+    "pattern": "if (open === undefined) setOwn(target);"
+   }
+  ],
+  "final-action": [
+   {
+    "ref": "react/src/Wizard.tsx:115",
+    "pattern": "disabled={!ready}"
+   },
+   {
+    "ref": "react/src/Wizard.tsx:114",
+    "pattern": "{!ready && <p id={`${uid}-reason`}"
+   }
+  ],
+  "blocked-reason": [
+   {
+    "ref": "react/src/Wizard.tsx:50",
+    "pattern": "state === 'blocked' && <Icon name=\"circleAlert\" />"
    }
   ]
  }

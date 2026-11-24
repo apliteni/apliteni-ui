@@ -88,6 +88,15 @@
 .ui-react-app__band-control { display: contents; }
 /* The page title is the phone band's words, and the h1 below keeps the page's name. */
 .ui-react-app__title { display: none; }
+/* A full-width page fills the well under the band, so its parts reach the page's foot, and
+   its title is the band's h1, at every width, in the band title's type. */
+.ui-react-app .ui-app__main--full { max-width: none; padding: 0; display: flex; flex: 1 1 auto; flex-direction: column; }
+.ui-react-app .ui-app__main--full > .ui-app__body { flex: 1 1 auto; }
+.ui-react-app h1.ui-react-app__title--page {
+  display: block; min-width: 0; margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: inherit; color: var(--strong); font-weight: var(--weight-semibold);
+}
 /* With a sidebar, search is the band's only control above the phone width, and it stands
    in the band's centre (#732). */
 @media (min-width: 721px) {
