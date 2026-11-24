@@ -1211,21 +1211,21 @@
   ],
   "column-widths": [
    {
-    "ref": "react/src/ThreeColumnPage.css:9",
+    "ref": "react/src/ThreeColumnPage.css:12",
     "pattern": "grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:31",
-    "pattern": "grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);"
+    "ref": "react/src/ThreeColumnPage.css:47",
+    "pattern": ".ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0;"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:48",
+    "ref": "react/src/ThreeColumnPage.css:60",
     "pattern": "@media (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:62",
+    "ref": "react/src/ThreeColumnPage.css:80",
     "pattern": "@media (max-width: 560px) {"
    },
    {
@@ -1247,21 +1247,21 @@
   ],
   "one-open": [
    {
-    "ref": "react/src/Wizard.tsx:101",
+    "ref": "react/src/Wizard.tsx:106",
     "pattern": "aria-expanded={shown === step.id}"
    },
    {
-    "ref": "react/src/Wizard.tsx:74",
+    "ref": "react/src/Wizard.tsx:78",
     "pattern": "if (open === undefined) setOwn(target);"
    }
   ],
   "final-action": [
    {
-    "ref": "react/src/Wizard.tsx:115",
+    "ref": "react/src/Wizard.tsx:121",
     "pattern": "disabled={!ready}"
    },
    {
-    "ref": "react/src/Wizard.tsx:114",
+    "ref": "react/src/Wizard.tsx:120",
     "pattern": "{!ready && <p id={`${uid}-reason`}"
    }
   ],

@@ -123,9 +123,12 @@ it.each([
   expect(workHeading()).toBe(work);
 });
 
-it('pins the payee, and a search with no rows offers to clear the filters', () => {
+it('pins the payee, puts the unit in the header, and a search with no rows offers to clear the filters', () => {
   render(<MonthClose />);
   expect(screen.getByRole('columnheader', { name: 'Payee' })).toHaveClass('ui-table__identity');
+  // The unit stands once, small, in the header, so each amount is a plain number.
+  expect(screen.getByRole('columnheader', { name: 'Amount EUR' }).querySelector('.ui-value__unit')).toHaveTextContent('EUR');
+  expect(screen.getByRole('cell', { name: '184.20' })).toBeInTheDocument();
   const search = screen.getByRole('searchbox', { name: 'Search rows' });
   fireEvent.change(search, { target: { value: 'zzzznomatch' } });
   expect(screen.queryByRole('table')).toBeNull();

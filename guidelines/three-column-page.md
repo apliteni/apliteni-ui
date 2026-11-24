@@ -20,7 +20,7 @@
 
 **Why:** The rows need the room, and the steps read best as a short column.
 
-**Do:** Give the list one third and the steps two thirds of their half.
+**Do:** Give the list a third and the steps the rest, or stack them when names cannot fit.
 
 **Don't:** Split the page into three equal columns.
 

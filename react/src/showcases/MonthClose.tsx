@@ -90,7 +90,7 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
             { key: 'name', label: 'Payee', cell: 'title' },
             { key: 'day', label: 'Date', render: row => `${row.day} ${short}` },
             { key: 'doc', label: 'Document', render: row => row.doc || 'Missing' },
-            { key: 'amount', label: 'Amount', num: true, render: row => `€${row.amount}` },
+            { key: 'amount', label: <>Amount{' '}<span className="ui-value__unit">EUR</span></>, num: true },
           ]} /> : <EmptyState variant="no-matches" level={3} icon="" title="No rows match the search."
             sub="Clear the filters to see all rows." actions={<Button onClick={clear}>Clear filters</Button>} />}
       </> }} />
