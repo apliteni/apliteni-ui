@@ -6,11 +6,20 @@
 
 export const RELEASES = [
   {
-    v: '0.192.0', date: '2026-11-24',
+    v: '0.194.0', date: '2026-11-24',
     changes: [
       ['added', '`ThreeColumnPage` puts a list and its ordered steps on one half of a split page and the work of the open step on the other half. At 860px the list becomes its own view, and at 560px each area is its own view. A new Three-column page guideline states the widths and the collapse order. Resolves #871.', ['Page shell']],
       ['added', '`AppShell` takes `width="full"` for a page whose parts reach its edges: the content column has no cap and no padding, and the page title stands in the band as its `h1`. Resolves #871.', ['Page shell']],
       ['added', '`Wizard` shows ordered steps as done, current, blocked or to do, keeps one step open on the selected-control tint and holds the final action until each earlier step is done. A new Wizard guideline page gives its rules. Resolves #871.', ['Wizard']],
+    ],
+  },
+  {
+    v: '0.193.0', date: '2026-11-24',
+    changes: [
+      ['fixed', 'On a touch phone in the dark theme, a toolbar in the page body or in a card stack keeps 20px to the next block again, so a small button\'s tap zone no longer runs into the field under it. A stack now declares its gap once as `--ui-block-gap`, and the toolbar margin follows it in each theme. Resolves #849.', ['Toolbar']],
+      ['fixed', 'A `Tooltip`, and a `Chart` readout inside the chart frame, now keep at least 8px from each screen edge, which they could touch on a 360px or 390px phone. A `Chart` readout on the top layer can still touch the edge. Resolves #849.', ['Tooltip', 'Chart']],
+      ['changed', 'An open `StatBand` draws no rule and no 16px over its figures in either theme. It keeps 24px below a page toolbar, in the page body and in a card stack. Resolves #849.', ['StatBand']],
+      ['changed', 'The Stat bands guideline accepts a tooltip on a change as its basis, and that tooltip now also opens from the arrow. On a touch phone, such a change is a 44px target in the layout, so its figure is taller there. Resolves #849.', ['StatBand', 'Guidelines']],
     ],
   },
   {

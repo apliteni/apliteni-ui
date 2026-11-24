@@ -80,8 +80,13 @@ Say in the PR which accent each changed colour was measured under.
 ## Check the phone tap floor locally
 
 Before opening a PR that changes a control's size, a container's gap, or
-`src/styles/tap-zone.css`, measure the tap zones in a real browser:
-`UI_PLAYWRIGHT=… TAP_ZONES=1 node --test stories/tap-zone.test.js`
+`src/styles/tap-zone.css`, measure the tap zones in a real browser. First run
+`npm run build-storybook` and `npm run build -w react`. The gate reads the stories from
+`storybook-static`: stories/lib/tap-zone.js:47 `iframe.html is not built`. It renders
+fixtures from `react/dist`: stories/lib/react-markup.js:85 `throw new Error(stale)`, with the
+message "react/dist is not built". Set `UI_PLAYWRIGHT` to
+the `index.mjs` file of a Playwright package, then run:
+`UI_PLAYWRIGHT=…/playwright/index.mjs TAP_ZONES=1 node --test stories/tap-zone.test.js`
 Report the result in the PR. CI runs only this gate's source half, so the measurement is yours.
 
 ## Check the chart's point targets locally

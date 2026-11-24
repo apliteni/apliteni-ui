@@ -9,5 +9,5 @@ export const RULES = content.rules;
 // halves of a pair differ in one decision and not in their data.
 export const SPEC_CSS = `
   <style>
-    .gs-stage { background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); }
+    .gs-stage { position: relative; background: var(--bg); border-radius: var(--radius-lg); padding: var(--space-4); }
   </style>`;

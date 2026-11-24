@@ -1,7 +1,6 @@
 // What a stat band owes its reader: every change says what it is measured against,
-// in reachable text, and a caption leads the figures it captions. Shared by the
-// vanilla gate (stories/stat-basis.test.js) and the React one
-// (react/src/stat-basis.test.tsx), which walk their own stories.
+// in reachable text or in its tooltip, and a caption leads the figures it captions.
+// The gate over it is react/src/stat-basis.test.tsx, which walks every story.
 // why: docs/components.md#stat-bands
 
 // Allowed shared descriptions are a band caption or a direct `data-period-basis`
@@ -25,13 +24,24 @@ export const allowedBases = (root) => {
   return found;
 };
 
+// A kit Tooltip on the change, with words in it, shows the basis on hover, focus and tap.
+// It counts beside screen-reader text that the change references, so the basis is also
+// read with the figure. Limit: the gate does not compare the two texts, and any
+// `.ui-sr` text that the change references counts.
+const tipped = (change) => [...change.querySelectorAll('.ui-tip-host > [role="tooltip"][id]')]
+  .some((tip) => tip.textContent.trim()
+    && tip.parentElement.querySelector(`:scope > [tabindex="0"][aria-describedby="${tip.id}"] .ui-stat__change`));
+
 /** The changes under `root` whose comparison a reader cannot reach. */
 export const unexplained = (root) => {
   const allowed = allowedBases(root);
   return [...root.querySelectorAll('.ui-stat__delta')].filter((d) => {
     if (d.querySelector('.ui-stat__basis')?.textContent.trim()) return false;
     const ids = (d.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
-    return !ids.some((id) => allowed.has(id) && root.querySelector(`[id="${id}"]`)?.textContent.trim());
+    return !ids.some((id) => {
+      const text = root.querySelector(`[id="${id}"]`);
+      return text?.textContent.trim() && (allowed.has(id) || (text.classList.contains('ui-sr') && tipped(d)));
+    });
   });
 };
 

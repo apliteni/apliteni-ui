@@ -135,9 +135,15 @@ export async function storySubjects({ theme = 'dark' } = {}) {
  * it; the two consumer rows are deliberately packed at --space-2, which is
  * where an optimistic default clearance does its damage.
  */
+/** The stat band cases that the gate measures: each variant in each container. */
+export const STAT_VARIANTS = ['open', 'band', 'tiles'];
+export const STAT_PLACES = ['stack', 'card-stack', 'body', 'card'];
+/** And an open band in each Card that sets its own padding or paint. */
+export const STAT_CARDS = [['pad-lg', { pad: 'lg' }], ['accent', { variant: 'accent' }], ['live', { variant: 'live' }]];
+
 export async function rowFixtures() {
-  const row = (id, html, style = '') =>
-    ({ id: `fixture:${id}`, html: `<div style="padding:16px;${style}">${html}</div>` });
+  const row = (id, html, style = '', theme) =>
+    ({ id: `fixture:${id}`, html: `<div style="padding:16px;${style}">${html}</div>`, theme });
   const btn = (label, variant, size, more = {}) =>
     `<button type="button" class="ui-btn ui-btn--${variant} ui-btn--${size}"${more.iconOnly ? ' aria-label="' + label + '"' : ''}>${more.iconOnly ? '' : '<span class="ui-btn__label-slot"><span class="ui-btn__label">' + label + '</span></span>'}</button>`;
 
@@ -176,8 +182,40 @@ export async function rowFixtures() {
     h(kit.Button, { key: 'export', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'download', 'aria-label': 'Export' }),
     h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
   ] }));
+  // A folded open band whose values are links, and one whose trend is a target: two
+  // neighbours of a change. The first change is the short `1%`, the narrowest that a
+  // band draws (#849).
+  const stat = (n, extra) => ({ label: `Figure ${n}`, value: `€ ${n},000`, delta: { value: n === 1 ? '1%' : '+4%', tooltip: 'vs. last year' }, ...extra });
+  const statLinks = await markup(({ h, kit }) => h(kit.StatBand, { variant: 'open',
+    stats: [1, 2, 3].map((n) => stat(n, { value: h('a', { href: `#${n}` }, `€ ${n},000`) })) }));
+  const statTrend = await markup(({ h, kit }) => h(kit.StatBand, { variant: 'open',
+    stats: [1, 2].map((n) => stat(n, { trend: h('a', { href: `#t${n}`, style: { display: 'block', height: 32 } }, `Trend ${n}`) })) }));
+  // The third neighbour is the next block, a link flush under the band. Each variant in each
+  // container that sets the room below a band, in both themes. A card is measured in a
+  // .ui-stack, the container with the least room.
+  const statPlaces = [];
+  for (const variant of STAT_VARIANTS) {
+    for (const place of STAT_PLACES) {
+      const html = await markup(({ h, kit }) => {
+        const band = h(kit.StatBand, { variant, stats: [1, 2, 3].map((n) => stat(n)) });
+        const next = h('a', { href: '#next', style: { display: 'block' } }, 'Next block');
+        if (place === 'card') return h('div', { className: 'ui-stack' }, h('div', { className: 'ui-card' }, band), next);
+        return h('div', { className: place === 'stack' ? 'ui-stack' : place === 'card-stack' ? 'ui-card-stack' : 'ui-app__body' }, band, next);
+      });
+      for (const theme of ['dark', 'light']) statPlaces.push(row(`stat-${variant}-${place}-${theme}`, html, '', theme));
+    }
+  }
+  for (const [name, props] of STAT_CARDS) {
+    const html = await markup(({ h, kit }) => h('div', { className: 'ui-stack' },
+      h(kit.Card, props, h(kit.StatBand, { variant: 'open', stats: [1, 2, 3].map((n) => stat(n)) })),
+      h('a', { href: '#next', style: { display: 'block' } }, 'Next block')));
+    for (const theme of ['dark', 'light']) statPlaces.push(row(`stat-card-${name}-${theme}`, html, '', theme));
+  }
 
   return [
+    row('stat-links', statLinks),
+    row('stat-trend', statTrend),
+    ...statPlaces,
     row('confirm', confirm),
     row('empty-actions', empty),
     row('toolbar', toolbar),
@@ -501,10 +539,12 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // was never applied. A story taller than the cap is reported as `cut`:
       // at 6000 a filter bar that the sheet moved across the fold read as a
       // shrink (#814).
-      const full = await page.evaluate((html) => {
+      // A subject may name its theme. The rest are measured in the dark theme.
+      const full = await page.evaluate(({ html, theme }) => {
+        document.documentElement.dataset.theme = theme;
         document.body.innerHTML = html;
         return document.documentElement.scrollHeight;
-      }, s.html);
+      }, { html: s.html, theme: s.theme || 'dark' });
       const height = Math.min(Math.max(full, 900), VIEW_CAP);
       if (height !== page.viewportSize().height) {
         await page.setViewportSize({ width, height });

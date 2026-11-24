@@ -32,6 +32,10 @@ const rules = [...CSS.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .map((m) => ({ selector: m[1].trim().replace(/\s+/g, ' '), body: m[2] }));
 const valueOf = (body, prop) => (new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(body) || [])[1]?.trim() ?? null;
 const ruleFor = (selector) => rules.find((r) => r.selector === selector);
+const TOUCH = '(max-width: 560px) and (pointer: coarse)';
+const TARGET = '.ui-stat__delta .ui-tip-host > .ui-focusable';
+const touchRules = [...(/@media \(max-width: 560px\) and \(pointer: coarse\) \{((?:[^{}]*\{[^{}]*\})*)\s*\}/.exec(CSS)?.[1] ?? '')
+  .matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({ selector: m[1].trim().replace(/\s+/g, ' '), body: m[2] }));
 
 test('the sheet is being read', () => {
   assert.ok(rules.length >= 20, `parsed ${rules.length} rules out of stat.css`);
@@ -242,9 +246,75 @@ test('a figure is never narrower than its value, so a band wraps rather than ove
   assert.deepEqual(zeroed.map((r) => r.selector), [], 'a later rule lets a figure shrink to nothing');
 });
 
+// Space and the value divide the figures, so the open form draws no rule over a figure in
+// either theme (#849). The vertical line between light columns is not a rule over a figure.
+// Limits: reads this sheet only, so a line that another sheet draws is not seen.
+test('the open form draws no rule over a figure', () => {
+  const lines = rules.filter((r) => /\.ui-stat\b(?!_)|\.ui-stats__list/.test(r.selector)
+    && !/\.ui-stats--tiles/.test(r.selector)
+    && /(?:^|;)\s*(?:border(?:-top|-block|-block-start)?|box-shadow|outline)\s*:(?!\s*(?:0|none)\s*(?:;|$))/.test(r.body));
+  assert.deepEqual(lines.map((r) => r.selector), [], 'a figure carries a line that space and the value already give');
+});
+
+// The open figure has no padding over its label, so a page's control row keeps 24px to it, as
+// a recorded exception to the 8px inner gap (#849), in the page body and in a card stack. At rest the gap is layout.css's. On a
+// touch phone tap-zone.css is read with its media query open, as jsdom evaluates none.
+// Limits: jsdom lays nothing out, so this adds the parent's gap and the two margins.
+test('a toolbar keeps 24px to an open band and 20px to a block on a touch phone, in both themes', () => {
+  const sheet = (name) => decomment(readFileSync(path.join(here, name), 'utf8'));
+  const layout = sheet('card.css') + sheet('layout.css');
+  const tap = sheet('tap-zone.css').replace(/@media[^{]*\{([\s\S]*)\}\s*$/, '$1');
+  const px = (value) => (value || '0').replace(/calc|[()]|px/g, '').trim().split(/\s+/)
+    .reduce((sum, part, i, all) => (/^[+-]$/.test(part) ? sum : sum + (all[i - 1] === '-' ? -1 : 1) * Number(part)), 0);
+  const gapTo = (css, theme, parent, next) => {
+    const win = new JSDOM(`<!doctype html><html data-theme="${theme}"><head><style>${substitute(css, tokensFor(theme, 'default'))}</style></head><body>
+      <div class="${parent}"><div class="ui-toolbar"></div>${next}</div></body></html>`).window;
+    const style = (sel) => win.getComputedStyle(win.document.querySelector(sel));
+    return px(style(`.${parent}`).gap) + px(style('.ui-toolbar').marginBottom) + px(style('.ui-toolbar + *').marginTop);
+  };
+  const OPEN = '<div class="ui-stats ui-stats--open"></div>';
+  const before = layout.replace(/^.*:has\(\+ \.ui-stats--open\).*$/gm, '');
+  assert.notEqual(before, layout, 'the mutation did not land: layout.css has no rule for an open band');
+  for (const parent of ['ui-app__body', 'ui-card-stack']) {
+    for (const theme of ['dark', 'light']) {
+      const where = `${parent}, ${theme}`;
+      assert.equal(gapTo(layout, theme, parent, OPEN), 24, `${where}, at rest`);
+      assert.equal(gapTo(layout + tap, theme, parent, OPEN), 24, `${where}, on a touch phone`);
+      assert.equal(gapTo(layout, theme, parent, '<div class="ui-card"></div>'), 8, `${where}: the inner gap moved, or this measures nothing`);
+      // A toolbar over a block opens to --tap-gap, 20px, in both themes. The margin once took
+      // the light gap back in the dark theme too, so the toolbar met the next block with 0px.
+      assert.equal(gapTo(layout + tap, theme, parent, '<div class="ui-card"></div>'), 20, `${where}: a toolbar over a block on a touch phone`);
+      assert.equal(gapTo(before, theme, parent, OPEN), 8, `${where}: the gap without the rule`);
+    }
+  }
+});
+
+// A change with a tooltip holds its arrow in the focus target, so the ring goes round the arrow
+// and never touches it (#849). At rest the pair keeps the row's own gap, and on focus the ring's
+// block padding from tooltip.css is lent back, so no line moves.
+// Limits: reads declarations; the browser screenshots in the PR show the drawn ring, and
+// stories/tap-zone.test.js measures the touch target.
+test('the arrow sits in a change\'s focus target, with the row\'s gap and no moved line', () => {
+  const target = ruleFor('.ui-stat__delta .ui-tip-host > .ui-focusable')?.body ?? '';
+  assert.equal(valueOf(target, 'display'), 'inline-flex', 'the arrow and the change do not sit in one row');
+  assert.equal(valueOf(target, 'gap'), valueOf(ruleFor('.ui-stat__delta').body, 'gap').split(/\s+/)[1], 'the arrow moved off the row\'s gap');
+  const ring = decomment(readFileSync(path.join(here, 'tooltip.css'), 'utf8'));
+  const padding = /\.ui-tip-host > \.ui-focusable:focus-visible \{[^}]*padding:\s*([^;]+)/.exec(ring)?.[1].trim();
+  const lent = valueOf(ruleFor('.ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible')?.body ?? '', 'margin-block');
+  assert.equal(lent, `calc(-1 * ${padding})`, 'focus grows the row');
+  // On a touch phone the target is 44 both ways in the row, and its ring lends nothing,
+  // so focus moves no line there either.
+  const touch = (sel) => touchRules.find((r) => r.selector === sel)?.body ?? '';
+  for (const prop of ['min-inline-size', 'min-block-size']) assert.equal(valueOf(touch(TARGET), prop), 'var(--tap-min, 44px)', `a change on a touch phone has no ${prop} of 44`);
+  for (const prop of ['padding', 'margin']) assert.equal(valueOf(touch(`${TARGET}:focus-visible`), prop), '0', `focus on a touch phone changes the ${prop}`);
+});
+
+// The one media query is the touch phone's tap floor, and it sizes the change alone.
 test('the band lays out from its own width, never the window\'s', () => {
   assert.equal(valueOf(ruleFor('.ui-stats').body, 'container-type'), 'inline-size');
-  assert.doesNotMatch(CSS, /@media/, 'a fold keyed to the viewport: a band beside a rail is narrower than the window');
+  const queries = [...CSS.matchAll(/@media([^{]*)\{/g)].map((m) => m[1].trim());
+  assert.deepEqual(queries, [TOUCH], 'a fold keyed to the viewport: a band beside a rail is narrower than the window');
+  assert.deepEqual(touchRules.map((r) => r.selector), [TARGET, `${TARGET}:focus-visible`], 'the touch query holds more than the change\'s target');
 });
 
 // Each selector in a list on its own: `.ui-stat__delta, .ui-stat--good .ui-stat__delta`

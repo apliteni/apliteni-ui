@@ -9,7 +9,8 @@ const TIP_GAP = 8;
 /**
  * Place `tip` against `mark` inside `host`, on the preferred side and centred.
  * Flip only when that side is short and the other side has more room. Room is
- * measured inside the viewport and inside every ancestor whose overflow clips.
+ * measured inside the viewport, less TIP_GAP at each edge, and inside every
+ * ancestor whose overflow clips.
  * It then slides along the mark's edge to stay inside that box, no further than
  * it has to. A readout in the top layer, an open popover, is placed in the view's
  * coordinates. No ancestor can cut it there, so an ancestor too small to hold it
@@ -24,7 +25,8 @@ export function placeTip(host: HTMLElement, mark: Element, tip: HTMLElement, pla
   const view = host.ownerDocument.documentElement;
   const declared = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap'));
   const gap = Number.isFinite(declared) ? declared : TIP_GAP;
-  const clip = { top: 0, left: 0, right: view.clientWidth, bottom: view.clientHeight };
+  // The readout keeps TIP_GAP from each edge of the view.
+  const clip = { top: TIP_GAP, left: TIP_GAP, right: view.clientWidth - TIP_GAP, bottom: view.clientHeight - TIP_GAP };
   const layered = typeof tip.showPopover === 'function' && tip.matches(':popover-open');
   for (let el: HTMLElement | null = host; el && el !== host.ownerDocument.body; el = el.parentElement) {
     const style = getComputedStyle(el);

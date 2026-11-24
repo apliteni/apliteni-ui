@@ -24,7 +24,7 @@
 
 **Don't:** Grow the drawn control to 44 and push out every row that holds one.
 
-**Except:** Only a coarse pointer gets the layer, or a cursor lights a control it is not over. Rows that share an edge — a menu, a dense table, a settings list — have nothing to grow into and stay as they are drawn. Fields generate no layer, so a field reaches the floor by its own height or not at all.
+**Except:** Only a coarse pointer gets the layer, or a cursor lights a control it is not over. Rows that share an edge, such as a menu, a dense table or a settings list, stay as drawn. A field has no layer and reaches the floor by its own height. A stat band's change grows to 44 in its row.
 
 ## Space between small targets
 
