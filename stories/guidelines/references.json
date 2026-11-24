@@ -44,7 +44,7 @@
   ],
   "tap-zone": [
    {
-    "ref": "src/styles/tap-zone.css:91",
+    "ref": "src/styles/tap-zone.css:92",
     "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
    },
    {
@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:210",
+    "ref": "src/styles/tap-zone.css:211",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -674,19 +674,19 @@
     "pattern": "--tap-gap: var(--space-5"
    },
    {
-    "ref": "src/styles/tap-zone.css:145",
+    "ref": "src/styles/tap-zone.css:146",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:152",
+    "ref": "src/styles/tap-zone.css:153",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:153",
+    "ref": "src/styles/tap-zone.css:154",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
-    "ref": "src/styles/tap-zone.css:129",
+    "ref": "src/styles/tap-zone.css:130",
     "pattern": ".ui-seg--underline { row-gap: var(--space-1"
    }
   ],
