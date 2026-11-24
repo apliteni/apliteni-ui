@@ -253,29 +253,32 @@ test('the open form draws no rule over a figure', () => {
 });
 
 // The open figure has no padding over its label, so a page's control row keeps 24px to it, as
-// a recorded exception to the 8px inner gap (#849). At rest the gap is layout.css's. On a
+// a recorded exception to the 8px inner gap (#849), in the page body and in a card stack. At rest the gap is layout.css's. On a
 // touch phone tap-zone.css is read with its media query open, as jsdom evaluates none.
-// Limits: jsdom lays nothing out, so this adds the body's gap and the two margins.
+// Limits: jsdom lays nothing out, so this adds the parent's gap and the two margins.
 test('a toolbar keeps 24px to an open band, in both themes, at rest and on a touch phone', () => {
   const sheet = (name) => decomment(readFileSync(path.join(here, name), 'utf8'));
-  const layout = sheet('layout.css');
+  const layout = sheet('card.css') + sheet('layout.css');
   const tap = sheet('tap-zone.css').replace(/@media[^{]*\{([\s\S]*)\}\s*$/, '$1');
   const px = (value) => (value || '0').replace(/calc|[()]|px/g, '').trim().split(/\s+/)
     .reduce((sum, part, i, all) => (/^[+-]$/.test(part) ? sum : sum + (all[i - 1] === '-' ? -1 : 1) * Number(part)), 0);
-  const gapTo = (css, theme, next) => {
+  const gapTo = (css, theme, parent, next) => {
     const win = new JSDOM(`<!doctype html><html data-theme="${theme}"><head><style>${substitute(css, tokensFor(theme, 'default'))}</style></head><body>
-      <div class="ui-app__body"><div class="ui-toolbar"></div>${next}</div></body></html>`).window;
+      <div class="${parent}"><div class="ui-toolbar"></div>${next}</div></body></html>`).window;
     const style = (sel) => win.getComputedStyle(win.document.querySelector(sel));
-    return px(style('.ui-app__body').gap) + px(style('.ui-toolbar').marginBottom) + px(style('.ui-toolbar + *').marginTop);
+    return px(style(`.${parent}`).gap) + px(style('.ui-toolbar').marginBottom) + px(style('.ui-toolbar + *').marginTop);
   };
   const OPEN = '<div class="ui-stats ui-stats--open"></div>';
-  for (const theme of ['dark', 'light']) {
-    assert.equal(gapTo(layout, theme, OPEN), 24, `${theme}, at rest`);
-    assert.equal(gapTo(layout + tap, theme, OPEN), 24, `${theme}, on a touch phone`);
-    assert.equal(gapTo(layout, theme, '<div class="ui-card"></div>'), 8, `${theme}: the inner gap moved, or this measures nothing`);
-    const before = layout.replace(/^.*:has\(\+ \.ui-stats--open\).*$/gm, '');
-    assert.notEqual(before, layout, 'the mutation did not land: layout.css has no rule for an open band');
-    assert.equal(gapTo(before, theme, OPEN), 8, `${theme}: the gap without the rule`);
+  const before = layout.replace(/^.*:has\(\+ \.ui-stats--open\).*$/gm, '');
+  assert.notEqual(before, layout, 'the mutation did not land: layout.css has no rule for an open band');
+  for (const parent of ['ui-app__body', 'ui-card-stack']) {
+    for (const theme of ['dark', 'light']) {
+      const where = `${parent}, ${theme}`;
+      assert.equal(gapTo(layout, theme, parent, OPEN), 24, `${where}, at rest`);
+      assert.equal(gapTo(layout + tap, theme, parent, OPEN), 24, `${where}, on a touch phone`);
+      assert.equal(gapTo(layout, theme, parent, '<div class="ui-card"></div>'), 8, `${where}: the inner gap moved, or this measures nothing`);
+      assert.equal(gapTo(before, theme, parent, OPEN), 8, `${where}: the gap without the rule`);
+    }
   }
 });
 

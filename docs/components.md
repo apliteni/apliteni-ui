@@ -1262,7 +1262,8 @@ last two figures of an open band in a `.ui-stack`, because an open band has no p
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
 flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
 keeps one group gap of air below the figures, on top of the body's own gap. A toolbar directly before
-an open band keeps 24px to the figure labels, also on a touch phone.
+an open band keeps 24px to the figure labels, in the page body and in a card stack, also on a touch
+phone.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
