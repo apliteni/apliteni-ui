@@ -1047,6 +1047,29 @@ it('rounds both ends of a bar that stands on nothing', () => {
     .toEqual([2, 4, 4, 2]);
 });
 
+// The stacked looks share the months chart's look-A corner: --radius-xs or a
+// quarter of the bar, whichever is smaller. A design review of 63cffc79 found a
+// fixed 4px radius here, which rounded a 12px column more than look A asks and
+// a 20px share column less.
+it('spends the look-A corner on the stacked columns, share and rows', () => {
+  for (const [look, bar] of [['columns', 12], ['share', 20], ['rows', 12]] as const) {
+    cleanup();
+    const { container } = lookChart('stacked', look);
+    const svg = container.querySelector('.ui-chart__svg')!;
+    const segments = [...svg.querySelectorAll('path.ui-chart__segment')];
+    expect(segments.length, `${look} draws segments`).toBeGreaterThan(0);
+    const rounded = segments.filter((s) => /[aA]/.test(s.getAttribute('d') ?? ''));
+    expect(rounded.length, `${look} rounds its top segment`).toBeGreaterThan(0);
+    const radius = Math.min(6, bar / 4);
+    for (const seg of segments) {
+      for (const [, r] of (seg.getAttribute('d') ?? '').matchAll(/[aA](-?\d*\.?\d+)/g)) {
+        expect(Math.abs(Number(r) - radius), `${look} carries the small corner, not a fixed 4px`)
+          .toBeLessThanOrEqual(0.1);
+      }
+    }
+  }
+});
+
 it('a tap opens the readout, a second tap on the same mark closes it', () => {
   months();
   fireEvent.touchStart(markEl('income-1'));
@@ -1245,6 +1268,34 @@ it('opens the keyboard readout on a column in view when the plot opens at its en
   await user.tab();
   expect(screen.getByRole('status'), 'not Oct, which is scrolled away').toHaveTextContent(/^Jan 2027\./);
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent('Cash in, Jan 2027');
+  vi.restoreAllMocks();
+});
+
+// A chart that scrolls its own plot re-places the keyboard readout beside its
+// mark; the document scroll listener must not clear it first, as it did before
+// #863 (a design review of 63cffc79 found Home and the arrows hid the readout).
+// A page scroll with the pointer still closes it. JSDOM fires no scroll when a
+// scrollLeft is written, so this fires the events and mocks the boxes the
+// re-place reads.
+it('keeps the keyboard readout open when the chart\'s own plot scrolls, and closes it on a page scroll', async () => {
+  const user = userEvent.setup();
+  const { container } = months();
+  await tabToFrame(user);
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.getByRole('tooltip')).toHaveClass('is-open');
+
+  const scroller = container.querySelector('.ui-chart__scroll')!;
+  const anchor = container.querySelector('[data-anchor="income-1"]')!;
+  vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(
+    { left: 0, right: 200, top: 0, bottom: 100, width: 200, height: 100, x: 0, y: 0, toJSON: () => ({}) } as DOMRect);
+  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(
+    { left: 50, right: 60, top: 0, bottom: 10, width: 10, height: 10, x: 50, y: 0, toJSON: () => ({}) } as DOMRect);
+
+  fireEvent.scroll(scroller);
+  expect(screen.getByRole('tooltip'), 'the chart\'s own plot scroll keeps the readout open').toHaveClass('is-open');
+
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'a page scroll still closes the readout').toBeNull();
   vi.restoreAllMocks();
 });
 

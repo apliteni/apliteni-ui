@@ -882,7 +882,13 @@ export function Chart(props: ChartProps) {
     const doc = frameEl.current?.ownerDocument;
     const view = doc?.defaultView;
     if (!doc || !view) return;
-    const hide = () => setOpenId(null);
+    const hide = (event?: globalThis.Event) => {
+      // The chart's own plot scroll re-places the readout beside its mark, so a
+      // keyboard reader who scrolls the plot keeps it open. A page scroll with
+      // the pointer still closes it. why: guidelines/hover-readouts.md#keep-readouts-over-the-page
+      if (event?.target === scroller.current) return;
+      setOpenId(null);
+    };
     const escape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       dismissed.current = openId;

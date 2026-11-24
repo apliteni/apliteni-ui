@@ -82,6 +82,11 @@ const RING = {
 const END_LABEL = { rise: 10, ascent: 10, drop: 20, gap: 4 };
 /** The bar width of the columns looks: slim for an amount, wide for a share. */
 const STACK_BAR = { columns: 12, share: 20 };
+/** Look A's bar corner: --radius-xs (6px), or a quarter of the bar, whichever is
+ *  smaller. `barPath` in Chart.tsx draws the months and bridge bars with the
+ *  same number; the stacked segments share it so one look has one corner. */
+const BAR_CORNER = 6;
+const barCorner = (w: number) => Math.min(BAR_CORNER, w / 4);
 
 /** An annulus slice from angle `a0` to `a1`, clockwise from twelve o'clock. */
 function arc(x: number, y: number, r0: number, r1: number, a0: number, a1: number) {
@@ -409,7 +414,7 @@ function columnsDrawing(g: LookGeometry) {
       const y0 = y(layer.from[i]);
       const y1 = y(layer.to[i]);
       const x = centre(i) - w / 2;
-      const d = layer === filled[filled.length - 1] ? topRounded(x, y1, w, y0 - y1, 4) : square(x, y1, w, y0 - y1);
+      const d = layer === filled[filled.length - 1] ? topRounded(x, y1, w, y0 - y1, barCorner(w)) : square(x, y1, w, y0 - y1);
       return (
         <path key={`seg-${layer.id}-${i}`}
           className={cx('ui-chart__segment', tone(layer.tone), label.estimated && 'is-estimated')} d={d} />
@@ -446,7 +451,7 @@ function rowsDrawing(g: LookGeometry, pick: number | null) {
               const x0 = rows.x(layer.from[i]);
               const x1 = rows.x(layer.to[i]);
               const d = layer === filled[filled.length - 1]
-                ? rightRounded(x0, top, x1 - x0, ROW_BAR, 4) : square(x0, top, x1 - x0, ROW_BAR);
+                ? rightRounded(x0, top, x1 - x0, ROW_BAR, barCorner(ROW_BAR)) : square(x0, top, x1 - x0, ROW_BAR);
               return (
                 <path key={`seg-${layer.id}`} d={d}
                   className={cx('ui-chart__segment', tone(layer.tone), label.estimated && 'is-estimated')} />
