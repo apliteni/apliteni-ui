@@ -35,6 +35,10 @@ reviewer checks the protection itself.
 Before handoff, run `npm test` with `jq` installed, `npm test -w react`, `npm run
 build-storybook`, and `node site/build.mjs`. Stage new files first so git-based tests can find
 them, and add new test directories to both the guard and the glob in `npm test`.
+`npm test` needs `react/dist`. `npm ci` builds it through the root `prepare` script. If your
+checkout was installed without that script, run `npm run build` first. Otherwise
+`scripts/packaging.test.js` and `site/segmented.test.js` fail at stories/lib/react-markup.js:54
+`react/dist is not built`.
 
 While you work, run `node --test <file>` for the files you changed. Run both suites once
 for the pull request, on a Linux host where you have one. Their budgets on an 8-core Linux
