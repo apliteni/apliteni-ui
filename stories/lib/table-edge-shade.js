@@ -149,6 +149,7 @@ export const CARD_FRAME = (focus) => {
     ring: rgb(s.outlineColor),
     ground: painted(f.parentElement),
     below: b.bottom - f.querySelector('.ui-table').getBoundingClientRect().bottom,
+    range: f.scrollWidth - f.clientWidth,
   };
 };
 

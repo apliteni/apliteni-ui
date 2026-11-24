@@ -79,6 +79,20 @@ test('this gate rejects a card ground read from a transparent card', () => {
   );
 });
 
+test('this gate rejects a frame that keeps its focus stop when nothing scrolls', () => {
+  // The mutation: #845 reversed — `tabIndex: 0` always, so at desktop width a table
+  // that fits still takes keyboard focus. The gate asserts no focus stop while
+  // nothing scrolls, so the tabindex must be gated on overflow.
+  const rig = readFileSync(path.join(root, 'react/src/DataTable.tsx'), 'utf8');
+  const always = rig.replace(/\btabIndex:\s*overflows\s*\?\s*0\s*:\s*undefined\b/, 'tabIndex: 0');
+  assert.notEqual(always, rig, 'The mutation did not apply, so it proves nothing.');
+  assert.ok(
+    !/\btabIndex:\s*overflows\s*\?\s*0\s*:\s*undefined\b/.test(always),
+    'The frame still gates its tab stop on overflow, so the no-focus-stop assertion would pass '
+    + 'over a frame that keeps its stop when nothing scrolls.',
+  );
+});
+
 const RUN_BROWSER = process.env.EDGE_SHADE === '1';
 const THEMES = ['light', 'dark'];
 
@@ -92,10 +106,12 @@ const THEMES = ['light', 'dark'];
  * widened the page under a header that does not stick, and its closed tooltips made the
  * frame scroll past the table. Each defect is put back there to prove the check sees it.
  *
- * The members story also holds the card frame (#782), at 390 and 1440 wide: focused, its
- * ring shows on all four sides and its rounded corners show the whole ring, at rest its
- * side bands show no line, and the table reaches its bottom. Limits: only the first frame
- * in a card on that one story. */
+ * The members story also holds the card frame (#782), at 390 and 1440 wide: at 390 the
+ * table overflows, so the frame is a keyboard stop and its ring shows on all four sides
+ * with its rounded corners whole; at 1440 the table fits, so the frame is not a stop
+ * (#845) and the gate measures the ground at rest and asserts no focus stop while
+ * nothing scrolls. At rest its side bands show no line, and the table reaches its
+ * bottom. Limits: only the first frame in a card on that one story. */
 const PHONE = { width: 390, height: 844 };
 const PAYOUTS_STORY = 'react-datatable-ledgers--finance-data';
 const MEMBERS_STORY = 'react-datatable-members--default';
@@ -109,14 +125,27 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
     decodePNG, CARD_FRAME, cardFrameFindings, FRAME_BANDLESS, FRAME_TOPLESS, FRAME_EDGE_LINE, FRAME_GAP_BELOW,
   } = await import('./lib/table-edge-shade.js');
   const shot = async (page) => decodePNG(await page.screenshot({ fullPage: true, animations: 'disabled' }));
-  const checkCardFrame = async (page, label) => {
+  // `expectStop` is true where the table overflows and the frame is a keyboard stop
+  // (#845): at 390 the members table has a range, so its ring is measured; at 1440 the
+  // table fits, so the frame must not take focus, and the gate measures the ground at rest.
+  const checkCardFrame = async (page, label, expectStop) => {
     for (const focus of [true, false]) {
       const frame = await page.evaluate(CARD_FRAME, focus);
       assert.ok(frame, `${label}: no table frame in a card`);
-      if (focus) assert.ok(frame.focused, `${label}: the frame did not take a keyboard focus`);
+      if (focus) {
+        assert.equal(frame.focused, expectStop, expectStop
+          ? `${label}: the frame did not take a keyboard focus`
+          : `${label}: the frame kept a focus stop while nothing scrolls`);
+        if (!expectStop) assert.equal(frame.range, 0, `${label}: the table still scrolls, so a focus stop was expected`);
+      }
       assert.deepEqual(cardFrameFindings(await shot(page), frame), [], `${label} ${focus ? 'focused' : 'at rest'}`);
     }
-    for (const [what, mutation, focus] of [['a frame without bands', FRAME_BANDLESS, true], ['a frame without a top band', FRAME_TOPLESS, true], ['an edge line at rest', FRAME_EDGE_LINE, false], ['a band below the table', FRAME_GAP_BELOW, false]]) {
+    const mutations = [
+      ...(expectStop ? [['a frame without bands', FRAME_BANDLESS, true], ['a frame without a top band', FRAME_TOPLESS, true]] : []),
+      ['an edge line at rest', FRAME_EDGE_LINE, false],
+      ['a band below the table', FRAME_GAP_BELOW, false],
+    ];
+    for (const [what, mutation, focus] of mutations) {
       const style = await page.addStyleTag({ content: mutation });
       const frame = await page.evaluate(CARD_FRAME, focus);
       assert.notDeepEqual(cardFrameFindings(await shot(page), frame), [], `${label}: ${what} still passed`);
@@ -163,7 +192,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
             assert.notDeepEqual(phoneFitFindings(broken, true), [], `${theme}: ${what} still passed`);
             await style.evaluate((node) => node.remove());
           }
-          await checkCardFrame(page, `${theme} ${PHONE.width}`);
+          await checkCardFrame(page, `${theme} ${PHONE.width}`, true);
         }
       }
       // The payouts, the pinned payments, the pinned sortable table and the members.
@@ -174,7 +203,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
       const got = await openStory(page2, stories.find((s) => s.id === MEMBERS_STORY), { port: server.port, theme });
       assert.equal(got.phase, STORY_DONE, `members ${theme} ${DESKTOP.width}: ${got.phase}`);
       await page2.evaluate(() => document.fonts.ready);
-      await checkCardFrame(page2, `${theme} ${DESKTOP.width}`);
+      await checkCardFrame(page2, `${theme} ${DESKTOP.width}`, false);
       await wide.close();
     }
   } finally {
