@@ -126,6 +126,20 @@ export const CARD_FRAME = (focus) => {
   if (focus) f.focus({ focusVisible: true });
   else f.blur();
   const rgb = (c) => c.match(/[\d.]+/g).slice(0, 3).map(Number);
+  // The light card is transparent (#850): the page's ground shows through, and a
+  // transparent background reads as rgba(0,0,0,0), which the gate would compare
+  // against as black. Resolve the real painted ground by walking up to the
+  // nearest ancestor that paints a background.
+  const painted = (el) => {
+    for (let node = el; node; node = node.parentElement) {
+      const c = getComputedStyle(node).backgroundColor;
+      const parts = c.match(/[\d.]+/g);
+      if (!parts) continue;
+      const alpha = parts.length > 3 ? Number(parts[3]) : 1;
+      if (alpha > 0) return parts.slice(0, 3).map(Number);
+    }
+    return [0, 0, 0];
+  };
   const s = getComputedStyle(f);
   const b = f.getBoundingClientRect();
   return {
@@ -133,7 +147,7 @@ export const CARD_FRAME = (focus) => {
     corners: Object.fromEntries(['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map((k) => [k, parseFloat(s[`border${k}Radius`]) || 0])),
     focused: f.matches(':focus-visible'),
     ring: rgb(s.outlineColor),
-    ground: rgb(getComputedStyle(f.parentElement).backgroundColor),
+    ground: painted(f.parentElement),
     below: b.bottom - f.querySelector('.ui-table').getBoundingClientRect().bottom,
   };
 };

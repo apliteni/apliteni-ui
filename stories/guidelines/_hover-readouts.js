@@ -24,7 +24,11 @@ export const SPEC_CSS = `${CHART_CSS}
     /* A region that hides its overflow, the way a scrolling table or a clipped
        card body does, with less room above the tallest bar than a readout needs. */
     .gh-clip { overflow: hidden; border-radius: var(--radius-sm);
-      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-8) var(--space-3) 0; }
+      box-shadow: inset 0 0 0 1px var(--border); padding: var(--space-8) var(--space-3) 0;
+      /* A size container, so the phone clamp below reads the clip's own content
+         width, inset included, instead of 100vw, which counts a vertical
+         scrollbar the clip's box does not. */
+      container-type: inline-size; }
     /* The open readouts sit at fixed pixel anchors, so on a phone the long one can
        reach past the column. Clamp it the way the wiring does: the horizontal
        translate is the smaller of the centred half-width and the distance that
@@ -42,14 +46,16 @@ export const SPEC_CSS = `${CHART_CSS}
       }
       /* The clipping region's own side inset: a readout clamped to the page
          column would sit on the box's edge and lose its border under the clip's
-         inset edge. Clamp it to the box's content, inset included. */
+         inset edge. Clamp it to the box's content, inset included. 100cqw is the
+         clip's content-box width — the width behind the inset, and the scrollbar
+         is already outside it, where 100vw counted the scrollbar too. */
       .gh-clip .gh-host .ui-tip {
-        max-width: calc(100vw - var(--space-10) * 2 - var(--space-3) * 2);
-        translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--space-3) - var(--ui-tip-x) - 100%))
+        max-width: 100cqw;
+        translate: min(-50%, calc(100cqw - var(--ui-tip-x) - 100%))
           calc(-100% - var(--ui-tip-gap));
       }
       .gh-clip .gh-host .ui-tip.is-below {
-        translate: min(-50%, calc(100vw - var(--space-10) * 2 - var(--space-3) - var(--ui-tip-x) - 100%))
+        translate: min(-50%, calc(100cqw - var(--ui-tip-x) - 100%))
           var(--ui-tip-gap);
       }
     }

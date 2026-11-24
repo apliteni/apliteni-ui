@@ -140,6 +140,25 @@ describe('guideline pages in React: a readout that wraps', () => {
   });
 });
 
+/* The clipped readout (Prefer above the mark) clamps to its clip's own width,
+ * not to 100vw, which counts a vertical scrollbar the clip's box does not. The
+ * clip is a size container, so 100cqw is the width behind its inset. Limit: this
+ * reads the declarations, not layout; the clip itself was measured in a browser
+ * at 360x800 with a classic 15px scrollbar. */
+describe('guideline pages in React: the clipped readout clamps to its box', () => {
+  const hover = read('../../stories/guidelines/_hover-readouts.js');
+  it('makes the clip a size container and clamps the readout to its content width', () => {
+    expect(hover).toMatch(/\.gh-clip\s*\{[^}]*container-type:\s*inline-size/);
+    expect(hover).toMatch(/\.gh-clip\s+\.gh-host\s+\.ui-tip\s*\{[^}]*max-width:\s*100cqw/);
+    expect(hover).toMatch(/calc\(100cqw\s*-\s*var\(--ui-tip-x\)\s*-\s*100%\)/);
+  });
+  it('rejects a clamp read from the viewport instead of the box', () => {
+    const clamped = hover.replace(/\bmax-width:\s*100cqw\b/, 'max-width: calc(100vw - var(--space-10) * 2 - var(--space-3) * 2)');
+    expect(clamped).not.toBe(hover);
+    expect(clamped).not.toMatch(/max-width:\s*100cqw/);
+  });
+});
+
 /* Stands in for destructive-actions.test.js "the specimen measure is the confirm
  * component's own declared width", which pins the vanilla confirm. The React page
  * draws the React Confirm, which is a Modal, so what is held here is that the

@@ -509,12 +509,19 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // A `max-height: 70vh` scroll region reads its cap on a short box, so its
       // height and the story's height chase each other: settle the pair before
       // the PROBE resets the innerHTML and reads the region a different size.
+      //
+      // The viewport `full` is clamped to VIEW_CAP, so it never exceeds the cap.
+      // The measured content height is kept apart from it: `content` is the last
+      // scrollHeight the page reported, and an oversized story is `cut` by its
+      // content, not by the capped viewport it was read through.
       let full = 900;
+      let content = 900;
       for (let round = 0; round < rounds; round++) {
         const measured = await page.evaluate((html) => {
           document.body.innerHTML = html;
           return document.documentElement.scrollHeight;
         }, s.html);
+        content = measured;
         const next = Math.min(Math.max(measured, 900), VIEW_CAP);
         if (next === full) break;
         full = next;
@@ -522,7 +529,7 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       }
       const height = full;
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });
-      if (targets.length) rows.push({ story: s.id, targets, height, cut: full > VIEW_CAP });
+      if (targets.length) rows.push({ story: s.id, targets, height, cut: content > VIEW_CAP });
     }
     return { media, rows };
   } finally {

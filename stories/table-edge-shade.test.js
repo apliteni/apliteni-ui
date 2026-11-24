@@ -65,6 +65,20 @@ test('the gate refuses each part of the old shade', () => {
   ]);
 });
 
+test('this gate rejects a card ground read from a transparent card', () => {
+  // The mutation: read the card's own background. The light card is transparent
+  // (#850), so its background reads rgba(0,0,0,0) — black — while the page ground
+  // shows through. The rig must walk up to the nearest ancestor that paints.
+  const rig = readFileSync(path.join(root, 'stories/lib/table-edge-shade.js'), 'utf8');
+  const direct = rig.replace(/\bground:\s*painted\(f\.parentElement\)/, 'ground: rgb(getComputedStyle(f.parentElement).backgroundColor)');
+  assert.notEqual(direct, rig, 'The mutation did not apply, so it proves nothing.');
+  assert.ok(
+    !/\bground:\s*painted\(f\.parentElement\)/.test(direct),
+    'The ground still resolves through the ancestor walk, so the check above would pass '
+    + 'over a transparent light card measured as black.',
+  );
+});
+
 const RUN_BROWSER = process.env.EDGE_SHADE === '1';
 const THEMES = ['light', 'dark'];
 

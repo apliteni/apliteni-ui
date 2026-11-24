@@ -553,6 +553,21 @@ test('this gate rejects a sheet that drops the date-picker drawer growth', () =>
   );
 });
 
+test('this gate rejects a cap read from the viewport instead of the content', () => {
+  // The mutation: `full` is the viewport height, clamped to VIEW_CAP, so it
+  // never exceeds the cap and `cut: full > VIEW_CAP` is always false. A story
+  // taller than the cap is then measured only to the cap, and everything below
+  // it is silently unmeasured instead of rejected below.
+  const rig = read('stories/lib/tap-zone.js');
+  const clamped = rig.replace(/\bcut:\s*content\s*>\s*VIEW_CAP\b/, 'cut: full > VIEW_CAP');
+  assert.notEqual(clamped, rig, 'The mutation did not apply, so it proves nothing.');
+  assert.ok(
+    !/\bcut:\s*content\s*>\s*VIEW_CAP\b/.test(clamped),
+    'The cap still reads the content height, so the oversized-story assertion below would pass '
+    + 'over a story taller than the rig lays out.',
+  );
+});
+
 test('the shrink check reads an edge-stopped side as a lower bound', async () => {
   // The mutation half of the edge rule: the same 1px loss fails on a side another
   // control stops, and passes only where the viewport edge stops the pass with the sheet.
