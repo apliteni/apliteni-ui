@@ -148,8 +148,8 @@
   .ui-toolbar--split .ui-filter-bar { column-gap: calc(var(--tap-gap) + var(--space-1) + 1px) !important; }
   /* The table under a filter bar moves down with the chips: the bar's inner gap
      opens to --tap-gap too, so the last row's layers stop short of the table.
-     In .ui-stack the bar's margin collapses with the block's 8px one. */
-  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }
+     In .ui-stack the bar's margin collapses with the block's 8px one. An open band keeps its 24px. */
+  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
   /* Inside a chip there is nothing to open: parting the value from its remove

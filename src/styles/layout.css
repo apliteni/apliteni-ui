@@ -466,6 +466,10 @@
 :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-5)); }
 :root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--space-10)); }
 .ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }
+/* An open figure has no surface and no padding, so the row keeps 24px to its label: a
+   recorded exception to the inner gap, also on a touch phone. why: docs/components.md#stat-bands, #849 */
+.ui-app__body > .ui-toolbar:has(+ .ui-stats--open) { margin-bottom: calc(var(--space-6) - var(--space-5)); }
+:root[data-theme="light"] .ui-app__body > .ui-toolbar:has(+ .ui-stats--open) { margin-bottom: calc(var(--space-6) - var(--space-10)); }
 /* A filter bar inside its table's card sits one inner gap above the table, the
    same step the card title keeps above the bar. why: guidelines/dense-tables.md */
 .ui-card > .ui-toolbar:not(:last-child) { margin-bottom: var(--space-2); }

@@ -1,8 +1,8 @@
-// Rule: every stat change says what it is measured against in reachable text, a
-// caption leads the figures it captions, and a figure uses one row. The React half of
-// stories/stat-basis.test.js (#429), over the same reading in stories/lib/stat-basis.js.
-// Accepted shapes are a figure basis, a band caption, or a period-control basis; a
-// hover `title` does not count. Every React story is walked, so a new band becomes a
+// Rule: every stat change says what it is measured against in reachable text or in its
+// tooltip, a caption leads the figures it captions, and a figure uses one row. The
+// reading is in stories/lib/stat-basis.js.
+// Accepted shapes are a figure basis, a band caption, a period-control basis, or a kit
+// Tooltip with a screen-reader basis; a hover `title` does not count. Every React story is walked, so a new band becomes a
 // subject by default.
 // why: docs/components.md#stat-bands
 import type { ReactElement } from 'react';
@@ -150,6 +150,36 @@ describe('stat basis: fixtures', () => {
     assert.equal(unexplained(box).length, 2, 'a statement nested in the row passed as one beside the control');
   });
 
+  /* The fourth shape: the basis in a kit Tooltip on each change, and screen-reader text
+   * that the change references. Each mutation takes one part away and must fail. */
+  const TIPPED = renderToStaticMarkup(<>
+    <p className="ui-sr" id="sr-basis">vs. previous 12 months</p>
+    <StatBand id="band" basisId="sr-basis" stats={[{ label: 'Money in', value: '€ 1', delta: { value: '+4%', tooltip: 'vs. previous 12 months' } }]} />
+  </>);
+  it('a change takes its basis from its tooltip and screen-reader text', () => {
+    const box = mount(TIPPED);
+    assert.equal(box.querySelectorAll('.ui-stats__basis, .ui-seg').length, 0, 'premise: no caption and no period control');
+    assert.equal(unexplained(box).length, 0);
+  });
+  const without: [string, (html: string) => string][] = [
+    ['the tooltip says nothing', html => html.replace(/(<span class="ui-tip__label">)[^<]*/, '$1 ')],
+    ['the trigger does not point at its tooltip', html => html.replace(/(tabindex="0") aria-describedby="[^"]*"/, '$1')],
+    ['the keyboard cannot reach the trigger', html => html.replace(/ tabindex="0"/, '')],
+    ['a hover title stands in for the tooltip', html => html.replace(/<span class="ui-tip-host"[\s\S]*?(<span class="ui-stat__change")[^>]*>([^<]*)<\/span>[\s\S]*?(?=<\/dd>)/, '$1 title="vs. previous 12 months">$2</span>')],
+    ['the change references no text', html => html.replace(' aria-describedby="sr-basis"', '')],
+    ['the screen-reader text is empty', html => html.replace(/(id="sr-basis">)[^<]*/, '$1')],
+    ['the text is not the screen-reader basis', html => html.replace(' class="ui-sr"', '')],
+  ];
+  for (const [name, mutate] of without) {
+    it(`the tooltip basis fails when ${name}`, () => {
+      const html = mutate(TIPPED);
+      assert.notEqual(html, TIPPED, 'the mutation did not land — the markup moved');
+      const box = mount(html);
+      assert.equal(box.querySelectorAll('.ui-stat__delta').length, 1, 'premise: the change is still drawn');
+      assert.equal(unexplained(box).length, 1);
+    });
+  }
+
   it('the check finds a caption that has slipped under or into its figures', () => {
     const stats = [{ label: 'Income', value: '€ 1', delta: { value: '+4%' } }];
     const band = statBand({ stats, basis: 'Against last year', id: 'ok' });
@@ -178,16 +208,16 @@ type Story = { render?: (args: unknown, ctx: unknown) => ReactElement; args?: Re
 type StoryModule = { default?: Story } & Record<string, unknown>;
 const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 
-// The catalogue as measured when this gate was written: a drop means the walk stopped
-// finding bands, which is a change to look at.
-const SUBJECTS_FLOOR = 43, CAPTIONS_FLOOR = 12, FIGURES_FLOOR = 59;
+// The catalogue as measured: a drop means the walk stopped finding bands, which is a
+// change to look at. Captions fell from 18 to 7 when the Stat band story and guideline
+// moved their basis into tooltips (#849).
+const SUBJECTS_FLOOR = 43, CAPTIONS_FLOOR = 7, TOOLTIPS_FLOOR = 30, FIGURES_FLOOR = 59;
 
 // Found when #429 gave the React stories this gate; none of it comes from the vanilla
 // removal. Listed rather than skipped: a story not listed here fails, and a listed one
 // that comes clean fails until it is taken off. Each fix changes a story or the rule, so
 // it waits for the owner.
 const KNOWN_GAPS: Record<string, string> = {
-  './PeriodPicker.stories.tsx:Default': 'the changes point at a hidden paragraph beside a month picker, which the rule does not know as a period control, and repeat the basis in a tooltip',
   './PeriodPicker.stories.tsx:Loading': 'the loading band draws change rows with no text',
 };
 
@@ -217,7 +247,7 @@ describe('stat basis: a Don\'t half is skipped, a Do half is not', () => {
 describe('stat basis: React stories', () => {
   // One `it` per story file, so a slow file shows as itself and no single test
   // carries the whole walk past the 5 s budget.
-  const sweep = { guidelineDo: 0, subjects: 0, captions: 0, figures: 0, fromControl: 0, failures: [] as string[], known: new Set<string>() };
+  const sweep = { guidelineDo: 0, subjects: 0, captions: 0, tooltips: 0, figures: 0, fromControl: 0, failures: [] as string[], known: new Set<string>() };
 
   for (const file of Object.keys(modules).sort()) {
     it(`every change in ${file} says what it is measured against`, () => {
@@ -238,6 +268,7 @@ describe('stat basis: React stories', () => {
         }
         sweep.subjects += box.querySelectorAll('.ui-stat__delta').length;
         sweep.captions += box.querySelectorAll('.ui-stats__basis').length;
+        sweep.tooltips += box.querySelectorAll('.ui-stat__delta .ui-tip-host').length;
         sweep.figures += box.querySelectorAll('.ui-stat').length;
         const control = [...allowedBases(box)].filter(([, what]) => what === "the period control's basis").map(([id]) => id);
         sweep.fromControl += [...box.querySelectorAll('.ui-stat__delta[aria-describedby]')]
@@ -262,6 +293,7 @@ describe('stat basis: React stories', () => {
   it('the walk found the bands and every story is clean', () => {
     assert.ok(sweep.subjects >= SUBJECTS_FLOOR, `walked ${sweep.subjects} changes — the walk stopped finding the bands`);
     assert.ok(sweep.captions >= CAPTIONS_FLOOR, `walked ${sweep.captions} captions — the walk stopped finding the bands' captions`);
+    assert.ok(sweep.tooltips >= TOOLTIPS_FLOOR, `walked ${sweep.tooltips} tooltips — the walk stopped finding the changes' tooltips`);
     assert.ok(sweep.figures >= FIGURES_FLOOR, `walked ${sweep.figures} figures — the walk stopped finding them`);
     // The third shape has one screen today, the Dashboard's three figures. #505
     assert.ok(sweep.fromControl >= 3, `${sweep.fromControl} change(s) take their basis from a period control; the Dashboard draws three`);

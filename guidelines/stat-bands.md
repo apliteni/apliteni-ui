@@ -8,7 +8,7 @@
 
 **Why:** A shared layout puts every figure's value, change and basis in the same place.
 
-**Do:** One card per figure: one size, a soft line each, arrow, signed change, caption above the row.
+**Do:** One card per figure: one size, a soft line each, arrow, signed change, basis in a tooltip.
 
 **Don't:** Heading-sized figures, a capitalised 10px status chip, no comparison basis.
 
@@ -30,12 +30,12 @@
 
 <!-- rule: say-the-basis -->
 
-**Rule:** State in reachable text what each change is measured against.
+**Rule:** State what each change is measured against, in reachable text or in its tooltip.
 
 **Why:** Percentages need a basis that readers can find.
 
-**Except:** A comparison basis may be screen-reader-only when the visible control names the period. Use this exception for the dashboard pattern.
+**Except:** The basis may be screen-reader-only when a tooltip on each change shows it, or, on a dashboard, when a visible control names the period.
 
-**Do:** The basis once, in a caption each change references or beside one exception; the caption before and outside every figure.
+**Do:** Each change's tooltip and screen-reader text state the basis, and one exception states its own.
 
-**Don't:** The caption below the tiles, after the changes it explains.
+**Don't:** Percentages that no text or tooltip explains.

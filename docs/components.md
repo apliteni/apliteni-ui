@@ -1253,11 +1253,14 @@ in a row, and none where the figures fold onto a new row. Use a caption only for
 
 **Say what a change compares with.** Put it once for the band in `basis`, or with `basisId` point
 at text before the figures. A caption comes before the figures. A hover `title` does not count.
-When a period control already states the window, do not repeat it.
+When a period control already states the window, do not repeat it. To show no caption, put the basis
+in the `tooltip` of each `delta`, and with `basisId` point at screen-reader-only text that says it.
+The tooltip opens on hover, focus and tap.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
 flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
-keeps one group gap of air below the figures, on top of the body's own gap.
+keeps one group gap of air below the figures, on top of the body's own gap. A toolbar directly before
+an open band keeps 24px to the figure labels, also on a touch phone.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
