@@ -107,9 +107,9 @@ function Screen({ layout = 'side', initialPage = 'campaigns', initialLoad = 'unr
   /* A menu may own only its items, so the danger callout, an alert, cannot stand in the panel.
      The panel says it with the empty state. The PR names the kit gap. */
   const failed = (where: 'panel' | 'page') => where === 'panel'
-    ? <EmptyState icon="circleAlert" title="Notifications did not load" sub="Check the connection, then try again." actions={retry('panel')} />
+    ? <EmptyState level={0} icon="circleAlert" title="Notifications did not load" sub="Check the connection, then try again." actions={retry('panel')} />
     : <Callout variant="danger" actions={retry('page')}><strong>Error:</strong> {FAILED}</Callout>;
-  const nothing = (where: 'panel' | 'page') => <EmptyState icon="bell" title="No notifications" sub="Mentions, assignments and failed runs show here."
+  const nothing = (where: 'panel' | 'page') => <EmptyState level={where === 'panel' ? 0 : 2} icon="bell" title="No notifications" sub="Mentions, assignments and failed runs show here."
     actions={where === 'panel' ? <Button variant="secondary" size="sm" {...asItem} onClick={() => go('/settings')}>Settings</Button>
       : <Button variant="secondary" size="sm" href="/settings" onClick={follow('/settings')}>Settings</Button>} />;
 

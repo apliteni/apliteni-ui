@@ -8,6 +8,7 @@ const mark = (c: HTMLElement) => c.firstElementChild!;
 it.each([
   ['a named mark', { personKey: 'user_1042', name: 'Avery Example' }, ['ui-avatar', 'ui-avatar--h4']],
   ['a 32 px mark', { personKey: 'user_7', name: 'Mia', size: 32 as const }, ['ui-avatar', 'ui-avatar--32', 'ui-avatar--h0']],
+  ['a 48 px mark', { personKey: 'user_8', name: 'Dana Reyes', size: 48 as const }, ['ui-avatar', 'ui-avatar--48', 'ui-avatar--h5']],
   ['no name', { personKey: 'user_9', name: '' }, ['ui-avatar', 'ui-avatar--anon']],
   ['the dashed ring', { empty: true }, ['ui-avatar', 'ui-avatar--empty']],
 ])('writes the avatar class list: %s', (_n, props, expected) => {

@@ -22,9 +22,21 @@
 
 **Why:** Reading a table is what a report is for.
 
-**Do:** The figures with their trends, then the payouts needing a decision.
+**Do:** The figures with their trends, then the sales needing a decision.
 
 **Don't:** The whole ledger and a paragraph about it.
+
+## Separate tight blocks with a soft line
+
+<!-- rule: soft-lines-between-blocks -->
+
+**Rule:** Draw a soft line between blocks closer than the page's group gap.
+
+**Why:** Space alone does not separate tight blocks on the white page.
+
+**Do:** A row of figure tiles, each with its soft edge.
+
+**Don't:** The same tiles with no line, so three figures read as one band.
 
 ## Link each reference to its row
 
@@ -34,7 +46,7 @@
 
 **Why:** A dashboard stops at what happened; a report opening at its own top has not answered the reference.
 
-**Do:** Each payout reference opens its row in the report.
+**Do:** Each sale reference opens its row in the report.
 
 **Don't:** A block that lists what is wrong and offers no way in.
 
@@ -46,7 +58,7 @@
 
 **Why:** Analysis needs the rows: a summary cannot say how much.
 
-**Do:** The payout ledger, with the fees and net on every row.
+**Do:** The sales ledger, with the fees and net on every row.
 
 **Don't:** The same ledger reduced to three figures.
 
@@ -57,8 +69,6 @@
 **Rule:** Offer filters and one export on every report.
 
 **Why:** Narrowing the question, or taking the rows away, needs no second screen.
-
-**Gap #555:** The kit's Stock screener is a report with filters and no export.
 
 **Do:** A filter row above the table, the export at its end.
 

@@ -347,6 +347,8 @@
 }
 /* The rule starts at the name, so the swatch column under the keys stays empty. */
 .ui-chart__shares-total > span + span { padding-top: var(--space-2); border-top: 1px solid var(--border); }
+/* #850: on the light page no hairline above the shares total; the caption owns the rung. */
+:root[data-theme="light"] .ui-chart__shares-total > span + span { border-top: 0; }
 
 /* -- the table ------------------------------------------------------------- */
 

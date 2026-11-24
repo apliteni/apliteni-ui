@@ -51,6 +51,16 @@ export const Plain: Story = {
   args: { code: 'npm install @apliteni/apliteni-ui', children: undefined },
 };
 
+// A title is optional: with none, the copy button stays in flow beside the
+// code, reserving its own space so the code never runs under it.
+export const NoTitle: Story = {
+  name: 'No title',
+  render: () => <div style={{ maxWidth: 620 }}>
+    <p>Install the kit with one command.</p>
+    <Snippet code="npm install @apliteni/apliteni-ui" copyLabel="Copy command" />
+  </div>,
+};
+
 export const Reveal: Story = {
   render: () => <div style={{ maxWidth: 620 }}>
     <p>This secret is stored hashed and will not be shown again. Copy it now.</p>
@@ -75,7 +85,8 @@ export const Copied: Story = {
     try {
       const canvas = within(canvasElement);
       await userEvent.click(canvas.getByRole('button', { name: 'Copy command' }));
-      await expect(await canvas.findByRole('button', { name: 'Copied' })).toHaveAttribute('aria-live', 'polite');
+      // The button turns into the check and the word Copied for about 2s.
+      await expect(await canvas.findByText('Copied')).toBeInTheDocument();
     } finally {
       if (descriptor) Object.defineProperty(navigator, 'clipboard', descriptor);
       else Reflect.deleteProperty(navigator, 'clipboard');

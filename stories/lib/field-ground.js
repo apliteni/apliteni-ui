@@ -30,6 +30,17 @@ export const FIELD = '.ui-input, .ui-select, .ui-textarea, .ui-check input, .ui-
  */
 export const FILTER_BAR_FIELD = '.ui-toolbar > .ui-input-group > input.ui-input[type="search"]';
 
+/**
+ * The containers a field may stand in. #850 makes the card a grouping of space
+ * with no fill of its own (src/styles/card.css), so a colour read alone no longer
+ * says whether a field is in a card or loose on the page: the card and the page
+ * are one ground now. The rule reads the structure instead — a field must sit in
+ * one of these surfaces, or be a live filter-bar search field on the page.
+ * The split sign-in's `.ui-auth__pane` is the plain half of a dialog-only page,
+ * and its fields stand on it by design (#850), so it is a surface too.
+ */
+export const SURFACE = '.ui-card, .ui-auth__card, .ui-auth__pane, .ui-drawer__panel, .rx-modal';
+
 export const hex = (colour) => `#${colour.slice(0, 3).map((n) => Math.round(n).toString(16).padStart(2, '0')).join('')}`;
 export const same = (a, b) => hex(a) === hex(b);
 
@@ -63,6 +74,7 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
   const inkOn = fill && fill[3] >= 0.999 ? fill : ground;
   const ink = fadeOnto(parseColour(own.color), Number(own.opacity), inkOn);
   const path = selectorPath(el);
+  const card = el.closest('.ui-card');
   return {
     story,
     path,
@@ -70,6 +82,8 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
     disabled: el.disabled === true || el.hasAttribute('disabled'),
     filterBar: el.matches(FILTER_BAR_FIELD),
     onPage: same(ground, page),
+    inSurface: el.closest(SURFACE) != null,
+    inTitledCard: card != null && card.querySelector('.ui-card__title') != null,
     groundRgb: ground,
     fade: Number.isFinite(fade) ? fade : 1,
     ground: hex(ground),
@@ -84,5 +98,5 @@ export function readField(el, win, { page, story, styleOf = (node) => win.getCom
  * The problem lines a set of readings produces. One expression, so each gate's
  * claim and its mutation run the same code rather than two spellings of it.
  */
-export const stranded = (fields) => fields.filter((f) => f.onPage && !(f.filterBar && !f.disabled))
+export const stranded = (fields) => fields.filter((f) => !f.inSurface && !(f.filterBar && !f.disabled))
   .map((f) => `${f.story} → ${f.path}`);

@@ -80,7 +80,7 @@ describe('stat basis: fixtures', () => {
     assert.equal(allowedBases(box).get('period-basis'), "the period control's basis");
   });
 
-  it('the Finance dashboard period basis is a label all three changes describe', () => {
+  it('the Dashboard period basis is a label all three changes describe', () => {
     const box = mountElement(<FinanceDashboard />);
     const basis = box.querySelector('#fd-period-basis');
     assert.equal(basis?.textContent.trim(), 'vs previous 12 months');
@@ -263,8 +263,8 @@ describe('stat basis: React stories', () => {
     assert.ok(sweep.subjects >= SUBJECTS_FLOOR, `walked ${sweep.subjects} changes — the walk stopped finding the bands`);
     assert.ok(sweep.captions >= CAPTIONS_FLOOR, `walked ${sweep.captions} captions — the walk stopped finding the bands' captions`);
     assert.ok(sweep.figures >= FIGURES_FLOOR, `walked ${sweep.figures} figures — the walk stopped finding them`);
-    // The third shape has one screen today, the Finance dashboard's three figures. #505
-    assert.ok(sweep.fromControl >= 3, `${sweep.fromControl} change(s) take their basis from a period control; the Finance dashboard draws three`);
+    // The third shape has one screen today, the Dashboard's three figures. #505
+    assert.ok(sweep.fromControl >= 3, `${sweep.fromControl} change(s) take their basis from a period control; the Dashboard draws three`);
     assert.ok(sweep.guidelineDo >= GUIDELINE_DO_FLOOR, `walked ${sweep.guidelineDo} Do changes on the Stat bands page`);
     assert.deepEqual(sweep.failures, []);
     assert.deepEqual(Object.keys(KNOWN_GAPS).filter((id) => !sweep.known.has(id)), [], 'it comes clean now: take it off the list');

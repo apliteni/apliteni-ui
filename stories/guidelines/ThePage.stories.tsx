@@ -131,6 +131,27 @@ const Lede = ({ sub }: { sub: string }) => <Stage><div className="ui-app__main t
   <p className="ui-app__sub">{sub}</p><Card title="Last 7 days"><MiniTable dense={false} brief /></Card>
 </div></Stage>;
 
+// The branded ground behind a dialog-only page: the mark and a slogan may stand on it,
+// but a control stays inside the dialog. #850
+const Branded = ({ control }: { control: boolean }) => <Stage><div className="ui-auth tp-auth">
+  {control && <button type="button" className="ui-btn tp-on-ground">Import agents</button>}
+  <div className="ui-auth__card tp-auth-card">
+    <div className="ui-auth__brand">apliteni-ui</div>
+    <h1 className="ui-auth__title">Sign in</h1>
+    <p className="ui-auth__sub">Use your work account.</p>
+    <Button variant="primary" block>Continue</Button>
+  </div>
+</div></Stage>;
+
+// The sign-in note: it names who can sign in, never the product. #850
+const SignNote = ({ named }: { named: boolean }) => <Stage><div className="ui-auth tp-auth">
+  <div className="ui-auth__card tp-auth-card">
+    <h1 className="ui-auth__title">Sign in</h1>
+    <Button variant="primary" block>Continue</Button>
+    <div className="ui-auth__foot">{named ? 'Only apliteni.com accounts can sign in.' : 'Only work accounts can sign in.'}</div>
+  </div>
+</div></Stage>;
+
 // The page as it first paints, with or without a drawer already over it.
 const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="gl-stage tp-rest">
   <div className="ui-app__main tp-head">
@@ -162,6 +183,8 @@ const specimens = [
   { id: 'stacking', do: () => <Stack nested={false} />, dont: () => <Stack nested /> },
   { id: 'at-rest', do: () => <AtLoad open={false} />, dont: () => <AtLoad open /> },
   { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
+  { id: 'branded-background', do: () => <Branded control={false} />, dont: () => <Branded control /> },
+  { id: 'sign-in-note', do: () => <SignNote />, dont: () => <SignNote named /> },
   { id: 'lede', do: () => <Lede sub="Payouts arrive within three business days." />,
     dont: () => <Lede sub="This is the payouts page." /> },
 ];

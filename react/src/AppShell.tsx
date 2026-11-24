@@ -34,7 +34,9 @@ export type AppShellProps = AppShellNav & {
   drawerSide?: 'left' | 'right';
   /** Current router pathname; the longest matching section or sub-item wins. */
   pathname: string;
-  title: string;
+  /** The page title. Omit it when the page owns its own heading, such as a full-bleed
+   *  split layout whose title stands in one column (#850). */
+  title?: string;
   children?: ReactNode;
   word?: string;
   brand?: ReactNode;
@@ -178,7 +180,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
   </button></div>;
   const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
     {back && <BackLink {...back} />}
-    {tools ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div> : <h1>{title}</h1>}
+    {title != null && (tools
+      ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div>
+      : <h1>{title}</h1>)}
     {lede && <p className="ui-app__sub">{lede}</p>}
     {actions && <div className="ui-react-app__actions">{actions}</div>}
     <div className="ui-app__body">{children}</div>

@@ -149,7 +149,7 @@
   /* The table under a filter bar moves down with the chips: the bar's inner gap
      opens to --tap-gap too, so the last row's layers stop short of the table.
      In .ui-stack the bar's margin collapses with the block's 8px one. */
-  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5, 20px)) !important; }
+  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
   /* Inside a chip there is nothing to open: parting the value from its remove
@@ -218,6 +218,11 @@
     row-gap: var(--tap-gap) !important;
     --tap-clear-y: var(--tap-gap);
   }
+
+  /* Full-width buttons stacked one per row — a detail page's Revoke access and
+     Create a new key, a task's Open document. The stack's own gap is the room,
+     so the layer opens down into it rather than widening the column. */
+  .ui-card-stack { --tap-clear-y: var(--tap-gap); }
 
   /* `.ui-seg`'s shape at seven columns: cells packed across — that tight track
      IS the control — opening down, where the sheet has the room. The rows

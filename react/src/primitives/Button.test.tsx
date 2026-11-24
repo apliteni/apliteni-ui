@@ -14,6 +14,11 @@ it.each([
   expect(classesOfEl(getByRole('button'))).toEqual(expected);
 });
 
+it('writes the outline variant class list', () => {
+  const { getByRole } = render(<Button variant="outline">Details</Button>);
+  expect(classesOfEl(getByRole('button'))).toEqual(['ui-btn', 'ui-btn--outline']);
+});
+
 // A hold button confirms only through onConfirm, so a plain click calls neither.
 it('fires onClick, and a hold button calls neither handler on a plain click', async () => {
   let hit = 0;

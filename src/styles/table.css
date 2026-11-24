@@ -131,22 +131,6 @@
   color: var(--strong);
   text-decoration: underline;
 }
-/* One exception, and it is the way through: a reference that opens another screen at
-   this row. The rule above was written to keep a LEDGER's identifiers out of the accent
-   — a whole column of them is an accent with no job (guidelines/density-and-accents.md,
-   give-accents-a-job) — but a dashboard's exceptions are three rows, and there the link
-   is how a reader reaches the row's own report. Left in the row's ink it was the plain
-   cell beside it to the pixel, resolving only on hover, which a phone does not have.
-   .ui-table__pair is the cell that carries a reference and its state, so the exception is
-   as narrow as that cell. The ink is base.css's own `a { color: var(--accent) }`, at
-   7.34:1 in light and 5.53:1 in dark on the table's ground.
-   why: Artur, round r34; guidelines/dashboards-and-reports.md#link-each-reference-to-its-row
-   held by: src/styles/table.test.js */
-.ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity) { color: var(--accent); }
-.ui-table :where(td, th) .ui-table__pair a:not(.ui-btn):not(.ui-identity):hover {
-  color: var(--accent);
-  text-decoration: underline;
-}
 /* A plain link — one carrying no class — is the link these rules are about. An inline-block
    box, so a title link that wraps paints one ring instead of one per line, and the kit's small
    corner for that ring to follow. Anchors the kit already styles (`.ui-btn`, `.ui-identity`,
@@ -252,12 +236,14 @@
 /* The empty state (.ui-empty) — shown when a table/list has no rows — now
    lives in styles/empty.css as a standalone component (illustration support). */
 
-/* Tables share their containing card’s reading surface, including pinned cells. The code
+/* Tables share their containing card's reading surface, including pinned cells. The code
    chip's hand-off travels with it, so an identifier in a cell keeps the page rather than
-   the card the cell is now painted with. why: src/tokens/tokens.css */
-.ui-card { --table-bg: var(--surface); --table-code-bg: var(--bg); }
+   the card the cell is now painted with. --table-bg is the surface in dark and the white
+   page in light (where --surface is white), and --table-code-bg is --code-chip-surface,
+   the page in dark and the quiet fill in light. why: src/tokens/tokens.css */
+.ui-card { --table-bg: var(--surface); --table-code-bg: var(--code-chip-surface); }
 /* A drawer group is a reading surface in the same way, so its table takes the drawer's ground. */
-.ui-drawer .ui-drawer__section { --table-bg: var(--drawer-surface); --table-code-bg: var(--bg); }
+.ui-drawer .ui-drawer__section { --table-bg: var(--drawer-surface); --table-code-bg: var(--code-chip-surface); }
 
 /* White in light, base canvas in dark; never a grey or tinted data surface. */
 .ui-table { background: var(--table-bg); }
@@ -625,6 +611,19 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: calc(-1 * var(--space-5)); }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: calc(-1 * var(--space-5)); }
 .ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) { width: auto; max-width: calc(100% + 2 * var(--space-6)); }
+/* #850: on the light page a table in a card sits on the column, so its rules and its end
+   cells end on the column edges. The frame keeps its side bands below.
+   why: docs/foundations.md#spacing-and-rhythm */
+:root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+}
+/* #850: the row table's vertical bleed hangs it out by the card's 24px padding, but the
+   light card removed that padding. The card clips its overflow, so the last row was cut and
+   faded at the bottom. Reset the two ends to 0. why: docs/foundations.md#spacing-and-rhythm */
+:root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: 0; }
+:root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: 0; }
 /* The frame keeps its side bands and takes a top band, because the sticky header covers a
    ring drawn anywhere else. The frame clips its cells to the inner curve of the bands, so
    the header follows the ring at the top corners. The header gives the top band back from
@@ -639,6 +638,18 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-6); }
 /* In a frame, the side band holds space-1 of the card's text edge. */
 .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-6) - var(--space-1)); }
+/* #850: on the light page the table sits on the column, so its end cells are flush with the
+   column edges. The dense, zebra and compact end insets go, and the row table's --cell-edge
+   room is zeroed per cell rather than by redefining the token: the contrast walk reads
+   scoped custom properties flat, and a 0px winner would zero every row table it meets. */
+:root[data-theme="light"] .ui-card .ui-table :is(th, td):first-child { padding-left: 0; }
+:root[data-theme="light"] .ui-card .ui-table :is(th, td):last-child { padding-right: 0; }
+:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):first-child:not(:where(.ui-table--pinned) .ui-table__selection) { padding-left: 0; }
+:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):last-child { padding-right: 0; }
+:root[data-theme="light"] .ui-card .ui-table td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: 0; }
+:root[data-theme="light"] .ui-card .ui-table td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
+:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: 0; }
+:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
 /* In a drawer group the table hangs out by its end-cell inset, into the body's padding, so
    the first column starts on the edge of the group heading and the drawer title. */
 .ui-drawer .ui-drawer__section > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) {

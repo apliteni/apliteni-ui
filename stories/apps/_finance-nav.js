@@ -9,14 +9,14 @@ import { previewHref } from '../lib/story-link.js';
 export const DASHBOARD_STORY = 'apps-finance-dashboard--default';
 export const REPORT_STORY = 'apps-finance-report--default';
 
-// A payout's row on the report; react/src/dashboard-report-refs.test.tsx holds both sides.
-export const payoutRowId = (reference) => `payout-${String(reference).toLowerCase()}`;
-export const payoutHref = (reference) => previewHref(REPORT_STORY, payoutRowId(reference));
+// A sale's row on the report; react/src/dashboard-report-refs.test.tsx holds both sides.
+export const salesRowId = (reference) => `sale-${String(reference).toLowerCase()}`;
+export const salesHref = (reference) => previewHref(REPORT_STORY, salesRowId(reference));
 export const reportHref = () => previewHref(REPORT_STORY);
 
 export const FINANCE_NAV = [
   { id: 'dashboard', icon: 'chart', label: 'Dashboard', href: previewHref(DASHBOARD_STORY) },
-  { id: 'payouts', icon: 'card', label: 'Payouts', href: previewHref(REPORT_STORY) },
+  { id: 'sales', icon: 'card', label: 'Sales', href: previewHref(REPORT_STORY) },
   // Invoices and Preferences have no screen in the kit, so they stay inert.
   { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#', target: '_top' },
   { id: 'prefs', icon: 'gear', label: 'Preferences', href: '#', target: '_top' },

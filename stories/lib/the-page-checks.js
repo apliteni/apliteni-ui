@@ -10,7 +10,7 @@ import { LIMITS } from '../guidelines/_the-page.js';
 // application at all. Anything else has built chrome of its own, which is the
 // `shell` rule's whole subject.
 export const kindOf = (doc) => (doc.querySelector('main.ui-app__main') ? 'app'
-  : doc.querySelector('.ui-auth__card') ? 'auth'
+  : doc.querySelector('.ui-auth__card, .ui-auth__pane') ? 'auth'
     : doc.querySelector('.ui-hero') ? 'marketing' : 'none');
 
 export const text = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
@@ -140,9 +140,10 @@ export const CHECKS = {
     }
 
     const shape = kids.map((el) => (el.matches('.ui-back') ? 'up'
-      : el.tagName === 'H1' ? 'title'
-        : el.matches('p.ui-app__sub') ? 'lede'
-          : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
+      : el.matches('.ui-app__title-row') ? 'title'
+        : el.tagName === 'H1' ? 'title'
+          : el.matches('p.ui-app__sub') ? 'lede'
+            : el.matches('.ui-app__body') ? 'body' : `«${el.tagName.toLowerCase()}»`));
     // Each part may appear once, in this order: the index walks forward past the
     // one it just matched, so a second body — or a second title — is as much a
     // failure as one in the wrong place.
@@ -217,6 +218,32 @@ export const CHECKS = {
     return problems;
   },
 
+  // A dialog-only page's branded ground carries the mark and a slogan, never a
+  // control: the reader acts inside the dialog the ground stands behind. #850
+  'branded-background'(s) {
+    if (s.kind !== 'auth') return [];
+    const onGround = [...s.doc.querySelectorAll('.ui-auth > :is(button, input, select, textarea, .ui-btn), '
+      + '.ui-auth__brand-pane > :is(button, input, select, textarea, .ui-btn)')]
+      .filter((el) => !el.closest('.ui-auth__card, .ui-auth__pane'));
+    return onGround.map((el) => `${s.where} puts "${text(el)}" on the branded ground. `
+      + 'A control stays inside the dialog; the ground carries only the mark and a slogan.');
+  },
+
+  // The sign-in note says who may sign in. Naming one domain ties the note to
+  // one product, and the note breaks when another app uses the screen. #850
+  'sign-in-note'(s) {
+    if (s.kind !== 'auth') return [];
+    const foots = [...s.doc.querySelectorAll('.ui-auth__foot')].filter((el) => !inOverlay(el));
+    return foots.flatMap((el) => {
+      const words = text(el);
+      if (/\b[\w-]+\.[a-z]{2,}\b/i.test(words)) {
+        return [`${s.where} names a domain in the sign-in note ("${words}"). `
+          + 'The note states who can sign in without naming the product.'];
+      }
+      return [];
+    });
+  },
+
   navs(s) {
     const problems = [];
     const seen = new Map();
@@ -286,7 +313,7 @@ export const CHECKS = {
     // required one, and this check used to. A line added only to satisfy a gate
     // is the restatement the rule exists to stop. The coverage test below is
     // what keeps the when-present half from passing on an empty set.
-    // why: Artur's r28 review of the Finance report, #505
+    // why: Artur's r28 review of the Report, #505
     if (!lede) return [];
     const problems = [];
     // Abbreviations end in a full stop and do not end a sentence. Counting

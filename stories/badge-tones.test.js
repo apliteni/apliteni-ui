@@ -39,10 +39,12 @@ const ACCENTS = ['default', ...new Set([...readSrc('src/tokens/accents.css')
 /* The grounds the kit paints a chip on, in elevation order. Each names the real class
    whose background the chip composites against, so a token move under any of them is
    measured rather than approximated. `page` is bare body — src/styles/base.css paints it
-   --bg; the other two carry the class that sets their surface. */
+   --bg; the other two carry the class that sets their surface. The card is the page now
+   (#850: no fill, edge or shadow), so the opaque surface a chip still sits on is the
+   page object, which paints --surface. */
 const GROUNDS = [
   { name: 'page', open: '<div id="panel">', close: '</div>' },
-  { name: 'card', open: '<div class="ui-card" id="panel">', close: '</div>' },
+  { name: 'page object', open: '<div class="ui-card__page" id="panel">', close: '</div>' },
   {
     name: 'floating panel',
     open: '<div class="ui-dropdown"><div class="ui-dropdown__panel" id="panel">',
@@ -110,29 +112,27 @@ test('the tone list is discovered from the stylesheet and covers every shipped t
 test('the measured set covers every theme, accent and ground, and nothing is skipped', () => {
   assert.ok(ACCENTS.length >= 4, `only ${ACCENTS.length} accents discovered in src/tokens/accents.css; `
     + 'the #485 defect passed under one accent and failed under three, so a short list proves little');
-  assert.equal(GROUNDS.length, 3, 'a chip ground was added or dropped; page, card and floating panel '
+  assert.equal(GROUNDS.length, 3, 'a chip ground was added or dropped; page, page object and floating panel '
     + 'are the three surfaces the kit puts a chip on, and the panel is the one #485 shipped a failure on');
   assert.equal(CASES.length, 2 * ACCENTS.length * GROUNDS.length,
     'the case list is no longer the product of themes, accents and grounds');
   /* Every ground has to resolve the surface its class actually paints, or a typo'd class
      would silently measure the page three times and still report full coverage.
-     Dark has three distinct surfaces. Light has two: --surface and --bg-elevated are both
-     #ffffff there by design, so a light card and a light floating panel ARE the same
-     ground, and the case stays in the list because the chip's own fill still composites
-     against it and a future light elevation would split them. What must never collapse is
-     the page into either, since that is the pair the grounds exist to tell apart. */
+     Dark has three distinct surfaces. Light has one: #850 makes the page take the card's
+     white, so --bg, --surface and --bg-elevated are all #ffffff there. The page and the
+     page object stay in the list because a future light elevation would split them. */
   const resolved = Object.fromEntries(['dark', 'light'].map((theme) => [theme,
     GROUNDS.map((ground) => measure(theme, 'default', ground).panel.join(','))]));
   assert.equal(new Set(resolved.dark).size, 3,
     `dark's three grounds must composite to three different colours (${resolved.dark.join(' / ')}); `
     + 'a ground whose class no longer paints is not a measured case');
-  const [lightPage, lightCard, lightPanel] = resolved.light;
-  assert.equal(lightCard, lightPanel,
+  const [lightPage, lightSheet, lightPanel] = resolved.light;
+  assert.equal(lightSheet, lightPanel,
     'light --surface and --bg-elevated are both #ffffff; if they have split, give the light '
     + 'panel its own expected numbers rather than letting this note go stale');
-  assert.notEqual(lightPage, lightCard,
-    `the light page composited to the same colour as the light card (${lightPage}); the page `
-    + 'is the thinnest ground in light and collapsing it would hide the pairs this gate added');
+  assert.equal(lightPage, lightSheet,
+    `the light page composited to ${lightPage} while the light page object composited to `
+    + `${lightSheet}; #850 made them one ground by design`);
 });
 
 for (const { theme, accent, ground } of CASES) {
@@ -164,20 +164,22 @@ for (const { theme, accent, ground } of CASES) {
   });
 }
 
-test('the direction check rejects a tone put back on the opaque card surface', () => {
+test('the direction check rejects a tone put back on an opaque surface', () => {
   // The #453 mutation: one tone re-pointed at --surface, which is what every
-  // neutral tone painted before. In dark that lands it below the card it sits on.
+  // neutral tone painted before. In dark that lands it below the surface it sits on.
+  // The card is transparent now (#850), so the mutation mounts on a callout, which
+  // still paints the theme's --surface without a contextual override.
   const { css } = kitCssFor('dark');
   const win = new JSDOM(`<!doctype html><html lang="en" data-theme="dark">`
     + `<head><style>${css}</style></head>`
-    + '<body><div class="ui-card" id="panel"><span class="ui-badge ui-badge--soon">Soon</span></div></body></html>',
+    + '<body><div class="ui-callout" id="panel"><span class="ui-badge ui-badge--soon">Soon</span></div></body></html>',
     { pretendToBeVisual: true }).window;
   const panel = effectiveBackground(win.document.getElementById('panel'), win);
   const chip = win.document.querySelector('.ui-badge--soon');
   assert.ok(luminance(effectiveBackground(chip, win)) > luminance(panel), 'the shipped tone is lighter');
   chip.style.background = 'var(--surface)';
   assert.ok(!(luminance(effectiveBackground(chip, win)) > luminance(panel)),
-    'a chip painted with the opaque card surface must not read as lighter than the card — '
+    'a chip painted with the opaque surface must not read as lighter than that surface — '
     + 'if this holds, the direction check above cannot fail and proves nothing');
   win.close();
 });

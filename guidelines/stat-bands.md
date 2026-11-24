@@ -8,7 +8,7 @@
 
 **Why:** A shared layout puts every figure's value, change and basis in the same place.
 
-**Do:** One card per figure: the figure largest, an arrow, a signed change, one caption above the row.
+**Do:** One card per figure: one size, a soft line each, arrow, signed change, caption above the row.
 
 **Don't:** Heading-sized figures, a capitalised 10px status chip, no comparison basis.
 
@@ -34,7 +34,7 @@
 
 **Why:** Percentages need a basis that readers can find.
 
-**Except:** A comparison basis may be screen-reader-only when the visible control names the period. Use this exception for the Finance dashboard pattern.
+**Except:** A comparison basis may be screen-reader-only when the visible control names the period. Use this exception for the dashboard pattern.
 
 **Do:** The basis once, in a caption each change references or beside one exception; the caption before and outside every figure.
 

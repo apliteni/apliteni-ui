@@ -36,6 +36,12 @@ a {
   text-decoration: none;
 }
 
+/* A link that reads as the text around it, for a name in a list that links to its
+   detail page: body ink at rest, underlined only under the pointer.
+   why: docs/foundations.md#text-ink */
+.ui-link--quiet { color: inherit; }
+.ui-link--quiet:hover { text-decoration: underline; }
+
 /* -- The two typeface roles -----------------------------------------------
  * A heading is the display face, running text is the text face, and the
  * ELEMENT decides which — never the size. A size threshold would change a

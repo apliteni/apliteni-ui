@@ -117,10 +117,48 @@ dd.ui-stat__caption { contain: inline-size; }
 }
 
 .ui-stats--tiles .ui-stats__list { gap: var(--space-4); }
+/* #850: a lone light card is a grouping of space with no line, but a row of
+   tiles is tightly placed, so each tile keeps its soft edge and its padding.
+   The edge is the card's own --card-edge in both themes. */
+:root[data-theme="light"] .ui-stats--tiles .ui-stat.ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
+  border: 1px solid var(--card-edge);
+  padding-block: var(--space-5);
+  margin-inline: 0;
+}
 
 .ui-stats--open .ui-stat {
   border-top: 1px solid var(--border-strong);
   padding-top: var(--space-4);
+}
+/* #850: on the light page no hairline above an open stat; the value is the signal. */
+:root[data-theme="light"] .ui-stats--open .ui-stat { border-top: 0; }
+/* #850 round 34: without that rule the light open figures read as one band, so a
+   vertical soft line between figures in a row keeps the columns apart. The line
+   stops where a figure starts a new row: the odd fold stacks every figure, and the
+   pairs fold starts its second row at the third figure. The column gap halves so the
+   line sits centred between the two figures. */
+:root[data-theme="light"] .ui-stats--open .ui-stats__list { column-gap: var(--space-6); }
+:root[data-theme="light"] .ui-stats--open .ui-stat + .ui-stat {
+  border-inline-start: 1px solid var(--border);
+  padding-inline-start: var(--space-6);
+}
+@container (width <= 50rem) {
+  :root[data-theme="light"] .ui-stats--open .ui-stats__list:has(> .ui-stat:last-child:nth-child(odd)) > .ui-stat + .ui-stat {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+}
+@container (width <= 32rem) {
+  :root[data-theme="light"] .ui-stats--open .ui-stat + .ui-stat {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
+}
+@container (32rem < width <= 66rem) {
+  :root[data-theme="light"] .ui-stats--open .ui-stats__list:has(> .ui-stat:nth-child(4):last-child) > .ui-stat:nth-child(3) {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
 }
 .ui-stats--open .ui-stat__value { font-size: var(--text-3xl); }
 

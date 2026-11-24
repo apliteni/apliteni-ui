@@ -81,7 +81,7 @@
 
 **Don't:** Put text on grey fields, chips, headers or footers.
 
-**Except:** The page shell's SidebarNav rail is the card surface. Its current row and label take a quiet fill one rung off the rail, without accent or edge. An outline means focus. Artur chose this in r34 of #475. Neutral status chips use a light muted ink tint that leaves the panel in one direction per theme. They read as one family with coloured chips.
+**Except:** The page shell's SidebarNav rail is the card surface; its current row and label take a quiet fill one rung off the rail, no accent, no edge, because an outline means focus (Artur r34 #475). Neutral status chips use a muted ink tint whose direction differs per theme, one family with coloured chips. A code block keeps a grey fill in light: a reader never writes in one.
 
 ## Mark selection in forced colours
 

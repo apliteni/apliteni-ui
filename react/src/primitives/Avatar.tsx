@@ -8,7 +8,7 @@ export type AvatarProps = {
   name?: string | null;
   /** A photo. The letters show if it fails to load. */
   src?: string;
-  size?: 24 | 32;
+  size?: 24 | 32 | 48;
   /** A dashed ring in place of a person: no value, or a "No one" row. */
   empty?: boolean;
 };
@@ -24,7 +24,7 @@ export function Avatar({ personKey, name, src, size = 24, empty = false }: Avata
     if (img.naturalWidth > 0) setLoadedSrc(src);
     else setFailedSrc(src);
   }, [src]);
-  const base = ['ui-avatar', size === 32 && 'ui-avatar--32'];
+  const base = ['ui-avatar', size === 32 && 'ui-avatar--32', size === 48 && 'ui-avatar--48'];
   const cls = (...more: (string | false)[]) => [...base, ...more].filter(Boolean).join(' ');
   if (empty) return <span className={cls('ui-avatar--empty')} aria-hidden="true" />;
   const letters = avatarInitials(name);

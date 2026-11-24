@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useId, useImperativeHandle, useLayoutEffect, use
 import { Icon } from './Icon';
 
 type ButtonOptions = {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'link';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger' | 'link';
   size?: 'xs' | 'sm' | 'md' | 'lg';
   icon?: string;
   /** Decorative caller artwork, before the label; takes precedence over icon. */

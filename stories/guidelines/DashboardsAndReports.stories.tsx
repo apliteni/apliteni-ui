@@ -16,14 +16,14 @@ import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { ESTIMATED, LEDGER, SPEC_CSS, SPEND } from './_dashboards-and-reports.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
-import { payoutHref } from '../apps/_finance-nav.js';
+import { salesHref } from '../apps/_finance-nav.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { cashflowStats } from '../apps/_finance-data.js';
 
 const content = await loadGuideline('dashboards-and-reports.md', new URL('../../guidelines/dashboards-and-reports.md', import.meta.url));
 
-// One made-up portal supplies every specimen, and the Finance report showcase
-// prints the same payouts with the same fees and nets: the ledger is the one
+// One made-up portal supplies every specimen, and the Report showcase
+// prints the same sales with the same fees and nets: the ledger is the one
 // LEDGER export that stories/dashboard-report-refs.test.js holds in step.
 const Stage = ({ children }: { children: ReactNode }) => <div className="gd-stage">{children}</div>;
 type Tone = 'success' | 'pending' | 'danger';
@@ -34,7 +34,7 @@ type Figure = { label: string; value: string; delta: { value: string; tone?: 'go
 const Cashflow = ({ id }: { id: string }) => <StatBand id={id} stats={(cashflowStats('1Y', true) as Figure[]).slice(0, 2)
   .map(figure => ({ ...figure, delta: { ...figure.delta, basis: 'vs prior year' }, trend: <Raw html={figure.trend} /> }))} />;
 
-const LedgerTable = ({ label = 'Payouts' }: { label?: string }) => <div className="ui-table-scroll" role="region" aria-label={label} tabIndex={0}>
+const LedgerTable = ({ label = 'Sales' }: { label?: string }) => <div className="ui-table-scroll" role="region" aria-label={label} tabIndex={0}>
   <table className="ui-table ui-table--dense ui-table--zebra">
     <thead><tr><th>Reference</th><th className="ui-table__num">Fees</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
     <tbody>{(LEDGER as string[][]).map(([ref, , fees, net, tone, label]) => <tr key={ref}>
@@ -48,24 +48,24 @@ const LedgerTable = ({ label = 'Payouts' }: { label?: string }) => <div classNam
 // `onward={false}` removes the row links, so the Don't offers no way in. Its filter
 // bar sits directly above it, as on the dashboard.
 const EXCEPTIONS: [string, string, Tone, string][] = [
-  ['PO-1166', '14,496.62', 'danger', 'Failed'],
-  ['PO-1164', '14,082.69', 'pending', 'In transit'],
-  ['PO-1159', '2,180.00', 'danger', 'Unmatched'],
+  ['SAL-1046', '14,496.62', 'danger', 'Failed'],
+  ['SAL-1044', '14,082.69', 'pending', 'Pending'],
+  ['SAL-1039', '2,180.00', 'danger', 'Refunded'],
 ];
 const Attention = ({ onward = true }: { onward?: boolean }) => <div className="ui-card-stack"><RestingFilters search="Search exceptions" placeholder="Reference"
-  label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'In transit', 'Unmatched'] }]} />
+  label="Exception filters" chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Failed', 'Pending', 'Refunded'] }]} />
 <Card title="Needs a decision">
   <table className="ui-table ui-table--dense">
     <thead><tr><th>Reference</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
     <tbody>{EXCEPTIONS.map(([ref, net, tone, label]) => <tr key={ref}>
-      <td><span className="ui-table__pair">{onward ? <a href={payoutHref(ref)}>{ref}</a> : ref}<Badge variant={tone}>{label}</Badge></span></td>
+      <td><span className="ui-table__pair">{onward ? <a href={salesHref(ref)}>{ref}</a> : ref}<Badge variant={tone}>{label}</Badge></span></td>
       <td className="ui-table__num ui-table__num--strong">{net}</td>
     </tr>)}</tbody>
   </table>
 </Card></div>;
 // The whole ledger, under the bar every long table has.
-const LedgerFilters = () => <RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters"
-  chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'In transit', 'Failed'] }]} />;
+const LedgerFilters = () => <RestingFilters search="Search sales" placeholder="Reference" label="Sale filters"
+  chips={[{ id: 'status', label: 'Status', any: 'Any status', values: ['Paid', 'Pending', 'Failed'] }]} />;
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
 const NET_BY_MONTH = [412, 455, 430, 498, 520, 505];
@@ -140,10 +140,10 @@ const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 
       periods={periods} series={series} format={kEur} />
   </Card>;
 
-// Offered, not applied: the rows below are every payout, so no chip may read as
+// Offered, not applied: the rows below are every sale, so no chip may read as
 // a value a reader would then look for in the table.
 const FILTERS = [
-  { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'In transit', value: 'In transit' }, { label: 'Failed', value: 'Failed' }] },
+  { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }, { label: 'Failed', value: 'Failed' }] },
   { id: 'currency', label: 'Currency', items: [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 
@@ -182,21 +182,24 @@ const specimens = [
       <div className="gl-cursor">The first screen has ended. The exceptions start here</div><Attention /></Stage> },
   { id: 'figures-and-exceptions',
     do: () => <Stage><Cashflow id="gd-glance-do" /><Attention /></Stage>,
-    dont: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable label="Payouts ledger" /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        unmatched transfer from June is still with the bank.'}</p></Card></div></Stage> },
+    dont: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Sales"><LedgerTable label="Sales ledger" /><p className="ui-card__sub">{'Fees rose with volume this quarter, and the one\n        refund from June is still with the bank.'}</p></Card></div></Stage> },
+  { id: 'soft-lines-between-blocks',
+    do: () => <Stage><Cashflow id="gd-soft-do" /></Stage>,
+    dont: () => <Stage><div className="gd-no-lines"><Cashflow id="gd-soft-dont" /></div></Stage> },
   { id: 'link-to-the-report', do: () => <Stage><Attention /></Stage>, dont: () => <Stage><Attention onward={false} /></Stage> },
   { id: 'report-depth',
-    do: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Payouts"><LedgerTable label="Payouts report rows" /></Card></div></Stage>,
+    do: () => <Stage><div className="ui-card-stack"><LedgerFilters /><Card title="Sales"><LedgerTable label="Sales report rows" /></Card></div></Stage>,
     dont: () => <Stage><StatBand id="gd-depth-dont" stats={[
-      { label: 'Payouts', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
+      { label: 'Sales', value: '214' }, { label: 'Fees', value: '68,412.00 €' }, { label: 'Net', value: '3,118,904.00 €' }]} /></Stage> },
   // The export is at the far end of the row, where the report puts it: it acts on
   // the ledger, and the filters narrow it. The Don't carries the period in its
   // title, which is what "fixed by whoever built the page" looks like on a screen.
   { id: 'report-offers',
     do: () => <Stage><div className="ui-card-stack"><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Payout filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Sale filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Export rows</Button>
-    </div><Card title="Payouts"><LedgerTable label="Payouts with filters" /></Card></div></Stage>,
-    dont: () => <Stage><Card title="Payouts, 2026"><LedgerTable label="Payouts, 2026" /></Card></Stage> },
+    </div><Card title="Sales"><LedgerTable label="Sales with filters" /></Card></div></Stage>,
+    dont: () => <Stage><Card title="Sales, 2026"><LedgerTable label="Sales, 2026" /></Card></Stage> },
   // "Download PDF" does not start with "Export", so export-at-the-row-end does not count this row.
   { id: 'export-icon',
     do: () => <Stage><div className="ui-toolbar ui-toolbar--split">

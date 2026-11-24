@@ -51,12 +51,11 @@ type StoryModule = { default?: Story } & Record<string, unknown>;
 const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
 const THEMES = ['light', 'dark'];
 const CHOSEN = '.ui-filter-bar .ui-dropdown__item.is-selected';
-/* Three story files draw a filter bar today — Components/Finance cells,
- * Showcases/Stock screener and Guidelines/Component choice — and between them
- * nine chosen rows per theme. The floor is the count, so a story that drops its
- * filter bar fails here. */
-const ROW_FLOOR = 9;
-const STORY_FLOOR = 3;
+/* The stories that draw a filter bar today render 24 chosen rows between them
+ * per theme, across 7 stories. The floor is the count, so a story that drops
+ * its filter bar fails here. */
+const ROW_FLOOR = 24;
+const STORY_FLOOR = 7;
 
 /** Every story that renders a chosen row in a filter menu, as live DOM.
  *  One window per matching story, because each story's rows are measured after

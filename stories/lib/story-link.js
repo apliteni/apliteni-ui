@@ -44,7 +44,7 @@ export const globalsParam = (root) => {
  *  the fragment `scrollTo` put there; on its own the preview carries its own.
  *
  *  The manager appends its query AFTER the fragment it navigates to — measured as
- *  `?path=/story/apps-finance-report--default#payout-po-1159&globals=theme:light&globals=theme:light`,
+ *  `?path=/story/apps-finance-report--default#sale-sal-1039&globals=theme:light&globals=theme:light`,
  *  globals twice over — so the row is the part of the fragment before that query starts. */
 export const askedRow = (win) => {
   let hash = '';
@@ -57,7 +57,7 @@ export const LANDED = 'is-target';
 
 /** Open a story at its top, and marked nowhere: what a link that names no row asks for.
  *  The manager keeps one preview frame and swaps stories inside it, so without this a
- *  reader who followed "All payouts" from the dashboard's exceptions card arrived
+ *  reader who followed "All sales" from the dashboard's exceptions card arrived
  *  part-way down the ledger, at whatever offset they had left behind. */
 export const landOnTop = (win) => {
   for (const was of win.document.querySelectorAll(`.${LANDED}`)) was.classList.remove(LANDED);

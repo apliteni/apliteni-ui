@@ -103,7 +103,7 @@ export function nextFocusStop(host) {
  *  A bar that still holds chips draws a box around them and takes the focus
  *  itself. Emptied of them it has only an out-of-flow legend and measures 0 high,
  *  so the focus goes where `nextFocusStop()` names — the way to add one still on
- *  the row, which is what the Stock screener draws, else outside the bar.
+ *  the row, which is what a bar with an add control draws, else outside the bar.
  *  Being reachable is not taking the focus: each candidate is asked and then
  *  checked. #518
  *  why: docs/components.md#filter-bar */
