@@ -129,8 +129,8 @@ const CASH_IN = [31200, 33850, 30410, 35120, 36240, 29980, 37310, 38860, 40120, 
 
 /** Look A, with a value on each bar and no comparison in the readout (#841).
  *  One solid line stands before November, the running month, and "Not final"
- *  stands over it and the three projected months. Every bar keeps the same fade
- *  to its data end, final or projected; the readout and the table say
+ *  stands over it and the three projected months. Every bar stays one flat tone,
+ *  final or projected; the readout and the table say
  *  "Incomplete" or "Projected". */
 export const Forecast: StoryObj = {
   render: () => (
@@ -180,9 +180,8 @@ export const SideBySide: StoryObj = {
 };
 
 /** Every tone the chart offers, one series each, in the order ChartTone lists
- *  them. Each bar fades from a tint at its base on zero to the full tone at its
- *  data end, and a bar under zero fades the other way. Seven tones need a key,
- *  so this story asks for the legend, and its keys stay solid in the full tone.
+ *  them. Each bar is one flat tone. Seven tones need a key, so this story asks
+ *  for the legend, and its keys stay solid in the full tone.
  *  Made-up seat changes for a made-up company. */
 export const Palette: StoryObj = {
   render: () => (

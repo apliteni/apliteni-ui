@@ -1,23 +1,24 @@
 // The flat-bar gate, read from the output it would let onto a page instead of
 // from the source text.
 //
-// why: #863, the owner's answer rev_81f3b7d55c9b/d7. The owner chose one bar
-// style — a round measured end, a square foot on zero, and a fade ramp — and
-// the old helper drew a `<rect class="ch-bar">` with 2 px corners and a flat
-// fill. The source-text gate at stories/story-css.test.js read the files, so the
-// original markup `class="ch-bar${i === hot ? ' is-on' : ''}"` walked past it:
-// the reader treated the template expression as part of the class name. This
-// gate draws the output instead. Every subject — the `bars()` helper the Hover
-// readouts page calls, the two guideline pages, and the Chart stories that draw
-// bars — is rendered to markup and read back. A bar that is a rect, or a bar
-// with no path, fails.
+// why: #863, the owner's answer rev_d5c14def2df6/d9. The owner chose one bar
+// style for every chart — look A from 9829df75: one flat tone, no fade ramp,
+// and a corner of --radius-xs or a quarter of the bar width, whichever is
+// smaller. The old bridge style was a fully round measured end with a fade
+// ramp, and rounds 2 and 4 of this PR went the wrong way and kept it. This gate
+// draws the output instead, so the source text cannot hide a bar. Every subject
+// — the `bars()` helper the Hover readouts page calls, the two guideline pages,
+// and the Chart stories that draw bars — is rendered to markup and read back. A
+// bar that is a rect, a bar with a fully round end, or a bar painted by a fade
+// ramp fails.
 //
 // LIMITS:
-//  - Markup, not paint. JSDOM lays nothing out, so the drawn bar's true round
-//    end is not measured. A bar is checked to be a `<path>` whose `d` moves the
-//    pen, never a `<rect>`; the `d` is read as text, not walked as geometry, so
-//    a path that spelled a plain rectangle would pass — the old flat bar was a
-//    rect, never a path.
+//  - Markup, not paint. JSDOM lays nothing out, so the drawn bar's true colour
+//    is not measured. The corner is read from the `d` path's arc radius, which
+//    look A caps at --radius-xs (6px). A bar shorter than --radius-xs keeps its
+//    corner capped by its height, so a round end on a very short step is not
+//    told apart here; `keeps short floating bridge steps rectangular` in
+//    Chart.test.tsx holds that edge.
 //  - Only the render body is run. A story whose bars appear only after a
 //    Storybook `play` is not measured that far; none of the bar-drawing stories
 //    does, and each is read through its own `render`.
@@ -44,6 +45,10 @@ type StoryModule = { default?: Story } & Record<string, unknown>;
    are rects but not bars, so they are not matched. */
 const BAR_CLASSES = ['ch-bar', 'ui-chart__bar'];
 
+/* Look A's corner: --radius-xs. A bar's corner is this or a quarter of the bar's
+   width, whichever is smaller, so no arc in the path ever passes this radius. */
+const CORNER = 6;
+
 /** Parse rendered markup the way a page would, and hand back its body. */
 const bodyOf = (markup: string): ParentNode =>
   new JSDOM(`<!doctype html><html><body>${markup}</body></html>`).window.document.body;
@@ -59,8 +64,10 @@ function barsIn(root: ParentNode): Element[] {
 }
 
 /** What is wrong with one bar. The owner's bar is drawn as a path because an
- *  SVG rect takes one radius for all four corners, while the round measured end
- *  and the square foot need two. */
+ *  SVG rect takes one radius for all four corners, while the small corner and
+ *  the square foot need two. Look A also draws no fade ramp, so a bar that names
+ *  a ramp paint, or an arc radius past --radius-xs, is a round end or a ramp
+ *  and fails. */
 function barProblems(bar: Element): string[] {
   const tag = bar.tagName.toLowerCase();
   if (tag !== 'path') {
@@ -68,7 +75,20 @@ function barProblems(bar: Element): string[] {
   }
   const d = (bar.getAttribute('d') ?? '').trim();
   if (!d.startsWith('M')) return [`a bar path has no d (got \`${d}\`)`];
-  return [];
+  const problems: string[] = [];
+  if ((bar.getAttribute('style') ?? '').includes('--ui-chart-paint')) {
+    problems.push('a bar names a ramp paint (--ui-chart-paint)');
+  }
+  if ((bar.getAttribute('fill') ?? '').startsWith('url(#')) {
+    problems.push(`a bar is painted by a ramp (${bar.getAttribute('fill')})`);
+  }
+  for (const [, r] of d.matchAll(/a(-?\d*\.?\d+)/g)) {
+    if (Number(r) > CORNER) {
+      problems.push(`a bar's corner radius ${r} is larger than --radius-xs (${CORNER}), `
+        + 'so its end is fully round');
+    }
+  }
+  return problems;
 }
 
 /** The markup one React story's render body produces. */
@@ -77,7 +97,7 @@ const markupOf = (renderStory: Story['render']): string => {
   return renderToStaticMarkup(<Story />);
 };
 
-type Subject = { name: string; bars: Element[] };
+type Subject = { name: string; root: ParentNode; bars: Element[] };
 
 /* ---- the subjects ------------------------------------------------------- */
 
@@ -86,8 +106,9 @@ type Subject = { name: string; bars: Element[] };
  * readouts page calls. A line, area, stacked, donut or spark story draws no bar
  * and is not a subject; a story that used to draw bars and stops drops the
  * count below the floor and fails there. */
+const subjectOf = (name: string, root: ParentNode): Subject => ({ name, root, bars: barsIn(root) });
 const subjects: Subject[] = [
-  { name: 'stories/_chart.js → bars', bars: barsIn(bodyOf(bars({ values: REVENUE }).svg)) },
+  subjectOf('stories/_chart.js → bars', bodyOf(bars({ values: REVENUE }).svg)),
 ];
 
 for (const [file, mod] of [
@@ -100,8 +121,9 @@ for (const [file, mod] of [
     if (name === 'default' || !story || typeof story !== 'object') continue;
     const renderStory = (story as Story).render ?? def.render;
     if (typeof renderStory !== 'function') continue;
-    const bars = barsIn(bodyOf(markupOf(renderStory)));
-    if (bars.length > 0) subjects.push({ name: `${file} → ${name}`, bars });
+    const root = bodyOf(markupOf(renderStory));
+    const found = barsIn(root);
+    if (found.length > 0) subjects.push(subjectOf(`${file} → ${name}`, root));
   }
 }
 
@@ -111,7 +133,7 @@ for (const [file, mod] of [
 const FOUND = { subjects: 14, bars: 349 };
 
 describe('flat bar', () => {
-  it('found the bar-drawing subjects and drew each bar as a path', () => {
+  it('found the bar-drawing subjects and drew each bar flat, small-cornered, with no ramp', () => {
     expect(subjects.length, 'no bar-drawing subject was found').toBeGreaterThan(0);
     expect(subjects.length, 'a bar-drawing subject renders no bar or went missing')
       .toBeGreaterThanOrEqual(FOUND.subjects);
@@ -121,6 +143,9 @@ describe('flat bar', () => {
     for (const subject of subjects) {
       total += subject.bars.length;
       if (subject.bars.length === 0) failures.push(`${subject.name} draws no bar`);
+      if (subject.root.querySelectorAll('linearGradient').length > 0) {
+        failures.push(`${subject.name} draws a fade ramp`);
+      }
       for (const bar of subject.bars) {
         for (const problem of barProblems(bar)) failures.push(`${subject.name}: ${problem}`);
       }

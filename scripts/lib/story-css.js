@@ -134,7 +134,7 @@ const PAINT = new RegExp(`^(?:${[
   'rotate', 'scale', 'translate', 'perspective', 'zoom', 'will-change',
   'cursor', 'appearance', '-webkit-appearance', 'user-select', '-webkit-user-select',
   'visibility', 'content', 'quotes', 'list-style(?:-(?:type|image))?',
-  'stroke(?:-[\\w-]+)?', 'fill(?:-[\\w-]+)?', 'stop-color', 'paint-order', 'vector-effect',
+  'stroke(?:-[\\w-]+)?', 'fill(?:-[\\w-]+)?', 'paint-order', 'vector-effect',
   'clip-path', 'mask(?:-[\\w-]+)?', 'object-(?:fit|position)', 'tab-size',
 ].join('|')})$`);
 

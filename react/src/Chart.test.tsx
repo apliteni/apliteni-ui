@@ -881,71 +881,48 @@ it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
     .not.toBeNull();
 });
 
-// #740: a bar fades from a tint of its tone at the base on zero to the full tone
-// at the data end. The data end, the zero line and the base carry the value.
-it('paints each bar with a ramp from its base on zero to its data end', () => {
+// #863: a bar is one flat tone from its foot on zero to its data end. No ramp
+// fades it; the full tone carries the value at every point.
+it('paints every bar one flat tone, with no ramp', () => {
   const { container } = render(<>
     <Chart variant="spark" title="One" periods={periods} series={series} format={eur} />
     <Chart variant="spark" title="Two" periods={periods} series={series} format={eur} />
   </>);
   const [one, two] = [...container.querySelectorAll('svg.ui-chart__svg')];
-  const ramps = (svg: Element) => [...svg.querySelectorAll('linearGradient')];
-  expect(ramps(one).map((g) => g.id.replace(/^.*-fade-/, '')).sort(),
-    'one ramp per tone and direction a bar uses').toEqual(['bad-down', 'good-up']);
-  expect(ramps(one).map((g) => g.id), 'each chart prefixes its own ramps')
-    .not.toEqual(expect.arrayContaining(ramps(two).map((g) => g.id)));
-
-  const ramp = (id: string) => one.querySelector(`linearGradient[id="${id}"]`)!;
-  const paintOf = (bar: Element) => /^url\(#(.+)\)$/
-    .exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1] ?? '';
+  expect([...one.querySelectorAll('linearGradient')], 'a bar chart emits no ramp').toHaveLength(0);
+  expect([...two.querySelectorAll('linearGradient')], 'each bar chart emits no ramp').toHaveLength(0);
   for (const bar of one.querySelectorAll('path.ui-chart__bar')) {
-    const g = ramp(paintOf(bar));
-    expect(g, 'every bar on zero names a ramp of its own chart').not.toBeNull();
-    expect(classOf(g), 'the ramp reads the bar\'s own tone').toContain(`ui-chart__tone--${toneOf(bar)}`);
-    // The base stop sits where the bar meets zero: the bottom of a bar above it,
-    // the top of a bar hung under it.
-    const up = toneOf(bar) === 'good';
-    expect([g.getAttribute('y1'), g.getAttribute('y2')]).toEqual(up ? ['1', '0'] : ['0', '1']);
-    expect([...g.querySelectorAll('stop')].map((stop) => [classOf(stop), stop.getAttribute('offset')]))
-      .toEqual([['ui-chart__fade-base', '0'], ['ui-chart__fade-end', '1']]);
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'),
+      'a bar names no ramp paint').toBe('');
   }
   const css = readRepo('../../src/styles/chart.css');
   expect(/\.ui-chart__bar\s*\{([^}]*)\}/.exec(css)![1])
-    .toContain('fill: var(--ui-chart-paint, var(--ui-chart-tone))');
-  expect(css).toMatch(/\.ui-chart__fade-base\s*\{\s*stop-color: var\(--ui-chart-fade\);/);
-  expect(css).toMatch(/\.ui-chart__fade-end\s*\{\s*stop-color: var\(--ui-chart-tone\);/);
+    .toContain('fill: var(--ui-chart-tone)');
 });
 
-// #740, #863: every bar fades from its base on zero to its data end, including
-// a months chart's fitted columns, which before #863 stayed flat.
-it('paints a months chart\'s bars with a ramp, like every other bar', () => {
+// #863: every months bar stays flat, one tone, like every other bar.
+it('paints a months chart\'s bars one flat tone, like every other bar', () => {
   const { container } = months();
-  const ramps = [...container.querySelectorAll('linearGradient')];
-  expect(ramps, 'one ramp per tone and direction a months bar uses').toHaveLength(2);
-  const paintOf = (bar: Element) => /^url\(#(.+)\)$/
-    .exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1] ?? '';
+  expect([...container.querySelectorAll('linearGradient')], 'a months chart emits no ramp').toHaveLength(0);
   for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
-    const g = container.querySelector(`linearGradient[id="${paintOf(bar)}"]`)!;
-    expect(g, 'every months bar names a ramp').not.toBeNull();
-    expect(classOf(g), 'the ramp reads the bar\'s own tone').toContain(`ui-chart__tone--${toneOf(bar)}`);
-    const up = toneOf(bar) === 'good';
-    expect([g.getAttribute('y1'), g.getAttribute('y2')], 'the base sits on zero').toEqual(up ? ['1', '0'] : ['0', '1']);
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'),
+      'a months bar names no ramp paint').toBe('');
+    expect(classOf(bar), 'the bar keeps its own tone').toContain('ui-chart__tone--');
   }
 });
 
-// A bridge bar fades from the previous running total to the new one, so the full
-// end marks the new total: up for a total and a rise, down for a fall.
-it('fades a bridge bar from the previous running total to the new one', () => {
+// #863: a bridge bar stays flat, one tone from its step to the next.
+it('paints a bridge bar one flat tone', () => {
   const { container } = render(<Chart variant="bridge" title="Cash" format={eur}
     steps={[{ label: 'Opening', value: 1000 }, { label: 'Sales', value: 400 },
       { label: 'Costs', value: -300 }, { label: 'Closing', kind: 'total' }]} />);
-  const runs = [...container.querySelectorAll('path.ui-chart__bar')].map((bar) => {
-    const id = /^url\(#(.+)\)$/.exec((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'))?.[1];
-    const g = id ? container.querySelector(`linearGradient[id="${id}"]`) : null;
-    return g && [toneOf(bar), g.getAttribute('y1'), g.getAttribute('y2')];
-  });
-  expect(runs, 'Opening, Sales, Costs, Closing').toEqual([
-    ['neutral', '1', '0'], ['good', '1', '0'], ['bad', '0', '1'], ['neutral', '1', '0']]);
+  expect([...container.querySelectorAll('linearGradient')], 'a bridge chart emits no ramp').toHaveLength(0);
+  expect([...container.querySelectorAll('path.ui-chart__bar')].map(toneOf),
+    'Opening, Sales, Costs, Closing').toEqual(['neutral', 'good', 'bad', 'neutral']);
+  for (const bar of container.querySelectorAll('path.ui-chart__bar')) {
+    expect((bar as SVGElement).style.getPropertyValue('--ui-chart-paint'),
+      'a bridge bar names no ramp paint').toBe('');
+  }
 });
 
 // #742: an area ramps over its own values, not over the box it fills, so the
@@ -1029,21 +1006,23 @@ it('draws a curves area from zero, unstacked, with each curve between its two va
 
 // Material's rule, and the reason a bar is a path: the top of a bar has to
 // measure the bar's length, and a rounded foot lifts it off the one rule the
-// chart draws.
-it('spends a bar\'s corner radius on the end away from zero, and none on the foot', () => {
+// chart draws. Look A's corner is small: --radius-xs or a quarter of the bar,
+// whichever is smaller, never a full round end.
+it('spends a bar\'s small corner on the end away from zero, and none on the foot', () => {
   const { container } = months();
   const svg = container.querySelector('.ui-chart__svg')!;
   const zeroY = Number(svg.querySelector('.ui-chart__zero')!.getAttribute('y1'));
   for (const bar of svg.querySelectorAll('path.ui-chart__bar')) {
     const box = boxOf(bar);
     const arcs = arcsOf(bar);
-    // The data end is fully round: its radius is half the bar's width, which
-    // keeps the shape a narrow bar has at any width. An arc leaves the edge it
-    // rounds exactly that far, so the radius is also the tolerance for where
-    // the arc sits.
-    const radius = Math.min(box.width / 2, box.height);
+    // The data end carries the look-A corner: --radius-xs or a quarter of the
+    // bar's width, whichever is smaller, capped by the bar's height. An arc
+    // leaves the edge it rounds exactly that far, so the radius is also the
+    // tolerance for where the arc sits.
+    const radius = Math.min(6, box.width / 4, box.height);
     for (const [, r] of (bar.getAttribute('d') ?? '').matchAll(/a(-?\d*\.?\d+)/g)) {
-      expect(Math.abs(Number(r) - radius), `${classOf(bar)} is round at its data end`).toBeLessThanOrEqual(0.1);
+      expect(Math.abs(Number(r) - radius), `${classOf(bar)} carries the small corner`).toBeLessThanOrEqual(0.1);
+      expect(Number(r), `${classOf(bar)} is not fully round`).toBeLessThan(box.width / 2 - 0.1);
     }
     expect(arcs, `${classOf(bar)} rounds exactly one end`).toHaveLength(2);
     const onZero = Math.abs(box.y - zeroY) < Math.abs(box.y + box.height - zeroY) ? 'top' : 'bottom';

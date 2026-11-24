@@ -39,16 +39,16 @@ export const CHART_CSS = `
     .ch-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
     .ch-hit { fill: transparent; }
     .ch-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; opacity: 0; }
-    /* The bar's fade ramp: a tint at its foot on zero, the full tone at its measured end. */
-    .ch-bar-base { stop-color: color-mix(in srgb, var(--accent) 45%, transparent); }
-    .ch-bar-end { stop-color: var(--accent); }
+    /* One flat tone, as the kit draws it: the full accent, with a small corner at
+       the measured end. */
+    .ch-bar { fill: var(--accent); }
     .ch-cap { fill: none; }
     [data-tip-value]:hover .ch-dot, .ch-dot.is-on { opacity: 1; }
-    [data-tip-value]:hover .ch-bar, .ch-bar.is-on { fill: var(--accent); }
   </style>`;
 
 const PAD = 6;
 const R = 3.5;
+const BAR_CORNER = 6;
 const n1 = (v) => Math.round(v * 10) / 10;
 const svgOpen = (cls, width, height, label) =>
   `<svg class="${cls}" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}" role="img" aria-label="${label}">`;
@@ -78,12 +78,10 @@ export function sparkline({
   };
 }
 
-/** A bar per month, drawn as the kit draws it: a round measured end, a square foot
- *  on zero, and a fade ramp from the foot to the data end. Its anchor is the bar's top
- *  edge, so a readout that flips below opens over the bar it describes rather than
- *  under the axis. The ramp id is unique per chart, so two bars() on one page never
- *  share a gradient. */
-let barFadeN = 0;
+/** A bar per month, drawn as the kit draws it: one flat tone and a small corner
+ *  at the measured end — --radius-xs or a quarter of the bar, whichever is smaller.
+ *  Its anchor is the bar's top edge, so a readout that flips below opens over the
+ *  bar it describes rather than under the axis. */
 export function bars({
   values = REVENUE, width = 260, height = 110, hot = -1, fluid = false,
   label = 'Revenue by month, last 12 months',
@@ -91,26 +89,23 @@ export function bars({
   const hi = Math.max(...values);
   const slot = width / values.length;
   const bw = n1(slot * 0.62);
-  const fade = `ch-bar-fade-${barFadeN++}`;
   const tops = values.map((v) => n1(height - (v / hi) * (height - 2)));
   const marks = values.map((v, i) => {
     const x = n1(i * slot + (slot - bw) / 2);
     const h = n1(height - tops[i]);
-    const r = Math.min(bw / 2, h);
+    const r = Math.min(BAR_CORNER, bw / 4, h);
     const d = r > 0
       ? `M${x} ${n1(height)}V${n1(tops[i] + r)}a${n1(r)} ${n1(r)} 0 0 1 ${n1(r)} ${n1(-r)}h${n1(bw - r * 2)}a${n1(r)} ${n1(r)} 0 0 1 ${n1(r)} ${n1(r)}V${n1(height)}z`
       : `M${x} ${n1(tops[i])}h${bw}v${h}h${n1(-bw)}z`;
     return `<g ${markAttrs(values, i)}>`
       + `<rect class="ch-hit" x="${n1(i * slot)}" y="0" width="${n1(slot)}" height="${height}"></rect>`
-      + `<path class="ch-bar${i === hot ? ' is-on' : ''}" fill="url(#${fade})" d="${d}"></path>`
+      + `<path class="ch-bar${i === hot ? ' is-on' : ''}" d="${d}"></path>`
       + `<rect class="ch-cap" data-tip-anchor x="${x}" y="${tops[i]}" width="${bw}" height="0"></rect>`
       + '</g>';
   }).join('');
   return {
     svg: `${svgOpen(`ch-chart${fluid ? ' ch-chart--fluid' : ''}`, width, height, label)}`
-      + `<defs><linearGradient id="${fade}" x1="0" x2="0" y1="1" y2="0">`
-      + `<stop class="ch-bar-base" offset="0"></stop><stop class="ch-bar-end" offset="1"></stop>`
-      + `</linearGradient></defs>${marks}</svg>`,
+      + `${marks}</svg>`,
     at: (i) => ({ x: n1(i * slot + slot / 2), top: tops[i], bottom: tops[i] }),
   };
 }
