@@ -94,7 +94,7 @@ it('collapses at 860px and 560px only, in the documented order', () => {
 // Limits: JSDOM lays nothing out, so these read the tap layer and the gap as declarations.
 // stories/three-column.test.js measures the edge, the layer and the gap in a browser.
 it('puts the first link on the band title\'s edge and gives a touch phone its target and gap', () => {
-  expect(css).toMatch(/margin-inline-start: calc\(var\(--ui-app-title-inset, var\(--ui-columns-edge\)\) - var\(--ui-columns-edge\) - var\(--space-3\)\);/);
+  expect(css).toMatch(/margin-inline-start: calc\(var\(--ui-app-title-inset, var\(--ui-columns-edge, var\(--space-6\)\)\) - var\(--ui-columns-edge, var\(--space-6\)\) - var\(--space-3\)\);/);
   const touch = css.slice(css.indexOf('@media (max-width: 560px) and (pointer: coarse)'));
   expect(touch).toMatch(/\.ui-columns__views \{ gap: var\(--tap-gap\); --tap-clear-x: var\(--tap-gap\); --tap-clear-y: var\(--tap-gap\); \}/);
   expect(touch).toMatch(/\.ui-columns__views > \.ui-nav__item::after \{[^}]*height: min\(max\(100%, var\(--tap-min\)\), calc\(100% \+ var\(--tap-clear-y\)\)\);/);

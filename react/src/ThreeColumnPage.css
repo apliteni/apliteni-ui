@@ -19,7 +19,7 @@
   gap: var(--space-8);
   min-width: 0;
   /* The bottom space sits in the areas, so the separator between them reaches the page's foot. */
-  padding: var(--space-10) var(--space-6) 0 var(--ui-columns-edge);
+  padding: var(--space-10) var(--space-6) 0 var(--ui-columns-edge, var(--space-6));
 }
 .ui-columns__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
 /* With no title and no tools, the row holds only the links, so it takes no gap when they hide. */
@@ -30,7 +30,7 @@
    mark before the h1, that edge is the band's. why: guidelines/spacing.md#put-text-on-the-column-edge */
 .ui-columns__views {
   display: none; flex-basis: 100%; flex-wrap: wrap; gap: var(--space-2);
-  margin-inline-start: calc(var(--ui-app-title-inset, var(--ui-columns-edge)) - var(--ui-columns-edge) - var(--space-3));
+  margin-inline-start: calc(var(--ui-app-title-inset, var(--ui-columns-edge, var(--space-6))) - var(--ui-columns-edge, var(--space-6)) - var(--space-3));
 }
 .ui-columns__views > .ui-nav__item { width: auto; }
 .ui-columns__pair {
@@ -63,13 +63,13 @@
    reach each area. */
 @media (max-width: 860px) {
   .ui-columns { --ui-columns-edge: var(--ui-app-title-inset, var(--space-6)); grid-template-columns: minmax(0, 1fr); align-content: start; }
-  .ui-columns__flow { padding-inline-end: var(--ui-columns-edge); }
+  .ui-columns__flow { padding-inline-end: var(--ui-columns-edge, var(--space-6)); }
   .ui-columns__views { display: flex; }
   .ui-columns__pair { margin-inline-start: 0; clip-path: none; }
   .ui-columns__pair > .ui-columns__area { padding-bottom: 0; padding-inline-start: 0; border-inline-start: 0; }
   .ui-columns__area--nav { display: none; }
   .ui-columns__area--steps { max-width: var(--panel-sm); }
-  .ui-columns__area--work { padding: var(--space-8) var(--ui-columns-edge) var(--space-10); border-inline-start: 0; }
+  .ui-columns__area--work { padding: var(--space-8) var(--ui-columns-edge, var(--space-6)) var(--space-10); border-inline-start: 0; }
   .ui-columns[data-view='nav'] .ui-columns__area--nav { display: flex; }
   .ui-columns[data-view='nav'] .ui-columns__area--steps,
   .ui-columns[data-view='nav'] .ui-columns__area--work { display: none; }
@@ -84,8 +84,8 @@
 /* Phone: each area is its own view. */
 @media (max-width: 560px) {
   .ui-columns { --ui-columns-edge: var(--space-4); }
-  .ui-columns__flow { padding: var(--space-6) var(--ui-columns-edge) 0; }
-  .ui-columns__area--work { padding: var(--space-6) var(--ui-columns-edge); }
+  .ui-columns__flow { padding: var(--space-6) var(--ui-columns-edge, var(--space-6)) 0; }
+  .ui-columns__area--work { padding: var(--space-6) var(--ui-columns-edge, var(--space-6)); }
   .ui-columns .ui-columns__area { display: none; }
   .ui-columns[data-view='nav'] .ui-columns__area--nav,
   .ui-columns[data-view='steps'] .ui-columns__area--steps,
