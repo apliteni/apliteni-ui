@@ -8,8 +8,7 @@ export const RELEASES = [
   {
     v: '0.191.0', date: '2026-11-24',
     changes: [
-      ['changed', 'In the dark theme, an open `StatBand` no longer draws a rule over each figure, so neither theme draws one. The 16px above each figure goes with it in both themes. Space and the larger value divide the figures, also in a card. Each product that shows `variant="open"` loses the rules when it updates. Resolves #849.', ['StatBand']],
-      ['changed', 'The Stat bands guideline accepts a tooltip on each change as the comparison basis, beside screen-reader text that the change references. An open `StatBand` directly after a page toolbar keeps 24px to its labels, also on a touch phone. On a touch phone, a change with a tooltip gets a 44px tap zone, 36px tall over a trend. Resolves #849.', ['StatBand', 'Guidelines']],
+      ['changed', 'An open `StatBand` draws no rule and no 16px over its figures in either theme, and it keeps 24px below a page toolbar. The Stat bands guideline accepts a tooltip on a change as its basis, and that tooltip now also opens from the arrow. On a touch phone, such a change gets a 44px tap zone, but only 36px tall over a trend and under the last figures of an open band in a `.ui-stack`. Resolves #849.', ['StatBand', 'Guidelines']],
     ],
   },
   {

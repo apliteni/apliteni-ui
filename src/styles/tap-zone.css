@@ -295,13 +295,15 @@
   /* A stat band's change that opens a tooltip is one 18px line. A value link ends 4px
      above it and 24px of row gap lies below it, so the layer hangs down: 2px up, half
      the gap to the link, and the rest into the row gap. It measures against the tooltip
-     host, whose box the focus ring's padding does not move. The band opens nothing. #849 */
+     host, whose box the focus ring's padding does not move. The host holds the arrow too,
+     so the shortest change, `0`, is 26 wide and reaches 44 across. The band opens nothing. #849 */
   .ui-stat__delta { --tap-clear-x: var(--tap-gap); --tap-clear-y: calc(var(--tap-min) - 18px); }
   .ui-stat__delta .ui-tip-host > .ui-focusable::after { top: -2px; transform: translateX(-50%); }
-  /* 16px is all the room over a trend, and under the last figures of a band with no
-     padding in a .ui-stack. There the layer stops at 36. A page body leaves 52. */
+  /* 16px is all the room over a trend, and under the last figures of an open band, which
+     has no padding, in a .ui-stack. There the layer stops at 36. A card's padding and a
+     page body's gap leave room for 44. */
   .ui-stat__delta:has(+ .ui-stat__trend),
-  .ui-stats:not(.ui-stats--tiles, .ui-app__body > *):has(+ *) .ui-stat:nth-last-child(-n + 2) > .ui-stat__delta { --tap-clear-y: calc(var(--space-4, 16px) + 2px); }
+  .ui-stack > .ui-stats--open:has(+ *) .ui-stat:nth-last-child(-n + 2) > .ui-stat__delta { --tap-clear-y: calc(var(--space-4, 16px) + 2px); }
 
   .ui-app__bar,
   .topbar__in { --tap-clear-x: var(--space-3, 12px); --tap-clear-y: var(--space-3, 12px); }

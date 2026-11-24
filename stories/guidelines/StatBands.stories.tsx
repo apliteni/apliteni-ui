@@ -1,6 +1,6 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
-import type { ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { GuidelinePage, Raw, TipPicture } from '../_guideline';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Card } from '../../react/src/primitives/Card';
@@ -25,6 +25,29 @@ const Band = ({ id, stats, children }: { id: string; stats: StatBandProps['stats
     figure.delta && !figure.delta.basis ? { ...figure, delta: { tooltip: BASIS, ...figure.delta } } : figure))} />
   {children}
 </Stage>;
+// The first change's tooltip, held open where its wiring puts it: centred over the change and
+// kept inside the stage, as the wiring keeps it inside the view. Placed again when a width moves it.
+const OpenTip = ({ label }: { label: string }) => {
+  const box = useRef<HTMLSpanElement>(null);
+  const [at, setAt] = useState<{ x: number; y: number } | null>(null);
+  useLayoutEffect(() => {
+    const stage = box.current?.closest('.gs-stage');
+    const mark = stage?.querySelector('.ui-stat__delta .ui-tip-host > .ui-focusable');
+    if (!stage || !mark) return;
+    const place = () => {
+      const s = stage.getBoundingClientRect(), m = mark.getBoundingClientRect();
+      const half = (box.current?.querySelector<HTMLElement>('.ui-tip')?.offsetWidth ?? 0) / 2;
+      const centre = m.left + m.width / 2 - s.left - stage.clientLeft;
+      setAt({ x: Math.max(half, Math.min(centre, stage.clientWidth - half)), y: m.top - s.top - stage.clientTop });
+    };
+    place();
+    if (typeof ResizeObserver !== 'function') return;
+    const seen = new ResizeObserver(place);
+    [stage, mark].forEach(el => seen.observe(el));
+    return () => seen.disconnect();
+  }, []);
+  return <span ref={box}>{at && <TipPicture label={label} x={at.x} y={at.y} />}</span>;
+};
 const INCOME = [412, 455, 430, 498, 520, 505, 560, 548, 590, 610, 587, 640];
 type Tone = 'good' | 'bad';
 const toned = (id: string, tones: (Tone | undefined)[]) => <Band id={id} stats={[
@@ -52,8 +75,7 @@ const specimens = [
       { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
       { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },
       { label: 'Unclassified', value: '€ 84,210', delta: { value: '−61.8%', basis: 'against plan' } },
-    ]}>{/* The first change's tooltip, held open where its wiring puts it. */}
-      <TipPicture label={BASIS} x={83} y={107} /></Band>,
+    ]}><OpenTip label={BASIS} /></Band>,
     dont: () => <Stage><StatBand id="gs-basis-dont" stats={[
       { label: 'Income', value: '€ 6,459,401', delta: { value: '+47.1%' } },
       { label: 'Cost', value: '€ 4,127,880', delta: { value: '+12.4%' } },

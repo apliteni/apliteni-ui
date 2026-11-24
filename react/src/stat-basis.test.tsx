@@ -58,7 +58,7 @@ describe('stat basis: fixtures', () => {
    */
 
   /** A period row: the strip, and the basis beside it, as the dashboard draws them. */
-  const periodRow = ({ pressed = true, basis = 'vs previous 12 months' } = {}) =>
+  const periodRow = ({ pressed = true, basis = 'vs. previous 12 months' } = {}) =>
     '<div class="ui-toolbar">'
     + `<div class="ui-seg" role="toolbar" aria-label="Period" data-seg="period">${
       ['3M', '6M', '1Y', 'All'].map((o, i) => `<button type="button" aria-pressed="${pressed && i === 2}">${o}</button>`).join('')
@@ -83,7 +83,7 @@ describe('stat basis: fixtures', () => {
   it('the Dashboard period basis is a label all three changes describe', () => {
     const box = mountElement(<FinanceDashboard />);
     const basis = box.querySelector('#fd-period-basis');
-    assert.equal(basis?.textContent.trim(), 'vs previous 12 months');
+    assert.equal(basis?.textContent.trim(), 'vs. previous 12 months');
     const deltas = [...box.querySelectorAll('.ui-stat__delta')];
     assert.equal(deltas.length, 3);
     for (const d of deltas) assert.equal(d.getAttribute('aria-describedby'), 'fd-period-basis');
@@ -92,7 +92,7 @@ describe('stat basis: fixtures', () => {
 
   it('a change with no caption and no period control beside it still fails', () => {
     const box = mount(statBand({ stats: CHANGES, basisId: 'period-basis', id: 'band' })
-      + '<p id="period-basis">vs previous 12 months</p>');
+      + '<p id="period-basis">vs. previous 12 months</p>');
     assert.equal(unexplained(box).length, 2,
       'a statement with the right id but no period control selecting a window passed as a basis');
   });
@@ -143,7 +143,7 @@ describe('stat basis: fixtures', () => {
 
   it('a designated basis nested in the row is not beside the control', () => {
     const box = mount(periodRow({ basis: '' })
-        .replace('</div>', '<div><p class="ui-sr" id="period-basis" data-period-basis>vs previous 12 months</p></div></div>')
+        .replace('</div>', '<div><p class="ui-sr" id="period-basis" data-period-basis>vs. previous 12 months</p></div></div>')
       + statBand({ stats: CHANGES, basisId: 'period-basis', id: 'band' }));
     assert.ok(box.querySelector('[data-period-basis]'), 'premise: the statement is in the row, one level down');
     assert.equal(allowedBases(box).has('period-basis'), false);
@@ -160,6 +160,8 @@ describe('stat basis: fixtures', () => {
     const box = mount(TIPPED);
     assert.equal(box.querySelectorAll('.ui-stats__basis, .ui-seg').length, 0, 'premise: no caption and no period control');
     assert.equal(unexplained(box).length, 0);
+    // The arrow is in the focus target, so the ring goes round it and never touches it (#849).
+    assert.ok(box.querySelector('.ui-stat__delta .ui-tip-host > .ui-focusable:has(> .ui-stat__change) svg'), 'the arrow is outside the focus target');
   });
   const without: [string, (html: string) => string][] = [
     ['the tooltip says nothing', html => html.replace(/(<span class="ui-tip__label">)[^<]*/, '$1 ')],

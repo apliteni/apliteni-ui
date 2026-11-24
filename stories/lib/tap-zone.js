@@ -177,10 +177,14 @@ export async function rowFixtures() {
     h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
   ] }));
   // A folded open band whose values are links, one whose trend is a target, and one with a
-  // target flush under it: the three neighbours a change's layer can reach (#849).
-  const stat = (n, extra) => ({ label: `Figure ${n}`, value: `€ ${n},000`, delta: { value: '+4%', tooltip: 'vs. last year' }, ...extra });
+  // target flush under it: the three neighbours a change's layer can reach. The first change
+  // is the short `1%`, the narrowest that a band draws. A padded band in a stack keeps 44 (#849).
+  const stat = (n, extra) => ({ label: `Figure ${n}`, value: `€ ${n},000`, delta: { value: n === 1 ? '1%' : '+4%', tooltip: 'vs. last year' }, ...extra });
   const statLinks = await markup(({ h, kit }) => h(kit.StatBand, { variant: 'open',
     stats: [1, 2, 3].map((n) => stat(n, { value: h('a', { href: `#${n}` }, `€ ${n},000`) })) }));
+  const statCardStack = await markup(({ h, kit }) => h('div', { className: 'ui-stack' },
+    h(kit.StatBand, { variant: 'band', stats: [1, 2, 3].map((n) => stat(n)) }),
+    h('a', { href: '#next', style: { display: 'block' } }, 'Next block')));
   const statTrend = await markup(({ h, kit }) => h(kit.StatBand, { variant: 'open',
     stats: [1, 2].map((n) => stat(n, { trend: h('a', { href: `#t${n}`, style: { display: 'block', height: 32 } }, `Trend ${n}`) })) }));
   const statStack = await markup(({ h, kit }) => h('div', { className: 'ui-stack' },
@@ -191,6 +195,7 @@ export async function rowFixtures() {
     row('stat-links', statLinks),
     row('stat-trend', statTrend),
     row('stat-stack', statStack),
+    row('stat-card-stack', statCardStack),
     row('confirm', confirm),
     row('empty-actions', empty),
     row('toolbar', toolbar),

@@ -77,6 +77,10 @@ dd.ui-stat__caption { margin-top: var(--space-2); }
   line-height: var(--leading-snug);
 }
 .ui-stat__delta svg { width: 14px; height: 14px; flex: none; stroke-width: 2.7; } /* 2.7 of a 24 box drawn at 14px = 1.58 CSS px. docs/foundations.md#icons-and-glyphs */
+/* A change with a tooltip holds its arrow inside the focus target, set as the row sets it.
+   The focus ring's block padding is lent back, so focus moves no line. #849 */
+.ui-stat__delta .ui-tip-host > .ui-focusable { display: inline-flex; align-items: center; gap: var(--space-1); vertical-align: top; }
+.ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible { margin-block: calc(-1 * var(--space-1)); }
 .ui-stat__change { font-variant-numeric: tabular-nums; white-space: nowrap; flex: none; }
 .ui-stat__basis { color: var(--text); font-weight: var(--weight-normal); }
 

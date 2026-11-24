@@ -279,6 +279,20 @@ test('a toolbar keeps 24px to an open band, in both themes, at rest and on a tou
   }
 });
 
+// A change with a tooltip holds its arrow in the focus target, so the ring goes round the arrow
+// and never touches it (#849). At rest the pair keeps the row's own gap, and on focus the ring's
+// block padding from tooltip.css is lent back, so no line moves.
+// Limits: reads declarations; the browser screenshots in the PR show the drawn ring.
+test('the arrow sits in a change\'s focus target, with the row\'s gap and no moved line', () => {
+  const target = ruleFor('.ui-stat__delta .ui-tip-host > .ui-focusable')?.body ?? '';
+  assert.equal(valueOf(target, 'display'), 'inline-flex', 'the arrow and the change do not sit in one row');
+  assert.equal(valueOf(target, 'gap'), valueOf(ruleFor('.ui-stat__delta').body, 'gap').split(/\s+/)[1], 'the arrow moved off the row\'s gap');
+  const ring = decomment(readFileSync(path.join(here, 'tooltip.css'), 'utf8'));
+  const padding = /\.ui-tip-host > \.ui-focusable:focus-visible \{[^}]*padding:\s*([^;]+)/.exec(ring)?.[1].trim();
+  const lent = valueOf(ruleFor('.ui-stat__delta .ui-tip-host > .ui-focusable:focus-visible')?.body ?? '', 'margin-block');
+  assert.equal(lent, `calc(-1 * ${padding})`, 'focus grows the row');
+});
+
 test('the band lays out from its own width, never the window\'s', () => {
   assert.equal(valueOf(ruleFor('.ui-stats').body, 'container-type'), 'inline-size');
   assert.doesNotMatch(CSS, /@media/, 'a fold keyed to the viewport: a band beside a rail is narrower than the window');

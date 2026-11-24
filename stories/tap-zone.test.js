@@ -133,6 +133,12 @@ const statChange = (sheet) => {
   if (up !== 2) wrong.push(`the layer reaches ${up}px up`);
   if (full - line - up > of(stat, /\.ui-stats__list \{[^}]*gap:\s*(\S+)/)) wrong.push('the layer passes the row gap');
   if (Math.abs(short - line - up - of(stat, /\.ui-stat__trend \{[^}]*padding-top:\s*([^;]+)/)) > 0.5) wrong.push(`the short layer is ${short}px tall, and does not end at the trend`);
+  // The short layer is for 16px of room: over a trend, or under an open band, which has no
+  // padding, in a .ui-stack. A card's padding leaves room for 44.
+  const shortSelectors = /\n\s*(\.ui-stat__delta:has\(\+ \.ui-stat__trend\)[^{]*)\{/.exec(sheet)?.[1].split(',').map((x) => x.trim()) ?? [];
+  for (const sel of shortSelectors.slice(1)) {
+    if (!/^\.ui-stack > \.ui-stats--open[:\s]/.test(sel)) wrong.push(`the short layer reaches ${sel}`);
+  }
   return wrong;
 };
 
@@ -142,6 +148,7 @@ test('a stat change reaches 44 inside the room its figure leaves', () => {
     [/\n\s*\.ui-stat__delta \{[^}]*\}/, ''],
     [/(\.ui-stat__delta [^{}]*::after \{) top: -2px;/, '$1'],
     [/\n\s*\.ui-stat__delta:has\([^{]*\{[^}]*\}/, ''],
+    [/\.ui-stack > \.ui-stats--open:has/, '.ui-stats:not(.ui-stats--tiles):has'],
   ]) {
     const broken = css.replace(from, to);
     assert.notEqual(broken, css, `${SHEET} no longer matches ${from}, so this mutation proves nothing.`);
@@ -622,7 +629,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
   // Plus the rows no story puts on screen, and two a consumer would write.
   const fixtures = await rowFixtures();
   assert.ok(
-    fixtures.length >= 16,
+    fixtures.length >= 17,
     `${fixtures.length} row fixtures. These are the gate's answer to a defect the story sweep `
     + 'could not see, and a list that shrank would quietly give that coverage back.',
   );
@@ -748,14 +755,15 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       );
     });
 
-    // A stat band's change: 44 both ways in a folded band, and 36 down where 16px lies below.
+    // A stat band's change: 44 both ways in a folded band, also the short `1%` and the last
+    // figures of a padded band in a stack, and 36 down where 16px lies below.
     // A walk counts one pixel inside each edge, so 2 comes off a reach.
     // The limit: the fixtures fold to one column in the dark theme, at 390 only.
     const across = (b) => Math.floor(b.reach[0] - 2);
     const downOf = (b) => Math.round(b.reach[1] - 2);
     const CHANGE = '.ui-stat__delta .ui-tip-host > .ui-focusable';
     const changes = (rows, id) => rows.filter((r) => r.story === `fixture:${id}` && r.fam.includes(CHANGE));
-    const shortChanges = (rows) => [['stat-links', [44, 44, 44]], ['stat-trend', [36, 36]], ['stat-stack', [44, 36, 36]]]
+    const shortChanges = (rows) => [['stat-links', [44, 44, 44]], ['stat-trend', [36, 36]], ['stat-stack', [44, 36, 36]], ['stat-card-stack', [44, 44, 44]]]
       .flatMap(([id, down]) => {
         const mine = changes(rows, id);
         if (mine.length !== down.length) return [`${id}: ${mine.length} changes measured, ${down.length} expected`];
@@ -767,7 +775,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     await t.test('a stat change reaches the floor and takes no pixel from its neighbours', () => {
       assert.deepEqual(shortChanges(B), []);
       assert.deepEqual(takenByChange(B), []);
-      t.diagnostic(`stat changes reach ${['stat-links', 'stat-trend', 'stat-stack']
+      t.diagnostic(`stat changes reach ${['stat-links', 'stat-trend', 'stat-stack', 'stat-card-stack']
         .map((id) => changes(B, id).map((b) => `${across(b)}x${downOf(b)}`).join(', ')).join(' / ')}`);
     });
 

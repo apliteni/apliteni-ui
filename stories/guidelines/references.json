@@ -939,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:171",
+    "ref": "src/styles/stat.css:175",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:172",
+    "ref": "src/styles/stat.css:176",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -1127,7 +1127,7 @@
   ],
   "soft-lines-between-blocks": [
    {
-    "ref": "src/styles/stat.css:124",
+    "ref": "src/styles/stat.css:128",
     "pattern": "border: 1px solid var(--card-edge);"
    }
   ],
