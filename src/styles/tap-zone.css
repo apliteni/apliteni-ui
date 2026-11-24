@@ -149,7 +149,12 @@
   /* The table under a filter bar moves down with the chips: the bar's inner gap
      opens to --tap-gap too, so the last row's layers stop short of the table.
      In .ui-stack the bar's margin collapses with the block's 8px one. */
-  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }
+  /* The dark stack's gap is --space-5; only the light page opens to --space-10
+     (#850), so the bar's bottom margin opens to --tap-gap minus its OWN theme's
+     gap. The one figure for both themes pulled the light card up and, in dark,
+     closed the gap to zero and laid the card over the bar's last row. */
+  :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-5)) !important; }
+  :root[data-theme="light"] :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-10)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
   /* Inside a chip there is nothing to open: parting the value from its remove
@@ -236,6 +241,10 @@
   /* The opened rows outgrow the menu's 300px cap, whose scroll edge cut the last
      week's tap layers in a phone popover. The panel keeps the viewport and edge limits. */
   .ui-datepicker__panel { --ui-dropdown-max: 100dvh; }
+  /* The same cut in the sheet: the opened grid outgrows the md drawer (45vh), so
+     its body scrolls and the scroll edge clips the last week's layers. The lg
+     step (72vh) fits the six weeks and the shortcuts. */
+  .ui-drawer:has(.ui-datepicker__body.is-sheet) { --drawer-h: 72vh; }
 
   /* Neither axis is opened: the room is already there, a hundred pixels to the
      caption and twelve to the grid, which is how `.ui-tabs__list` declares its

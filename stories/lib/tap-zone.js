@@ -472,7 +472,7 @@ export const PROBE = ({ html, size, interior, families, within }) => {
 /** The tallest page the rig lays out. A control below it has no reach to measure. */
 export const VIEW_CAP = 20000;
 
-export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [] }) {
+export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [], rounds = 6 }) {
   const ctx = await browser.newContext({
     viewport: { width, height: 900 },
     deviceScaleFactor: 1,
@@ -505,14 +505,22 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // was never applied. A story taller than the cap is reported as `cut`:
       // at 6000 a filter bar that the sheet moved across the fold read as a
       // shrink (#814).
-      const full = await page.evaluate((html) => {
-        document.body.innerHTML = html;
-        return document.documentElement.scrollHeight;
-      }, s.html);
-      const height = Math.min(Math.max(full, 900), VIEW_CAP);
-      if (height !== page.viewportSize().height) {
-        await page.setViewportSize({ width, height });
+      //
+      // A `max-height: 70vh` scroll region reads its cap on a short box, so its
+      // height and the story's height chase each other: settle the pair before
+      // the PROBE resets the innerHTML and reads the region a different size.
+      let full = 900;
+      for (let round = 0; round < rounds; round++) {
+        const measured = await page.evaluate((html) => {
+          document.body.innerHTML = html;
+          return document.documentElement.scrollHeight;
+        }, s.html);
+        const next = Math.min(Math.max(measured, 900), VIEW_CAP);
+        if (next === full) break;
+        full = next;
+        await page.setViewportSize({ width, height: full });
       }
+      const height = full;
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });
       if (targets.length) rows.push({ story: s.id, targets, height, cut: full > VIEW_CAP });
     }

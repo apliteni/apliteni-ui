@@ -523,6 +523,36 @@ test('this gate rejects a sheet that drops the pointer clause', () => {
   );
 });
 
+test('this gate rejects a toolbar margin that closes one theme', () => {
+  // The mutation: the single --space-10 figure both themes used to take. In
+  // dark the stack's own gap is --space-5, so that figure closed the 20px gap
+  // to zero and laid the card over the bar's last row.
+  const collapsed = css.replace(
+    /margin-bottom:\s*calc\(var\(--tap-gap\)\s*-\s*var\(--space-5\)\)/,
+    'margin-bottom: calc(var(--tap-gap) - var(--space-10))',
+  );
+  assert.notEqual(collapsed, css, 'The mutation did not apply, so it proves nothing.');
+  const dark = /:is\(\.ui-app__body,\s*\.ui-card-stack\)\s*>\s*\.ui-toolbar:not\(:last-child\)\s*\{\s*margin-bottom:\s*calc\(var\(--tap-gap\)\s*-\s*var\(--space-5\)\)/;
+  assert.ok(
+    !dark.test(collapsed),
+    'A single --space-10 figure still reads as the themed dark rule, so the check above would '
+    + 'pass over a sheet that closes the dark gap to zero.',
+  );
+});
+
+test('this gate rejects a sheet that drops the date-picker drawer growth', () => {
+  // The mutation: the opened grid outgrows the md drawer (45vh), whose body
+  // scrolls and clips the last week's tap layers at the scroll edge.
+  const cut = css.replace(/\s*\.ui-drawer:has\(\.ui-datepicker__body\.is-sheet\)\s*\{\s*--drawer-h:\s*72vh;\s*\}/, '');
+  assert.notEqual(cut, css, 'The mutation did not apply, so it proves nothing.');
+  const rule = /\.ui-drawer:has\(\.ui-datepicker__body\.is-sheet\)\s*\{\s*--drawer-h:\s*72vh;/;
+  assert.ok(
+    !rule.test(cut),
+    'Removing the 72vh sheet drawer left the rule the gate would still read, so the check above '
+    + 'would pass over a sheet that clips the last week.',
+  );
+});
+
 test('the shrink check reads an edge-stopped side as a lower bound', async () => {
   // The mutation half of the edge rule: the same 1px loss fails on a side another
   // control stops, and passes only where the viewport edge stops the pass with the sheet.
@@ -645,6 +675,28 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         + 'that the drawn control does not move; a layer that changes layout is a visible change '
         + 'the issue rejected.',
       );
+    });
+
+    await t.test('a vh-capped region measured once is rejected', async () => {
+      // The mutation: one viewport read, the way the pass measured before it
+      // settled the pair. A max-height:70vh scroll region reads its cap, not
+      // its rows, on a short box, so the finance table draws a different size
+      // in the two passes.
+      const finance = subjects.filter((s) => s.id === 'components-finance-composition--comparison');
+      assert.equal(finance.length, 1, 'The finance story is not in the sweep.');
+      const oneShot = (sheet) => pass(browser, {
+        subjects: finance, css: sheet, width: 390, coarse: true, size: TAP_MIN, rounds: 1,
+      });
+      const A1 = flatten((await oneShot(without)).rows);
+      const B1 = flatten((await oneShot(withCss)).rows);
+      const moved = B1.filter((b, i) => b.drawn[0] !== A1[i].drawn[0] || b.drawn[1] !== A1[i].drawn[1]);
+      assert.ok(
+        moved.length > 0,
+        'One viewport read drew the vh-capped region the same size in both passes, so the '
+        + 'settling loop in stories/lib/tap-zone.js would be removable and the finance defect '
+        + 'would return.',
+      );
+      t.diagnostic(`${moved.length} control(s) drawn differently on one read — the check rejects it`);
     });
 
     await t.test('no control has a drawn pixel that runs another control', () => {
