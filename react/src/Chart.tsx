@@ -281,10 +281,11 @@ const BAR_MAX = 12;
  */
 const BAR_MAX_BRIDGE = 22;
 /**
- * The months chart's columns (#841, look A): the plot takes the card's width and
- * every period shares it, so nothing scrolls. A bar takes two thirds of its
+ * The months chart's columns (#841, look A): a bar takes two thirds of its
  * column up to --space-12, and its corner is --radius-xs or a quarter of the
- * bar, whichever is smaller, so a narrow bar keeps the same shape.
+ * bar, whichever is smaller, so a narrow bar keeps the same shape. The plot
+ * keeps a column wide enough for a bar's name; where the card is narrower, it
+ * scrolls instead of dropping one.
  */
 const FIT_SHARE = 2 / 3;
 const FIT_MAX = 48;
@@ -646,7 +647,8 @@ export function Chart(props: ChartProps) {
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
-  /** The months chart fits its card: look A's columns, and no scroll. */
+  /** The months chart's look A columns: bars share the card, and the plot
+   *  scrolls only where a bar's name would not fit. */
   const fit = variant === 'months';
   const showValues = fit && 'values' in props && props.values === true;
   const plotHeight = height ?? HEIGHT[variant];

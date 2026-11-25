@@ -108,8 +108,6 @@
 }
 
 .ui-chart__plot { min-width: calc(var(--ui-chart-col) * var(--ui-chart-cols, 1)); }
-/* The months chart's periods share the card's width, so it never scrolls. */
-.ui-chart--months .ui-chart__plot { min-width: 0; }
 .ui-chart__svg { display: block; }
 
 .ui-chart__periods {

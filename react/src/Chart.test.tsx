@@ -825,33 +825,35 @@ it('prints no two values over each other, and gives the room of hidden values ba
     .toBeGreaterThanOrEqual(spans[i][1]));
 });
 
-it('fits 24 months in a 154px plot with no scroll, every bar, and fewer labels', () => {
+it('scrolls 24 months in a 154px card so no bar loses its name', () => {
   const months24: ChartPeriod[] = Array.from({ length: 24 }, (_, i) => ({
     label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2025 + Math.floor(i / 12)}`,
     estimated: i === 20 ? 'incomplete' as const : i > 20 ? 'projected' as const : undefined,
   }));
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(154);
-  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(154);
+  // The plot keeps one 48px column per period (the bridge's floor), so 24 months
+  // need 1152px: wider than the 154px card, the plot scrolls instead of stepping
+  // a name off its bar. JSDOM lays nothing out, so the plot and scroller widths
+  // are stubbed to the sizes the sheet's min-width would produce.
+  const FLOOR = 48;
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
+    return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 24 : 154;
+  });
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
+    return (this as HTMLElement).classList.contains('ui-chart__scroll') ? FLOOR * 24 : 154;
+  });
   const { container } = render(<Chart title="Cash in" height={154} periods={months24} format={eur}
     series={[{ id: 'in', name: 'Cash in', values: months24.map((_, i) => 30 + i), tone: 'good' }]} />);
   const svg = container.querySelector('.ui-chart__svg')!;
-  expect(svg.getAttribute('width')).toBe('154');
-  const bars = [...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf);
-  expect(bars, 'every bar').toHaveLength(24);
-  expect(Math.max(...bars.map((b) => b.x + b.width)), 'inside the plot').toBeLessThanOrEqual(154);
-  expect(container.querySelector('.ui-chart__scroll'), 'no inner scroll').not.toHaveAttribute('role');
-  expect(readRepo('../../src/styles/chart.css')).toMatch(/\.ui-chart--months \.ui-chart__plot \{ min-width: 0; \}/);
+  expect(svg.getAttribute('width'), 'the plot keeps a floor column per period').toBe('1152');
+  expect([...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf), 'every bar').toHaveLength(24);
+  expect(container.querySelector('.ui-chart__scroll'), 'the plot scrolls inside the card').toHaveAttribute('role', 'region');
+  expect(readRepo('../../src/styles/chart.css'), 'months keeps the bridge scroll floor')
+    .not.toMatch(/\.ui-chart--months \.ui-chart__plot \{ min-width: 0; \}/);
   const row = container.querySelector('.ui-chart__periods')!;
-  expect(classOf(row)).toContain('ui-chart__periods--step');
+  expect(classOf(row), 'no label is stepped').not.toContain('ui-chart__periods--step');
   const labels = [...row.children].map((c) => c.textContent);
-  expect(labels, 'one track for each period').toHaveLength(24);
-  const shown = labels.flatMap((l, i) => (l ? [i] : []));
-  expect(shown.length, 'fewer labels').toBeLessThan(24);
-  expect(shown.length).toBeGreaterThan(1);
-  expect(shown, 'the incomplete period keeps its label').toContain(20);
-  const every = shown[1] - shown[0];
-  expect(shown.every((i, k) => k === 0 || i - shown[k - 1] === every), 'evenly stepped').toBe(true);
-  expect(classOf(row.children[shown[0]]), 'the first label keeps to the plot\'s edge').toContain('is-start');
+  expect(labels, 'one name per period').toHaveLength(24);
+  expect(labels.every((l) => l), 'every bar keeps its name').toBe(true);
   cleanup();
   vi.restoreAllMocks();
   const wide = months().container.querySelector('.ui-chart__periods')!;

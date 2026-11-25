@@ -148,4 +148,4 @@
 
 **Don't:** Names that repeat North and South, so the bars read alike.
 
-**Except:** Where one word is wider than its column, use shorter names or fewer bars.
+**Except:** Where one word is wider than its column, the plot scrolls sideways so every bar keeps its name.
