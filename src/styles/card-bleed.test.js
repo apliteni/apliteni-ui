@@ -16,7 +16,8 @@
  *   frame starts and ends within 1px of the column edges,
  * - in dark, the row table and its frame bleed by the card's side inset,
  * - a viewer bleeds by the card's side inset in both themes,
- * - a stat tile keeps its box: a 24px side inset and no hang, in both themes,
+ * - a stat tile keeps its box and does not hang. It has a 24px side inset, and 16px in
+ *   light at 560px and below, as on main,
  * - a dark card, and a light card above 720px, keep a 24px side inset.
  *
  * Limits: JSDOM has no layout, so the gate adds computed margins, borders and paddings,
@@ -38,6 +39,7 @@ const SHEETS = { layout: read('./layout.css'), card: read('./card.css'), table: 
 const WIDTHS = [390, 560, 561, 640, 720, 721, 1280];
 const SKIP = ['(pointer: coarse)', 'not (pointer: coarse)'];
 const SPACE_6 = Number(/--space-6:\s*(\d+)px/.exec(TOKENS)[1]);
+const SPACE_4 = Number(/--space-4:\s*(\d+)px/.exec(TOKENS)[1]);
 
 const px = (value) => {
   const floor = /^clamp\(\s*(-?[\d.]+)px/.exec(value);
@@ -96,8 +98,10 @@ export function checkBleed(sheets = SHEETS, widths = WIDTHS) {
         if (id === 'viewer' && bleed !== c.padding) problems.push(at(`#viewer: the viewer bleeds ${bleed}px through a ${c.padding}px side inset`));
         measured += 1;
       }
+      // A light tile pads 16px at 560px and below, as on main, and 24px above.
       const tile = side(getComputedStyle, document.getElementById('tile'), 'Left');
-      if (tile.padding !== SPACE_6 || tile.margin !== 0) problems.push(at(`#tile: the tile pads ${tile.padding}px and hangs ${-tile.margin}px`));
+      const tileInset = theme === 'light' && width <= 560 ? SPACE_4 : SPACE_6;
+      if (tile.padding !== tileInset || tile.margin !== 0) problems.push(at(`#tile: the tile pads ${tile.padding}px and hangs ${-tile.margin}px`));
       measured += 1;
     } finally { dom.window.close(); }
   }
@@ -128,7 +132,9 @@ test('the bleed check rejects the hangs, bleeds and insets of 0.190.0', () => {
     // A dark card that follows the light inset changes a theme the fix must keep.
     ['the dark inset', swap('card', `${LIGHT} {\n    --ui-card-inset`, '.ui-card {\n    --ui-card-inset'), 'dark 390px #rows', 390],
     // A light tile that takes the light card's inset loses 8px from 561 to 720px.
-    ['the tile inset', swap('stat', '--ui-card-inset: var(--space-6);', ''), '#tile: the tile pads 16px', 640],
+    ['the tile inset', swap('stat', '--ui-card-inset: var(--ui-tile-inset, var(--space-6));', ''), '#tile: the tile pads 16px', 640],
+    // A phone tile that keeps 24px changes the look that main has at 560px and below.
+    ['the phone tile inset', swap('card', '{ --ui-tile-inset: var(--space-4); }', '{ }'), '#tile: the tile pads 24px', 390],
   ];
   for (const [name, sheets, says, width] of cases) {
     const { problems } = checkBleed(sheets, [width]);

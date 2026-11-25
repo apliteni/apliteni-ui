@@ -45,6 +45,11 @@
     padding-inline: var(--ui-card-inset);
   }
 }
+/* A light stat tile keeps its box and its 24px inset from 561 to 720px. On a phone it pads
+   16px, as it did before #875. */
+@media (max-width: 560px) {
+  :root[data-theme="light"] .ui-stats--tiles { --ui-tile-inset: var(--space-4); }
+}
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past
    the rounded corners / clipping its last column. Clipping to the card's

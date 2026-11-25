@@ -11,7 +11,9 @@
 }
 .finance-comparison__data > * { min-width: 0; max-width: 100%; }
 .finance-comparison__data > :first-child { width: 100%; }
-.finance-comparison .ui-seg--underline { align-self: stretch; contain: inline-size; }
+/* The strip hangs its 16px of padding into the margin, so its first label sits on the
+   column's text edge, as the Spacing page shows. */
+.finance-comparison .ui-seg--underline { align-self: stretch; contain: inline-size; margin-inline-start: calc(-1 * var(--space-4)); }
 .finance-comparison__card {
   display: flex;
   flex-direction: column;

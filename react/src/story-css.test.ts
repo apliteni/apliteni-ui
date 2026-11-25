@@ -138,7 +138,7 @@ const ALLOWED: Record<string, string> = {
 
   // The comparison stacks kit parts in its own column. The kit sets every inset.
   'react/src/FinanceComposition.css|.finance-comparison .ui-app__sub': 'the comparison heading sets its own gap to the subtitle',
-  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs span the card and do not widen it',
+  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs span the card without widening it, and hang their padding so the first label sits on the column edge',
 };
 
 /* ---- the glue ceiling --------------------------------------------------- */
