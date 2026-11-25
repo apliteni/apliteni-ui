@@ -1701,6 +1701,70 @@ it('clamps a top-layer readout to its card, not only the view', () => {
   }
 });
 
+it('keeps a top-layer readout on-screen when its card is scrolled out of the view', () => {
+  // The card's left edge is 115px off the view, so its content box begins at -115;
+  // a readout centred on a mark just inside the view would follow that box off-screen.
+  // The clamp must stop at the view's edge, the intersection of both bounds.
+  const layer = stubPopover();
+  try {
+    for (const [prop, value] of [['clientWidth', 400], ['clientHeight', 800]] as const) {
+      Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+    }
+    const { container } = render(
+      <Card title="Income and spend">
+        <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />
+      </Card>,
+    );
+    const card = container.querySelector<HTMLElement>('.ui-card')!;
+    const tip = container.querySelector<HTMLElement>('.ui-tip')!;
+    const anchor = container.querySelector('[data-anchor="income-0"]')!;
+    const box = (top: number, bottom: number, left: number, right: number) =>
+      ({ top, bottom, left, right, width: right - left, height: bottom - top }) as DOMRect;
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(box(0, 800, -115, 685));
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(box(100, 120, 30, 50));
+    vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(200);
+    vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
+
+    hover('income-0');
+    // The mark's centre is 40, so centred the readout's left edge sits at -60; the
+    // view bound slides it back to 0 (shift +60) instead of letting the card push it off.
+    expect(tip.style.getPropertyValue('--ui-tip-shift'), 'the view keeps the readout on-screen').toBe('60px');
+  } finally {
+    layer.restore();
+  }
+});
+
+it('wraps a long top-layer readout to a narrow card', () => {
+  // A 320px card's content box is 288px wide; a readout whose text is 312px wide
+  // would run 24px past the card's right edge. Capping its width at the box lets
+  // the text wrap instead of overflowing the card.
+  const layer = stubPopover();
+  try {
+    for (const [prop, value] of [['clientWidth', 1280], ['clientHeight', 800]] as const) {
+      Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+    }
+    const { container } = render(
+      <Card title="Income and spend">
+        <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />
+      </Card>,
+    );
+    const card = container.querySelector<HTMLElement>('.ui-card')!;
+    const tip = container.querySelector<HTMLElement>('.ui-tip')!;
+    const anchor = container.querySelector('[data-anchor="income-3"]')!;
+    const box = (top: number, bottom: number, left: number, right: number) =>
+      ({ top, bottom, left, right, width: right - left, height: bottom - top }) as DOMRect;
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(box(0, 800, 16, 304));
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(box(100, 120, 290, 304));
+    vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(312);
+    vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
+
+    hover('income-3');
+    expect(tip.style.maxWidth, 'the readout wraps to the card content box').toBe('min(var(--prose-caption), 288px)');
+  } finally {
+    layer.restore();
+  }
+});
+
 it('opens a spark readout in the top layer over a scrolling table', () => {
   const layer = stubPopover();
   try {

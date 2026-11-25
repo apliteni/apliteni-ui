@@ -27,31 +27,32 @@ function placeChartTip(mark: Element, tip: HTMLElement) {
   const isBelow = above < tip.offsetHeight + gap && below > above;
   tip.classList.toggle('is-below', isBelow);
   // The readout floats over the page, so the view is its outer bound and the
-  // card it opens in its inner one: it must not run past the card's content box,
-  // inset by the card's padding, even where the view is wider. A chart outside
-  // a card keeps only the view.
+  // card it opens in its inner one. It is bound by both at once: the view keeps
+  // it on-screen when the card is scrolled out, and the card keeps it inside
+  // the card's content box, inset by the card's padding. The box is their
+  // intersection, and it is also the readout's width, so long text wraps to fit
+  // a narrow card. A chart outside a card keeps only the view.
   // why: guidelines/hover-readouts.md#prefer-above-the-mark
   const card = mark.closest('.ui-card');
+  const box = card ? cardContentBox(card, view) : { left: 0, right: view.clientWidth };
+  tip.style.maxWidth = `min(var(--prose-caption), ${box.right - box.left}px)`;
+  // Re-measured after the width cap, so a long readout wraps before placement.
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
-  const left = card
-    ? Math.max(cardContentLeft(card), Math.min(ideal, cardContentRight(card) - tip.offsetWidth))
-    : Math.max(0, Math.min(ideal, view.clientWidth - tip.offsetWidth));
+  const left = Math.max(box.left, Math.min(ideal, box.right - tip.offsetWidth));
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
   tip.style.setProperty('--ui-tip-y', `${isBelow ? rect.bottom : rect.top}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
 }
 
-/** A card's content box edges in view coordinates: its border box inset by the
- *  card's own border and padding, so a readout stays off the card's edge. */
-function cardContentLeft(card: Element) {
+/** A card's content box in view coordinates — its border box inset by its own
+ *  border and padding — intersected with the viewport, so a card scrolled out
+ *  of the view cannot push the readout off-screen. */
+function cardContentBox(card: Element, view: HTMLElement) {
   const rect = card.getBoundingClientRect();
   const style = getComputedStyle(card);
-  return rect.left + (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.paddingLeft) || 0);
-}
-function cardContentRight(card: Element) {
-  const rect = card.getBoundingClientRect();
-  const style = getComputedStyle(card);
-  return rect.right - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
+  const left = rect.left + (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.paddingLeft) || 0);
+  const right = rect.right - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
+  return { left: Math.max(0, left), right: Math.min(view.clientWidth, right) };
 }
 
 // The paint is src/styles/chart.css, and this module does NOT import it: a kit
