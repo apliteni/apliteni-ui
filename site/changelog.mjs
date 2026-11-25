@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.198.0', date: '2026-11-25',
+    changes: [
+      ['changed', 'Each Callout tone now draws a 1px line in its colour inside the box, and a neutral Callout draws a grey line. A `b` that starts the body takes the tone\'s status ink. The box size, the padding and the wash do not change, so no page moves. Part of #881.', ['Callout']],
+    ],
+  },
+  {
     v: '0.197.0', date: '2026-11-25',
     changes: [
       ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],

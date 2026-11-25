@@ -831,6 +831,53 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
+/* ---- the tone line and the lead (#881) -------------------------------------
+ * Each tone draws its box with an inset 1px line in its signal, and a `b` that
+ * starts the body takes the tone's status ink. The lead is text, so it is held at
+ * AA on the wash over every opaque ground. The line is held only to exist and to
+ * be the tone's own: it bounds a region that the wash already bounds, so WCAG
+ * 1.4.11 asks no ratio of it.
+ * NOT REACHED: a `b` after text in the body also matches `:first-child`, because
+ * a text node is not an element. It takes the same ink, so the ratio holds. */
+const CALLOUT_LEAD = '.ui-callout__body > b:first-child';
+
+/** The line and the lead a callout status puts in scope, over the base rule. */
+function calloutTone(status) {
+  const props = '--callout-line|--callout-lead';
+  const base = declOf('.ui-callout', props);
+  return status === 'neutral' ? base : { ...base, ...declOf(`.ui-callout--${status}`, props) };
+}
+
+test('every callout draws its box with the tone line, inset', () => {
+  const shadow = declOf('.ui-callout', 'box-shadow')['box-shadow'];
+  assert.strictEqual(shadow, 'inset 0 0 0 1px var(--callout-line)',
+    'the callout box is no longer the inset tone line. An outset line or a border moves the\n'
+    + 'box size or its neighbours, and the product pages that use a callout move with it.');
+  assert.ok(!declOf('.ui-callout', 'border').border, 'a border on the callout changes its box size');
+  const lines = calloutStatuses().map((s) => calloutTone(s ?? 'neutral')['--callout-line']);
+  assert.ok(lines.every(Boolean), 'a callout status draws no --callout-line');
+  assert.strictEqual(new Set(lines).size, lines.length, `two callout statuses share one line: ${lines.join(', ')}`);
+});
+
+for (const theme of ['dark', 'light']) {
+  for (const status of calloutStatuses().map((s) => s ?? 'neutral')) {
+    test(`the ${status} callout lead clears WCAG AA on its wash — ${theme}`, () => {
+      const vars = new Map([...tokensFor(theme), ...Object.entries(calloutTone(status))]);
+      const ink = declOf(CALLOUT_LEAD, 'color').color;
+      assert.strictEqual(ink, 'var(--callout-lead)', `${CALLOUT_LEAD} does not paint the tone's lead ink`);
+      const wash = resolve(declOf(status === 'neutral' ? '.ui-callout' : `.ui-callout--${status}`).background, vars);
+      for (const on of wash.alpha === 1 ? [undefined] : CALLOUT_ON) {
+        const ground = on ? composite(wash, resolve(on, vars).rgb) : wash.rgb;
+        const lead = composite(resolve(ink, vars), ground);
+        const r = contrast(lead, ground);
+        assert.ok(r >= AA,
+          `the ${status} callout lead in ${theme} measures ${show(r)}:1 on ${on ?? 'its wash'}, under ${AA}:1.\n`
+          + `It paints ${calloutTone(status)['--callout-lead']} (${hex(lead)}) on ${hex(ground)}.`);
+      }
+    });
+  }
+}
+
 /* All legacy styles share the glyph measured above. */
 test('every toast style leaves the status glyph unfilled', () => {
   const styles = [...CALLOUT.matchAll(RULE)].flatMap(([, sel]) => splitSelectorList(sel))

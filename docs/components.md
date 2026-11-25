@@ -945,6 +945,10 @@ form. Use a [toast](#toast) for a short notice after an action.
 `variant` is `neutral`, `info`, `success`, `warn` or `danger`. Success, danger and warn take a
 circled status glyph. Info and neutral take `info`. Pass `icon` when the tone does not say enough.
 
+A 1px line in the tone's colour draws the box. The line is inset, so the box size does not
+change. A `b` that starts the body takes the tone's status ink. Start the body with a short lead,
+such as `<b>Incomplete.</b>`. If plain text comes before the first `b` of the body, that `b` also takes the ink.
+
 ### Toast
 
 Use a toast for a short notice that an action finished or failed. Do not use it for a message that

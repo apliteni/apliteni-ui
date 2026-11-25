@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { Callout } from './primitives/Callout';
+import { Callout, type CalloutProps } from './primitives/Callout';
 import { Button } from './primitives/Button';
 
 const meta: Meta<typeof Callout> = {
@@ -31,4 +31,12 @@ export const WithActions: Story = {
     children: <><b>Incomplete.</b> Review the <a href="#period">period notes</a> before closing this period.</>,
     actions: <><Button size="sm">Review period</Button><Button size="sm">View unconverted rows</Button></>,
   },
+};
+// The five tones together, so one capture compares them in a theme.
+export const Tones: Story = {
+  render: () => (
+    <div style={{ display: 'grid', gap: 12 }}>
+      {([Neutral, Info, Success, Warn, Danger] as Story[]).map((story, i) => <Callout key={i} {...story.args as CalloutProps} />)}
+    </div>
+  ),
 };
