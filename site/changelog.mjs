@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.198.0', date: '2026-11-25',
+    changes: [
+      ['changed', 'A drawer body now takes only the height of its content, so in a short drawer the footer with Save stands directly under the last group. A long body still scrolls, and the footer stays at the panel\'s end. The app shell\'s menu keeps its account at the foot. Part of #887.', ['Drawer']],
+      ['added', 'The Drawers guideline has a new rule, Save under the form: put the form in the last group, so Save stands under it. Part of #887.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.197.0', date: '2026-11-25',
     changes: [
       ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],

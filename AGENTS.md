@@ -289,6 +289,14 @@ Before opening a PR that changes `react/src/ThreeColumnPage.css`, `react/src/Wiz
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js THREE_COLUMN=1 node --test stories/three-column.test.js`
 Report the result in the PR. CI skips this check because Playwright and web-vitals are not dependencies.
 
+## Check the drawer footer locally
+
+Before opening a PR that changes the body or footer rules of `src/styles/drawer.css` or React
+`<Drawer>`, walk the drawer's keys, clicks and footer in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js DRAWER_FOOTER=1 node --test stories/drawer-footer.test.js`
+Report the result in the PR. CI runs only the source half, in `react/src/Drawer.test.tsx`.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

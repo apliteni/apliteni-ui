@@ -368,13 +368,19 @@
     "pattern": "--drawer-w: var(--panel-md)"
    }
   ],
+  "save-under-form": [
+   {
+    "ref": "src/styles/drawer.css:179",
+    "pattern": "flex: 0 1 auto;"
+   }
+  ],
   "no-cards": [
    {
     "ref": "react/src/KeyValueList.tsx:40",
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:211",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -384,7 +390,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:210",
+    "ref": "src/styles/drawer.css:214",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -394,7 +400,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:278",
+    "ref": "src/styles/drawer.css:282",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -784,7 +790,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:291",
+    "ref": "src/styles/drawer.css:295",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]

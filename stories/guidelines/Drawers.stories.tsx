@@ -82,6 +82,18 @@ const LongForm = () => <Frame title="New supplier" footer={<Button variant="prim
     {BANK.map((label) => <TextField key={label} label={label} />)}
   </DrawerSection>
 </Frame>;
+// The same record and form twice: the form last, so Save stands under its fields, and the
+// form first, so the read-only group stands between the fields and Save.
+const Classify = () => <DrawerSection title="Classify">
+  <SelectField label="Category" defaultValue="payout">
+    <option value="payout">Card payout</option><option value="fee">Fee</option>
+  </SelectField>
+</DrawerSection>;
+const Saves = ({ formFirst = false }: { formFirst?: boolean }) => <Frame footer={<><Button variant="ghost">Cancel</Button><Button variant="primary">Save</Button></>}>
+  {formFirst && <Classify />}
+  <Group rows={PAYMENT.slice(0, 2)} />
+  {!formFirst && <Classify />}
+</Frame>;
 const Lined = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
   <DrawerSection title={title}><Ruled pairs={pairs} /></DrawerSection>;
 const footer = <Button variant="primary">Save</Button>;
@@ -89,6 +101,7 @@ const footer = <Button variant="primary">Save</Button>;
 const specimens = [
   { id: 'one-record', do: () => <QuickEdit />, dont: () => <LongForm /> },
   { id: 'drawer-or-page', do: () => <PageDo />, dont: () => <PageDont /> },
+  { id: 'save-under-form', do: () => <Saves />, dont: () => <Saves formFirst /> },
   { id: 'no-cards', do: () => <Frame><Figure />{GROUPS.slice(1).map((g, i) => <Group key={i} {...g} />)}</Frame>,
     dont: () => <Frame><Card><Figure /></Card>{GROUPS.slice(1).map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },
   { id: 'three-lines', do: () => <Frame footer={footer}>{GROUPS.map((g, i) => <Group key={i} {...g} />)}</Frame>,

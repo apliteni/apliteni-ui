@@ -209,7 +209,8 @@ holds each line of text that the button shows, and the menu takes the same name.
   rail layout, it holds only the menu button and the mark. The menu button opens the full section
   list in a drawer. The drawer opens from the side of the menu button: the right in the topbar
   layout and the left in the rail layout. `drawerSide` chooses the side in either layout. The
-  drawer keeps two or more group labels, and leaves out the label of one group. A press
+  drawer keeps two or more group labels, and leaves out the label of one group. The account stays
+  at the foot of the drawer, as on the rail. A press
   on a section, Escape or a wider window closes the drawer, and the focus goes back to the menu
   button.
 - Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
@@ -1173,6 +1174,11 @@ shows label and value pairs, in one or two columns. A value stays beside its lab
 at the end of a value, such as a copy button, stays on the value's line. Nothing in a drawer draws a
 card, a row rule or an `<hr>`. The actions stay outside the scrolling body. Under reduced motion
 the panel does not slide.
+
+**Save next to the form.** The body takes only the height of its content. In a short drawer the
+footer stands directly under the last group, so put the form in the last group and its Save in
+`footer`. A long body fills the panel and scrolls, and the footer stays at the panel's end. The
+space below the footer of a short drawer is the panel's surface.
 
 **A key figure.** Put a `<dl class="ui-drawer__figure">` in a first group with no heading. Its
 `<dd>` holds a `.ui-drawer__figure-value` at 22px, with a status badge beside it.
