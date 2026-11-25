@@ -6,11 +6,19 @@
 
 export const RELEASES = [
   {
-    v: '0.195.0', date: '2026-11-25',
+    v: '0.197.0', date: '2026-11-25',
     changes: [
       ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],
       ['changed', 'A form Dropdown and native select now fit their longest option up to the field width. Their pill shape stays unchanged, and a value change does not change their width. Part of #874.', ['Dropdown']],
       ['fixed', 'A form Dropdown\'s hidden width rows now sit inside the trigger, so a touch phone\'s 16px type and a picker\'s avatar are measured, and a long option truncates inside the trigger instead of widening the page. Part of #874.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.196.0', date: '2026-11-25',
+    changes: [
+      ['breaking', '`ThreeColumnPage` is now a column browser: the parents, the children of the selected parent, and the open child. In a page area above 860px it shows three columns, in a narrower area the open column and its parent, and on a phone the open column under a back link that names the hidden parent. To migrate, pass `columns={[parents, children, child]}` in place of `nav`, `steps` and `work`, and `depth`, `defaultDepth` and `onDepthChange` in place of `view`, `defaultView` and `onViewChange`; drop each area\'s `link`, and the page `title` and `tools`, because the band shows the title. Part of #871.', ['Page shell']],
+      ['added', 'Each `ThreeColumnPage` column has a header row with its title, an optional `count` and optional `tools`. Its optional `menu` makes the title open a menu, such as sorting and quick filters. A column\'s `children` can be a function that gets `open`, so a row goes one step down the chain with or without `depth`. Rows end with a value and, on a parent row, a chevron. Part of #871.', ['Page shell']],
+      ['changed', 'The Three-column page guideline now chains the columns from parent to child, keeps the selected paint on each parent, replaces the children when the parent changes, and gives each column one header row. The Month close showcase follows them. Part of #871.', ['Guidelines']],
     ],
   },
   {
