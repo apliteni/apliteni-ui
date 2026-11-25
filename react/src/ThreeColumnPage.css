@@ -45,10 +45,11 @@
   clip-path: inset(0 0 0 calc(var(--space-4) + 1px));
 }
 /* The list takes a third and the steps two thirds. The list never cuts a month's name, and
-   a step keeps 14 characters of its name beside its mark. When the two cannot fit side by
-   side, at a narrow flow half or with large text, the steps go under the list. */
+   the steps keep 200px, five eighths of the smallest panel, so they stay beside the list from
+   1180px. When the two cannot fit side by side, at a narrow flow half or with large text, the
+   steps go under the list. */
 .ui-columns__pair > .ui-columns__area--nav { flex: 1 1 0; min-width: max-content; }
-.ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0; min-width: min(100%, calc(var(--prose-display) + 3 * var(--space-6))); }
+.ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0; min-width: min(100%, calc(var(--panel-sm) * 5 / 8)); }
 .ui-columns__area { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
 .ui-columns__pair > .ui-columns__area { padding-bottom: var(--space-10); }
 .ui-columns__area > h2 { margin: 0; scroll-margin-block-start: calc(var(--ui-app-band, 0px) + var(--space-4)); }
@@ -58,6 +59,11 @@
   padding: var(--space-10) var(--space-6);
   border-inline-start: 1px solid var(--border);
 }
+
+/* The area that a view link opens fades in, as a tab panel does. */
+.ui-columns__area--nav.is-entering,
+.ui-columns__area--steps.is-entering,
+.ui-columns__area--work.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }
 
 /* Tablet: the list becomes its own view, the steps stand above the work, and the links
    reach each area. */
@@ -72,7 +78,7 @@
   .ui-columns__area--work { padding: var(--space-8) var(--ui-columns-edge, var(--space-6)) var(--space-10); border-inline-start: 0; }
   .ui-columns[data-view='nav'] .ui-columns__area--nav { display: flex; }
   .ui-columns[data-view='nav'] .ui-columns__area--steps,
-  .ui-columns[data-view='nav'] .ui-columns__area--work { display: none; }
+  .ui-columns[data-view='nav'] .ui-columns__area--work { display: none; } /* motion: still — the area that leaves goes at once; only the area a link opens fades */
 }
 
 /* Below 720px the band puts its mark before the h1, so the page keeps its own edge, and only
@@ -90,7 +96,7 @@
   .ui-columns[data-view='nav'] .ui-columns__area--nav,
   .ui-columns[data-view='steps'] .ui-columns__area--steps,
   .ui-columns[data-view='work'] .ui-columns__area--work { display: flex; }
-  .ui-columns[data-view='work'] .ui-columns__pair { display: none; }
+  .ui-columns[data-view='work'] .ui-columns__pair { display: none; } /* motion: still — the area that leaves goes at once; only the area a link opens fades */
 }
 /* A touch phone: the links draw 35px, so each carries the kit's transparent tap layer,
    which reaches 44px into the row's gap and keeps the drawn size. The toolbar opens the

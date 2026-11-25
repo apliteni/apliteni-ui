@@ -13,7 +13,7 @@ import { read, sheets, sheetsUnder, scripts, scriptsUnder, decommentJs, leafRule
 
 const HOOKS = [
   '[hidden]', '[open]', ':checked', '.is-open', '.open', '.show', '.is-visible', '.is-leaving', '.is-revealed',
-  '.is-collapsed', '.is-selected', '.is-active', '.is-up',
+  '.is-collapsed', '.is-selected', '.is-active', '.is-up', '[data-view',
 ];
 const MOVES = ['display', 'opacity', 'visibility', 'transform', 'translate', 'scale', 'max-height'];
 const STILL = /motion:\s*still\s*[—-]\s*(\S[\s\S]{11,})/;

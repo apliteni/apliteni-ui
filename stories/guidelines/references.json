@@ -1205,7 +1205,7 @@
  "_three-column-page.js": {
   "three-columns": [
    {
-    "ref": "react/src/ThreeColumnPage.tsx:79",
+    "ref": "react/src/ThreeColumnPage.tsx:83",
     "pattern": "<div className=\"ui-columns__pair\">{area('nav')}{area('steps')}</div>"
    }
   ],
@@ -1215,21 +1215,21 @@
     "pattern": "grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:51",
+    "ref": "react/src/ThreeColumnPage.css:52",
     "pattern": ".ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0;"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:64",
+    "ref": "react/src/ThreeColumnPage.css:70",
     "pattern": "@media (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:85",
+    "ref": "react/src/ThreeColumnPage.css:91",
     "pattern": "@media (max-width: 560px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:38",
+    "ref": "react/src/ThreeColumnPage.tsx:39",
     "pattern": "defaultView = 'steps'"
    }
   ]

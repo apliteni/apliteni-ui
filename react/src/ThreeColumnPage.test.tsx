@@ -51,6 +51,24 @@ it('opens on the steps, and a link opens its area and moves focus to its heading
   expect(screen.getByRole('heading', { name: 'Sources' })).toHaveFocus();
 });
 
+// Limits: JSDOM plays no animation. This reads the class and the declaration; the motion
+// gate checks that the class is played, and the kit's net shortens it under reduced motion.
+it('fades in only the area that a link opens, as a tab panel does', () => {
+  render(page());
+  const entering = () => areas().filter(area => area.classList.contains('is-entering')).map(area => area.dataset.area);
+  expect(entering()).toEqual([]);
+  fireEvent.click(screen.getByRole('button', { name: 'Rows' }));
+  expect(entering()).toEqual(['work']);
+  fireEvent.animationEnd(document.querySelector('[data-area="work"]')!);
+  expect(entering()).toEqual([]);
+  // The link to the area already open does not fade it again.
+  fireEvent.click(screen.getByRole('button', { name: 'Rows' }));
+  expect(entering()).toEqual([]);
+  fireEvent.click(screen.getByRole('button', { name: 'Months' }));
+  expect(entering()).toEqual(['nav']);
+  expect(css).toMatch(/\.ui-columns__area--work\.is-entering \{ animation: m-fade var\(--dur-fast\) var\(--ease-out\) both; \}/);
+});
+
 it('follows the view it is given', () => {
   const onViewChange = vi.fn();
   render(page({ view: 'nav', onViewChange }));
@@ -65,7 +83,7 @@ it('holds the widths: the flow half at most --panel-lg, the work half the rest',
   // steps go under it when both cannot fit. Measured at 984px and 200% text in the browser.
   expect(css).toMatch(/\.ui-columns__pair \{[^}]*display: flex;[^}]*flex-wrap: wrap;/);
   expect(css).toMatch(/\.ui-columns__pair > \.ui-columns__area--nav \{ flex: 1 1 0; min-width: max-content; \}/);
-  expect(css).toMatch(/\.ui-columns__pair > \.ui-columns__area--steps \{ flex: 2 1 0; min-width: min\(100%, calc\(var\(--prose-display\) \+ 3 \* var\(--space-6\)\)\); \}/);
+  expect(css).toMatch(/\.ui-columns__pair > \.ui-columns__area--steps \{ flex: 2 1 0; min-width: min\(100%, calc\(var\(--panel-sm\) \* 5 \/ 8\)\); \}/);
   // The two separators are the divider's line.
   expect(css.match(/border-inline-start: 1px solid var\(--border\)/g)).toHaveLength(2);
   // Each area in the pair draws its separator and inset, and the pair clips the one that

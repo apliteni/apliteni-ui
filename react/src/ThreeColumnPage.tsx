@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { playEntrance } from '@apliteni/apliteni-ui/motion';
 import './ThreeColumnPage.css';
 
 export type ThreeColumnView = 'nav' | 'steps' | 'work';
@@ -42,12 +43,15 @@ export function ThreeColumnPage({ title, tools, nav, steps, work, view, defaultV
   const shown = view ?? own;
   const areas = { nav, steps, work };
   const root = useRef<HTMLDivElement>(null);
-  // A link moves the reader to its area: focus goes to the area's heading.
+  // A link moves the reader to its area: the area fades in as a tab panel does, and focus
+  // goes to its heading. Nothing fades at load.
   const moved = useRef<ThreeColumnView | null>(null);
   useEffect(() => {
     if (moved.current !== shown) return;
     moved.current = null;
-    const heading = root.current?.querySelector<HTMLElement>(`[data-area="${shown}"] > h2`);
+    const opened = root.current?.querySelector<HTMLElement>(`[data-area="${shown}"]`);
+    playEntrance(opened);
+    const heading = opened?.querySelector<HTMLElement>(':scope > h2');
     heading?.focus({ preventScroll: true });
     heading?.scrollIntoView?.({ block: 'nearest' });
   }, [shown]);
