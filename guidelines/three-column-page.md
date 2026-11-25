@@ -8,7 +8,7 @@
 
 **Why:** The reader sees where the open item comes from.
 
-**Do:** Show the months, then the checks of October, then the rows of the open check.
+**Do:** Show the folders, then the files of the selected folder, then the open file.
 
 **Don't:** Put three columns that do not depend on each other on one page.
 
@@ -20,7 +20,7 @@
 
 **Why:** The reader sees which parent each column belongs to.
 
-**Do:** Mark October in the months and the open check in the checks.
+**Do:** Mark the selected folder and the open file.
 
 **Don't:** Remove the mark from a parent when the reader works in the next column.
 
@@ -32,9 +32,9 @@
 
 **Why:** Children of the old parent beside the new parent give the reader wrong data.
 
-**Do:** Replace the checks and the rows for a new month, and replace only the rows for a new check.
+**Do:** Replace the files and the open file for a new folder, and replace only the open file for a new file.
 
-**Don't:** Keep the October checks after the reader selects September.
+**Don't:** Keep the files of the old folder after the reader selects a new folder.
 
 ## Keep the child column wide
 
@@ -42,7 +42,7 @@
 
 **Rule:** Give columns 1 and 2 together at most 560px, and give column 3 the rest.
 
-**Why:** The rows need the room, and the parents read best as short columns.
+**Why:** The open item needs the room, and the lists read best as short columns.
 
 **Do:** Give column 1 a third and column 2 the rest, or stack them when names cannot fit.
 
@@ -56,6 +56,6 @@
 
 **Why:** On a small screen the reader still goes up the chain one step at a time.
 
-**Do:** Put Months, Checks and Rows links under the title.
+**Do:** Put one link for each column under the title.
 
 **Don't:** Squeeze three columns onto a phone.
