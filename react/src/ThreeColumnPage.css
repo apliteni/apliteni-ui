@@ -1,0 +1,116 @@
+/* A split page in the shell's wide main: the flow half holds the title, the list and the
+   steps, and the work half holds the rows. Both halves stand on the page ground, with no
+   card box. The two separators are the divider's line: 1px of --border.
+   why: docs/components.md#three-column-page */
+.ui-columns {
+  /* The inline edge of the flow half. In a full-width AppShell from 721px to 860px, it is
+     where the band's h1 starts, so the title, the links and the headings share one edge. */
+  --ui-columns-edge: var(--space-6);
+  display: grid;
+  /* The flow half takes 41% of the main and at most --panel-lg, so the work half's table
+     keeps its columns beside an open sidebar at 1280px. */
+  grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ui-columns__flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+  /* The bottom space sits in the areas, so the separator between them reaches the page's foot. */
+  padding: var(--space-10) var(--space-6) 0 var(--ui-columns-edge, var(--space-6));
+}
+.ui-columns__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+/* With no title and no tools, the row holds only the links, so it takes no gap when they hide. */
+.ui-columns__head:not(:has(> h1)):not(:has(> .ui-app__tools)) { display: contents; }
+.ui-columns .ui-columns__head > h1 { flex: 1 1 auto; min-width: 0; margin: 0; }
+/* The links draw no box at rest, so the first link's words start on the page title's edge
+   and the plate hangs into the margin by the row's 12px inset. Under a band that puts its
+   mark before the h1, that edge is the band's. why: guidelines/spacing.md#put-text-on-the-column-edge */
+.ui-columns__views {
+  display: none; flex-basis: 100%; flex-wrap: wrap; gap: var(--space-2);
+  margin-inline-start: calc(var(--ui-app-title-inset, var(--ui-columns-edge, var(--space-6))) - var(--ui-columns-edge, var(--space-6)) - var(--space-3));
+}
+.ui-columns__views > .ui-nav__item { width: auto; }
+.ui-columns__pair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: stretch;
+  flex: 1 1 auto;
+  /* Each area draws the separator and its inset before it. The pair starts that far out and
+     clips that strip, so the area that starts a line, the list or the steps under it, shows neither. */
+  margin-inline-start: calc(-1 * (var(--space-4) + 1px));
+  clip-path: inset(0 0 0 calc(var(--space-4) + 1px));
+}
+/* The list takes a third and the steps two thirds. The list never cuts a month's name, and
+   the steps keep 200px, five eighths of the smallest panel, so they stay beside the list from
+   1180px. When the two cannot fit side by side, at a narrow flow half or with large text, the
+   steps go under the list. */
+.ui-columns__pair > .ui-columns__area--nav { flex: 1 1 0; min-width: max-content; }
+.ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0; min-width: min(100%, calc(var(--panel-sm) * 5 / 8)); }
+.ui-columns__area { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
+.ui-columns__pair > .ui-columns__area { padding-bottom: var(--space-10); }
+.ui-columns__area > h2 { margin: 0; scroll-margin-block-start: calc(var(--ui-app-band, 0px) + var(--space-4)); }
+.ui-columns__pair > .ui-columns__area { padding-inline-start: var(--space-4); border-inline-start: 1px solid var(--border); }
+.ui-columns__area--work {
+  align-self: stretch;
+  padding: var(--space-10) var(--space-6);
+  border-inline-start: 1px solid var(--border);
+}
+
+/* The area that a view link opens fades in, as a tab panel does. */
+.ui-columns__area--nav.is-entering,
+.ui-columns__area--steps.is-entering,
+.ui-columns__area--work.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }
+
+/* Tablet: the list becomes its own view, the steps stand above the work, and the links
+   reach each area. */
+@media (max-width: 860px) {
+  .ui-columns { --ui-columns-edge: var(--ui-app-title-inset, var(--space-6)); grid-template-columns: minmax(0, 1fr); align-content: start; }
+  .ui-columns__flow { padding-inline-end: var(--ui-columns-edge, var(--space-6)); }
+  .ui-columns__views { display: flex; }
+  .ui-columns__pair { margin-inline-start: 0; clip-path: none; }
+  .ui-columns__pair > .ui-columns__area { padding-bottom: 0; padding-inline-start: 0; border-inline-start: 0; }
+  .ui-columns__area--nav { display: none; }
+  .ui-columns__area--steps { max-width: var(--panel-sm); }
+  .ui-columns__area--work { padding: var(--space-8) var(--ui-columns-edge, var(--space-6)) var(--space-10); border-inline-start: 0; }
+  .ui-columns[data-view='nav'] .ui-columns__area--nav { display: flex; }
+  .ui-columns[data-view='nav'] .ui-columns__area--steps,
+  .ui-columns[data-view='nav'] .ui-columns__area--work { display: none; } /* motion: still — the area that leaves goes at once; only the area a link opens fades */
+}
+
+/* Below 720px the band puts its mark before the h1, so the page keeps its own edge, and only
+   the links move to the band's. */
+@media (max-width: 720px) {
+  .ui-columns { --ui-columns-edge: var(--space-6); }
+}
+
+/* Phone: each area is its own view. */
+@media (max-width: 560px) {
+  .ui-columns { --ui-columns-edge: var(--space-4); }
+  .ui-columns__flow { padding: var(--space-6) var(--ui-columns-edge, var(--space-6)) 0; }
+  .ui-columns__area--work { padding: var(--space-6) var(--ui-columns-edge, var(--space-6)); }
+  .ui-columns .ui-columns__area { display: none; }
+  .ui-columns[data-view='nav'] .ui-columns__area--nav,
+  .ui-columns[data-view='steps'] .ui-columns__area--steps,
+  .ui-columns[data-view='work'] .ui-columns__area--work { display: flex; }
+  .ui-columns[data-view='work'] .ui-columns__pair { display: none; } /* motion: still — the area that leaves goes at once; only the area a link opens fades */
+}
+/* A touch phone: the links draw 35px, so each carries the kit's transparent tap layer,
+   which reaches 44px into the row's gap and keeps the drawn size. The toolbar opens the
+   chip rows' gap to the table under it. why: guidelines/spacing.md#widen-inner-gaps-on-a-touch-phone */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-columns__views { gap: var(--tap-gap); --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  .ui-columns__views > .ui-nav__item::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+  }
+  .ui-columns__area > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-2)); }
+}

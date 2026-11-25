@@ -150,10 +150,9 @@ npm test && npm test -w react && npm run build-storybook && node site/build.mjs
 
 Run the final command before opening a PR.
 
-Add a general, composable kit component only when all three conditions are true: the issue
-names at least two products that use it or have requested it; existing components cannot
-provide it without copying markup or logic; and it contains no domain-specific data or
-rules. If any condition is missing, compose the UI from existing components and add a
+Add a general, composable kit component only when both conditions are true: existing
+components cannot provide it without copying markup or logic, and it contains no
+domain-specific data or rules. If any condition is missing, compose the UI from existing components and add a
 Storybook showcase.
 
 To add a component, put its token-based CSS in `src/styles/`. Include that CSS in

@@ -269,13 +269,20 @@ in a real browser. Run `npm run build-storybook` first, then:
 It also opens every file drop story as Storybook draws it. Report the result in the PR. CI runs
 only this gate's source half.
 
+## Check the three-column page locally
+
+Before opening a PR that changes `react/src/ThreeColumnPage.css`, `react/src/Wizard.tsx` or React
+`<ThreeColumnPage>`, walk the page's keys, clicks and views in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js THREE_COLUMN=1 node --test stories/three-column.test.js`
+Report the result in the PR. CI skips this check because Playwright and web-vitals are not dependencies.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.
 
-Add a general, composable kit component only when all three checks are true:
+Add a general, composable kit component only when both checks are true:
 
-- The issue names at least two products that use it or have requested it.
 - Existing components cannot provide it without copying their markup or logic.
 - It contains no domain-specific data or rules.
 

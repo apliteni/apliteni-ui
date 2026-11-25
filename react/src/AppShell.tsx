@@ -41,7 +41,9 @@ export type AppShellProps = AppShellNav & {
   word?: string;
   brand?: ReactNode;
   brandHref?: string;
-  width?: 'centered' | 'wide';
+  /** `full` takes the content column's cap and padding off, for a page whose parts reach
+   *  the edges, and the band's title becomes the page's h1 (rev_80635b1e54ca/d2). */
+  width?: 'centered' | 'wide' | 'full';
   back?: { href: string; label: string };
   lede?: string;
   actions?: ReactNode;
@@ -155,6 +157,8 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
   // reader can actually go, and it takes aria-current="true" rather than "page"
   // through activeIs above. why: guidelines/going-back.md#keep-the-section-active
   const navigable = links.length > 1 || Boolean(back);
+  // A full-width page has no padded title row, so the band carries its h1 and its tools.
+  const bandTitle = width === 'full' && layout === 'topbar' && navigable && title != null;
   // Written once and placed twice: with no list to head, the rail is a column of
   // brand, so the lockup moves to the band the page already has.
   const lockup = <a className="ui-app__brand" href={brandHref} aria-label={word}>
@@ -178,9 +182,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span>
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
-  const page = <main className={`ui-app__main${width === 'wide' ? ' ui-app__main--wide' : ''}`}>
+  const page = <main className={`ui-app__main${width === 'centered' ? '' : ` ui-app__main--${width}`}`}>
     {back && <BackLink {...back} />}
-    {title != null && (tools
+    {title != null && !bandTitle && (tools
       ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div>
       : <h1>{title}</h1>)}
     {lede && <p className="ui-app__sub">{lede}</p>}
@@ -228,7 +232,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
           <a className="ui-app__brand ui-app__brand--band" href={brandHref} aria-label={word}>
             {brand ?? <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-band`, 24) }} />}
           </a>
-          <span className="ui-react-app__title" aria-hidden="true">{title}</span>
+          {bandTitle ? <><h1 className="ui-react-app__title ui-react-app__title--page">{title}</h1>
+            {tools && <div className="ui-app__tools ui-react-app__band-tools">{tools}</div>}</>
+            : <span className="ui-react-app__title" aria-hidden="true">{title}</span>}
         </> : lockup}
         <button type="button" className="ui-app__search" aria-haspopup="dialog" onClick={() => setSearch(true)}>
           <span className="ui-app__search-ic"><Icon name="search" /></span>
