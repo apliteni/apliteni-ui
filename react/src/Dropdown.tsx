@@ -897,19 +897,27 @@ export function Dropdown({
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
       >
         {triggerContent != null ? (typeof triggerContent === 'string' ? <span className="ui-dropdown__text">{triggerContent}</span> : triggerContent) : (
-          <>
+          <span className="ui-dropdown__line">
             {marked && (chosen?.avatar
               ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />
               : <Avatar empty />)}
             {label && <span className="ui-dropdown__pre">{label}</span>}
             <span className={cx('ui-dropdown__value', marked && !chosen && 'is-placeholder')}>{shown != null ? shown : placeholder}</span>
-          </>
+          </span>
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}
+        {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
+          {rows.map((item, index) => (
+            <span key={index} className="ui-dropdown__line">
+              {marked && (item.avatar
+                ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
+                : <Avatar empty />)}
+              {label && <span className="ui-dropdown__pre">{label}</span>}
+              <span className="ui-dropdown__value">{item.label}</span>
+            </span>
+          ))}
+        </span>}
       </button>
-      {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
-        {rows.map((item, index) => <span key={index}>{item.label}</span>)}
-      </span>}
       <div
         className={cx('ui-dropdown__panel', align === 'end' && 'is-end', direction === 'up' && 'is-up',
           Boolean(scroll) && !sx && 'is-scroll', Boolean(sx) && 'ui-dropdown__panel--search', panelClass)}

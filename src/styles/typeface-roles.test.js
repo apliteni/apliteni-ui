@@ -91,8 +91,9 @@ const familyDecls = () => {
 // `.ui-drawer__figure-value`, takes the display face as a readout (#811). 53 to 54: the split
 // sign-in's slogan takes the display face as a brand voice on the branded half (#850). 54 to 55:
 // a form dropdown's hidden `ui-dropdown__fit` labels state the text role, so the width they
-// measure matches the trigger wherever the field sits (#874).
-const EXPECTED_SUBJECTS = 55;
+// measure matches the trigger wherever the field sits (#874). 55 to 54: the fit labels moved
+// inside the trigger and inherit its face, so the role they used to state is now inherited (#874).
+const EXPECTED_SUBJECTS = 54;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();

@@ -551,7 +551,7 @@
    shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
    margins give back the room it takes, so the trigger keeps its height.
    why: docs/components.md#avatar */
-.ui-dropdown__trigger > .ui-avatar {
+.ui-dropdown__trigger .ui-avatar {
   --ui-avatar-pull: 4px;
   --ui-avatar-pull-start: 10px;
   margin-block: calc(var(--ui-avatar-pull) * -1);
@@ -559,21 +559,26 @@
 }
 .ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — no person chosen */ color: var(--muted); font-weight: var(--weight-medium); }
 
+/* The shown value and each hidden measurement row keep one line and one gap, so a
+   form dropdown measures its value exactly as it draws it.
+   why: docs/components.md#fields */
+.ui-dropdown__line { display: inline-flex; align-items: center; gap: 8px; min-inline-size: 0; }
+
 /* A form dropdown fits its longest option, up to the field width. Its panel is at
    least as wide as its trigger. why: docs/components.md#fields */
 .ui-field > .ui-dropdown { display: inline-grid; grid-template-columns: minmax(0, max-content); max-width: 100%; }
-.ui-field > .ui-dropdown > .ui-dropdown__fit {
-  grid-area: 1 / 1; max-width: 100%;
-  display: grid; grid-template-columns: max-content 8px; align-items: center; gap: var(--space-2);
-  border: 1px solid transparent; padding: var(--space-3) var(--space-4);
-  font-family: var(--font-sans); font-size: var(--text-base); font-weight: var(--weight-normal);
-  line-height: normal; letter-spacing: normal; visibility: hidden; white-space: nowrap;
+/* The hidden rows live inside the trigger, so they inherit its size at every
+   breakpoint and draw the same mark and classes as the shown value. A row longer
+   than the field truncates inside the trigger, so it never widens the page.
+   why: docs/components.md#fields */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit {
+  grid-area: 1 / 1;
+  display: grid; grid-template-columns: minmax(0, max-content);
+  visibility: hidden; min-inline-size: 0; overflow: hidden;
 }
-.ui-field > .ui-dropdown > .ui-dropdown__fit > * { grid-column: 1; grid-row: 1; }
-.ui-field > .ui-dropdown > .ui-dropdown__fit::after {
-  content: ""; width: 8px; height: 8px; grid-column: 2; grid-row: 1;
-}
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit > * { grid-area: 1 / 1; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__line { grid-area: 1 / 1; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { grid-area: 1 / 2; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
 
 @supports (corner-shape: squircle) {
@@ -588,6 +593,7 @@
 @property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
   grid-area: 1 / 1; max-width: 100%;
+  display: grid; grid-template-columns: minmax(0, max-content) max-content;
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base); line-height: normal;
   min-inline-size: 0;
@@ -596,8 +602,8 @@
 }
 /* A long value keeps one line from the left and ends in an ellipsis, as the select
    does, so the trigger keeps the input's height at every length. */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__value,
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__text {
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__value,
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__text {
   min-inline-size: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -607,9 +613,9 @@
 /* The chosen value takes the text input's regular weight and normal spacing. No colour:
    the value keeps --strong, a disabled value its off ink and a placeholder its muted ink.
    rev_67189e20ee1f/d5 why: docs/components.md#fields */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__value { font-weight: var(--weight-normal); letter-spacing: normal; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__value { font-weight: var(--weight-normal); letter-spacing: normal; }
 /* The mark stands as far from the left edge as from the top and bottom edges. */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-avatar {
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-avatar {
   --ui-avatar-pull-start: calc(var(--space-4) - var(--space-3) - (var(--ui-dropdown-line) - var(--ui-avatar-size)) / 2);
 }
 /* The input beside it is 16px on a touch screen, so the trigger follows it. A flat

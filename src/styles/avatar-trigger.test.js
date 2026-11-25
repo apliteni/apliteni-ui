@@ -32,7 +32,7 @@ const SHEETS = [...read('src/index.css').matchAll(/@import "\.\/([^"]+)"/g)].map
 const VALUE_LINE = 16;
 const PULL = /--ui-avatar-pull:\s*(\d+)px/;
 // The field trigger's rule that sets the mark's left inset, deleted.
-const INSET = /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger > \.ui-avatar \{[^}]*\}\n/;
+const INSET = /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \.ui-avatar \{[^}]*\}\n/;
 const offCentre = (cells) => cells.filter((c) => c.inset).flatMap(({ inset: { left, top, bottom } }) =>
   (Math.abs(left - top) > 0.5 || Math.abs(bottom - top) > 0.5 ? [`left ${left}px, top ${top}px, bottom ${bottom}px`] : []));
 

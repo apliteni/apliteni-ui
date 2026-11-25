@@ -154,6 +154,125 @@ test('measured in a browser, four widths and both themes', {
       }
     });
 
+    await t.test('a touch trigger keeps its 16px type in the hidden rows', async () => {
+      const FIELD_STORY = 'react-fields--dropdown-control';
+      const fieldStory = all.find((story) => story.id === FIELD_STORY);
+      assert.ok(fieldStory, `no story with the id ${FIELD_STORY} in the built index`);
+      const read = async (theme, mutation = '') => {
+        const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+        const page = await context.newPage();
+        try {
+          const rendered = await openStory(page, fieldStory, { port: server.port, theme });
+          assert.equal(rendered.phase, 'finished', `${theme} did not render the field story`);
+          if (mutation) await page.addStyleTag({ content: mutation });
+          return await page.evaluate(async () => {
+            const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const field = [...document.querySelectorAll('.ui-field')]
+              .find((el) => el.querySelector('.ui-field__label')?.textContent === 'Reviewer');
+            const trigger = field?.querySelector('[data-dropdown-trigger]');
+            if (!trigger) throw new Error('the Reviewer trigger is missing');
+            const pick = async (label) => {
+              trigger.click();
+              await frame();
+              const row = [...field.querySelectorAll('[data-dd-item]')]
+                .find((el) => el.textContent.trim() === label);
+              if (!row) throw new Error(`${label} is missing`);
+              row.click();
+              await frame();
+              return trigger.getBoundingClientRect().width;
+            };
+            return {
+              coarse: matchMedia('(pointer: coarse)').matches,
+              font: getComputedStyle(trigger).fontSize,
+              jordan: await pick('Jordan Example'),
+              avery: await pick('Avery Example'),
+            };
+          });
+        } finally {
+          await context.close();
+        }
+      };
+      for (const theme of THEMES) {
+        const touch = await read(theme);
+        assert.equal(touch.coarse, true, `${theme} did not emulate a coarse pointer`);
+        assert.equal(touch.font, '16px', `${theme} touch trigger is ${touch.font}, not 16px`);
+        assert.equal(touch.jordan, touch.avery, `${theme} changed width at touch between Jordan Example and Avery Example`);
+        const drifted = await read(theme, '.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit { font-size: var(--text-base) !important; }');
+        assert.notEqual(drifted.jordan, drifted.avery, `${theme} did not reject the hidden rows drifting off the 16px type`);
+      }
+    });
+
+    await t.test('a picker of people measures the mark with the name', async () => {
+      const PICKER_STORY = 'react-dropdown--person-picker';
+      const pickerStory = all.find((story) => story.id === PICKER_STORY);
+      assert.ok(pickerStory, `no story with the id ${PICKER_STORY} in the built index`);
+      const read = async (theme, mutation = '') => {
+        const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+        const page = await context.newPage();
+        try {
+          const rendered = await openStory(page, pickerStory, { port: server.port, theme });
+          assert.equal(rendered.phase, 'finished', `${theme} did not render the picker story`);
+          if (mutation) await page.addStyleTag({ content: mutation });
+          return await page.evaluate(async () => {
+            const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const trigger = document.querySelector('.ui-field [data-dropdown-trigger]');
+            if (!trigger) throw new Error('the picker trigger is missing');
+            const pick = async (label) => {
+              trigger.click();
+              await frame();
+              const row = [...document.querySelectorAll('[data-dd-item]')]
+                .find((el) => el.querySelector('.ui-dropdown__label')?.textContent === label);
+              if (!row) throw new Error(`${label} is missing`);
+              row.click();
+              await frame();
+              return trigger.getBoundingClientRect().width;
+            };
+            return { avery: await pick('Avery Example'), none: await pick('No one') };
+          });
+        } finally {
+          await context.close();
+        }
+      };
+      for (const theme of THEMES) {
+        const stable = await read(theme);
+        assert.equal(stable.avery, stable.none, `${theme} changed width between Avery Example and No one`);
+        const old = await read(theme, '.ui-dropdown__fit .ui-avatar { display: none !important; }');
+        assert.notEqual(old.avery, old.none, `${theme} did not reject the mark left out of the measurement`);
+      }
+    });
+
+    await t.test('a long option never widens the page past its field', async () => {
+      const LONG_STORY = 'react-fields--form-row-long-value';
+      const longStory = all.find((story) => story.id === LONG_STORY);
+      assert.ok(longStory, `no story with the id ${LONG_STORY} in the built index`);
+      const read = async (theme, mutation = '') => {
+        const context = await browser.newContext({ viewport: { width: 360, height: 800 } });
+        const page = await context.newPage();
+        try {
+          const rendered = await openStory(page, longStory, { port: server.port, theme });
+          assert.equal(rendered.phase, 'finished', `${theme} did not render the long-value story`);
+          if (mutation) await page.addStyleTag({ content: mutation });
+          return await page.evaluate(async () => {
+            const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            await frame();
+            const el = document.documentElement;
+            return { client: el.clientWidth, scroll: el.scrollWidth };
+          });
+        } finally {
+          await context.close();
+        }
+      };
+      for (const theme of THEMES) {
+        const shut = await read(theme);
+        assert.equal(shut.scroll, shut.client, `${theme} page is ${shut.scroll}px wide inside ${shut.client}px`);
+        const old = await read(theme, [
+          '.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit { overflow: visible !important; }',
+          '.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit .ui-dropdown__value { overflow: visible !important; min-inline-size: max-content !important; }',
+        ].join('\n'));
+        assert.ok(old.scroll > old.client, `${theme} did not reject the hidden rows overflowing the field`);
+      }
+    });
+
     await t.test('every panel is inside the view it is laid out in', () => {
       const out = outside(measured);
       assert.deepEqual(
