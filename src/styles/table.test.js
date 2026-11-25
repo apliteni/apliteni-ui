@@ -734,8 +734,8 @@ function tableWidths(css) {
         // A dense hover table holds 8px at its ends, so it bleeds by that much (#773).
         '.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'calc(100% + 2 * var(--space-2))',
         '.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'auto',
-        // The row table and its frame reach the card's edges, past the card's padding.
-        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--space-6))',
+        // The row table and its frame reach the card's edges, through the card's side inset.
+        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--ui-card-inset))',
         '.ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'auto',
         // #850: on the light page a card draws no box, so its table sits flush on the column.
         ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)': '100%',

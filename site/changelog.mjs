@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.194.2', date: '2026-11-25',
+    changes: [
+      ['fixed', 'In the light theme a card no longer goes 8px past the page from 561px to 720px, and a row table or a document viewer in a card no longer goes 8px past the card at 560px and below. The page does not scroll sideways at these widths now. The dark theme and wider light pages do not change. Part of #875.', ['Card', 'Table']],
+    ],
+  },
+  {
     v: '0.194.0', date: '2026-11-24',
     changes: [
       ['added', '`ThreeColumnPage` puts a list and its ordered steps on one half of a split page and the work of the open step on the other half. At 860px the list becomes its own view, and at 560px each area is its own view. A new Three-column page guideline states the widths and the collapse order. Resolves #871.', ['Page shell']],
