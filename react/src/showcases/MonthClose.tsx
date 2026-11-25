@@ -98,12 +98,13 @@ export function MonthClose({ stage: start = 'sources', depth: startDepth = 2 }: 
           <Segmented label="Document" size="sm" value={filter} onChange={setFilter}
             options={[{ value: 'all', label: 'All' }, { value: 'Ready', label: 'Ready' }, { value: 'Missing', label: 'Missing' }]} />
         </div>
-        {/* The payee's name wraps first, so the amount stays in view in a narrow column. */}
+        {/* The document stands under the payee, and the payee's name wraps first, so the amount
+            stays in view in a narrow column. */}
         {rows.length ? <DataTable<Row> selectable={false} density="compact" stickyHeader pager={false}
           scrollLabel="Rows" caption={`Rows for ${month}`} rows={rows} columns={[
-            { key: 'name', label: 'Payee', render: row => <span className="ui-identity__name">{row.name}</span> },
+            { key: 'name', label: 'Payee', render: row => <><span className="ui-identity__name">{row.name}</span>{' '}
+              <span className="ui-table__sub">{row.doc || 'Missing document'}</span></> },
             { key: 'day', label: 'Date', render: row => `${row.day} ${short}` },
-            { key: 'doc', label: 'Document', render: row => row.doc || 'Missing' },
             { key: 'amount', label: <>Amount<span className="ui-value__unit">€</span></>, num: true },
           ]} /> : <EmptyState variant="no-matches" level={3} icon="" title="No rows match the search."
             sub="Clear the filters to see all rows." actions={<Button onClick={clear}>Clear filters</Button>} />}

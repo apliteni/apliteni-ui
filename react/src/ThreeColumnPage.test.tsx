@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -149,6 +149,49 @@ it('caps the title menu at its scroll height and draws a link row as a link', ()
   expect(link).toHaveAttribute('href', '#/folder');
 });
 
+// Limits: JSDOM does not follow a link's address, so this checks that the link keeps the
+// parent's address through the click and the depth changes after it. stories/three-column.test.js
+// reads the address that the browser lands on.
+it('changes the depth only after the browser has followed the parent\'s address', async () => {
+  at(390);
+  const onDepthChange = vi.fn();
+  const follow = (link: HTMLElement) => {
+    let followed = '';
+    link.addEventListener('click', () => { followed = link.getAttribute('href')!; });
+    fireEvent.click(link);
+    return followed;
+  };
+  render(<ThreeColumnPage columns={cols()} defaultDepth={3} depthHref={depth => `#/depth-${depth}`} onDepthChange={onDepthChange} />);
+  expect(follow(screen.getByRole('link', { name: 'Back to Shared' }))).toBe('#/depth-2');
+  expect(onDepthChange).not.toHaveBeenCalled();
+  expect(root()).toHaveAttribute('data-depth', '3');
+  await waitFor(() => expect(root()).toHaveAttribute('data-depth', '2'));
+  expect(onDepthChange).toHaveBeenCalledWith(2);
+  expect(screen.getByRole('link', { name: 'Back to Folders' })).toHaveAttribute('href', '#/depth-1');
+  cleanup();
+  // A click that opens a new tab keeps this page's depth.
+  render(<ThreeColumnPage columns={cols()} defaultDepth={3} depthHref={depth => `#/depth-${depth}`} />);
+  fireEvent.click(screen.getByRole('link', { name: 'Back to Shared' }), { ctrlKey: true });
+  await new Promise(done => setTimeout(done));
+  expect(root()).toHaveAttribute('data-depth', '3');
+  cleanup();
+  // The showcases keep the parent's address through the click.
+  render(<Library folder="Shared" />);
+  expect(follow(screen.getByRole('link', { name: 'Back to Shared' }))).toBe('#/library/Shared');
+  await waitFor(() => expect(screen.getByRole('link', { name: 'Back to Folders' })).toBeInTheDocument());
+  cleanup();
+  render(<MonthClose depth={3} />);
+  expect(follow(screen.getByRole('link', { name: 'Back to Month checks' }))).toBe('#/close/October');
+  await waitFor(() => expect(root()).toHaveAttribute('data-depth', '2'));
+});
+
+it('renders with no ResizeObserver, and the window query names the columns on show', () => {
+  vi.stubGlobal('ResizeObserver', undefined);
+  at(820);
+  render(page({ depth: 3 }));
+  expect(screen.getByRole('link', { name: 'Back to Folders' })).toBeInTheDocument();
+});
+
 it('moves the focus to the open column\'s title when a move removes the focused row', () => {
   const { rerender } = render(page({ depth: 2 }));
   screen.getByRole('button', { name: 'Contacts' }).focus();
@@ -219,7 +262,6 @@ it('holds the widths: column 1 240px, column 2 26% from 260px to --panel-sm, col
   expect(css).toMatch(/\.ui-columns__scroll \{[^}]*overflow-y: auto; \}/);
   expect(css).toMatch(/\.ui-columns__scroll:focus-visible \{ outline: var\(--ring-scroll\); outline-offset: var\(--ring-scroll-offset\); \}/);
   expect(css).not.toMatch(/position: sticky/);
-  expect(document.querySelector('.ui-columns__head + .ui-columns__scroll')).toBeNull();
   render(page());
   for (const n of [1, 2, 3]) expect(document.querySelector(`[data-column="${n}"] > .ui-columns__head + .ui-columns__scroll`)).not.toBeNull();
   expect(css).toMatch(/\.ui-columns__col \+ \.ui-columns__col \{ border-inline-start: 1px solid var\(--border\); \}/);
@@ -406,11 +448,16 @@ it('replaces the checks and the rows when the reader selects another month', () 
   expect(workHeading()).toBe('Sources');
 });
 
-// Limits: JSDOM lays nothing out, so this reads the wrap class. stories/three-column.test.js
+// Limits: JSDOM lays nothing out, so this reads the cells. stories/three-column.test.js
 // checks in a browser that the table fits column 3.
 it('lets the payee wrap, puts the unit in the header, and a search with no rows offers to clear the filters', () => {
   render(<MonthClose />);
-  expect(screen.getByRole('cell', { name: 'Aster Paper' }).firstElementChild).toHaveClass('ui-identity__name');
+  // The document stands under the payee, so the table needs one column less.
+  const payee = screen.getByRole('cell', { name: 'Aster Paper INV-104' });
+  expect(payee.firstElementChild).toHaveClass('ui-identity__name');
+  expect(payee.querySelector('.ui-table__sub')).toHaveTextContent('INV-104');
+  expect(screen.getByRole('cell', { name: 'Cedar Tools Missing document' })).toBeInTheDocument();
+  expect(screen.getAllByRole('columnheader').map(th => th.textContent)).toEqual(['Payee', 'Date', 'Amount€']);
   // The unit stands once, small, in the header, so each amount is a plain number.
   expect(screen.getByRole('columnheader', { name: 'Amount€' }).querySelector('.ui-value__unit')).toHaveTextContent('€');
   expect(screen.getByRole('cell', { name: '184.20' })).toBeInTheDocument();

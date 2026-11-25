@@ -12,8 +12,10 @@
      takes the rest: at least 360px, because three columns need a page area above 860px.
      240px and 260px have no token: they are the column floors of the reference study for #871. */
   grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);
-  /* Each column scrolls alone, so the page takes the window under the band. */
+  /* Each column scrolls alone, so the page takes the window under the band. A closed title
+     menu's panel keeps its box, so the page clips it at its foot and the window does not scroll. */
   height: calc(100dvh - var(--ui-app-band, 0px));
+  overflow-y: clip;
 }
 .ui-columns__up { grid-column: 1 / -1; padding: var(--space-3) var(--space-3) 0; }
 .ui-columns__col { display: flex; flex-direction: column; grid-row: 2; min-width: 0; min-height: 0; }
@@ -84,7 +86,7 @@
 
 /* Phone: one column, the open one, and the page scrolls as one. */
 @media (max-width: 560px) {
-  .ui-columns { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .ui-columns { grid-template-columns: minmax(0, 1fr); height: auto; overflow-y: visible; }
   .ui-columns__up { padding-inline: var(--space-2); }
   .ui-columns > .ui-columns__col { display: none; border-inline-start: 0; }
   .ui-columns[data-depth='1'] > .ui-columns__col--1,

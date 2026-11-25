@@ -343,7 +343,8 @@ children: the second column then takes its space and shows the empty state. Each
 let the page keep it from `defaultDepth`, which is 2. `children` can be a function that gets
 `open`: a row calls it to take the reader one step down, to the next column, in either case.
 `onDepthChange` hears the back link and `open`. Give `depthHref`, so that the back link goes to
-the address of the depth above. `menu` takes the rows of a `Dropdown` menu: with it, the
+the address of the depth above. The browser follows that address first, and then the page
+changes the depth, so an app that reads the address lands on the parent. `menu` takes the rows of a `Dropdown` menu: with it, the
 title opens the menu, and without it, the title is plain text. A menu row with `selected`, true or
 false, is one choice of its group, and the current choice shows the menu's tick. Put the actions
 in the first group and each set of choices in a labelled group. A menu taller than 300px takes

@@ -17,7 +17,8 @@
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
  * phone of 466×678 and 890×626 at scale 3 with touch. react-three-column-page--month-checks
  * walks the Wizard in column 2, a check that opens its rows, a search, the back link and a new
- * month. react-three-column-page--title-menu opens at depth 2, so a phone shows the title
+ * month. After each back link it reads that the browser landed on the link's address at the
+ * click. react-three-column-page--title-menu opens at depth 2, so a phone shows the title
  * menu, and walks the back link, a folder, the title menu and Escape, and a file. The shell chrome is every fixed or sticky element outside the page,
  * found in the page.
  *
@@ -25,7 +26,8 @@
  * name starts with its visible words. Where two or three columns show, it checks that their
  * header rows have one top and one height, that each column after the first draws the 1px
  * line and the first draws none, and that each column reaches the foot of the window and
- * scrolls alone below its header row.
+ * scrolls alone below its header row. Above the phone step it checks that the page itself does
+ * not scroll down, also with a closed title menu.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
@@ -57,6 +59,7 @@ const READ = () => {
   return {
     focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
     chrome, cls: window.__cls, depth: page.dataset.depth, over: doc.scrollWidth - doc.clientWidth,
+    address: window.__address,
     tables: [...page.querySelectorAll('.ui-table-scroll')].filter((e) => e.checkVisibility()).map((e) => e.scrollWidth - e.clientWidth),
   };
 };
@@ -69,8 +72,12 @@ const back = async (page) => {
   const link = page.getByRole('link', { name: /^Back to / });
   if (!await link.isVisible()) return false;
   const from = await page.locator('.ui-columns').getAttribute('data-depth');
+  const href = await link.getAttribute('href');
   await link.click();
   await depth(page, Number(from) - 1);
+  // The browser lands on the address that the link had at the click: the parent's.
+  const at = await page.evaluate(() => location.hash);
+  if (href !== '#' && at !== href) await page.evaluate(([h, a]) => { window.__address = `the back link went to ${a}, not ${h}`; }, [href, at]);
 };
 const step = (page, n) => page.getByRole('button', { name: new RegExp(`, step ${n} of 5$`) });
 const MONTH = [
@@ -132,6 +139,9 @@ async function inspect(page, label) {
     return { n: c.dataset.column, top: head.top, height: head.height, line: parseFloat(cs.borderInlineStartWidth), bottom: r.bottom,
       scroll: box && getComputedStyle(box).overflowY, below: box && box.getBoundingClientRect().top >= head.bottom - 1, foot: innerHeight };
   }));
+  // Above the phone step the columns scroll and the page does not, also with a closed menu panel.
+  const scroll = await page.evaluate(() => [innerWidth, document.scrollingElement.scrollHeight - document.scrollingElement.clientHeight]);
+  if (scroll[0] > 560 && scroll[1] > 0) found.push(`${label}: the page scrolls ${scroll[1]}px down`);
   if (cols.length > 1) {
     for (const c of cols) {
       if (Math.abs(c.top - cols[0].top) > 1 || Math.abs(c.height - cols[0].height) > 1) found.push(`${label}: the header rows differ: column ${c.n} is ${c.height}px at ${c.top}`);
@@ -162,6 +172,7 @@ async function walk(page, label, actions, { only } = {}) {
     }
     if (!(after.cls < 0.1)) found.push(`${label} ${name}: the layout shift is ${after.cls}`);
     if (after.over > 0) found.push(`${label} ${name}: the page scrolls ${after.over}px sideways`);
+    if (after.address) found.push(`${label} ${name}: ${after.address}`);
     for (const over of after.tables) if (over > 1) found.push(`${label} ${name}: a table is ${over}px wider than its column`);
     if (name === 'key: Escape' && after.depth !== before.depth) found.push(`${label} ${name}: Escape changed the depth`);
     before = after;
@@ -232,8 +243,8 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     };
     const wide = { viewport: { width: 1280, height: 800 } };
     const phone = { viewport: { width: 390, height: 844 } };
-    const inspected = async (context, setup, says) => {
-      const { ctx, page } = await open(browser, server.port, vitals, context, month.id);
+    const inspected = async (context, setup, says, story = month) => {
+      const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
       await setup(page);
       caught.push([says, (await inspect(page, 'mutated')).found.some((f) => f.includes(says))]);
       await ctx.close();
@@ -245,6 +256,16 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     await inspected(wide, (page) => page.addStyleTag({ content: '[data-column="3"] > .ui-columns__head { min-height: 0; }' }), 'header rows differ');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns { flex: none; height: 50vh; }' }), 'not at the foot');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns__scroll { overflow-y: visible; }' }), 'scroll alone');
+    // A closed title menu panel keeps a box of 305px before its first open, but only at times,
+    // so both runs fix that box. The clip holds the page still, and without the clip it scrolls.
+    const kept = '[data-column="2"] .ui-dropdown [role="menu"] { max-height: none; height: 305px; }';
+    for (const size of [{ width: 844, height: 390 }, { width: 1280, height: 400 }]) {
+      await inspected({ viewport: size }, (page) => page.addStyleTag({ content: `${kept} .ui-columns { overflow-y: visible; }` }), 'page scrolls', library);
+      const { ctx, page } = await open(browser, server.port, vitals, { viewport: size }, library.id);
+      await page.addStyleTag({ content: kept });
+      assert.deepEqual((await inspect(page, `${size.width}×${size.height} closed panel`)).found, []);
+      await ctx.close();
+    }
     // A window query in place of the page area's: three columns beside the open sidebar.
     {
       const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 984, height: 1016 } }, month.id);
@@ -265,6 +286,11 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     await mutate(wide, month, (page) => page.evaluate(() => document.addEventListener('keydown', () => {
       for (const e of document.querySelectorAll('body *')) if (getComputedStyle(e).position === 'sticky' && !e.closest('.ui-columns')) e.style.translate = '0 4px';
     })), ['key: Down'], 'moved');
+    // A back link that changes the depth in the click, so its next address is the one followed.
+    await mutate(phone, library, (page) => page.evaluate(() => document.addEventListener('click', (e) => {
+      const link = e.target.closest('.ui-columns__up a');
+      if (link) link.setAttribute('href', '#/elsewhere');
+    }, true)), ['screen: back'], 'the back link went to');
     // A block that pushes the page down with no input, as a late banner would.
     await mutate(wide, month, async (page) => {
       await page.evaluate(() => { const block = document.createElement('div'); block.style.height = '400px'; document.querySelector('.ui-columns').before(block); });

@@ -79,7 +79,8 @@ export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChang
   const [area, setArea] = useState<number | null>(null);
   useLayoutEffect(() => {
     const el = root.current?.parentElement;
-    if (!el) return;
+    // Without ResizeObserver, as in a consumer's test, the window's query stays the answer.
+    if (!el || typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(([entry]) => setArea(entry?.contentRect.width || null));
     observer.observe(el);
     return () => observer.disconnect();
@@ -128,7 +129,14 @@ export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChang
   return <div className="ui-columns-area"><div ref={root} className={['ui-columns', className].filter(Boolean).join(' ')} data-depth={at}>
     {first > 1 && <div className="ui-columns__up">
       <BackLink href={depthHref?.(up) ?? '#'} label={columns[first - 2]!.title}
-        onClick={(event: MouseEvent) => { if (!depthHref) event.preventDefault(); back(); }} />
+        onClick={(event: MouseEvent) => {
+          if (!depthHref) { event.preventDefault(); back(); return; }
+          // A click that opens a new tab or window leaves this page as it is.
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          // The browser follows the link's address first. A depth change in the click would
+          // give the link the address of the depth above before the browser reads it.
+          setTimeout(back);
+        }} />
     </div>}
     {columns.map((col, i) => col && column(col, (i + 1) as ThreeColumnDepth))}
   </div></div>;
