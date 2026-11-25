@@ -706,8 +706,9 @@ row. Every control draws the neutral form by default: the chosen option is the s
 surface. `accent` asks for the accent fill when a product needs it; in vanilla CSS the class is `.ui-seg--accent`. `neutral` is a deprecated
 no-op kept for compatibility, and goes away at the next major. An option's `icon`
 draws a glyph before its label. With `iconOnly`, the glyph is the whole button and the label is
-its name and its hover title; the glyph is a 24px view icon, larger than a labelled option's 16px
-lead, so the wordless choice reads on its own.
+its name and its hover title; the wordless choice draws a 36px pill around the 24px view icon — larger
+than a labelled option's 16px lead — and below the phone step keeps a 44px tap zone outside the
+pill, the way the back link and theme switch do.
 
 **What the user sees.** The chosen pill has the strong ink on the surface, with no accent. With
 `accent`, the chosen pill has the accent fill of a primary button. The chosen

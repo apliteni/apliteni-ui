@@ -706,11 +706,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:135",
+    "ref": "src/styles/segmented.css:142",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:144",
+    "ref": "src/styles/segmented.css:151",
     "pattern": "padding: var(--space-3)"
    }
   ]
