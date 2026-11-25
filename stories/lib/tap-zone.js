@@ -182,6 +182,21 @@ export async function rowFixtures() {
     h(kit.Button, { key: 'export', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'download', 'aria-label': 'Export' }),
     h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
   ] }));
+  // A chart's wordless view switch in the card's tools: two 28px glyph pills in a
+  // 36px track, each owning a 44px target that reads the tools' 20px clearance and
+  // reaches past the pill's outer edge, never across the shared middle (#863/#867).
+  const wordlessSwitch = await markup(({ h, kit }) => h(kit.Card, {
+    title: 'Cash in and out',
+    tools: [
+      h(kit.Segmented, {
+        label: 'View', value: 'chart', size: 'sm',
+        options: [
+          { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
+          { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
+        ],
+      }),
+    ],
+  }));
   // A folded open band whose values are links, and one whose trend is a target: two
   // neighbours of a change. The first change is the short `1%`, the narrowest that a
   // band draws (#849).
@@ -223,6 +238,7 @@ export async function rowFixtures() {
     row('drawer', drawer),
     row('card-row', cardRow),
     row('card-tools', cardTools),
+    row('wordless-switch', wordlessSwitch),
 
     // The pair #488 names: a dense table's row actions, a labelled button
     // against an icon-only one in the same cell. Written out, because no story

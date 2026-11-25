@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:210",
+    "ref": "src/styles/tap-zone.css:233",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -688,19 +688,19 @@
     "pattern": "--tap-gap: var(--space-5"
    },
    {
-    "ref": "src/styles/tap-zone.css:144",
+    "ref": "src/styles/tap-zone.css:166",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:152",
+    "ref": "src/styles/tap-zone.css:174",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:153",
+    "ref": "src/styles/tap-zone.css:175",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
-    "ref": "src/styles/tap-zone.css:128",
+    "ref": "src/styles/tap-zone.css:150",
     "pattern": ".ui-seg--underline { row-gap: var(--space-1"
    }
   ],

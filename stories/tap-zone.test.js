@@ -816,6 +816,49 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       assert.equal(short.size, 2 + statCases.length, `A change at its line height passed in some fixtures: ${[...short]}`);
     });
 
+    await t.test('each wordless option owns a 44px target without crossing the shared middle', () => {
+      // The chart/table switch in a card's tools: two 28px glyph pills in a 36px
+      // track. The symmetric clamp left each at 32 across, so a tap at the pill's
+      // edge ran the neighbour; the fix opens the LEFT option left and the RIGHT
+      // option right, past the pill's outer edge, never into the shared middle.
+      const wordless = B.filter((b) => b.story === 'fixture:wordless-switch' && b.cls.split(/\s+/).includes('ui-seg--icon'));
+      assert.equal(wordless.length, 2, `expected 2 wordless options, found ${wordless.length}`);
+      const [left, right] = wordless;
+      for (const b of wordless) {
+        assert.ok(b.reach[0] >= 44 - 0.5 && b.reach[1] >= 44 - 0.5, `${name(b)} reaches ${b.reach.join('x')}, not 44x44`);
+      }
+      // The outer side opens past the pill's edge, not by centring into the gap.
+      assert.ok(left.sides[0] >= 13, `the left option opens ${left.sides[0]}px left, not past the pill's edge`);
+      assert.ok(right.sides[1] >= 13, `the right option opens ${right.sides[1]}px right, not past the pill's edge`);
+      // The shared middle is respected: neither option crosses the gap's midpoint.
+      assert.ok(left.sides[1] <= 4, `the left option reaches ${left.sides[1]}px into the gap, crossing the shared middle`);
+      assert.ok(right.sides[0] <= 4, `the right option reaches ${right.sides[0]}px into the gap, crossing the shared middle`);
+      // No drawn pixel runs the neighbour.
+      assert.deepEqual(left.lost, [], `the left option has a drawn pixel the neighbour owns`);
+      assert.deepEqual(right.lost, [], `the right option has a drawn pixel the neighbour owns`);
+    });
+
+    await t.test('a wordless option that reads the strip clearance instead of the outer one is rejected', async () => {
+      // The mutation: put the 4px shadow back on every strip, so the wordless
+      // options read 4px instead of the tools' 20px and fall short of 44px —
+      // the 32px target the review measured. The check above has to fail on it.
+      const broken = withCss.replace(
+        /\.ui-seg:not\(:has\(button\.ui-seg--icon\)\) \{ --tap-clear-x: var\(--space-1, 4px\); \}/,
+        '.ui-seg { --tap-clear-x: var(--space-1, 4px); }',
+      );
+      assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
+      const own = fixtures.filter((f) => f.id === 'fixture:wordless-switch');
+      const mutated = flatten((await at(390, true, broken, own)).rows)
+        .filter((b) => b.cls.split(/\s+/).includes('ui-seg--icon'));
+      assert.equal(mutated.length, 2, `expected 2 wordless options, found ${mutated.length}`);
+      assert.ok(
+        mutated.some((b) => b.reach[0] < 44),
+        'A wordless option kept a 44px target after the outer clearance was shadowed again, so '
+        + 'the check above would pass over the defect it was written for.',
+      );
+      t.diagnostic(`shadowed clearance: ${mutated.map((b) => `${name(b)} ${b.reach.join('x')}`).join(' / ')}`);
+    });
+
     await t.test('every density of a selectable table is measured, header and rows', () => {
       const boxes = B.filter((b) => SELECTABLE.test(b.story) && b.cls === '' && b.tag === 'input');
       for (const density of ['default', 'dense', 'compact']) {
