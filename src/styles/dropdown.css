@@ -6,9 +6,9 @@
  * ========================================================================== */
 
 .ui-dropdown { position: relative; display: inline-flex; }
-/* Inside a scrolling body the wiring writes --ui-dropdown-reach when it opens the
-   panel: the distance from the trigger to one edge inset past the panel. The panel is
-   the last thing the body holds, so the body ends where the panel ends; this 1px spot
+/* On a page the wiring writes --ui-dropdown-reach when it opens the panel: the
+   distance from the trigger to one edge inset past the panel. The panel can be the
+   last thing the page holds, so the page ends where the panel ends; this 1px spot
    lets it scroll that far. It stays through the fade and until the reader has scrolled
    out of it, so closing does not move the field, and it paints nothing.
    why: docs/components.md#dropdown */
@@ -121,11 +121,6 @@
      the screen's edge sets it to 0.
      why: docs/components.md#dropdown */
   --ui-dropdown-edge: 8px;
-  /* What a panel that opens down inside a Modal or Drawer body keeps between its end
-     and the body's end. The drop shadow fades out over 43px in light and 15px in dark,
-     measured from pixels; the body clips whatever is left of it. 48px is the 8px
-     step above the light figure. why: docs/components.md#dropdown */
-  --ui-dropdown-shade: 48px;
   /* The least height a capped panel keeps before it would rather spend the edge
      inset above than shrink further — three rows or so. Below it the panel
      still ends at or before the edge; it never spends room past the edge to
@@ -244,9 +239,9 @@
    lets it through. why: dropdownAvail(), src/logic/dropdown.js */
 .ui-dropdown__panel.is-unbounded { overscroll-behavior: auto; }
 
-/* The wiring lifts a panel out of a Modal or Drawer body too short to hold the field's
-   label and trigger, the floor and the 8px edge under it. Fixed, it opens over the
-   body the way a portalled panel does, and the wiring writes its edges from the
+/* The wiring lifts a panel out of the Modal or Drawer body, or any other scrolling box,
+   that it sits in. Fixed, it opens over the body and its footer the way a portalled
+   panel does, the body does not scroll, and the wiring writes its edges from the
    trigger's. The value is the side it opens on. why: docs/components.md#dropdown */
 .ui-dropdown__panel[data-dd-lifted] { position: fixed; }
 .ui-dropdown__panel[data-dd-lifted="up"] { transform: translateY(6px); }
