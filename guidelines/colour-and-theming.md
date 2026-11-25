@@ -38,7 +38,7 @@
 
 **Don't:** Use `--accent` as ground.
 
-**Except:** Only Nebula gives the two tokens different values. A dark Segmented pill in the accent form adds an `--accent` edge to its `--accent-strong` ground (#832).
+**Except:** Only Nebula gives the two tokens different values. A dark accent-form Segmented pill adds an `--accent` edge to its `--accent-strong` ground (#832).
 
 <!-- rule: accent-strong -->
 
@@ -46,11 +46,11 @@
 
 <!-- rule: selection-accent -->
 
-**Rule:** Limit selected navigation to one accent signal: the accent form's pill fill or underline bar.
+**Rule:** Limit selected navigation to one accent signal: a Segmented pill's fill in the accent form, or an underline tab's bar.
 
 **Why:** Two accent marks on one item imply two states.
 
-**Do:** Use contrasting ink on Segmented pills and strong ink above underline bars. See Keep text off grey fills for SidebarNav.
+**Do:** Use contrasting ink on Segmented pills and strong ink above underline bars. See Keep text off grey fills.
 
 **Don't:** Add a second accent mark, such as an accent counter, to a selected tab.
 
