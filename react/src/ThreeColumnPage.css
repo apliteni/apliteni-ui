@@ -1,116 +1,109 @@
-/* A split page in the shell's wide main: the flow half holds the title, the list and the
-   steps, and the work half holds the rows. Both halves stand on the page ground, with no
-   card box. The two separators are the divider's line: 1px of --border.
+/* A column browser in the shell's full-width main: the parents, the children of the selected
+   parent, and the open child. The columns stand on the page ground, with no card box. The
+   separators are the divider's line: 1px of --border, from the band to the foot.
    why: docs/components.md#three-column-page */
 .ui-columns {
-  /* The inline edge of the flow half. In a full-width AppShell from 721px to 860px, it is
-     where the band's h1 starts, so the title, the links and the headings share one edge. */
-  --ui-columns-edge: var(--space-6);
   display: grid;
-  /* The flow half takes 41% of the main and at most --panel-lg, so the work half's table
-     keeps its columns beside an open sidebar at 1280px. */
-  grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  /* Column 1 is 240px and column 2 is 26% between 260px and --panel-sm, so the open child
+     takes the rest. Below a main of 960px, beside an open sidebar, the two lists give up their
+     floors by percent, so the open child keeps half of the main. 240px and 260px have no
+     token: they are the column floors of the reference study for #871. */
+  grid-template-columns: min(240px, 25%) clamp(min(260px, 30%), 26%, var(--panel-sm)) minmax(0, 1fr);
   flex: 1 1 auto;
   min-width: 0;
+  /* Each column scrolls alone, so the page takes the window under the band. */
+  height: calc(100dvh - var(--ui-app-band, 0px));
 }
-.ui-columns__flow {
+.ui-columns__up { grid-column: 1 / -1; padding: var(--space-3) var(--space-3) 0; }
+.ui-columns__col { display: flex; flex-direction: column; grid-row: 2; min-width: 0; overflow-y: auto; }
+.ui-columns__col:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+.ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }
+/* With no third column, the children take its space. */
+.ui-columns__col--2:last-child { grid-column: 2 / -1; }
+
+/* The header row has one height in each column, so the titles stand on one line. The title
+   starts on the edge of the row glyphs: the list's inset plus the row's inset. */
+.ui-columns__head {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-base);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
+  align-items: center;
+  gap: var(--space-2);
+  min-height: calc(var(--space-12) + var(--space-2));
+  padding: 0 var(--space-5);
+  background: var(--bg); /* code-bg: inherit — page background inherits root overrides. */
+}
+.ui-columns__head > h2 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-columns__head > h2:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+.ui-columns__head > .ui-dropdown { min-width: 0; }
+/* The title menu: the title's words and a chevron, with no pill. The words keep the card
+   title's rank, and the hover wash is the row's. The wash hangs into the start margin by its
+   inset, so the words start on the title's edge. */
+.ui-columns__head .ui-columns__menu {
   min-width: 0;
-  /* The bottom space sits in the areas, so the separator between them reaches the page's foot. */
-  padding: var(--space-10) var(--space-6) 0 var(--ui-columns-edge, var(--space-6));
+  max-width: calc(100% + var(--space-2));
+  margin-inline-start: calc(-1 * var(--space-2));
+  padding: var(--space-1) var(--space-2);
+  color: var(--strong);
+  font-family: var(--font-sans);
+  /* rank: card-title */
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-xs);
 }
-.ui-columns__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
-/* With no title and no tools, the row holds only the links, so it takes no gap when they hide. */
-.ui-columns__head:not(:has(> h1)):not(:has(> .ui-app__tools)) { display: contents; }
-.ui-columns .ui-columns__head > h1 { flex: 1 1 auto; min-width: 0; margin: 0; }
-/* The links draw no box at rest, so the first link's words start on the page title's edge
-   and the plate hangs into the margin by the row's 12px inset. Under a band that puts its
-   mark before the h1, that edge is the band's. why: guidelines/spacing.md#put-text-on-the-column-edge */
-.ui-columns__views {
-  display: none; flex-basis: 100%; flex-wrap: wrap; gap: var(--space-2);
-  margin-inline-start: calc(var(--ui-app-title-inset, var(--ui-columns-edge, var(--space-6))) - var(--ui-columns-edge, var(--space-6)) - var(--space-3));
-}
-.ui-columns__views > .ui-nav__item { width: auto; }
-.ui-columns__pair {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  align-items: stretch;
-  flex: 1 1 auto;
-  /* Each area draws the separator and its inset before it. The pair starts that far out and
-     clips that strip, so the area that starts a line, the list or the steps under it, shows neither. */
-  margin-inline-start: calc(-1 * (var(--space-4) + 1px));
-  clip-path: inset(0 0 0 calc(var(--space-4) + 1px));
-}
-/* The list takes a third and the steps two thirds. The list never cuts a month's name, and
-   the steps keep 200px, five eighths of the smallest panel, so they stay beside the list from
-   1180px. When the two cannot fit side by side, at a narrow flow half or with large text, the
-   steps go under the list. */
-.ui-columns__pair > .ui-columns__area--nav { flex: 1 1 0; min-width: max-content; }
-.ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0; min-width: min(100%, calc(var(--panel-sm) * 5 / 8)); }
-.ui-columns__area { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; }
-.ui-columns__pair > .ui-columns__area { padding-bottom: var(--space-10); }
-.ui-columns__area > h2 { margin: 0; scroll-margin-block-start: calc(var(--ui-app-band, 0px) + var(--space-4)); }
-.ui-columns__pair > .ui-columns__area { padding-inline-start: var(--space-4); border-inline-start: 1px solid var(--border); }
-.ui-columns__area--work {
-  align-self: stretch;
-  padding: var(--space-10) var(--space-6);
-  border-inline-start: 1px solid var(--border);
-}
+.ui-columns__head .ui-columns__menu:hover,
+.ui-columns__head .ui-dropdown.open > .ui-columns__menu { background: color-mix(in srgb, var(--nav-active-fill) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+.ui-columns__menu > .ui-dropdown__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-columns__count { flex: none; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 
-/* The area that a view link opens fades in, as a tab panel does. */
-.ui-columns__area--nav.is-entering,
-.ui-columns__area--steps.is-entering,
-.ui-columns__area--work.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }
+/* Parts for the content of a column. A list of rows takes the kit's nav rows. A row ends with
+   a value, such as a count or a date, and a row that opens a next level ends with a chevron. */
+.ui-columns__list { padding: 0 var(--space-2) var(--space-4); }
+.ui-columns__end { flex: none; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.ui-columns__into { margin-inline-start: calc(-1 * var(--space-1)); }
+/* Other content, such as the facts and the text of the open child, starts on the title's edge. */
+.ui-columns__body { display: flex; flex-direction: column; gap: var(--space-6); padding: 0 var(--space-5) var(--space-10); }
+.ui-columns__body > p { margin: 0; max-width: var(--prose-body); }
 
-/* Tablet: the list becomes its own view, the steps stand above the work, and the links
-   reach each area. */
+/* Tablet: two neighbour columns in the chain. The open child stands beside its parent list,
+   and the parents go behind the back link. */
 @media (max-width: 860px) {
-  .ui-columns { --ui-columns-edge: var(--ui-app-title-inset, var(--space-6)); grid-template-columns: minmax(0, 1fr); align-content: start; }
-  .ui-columns__flow { padding-inline-end: var(--ui-columns-edge, var(--space-6)); }
-  .ui-columns__views { display: flex; }
-  .ui-columns__pair { margin-inline-start: 0; clip-path: none; }
-  .ui-columns__pair > .ui-columns__area { padding-bottom: 0; padding-inline-start: 0; border-inline-start: 0; }
-  .ui-columns__area--nav { display: none; }
-  .ui-columns__area--steps { max-width: var(--panel-sm); }
-  .ui-columns__area--work { padding: var(--space-8) var(--ui-columns-edge, var(--space-6)) var(--space-10); border-inline-start: 0; }
-  .ui-columns[data-view='nav'] .ui-columns__area--nav { display: flex; }
-  .ui-columns[data-view='nav'] .ui-columns__area--steps,
-  .ui-columns[data-view='nav'] .ui-columns__area--work { display: none; } /* motion: still — the area that leaves goes at once; only the area a link opens fades */
+  .ui-columns { grid-template-columns: minmax(200px, 40%) minmax(0, 1fr); } /* 200px: the list floor, five eighths of --panel-sm */
+  .ui-columns__col--2:last-child { grid-column: auto; }
+  .ui-columns:not([data-depth='3']) > .ui-columns__col--3,
+  .ui-columns[data-depth='3'] > .ui-columns__col--1 { display: none; }
+  .ui-columns[data-depth='3'] > .ui-columns__col--2 { border-inline-start: 0; }
 }
 
-/* Below 720px the band puts its mark before the h1, so the page keeps its own edge, and only
-   the links move to the band's. */
-@media (max-width: 720px) {
-  .ui-columns { --ui-columns-edge: var(--space-6); }
-}
-
-/* Phone: each area is its own view. */
+/* Phone: one column, the open one, and the page scrolls as one. */
 @media (max-width: 560px) {
-  .ui-columns { --ui-columns-edge: var(--space-4); }
-  .ui-columns__flow { padding: var(--space-6) var(--ui-columns-edge, var(--space-6)) 0; }
-  .ui-columns__area--work { padding: var(--space-6) var(--ui-columns-edge, var(--space-6)); }
-  .ui-columns .ui-columns__area { display: none; }
-  .ui-columns[data-view='nav'] .ui-columns__area--nav,
-  .ui-columns[data-view='steps'] .ui-columns__area--steps,
-  .ui-columns[data-view='work'] .ui-columns__area--work { display: flex; }
-  .ui-columns[data-view='work'] .ui-columns__pair { display: none; } /* motion: still — the area that leaves goes at once; only the area a link opens fades */
+  .ui-columns { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .ui-columns__up { padding-inline: var(--space-2); }
+  .ui-columns > .ui-columns__col { display: none; overflow-y: visible; border-inline-start: 0; }
+  .ui-columns[data-depth='1'] > .ui-columns__col--1,
+  .ui-columns[data-depth='2'] > .ui-columns__col--2,
+  .ui-columns[data-depth='3'] > .ui-columns__col--3 { display: flex; }
+  .ui-columns__head { position: static; }
+  .ui-columns__head, .ui-columns__body { padding-inline: var(--space-4); }
+  .ui-columns__list { padding-inline: var(--space-1); }
 }
-/* A touch phone: the links draw 35px, so each carries the kit's transparent tap layer,
-   which reaches 44px into the row's gap and keeps the drawn size. The toolbar opens the
-   chip rows' gap to the table under it. why: guidelines/spacing.md#widen-inner-gaps-on-a-touch-phone */
+/* A touch phone: the rows draw 35px, so each carries the kit's transparent tap layer, which
+   reaches 44px into the gap between the rows and keeps the drawn size.
+   why: guidelines/spacing.md#widen-inner-gaps-on-a-touch-phone */
 @media (max-width: 560px) and (pointer: coarse) {
-  .ui-columns__views { gap: var(--tap-gap); --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
-  .ui-columns__views > .ui-nav__item::after {
+  .ui-columns__list > .ui-nav__list { gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  .ui-columns__list .ui-nav__item::after {
     content: "";
     position: absolute;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    width: 100%;
     height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
   }
-  .ui-columns__area > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--tap-gap) - var(--space-2)); }
 }

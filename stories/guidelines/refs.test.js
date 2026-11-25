@@ -313,7 +313,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 163: Text length gained field-length (#850).
   // 170: Three-column page added three rules and Wizard four (#871).
   // 172: Three-column page gained selected-parent and replace-children (#871).
-  assert.equal(count, 172, 'update the rule count when adding or removing a rule');
+  // 173: Three-column page gained column-header (#871).
+  assert.equal(count, 173, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

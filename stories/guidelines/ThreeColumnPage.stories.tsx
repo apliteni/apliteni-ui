@@ -1,6 +1,11 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 import type { Meta, StoryObj } from '@storybook/react';
-import { GuidelinePage } from '../_guideline';
+import { GuidelinePage, noop } from '../_guideline';
+import { BackLink } from '../../react/src/BackLink';
+import { Dropdown } from '../../react/src/Dropdown';
+import { Icon } from '../../react/src/primitives/Icon';
+import { Segmented } from '../../react/src/Segmented';
+import '../../react/src/ThreeColumnPage.css';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -18,7 +23,7 @@ type Col = { area: Area; cap: string; on?: number };
 const Block = ({ area, cap, on }: Col) => <div className={`tc-lay__col tc-lay__col--${area}`}>
   <span className="tc-lay__cap">{cap}</span>
   {Array.from({ length: area === 'parents' ? 4 : 5 }, (_, i) => <span key={i} className={`tc-lay__row${i === on ? ' tc-lay__row--on' : ''}`}>
-    <i className="tc-lay__ln" /></span>)}
+    <i className="tc-lay__ln" />{area === 'parents' && <Icon name="chevronRight" />}</span>)}
 </div>;
 const Columns = ({ cols, label, split = true, phone = false }: { cols: Col[]; label: string; split?: boolean; phone?: boolean }) =>
   <div className={`gl-stage tc-lay tc-lay--${split ? 'split' : 'equal'}${phone ? ' tc-lay--phone' : ''}`} role="img" aria-label={label}>
@@ -37,16 +42,30 @@ const Archive = () => <Columns label="Archive is selected, and columns 2 and 3 h
 const Stale = () => <Columns label="Archive is selected, but columns 2 and 3 still hold the files of Projects and its open file"
   cols={[{ area: 'parents', cap: 'Folders', on: 1 }, { area: 'children', cap: 'Projects', on: 1 }, { area: 'child', cap: 'Plan' }]} />;
 const Crushed = () => <Columns cols={projects} split={false} phone label="Three columns squeezed onto a phone" />;
-const FILES = ['Brief', 'Plan', 'Notes', 'Report'];
+const FILES = [['Brief', '22 Nov'], ['Plan', '24 Nov'], ['Notes', '23 Nov'], ['Report', '17 Nov']];
+/** A column's list with the page's own parts: a glyph, a name and a date in each row. */
+const Files = () => <nav className="ui-nav ui-columns__list" aria-label="Files in Projects"><ul className="ui-nav__list">
+  {FILES.map(([name, day]) => <li key={name}><button type="button" aria-pressed={name === 'Plan'}
+    className={`ui-nav__item${name === 'Plan' ? ' is-active' : ''}`}><span className="ui-nav__ic"><Icon name="doc" /></span>
+    <span className="ui-nav__label">{name}</span>{' '}<span className="ui-columns__end">{day}</span></button></li>)}
+</ul></nav>;
 const Phone = () => <div className="gl-stage tc-phone">
-  <b className="tc-head">Library</b>
-  <div className="ui-nav tc-links" role="group" aria-label="Page columns">
-    {['Folders', 'Files', 'File'].map(link => <button key={link} type="button" aria-pressed={link === 'Files'}
-      className={`ui-nav__item${link === 'Files' ? ' is-active' : ''}`}>{link}</button>)}
-  </div>
-  <div className="tc-area"><b className="tc-title">Projects</b>
-    <div className="ui-nav"><ul className="ui-nav__list">{FILES.map(name => <li key={name}><button type="button"
-      aria-pressed={name === 'Plan'} className={`ui-nav__item${name === 'Plan' ? ' is-active' : ''}`}>{name}</button></li>)}</ul></div></div>
+  <div className="ui-columns__up"><BackLink href="#" label="Folders" onClick={(e: { preventDefault: () => void }) => e.preventDefault()} /></div>
+  <header className="ui-columns__head"><h3 className="ui-card__title">Projects</h3><span className="ui-columns__count">4</span></header>
+  <Files />
+</div>;
+const Header = ({ menu }: { menu: boolean }) => <div className="gl-stage tc-phone">
+  <header className="ui-columns__head">
+    {menu ? <Dropdown variant="menu" align="start" triggerContent="Projects" triggerClass="ui-columns__menu" onSelect={noop}
+      items={[{ label: 'Name', value: 'name' }, { label: 'Date', value: 'date', selected: true }]} />
+      : <h3 className="ui-card__title">Projects</h3>}
+    <span className="ui-columns__count">4</span>
+  </header>
+  {!menu && <div className="ui-toolbar tc-bar">
+    <Segmented label="Sort by" size="sm" value="date" onChange={noop} options={[{ value: 'name', label: 'Name' }, { value: 'date', label: 'Date' }]} />
+    <Segmented label="View" size="sm" value="list" onChange={noop} options={[{ value: 'list', label: 'List' }, { value: 'grid', label: 'Grid' }]} />
+  </div>}
+  <Files />
 </div>;
 
 const specimens = [
@@ -55,6 +74,7 @@ const specimens = [
   { id: 'replace-children', do: () => <Archive />, dont: () => <Stale /> },
   { id: 'column-widths', do: () => <Chain />, dont: () => <Chain split={false} /> },
   { id: 'collapse-order', do: () => <Phone />, dont: () => <Crushed /> },
+  { id: 'column-header', do: () => <Header menu />, dont: () => <Header menu={false} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Three-column page', parameters: { layout: 'fullscreen' } };

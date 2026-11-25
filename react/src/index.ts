@@ -105,7 +105,7 @@ export type { AppShellProps, AppShellSection, AppShellLink, AppShellGroup } from
 export { AuthShell } from './AuthShell';
 export type { AuthShellProps } from './AuthShell';
 export { ThreeColumnPage } from './ThreeColumnPage';
-export type { ThreeColumnPageProps, ThreeColumnArea, ThreeColumnView } from './ThreeColumnPage';
+export type { ThreeColumnPageProps, ThreeColumn, ThreeColumnDepth, ThreeColumnMenu } from './ThreeColumnPage';
 export { Footer } from './Footer';
 export type { FooterProps, FooterLink, FooterColumn, FooterSocial } from './Footer';
 export { EmptyState } from './EmptyState';

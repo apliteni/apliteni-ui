@@ -6,9 +6,11 @@
 
 export const RELEASES = [
   {
-    v: '0.194.1', date: '2026-11-25',
+    v: '0.196.0', date: '2026-11-25',
     changes: [
-      ['changed', 'The Three-column page guideline now chains the columns from parent to child: column 2 holds the children of the item selected in column 1, and column 3 holds the item selected in column 2. Two new rules keep the selected paint on each parent and replace the children when the parent changes. The Month close showcase follows them: a new month opens its own first check and its rows. Part of #871.', ['Guidelines']],
+      ['breaking', '`ThreeColumnPage` is now a column browser: the parents, the children of the selected parent, and the open child. Above 860px it shows three columns, to 560px the open column and its parent, and below that the open column under a back link that names the hidden parent. To migrate, pass `columns={[parents, children, child]}` in place of `nav`, `steps` and `work`, and `depth`, `defaultDepth` and `onDepthChange` in place of `view`, `defaultView` and `onViewChange`; drop each area\'s `link`, and the page `title` and `tools`, because the band shows the title. Part of #871.', ['Page shell']],
+      ['added', 'Each `ThreeColumnPage` column has a header row with its title, an optional `count` and optional `tools`. Its optional `menu` makes the title open a menu, such as sorting and quick filters. Rows end with a value and, on a parent row, a chevron. Part of #871.', ['Page shell']],
+      ['changed', 'The Three-column page guideline now chains the columns from parent to child, keeps the selected paint on each parent, replaces the children when the parent changes, and gives each column one header row. The Month close showcase follows them. Part of #871.', ['Guidelines']],
     ],
   },
   {

@@ -87,7 +87,7 @@ what the user sees.
 | A section list outside `AppShell` | `SidebarNav` | [Sidebar navigation](#sidebar-navigation) |
 | The product band of a marketing page | `TopBar` | [Top bar](#top-bar) |
 | A sign-in page | `AuthShell` | [Auth shell](#auth-shell) |
-| A list, its ordered steps and the work of the open step | `ThreeColumnPage` | [Three-column page](#three-column-page) |
+| Parents, the children of the selected parent, and the open child | `ThreeColumnPage` | [Three-column page](#three-column-page) |
 | A site or app footer | `Footer` | [Footer](#footer) |
 | Run an action | `Button` | [Button](#button) |
 | An action that the user cannot undo | `Button hold` | [Hold to confirm](#hold-to-confirm) |
@@ -320,40 +320,52 @@ ground above the card and centres the title with a line under it. The ground is
 
 ### Three-column page
 
-Use `ThreeColumnPage` when a list chooses a record, the record has ordered steps, and the open
-step has rows to work on. Put it in `AppShell` with `width="full"`, so its separators reach the
-band and the page's edges. Give the page a static `title` on `AppShell`, which the band shows.
-Give the `ThreeColumnPage` no `title`.
+Use `ThreeColumnPage` for a chain of three columns: the parents, the children of the selected
+parent, and the open child, such as folders, files and a file. Put it in `AppShell` with
+`width="full"`, so its lines reach the band and the page's foot. Give `AppShell` the page
+`title`, which the band shows.
 
 ```tsx
-<AppShell width="full" title="Reconciliation" sections={sections} pathname="/close" account={account} onSignOut={signOut}>
-  <ThreeColumnPage
-    nav={{ title: '2026', link: 'Months', children: <MonthList /> }}
-    steps={{ title: 'Month checks', link: 'Checks', children: <Wizard {...checks} /> }}
-    work={{ title: 'Sources', link: 'Rows', children: <RowsTable /> }} />
+<AppShell width="full" title="Library" sections={sections} pathname="/library" account={account} onSignOut={signOut}>
+  <ThreeColumnPage depth={depth} onDepthChange={setDepth} columns={[
+    { title: 'Folders', count: 5, countLabel: '5 folders', children: <FolderRows /> },
+    { title: 'Shared', count: 3, countLabel: '3 files', menu: { sections: sortAndFilter, onSelect }, children: <FileRows /> },
+    { title: 'Contacts', children: <div className="ui-columns__body"><FileFacts /></div> },
+  ]} />
 </AppShell>
 ```
 
-`title` and `tools` put an `h1` and small tools at the top of the flow half, for a page in a
-padded `AppShell`. Each area takes a `title`, which is its `h2`, the `link` words that open it on a tablet or a
-phone, and its `children`. `view`, `defaultView` and `onViewChange` set the open view. The default
-view is `steps`.
+`columns` holds the three columns. Leave out the third when the selected parent has no
+children: the second column then takes its space and shows the empty state. Each column takes a
+`title`, which is its `h2` and the words of a back link to it, an optional `count` with its spoken
+`countLabel`, optional `tools`, and its `children`. `depth` is 1, 2 or 3: how far down the chain the
+reader is. `defaultDepth` is 2. `onDepthChange` hears the back link. With `depthHref`, the back link
+goes to the address of the depth above. `menu` takes the rows of a `Dropdown` menu: with it, the
+title opens the menu, and without it, the title is plain text.
+
+A column's list uses the sidebar's rows (`ui-nav__item`) inside `.ui-columns__list`. A row ends
+with `.ui-columns__end`, a count or a date, and a row that opens a column ends with a
+`chevronRight` glyph in `.ui-nav__ic.ui-columns__into`. Other content stands in
+`.ui-columns__body`, on the title's edge. Put an empty state, or a skeleton in a busy region, in
+`.ui-columns__body`.
 
 **What the user sees.**
 
-- Above 860px, the flow half holds the list and the steps. It takes 41% of the page
-  and at most 560px. The list takes one third of it, and the steps take two thirds. The list
-  never cuts a month's name. When the list and the steps cannot both fit, for example at 984px
-  or with large text, the steps go under the list. The work half takes the rest. A 1px `--border` line stands between the list and the steps, and another between
-  the halves. Both halves stand on the page ground, with no card.
-- At 860px and below, for example at 820px, the list is its own view, the steps stand above the
-  work, and Months, Checks and Rows links stand at the top of the flow half. The first link's
-  words start where the band's title starts.
-- At 560px and below, for example at 390px, each area is its own view. The steps open first.
+- Above 860px, three columns. Column 1 is 240px. Column 2 is 26% of the page, from 260px to
+  320px. Column 3 takes the rest. Beside an open sidebar on a page narrower than about 1210px, the
+  two lists give up their floors, so column 3 keeps half of the page. Each column scrolls alone,
+  and a 1px `--border` line from the band to the foot stands between two columns.
+- From 561px to 860px, two neighbour columns: the parents and the children at depth 1 and 2, and
+  the children and the open child at depth 3. The first takes 40%, and at least 200px.
+- At 560px and less, the column at the depth only, and the page scrolls as one.
+- When a column before the first one on show is hidden, a back link above the columns names it.
+- Each header row has one height, so the titles stand on one line. The title is the card title's
+  size. The count follows it, and the tools stand at the row's end.
 
-**Keyboard and screen reader.** Each area is a region named by its heading. A link is a button
-with `aria-pressed`, and a press moves the focus to the heading of its area. On a touch phone each
-link is a 44px target.
+**Keyboard and screen reader.** Each column is a region named by its title. A count with a
+`countLabel` is read as that label. When a move hides or removes the control that had the focus,
+the focus goes to the title of the column at the depth, or to its menu button. The back link is
+named "Back to" and the column's title. On a touch phone each list row has a 44px target.
 
 ### Footer
 
