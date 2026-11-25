@@ -948,7 +948,7 @@ circled status glyph. Info and neutral take `info`. Pass `icon` when the tone do
 A 1px line in the tone's colour draws the box. The line is inset, so the box size does not
 change. A `b` or a `strong` that starts the body takes the tone's status ink. Start the body with
 a short lead, such as `<b>Incomplete.</b>`. If plain text comes before the first `b` or `strong`
-of the body, that element also takes the ink. A link in the body text is underlined in each tone.
+of the body, that element also takes the ink. A link in the body text is underlined in each tone, and it takes the callout link ink.
 A `Button` link in `actions` keeps its button look.
 
 ### Toast

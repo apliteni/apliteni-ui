@@ -22,14 +22,13 @@
 .ui-callout__icon svg { width: 100%; height: 100%; stroke: currentColor; fill: none; stroke-width: 2.1; } /* 2.1 of a 24 box drawn at 18px = 1.58 CSS px, which is what buys the 3:1 graphic bar rather than the 4.5:1 text one. docs/foundations.md#icons-and-glyphs */
 .ui-callout b, .ui-callout strong { color: var(--text); font-weight: var(--weight-semibold); }
 .ui-callout__body > b:first-child, .ui-callout__body > strong:first-child { color: var(--callout-lead); } /* the lead word takes the tone's status ink */
-.ui-callout__body a:not(.ui-btn) { text-decoration: underline; text-underline-offset: 0.2em; } /* a link in the text is not told apart by its ink alone: on a tone wash the link and the body ink can be under 3:1 (WCAG 1.4.1). A button link keeps its box. #881 */
+.ui-callout__body a:not(.ui-btn) { text-decoration: underline; text-underline-offset: 0.2em; /* muted-ink: state — the accent moves 35% toward --strong, so a link clears 4.5:1 on each tone wash over each ground under each accent. #881 */ color: color-mix(in srgb, var(--accent) 65%, var(--strong)); } /* a link in the text is not told apart by its ink alone: on a tone wash the link and the body ink can be under 3:1 (WCAG 1.4.1). A button link keeps its box. #881 */
 .ui-callout code { font-family: var(--font-mono); font-size: max(0.92em, var(--text-xs)); color: var(--text); }
 
 .ui-callout--info { background: var(--glow-cyan); --callout-line: var(--cyan); --callout-lead: var(--status-info-ink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
 .ui-callout--info .ui-callout__icon { color: var(--chip-info-ink); } /* the chip inks, not the raw signals: in light the raw signal cleared the graphic bar by a tenth on its own wash and read as a smudge, and a stroke is read the way text is. The two are the same value in dark by construction, so only light moves. #206 */
 .ui-callout--success { background: var(--glow-green); --callout-line: var(--green); --callout-lead: var(--chip-success-ink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
 .ui-callout--success .ui-callout__icon { color: var(--chip-success-ink); }
-.ui-callout--success a { /* muted-ink: state — opaque accent/text blend keeps links above 4.5:1 on the success wash. */ color: color-mix(in srgb, var(--accent) 95%, var(--text)); }
 .ui-callout--warn { background: color-mix(in srgb, var(--amber) 13%, transparent); --callout-line: var(--amber); --callout-lead: var(--status-warn-ink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }
 .ui-callout--warn .ui-callout__icon { color: var(--chip-warn-ink); }
 .ui-callout--danger { background: var(--glow-pink); --callout-line: var(--pink); --callout-lead: var(--status-danger-ink); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */ }

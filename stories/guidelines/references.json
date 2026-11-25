@@ -264,7 +264,7 @@
     "pattern": "inline messages & transient notifications"
    },
    {
-    "ref": "src/styles/callout.css:39",
+    "ref": "src/styles/callout.css:38",
     "pattern": "a floating, dismissible notification"
    },
    {
@@ -350,7 +350,7 @@
     "pattern": "className=\"ui-toast__action\""
    },
    {
-    "ref": "src/styles/callout.css:74",
+    "ref": "src/styles/callout.css:73",
     "pattern": ".ui-toast__action { flex: none;"
    }
   ]
@@ -738,7 +738,7 @@
     "pattern": "transition: transform var(--dur-med) var(--ease);"
    },
    {
-    "ref": "src/styles/callout.css:57",
+    "ref": "src/styles/callout.css:56",
     "pattern": "animation: ui-toast-in var(--dur-med) var(--ease-out) both;"
    }
   ],
@@ -1175,7 +1175,7 @@
     "pattern": "const timed = !notice.action"
    },
    {
-    "ref": "src/styles/callout.css:74",
+    "ref": "src/styles/callout.css:73",
     "pattern": ".ui-toast__action { flex: none;"
    }
   ],
@@ -1185,7 +1185,7 @@
     "pattern": "ui-callout__actions"
    },
    {
-    "ref": "src/styles/callout.css:35",
+    "ref": "src/styles/callout.css:34",
     "pattern": ".ui-callout--danger {"
    }
   ]

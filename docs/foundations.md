@@ -237,6 +237,12 @@ such a word. It takes the status ink of its tone on the tone's wash. Success has
 so a success lead takes `--chip-success-ink`. On the page, a card, a sunken track and a floating
 panel, a lead measures at least 6.24:1 in both themes.
 
+**A link in a callout has its own ink.** The accent can be under 4.5:1 on a tone wash, so a link
+in the callout text mixes 65% of `--accent` with `--strong`. On each tone wash over the page, a
+card, a sunken track and a floating panel, the link measures at least 4.67:1 in both themes under
+every accent. This figure uses the 8-bit composite, which gives the lower result. The exact
+composite gives 4.70:1 or more. The underline tells the link from the body text.
+
 **Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
 and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
 Check both before changing muted ink, the neutral fill or a containing surface.

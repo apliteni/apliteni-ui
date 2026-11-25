@@ -7,7 +7,7 @@
  * the white app, and why --pink itself moved rather than borrowing one.
  *
  * Each rule names the surface it lands on, because they differ. Both themes are
- * read; accents are not, since they redefine only the purple family.
+ * read. Only the status words and the callout link are read under each accent.
  *
  * Measure signal ink against the surface beneath it.
  */
@@ -896,6 +896,62 @@ test('a link in the callout text is underlined in every tone', () => {
       `the ${status} callout takes the underline away from its links`);
   }
 });
+
+/* A link in the callout text clears AA on each tone wash, over each opaque ground and
+ * the floating panel. The link ink follows the accent, so each accent is a separate pair.
+ * Each pair is judged on the worse of the 8-bit and the exact composite, because the
+ * two models differ by a few hundredths. The plain accent measured 3.35:1 on the
+ * success wash over the dark floating panel under Nebula (#881).
+ * NOT REACHED: a consumer rule that paints the link again. */
+const CALLOUT_LINK = '.ui-callout__body a:not(.ui-btn)';
+const PAGE_LINK = [...cssOf('../src/styles/base.css').matchAll(RULE)]
+  .find(([, sel]) => sel.trim() === 'a')?.[2].match(/(?:^|;)\s*color\s*:\s*([^;]+)/)?.[1].trim();
+const MODELS = {
+  exact: (top, ground) => compositeRgba(top, ground),
+  '8-bit': (top, ground) => compositeRgba(top, ground).map(Math.round),
+};
+
+/** Every callout link pair under the floor in one theme and accent, and how many pairs were read. */
+function calloutLinkFailures(theme, accent) {
+  const vars = sharedTokensFor(theme, accent);
+  const ink = colourOf(declOf(CALLOUT_LINK, 'color').color ?? PAGE_LINK, vars);
+  const failures = [];
+  let measured = 0;
+  for (const status of calloutStatuses().map((s) => s ?? 'neutral')) {
+    const wash = colourOf(declOf(status === 'neutral' ? '.ui-callout' : `.ui-callout--${status}`).background, vars);
+    for (const on of [...CALLOUT_ON, 'var(--bg-elevated)']) {
+      for (const [model, paint] of Object.entries(MODELS)) {
+        const ground = paint(wash, colourOf(on, vars));
+        const r = ratio(paint(ink, ground), ground);
+        measured++;
+        if (r < AA) failures.push(`${status} on ${on}, ${model}: ${show(r)}:1`);
+      }
+    }
+  }
+  return { failures, measured };
+}
+
+test('every callout tone paints its link with the one callout link ink', () => {
+  assert.ok(PAGE_LINK, 'base.css paints no colour on a link, so the callout link has no ink to fall back to');
+  const own = [...CALLOUT.matchAll(RULE)]
+    .filter(([, sel, body]) => /(?:^|;)\s*color\s*:/.test(body)
+      && splitSelectorList(sel).some((s) => /^\.ui-callout--[a-z]+ .*\ba\b/.test(s)))
+    .map(([, sel]) => sel.trim());
+  assert.deepStrictEqual(own, [],
+    'a callout tone paints its own link ink. The link gate below measures one ink for every tone.');
+});
+
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`a callout link clears WCAG AA on each tone wash and ground — ${theme} ${accent}`, () => {
+      const { failures, measured } = calloutLinkFailures(theme, accent);
+      // Five tones on four grounds in two models: fewer means a sweep lost its sheet.
+      assert.strictEqual(measured, 40, `measured ${measured} callout link pairs, not 40`);
+      assert.deepStrictEqual(failures, [],
+        `a callout link in ${theme} ${accent} is under ${AA}:1:\n${failures.join('\n')}`);
+    });
+  }
+}
 
 /* All legacy styles share the glyph measured above. */
 test('every toast style leaves the status glyph unfilled', () => {

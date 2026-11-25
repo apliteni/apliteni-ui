@@ -9,6 +9,7 @@ export const RELEASES = [
     v: '0.198.0', date: '2026-11-25',
     changes: [
       ['changed', 'Each Callout tone now draws a 1px line in its colour inside the box, and a neutral Callout draws a grey line. A `b` or a `strong` that starts the body takes the tone\'s status ink, and a link in the body text is underlined. The box size, the padding and the wash do not change, so no page moves. Part of #881.', ['Callout']],
+      ['fixed', 'A link in the Callout text now mixes the accent with the strong ink, so it reaches 4.5:1 on each tone over the page, a card and a floating panel, in both themes and under each accent. Before, a link on a tone wash in dark could measure 3.35:1. Part of #881.', ['Callout']],
     ],
   },
   {
