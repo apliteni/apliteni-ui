@@ -187,6 +187,9 @@ const LEDGER = {
   '.ui-tip': {
     noFocus: 'a tooltip is named by aria-describedby and never focused; it holds text and no control',
   },
+  '.ui-field > .ui-dropdown > .ui-dropdown__fit': {
+    noFocus: 'the fit labels size a form dropdown and are never shown or focused; they hold text and no control',
+  },
   ':where(.ui-app.is-collapsed) .ui-app__rail .ui-app__brand': {
     noFocus: 'the rail hides its wordmark as it collapses. Nothing is focused when it comes back — the '
       + 'reader expanded the rail, they did not open it',

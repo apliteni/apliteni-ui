@@ -89,8 +89,10 @@ const familyDecls = () => {
 // Update the family declaration count with a reason for each change. 54 to 52: the monospace
 // face left `.ui-table__code` and `.ui-identity__symbol`. 52 to 53: a drawer's lead figure,
 // `.ui-drawer__figure-value`, takes the display face as a readout (#811). 53 to 54: the split
-// sign-in's slogan takes the display face as a brand voice on the branded half (#850).
-const EXPECTED_SUBJECTS = 54;
+// sign-in's slogan takes the display face as a brand voice on the branded half (#850). 54 to 55:
+// a form dropdown's hidden `ui-dropdown__fit` labels state the text role, so the width they
+// measure matches the trigger wherever the field sits (#874).
+const EXPECTED_SUBJECTS = 55;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();
