@@ -37,6 +37,7 @@ export const Tones: Story = {
   render: () => (
     <div style={{ display: 'grid', gap: 12 }}>
       {([Neutral, Info, Success, Warn, Danger] as Story[]).map((story, i) => <Callout key={i} {...story.args as CalloutProps} />)}
+      <Callout variant="danger" actions={<Button size="sm">Retry</Button>}><b>Apply failed</b><div>No row changed.</div></Callout>
     </div>
   ),
 };
