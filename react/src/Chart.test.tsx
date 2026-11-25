@@ -1765,6 +1765,42 @@ it('wraps a long top-layer readout to a narrow card', () => {
   }
 });
 
+it('places a wrapped readout by its wrapped height near the top of a scrolled card', () => {
+  // The card is scrolled up so the mark sits 60px below the top of the view; the
+  // readout's text wraps to the card's width, growing from one 40px line to two
+  // 96px. Measuring the pre-wrap height would keep it above the mark and clip it
+  // above the view; the wrapped height flips it below the mark instead.
+  const layer = stubPopover();
+  try {
+    for (const [prop, value] of [['clientWidth', 400], ['clientHeight', 800]] as const) {
+      Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+    }
+    const { container } = render(
+      <Card title="Income and spend">
+        <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />
+      </Card>,
+    );
+    const card = container.querySelector<HTMLElement>('.ui-card')!;
+    const tip = container.querySelector<HTMLElement>('.ui-tip')!;
+    const anchor = container.querySelector('[data-anchor="income-0"]')!;
+    const box = (top: number, bottom: number, left: number, right: number) =>
+      ({ top, bottom, left, right, width: right - left, height: bottom - top }) as DOMRect;
+    // A 320px card scrolled up out of the view; its content box spans 16..304.
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(box(-200, 800, 16, 304));
+    // A mark near the top of the view, 60px below its edge.
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(box(60, 80, 290, 304));
+    // Before the width cap the readout is one 40px line; after it wraps to the
+    // card's 288px content box it is two lines, 96px tall.
+    vi.spyOn(tip, 'offsetWidth', 'get').mockImplementation(() => (tip.style.maxWidth === '' ? 312 : 288));
+    vi.spyOn(tip, 'offsetHeight', 'get').mockImplementation(() => (tip.style.maxWidth === '' ? 40 : 96));
+
+    hover('income-0');
+    expect(tip.classList.contains('is-below'), 'the wrapped readout moves below the mark instead of clipping above').toBe(true);
+  } finally {
+    layer.restore();
+  }
+});
+
 it('opens a spark readout in the top layer over a scrolling table', () => {
   const layer = stubPopover();
   try {

@@ -24,8 +24,6 @@ function placeChartTip(mark: Element, tip: HTMLElement) {
   const gap = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap')) || 8;
   const above = rect.top;
   const below = view.clientHeight - rect.bottom;
-  const isBelow = above < tip.offsetHeight + gap && below > above;
-  tip.classList.toggle('is-below', isBelow);
   // The readout floats over the page, so the view is its outer bound and the
   // card it opens in its inner one. It is bound by both at once: the view keeps
   // it on-screen when the card is scrolled out, and the card keeps it inside
@@ -36,7 +34,11 @@ function placeChartTip(mark: Element, tip: HTMLElement) {
   const card = mark.closest('.ui-card');
   const box = card ? cardContentBox(card, view) : { left: 0, right: view.clientWidth };
   tip.style.maxWidth = `min(var(--prose-caption), ${box.right - box.left}px)`;
-  // Re-measured after the width cap, so a long readout wraps before placement.
+  // The cap wraps long text before either dimension is measured: a wrapped
+  // readout is taller than its unwrapped self, and placing it with the pre-wrap
+  // height would clip it above the view.
+  const isBelow = above < tip.offsetHeight + gap && below > above;
+  tip.classList.toggle('is-below', isBelow);
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
   const left = Math.max(box.left, Math.min(ideal, box.right - tip.offsetWidth));
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
