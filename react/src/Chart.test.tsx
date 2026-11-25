@@ -18,7 +18,7 @@ import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { Chart, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
+import { Chart, placeChartTip, type ChartLookSeries, type ChartPeriod, type ChartSeries } from './Chart';
 import { Card } from './primitives/Card';
 import type { ChartSlice } from './chart-looks';
 import { stubPopover } from './test/popover';
@@ -550,6 +550,43 @@ it('opens the kit readout on the mark the pointer rests on, with one comparison'
   expect(tip.querySelector('.ui-tip__value')).toHaveTextContent('€1,500');
   expect(tip.querySelector('.ui-tip__detail')).toHaveTextContent('+25.0% on Jan');
   expect(tip.querySelectorAll('.ui-tip__detail'), 'one comparison at most').toHaveLength(1);
+});
+
+// #863: WebKit collapses a zero-area SVG rect's bounding box to nothing at the
+// svg's origin, which pinned the readout to the plot's top-left. The place is
+// read from the anchor's own coordinates through the svg's screen box instead.
+it('places the readout from the anchor\'s coordinates, not a collapsed zero-height rect', () => {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 576 216');
+  const anchor = document.createElementNS(ns, 'rect');
+  anchor.setAttribute('x', '248');
+  anchor.setAttribute('y', '43.7');
+  anchor.setAttribute('width', '32');
+  anchor.setAttribute('height', '0');
+  svg.appendChild(anchor);
+  const tip = document.createElement('div');
+  tip.className = 'ui-tip';
+  document.body.append(svg, tip);
+
+  // The svg's screen box, and the degenerate box WebKit reports for the
+  // zero-height anchor: width 0 at the svg's origin.
+  const rect = (r: Partial<DOMRect>) => r as DOMRect;
+  vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue(rect({ left: 150.7, top: 498.3, width: 576, height: 216 }));
+  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(rect({ left: 150.7, top: 498.3, width: 0, height: 0 }));
+  vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(126.9);
+  vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(71.6);
+  vi.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(834);
+  vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(1194);
+
+  placeChartTip(anchor, tip);
+
+  // The bar's centre on the screen, 150.7 + 248 + 32/2, not the collapsed 150.7.
+  expect(parseFloat(tip.style.getPropertyValue('--ui-tip-x'))).toBeCloseTo(414.7, 5);
+  expect(parseFloat(tip.style.getPropertyValue('--ui-tip-y'))).toBeCloseTo(542, 5);
+
+  svg.remove();
+  tip.remove();
 });
 
 // #863: a bridge readout names the step once. The old label printed the step

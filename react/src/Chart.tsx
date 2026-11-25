@@ -18,12 +18,35 @@ import {
   type Layer, type Look, type LookGeometry,
 } from './chart-looks';
 
-function placeChartTip(mark: Element, tip: HTMLElement) {
-  const rect = mark.getBoundingClientRect();
+/** The anchor's box on the screen. The anchor is a zero-height rect at the
+ *  mark's top, and WebKit collapses a zero-area SVG rect's bounding box to
+ *  nothing at the svg's origin, which would pin the readout to the plot's top
+ *  left. Its screen place is read from its own `x`/`y`/`width` through the
+ *  svg's screen box instead, which every engine reports. why: #863 */
+function anchorScreenBox(mark: Element): { left: number; top: number; width: number } {
+  const x = Number(mark.getAttribute('x')) || 0;
+  const y = Number(mark.getAttribute('y')) || 0;
+  const w = Number(mark.getAttribute('width')) || 0;
+  const svg = mark.closest('svg');
+  const [vbX = 0, vbY = 0, vbW = 0, vbH = 0] = (svg?.getAttribute('viewBox')?.split(/\s+/) ?? []).map(Number);
+  const rect = svg?.getBoundingClientRect();
+  if (rect && vbW > 0 && vbH > 0 && rect.width > 0 && rect.height > 0) {
+    return {
+      left: rect.left + (x - vbX) * (rect.width / vbW),
+      top: rect.top + (y - vbY) * (rect.height / vbH),
+      width: w * (rect.width / vbW),
+    };
+  }
+  const fallback = mark.getBoundingClientRect();
+  return { left: fallback.left, top: fallback.top, width: fallback.width };
+}
+
+export function placeChartTip(mark: Element, tip: HTMLElement) {
+  const rect = anchorScreenBox(mark);
   const view = tip.ownerDocument.documentElement;
   const gap = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap')) || 8;
   const above = rect.top;
-  const below = view.clientHeight - rect.bottom;
+  const below = view.clientHeight - rect.top;
   // The readout floats over the page, so the view is its outer bound and the
   // card it opens in its inner one. It is bound by both at once: the view keeps
   // it on-screen when the card is scrolled out, and the card keeps it inside
@@ -42,7 +65,7 @@ function placeChartTip(mark: Element, tip: HTMLElement) {
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
   const left = Math.max(box.left, Math.min(ideal, box.right - tip.offsetWidth));
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
-  tip.style.setProperty('--ui-tip-y', `${isBelow ? rect.bottom : rect.top}px`);
+  tip.style.setProperty('--ui-tip-y', `${rect.top}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
 }
 
