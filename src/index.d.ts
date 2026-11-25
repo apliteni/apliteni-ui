@@ -89,16 +89,16 @@ export declare function dropdownSnap(
   dd: Element | null | undefined,
   panel: Element | null | undefined,
 ): void;
-/** Lift an open panel out of a Modal or Drawer body too short to hold its field and
- *  the panel's floor, so it opens over the body the way a portalled panel does, or put a
- *  lifted one back. Returns whether the panel is lifted.
+/** Lift an open panel out of the Modal or Drawer body, or any other scrolling box, that
+ *  it sits in, so it opens over the body the way a portalled panel does and the body does
+ *  not scroll, or put a lifted one back. Returns whether the panel is lifted.
  *  why: docs/components.md#dropdown */
 export declare function dropdownLift(
   dd: Element | null | undefined,
   panel: Element | null | undefined,
 ): boolean;
-/** Scroll the body an open panel sits in the least distance that shows the whole
- *  panel and its field's label, with the room under the panel kept. Returns the distance scrolled, 0 when
+/** Keep the room under an open panel on a page, and scroll the page to show the row
+ *  that End focused. A lifted panel scrolls nothing. Returns the distance scrolled, 0 when
  *  nothing moved. why: docs/components.md#dropdown */
 export declare function dropdownReveal(
   dd: Element | null | undefined,

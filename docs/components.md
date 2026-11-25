@@ -500,9 +500,8 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   in px. A panel with fewer rows keeps its content height.
 - When the room is less than 120px, a panel that can go to the other side flips there. Otherwise
   the page can grow so that the user can scroll to the last rows.
-- In a Modal or a Drawer, the panel opens below the trigger and the body scrolls the least
-  distance that shows the whole panel, with the label and the trigger above it. A body that is too
-  short or too narrow for the panel lifts the panel over the body and its footer.
+- In a Modal or a Drawer, the panel opens below the trigger, over the body and its footer, and
+  the body does not scroll.
 - A closed panel adds no scroll room at the end of a page or a body. Closing a panel does not move
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
