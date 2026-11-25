@@ -883,6 +883,38 @@ it('does not scroll twelve months at 466px, where every name fits its column', (
   expect(col * 12, 'twelve floor columns fit inside 466px').toBeLessThanOrEqual(466);
 });
 
+// #867: the bridge keeps its own 88px column for short names and grows it for a
+// word too wide to wrap, so a long bridge name scrolls instead of stepping off
+// its bar. The floor is that word, past the bridge's 88px column.
+it('grows a bridge column for a word wider than 88px, instead of stepping its name', () => {
+  const steps = [
+    { label: 'Reconciliation adjustments', short: 'Reconciliation', value: 100 },
+    { label: 'Customer receipts', short: 'Receipts', value: 200 },
+    { label: 'Supplier payments', short: 'Payments', value: -150 },
+    { label: 'Closing cash balance', short: 'Closing', kind: 'total' as const },
+  ];
+  // The widest word, 14 letters at 0.62 × 12px plus the 8px gap, is 112.16px —
+  // wider than the bridge's own 88px column — so the floor grows to 113px. The
+  // plot keeps that column per step and scrolls instead of stepping a name off.
+  const FLOOR = 113;
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
+    return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 4 : 300;
+  });
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
+    return (this as HTMLElement).classList.contains('ui-chart__scroll') ? FLOOR * 4 : 300;
+  });
+  const { container } = render(<Chart variant="bridge" title="Cash" format={eur} steps={steps} />);
+  const chart = container.querySelector('.ui-chart') as HTMLElement;
+  expect(chart.style.getPropertyValue('--ui-chart-col'), 'the bridge floor grows past its 88px column')
+    .toBe('113px');
+  const row = container.querySelector('.ui-chart__periods')!;
+  expect(classOf(row), 'the long name is not stepped').not.toContain('ui-chart__periods--step');
+  expect(container.querySelector('.ui-chart__scroll'), 'the bridge scrolls inside its card')
+    .toHaveAttribute('role', 'region');
+  cleanup();
+  vi.restoreAllMocks();
+});
+
 it('hides the name of a column cut at the scroll edge, so a name is whole or gone', () => {
   const twelve: ChartPeriod[] = Array.from({ length: 12 }, (_, i) => ({
     label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]} 2025`,
@@ -1773,6 +1805,44 @@ it('keeps a top-layer readout on-screen when its card is scrolled out of the vie
     // The mark's centre is 40, so centred the readout's left edge sits at -60; the
     // view bound slides it back to 0 (shift +60) instead of letting the card push it off.
     expect(tip.style.getPropertyValue('--ui-tip-shift'), 'the view keeps the readout on-screen').toBe('60px');
+  } finally {
+    layer.restore();
+  }
+});
+
+it('keeps the card clamp when the chart\u2019s own plot scrolls, on the top layer', () => {
+  // A plot scroll re-places the readout; it must keep the same card-and-view
+  // clamp as the open, not the frame box, so it cannot drift past the card.
+  const layer = stubPopover();
+  try {
+    for (const [prop, value] of [['clientWidth', 820], ['clientHeight', 1180]] as const) {
+      Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+    }
+    const { container } = render(
+      <Card title="Income and spend">
+        <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />
+      </Card>,
+    );
+    const card = container.querySelector<HTMLElement>('.ui-card')!;
+    const tip = container.querySelector<HTMLElement>('.ui-tip')!;
+    const anchor = container.querySelector('[data-anchor="income-3"]')!;
+    const scroller = container.querySelector<HTMLElement>('.ui-chart__scroll')!;
+    const box = (top: number, bottom: number, left: number, right: number) =>
+      ({ top, bottom, left, right, width: right - left, height: bottom - top }) as DOMRect;
+    // The card's content box ends at 780, the view at 820; a 200px readout
+    // centred on the mark at 710 stops at the card (shift -30), not the view.
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(box(0, 1180, 40, 780));
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(box(100, 120, 700, 720));
+    vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(200);
+    vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
+    // The mark is still inside the scroller's box, so the scroll re-places the
+    // readout rather than closing it.
+    vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(box(0, 300, 600, 900));
+
+    hover('income-3');
+    expect(tip.style.getPropertyValue('--ui-tip-shift'), 'the open readout stops at the card').toBe('-30px');
+    fireEvent.scroll(scroller);
+    expect(tip.style.getPropertyValue('--ui-tip-shift'), 'the scroll keeps the card clamp, not the view').toBe('-30px');
   } finally {
     layer.restore();
   }

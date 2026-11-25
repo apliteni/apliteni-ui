@@ -280,6 +280,8 @@ const BAR_MAX = 12;
  * and the carry joining two steps would be longer than the steps it joins.
  */
 const BAR_MAX_BRIDGE = 22;
+/** A bridge's own column width, `--ui-chart-col` in the sheet (--space-16 + --space-6). */
+const BRIDGE_COL = 88;
 /**
  * The months chart's columns (#841, look A): a bar takes two thirds of its
  * column up to --space-12, and its corner is --radius-xs or a quarter of the
@@ -1040,15 +1042,22 @@ export function Chart(props: ChartProps) {
   /* The period row. The months and bridge charts print every bar's short name,
      wrapped at a word break inside its column, so no bar goes unnamed. Where one
      word alone is wider than the column, wrapping cannot help, so those charts
-     step by the whole label, counted from the first period that is not final,
-     or from the latest one, so the period a reader came for keeps its label.
-     The other variants keep that stepping for every label that does not fit. */
+     keep a column as wide as that word and scroll sideways, so every bar keeps
+     its name. The other variants step by the whole label, counted from the
+     first period that is not final, or from the latest one, so the period a
+     reader came for keeps its label. */
   const wrapAtWords = variant === 'months' || variant === 'bridge';
   const labelRoom = Math.max(0, ...columns.map((c) => textWidth(c.short))) + LABEL_GAP;
   const widestWord = wrapAtWords
     ? Math.max(0, ...columns.flatMap((c) => c.short.split(/\s+/).map((word) => textWidth(word)))) + LABEL_GAP
     : labelRoom;
   const every = widestWord <= colWidth ? 1 : Math.ceil(labelRoom / colWidth);
+  /** The column the plot keeps, `--ui-chart-col` in the sheet: a months column
+   *  is the widest word, a bridge keeps its own column and grows past it for a
+   *  word too wide to wrap. */
+  const floorCol = fit
+    ? Math.ceil(widestWord)
+    : variant === 'bridge' ? Math.max(BRIDGE_COL, Math.ceil(widestWord)) : null;
   const anchor = groupFrom >= 0 ? groupFrom : count - 1;
   const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
   /** A stepped label wider than its column stands centred on it, or on the
@@ -1076,7 +1085,7 @@ export function Chart(props: ChartProps) {
         '--ui-chart-h': `${plotHeight}px`,
         '--ui-chart-box': `${px(boxHeight)}px`,
         '--ui-chart-cols': count,
-        '--ui-chart-col': fit ? `${Math.ceil(widestWord)}px` : undefined,
+        '--ui-chart-col': floorCol === null ? undefined : `${floorCol}px`,
         '--ui-chart-pad': `${PAD}px`,
         '--ui-chart-top': `${PAD + roomTop}px`,
         '--ui-chart-bottom': `${PAD + roomBottom}px`,
@@ -1143,6 +1152,7 @@ export function Chart(props: ChartProps) {
             const mark = anchor.getBoundingClientRect();
             const view = scroller.current.getBoundingClientRect();
             if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
+            else if (topLayer) placeChartTip(anchor, tipEl.current);
             else placeTip(frameEl.current, anchor, tipEl.current);
           }}
         >
