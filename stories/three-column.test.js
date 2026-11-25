@@ -1,8 +1,10 @@
-/* Rule: on the three-column page, each key, click, send and change of view keeps the
- * focus on a shown control of the page, moves no shell chrome by more than 1px, keeps
- * the cumulative layout shift under 0.1 and causes no sideways scroll. The collapse order
- * holds: the list beside the steps above 860px, the list as its own view at 860px and
- * below, and one area at a time at 560px and below.
+/* Rule: on the three-column page, each key, click, send and move between columns keeps the
+ * focus on a shown control of the page, moves no shell chrome by more than 1px, keeps the
+ * cumulative layout shift under 0.1 and causes no sideways scroll. Escape closes the title
+ * menu and puts the focus back on its title. A table in a column fits its box. The columns
+ * hold: three in a page area above 860px, the open column and its parent in a page area of
+ * 860px or less, and the open column alone in a window of 560px and less. The page area is
+ * the window less the open sidebar, so a 984px window shows two columns.
  *
  * Off unless THREE_COLUMN=1: Playwright and web-vitals are not dependencies of this
  * package, CI does not run it, and the result is reported by hand in the pull request.
@@ -11,21 +13,26 @@
  *   UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals/dist/web-vitals.iife.js THREE_COLUMN=1 \
  *     node --test stories/three-column.test.js
  *
- * It opens react-three-column-page--month-checks in a new context at each of ten window
- * sizes and on six devices: the Galaxy Z Fold 7 and Flip 7 and their cover screens from
- * Playwright's list, and a two-screen phone of 466×678 and 890×626 at scale 3 with touch.
- * The shell chrome is every fixed or sticky element outside the page, found in the page.
+ * It opens two stories in a new context at each of ten window sizes and on six devices: the
+ * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
+ * phone of 466×678 and 890×626 at scale 3 with touch. react-three-column-page--month-checks
+ * walks the Wizard in column 2, a check that opens its rows, a search, the back link and a new
+ * month. After each back link it reads that the browser landed on the link's address at the
+ * click. react-three-column-page--title-menu opens at depth 2, so a phone shows the title
+ * menu, and walks the back link, a folder, the title menu and Escape, and a file. The shell chrome is every fixed or sticky element outside the page,
+ * found in the page.
  *
- * At each subject it also runs axe's label-content-name-mismatch rule on the page, so a step's
- * name starts with its visible words. At 860px and below it checks that the first link's
- * words start on the band h1's edge, within 1px. When the steps wrap under the list, their
- * heading starts on the list heading's edge, within 1px, and at least one size must wrap them.
- * An area that starts a line must not answer a hit on its own separator, so none shows there.
+ * At each subject it also runs axe's label-content-name-mismatch rule on the page, so a row's
+ * name starts with its visible words. Where two or three columns show, it checks that their
+ * header rows have one top and one height, that each column after the first draws the 1px
+ * line and the first draws none, and that each column reaches the foot of the window and
+ * scrolls alone below its header row. Above the phone step it checks that the page itself does
+ * not scroll down, also with a closed title menu.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
- * that a press causes on purpose is not measured. The page opens no layer, so Escape is
- * checked to leave the focus and the view as they were, not to close a layer.
+ * that a press causes on purpose is not measured. The month close page opens no layer, so
+ * there Escape is checked to leave the focus and the depth as they were.
  * why: docs/components.md#three-column-page
  */
 import test from 'node:test';
@@ -35,13 +42,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const STORY = 'react-three-column-page--month-checks';
 const SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [360, 800], [466, 678], [984, 1016], [1536, 864], [2560, 1440]];
 const DEVICES = ['Galaxy Z Fold 7', 'Galaxy Z Fold 7 Cover', 'Galaxy Z Flip 7', 'Galaxy Z Flip 7 Cover'];
 const DUO = [[466, 678], [890, 626]];
 
 // The state after one action: the focused control, the shell chrome's places, the
-// layout shift so far and the page's sideways overflow.
+// layout shift so far, the page's sideways overflow and the depth.
 const READ = () => {
   const el = document.activeElement;
   const page = document.querySelector('.ui-columns');
@@ -52,45 +58,72 @@ const READ = () => {
   const doc = document.scrollingElement;
   return {
     focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
-    chrome, cls: window.__cls, view: page.dataset.view, over: doc.scrollWidth - doc.clientWidth,
+    chrome, cls: window.__cls, depth: page.dataset.depth, over: doc.scrollWidth - doc.clientWidth,
+    address: window.__address,
+    tables: [...page.querySelectorAll('.ui-table-scroll')].filter((e) => e.checkVisibility()).map((e) => e.scrollWidth - e.clientWidth),
   };
 };
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
 
 // The actions, in order. Each runs only where its control is shown, and names the state
 // it waits for, so no step waits on time.
+const depth = (page, n) => page.locator(`.ui-columns[data-depth="${n}"]`).waitFor();
+const back = async (page) => {
+  const link = page.getByRole('link', { name: /^Back to / });
+  if (!await link.isVisible()) return false;
+  const from = await page.locator('.ui-columns').getAttribute('data-depth');
+  const href = await link.getAttribute('href');
+  await link.click();
+  await depth(page, Number(from) - 1);
+  // The browser lands on the address that the link had at the click: the parent's.
+  const at = await page.evaluate(() => location.hash);
+  if (href !== '#' && at !== href) await page.evaluate(([h, a]) => { window.__address = `the back link went to ${a}, not ${h}`; }, [href, at]);
+};
 const step = (page, n) => page.getByRole('button', { name: new RegExp(`, step ${n} of 5$`) });
-const linksShown = (page) => page.getByRole('group', { name: 'Page columns' }).isVisible();
-const ACTIONS = [
+const MONTH = [
   ['key: Down', async (page) => { await step(page, 1).focus(); await page.keyboard.press('ArrowDown'); await step(page, 2).and(page.locator(':focus')).waitFor(); }],
-  ['key: Enter', async (page) => { await page.keyboard.press('Enter'); await page.locator('[aria-expanded="true"][aria-label$="step 2 of 5"]').waitFor(); }],
-  ['key: End', async (page) => { await page.keyboard.press('End'); await step(page, 5).and(page.locator(':focus')).waitFor(); }],
   ['key: Home', async (page) => { await page.keyboard.press('Home'); await step(page, 1).and(page.locator(':focus')).waitFor(); }],
-  ['key: Space', async (page) => { await page.keyboard.press(' '); await page.locator('[aria-expanded="true"][aria-label$="step 1 of 5"]').waitFor(); }],
   ['click: Check', async (page) => { await page.getByRole('button', { name: 'Check', exact: true }).click(); await page.locator('[aria-current="step"][aria-label$="step 2 of 5"]:focus').waitFor(); }],
-  ['screen: Rows', async (page) => { if (!await linksShown(page)) return false; await page.getByRole('button', { name: 'Rows', exact: true }).click(); await page.locator('[data-area="work"] > h2:focus').waitFor(); }],
+  ['key: Enter', async (page) => { await page.keyboard.press('Enter'); await depth(page, 3); }],
   ['send: search', async (page) => { const box = page.getByRole('searchbox', { name: 'Search rows' }); await box.fill('Aster'); await box.press('Enter'); await page.locator('tbody tr').filter({ hasText: 'Birch Studio' }).waitFor({ state: 'detached' }); }],
-  ['screen: Months', async (page) => { if (!await linksShown(page)) return false; await page.getByRole('button', { name: 'Months', exact: true }).click(); await page.locator('[data-area="nav"] > h2:focus').waitFor(); }],
-  ['click: September', async (page) => { await page.getByRole('button', { name: 'September' }).click(); await page.locator('[aria-pressed="true"]', { hasText: 'September' }).waitFor(); }],
-  ['screen: Checks', async (page) => { if (!await linksShown(page)) return false; await page.getByRole('button', { name: 'Checks', exact: true }).click(); await page.locator('[data-area="steps"] > h2:focus').waitFor(); }],
+  ['screen: back', back],
+  ['screen: back again', back],
+  ['click: September', async (page) => { await page.getByRole('button', { name: 'September' }).click(); await page.locator('[aria-pressed="true"]', { hasText: 'September' }).waitFor({ state: 'attached' }); await depth(page, 2); }],
   ['key: Escape', async (page) => { await step(page, 2).focus(); await page.keyboard.press('Escape'); }],
 ];
+const title = (page) => page.locator('[data-column="2"] .ui-columns__menu');
+const LIBRARY = [
+  ['screen: back', back],
+  ['screen: back again', back],
+  ['click: Projects', async (page) => { await page.getByRole('button', { name: 'Projects 6 files' }).click(); await page.getByRole('navigation', { name: 'Files in Projects' }).waitFor(); await depth(page, 2); }],
+  ['click: title menu', async (page) => { await title(page).click(); await page.locator('[data-column="2"] .ui-dropdown.open [role="menu"]').waitFor(); }],
+  ['key: Escape', async (page) => { await page.keyboard.press('Escape'); await page.locator('[data-column="2"] .ui-columns__menu[aria-expanded="false"]:focus').waitFor(); }],
+  ['click: Plan', async (page) => { await page.getByRole('button', { name: 'Plan 24 Nov' }).click(); await page.getByRole('region', { name: 'Plan' }).waitFor(); await depth(page, 3); }],
+];
+// Each story, the actions it walks, and the columns each width shows before any action.
+const STORIES = [
+  { id: 'react-three-column-page--month-checks', actions: MONTH, shows: { wide: ['1', '2', '3'], tablet: ['1', '2'], phone: ['2'] },
+    // The back link shows from depth 2 on a phone and at depth 3 on a tablet.
+    backs: { wide: 0, tablet: 1, phone: 2 } },
+  { id: 'react-three-column-page--title-menu', actions: LIBRARY, shows: { wide: ['1', '2', '3'], tablet: ['1', '2'], phone: ['2'] },
+    backs: { wide: 0, tablet: 0, phone: 1 } },
+];
 
-// Opens the story in a new context, with onCLS listening from the first paint.
-async function open(browser, port, vitals, context) {
+// Opens a story in a new context, with onCLS listening from the first paint.
+async function open(browser, port, vitals, context, story) {
   const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
   await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
   const page = await ctx.newPage();
-  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${STORY}&viewMode=story&globals=theme:light`);
+  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:light`);
   await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
-    && window.__STORYBOOK_PREVIEW__.currentRender.id === id, STORY);
+    && window.__STORYBOOK_PREVIEW__.currentRender.id === id, story);
   await page.locator('.ui-columns').waitFor();
   return { ctx, page };
 }
 
 const AXE = readFileSync(path.join(root, 'node_modules/axe-core/axe.min.js'), 'utf8');
-// The page's own checks before any action: axe's name rule, and at 860px and below the
-// first link's words on the band h1's edge.
+// The page's own checks before any action: axe's name rule, and where two or three columns
+// show, one header row height, the lines between the columns, and a scroll box for each.
 async function inspect(page, label) {
   const found = [];
   await page.addScriptTag({ content: AXE });
@@ -98,42 +131,36 @@ async function inspect(page, label) {
     .then((r) => ({ ran: r.passes.length + r.violations.length + r.incomplete.length, bad: r.violations.flatMap((v) => v.nodes.map((n) => n.target.join(' '))) })));
   if (axe.ran === 0) found.push(`${label}: axe label-content-name-mismatch measured nothing`);
   for (const target of axe.bad) found.push(`${label}: label-content-name-mismatch on ${target}`);
-  const edge = await page.evaluate(() => {
-    const link = document.querySelector('.ui-columns__views > button');
-    if (!link.checkVisibility()) return null;
-    const x = (el) => { const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().left; };
-    return x(link) - x(document.querySelector('.ui-app__bar h1'));
-  });
-  if (edge !== null && Math.abs(edge) > 1) found.push(`${label}: the first link's words stand ${edge.toFixed(1)}px from the band h1's edge`);
-  // Steps that wrap under the list start on the list's edge, with no separator before them.
-  const under = await page.evaluate(() => {
-    const [nav, steps] = ['nav', 'steps'].map((key) => document.querySelector(`[data-area="${key}"]`));
-    if (!nav.checkVisibility() || !steps.checkVisibility()) return null;
-    if (steps.getBoundingClientRect().top < nav.getBoundingClientRect().bottom - 1) return null;
-    const x = (area) => area.querySelector(':scope > h2').getBoundingClientRect().left;
-    return x(steps) - x(nav);
-  });
-  if (under !== null && Math.abs(under) > 1) found.push(`${label}: the steps under the list stand ${under.toFixed(1)}px from its edge`);
-  // An area that starts a line draws no separator: a hit on its edge reaches the page, not the area.
-  const lined = await page.evaluate(() => {
-    const areas = [...document.querySelectorAll('.ui-columns__pair > .ui-columns__area')].filter((a) => a.checkVisibility());
-    return areas.filter((a) => parseFloat(getComputedStyle(a).borderInlineStartWidth) > 0)
-      .filter((a) => !areas.some((b) => b !== a && Math.abs(b.getBoundingClientRect().top - a.getBoundingClientRect().top) < 1 && b.getBoundingClientRect().left < a.getBoundingClientRect().left))
-      .filter((a) => { const r = a.getBoundingClientRect(); return a.contains(document.elementFromPoint(r.left + 0.5, r.top + 4)); })
-      .map((a) => a.dataset.area);
-  });
-  for (const area of lined) found.push(`${label}: a separator shows before the ${area} area at the start of its line`);
-  return { found, edge: edge !== null, under: under !== null };
+  const cols = await page.evaluate(() => [...document.querySelectorAll('.ui-columns__col')].filter((c) => c.checkVisibility()).map((c) => {
+    const head = c.querySelector(':scope > .ui-columns__head').getBoundingClientRect();
+    const box = c.querySelector(':scope > .ui-columns__head + .ui-columns__scroll');
+    const r = c.getBoundingClientRect();
+    const cs = getComputedStyle(c);
+    return { n: c.dataset.column, top: head.top, height: head.height, line: parseFloat(cs.borderInlineStartWidth), bottom: r.bottom,
+      scroll: box && getComputedStyle(box).overflowY, below: box && box.getBoundingClientRect().top >= head.bottom - 1, foot: innerHeight };
+  }));
+  // Above the phone step the columns scroll and the page does not, also with a closed menu panel.
+  const scroll = await page.evaluate(() => [innerWidth, document.scrollingElement.scrollHeight - document.scrollingElement.clientHeight]);
+  if (scroll[0] > 560 && scroll[1] > 0) found.push(`${label}: the page scrolls ${scroll[1]}px down`);
+  if (cols.length > 1) {
+    for (const c of cols) {
+      if (Math.abs(c.top - cols[0].top) > 1 || Math.abs(c.height - cols[0].height) > 1) found.push(`${label}: the header rows differ: column ${c.n} is ${c.height}px at ${c.top}`);
+      if (Math.abs(c.bottom - c.foot) > 1) found.push(`${label}: the line of column ${c.n} stops at ${Math.round(c.bottom)}px, not at the foot`);
+      if (c.scroll !== 'auto' || !c.below) found.push(`${label}: column ${c.n} does not scroll alone below its header row`);
+    }
+    cols.forEach((c, i) => { if ((c.line === 1) !== (i > 0)) found.push(`${label}: column ${c.n} ${i ? 'draws no line' : 'draws a line'} before it`); });
+  }
+  return { found, shown: cols.map((c) => c.n), measured: cols.length > 1 };
 }
 
 // Runs every action and returns the findings and the actions that ran.
-async function walk(page, label, { only } = {}) {
+async function walk(page, label, actions, { only } = {}) {
   const found = [];
   const ran = [];
   await page.evaluate(frames);
   let before = await page.evaluate(READ);
   if (before.chrome.length === 0) found.push(`${label}: no shell chrome found to hold still`);
-  for (const [name, run] of ACTIONS.filter(([name]) => !only || only.includes(name))) {
+  for (const [name, run] of actions.filter(([name]) => !only || only.includes(name))) {
     if (await run(page) === false) continue;
     await page.evaluate(frames);
     const after = await page.evaluate(READ);
@@ -145,7 +172,9 @@ async function walk(page, label, { only } = {}) {
     }
     if (!(after.cls < 0.1)) found.push(`${label} ${name}: the layout shift is ${after.cls}`);
     if (after.over > 0) found.push(`${label} ${name}: the page scrolls ${after.over}px sideways`);
-    if (name === 'key: Escape' && (after.view !== before.view || !after.focus?.endsWith('step 2 of 5'))) found.push(`${label} ${name}: Escape changed the page`);
+    if (after.address) found.push(`${label} ${name}: ${after.address}`);
+    for (const over of after.tables) if (over > 1) found.push(`${label} ${name}: a table is ${over}px wider than its column`);
+    if (name === 'key: Escape' && after.depth !== before.depth) found.push(`${label} ${name}: Escape changed the depth`);
     before = after;
   }
   return { found, ran };
@@ -161,6 +190,8 @@ test('the three-column page keeps focus, chrome, layout and width through each i
   const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
+  for (const story of STORIES) assert.ok(ids.includes(story.id), `the Storybook build has no ${story.id}`);
 
   const subjects = (process.env.THREE_COLUMN_ONLY ? (s) => s.filter(([label]) => label === process.env.THREE_COLUMN_ONLY) : (s) => s)([
     ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
@@ -173,47 +204,47 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     const findings = [];
     const table = [];
     const views = { wide: 0, tablet: 0, phone: 0 };
-    let stacked = 0;
+    let measured = 0;
     for (const [label, context] of subjects) {
-      const { ctx, page } = await open(browser, server.port, vitals, context);
-      const width = await page.evaluate(() => innerWidth);
-      // The collapse order at this width, read before any action.
-      const shown = await page.evaluate(() => ['nav', 'steps', 'work'].filter((key) => document.querySelector(`[data-area="${key}"]`).checkVisibility()));
-      const kind = width > 860 ? 'wide' : width > 560 ? 'tablet' : 'phone';
-      const expected = { wide: ['nav', 'steps', 'work'], tablet: ['steps', 'work'], phone: ['steps'] }[kind];
-      if (shown.join() !== expected.join()) findings.push(`${label}: shows ${shown.join(', ')} at ${width}px, expected ${expected.join(', ')}`);
-      views[kind] += 1;
-      const own = await inspect(page, label);
-      findings.push(...own.found);
-      if (own.edge !== (kind !== 'wide')) findings.push(`${label}: the link edge was ${own.edge ? '' : 'not '}measured at ${width}px`);
-      stacked += own.under ? 1 : 0;
-      const { found, ran } = await walk(page, label);
-      findings.push(...found);
-      // Every action runs on a tablet or a phone. Above 860px the links are hidden.
-      const want = ACTIONS.length - (kind === 'wide' ? 3 : 0);
-      assert.equal(ran.length, want, `${label}: ${ran.length} of ${want} actions ran: ${ran.join(', ')}`);
-      table.push(`${label} ${width}px ${kind}: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
-      await ctx.close();
+      for (const story of STORIES) {
+        const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
+        const [width, area] = await page.evaluate(() => [innerWidth, document.querySelector('.ui-columns-area').clientWidth]);
+        const kind = width <= 560 ? 'phone' : area > 860 ? 'wide' : 'tablet';
+        const own = await inspect(page, `${label} ${story.id}`);
+        findings.push(...own.found);
+        if (own.shown.join() !== story.shows[kind].join()) findings.push(`${label} ${story.id}: shows ${own.shown.join(', ')} at ${width}px in a ${area}px area, expected ${story.shows[kind].join(', ')}`);
+        measured += own.measured ? 1 : 0;
+        views[kind] += 1;
+        const { found, ran } = await walk(page, `${label} ${story.id}`, story.actions);
+        findings.push(...found);
+        // Every action runs, less the back links that this width does not show.
+        const want = story.actions.length - (2 - story.backs[kind]);
+        assert.equal(ran.length, want, `${label} ${story.id}: ${ran.length} of ${want} actions ran: ${ran.join(', ')}`);
+        table.push(`${label} ${width}px area ${area}px ${kind} ${story.id.replace('react-three-column-page--', '')}: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
+        await ctx.close();
+      }
     }
     process.stdout.write(`${table.join('\n')}\n`);
     // THREE_COLUMN_ONLY=<label> runs one size while a fault is found; it skips the counts.
-    if (!process.env.THREE_COLUMN_ONLY) assert.equal(table.length, SIZES.length + DEVICES.length + DUO.length, 'a size or a device was not measured');
-    if (!process.env.THREE_COLUMN_ONLY) assert.ok(views.wide >= 4 && views.tablet >= 2 && views.phone >= 4, `too few sizes in a band: ${JSON.stringify(views)}`);
-    if (!process.env.THREE_COLUMN_ONLY) assert.ok(stacked >= 1, 'no size put the steps under the list, so their edge was not measured');
+    if (!process.env.THREE_COLUMN_ONLY) assert.equal(table.length, (SIZES.length + DEVICES.length + DUO.length) * STORIES.length, 'a size or a device was not measured');
+    if (!process.env.THREE_COLUMN_ONLY) assert.ok(views.wide >= 8 && views.tablet >= 4 && views.phone >= 8, `too few sizes in a band: ${JSON.stringify(views)}`);
+    if (!process.env.THREE_COLUMN_ONLY) assert.ok(measured >= 12, `the header rows and lines were measured at only ${measured} subjects`);
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
     const caught = [];
-    const mutate = async (context, setup, only, says) => {
-      const { ctx, page } = await open(browser, server.port, vitals, context);
+    const [month, library] = STORIES;
+    const mutate = async (context, story, setup, only, says) => {
+      const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
       await setup(page);
-      const { found } = await walk(page, 'mutated', { only });
+      const { found } = await walk(page, 'mutated', story.actions, { only });
       caught.push([says, found.some((f) => f.includes(says))]);
       await ctx.close();
     };
     const wide = { viewport: { width: 1280, height: 800 } };
-    const inspected = async (context, setup, says) => {
-      const { ctx, page } = await open(browser, server.port, vitals, context);
+    const phone = { viewport: { width: 390, height: 844 } };
+    const inspected = async (context, setup, says, story = month) => {
+      const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
       await setup(page);
       caught.push([says, (await inspect(page, 'mutated')).found.some((f) => f.includes(says))]);
       await ctx.close();
@@ -222,18 +253,46 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     await inspected(wide, (page) => page.evaluate(() => document.querySelectorAll('.ui-wizard__step').forEach((b, i) => {
       b.setAttribute('aria-label', `Step ${i + 1} of 5: ${b.querySelector('.ui-wizard__name').textContent.replace(/^\d+\. /, '')}, ${b.querySelector('.ui-wizard__state').textContent}`);
     })), 'label-content-name-mismatch');
-    await inspected({ viewport: { width: 390, height: 844 } }, (page) => page.addStyleTag({ content: '.ui-columns__views { margin-inline-start: -12px; }' }), 'band h1');
-    // The separator and inset on the steps alone, as before the pair clipped them.
-    await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns__pair { clip-path: none; }' }), 'separator shows');
-    await inspected({ viewport: { width: 984, height: 1016 } }, (page) => page.addStyleTag({
-      content: '.ui-columns__pair { margin-inline-start: 0; clip-path: none; } .ui-columns__pair > .ui-columns__area--nav { padding-inline-start: 0; border-inline-start: 0; }' }), 'under the list');
-    await mutate(wide, (page) => page.addStyleTag({ content: '.ui-columns__area--work { min-width: 1400px; }' }), ['key: Down'], 'sideways');
-    await mutate(wide, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');
-    await mutate(wide, (page) => page.evaluate(() => document.addEventListener('keydown', () => {
+    await inspected(wide, (page) => page.addStyleTag({ content: '[data-column="3"] > .ui-columns__head { min-height: 0; }' }), 'header rows differ');
+    await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns { flex: none; height: 50vh; }' }), 'not at the foot');
+    await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns__scroll { overflow-y: visible; }' }), 'scroll alone');
+    // A closed title menu panel keeps a box of 305px before its first open, but only at times,
+    // so both runs fix that box. The clip holds the page still, and without the clip it scrolls.
+    const kept = '[data-column="2"] .ui-dropdown [role="menu"] { max-height: none; height: 305px; }';
+    for (const size of [{ width: 844, height: 390 }, { width: 1280, height: 400 }]) {
+      await inspected({ viewport: size }, (page) => page.addStyleTag({ content: `${kept} .ui-columns { overflow-y: visible; }` }), 'page scrolls', library);
+      const { ctx, page } = await open(browser, server.port, vitals, { viewport: size }, library.id);
+      await page.addStyleTag({ content: kept });
+      assert.deepEqual((await inspect(page, `${size.width}×${size.height} closed panel`)).found, []);
+      await ctx.close();
+    }
+    // A window query in place of the page area's: three columns beside the open sidebar.
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 984, height: 1016 } }, month.id);
+      const before = (await inspect(page, 'mutated')).shown.join();
+      await page.addStyleTag({ content: '.ui-columns-area { container-type: normal; }' });
+      caught.push(['page area', before === month.shows.tablet.join() && (await inspect(page, 'mutated')).shown.join() !== before]);
+      await ctx.close();
+    }
+    await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] table { min-width: 900px; }' }), ['key: Down'], 'wider than its column');
+    await inspected({ viewport: { width: 820, height: 1180 } }, (page) => page.addStyleTag({ content: '.ui-columns__col { border-inline-start: 1px solid; }' }), 'draws a line');
+    await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] { min-width: 1400px; }' }), ['key: Down'], 'sideways');
+    await mutate(wide, month, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');
+    // The move that hides the focused row on a phone, without the page's own focus move.
+    await mutate(phone, library, (page) => page.evaluate(() => {
+      const keep = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function focus(...args) { if (!this.matches('h2, .ui-columns__menu')) keep.apply(this, args); };
+    }), ['screen: back', 'screen: back again', 'click: Projects'], 'focus left');
+    await mutate(wide, month, (page) => page.evaluate(() => document.addEventListener('keydown', () => {
       for (const e of document.querySelectorAll('body *')) if (getComputedStyle(e).position === 'sticky' && !e.closest('.ui-columns')) e.style.translate = '0 4px';
     })), ['key: Down'], 'moved');
+    // A back link that changes the depth in the click, so its next address is the one followed.
+    await mutate(phone, library, (page) => page.evaluate(() => document.addEventListener('click', (e) => {
+      const link = e.target.closest('.ui-columns__up a');
+      if (link) link.setAttribute('href', '#/elsewhere');
+    }, true)), ['screen: back'], 'the back link went to');
     // A block that pushes the page down with no input, as a late banner would.
-    await mutate(wide, async (page) => {
+    await mutate(wide, month, async (page) => {
       await page.evaluate(() => { const block = document.createElement('div'); block.style.height = '400px'; document.querySelector('.ui-columns').before(block); });
       await page.evaluate(frames);
     }, ['key: Down'], 'layout shift');

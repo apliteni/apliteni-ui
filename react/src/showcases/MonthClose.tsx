@@ -5,7 +5,8 @@ import { EmptyState } from '../EmptyState';
 import { Button } from '../primitives/Button';
 import { SearchField } from '../SearchField';
 import { Segmented } from '../Segmented';
-import { ThreeColumnPage, type ThreeColumnView } from '../ThreeColumnPage';
+import { Icon } from '../primitives/Icon';
+import { ThreeColumnPage, type ThreeColumnDepth } from '../ThreeColumnPage';
 import { Wizard, type WizardStep, type WizardStepState } from '../Wizard';
 
 /* A month close, with fabricated rows: the months, the month's ordered checks, and the
@@ -52,10 +53,13 @@ export function MonthCloseChecks({ stage, onStage, month = 'October', open, onOp
   }} />;
 }
 
-export function MonthClose({ stage: start = 'sources', view: startView = 'steps' }: { stage?: MonthCloseStage; view?: ThreeColumnView }) {
-  const [stage, setStage] = useState(start);
-  const [view, setView] = useState(startView);
+export function MonthClose({ stage: start = 'sources', depth: startDepth = 2 }: { stage?: MonthCloseStage; depth?: ThreeColumnDepth }) {
+  // How far down the chain the reader is: a month opens its checks, and a check opens its rows.
+  const [depth, setDepth] = useState(startDepth);
   const [month, setMonth] = useState('October');
+  // Each month has its own checks: October starts at the given stage, and the others at the first check.
+  const [stages, setStages] = useState<Record<string, MonthCloseStage>>({ October: start });
+  const stage = stages[month] ?? 'sources';
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   // The work area shows the open step, which the reader can open without completing a check.
@@ -63,7 +67,10 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
   const searchField = useRef<HTMLInputElement>(null);
   const clear = () => { setSearch(''); setFilter('all'); searchField.current?.focus(); };
   // A completed check opens the next one in the same render, so the work heading never lags.
-  const advance = (next: MonthCloseStage) => { setStage(next); setStep(workingCheck(next)); };
+  const advance = (next: MonthCloseStage) => { setStages({ ...stages, [month]: next }); setStep(workingCheck(next)); };
+  // A new month replaces the checks and the rows: the wizard opens on its first check, with no filter.
+  // The checks remount for each month, so the wizard does not move to the month's working check.
+  const chooseMonth = (name: string) => { setMonth(name); setStep(CHECKS[0].id); setSearch(''); setFilter('all'); setDepth(2); };
   const fixed = STAGES.indexOf(stage) >= STAGES.indexOf('rates');
   const short = month.slice(0, 3);
   const rows = ROWS.map(row => fixed && !row.doc ? { ...row, doc: 'INV-106', status: 'Ready' as const } : row)
@@ -73,26 +80,35 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
     sections={[{ href: '/close', label: 'Month close', icon: 'calendar' }, { href: '/documents', label: 'Documents', icon: 'doc' },
       { href: '/reports', label: 'Reports', icon: 'chart' }, { href: '/settings', label: 'Settings', icon: 'gear' }]}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
-    <ThreeColumnPage view={view} onViewChange={setView}
-      nav={{ title: '2026', link: 'Months', children: <div className="ui-nav"><ul className="ui-nav__list">
+    <ThreeColumnPage depth={depth} onDepthChange={setDepth}
+      depthHref={to => ['#/close', to > 1 ? `/${month}` : '', to > 2 ? `/${step}` : ''].join('')} columns={[
+      { title: 'Months', children: <nav className="ui-nav ui-columns__list" aria-label="Months"><ul className="ui-nav__list">
         {MONTHS.map(name => <li key={name}><button type="button" aria-pressed={name === month}
-          className={`ui-nav__item${name === month ? ' is-active' : ''}`} onClick={() => setMonth(name)}>{name}</button></li>)}
-      </ul></div> }}
-      steps={{ title: 'Month checks', link: 'Checks', children: <MonthCloseChecks stage={stage} onStage={advance} month={month} open={step} onOpenChange={setStep} /> }}
-      work={{ title: open, link: 'Rows', children: <>
+          className={`ui-nav__item${name === month ? ' is-active' : ''}`} onClick={() => chooseMonth(name)}>
+          <span className="ui-nav__label">{name}</span>
+          <span className="ui-nav__ic ui-columns__into"><Icon name="chevronRight" /></span></button></li>)}
+      </ul></nav> },
+      // A check that the reader opens opens its rows. The wizard's own moves after an action do not.
+      { title: 'Month checks', children: <div className="ui-columns__list"
+        onClick={event => (event.target as Element).closest('.ui-wizard__step') && setDepth(3)}>
+        <MonthCloseChecks key={month} stage={stage} onStage={advance} month={month} open={step} onOpenChange={setStep} /></div> },
+      { title: open, children: <div className="ui-columns__body">
         <div className="ui-toolbar">
           <SearchField ref={searchField} ariaLabel="Search rows" size="sm" value={search} onChange={event => setSearch(event.target.value)} />
           <Segmented label="Document" size="sm" value={filter} onChange={setFilter}
             options={[{ value: 'all', label: 'All' }, { value: 'Ready', label: 'Ready' }, { value: 'Missing', label: 'Missing' }]} />
         </div>
-        {rows.length ? <DataTable<Row> selectable={false} density="compact" stickyHeader pinnedIdentity="name" pager={false}
+        {/* The document stands under the payee, and the payee's name wraps first, so the amount
+            stays in view in a narrow column. */}
+        {rows.length ? <DataTable<Row> selectable={false} density="compact" stickyHeader pager={false}
           scrollLabel="Rows" caption={`Rows for ${month}`} rows={rows} columns={[
-            { key: 'name', label: 'Payee', cell: 'title' },
+            { key: 'name', label: 'Payee', render: row => <><span className="ui-identity__name">{row.name}</span>{' '}
+              <span className="ui-table__sub">{row.doc || 'Missing document'}</span></> },
             { key: 'day', label: 'Date', render: row => `${row.day} ${short}` },
-            { key: 'doc', label: 'Document', render: row => row.doc || 'Missing' },
             { key: 'amount', label: <>Amount<span className="ui-value__unit">€</span></>, num: true },
           ]} /> : <EmptyState variant="no-matches" level={3} icon="" title="No rows match the search."
             sub="Clear the filters to see all rows." actions={<Button onClick={clear}>Clear filters</Button>} />}
-      </> }} />
+      </div> },
+    ]} />
   </AppShell>;
 }

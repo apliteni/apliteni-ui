@@ -272,7 +272,7 @@ only this gate's source half.
 ## Check the three-column page locally
 
 Before opening a PR that changes `react/src/ThreeColumnPage.css`, `react/src/Wizard.tsx` or React
-`<ThreeColumnPage>`, walk the page's keys, clicks and views in a real browser. Run
+`<ThreeColumnPage>`, walk the page's keys, clicks and columns in a real browser. Run
 `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js THREE_COLUMN=1 node --test stories/three-column.test.js`
 Report the result in the PR. CI skips this check because Playwright and web-vitals are not dependencies.

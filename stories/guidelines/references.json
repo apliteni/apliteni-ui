@@ -1205,32 +1205,82 @@
  "_three-column-page.js": {
   "three-columns": [
    {
-    "ref": "react/src/ThreeColumnPage.tsx:83",
-    "pattern": "<div className=\"ui-columns__pair\">{area('nav')}{area('steps')}</div>"
+    "ref": "react/src/ThreeColumnPage.tsx:141",
+    "pattern": "{columns.map((col, i) => col && column(col, (i + 1) as ThreeColumnDepth))}"
+   }
+  ],
+  "selected-parent": [
+   {
+    "ref": "react/src/showcases/MonthClose.tsx:86",
+    "pattern": "{MONTHS.map(name => <li key={name}><button type=\"button\" aria-pressed={name === month}"
+   },
+   {
+    "ref": "react/src/Wizard.tsx:104",
+    "pattern": "className={`ui-nav__item ui-wizard__step${shown === step.id ? ' is-active' : ''}`}"
+   },
+   {
+    "ref": "src/styles/nav.css:79",
+    "pattern": ".ui-nav__item.is-active {"
+   },
+   {
+    "ref": "react/src/showcases/Library.tsx:46",
+    "pattern": "{row.opens && <span className=\"ui-nav__ic ui-columns__into\"><Icon name=\"chevronRight\" /></span>}"
+   }
+  ],
+  "replace-children": [
+   {
+    "ref": "react/src/showcases/MonthClose.tsx:73",
+    "pattern": "const chooseMonth = (name: string) => { setMonth(name); setStep(CHECKS[0].id);"
+   },
+   {
+    "ref": "react/src/showcases/MonthClose.tsx:78",
+    "pattern": "const open = CHECKS.find(check => check.id === step)?.label ?? 'Reviewed rows';"
+   },
+   {
+    "ref": "react/src/showcases/MonthClose.tsx:104",
+    "pattern": "caption={`Rows for ${month}`}"
+   },
+   {
+    "ref": "react/src/showcases/Library.tsx:84",
+    "pattern": "const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };"
+   },
+   {
+    "ref": "react/src/ThreeColumnPage.css:24",
+    "pattern": ".ui-columns__col--2:last-child { grid-column: 2 / -1; }"
    }
   ],
   "column-widths": [
    {
-    "ref": "react/src/ThreeColumnPage.css:12",
-    "pattern": "grid-template-columns: minmax(0, min(var(--panel-lg), 41%)) minmax(0, 1fr);"
+    "ref": "react/src/ThreeColumnPage.css:14",
+    "pattern": "grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:52",
-    "pattern": ".ui-columns__pair > .ui-columns__area--steps { flex: 2 1 0;"
+    "ref": "react/src/ThreeColumnPage.css:22",
+    "pattern": ".ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:70",
-    "pattern": "@media (max-width: 860px) {"
+    "ref": "react/src/ThreeColumnPage.css:79",
+    "pattern": "@container ui-columns (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:91",
+    "ref": "react/src/ThreeColumnPage.css:88",
     "pattern": "@media (max-width: 560px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:39",
-    "pattern": "defaultView = 'steps'"
+    "ref": "react/src/ThreeColumnPage.tsx:131",
+    "pattern": "<BackLink href={depthHref?.(up) ?? '#'} label={columns[first - 2]!.title}"
+   }
+  ],
+  "column-header": [
+   {
+    "ref": "react/src/ThreeColumnPage.css:37",
+    "pattern": "min-height: calc(var(--space-12) + var(--space-2));"
+   },
+   {
+    "ref": "react/src/ThreeColumnPage.tsx:113",
+    "pattern": "{col.menu && <Dropdown variant=\"menu\" align=\"start\" triggerContent={col.title} triggerClass=\"ui-columns__menu\""
    }
   ]
  },

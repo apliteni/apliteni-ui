@@ -103,7 +103,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 47 -> 45: #824 removes the account row's and the version row's own outset rings;
   // both rows now take the dropdown row's inward band.
   // 45 -> 46: #845 adds the ThemeChoice picture, which shows its radio's focus.
-  assert.equal(consumers.length, 46, 'ring consumer discovery changed');
+  // 46 -> 47: #871 adds the three-column page's column title, the focus target after a move.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -145,10 +146,12 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // an outward band.
   // 16 -> 18: #789 rings the nav row inward, at rest and current, because the rows stand
   // 2px apart and an outward band crossed into the next row.
-  assert.equal(scrollRules.length, 18,
+  // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
+  assert.equal(scrollRules.length, 19,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 3,
-    'React\'s modal body, the picker\'s shortcut row and the account rail are not all among them, so the walk '
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 4,
+    'React\'s modal body, the picker\'s shortcut row, the account rail and the three-column page\'s columns '
+    + 'are not all among them, so the walk '
     + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules, '--ring-scroll'), []);
 });
@@ -268,8 +271,10 @@ test('a focus rule draws the band and no second accent edge', () => {
   // here too and the row keeps this check.
   // 47 -> 45: #824 removes the account row's and the version row's own outset rings.
   // 45 -> 46: #845 adds the ThemeChoice picture.
-  assert.equal(consumers.length, 46, 'ring consumer discovery changed');
-  assert.equal(scrollRules.length, 18, 'scroll-ring consumer discovery changed');
+  // 46 -> 47: #871 adds the three-column page's column title.
+  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 18 -> 19: #871 adds the three-column page's columns.
+  assert.equal(scrollRules.length, 19, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 
