@@ -119,7 +119,8 @@ export const CLOSED_TIP_BOX = '.ui-tip:not(.is-open) { display: flex !important;
 
 /** A card's table frame, focused by keyboard or at rest: its box, its corner radii,
  *  its ring colour, the card's ground and the room between the table and the frame's
- *  bottom edge. Null when the page has no frame directly in a card. */
+ *  bottom edge. Null when the page has no frame directly in a card. A light card paints
+ *  no fill, so its ground is the first ancestor that paints one. */
 export const CARD_FRAME = (focus) => {
   const f = document.querySelector('.ui-card > .ui-table-scroll');
   if (!f) return null;

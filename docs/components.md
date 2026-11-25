@@ -87,7 +87,7 @@ what the user sees.
 | A section list outside `AppShell` | `SidebarNav` | [Sidebar navigation](#sidebar-navigation) |
 | The product band of a marketing page | `TopBar` | [Top bar](#top-bar) |
 | A sign-in page | `AuthShell` | [Auth shell](#auth-shell) |
-| A list, its ordered steps and the work of the open step | `ThreeColumnPage` | [Three-column page](#three-column-page) |
+| Parents, the children of the selected parent, and the open child | `ThreeColumnPage` | [Three-column page](#three-column-page) |
 | A site or app footer | `Footer` | [Footer](#footer) |
 | Run an action | `Button` | [Button](#button) |
 | An action that the user cannot undo | `Button hold` | [Hold to confirm](#hold-to-confirm) |
@@ -321,40 +321,64 @@ ground above the card and centres the title with a line under it. The ground is
 
 ### Three-column page
 
-Use `ThreeColumnPage` when a list chooses a record, the record has ordered steps, and the open
-step has rows to work on. Put it in `AppShell` with `width="full"`, so its separators reach the
-band and the page's edges. Give the page a static `title` on `AppShell`, which the band shows.
-Give the `ThreeColumnPage` no `title`.
+Use `ThreeColumnPage` for a chain of three columns: the parents, the children of the selected
+parent, and the open child, such as folders, files and a file. Put it in `AppShell` with
+`width="full"`, so its lines reach the band and the page's foot. Give `AppShell` the page
+`title`, which the band shows.
 
 ```tsx
-<AppShell width="full" title="Reconciliation" sections={sections} pathname="/close" account={account} onSignOut={signOut}>
-  <ThreeColumnPage
-    nav={{ title: '2026', link: 'Months', children: <MonthList /> }}
-    steps={{ title: 'Month checks', link: 'Checks', children: <Wizard {...checks} /> }}
-    work={{ title: 'Sources', link: 'Rows', children: <RowsTable /> }} />
+<AppShell width="full" title="Library" sections={sections} pathname="/library" account={account} onSignOut={signOut}>
+  <ThreeColumnPage depth={depth} onDepthChange={setDepth} depthHref={(to) => libraryAddress(to)} columns={[
+    { title: 'Folders', count: 5, countLabel: '5 folders', children: <FolderRows /> },
+    { title: 'Shared', count: 3, countLabel: '3 files', menu: { sections: sortAndFilter, onSelect }, children: <FileRows /> },
+    { title: 'Contacts', children: <div className="ui-columns__body"><FileFacts /></div> },
+  ]} />
 </AppShell>
 ```
 
-`title` and `tools` put an `h1` and small tools at the top of the flow half, for a page in a
-padded `AppShell`. Each area takes a `title`, which is its `h2`, the `link` words that open it on a tablet or a
-phone, and its `children`. `view`, `defaultView` and `onViewChange` set the open view. The default
-view is `steps`.
+`columns` holds the three columns. Leave out the third when the selected parent has no
+children: the second column then takes its space and shows the empty state. Each column takes a
+`title`, which is its `h2` and the words of a back link to it, an optional `count` with its spoken
+`countLabel`, optional `tools`, and its `children`. While a filter is on, give the count as "2 of 3".
+`depth` is 1, 2 or 3: how far down the chain the reader is. Pass `depth` with `onDepthChange`, or
+let the page keep it from `defaultDepth`, which is 2. `children` can be a function that gets
+`open`: a row calls it to take the reader one step down, to the next column, in either case.
+`onDepthChange` hears the back link and `open`. Give `depthHref`, so that the back link goes to
+the address of the depth above. The browser follows that address first, and then the page
+changes the depth, so an app that reads the address lands on the parent. `menu` takes the rows of a `Dropdown` menu: with it, the
+title opens the menu, and without it, the title is plain text. A menu row with `selected`, true or
+false, is one choice of its group, and the current choice shows the menu's tick. Put the actions
+in the first group and each set of choices in a labelled group. A menu taller than 300px takes
+`scroll` with its height, so every row shows.
+
+A column's list uses the sidebar's rows (`ui-nav__item`) inside `.ui-columns__list`. A row ends
+with `.ui-columns__end`, a count or a date, and a row that opens a column ends with a
+`chevronRight` glyph in `.ui-nav__ic.ui-columns__into`. Other content stands in
+`.ui-columns__body`, on the title's edge. Put an empty state, or a skeleton in a busy region, in
+`.ui-columns__body`.
 
 **What the user sees.**
 
-- Above 860px, the flow half holds the list and the steps. It takes 41% of the page
-  and at most 560px. The list takes one third of it, and the steps take two thirds. The list
-  never cuts a month's name. When the list and the steps cannot both fit, for example at 984px
-  or with large text, the steps go under the list. The work half takes the rest. A 1px `--border` line stands between the list and the steps, and another between
-  the halves. Both halves stand on the page ground, with no card.
-- At 860px and below, for example at 820px, the list is its own view, the steps stand above the
-  work, and Months, Checks and Rows links stand at the top of the flow half. The first link's
-  words start where the band's title starts.
-- At 560px and below, for example at 390px, each area is its own view. The steps open first.
+- In a page area wider than 860px, three columns. Column 1 is 240px. Column 2 is 26% of the
+  page area, from 260px to 320px. Column 3 takes the rest, at least 360px. Each column scrolls
+  alone below its header row, and a 1px `--border` line from the band to the foot stands between
+  two columns.
+- In a page area of 860px or less, two neighbour columns: the parents and the children at depth 1
+  and 2, and the children and the open child at depth 3. The first takes 40%, and at least 200px.
+  An open sidebar on a small laptop thus gives two columns, as a tablet does.
+- In a window of 560px and less, the column at the depth only, and the page scrolls as one.
+- When a column before the first one on show is hidden, a back link above the columns names it.
+- Each header row has one height, so the titles stand on one line. The title is the card title's
+  size, and a long title ends in an ellipsis. The count follows it, and the tools stand at the
+  row's end.
+- A list's glyphs start on the title's edge. A step list and a table keep their own inset: the
+  step mark stands 4px in, and a table's words stand in by the cell's inset, as in a card.
 
-**Keyboard and screen reader.** Each area is a region named by its heading. A link is a button
-with `aria-pressed`, and a press moves the focus to the heading of its area. On a touch phone each
-link is a 44px target.
+**Keyboard and screen reader.** Each column is a region named by its title. A count with a
+`countLabel` is read as that label. When a move hides or removes the control that had the focus,
+the focus goes to the title of the column at the depth, or to its menu button. A column's
+scroll box shows the inward focus band on its four sides. The back link is named "Back to" and
+the column's title. On a touch phone each list row and the title menu have a 44px target.
 
 ### Footer
 
@@ -573,8 +597,15 @@ picker or by drop. `accept` only filters the system picker, so check the file be
 **`Field` with your own control.** The child function gets the `id`, `required`, `aria-invalid`
 and `aria-describedby`. Spread them on the control. A dropdown or date picker trigger then has the
 label and the value as its name, and the error gives it the invalid edge. In a field, a dropdown
-trigger has the height of a text input and keeps the pill corner. A long value stays on one line
-and ends with an ellipsis.
+trigger has the height of a text input and keeps the pill corner. It fits its longest option up to
+the field width, so a value change does not change its width. A native select has the same width
+rule. In vanilla markup, put the placeholder and each option's shown words, with its state
+word, in the hidden `ui-dropdown__fit` element. A long
+value stays on one line and ends with an ellipsis.
+
+**Corners.** A one-line field has the 16px field corner. A text area and message box have the
+24px message corner. Cards and floating panels have the 12px surface corner. Where supported,
+these corners use the squircle shape. Other browsers use round corners.
 
 **A list of options in `SelectField`.** The browser draws the open list, so the kit does not
 style an `<option>`. For an option that the user can still pick but that is no longer current,
@@ -853,6 +884,12 @@ gives less vertical space, and `pad="lg"` makes a centred landing card. `icon` a
 centred on the title line. On a touch phone the tools stand `--tap-gap` apart. A `Chart` in a
 titled card puts its Chart and Table switch there.
 
+**A card on the light page.** A card draws no box, and its text and its table text start on the
+page title's edge. To do this, the card hangs outside its container by its side inset: 24px, and
+16px at 720px and below. The page shell pads enough for this at every width. If you put a light
+card in another container, pad each side of the container by at least the hang, or the page
+scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
+
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
 line below 360px.
@@ -1097,7 +1134,8 @@ destructive question.
 ```
 
 **What the user sees.** A raised surface over a deep scrim, at most 96% of the viewport high. The
-body scrolls, and the title, the close control and the footer stay visible. The title is an `h2`.
+body scrolls and is a keyboard stop, so a keyboard reader can reach it with Tab and scroll it. The
+title, the close control and the footer stay visible. The title is an `h2`.
 `initialFocusRef` chooses the first focus.
 
 `size="sm"` gives a 360px panel for a short sign-in form. Without `size`, Modal uses its default

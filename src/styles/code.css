@@ -12,6 +12,9 @@
      block holds the button in flow beside the code. */
   position: relative;
 }
+@supports (corner-shape: squircle) {
+  .ui-snippet { corner-shape: squircle; }
+}
 /* #850: with no title the copy button reserves its own space instead of floating
    over the code, so a short command is never covered at any width. The block is a
    flex row: the code grows, and the button sits at the row's end. */

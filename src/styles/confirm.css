@@ -68,7 +68,7 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   opacity: 0;
   transform: translateY(8px);
   transition:
@@ -76,6 +76,9 @@
     transform var(--dur-med) var(--ease);
 }
 .ui-confirm.is-open .ui-confirm__panel { opacity: 1; transform: none; }
+@supports (corner-shape: squircle) {
+  .ui-confirm__panel { corner-shape: squircle; }
+}
 /* The ring leaves the panel's own elevation alone: it is an outline since #578, so
    it no longer has to be composed into the box-shadow list that carries the edge and
    the drop — and the list no longer has to be restated here to survive focus.

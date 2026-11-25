@@ -125,14 +125,14 @@ const FLAT = 1;
  *  shade is sampled 2px inside each side edge at the code's middle height, against the
  *  ground at the code's middle. Limits: one pixel per edge, the first block in the story,
  *  and the default accent. */
-function blockFindings(img, m, state, pixelAt) {
+function blockFindings(img, m, state, pixelAt, theme) {
   const out = [];
   const midX = (m.pre.left + m.pre.right) / 2;
   const midY = (m.pre.top + m.pre.bottom) / 2;
   const ground = pixelAt(img, midX, midY);
   const outside = pixelAt(img, m.block.left - 6, (m.bar.top + m.bar.bottom) / 2);
   if (apart(pixelAt(img, midX, m.bar.top + 3), outside) < SEEN) out.push('the block has no ground of its own');
-  if (apart(pixelAt(img, midX, m.bar.bottom - 1), pixelAt(img, midX, m.bar.top + 3)) < SEEN) out.push('the bar has no divider');
+  if (theme !== 'light' && apart(pixelAt(img, midX, m.bar.bottom - 1), pixelAt(img, midX, m.bar.top + 3)) < SEEN) out.push('the bar has no divider');
   if (m.paddingTop < 12) out.push(`the code starts ${m.paddingTop}px under the divider, not 12px`);
   const want = { fitting: [false, false], start: [false, true], middle: [true, true], end: [true, false] }[state];
   if (state === 'fitting' ? m.range > 0 : m.range < 48) out.push(`${state}: the code's scroll range is ${m.range}px`);
@@ -145,11 +145,12 @@ function blockFindings(img, m, state, pixelAt) {
   return out;
 }
 
-/* The block in a real browser (#800), in both themes. The Access app's command scrolls at
- * 360px wide and fits at 1280. The bare Shell story is not used: its centred frame grows
- * with the code, so its code never scrolls. Each part is removed once in the page to prove
- * the check sees it. Limits: the Access and reveal stories only, at those two widths. */
-const SHELL_STORY = 'apps-access-agents--default';
+/* The block in a real browser (#800), in both themes. A React Snippet story with code that
+ * scrolls at 360px is found from the built index. The gate does not bind itself to an app
+ * showcase, because that showcase can remove its code block. The narrow measurement gives
+ * the found code region a 180px width. Each part is removed once in the page to prove
+ * the check sees it. Limits: one built React Snippet story and the reveal story, at those two
+ * widths. */
 const REVEAL_STORY = 'react-snippet--reveal';
 const NARROW = { width: 360, height: 800 };
 const WIDE = { width: 1280, height: 900 };
@@ -160,6 +161,25 @@ const REMOVALS = [
   ['no shade', '.ui-snippet pre { background-image: none !important; }', 'middle'],
   ['covers that do not scroll', '.ui-snippet pre { background-attachment: scroll !important; }', 'end'],
 ];
+
+async function scrollingSnippet(page, stories, { port, theme, open, done }) {
+  const candidates = stories.filter((story) => story.label.startsWith('React/Snippet >'));
+  assert.ok(candidates.length, 'the built index has no React Snippet story to measure');
+  for (const story of candidates) {
+    const got = await open(page, story, { port, theme });
+    assert.equal(got.phase, done, `snippet ${theme}: ${got.phase}`);
+    const found = await page.evaluate((isLight) => {
+      const block = document.querySelector('.ui-snippet:not(.ui-snippet--reveal)');
+      const pre = block?.querySelector('pre');
+      const bar = block?.querySelector('.ui-snippet__bar');
+      if (!bar || !pre || getComputedStyle(bar).borderBottomWidth !== (isLight ? '0px' : '1px')) return 0;
+      pre.style.width = '180px';
+      return pre.scrollWidth - pre.clientWidth;
+    }, theme === 'light');
+    if (found >= 48) return story;
+  }
+  assert.fail('no React Snippet story has a .ui-snippet that scrolls at 180px');
+}
 
 test('measured in a browser: the code block shades only an edge with code past it', { skip: !RUN_BROWSER && 'set SNIPPET_SHADE=1' }, async (t) => {
   const { existsSync } = await import('node:fs');
@@ -181,28 +201,35 @@ test('measured in a browser: the code block shades only an edge with code past i
 
   try {
     const stories = indexed(build);
-    for (const id of [SHELL_STORY, REVEAL_STORY]) assert.ok(stories.some((s) => s.id === id), `${id} is not in the build`);
+    assert.ok(stories.some((s) => s.id === REVEAL_STORY), `${REVEAL_STORY} is not in the build`);
     const story = (id) => stories.find((s) => s.id === id);
     let measured = 0;
     for (const theme of THEMES) {
+      let snippet;
       for (const [viewport, states] of [[NARROW, ['start', 'middle', 'end']], [WIDE, ['fitting']]]) {
         const ctx = await browser.newContext({ viewport });
         const page = await ctx.newPage();
-        const got = await openStory(page, story(SHELL_STORY), { port: server.port, theme });
-        assert.equal(got.phase, STORY_DONE, `access ${theme} ${viewport.width}: ${got.phase}`);
+        if (viewport === NARROW) snippet = await scrollingSnippet(page, stories, {
+          port: server.port, theme, open: openStory, done: STORY_DONE,
+        });
+        else {
+          const got = await openStory(page, snippet, { port: server.port, theme });
+          assert.equal(got.phase, STORY_DONE, `snippet ${theme} ${viewport.width}: ${got.phase}`);
+        }
         await page.evaluate(() => document.fonts.ready);
         await page.addStyleTag({ content: INKLESS });
         for (const state of states) {
           const { m, img } = await capture(page, state);
           t.diagnostic(`${theme} ${viewport.width} ${state}: range ${m.range}, scrolled ${m.scrollLeft}`);
-          assert.deepEqual(blockFindings(img, m, state, pixelAt), [], `${theme} ${viewport.width} ${state}`);
+          assert.deepEqual(blockFindings(img, m, state, pixelAt, theme), [], `${theme} ${viewport.width} ${state}`);
           measured += 1;
         }
         if (viewport === NARROW) {
           for (const [what, content, state] of REMOVALS) {
+            if (theme === 'light' && what === 'no divider') continue;
             const style = await page.addStyleTag({ content });
             const { m, img } = await capture(page, state);
-            const found = blockFindings(img, m, state, pixelAt);
+            const found = blockFindings(img, m, state, pixelAt, theme);
             t.diagnostic(`${theme} ${what}: ${found.join('; ')}`);
             assert.notDeepEqual(found, [], `${theme}: ${what} still passed`);
             await style.evaluate((node) => node.remove());

@@ -734,12 +734,15 @@ function tableWidths(css) {
         // A dense hover table holds 8px at its ends, so it bleeds by that much (#773).
         '.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'calc(100% + 2 * var(--space-2))',
         '.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'auto',
-        // The row table and its frame reach the card's edges, past the card's padding.
-        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--space-6))',
+        // The row table and its frame reach the card's edges, through the card's side inset.
+        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--ui-card-inset))',
         '.ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'auto',
         // #850: on the light page a card draws no box, so its table sits flush on the column.
         ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)': '100%',
-        ':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': '100%',
+        // #875: a light card with no box hangs its own inset, so its table sits on the column
+        // and its frame hangs out by its side band only.
+        ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table': '100%',
+        ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table-scroll': 'calc(100% + 2 * var(--space-1))',
       }[selector];
       if (width !== expected) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
@@ -754,7 +757,7 @@ function tableWidths(css) {
     ':where(.ui-card--fit) .ui-table',
     '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)',
     ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)',
-    ':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))',
+    ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table',
   ]) {
     if (!rules.some((rule) => rule.selector === selector)) {
       problems.push(`${selector} has no sizing rule`);
@@ -768,7 +771,6 @@ function tableWidths(css) {
     ['.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'margin-inline', 'calc(-1 * var(--space-2))'],
     ['.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'max-width', 'calc(100% + 2 * var(--space-2))'],
     [':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)', 'margin-inline', '0'],
-    [':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))', 'margin-inline', '0'],
     // #850: the row table's vertical bleed must also give way in light, or the card's
     // removed bottom padding leaves the last row clipped by the card's overflow.
     [':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child', 'margin-top', '0'],
@@ -839,12 +841,9 @@ test('the width gate rejects a table stretched back to its container', () => {
   }
   // A flush back onto the column must be rejected, wherever it is written.
   const FLUSH = ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: 100%;\n  max-width: 100%;\n  margin-inline: 0;\n}';
-  const HOVER_FLUSH = ':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) {\n  width: 100%;\n  max-width: 100%;\n  margin-inline: 0;\n}';
   for (const [name, mutation] of [
     ['the flush width at a bleed', CSS.replace(FLUSH, FLUSH.replace('width: 100%;', 'width: calc(100% + 2 * var(--space-3));'))],
     ['the flush margin at a bleed', CSS.replace(FLUSH, FLUSH.replace('margin-inline: 0;', 'margin-inline: calc(-1 * var(--space-3));'))],
-    ['the light hover flush removed', CSS.replace(HOVER_FLUSH, '')],
-    ['the light hover flush width at a bleed', CSS.replace(HOVER_FLUSH, HOVER_FLUSH.replace('width: 100%;', 'width: calc(100% + 2 * var(--space-6));'))],
     // The vertical flush is the other half of the same defect: the row table's last row.
     ['the row table top flush at a bleed', CSS.replace(':first-child { margin-top: 0; }', ':first-child { margin-top: calc(-1 * var(--space-6)); }')],
     ['the row table bottom flush at a bleed', CSS.replace(':last-child { margin-bottom: 0; }', ':last-child { margin-bottom: calc(-1 * var(--space-6)); }')],
@@ -944,9 +943,5 @@ test('the flush gate rejects a wrapper that puts the table out of reach', () => 
     ['framed'],
     'a table one wrapper further from the card must be reported',
   );
-  // Both flush rules give up their width together, or the hover one keeps the gate green
-  // while the generic one is gone.
-  assert.throws(() => flushReaches(CSS
-    .replace(':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: 100%;', ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: auto;')
-    .replace(':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) {\n  width: 100%;', ':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) {\n  width: auto;')), /card flush is gone/);
+  assert.throws(() => flushReaches(CSS.replace(':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: 100%;', ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: auto;')), /card flush is gone/);
 });

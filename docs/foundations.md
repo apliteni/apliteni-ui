@@ -78,10 +78,15 @@ bar, a wordless button takes the row's height and stays a circle. The kit's padd
 glyphs, units and the focus ring inside the rounded edge. Give a control of your own the same
 corner.
 
-**Every field that a reader types into has the field corner, `--radius-md`.** This covers a text
-field, a search field of each size, the search field in a dropdown panel, the page field of a
-pager and a text area. In a form, a dropdown trigger has the height of the text field beside it,
-but it keeps the pill. Give a field of your own the same corner.
+**Every one-line field that a reader types into has the field corner, `--radius-lg`.** This covers
+a text field, a search field of each size, the search field in a dropdown panel and the page
+field of a pager. A text area and message box use `--radius-2xl`. In a form, a dropdown trigger
+has the height of the text field beside it, but it keeps the pill and fits its longest option up to
+the field width. Give a field of your own the same corner.
+
+**Cards and floating panels use `--radius-md`.** This includes dialogs, dropdown panels, menus,
+callouts, toasts, success surfaces, code blocks and hover readouts. The round corner is the
+fallback. Where the browser supports it, these surfaces and typed fields use a squircle corner.
 
 These parts keep another corner:
 

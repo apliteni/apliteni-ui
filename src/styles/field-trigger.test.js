@@ -30,7 +30,7 @@ const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const mediaBody = (css, media) => new RegExp(`@media ${media.replace(/[()]/g, '\\$&')} \\{([\\s\\S]*?)\\n\\}`).exec(decomment(css))?.[1];
 
 const TRIGGER = '.ui-field > .ui-dropdown > .ui-dropdown__trigger';
-const VALUE = `${TRIGGER} > .ui-dropdown__value`;
+const VALUE = `${TRIGGER} .ui-dropdown__value`;
 // The rule this gate holds, deleted. Both halves must reject it.
 const MUTATION = ['the field trigger rule removed', 'src/styles/dropdown.css',
   /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{\n[^}]*\}\n/, ''];
@@ -39,7 +39,7 @@ const SCALED = ['the touch size scaled with --text-base', 'src/styles/dropdown.c
   /(\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \{ font-size: )16px;/, '$1calc(var(--text-base) + 1.5px);'];
 // The value semibold again, as the top bar's switcher drew it.
 const HEAVY = ['the field value rule removed', 'src/styles/dropdown.css',
-  /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger > \.ui-dropdown__value \{[^}]*\}\n/, ''];
+  /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \.ui-dropdown__value \{[^}]*\}\n/, ''];
 // A long value let wrap again.
 const WRAP = ['a long value let wrap', 'src/styles/dropdown.css', /(overflow: hidden;)\n  white-space: nowrap;(\n  text-overflow: ellipsis;\n  text-align: start;)/, '$1$2'];
 
