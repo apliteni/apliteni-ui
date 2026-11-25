@@ -685,6 +685,8 @@ export function Chart(props: ChartProps) {
    *  the plot has its width: a chart that opens at its end follows it there. */
   const [boxWidth, setBoxWidth] = useState(0);
   const [overflows, setOverflows] = useState(false);
+  /** The scroller's own position, so a label cut at its edge can hide. */
+  const [scrolled, setScrolled] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [rawCursor, setCursor] = useState(0);
   const [said, setSaid] = useState('');
@@ -877,7 +879,10 @@ export function Chart(props: ChartProps) {
   const opensAtEnd = Boolean(periods);
   useLayoutEffect(() => {
     const el = scroller.current;
-    if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
+    if (opensAtEnd && el) {
+      el.scrollLeft = el.scrollWidth - el.clientWidth;
+      setScrolled(el.scrollLeft);
+    }
   }, [opensAtEnd, plotWidth, boxWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */
@@ -1052,6 +1057,15 @@ export function Chart(props: ChartProps) {
     const half = textWidth(columns[i].short) / 2;
     return centre(i) - half < 0 ? 'is-start' : centre(i) + half > plotWidth ? 'is-end' : null;
   };
+  /** A wrap label sits in a scrolled column. Where the scroll cuts a column at
+   *  its edge, the name hides, so a name is whole or gone, never half.
+   *  why: docs/components.md#chart */
+  const whole = (i: number) => {
+    if (!overflows) return true;
+    const left = i * colWidth;
+    const right = left + colWidth;
+    return left >= scrolled - 0.5 && right <= scrolled + boxWidth + 0.5;
+  };
   const groupX = groupFrom >= 0 ? Math.min(Math.max(groupFrom * colWidth, 1), plotWidth - 1) : 0;
 
   return (
@@ -1062,6 +1076,7 @@ export function Chart(props: ChartProps) {
         '--ui-chart-h': `${plotHeight}px`,
         '--ui-chart-box': `${px(boxHeight)}px`,
         '--ui-chart-cols': count,
+        '--ui-chart-col': fit ? `${Math.ceil(widestWord)}px` : undefined,
         '--ui-chart-pad': `${PAD}px`,
         '--ui-chart-top': `${PAD + roomTop}px`,
         '--ui-chart-bottom': `${PAD + roomBottom}px`,
@@ -1121,6 +1136,7 @@ export function Chart(props: ChartProps) {
           role={overflows ? 'region' : undefined}
           aria-label={overflows ? `${title}. Scroll for more ${noun}.` : undefined}
           onScroll={() => {
+            setScrolled(scroller.current?.scrollLeft ?? 0);
             const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
               .find((el) => el.getAttribute('data-anchor') === openId);
             if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
@@ -1333,7 +1349,7 @@ export function Chart(props: ChartProps) {
                 {columns.map((column, i) => (
                   <span key={`${column.label}-${i}`}
                     className={cx('ui-chart__period', pick === i && 'is-selected', every > 1 && edgeOf(i))}
-                  >{labelled(i) ? column.short : null}</span>
+                  >{labelled(i) && (wrapAtWords ? whole(i) : true) ? column.short : null}</span>
                 ))}
               </div>
             )}

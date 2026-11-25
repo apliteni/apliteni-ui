@@ -830,11 +830,12 @@ it('scrolls 24 months in a 154px card so no bar loses its name', () => {
     label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2025 + Math.floor(i / 12)}`,
     estimated: i === 20 ? 'incomplete' as const : i > 20 ? 'projected' as const : undefined,
   }));
-  // The plot keeps one 48px column per period (the bridge's floor), so 24 months
-  // need 1152px: wider than the 154px card, the plot scrolls instead of stepping
-  // a name off its bar. JSDOM lays nothing out, so the plot and scroller widths
-  // are stubbed to the sizes the sheet's min-width would produce.
-  const FLOOR = 48;
+  // The plot keeps a column as wide as the widest name — a three-letter month,
+  // 0.62 × 12px × 3 chars + the 8px gap = 30.32px, rounded up to 31px — so 24
+  // months need 744px: wider than the 154px card, the plot scrolls instead of
+  // stepping a name off its bar. JSDOM lays nothing out, so the plot and
+  // scroller widths are stubbed to the sizes the sheet's min-width would produce.
+  const FLOOR = 31;
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
     return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 24 : 154;
   });
@@ -844,7 +845,7 @@ it('scrolls 24 months in a 154px card so no bar loses its name', () => {
   const { container } = render(<Chart title="Cash in" height={154} periods={months24} format={eur}
     series={[{ id: 'in', name: 'Cash in', values: months24.map((_, i) => 30 + i), tone: 'good' }]} />);
   const svg = container.querySelector('.ui-chart__svg')!;
-  expect(svg.getAttribute('width'), 'the plot keeps a floor column per period').toBe('1152');
+  expect(svg.getAttribute('width'), 'the plot keeps a floor column per period').toBe('744');
   expect([...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf), 'every bar').toHaveLength(24);
   expect(container.querySelector('.ui-chart__scroll'), 'the plot scrolls inside the card').toHaveAttribute('role', 'region');
   expect(readRepo('../../src/styles/chart.css'), 'months keeps the bridge scroll floor')
@@ -852,13 +853,54 @@ it('scrolls 24 months in a 154px card so no bar loses its name', () => {
   const row = container.querySelector('.ui-chart__periods')!;
   expect(classOf(row), 'no label is stepped').not.toContain('ui-chart__periods--step');
   const labels = [...row.children].map((c) => c.textContent);
-  expect(labels, 'one name per period').toHaveLength(24);
-  expect(labels.every((l) => l), 'every bar keeps its name').toBe(true);
+  expect(labels, 'one span per period').toHaveLength(24);
+  // The chart opens at its latest period, so the columns scrolled away hide
+  // their names and the four whole columns in view print theirs — no name is
+  // stepped off the sequence and none is half.
+  expect(labels.filter(Boolean), 'the columns in view keep their name')
+    .toEqual(['Sep', 'Oct', 'Nov', 'Dec']);
   cleanup();
   vi.restoreAllMocks();
   const wide = months().container.querySelector('.ui-chart__periods')!;
   expect(classOf(wide), 'every label prints where each fits').not.toContain('ui-chart__periods--step');
   expect([...wide.children].map((c) => c.textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
+});
+
+// #867: the floor is the narrowest column where a name still fits, not a fixed
+// 48px. Twelve three-letter months at 466px then fit without scrolling.
+it('does not scroll twelve months at 466px, where every name fits its column', () => {
+  const twelve: ChartPeriod[] = Array.from({ length: 12 }, (_, i) => ({
+    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]} 2025`,
+  }));
+  const { container } = render(<Chart title="Income" periods={twelve} format={eur}
+    series={[{ id: 'in', name: 'Income', values: twelve.map((_, i) => 10 + i), tone: 'good' }]} />);
+  const chart = container.querySelector('.ui-chart') as HTMLElement;
+  const col = parseFloat(chart.style.getPropertyValue('--ui-chart-col'));
+  // The floor column is the widest name plus its gap, so twelve of them fit
+  // inside a 466px card and the plot does not scroll there.
+  expect(col, 'the floor column is the widest name, not the 48px default').toBeGreaterThan(0);
+  expect(col, 'a name column is far under a twelfth of 466px').toBeLessThan(466 / 12);
+  expect(col * 12, 'twelve floor columns fit inside 466px').toBeLessThanOrEqual(466);
+});
+
+it('hides the name of a column cut at the scroll edge, so a name is whole or gone', () => {
+  const twelve: ChartPeriod[] = Array.from({ length: 12 }, (_, i) => ({
+    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]} 2025`,
+  }));
+  const FLOOR = 31;
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
+    return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 12 : 200;
+  });
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
+    return (this as HTMLElement).classList.contains('ui-chart__scroll') ? FLOOR * 12 : 200;
+  });
+  const { container } = render(<Chart title="Income" periods={twelve} format={eur}
+    series={[{ id: 'in', name: 'Income', values: twelve.map((_, i) => 10 + i), tone: 'good' }]} />);
+  const labels = [...container.querySelectorAll('.ui-chart__period')].map((c) => c.textContent);
+  // The chart opens at its latest period, so the left edge cuts a column; its
+  // name hides, and the names whole in view print.
+  expect(labels.filter(Boolean)).toEqual(['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
+  expect(labels[5], 'the column cut at the left edge hides its name').toBe('');
 });
 
 // #863: the months and bridge charts keep every bar named. A short name whose
