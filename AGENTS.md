@@ -112,6 +112,14 @@ by hand in a real browser. Report both results in the PR. The browser half,
 `stories/field-ground.test.js`, went with the vanilla galleries in #724, so no gate now reads
 how Chromium fades a disabled select. `react/src/field-ground.test.tsx` reads the cascade in JSDOM.
 
+## Check the form select fit locally
+
+Before opening a PR that changes the `.ui-field > .ui-select` width rule in `src/styles/input.css`, measure the
+select in a real browser:
+`SELECT_FIT=1 UI_PLAYWRIGHT=… node --test src/styles/select-fit.test.js`
+Report the result in the PR. The source half runs in CI. Keep this check out of routine CI to save Actions
+minutes.
+
 ## Check the motion helpers' missing-element guard locally
 
 Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the browser half:
