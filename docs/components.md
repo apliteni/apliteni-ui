@@ -87,6 +87,7 @@ what the user sees.
 | A section list outside `AppShell` | `SidebarNav` | [Sidebar navigation](#sidebar-navigation) |
 | The product band of a marketing page | `TopBar` | [Top bar](#top-bar) |
 | A sign-in page | `AuthShell` | [Auth shell](#auth-shell) |
+| A list, its ordered steps and the work of the open step | `ThreeColumnPage` | [Three-column page](#three-column-page) |
 | A site or app footer | `Footer` | [Footer](#footer) |
 | Run an action | `Button` | [Button](#button) |
 | An action that the user cannot undo | `Button hold` | [Hold to confirm](#hold-to-confirm) |
@@ -111,6 +112,7 @@ what the user sees.
 | A list, a table or a page with nothing in it | `EmptyState` | [Empty state](#empty-state) |
 | Code that the user reads or copies | `Snippet` | [Snippet](#snippet) |
 | The history of a record | `Timeline` | [Timeline](#timeline) |
+| Ordered steps with a final action | `Wizard` | [Wizard](#wizard) |
 | A line glyph | `Icon` | [Icon](#icon) |
 | A form or a question over the page | `Modal` | [Modal](#modal) |
 | Stop before a destructive action | `Confirm` | [Confirm](#confirm) |
@@ -154,8 +156,9 @@ its default is `apliteni-ui`, so set it. `brand` replaces the mark, and `brandHr
 the search trigger, the command palette and the theme switch. `layout="rail"` has only the side
 rail, with the sections and the account at its foot. The rail layout has no search trigger, no
 command palette, no Cmd+K, no theme switch, no section counts, and takes no `bandControl` and no
-`headControl`. `width="wide"` removes the limit on the content column. `centered` is the
-default.
+`headControl`. `width="wide"` removes the limit on the content column. `width="full"` also
+removes the content column's padding, for a page whose parts reach its edges, and in the topbar
+layout with a sidebar it puts `title` in the band as the page's `h1`, with `tools` after it. `centered` is the default.
 
 **The title row.** `title` is the page's one `h1`. `lede` is one line under it. `tools` puts small
 tools for the whole page at the end of the title row, such as a version badge, a period picker or
@@ -314,6 +317,43 @@ ground above the card and centres the title with a line under it. The ground is
 <AuthShell brand={<img src="/logo.svg" alt="Example" />}><SignInForm /></AuthShell>
 <AuthShell split tagline="Access the design system with your work account." brand={logo}><SignInForm /></AuthShell>
 ```
+
+### Three-column page
+
+Use `ThreeColumnPage` when a list chooses a record, the record has ordered steps, and the open
+step has rows to work on. Put it in `AppShell` with `width="full"`, so its separators reach the
+band and the page's edges. Give the page a static `title` on `AppShell`, which the band shows.
+Give the `ThreeColumnPage` no `title`.
+
+```tsx
+<AppShell width="full" title="Reconciliation" sections={sections} pathname="/close" account={account} onSignOut={signOut}>
+  <ThreeColumnPage
+    nav={{ title: '2026', link: 'Months', children: <MonthList /> }}
+    steps={{ title: 'Month checks', link: 'Checks', children: <Wizard {...checks} /> }}
+    work={{ title: 'Sources', link: 'Rows', children: <RowsTable /> }} />
+</AppShell>
+```
+
+`title` and `tools` put an `h1` and small tools at the top of the flow half, for a page in a
+padded `AppShell`. Each area takes a `title`, which is its `h2`, the `link` words that open it on a tablet or a
+phone, and its `children`. `view`, `defaultView` and `onViewChange` set the open view. The default
+view is `steps`.
+
+**What the user sees.**
+
+- Above 860px, the flow half holds the list and the steps. It takes 41% of the page
+  and at most 560px. The list takes one third of it, and the steps take two thirds. The list
+  never cuts a month's name. When the list and the steps cannot both fit, for example at 984px
+  or with large text, the steps go under the list. The work half takes the rest. A 1px `--border` line stands between the list and the steps, and another between
+  the halves. Both halves stand on the page ground, with no card.
+- At 860px and below, for example at 820px, the list is its own view, the steps stand above the
+  work, and Months, Checks and Rows links stand at the top of the flow half. The first link's
+  words start where the band's title starts.
+- At 560px and below, for example at 390px, each area is its own view. The steps open first.
+
+**Keyboard and screen reader.** Each area is a region named by its heading. A link is a button
+with `aria-pressed`, and a press moves the focus to the heading of its area. On a touch phone each
+link is a 44px target.
 
 ### Footer
 
@@ -988,6 +1028,39 @@ Use `Timeline` for the history of one record, such as who changed an invoice and
 
 The events show from oldest to newest. Only the marker of the last event is filled. An event can
 have `kind`, `meta` and `undo`. A new event in a list that is not empty plays an entrance.
+
+### Wizard
+
+Use `Wizard` for ordered steps that end in one final action, such as the checks before a month
+closes. Read the [Wizard guideline](../guidelines/wizard.md) for when to use it.
+
+```tsx
+<Wizard label="Month checks" steps={[
+  { id: 'sources', label: 'Sources', state: 'done' },
+  { id: 'documents', label: 'Documents', state: 'blocked', content: <><p>A receipt is missing.</p><Button>Add</Button></> },
+]} final={{ label: 'Finish', action: 'Close month', onAction: close, reason: 'Complete all checks to close this month.' }} />
+```
+
+A step's `state` is `done`, `current`, `blocked` or `to do` (`todo`). The final step's state comes
+from the steps before it. Its action stays off, with `reason` above it, until each earlier step is
+done. `final.done` marks the final step done and removes its action. One step is open. Without
+`open`, the wizard opens the first current or blocked step, and it follows that step when it
+moves on. `onOpenChange` reports each change. Give a done step no content that only says it is
+done: the mark and the word say it.
+
+**What the user sees.** The open step stands on the kit's selected-control tint, with no edge and
+no outline. To do is an empty grey circle, current is an accent circle with a dot, done
+is a grey circle with a green check, and blocked is an alert circle in the danger ink. The state's
+word stands under the step's name, so no state rests on colour alone.
+
+**Keyboard and screen reader.** The steps are an ordered list. Each step is a button named "2.
+Documents, Blocked, step 2 of 5", so the name starts with the words on screen. It has
+`aria-expanded` and `aria-controls` for its content. The step to
+work on has `aria-current="step"`. Up and Down move the focus between the steps and wrap, and Home
+and End go to the first and the last step. Enter and Space open a step. When the step to work on
+moves on, the focus goes to it if the focus was in the wizard or on the page body. When an action
+in the wizard goes away with the focus on it, such as the final action, the focus goes to the open
+step.
 
 ### Icon
 

@@ -104,7 +104,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 161: The page gained sign-in-note (#850).
   // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
   // 163: Text length gained field-length (#850).
-  assert.equal(rules, 163);
+  // 170: Three-column page added three rules and Wizard four (#871).
+  assert.equal(rules, 170);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);
