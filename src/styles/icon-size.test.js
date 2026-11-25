@@ -63,7 +63,7 @@ const src = path.resolve(here, '..');
 // 74 (#850): `.ui-card__glyph svg` sizes a card row's leading or trailing glyph, a
 // width and a height in one rule.
 // 75 (#863): `.ui-seg button.ui-seg--icon svg` sizes a wordless segment option's glyph
-// at 18px, a width and a height in one rule.
+// at 24px, a width and a height in one rule.
 const EXPECTED_SUBJECTS = 76;
 
 const SHEETS = kitSheetNames(src);
