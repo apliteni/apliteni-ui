@@ -878,6 +878,21 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
+/* A link in the callout text is told apart by an underline, not by its ink: on a
+ * tone wash the link ink and the body ink measure 2.16:1 to 2.40:1, under the 3:1
+ * that WCAG 1.4.1 asks between a link and the text around it. The rule sits on the
+ * body, so it reaches every tone. A button link in the actions keeps its box.
+ * NOT REACHED: the rendered line. A consumer rule that removes it wins. */
+test('a link in the callout text is underlined in every tone', () => {
+  const decl = declOf('.ui-callout__body a:not(.ui-btn)', 'text-decoration');
+  assert.strictEqual(decl['text-decoration'], 'underline',
+    'a callout link has no underline, so only its ink tells it from the body text, under 3:1 on a tone wash');
+  for (const status of calloutStatuses().filter(Boolean)) {
+    assert.ok(!declOf(`.ui-callout--${status} a`, 'text-decoration')['text-decoration'],
+      `the ${status} callout takes the underline away from its links`);
+  }
+});
+
 /* All legacy styles share the glyph measured above. */
 test('every toast style leaves the status glyph unfilled', () => {
   const styles = [...CALLOUT.matchAll(RULE)].flatMap(([, sel]) => splitSelectorList(sel))
