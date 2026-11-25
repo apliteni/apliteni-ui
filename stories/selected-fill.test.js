@@ -651,6 +651,8 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
         for (const [name, fixtureHtml] of forcedFixtures) {
           // The shell draws no rail at a phone width: its row is the drawer's, an open row.
           if (width <= 720 && name === 'folded shell row') continue;
+          // The drawer is not drawn above the phone step: its row is the rail's, hidden.
+          if (width > 720 && name === 'drawer row') continue;
           const html = width <= 720 && name === 'shell row'
             ? `<div class="ui-app"><div class="ui-app__drawer"><div class="ui-drawer is-open"><aside class="ui-drawer__panel"><div class="ui-drawer__body"><nav class="ui-nav">${row}</nav></div></aside></div></div></div>`
             : fixtureHtml;
@@ -700,10 +702,22 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
           if (name.startsWith('segmented ui-seg--underline')) assert.equal(result.barBefore, 'none', `${label}: the underline bar shows inside the fill`);
           measured += 1;
         }
+        // Mutation: the drawer is hidden above the phone step, so measuring its
+        // row at this width reads an empty mark. The skip above is what keeps the
+        // pass — taking it away must fail the `empty mark` assertion.
+        if (width === 1280) {
+          const hidden = await page.evaluate((markup) => {
+            document.body.innerHTML = markup;
+            const rect = document.querySelector('.is-active').getBoundingClientRect();
+            return { width: rect.width, height: rect.height };
+          }, `<div class="ui-app__drawer"><nav class="ui-nav">${row}</nav></div>`);
+          assert.ok(hidden.width <= 4 && hidden.height <= 4,
+            'the drawer row is drawn at 1280px, so the skip above would skip a visible row and hide a real defect');
+        }
       }
       await page.close();
     }
-    assert.equal(measured, forcedFixtures.length * 6 - 4);
+    assert.equal(measured, forcedFixtures.length * 6 - 6);
   } finally {
     await browser.close();
   }
