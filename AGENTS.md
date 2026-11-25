@@ -35,6 +35,10 @@ reviewer checks the protection itself.
 Before handoff, run `npm test` with `jq` installed, `npm test -w react`, `npm run
 build-storybook`, and `node site/build.mjs`. Stage new files first so git-based tests can find
 them, and add new test directories to both the guard and the glob in `npm test`.
+`npm test` needs `react/dist`. `npm ci` builds it through the root `prepare` script. If your
+checkout was installed without that script, run `npm run build` first. Otherwise
+`scripts/packaging.test.js` and `site/segmented.test.js` fail at stories/lib/react-markup.js:54
+`react/dist is not built`.
 
 While you work, run `node --test <file>` for the files you changed. Run both suites once
 for the pull request, on a Linux host where you have one. Their budgets on an 8-core Linux
@@ -107,6 +111,14 @@ Before opening a PR that changes a field's or a button's disabled paint, or
 by hand in a real browser. Report both results in the PR. The browser half,
 `stories/field-ground.test.js`, went with the vanilla galleries in #724, so no gate now reads
 how Chromium fades a disabled select. `react/src/field-ground.test.tsx` reads the cascade in JSDOM.
+
+## Check the form select fit locally
+
+Before opening a PR that changes the `.ui-field > .ui-select` width rule in `src/styles/input.css`, measure the
+select in a real browser:
+`SELECT_FIT=1 UI_PLAYWRIGHT=… node --test src/styles/select-fit.test.js`
+Report the result in the PR. The source half runs in CI. Keep this check out of routine CI to save Actions
+minutes.
 
 ## Check the motion helpers' missing-element guard locally
 

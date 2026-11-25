@@ -39,7 +39,7 @@
   align-items: flex-start; /* every part centres on the first line: a glyph or a button never drifts to the middle of a wrapped text */
   gap: 12px;
   padding: var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   color: var(--text);
   font-size: var(--text-base);
   width: 100%;
@@ -128,7 +128,7 @@
 
 /* Success panel — centered confirmation, used after form submit */
 .ui-success {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 30px;
   text-align: center;
   background: var(--glow-green); /* code-bg: inherit — a wash paints over a ground and behind a chip, so the opaque ground below it is the step. */
@@ -137,6 +137,9 @@
   --sx-green: var(--chip-success-ink);
   width: 28px; height: 28px;
   margin: 0 auto 14px;
+}
+@supports (corner-shape: squircle) {
+  .ui-callout, .ui-toast, .ui-success { corner-shape: squircle; }
 }
 .ui-success__check .ui-sx__check { width: 100%; height: 100%; }
 /* `circled` is one status size everywhere, this panel included: the box narrows to

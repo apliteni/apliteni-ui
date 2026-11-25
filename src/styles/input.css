@@ -31,11 +31,11 @@
   width: 100%;
   transition: border-color var(--dur-med) var(--ease), box-shadow var(--dur-med) var(--ease);
 }
-/* The field corner: a field that takes text is a box, not a pill. The select is a
-   control the reader presses, so it keeps the pill below. #836
+/* A one-line field has the large field corner. A text area has the larger message corner.
+   The select is a control the reader presses, so it keeps the pill below. #836
    why: docs/foundations.md#control-corners */
-.ui-input,
-.ui-textarea { border-radius: var(--radius-md); }
+.ui-input { border-radius: var(--radius-lg); }
+.ui-textarea { border-radius: var(--radius-2xl); }
 .ui-textarea { resize: vertical; min-height: 96px; line-height: 1.55; }
 
 .ui-input:hover,
@@ -122,6 +122,11 @@
   background-position: right 15px center;
   padding-right: 40px;
   cursor: pointer;
+}
+.ui-field > .ui-select { width: fit-content; max-width: 100%; }
+
+@supports (corner-shape: squircle) {
+  .ui-input, .ui-textarea { corner-shape: squircle; }
 }
 :root[data-theme="light"] .ui-select {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='-6 -6 12 12' fill='none' stroke='%235c6270' stroke-width='1.6'%3E%3Cpath d='M-5.09 -2.83L0 2.26l5.09-5.09'/%3E%3C/svg%3E");
@@ -351,7 +356,7 @@
     line-height: var(--leading-tight);
     min-height: var(--btn-height-sm);
     padding: var(--space-1) var(--space-3);
-    border-radius: var(--radius-md); /* why: docs/foundations.md#control-corners */
+    border-radius: var(--radius-lg); /* why: docs/foundations.md#control-corners */
   }
 }
 @media (pointer: coarse) {

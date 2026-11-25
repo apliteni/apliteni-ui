@@ -67,7 +67,7 @@
 /* The composer panel (bottom-centre) */
 .ui-fbcomposer {
   position: fixed; z-index: 71; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(14px);
-  width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); border-radius: 18px;
+  width: min(520px, calc(100vw - 32px)); background: var(--bg-elevated); border-radius: var(--radius-md);
   /* The shadow was its only edge until #295, which replaced it with the hairline; since
      #490 light is back on the drop and dark keeps the line.
      why: docs/foundations.md#elevation */
@@ -85,13 +85,13 @@
 .ui-fbc__x:hover { color: var(--strong); }
 .ui-fbc__x:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-fbc__x svg { width: 14px; height: 14px; stroke-width: 2.7; }
-.ui-fbc__quote { margin: 14px 20px 0; background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ border-radius: 12px; padding: 12px 15px; display: flex; gap: 11px; }
+.ui-fbc__quote { margin: 14px 20px 0; background: var(--surface); /* code-bg: inherit — decorative or text-only paint; nothing nested reads a ground from it. */ border-radius: var(--radius-md); padding: 12px 15px; display: flex; gap: 11px; }
 .ui-fbc__qm { color: var(--text); font-size: var(--text-xl); font-weight: var(--weight-bold); line-height: .9; flex: none; opacity: .55; }
 .ui-fbc__quote q { quotes: none; color: var(--text); font-style: italic; font-size: var(--text-sm); line-height: 1.55; }
 .ui-fbc__body { padding: 14px 20px 0; }
 .ui-fbcomposer textarea {
   width: 100%; min-height: 96px; resize: vertical; font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.55;
-  color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ border: 1px solid var(--field-edge); border-radius: 12px; padding: 13px 15px; transition: box-shadow var(--dur-fast) var(--ease);
+  color: var(--strong); background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ border: 1px solid var(--field-edge); border-radius: var(--radius-2xl); padding: 13px 15px; transition: box-shadow var(--dur-fast) var(--ease);
 }
 .ui-fbcomposer textarea::placeholder { /* muted-ink: placeholder — empty feedback field */ color: var(--muted); }
 .ui-fbcomposer textarea:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
@@ -130,7 +130,10 @@
 @keyframes uiFbCkSpring { 0% { transform: scale(1.32); } 62% { transform: scale(.965); } 82% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
 /* Error banner */
-.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); /* code-bg: inherit — text-only validation message has no nested focus target. */ color: var(--chip-danger-ink); font-size: var(--text-sm); padding: 11px 15px; border-radius: 11px; display: none; }
+.ui-fbc__err { margin: 14px 20px 0; background: color-mix(in srgb, var(--pink) 14%, transparent); /* code-bg: inherit — text-only validation message has no nested focus target. */ color: var(--chip-danger-ink); font-size: var(--text-sm); padding: 11px 15px; border-radius: var(--radius-md); display: none; }
+@supports (corner-shape: squircle) {
+  .ui-fbcomposer, .ui-fbc__quote, .ui-fbcomposer textarea, .ui-fbc__err { corner-shape: squircle; }
+}
 .ui-fbc__err.show { display: block; /* motion: still — the React Feedback renders the error already shown; its fade is the is-entering animation beside it. */ }
 /* A failed send's line fades in; wireFeedback() adds the class as it shows it. */
 .ui-fbc__err.is-entering { animation: m-fade var(--dur-fast) var(--ease-out) both; }

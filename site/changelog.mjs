@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.197.0', date: '2026-11-25',
+    changes: [
+      ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],
+      ['changed', 'A form Dropdown and native select now fit their longest option up to the field width. Their pill shape stays unchanged, and a value change does not change their width. Part of #874.', ['Dropdown']],
+      ['fixed', 'A form Dropdown\'s hidden width rows now sit inside the trigger, so a touch phone\'s 16px type and a picker\'s avatar are measured, and a long option truncates inside the trigger instead of widening the page. Part of #874.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.196.1', date: '2026-11-25',
     changes: [
       ['fixed', 'In the light theme a card no longer goes 8px past the page from 561px to 720px, and a document viewer in a card no longer goes 8px past the card at 560px and below. The first and last text of a row table in a light card now start on the page title\'s edge at every width, and its row fill stays inside the page. A light stat tile keeps its 24px side inset from 561px to 720px, and its 16px side inset at 560px and below. The dark theme does not change. Part of #875.', ['Card', 'Table', 'Stat band']],

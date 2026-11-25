@@ -1931,7 +1931,7 @@ describe('a person mark in the rows and the trigger', () => {
 
   it('shows the chosen row\'s mark in the trigger', () => {
     const { container } = render(<Dropdown variant="select" items={people} value="Jordan Okafor" />);
-    expect(container.querySelector('.ui-dropdown__trigger > .ui-avatar')!.textContent).toBe('JO');
+    expect(container.querySelector('.ui-dropdown__trigger .ui-avatar')!.textContent).toBe('JO');
   });
 
   it('keeps the controlled row and its mark together until the caller changes them', async () => {
@@ -1957,7 +1957,7 @@ describe('a person mark in the rows and the trigger', () => {
 
   it('shows the dashed ring and the placeholder ink with no value', () => {
     const { container } = render(<Dropdown variant="select" items={people} placeholder="Choose a person" />);
-    expect(container.querySelector('.ui-dropdown__trigger > .ui-avatar--empty')).not.toBeNull();
+    expect(container.querySelector('.ui-dropdown__trigger .ui-avatar--empty')).not.toBeNull();
     expect(container.querySelector('.ui-dropdown__value')!.classList.contains('is-placeholder')).toBe(true);
   });
 

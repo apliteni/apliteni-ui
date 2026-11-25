@@ -184,7 +184,7 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: var(--ui-dropdown-pad);
   /* The cap, and the whole of #489: a panel took its content's height until that
      height ran off the screen, and then it took what was left. Two numbers decide
@@ -455,12 +455,12 @@
 .ui-dropdown__panel > .ui-dropdown__head {
   margin: calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1) 5px;
   border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 .ui-dropdown__panel > .ui-dropdown__foot {
   margin: 5px calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1);
   border-top: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
 /* Search — `search: true` pins a field above the rows and filters them as the
@@ -497,7 +497,7 @@
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   border: 1px solid var(--field-edge);
-  border-radius: var(--radius-md); /* The field corner, as .ui-input. #836 */
+  border-radius: var(--radius-lg); /* The one-line field corner, as .ui-input. #836 */
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
@@ -551,7 +551,7 @@
    shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
    margins give back the room it takes, so the trigger keeps its height.
    why: docs/components.md#avatar */
-.ui-dropdown__trigger > .ui-avatar {
+.ui-dropdown__trigger .ui-avatar {
   --ui-avatar-pull: 4px;
   --ui-avatar-pull-start: 10px;
   margin-block: calc(var(--ui-avatar-pull) * -1);
@@ -559,16 +559,41 @@
 }
 .ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — no person chosen */ color: var(--muted); font-weight: var(--weight-medium); }
 
-/* A dropdown that is a form control takes its field's width, and its panel the
-   trigger's. why: docs/components.md#avatar */
-.ui-field > .ui-dropdown { display: grid; }
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
+/* The shown value and each hidden measurement row keep one line and one gap, so a
+   form dropdown measures its value exactly as it draws it.
+   why: docs/components.md#fields */
+.ui-dropdown__line { display: inline-flex; align-items: center; gap: 8px; min-inline-size: 0; }
+
+/* A form dropdown fits its longest option, up to the field width. Its panel is at
+   least as wide as its trigger. why: docs/components.md#fields */
+.ui-field > .ui-dropdown { display: inline-grid; grid-template-columns: minmax(0, max-content); max-width: 100%; }
+/* The hidden rows live inside the trigger, so they inherit its size at every
+   breakpoint and draw the same mark and classes as the shown value. A row longer
+   than the field truncates inside the trigger, so it never widens the page.
+   why: docs/components.md#fields */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit {
+  grid-area: 1 / 1;
+  display: grid; grid-template-columns: minmax(0, max-content);
+  visibility: hidden; min-inline-size: 0; overflow: hidden;
+}
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit > * { grid-area: 1 / 1; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__line { grid-area: 1 / 1; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { grid-area: 1 / 2; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
+
+@supports (corner-shape: squircle) {
+  .ui-dropdown__panel,
+  .ui-dropdown__panel > .ui-dropdown__head,
+  .ui-dropdown__panel > .ui-dropdown__foot,
+  .ui-dropdown__search-input { corner-shape: squircle; }
+}
 /* In a form the trigger takes the text input's block padding and type, so the two
    stand at one height. It keeps the pill, and the input has the field corner. #812, #836
    why: docs/components.md#fields */
 @property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
+  grid-area: 1 / 1; max-width: 100%;
+  display: grid; grid-template-columns: minmax(0, max-content) max-content;
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base); line-height: normal;
   min-inline-size: 0;
@@ -577,8 +602,8 @@
 }
 /* A long value keeps one line from the left and ends in an ellipsis, as the select
    does, so the trigger keeps the input's height at every length. */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__value,
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__text {
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__value,
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__text {
   min-inline-size: 0;
   overflow: hidden;
   white-space: nowrap;
@@ -588,9 +613,9 @@
 /* The chosen value takes the text input's regular weight and normal spacing. No colour:
    the value keeps --strong, a disabled value its off ink and a placeholder its muted ink.
    rev_67189e20ee1f/d5 why: docs/components.md#fields */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__value { font-weight: var(--weight-normal); letter-spacing: normal; }
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__value { font-weight: var(--weight-normal); letter-spacing: normal; }
 /* The mark stands as far from the left edge as from the top and bottom edges. */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-avatar {
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-avatar {
   --ui-avatar-pull-start: calc(var(--space-4) - var(--space-3) - (var(--ui-dropdown-line) - var(--ui-avatar-size)) / 2);
 }
 /* The input beside it is 16px on a touch screen, so the trigger follows it. A flat

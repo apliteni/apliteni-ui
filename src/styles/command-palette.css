@@ -75,7 +75,7 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
   opacity: 0;
   transform: translate(-50%, -8px);
@@ -98,12 +98,15 @@
   padding: 0 var(--space-4);
   border-bottom: 1px solid var(--border);
   /* The panel's inner corner, so the inward ring follows it. */
-  border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+  border-radius: calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px) 0 0;
 }
 .ui-cmdk__search-ic {
   display: inline-flex;
   /* muted-ink: glyph — search icon */ color: var(--muted);
   flex: none;
+}
+@supports (corner-shape: squircle) {
+  .ui-cmdk__panel, .ui-cmdk__search { corner-shape: squircle; }
 }
 /* 2.2 of a 24 box drawn at 17px = 1.56 CSS px, which is what keeps the mark a
    graphic rather than a smudge. why: docs/foundations.md#icons-and-glyphs */

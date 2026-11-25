@@ -54,7 +54,7 @@
 
 **Why:** One shape marks what a reader can use.
 
-**Except:** A text field has the field corner, because it is a box for text.
+**Except:** A typed field has its field corner because it holds text.
 
 **Do:** A search field with the field corner beside pill buttons.
 

@@ -262,6 +262,7 @@ export function Dropdown({
   // the label and then its own value, as a native select reads. `for` cannot do it, since
   // the id stays on the outer div and a label on a button would drop the value.
   const inField = useContext(FieldContext);
+  const inForm = Boolean(inField && id === inField.id);
   const fieldName = inField && id === inField.id && !(ariaLabel && triggerContent != null)
     ? { id: `${uid}-trigger`, labelId: inField.labelId, labelledBy: `${inField.labelId} ${uid}-trigger` } : null;
   // A trigger named by its own content, with no ariaLabel, also names its panel.
@@ -896,15 +897,31 @@ export function Dropdown({
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
       >
         {triggerContent != null ? (typeof triggerContent === 'string' ? <span className="ui-dropdown__text">{triggerContent}</span> : triggerContent) : (
-          <>
+          <span className="ui-dropdown__line">
             {marked && (chosen?.avatar
               ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />
               : <Avatar empty />)}
             {label && <span className="ui-dropdown__pre">{label}</span>}
             <span className={cx('ui-dropdown__value', marked && !chosen && 'is-placeholder')}>{shown != null ? shown : placeholder}</span>
-          </>
+          </span>
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}
+        {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
+          <span className="ui-dropdown__line">
+            {marked && <Avatar empty />}
+            {label && <span className="ui-dropdown__pre">{label}</span>}
+            <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
+          </span>
+          {rows.map((item, index) => (
+            <span key={index} className="ui-dropdown__line">
+              {marked && (item.avatar
+                ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
+                : <Avatar empty />)}
+              {label && <span className="ui-dropdown__pre">{label}</span>}
+              <span className="ui-dropdown__value">{shownOf(item)}</span>
+            </span>
+          ))}
+        </span>}
       </button>
       <div
         className={cx('ui-dropdown__panel', align === 'end' && 'is-end', direction === 'up' && 'is-up',

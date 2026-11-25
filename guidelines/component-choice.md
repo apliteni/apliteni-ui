@@ -86,12 +86,12 @@
 
 <!-- rule: dropdown-search -->
 
-**Rule:** Give a dropdown a search field at ten options, or whenever its options come from data.
+**Rule:** Give a dropdown a search field at ten options, or whenever its options come from data, and size a form dropdown or native select to its longest option up to the field width.
 
-**Why:** Ten options require scrolling, and data-fed lists need search at any count; matching anywhere in a label also finds later words.
+**Why:** Ten options need scrolling, and data lists need search; matching finds later words.
 
-**Except:** Below six options, search adds an unnecessary stop; at six to nine, the author decides, adding search for described rows that scroll from the sixth.
+**Except:** Below six options, search adds a stop. At six to nine, authors decide.
 
-**Do:** For twenty-nine currencies, type “dollar” instead of scrolling.
+**Do:** For 29 currencies, type “dollar”.
 
 **Don't:** Show only seven of twenty-nine currencies without search when dollars are scattered through the list.

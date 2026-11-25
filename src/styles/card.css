@@ -14,7 +14,7 @@
   background: var(--surface);
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   padding: var(--space-6);
   position: relative;
 }
@@ -134,7 +134,7 @@
   max-height: none;
   /* With the scroll box's own 4px band at the sides and bottom, an even 24px inset. */
   padding: var(--space-6) var(--space-5) var(--space-5);
-  border-radius: 0 0 calc(var(--radius-xl) - 1px) calc(var(--radius-xl) - 1px);
+  border-radius: 0 0 calc(var(--radius-md) - 1px) calc(var(--radius-md) - 1px);
 }
 /* A4 at the least, so a short document still reads as a page and not as a panel.
    The page carries the light palette in both themes (src/tokens/tokens.css), so its
@@ -152,6 +152,10 @@
      surface that steps off the white sheet in both themes. */
   --table-bg: var(--surface);
   --table-code-bg: var(--code-chip-surface);
+}
+
+@supports (corner-shape: squircle) {
+  .ui-card, .ui-card__viewer > .ui-table-scroll { corner-shape: squircle; }
 }
 
 /* Interactive card (link / button semantics) */
