@@ -32,6 +32,6 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Account and settings](account-and-settings.md) | The account window, the account menu and settings rows. | Read it before you build the account menu or settings. |
 | [Notifications](notifications.md) | The bell, its unread count, read state and a failed load. | Read it before you build a bell or a notifications list. |
 | [Session expired](session-expired.md) | A session-ended dialog, its page state and its lasting sign-in notice. | Read it before you handle an ended session. |
-| [Three-column page](three-column-page.md) | Three columns chained from parent to child: the selected parent, its children and the open child, with the widths and the collapse order. | Read it before you put a list, its children and the open item side by side. |
+| [Three-column page](three-column-page.md) | Three columns chained from parent to child: the selected parent, its children and the open child, with the widths, the collapse order and the column header. | Read it before you put a list, its children and the open item side by side. |
 | [Wizard](wizard.md) | Ordered steps, their states, the open step and the final action. | Read it before you build ordered steps. |
 | [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |
