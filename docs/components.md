@@ -574,7 +574,8 @@ and `aria-describedby`. Spread them on the control. A dropdown or date picker tr
 label and the value as its name, and the error gives it the invalid edge. In a field, a dropdown
 trigger has the height of a text input and keeps the pill corner. It fits its longest option up to
 the field width, so a value change does not change its width. A native select has the same width
-rule. In vanilla markup, put each option label in the hidden `ui-dropdown__fit` element. A long
+rule. In vanilla markup, put the placeholder and each option's shown words, with its state
+word, in the hidden `ui-dropdown__fit` element. A long
 value stays on one line and ends with an ellipsis.
 
 **Corners.** A one-line field has the 16px field corner. A text area and message box have the

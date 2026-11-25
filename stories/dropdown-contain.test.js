@@ -128,6 +128,7 @@ test('measured in a browser, four widths and both themes', {
               .find((el) => el.querySelector('.ui-field__label')?.textContent === 'Reviewer');
             const trigger = field?.querySelector('[data-dropdown-trigger]');
             if (!trigger) throw new Error('the Reviewer trigger is missing');
+            const before = trigger.getBoundingClientRect().width;
             const pick = async (label) => {
               trigger.click();
               await frame();
@@ -139,7 +140,7 @@ test('measured in a browser, four widths and both themes', {
               await frame();
               return { after: trigger.getBoundingClientRect().width, panel: panel.getBoundingClientRect().width };
             };
-            return { jordan: await pick('Jordan Example'), avery: await pick('Avery Example') };
+            return { before, jordan: await pick('Jordan Example'), avery: await pick('Avery Example') };
           });
         } finally {
           await context.close();
@@ -147,10 +148,13 @@ test('measured in a browser, four widths and both themes', {
       };
       for (const theme of THEMES) {
         const stable = await read(theme);
+        assert.equal(stable.before, stable.jordan.after, `${theme} changed width from its placeholder to Jordan Example`);
         assert.equal(stable.jordan.after, stable.avery.after, `${theme} changed width between Jordan Example and Avery Example`);
         assert.ok(stable.jordan.panel >= stable.jordan.after, `${theme} panel is narrower than its trigger`);
         const old = await read(theme, '.ui-dropdown__fit { display: none !important; }');
         assert.notEqual(old.jordan.after, old.avery.after, `${theme} did not reject the old value-sized rule`);
+        const noPlaceholder = await read(theme, '.ui-dropdown__fit > .ui-dropdown__line:first-child { display: none !important; }');
+        assert.notEqual(noPlaceholder.before, noPlaceholder.jordan.after, `${theme} did not reject the placeholder left out of the measurement`);
       }
     });
 
@@ -171,6 +175,7 @@ test('measured in a browser, four widths and both themes', {
               .find((el) => el.querySelector('.ui-field__label')?.textContent === 'Reviewer');
             const trigger = field?.querySelector('[data-dropdown-trigger]');
             if (!trigger) throw new Error('the Reviewer trigger is missing');
+            const before = trigger.getBoundingClientRect().width;
             const pick = async (label) => {
               trigger.click();
               await frame();
@@ -184,6 +189,7 @@ test('measured in a browser, four widths and both themes', {
             return {
               coarse: matchMedia('(pointer: coarse)').matches,
               font: getComputedStyle(trigger).fontSize,
+              before,
               jordan: await pick('Jordan Example'),
               avery: await pick('Avery Example'),
             };
@@ -196,9 +202,10 @@ test('measured in a browser, four widths and both themes', {
         const touch = await read(theme);
         assert.equal(touch.coarse, true, `${theme} did not emulate a coarse pointer`);
         assert.equal(touch.font, '16px', `${theme} touch trigger is ${touch.font}, not 16px`);
+        assert.equal(touch.before, touch.jordan, `${theme} changed width at touch from its placeholder to Jordan Example`);
         assert.equal(touch.jordan, touch.avery, `${theme} changed width at touch between Jordan Example and Avery Example`);
         const drifted = await read(theme, '.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit { font-size: var(--text-base) !important; }');
-        assert.notEqual(drifted.jordan, drifted.avery, `${theme} did not reject the hidden rows drifting off the 16px type`);
+        assert.notEqual(drifted.before, drifted.jordan, `${theme} did not reject the hidden rows drifting off the 16px type`);
       }
     });
 
@@ -217,6 +224,7 @@ test('measured in a browser, four widths and both themes', {
             const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
             const trigger = document.querySelector('.ui-field [data-dropdown-trigger]');
             if (!trigger) throw new Error('the picker trigger is missing');
+            const before = trigger.getBoundingClientRect().width;
             const pick = async (label) => {
               trigger.click();
               await frame();
@@ -227,7 +235,7 @@ test('measured in a browser, four widths and both themes', {
               await frame();
               return trigger.getBoundingClientRect().width;
             };
-            return { avery: await pick('Avery Example'), none: await pick('No one') };
+            return { before, avery: await pick('Avery Example'), none: await pick('No one') };
           });
         } finally {
           await context.close();
@@ -235,9 +243,66 @@ test('measured in a browser, four widths and both themes', {
       };
       for (const theme of THEMES) {
         const stable = await read(theme);
+        assert.equal(stable.before, stable.avery, `${theme} changed width from its placeholder to Avery Example`);
         assert.equal(stable.avery, stable.none, `${theme} changed width between Avery Example and No one`);
         const old = await read(theme, '.ui-dropdown__fit .ui-avatar { display: none !important; }');
         assert.notEqual(old.avery, old.none, `${theme} did not reject the mark left out of the measurement`);
+        const noPlaceholder = await read(theme, '.ui-dropdown__fit > .ui-dropdown__line:first-child { display: none !important; }');
+        assert.notEqual(noPlaceholder.before, noPlaceholder.avery, `${theme} did not reject the placeholder left out of the measurement`);
+      }
+    });
+
+    await t.test('a muted row measures its state word in the fit', async () => {
+      const MUTED_STORY = 'react-dropdown--muted-item';
+      const mutedStory = all.find((story) => story.id === MUTED_STORY);
+      assert.ok(mutedStory, `no story with the id ${MUTED_STORY} in the built index`);
+      const read = async (theme, script = '') => {
+        const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+        const page = await context.newPage();
+        try {
+          const rendered = await openStory(page, mutedStory, { port: server.port, theme });
+          assert.equal(rendered.phase, 'finished', `${theme} did not render the muted story`);
+          if (script) await page.evaluate(`(${script})()`);
+          return await page.evaluate(async () => {
+            const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const field = [...document.querySelectorAll('.ui-field')]
+              .find((el) => el.querySelector('.ui-field__label')?.textContent === 'Unit' && el.querySelector('[data-dropdown-trigger]'));
+            const trigger = field?.querySelector('[data-dropdown-trigger]');
+            if (!trigger) throw new Error('the Unit trigger is missing');
+            const pick = async (label) => {
+              if (trigger.getAttribute('aria-expanded') !== 'true') {
+                trigger.click();
+                await frame();
+              }
+              const row = [...document.querySelectorAll('[data-dd-item]')]
+                .find((el) => el.querySelector('.ui-dropdown__label')?.textContent === label);
+              if (!row) throw new Error(`${label} is missing`);
+              row.click();
+              await frame();
+              return trigger.getBoundingClientRect().width;
+            };
+            return { kestrel: await pick('Kestrel Consulting'), harbour: await pick('Harbour Consulting') };
+          });
+        } finally {
+          await context.close();
+        }
+      };
+      const STRIP_STATE = `() => {
+        const strip = () => {
+          for (const el of document.querySelectorAll('.ui-dropdown__fit .ui-dropdown__value')) {
+            const text = el.textContent || '';
+            const next = text.replace(/ \\([^)]*\\)$/, '');
+            if (next !== text) el.textContent = next;
+          }
+        };
+        strip();
+        new MutationObserver(strip).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+      }`;
+      for (const theme of THEMES) {
+        const stable = await read(theme);
+        assert.equal(stable.kestrel, stable.harbour, `${theme} changed width between Kestrel Consulting (Archived) and Harbour Consulting`);
+        const old = await read(theme, STRIP_STATE);
+        assert.notEqual(old.kestrel, old.harbour, `${theme} did not reject the state word left out of the measurement`);
       }
     });
 

@@ -907,13 +907,18 @@ export function Dropdown({
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}
         {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
+          <span className="ui-dropdown__line">
+            {marked && <Avatar empty />}
+            {label && <span className="ui-dropdown__pre">{label}</span>}
+            <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
+          </span>
           {rows.map((item, index) => (
             <span key={index} className="ui-dropdown__line">
               {marked && (item.avatar
                 ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
                 : <Avatar empty />)}
               {label && <span className="ui-dropdown__pre">{label}</span>}
-              <span className="ui-dropdown__value">{item.label}</span>
+              <span className="ui-dropdown__value">{shownOf(item)}</span>
             </span>
           ))}
         </span>}
