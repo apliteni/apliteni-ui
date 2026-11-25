@@ -66,16 +66,20 @@ export function Library({ depth: startDepth = 3, folder: startFolder = 'Shared',
   const [fileName, setFileName] = useState(folder.files[1]?.name ?? folder.files[0]?.name);
   const file = folder.files.find(item => item.name === fileName) ?? folder.files[0];
   const [sort, setSort] = useState('date');
-  const files = [...folder.files].sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : 0);
+  const [show, setShow] = useState('all');
+  const files = folder.files.filter(item => show === 'all' || item.day.endsWith('Nov'))
+    .sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : 0);
   // A new folder replaces the files and the open file.
   const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };
   const titleMenu: ThreeColumnMenu = {
     header: <div className="ui-dropdown__head">{folder.files.length} files</div>,
-    onSelect: value => { if (value === 'name' || value === 'date') setSort(value); },
+    onSelect: value => { if (value === 'name' || value === 'date') setSort(value); else if (value === 'all' || value === 'november') setShow(value); },
+    // The menu holds every row, so it needs no scroll at the kit's 300px cap.
+    scroll: 400,
     sections: [
-      { label: 'Sort by', items: [{ label: 'Name', value: 'name', selected: sort === 'name' }, { label: 'Date', value: 'date', selected: sort === 'date' }] },
       { items: [{ label: 'Export', value: 'export', icon: 'download' }] },
-      { label: 'Show', items: [{ label: 'All files', value: 'all', icon: 'doc' }, { label: 'Shared with me', value: 'shared', icon: 'user' }] },
+      { label: 'Sort by', items: [{ label: 'Name', value: 'name', selected: sort === 'name' }, { label: 'Date', value: 'date', selected: sort === 'date' }] },
+      { label: 'Show', items: [{ label: 'All files', value: 'all', selected: show === 'all' }, { label: 'Edited in November', value: 'november', selected: show === 'november' }] },
     ],
   };
   return <AppShell word="Example" width="full" title="Library" pathname="/library"

@@ -1205,7 +1205,7 @@
  "_three-column-page.js": {
   "three-columns": [
    {
-    "ref": "react/src/ThreeColumnPage.tsx:100",
+    "ref": "react/src/ThreeColumnPage.tsx:112",
     "pattern": "{columns.map((col, i) => col && column(col, (i + 1) as ThreeColumnDepth))}"
    }
   ],
@@ -1241,7 +1241,7 @@
     "pattern": "caption={`Rows for ${month}`}"
    },
    {
-    "ref": "react/src/showcases/Library.tsx:71",
+    "ref": "react/src/showcases/Library.tsx:73",
     "pattern": "const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };"
    },
    {
@@ -1269,7 +1269,7 @@
     "pattern": "@media (max-width: 560px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:97",
+    "ref": "react/src/ThreeColumnPage.tsx:109",
     "pattern": "<BackLink href={depthHref?.(up) ?? '#'} label={columns[first - 2]!.title}"
    }
   ],
@@ -1279,7 +1279,7 @@
     "pattern": "min-height: calc(var(--space-12) + var(--space-2));"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:84",
+    "ref": "react/src/ThreeColumnPage.tsx:95",
     "pattern": "{col.menu && <Dropdown variant=\"menu\" align=\"start\" triggerContent={col.title} triggerClass=\"ui-columns__menu\""
    }
   ]

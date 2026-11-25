@@ -103,7 +103,8 @@ it('moves the focus to the open column\'s title when a move removes the focused 
 it('makes the title a menu only when the column has menu rows', () => {
   const onSelect = vi.fn();
   render(page({ columns: [cols()[0], { ...cols()[1], menu: { header: <div className="ui-dropdown__head">3 files</div>, onSelect,
-    sections: [{ label: 'Sort by', items: [{ label: 'Name', value: 'name' }, { label: 'Date', value: 'date', selected: true }] }] } }, cols()[2]] }));
+    sections: [{ items: [{ label: 'Export', value: 'export' }] },
+      { label: 'Sort by', items: [{ label: 'Name', value: 'name', selected: false }, { label: 'Date', value: 'date', selected: true }] }] } }, cols()[2]] }));
   // Without menu rows the title is plain text.
   expect(within(document.querySelector<HTMLElement>('[data-column="1"] > .ui-columns__head')!).queryByRole('button')).toBeNull();
   // With them the h2 still names the column, and the trigger shows the title.
@@ -115,8 +116,33 @@ it('makes the title a menu only when the column has menu rows', () => {
   expect(trigger).toHaveAttribute('aria-expanded', 'true');
   const menu = screen.getByRole('menu');
   expect(menu).toHaveTextContent('3 files');
-  fireEvent.click(within(menu).getByRole('menuitem', { name: 'Name' }));
+  // A row with `selected` is a single choice: the current one is checked and shows the kit's tick.
+  expect(within(menu).getByRole('menuitem', { name: 'Export' })).not.toHaveAttribute('aria-checked');
+  const date = within(menu).getByRole('menuitemradio', { name: 'Date' });
+  expect(date).toHaveAttribute('aria-checked', 'true');
+  expect(date).toHaveClass('ui-dropdown__item', 'is-selected');
+  expect(date.querySelector('.ui-dropdown__tick svg')).not.toBeNull();
+  expect(within(menu).getByRole('menuitemradio', { name: 'Name' })).toHaveAttribute('aria-checked', 'false');
+  fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Name' }));
   expect(onSelect).toHaveBeenCalledWith('name', expect.objectContaining({ label: 'Name' }));
+});
+
+it('opens the title menu from the keyboard, walks it with the arrows and gives the focus back on Escape', () => {
+  render(page({ columns: [cols()[0], { ...cols()[1], menu: { onSelect: vi.fn(),
+    sections: [{ items: [{ label: 'Export', value: 'export' }] },
+      { label: 'Sort by', items: [{ label: 'Name', value: 'name', selected: false }, { label: 'Date', value: 'date', selected: true }] }] } }, cols()[2]] }));
+  const trigger = within(document.querySelector<HTMLElement>('[data-column="2"] > .ui-columns__head')!).getByRole('button', { name: 'Shared' });
+  trigger.focus();
+  fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+  expect(trigger).toHaveAttribute('aria-expanded', 'true');
+  const rows = [...screen.getByRole('menu').querySelectorAll<HTMLElement>('[data-dd-item]')];
+  expect(rows.map(row => row.getAttribute('role'))).toEqual(['menuitem', 'menuitemradio', 'menuitemradio']);
+  expect(rows[0]).toHaveFocus();
+  fireEvent.keyDown(rows[0], { key: 'ArrowDown' });
+  expect(rows[1]).toHaveFocus();
+  fireEvent.keyDown(rows[1], { key: 'Escape' });
+  expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  expect(trigger).toHaveFocus();
 });
 
 it('holds the widths: column 1 240px, column 2 26% from 260px to --panel-sm, column 3 the rest', () => {
@@ -177,14 +203,19 @@ it('announces the wait while the files and the open file load', () => {
 
 it('sorts the files from the title menu', () => {
   render(<Library menu folder="Projects" depth={2} />);
-  const names = () => [...screen.getByRole('navigation', { name: 'Files in Projects' }).querySelectorAll('.ui-nav__label')].map(el => el.textContent);
+  const names = (folder = 'Projects') => [...screen.getByRole('navigation', { name: `Files in ${folder}` }).querySelectorAll('.ui-nav__label')].map(el => el.textContent);
   expect(names()[0]).toBe('Brief');
   const trigger = screen.getByRole('button', { name: 'Projects' });
   fireEvent.click(trigger);
   const menu = within(trigger.closest<HTMLElement>('.ui-dropdown')!).getByRole('menu');
   expect(menu).toHaveTextContent('6 files');
-  fireEvent.click(within(menu).getByRole('menuitem', { name: 'Name' }));
+  fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Name' }));
   expect(names()).toEqual(['Brief', 'Budget', 'Notes', 'Plan', 'Report', 'Risks']);
+  // The quick filter keeps the files edited in November, so Shared loses its October file.
+  fireEvent.click(screen.getByRole('button', { name: 'Shared 3 files' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Shared' }));
+  fireEvent.click(within(screen.getByRole('button', { name: 'Shared' }).closest<HTMLElement>('.ui-dropdown')!).getByRole('menuitemradio', { name: 'Edited in November' }));
+  expect(names('Shared')).toEqual(['Contacts', 'Guide']);
 });
 
 // The month close showcase: the rows follow the open check, and an action that takes away the

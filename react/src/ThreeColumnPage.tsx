@@ -1,13 +1,24 @@
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react';
 import { BackLink } from './BackLink';
 import { Dropdown, type DropdownProps } from './Dropdown';
+import { Icon } from './primitives/Icon';
 import './ThreeColumnPage.css';
 
 /** How far down the chain the reader is: 1 the parents, 2 the children, 3 the open child. */
 export type ThreeColumnDepth = 1 | 2 | 3;
 
-/** The rows of a column's title menu, such as the count, sorting, the view and quick filters. */
-export type ThreeColumnMenu = Pick<DropdownProps, 'items' | 'sections' | 'header' | 'onSelect'>;
+/** The rows of a column's title menu, such as the count, sorting, the view and quick filters.
+ *  A row with `selected` set, true or false, is one choice of its group: it takes the check
+ *  when true. `scroll` is the panel's cap in px, for a menu taller than the kit's 300px. */
+export type ThreeColumnMenu = Pick<DropdownProps, 'items' | 'sections' | 'header' | 'onSelect' | 'scroll'>;
+
+// A choice row is the kit menu's single-choice item, as the account menu's theme rows are.
+const choiceRow: NonNullable<DropdownProps['row']> = (item, props) => item.selected === undefined
+  ? (props.href ? <a {...props} /> : <div {...props} />)
+  : <div {...props} role="menuitemradio" aria-checked={item.selected}>
+    {props.children}
+    <span className="ui-dropdown__tick"><Icon name="check" /></span>
+  </div>;
 
 export type ThreeColumn = {
   /** The column's h2, and the words of the back link that goes to the column. */
@@ -82,7 +93,8 @@ export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChang
     <header className="ui-columns__head">
       <h2 id={`${uid}-${n}`} className={col.menu ? 'ui-sr' : 'ui-card__title'} tabIndex={-1}>{col.title}</h2>
       {col.menu && <Dropdown variant="menu" align="start" triggerContent={col.title} triggerClass="ui-columns__menu"
-        items={col.menu.items} sections={col.menu.sections} header={col.menu.header} onSelect={col.menu.onSelect} />}
+        items={col.menu.items} sections={col.menu.sections} header={col.menu.header} onSelect={col.menu.onSelect}
+        scroll={col.menu.scroll} row={choiceRow} />}
       {col.count !== undefined && <>
         <span className="ui-columns__count" aria-hidden={col.countLabel ? true : undefined}>{col.count}</span>
         {col.countLabel && <span className="ui-sr">{col.countLabel}</span>}

@@ -341,7 +341,10 @@ children: the second column then takes its space and shows the empty state. Each
 `countLabel`, optional `tools`, and its `children`. `depth` is 1, 2 or 3: how far down the chain the
 reader is. `defaultDepth` is 2. `onDepthChange` hears the back link. With `depthHref`, the back link
 goes to the address of the depth above. `menu` takes the rows of a `Dropdown` menu: with it, the
-title opens the menu, and without it, the title is plain text.
+title opens the menu, and without it, the title is plain text. A menu row with `selected`, true or
+false, is one choice of its group, and the current choice shows the menu's tick. Put the actions
+in the first group and each set of choices in a labelled group. A menu taller than 300px takes
+`scroll` with its height, so every row shows.
 
 A column's list uses the sidebar's rows (`ui-nav__item`) inside `.ui-columns__list`. A row ends
 with `.ui-columns__end`, a count or a date, and a row that opens a column ends with a
