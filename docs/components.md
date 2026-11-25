@@ -1126,7 +1126,8 @@ destructive question.
 ```
 
 **What the user sees.** A raised surface over a deep scrim, at most 96% of the viewport high. The
-body scrolls, and the title, the close control and the footer stay visible. The title is an `h2`.
+body scrolls and is a keyboard stop, so a keyboard reader can reach it with Tab and scroll it. The
+title, the close control and the footer stay visible. The title is an `h2`.
 `initialFocusRef` chooses the first focus.
 
 `size="sm"` gives a 360px panel for a short sign-in form. Without `size`, Modal uses its default

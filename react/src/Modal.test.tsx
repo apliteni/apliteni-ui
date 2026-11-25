@@ -261,7 +261,7 @@ it('cycles neither a disabled nor a hidden control', async () => {
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }));
 });
 
-it('falls back to the dialog itself, and Shift+Tab still wraps from there', async () => {
+it('falls back to the dialog itself, and Shift+Tab wraps to the body, then Close', async () => {
   render(
     <Modal open title="Item settings" onClose={() => {}}>
       <input aria-label="Note" hidden />
@@ -269,6 +269,8 @@ it('falls back to the dialog itself, and Shift+Tab still wraps from there', asyn
   );
   const dialog = screen.getByRole('dialog');
   await waitFor(() => expect(document.activeElement).toBe(dialog));
+  await userEvent.tab({ shift: true });
+  expect(document.activeElement).toBe(document.querySelector('.rx-modal__body'));
   await userEvent.tab({ shift: true });
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }));
 });
@@ -341,6 +343,23 @@ it('names the dialog with a heading, not a styled div', () => {
   const heading = screen.getByRole('heading', { name: 'New campaign' });
   expect(heading.tagName).toBe('H2');
   expect(screen.getByRole('dialog')).toHaveAttribute('aria-labelledby', heading.id);
+});
+
+// button-labels: wordless-earns-it — the close control is a wordless button, so its
+// name must reach a hover title as well as assistive technology. Button adds a title
+// for an iconOnly control only when the caller sets no aria-label, and this one does.
+it('gives the wordless close control a hover title', () => {
+  render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  expect(screen.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close');
+});
+
+// The body is a scroll region (Modal.css gives it :focus-visible), so a keyboard
+// reader must be able to Tab into it and scroll it. The body's own tabindex makes it
+// a stop without moving focus from the first control on open, which firstIn still
+// reads from the body's descendants.
+it('gives the scrolling body a keyboard stop', () => {
+  render(<Modal open title="New campaign" onClose={() => {}}>body</Modal>);
+  expect(document.querySelector('.rx-modal__body')).toHaveAttribute('tabindex', '0');
 });
 
 // accessibility-floor: tap-zone — to a coarse pointer, each 36px foot button reaches 44.
