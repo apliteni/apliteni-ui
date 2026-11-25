@@ -26,11 +26,32 @@ function placeChartTip(mark: Element, tip: HTMLElement) {
   const below = view.clientHeight - rect.bottom;
   const isBelow = above < tip.offsetHeight + gap && below > above;
   tip.classList.toggle('is-below', isBelow);
+  // The readout floats over the page, so the view is its outer bound and the
+  // card it opens in its inner one: it must not run past the card's content box,
+  // inset by the card's padding, even where the view is wider. A chart outside
+  // a card keeps only the view.
+  // why: guidelines/hover-readouts.md#prefer-above-the-mark
+  const card = mark.closest('.ui-card');
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
-  const left = Math.max(0, Math.min(ideal, view.clientWidth - tip.offsetWidth));
+  const left = card
+    ? Math.max(cardContentLeft(card), Math.min(ideal, cardContentRight(card) - tip.offsetWidth))
+    : Math.max(0, Math.min(ideal, view.clientWidth - tip.offsetWidth));
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
   tip.style.setProperty('--ui-tip-y', `${isBelow ? rect.bottom : rect.top}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
+}
+
+/** A card's content box edges in view coordinates: its border box inset by the
+ *  card's own border and padding, so a readout stays off the card's edge. */
+function cardContentLeft(card: Element) {
+  const rect = card.getBoundingClientRect();
+  const style = getComputedStyle(card);
+  return rect.left + (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.paddingLeft) || 0);
+}
+function cardContentRight(card: Element) {
+  const rect = card.getBoundingClientRect();
+  const style = getComputedStyle(card);
+  return rect.right - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
 }
 
 // The paint is src/styles/chart.css, and this module does NOT import it: a kit
@@ -869,8 +890,8 @@ export function Chart(props: ChartProps) {
     // is the caller's string and may carry a quote.
     const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
       .find((el) => el.getAttribute('data-anchor') === openId);
-    // The readout floats over the page, so only the view and a box that really
-    // clips bound it: it opens above its mark, over the legend if it must.
+    // The readout floats over the page, so the view and its card bound it: it
+    // opens above its mark, over the legend if it must.
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
     if (!anchor) return;
     if (layered && !tip.matches(':popover-open')) tip.showPopover();

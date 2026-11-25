@@ -106,3 +106,12 @@ it('gives a glyph-only option its name as a hover title, and a worded option non
   expect(table).not.toHaveTextContent('Table');
   expect(screen.getByRole('button', { name: 'Board' })).not.toHaveAttribute('title');
 });
+
+it('marks only a glyph-only option with the larger-icon class', () => {
+  render(<Segmented label="View" value="table" onChange={() => {}} options={[
+    { label: 'Table', value: 'table', icon: 'table', iconOnly: true },
+    { label: 'Board', value: 'board', icon: 'grid' },
+  ]} />);
+  expect(screen.getByRole('button', { name: 'Table' })).toHaveClass('ui-seg--icon');
+  expect(screen.getByRole('button', { name: 'Board' })).not.toHaveClass('ui-seg--icon');
+});

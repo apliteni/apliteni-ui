@@ -1668,6 +1668,39 @@ it('opens the readout above its mark when the view has room there, over the lege
   expect(tip.classList.contains('is-below'), 'the frame is no ceiling for the readout').toBe(false);
 });
 
+it('clamps a top-layer readout to its card, not only the view', () => {
+  // The card is narrower than the view, so a readout that fits the view can still
+  // run past the card's right edge; the clamp must stop at the card's content box.
+  const layer = stubPopover();
+  try {
+    for (const [prop, value] of [['clientWidth', 820], ['clientHeight', 1180]] as const) {
+      Object.defineProperty(document.documentElement, prop, { value, configurable: true });
+    }
+    const { container } = render(
+      <Card title="Income and spend">
+        <Chart title="Income and spend by month" periods={periods} series={series} format={eur} />
+      </Card>,
+    );
+    const card = container.querySelector<HTMLElement>('.ui-card')!;
+    const tip = container.querySelector<HTMLElement>('.ui-tip')!;
+    const anchor = container.querySelector('[data-anchor="income-3"]')!;
+    const box = (top: number, bottom: number, left: number, right: number) =>
+      ({ top, bottom, left, right, width: right - left, height: bottom - top }) as DOMRect;
+    // The last bar's centre is 710, its readout is 200 wide: centred at 610 its
+    // right edge (810) clears the view (820) but not the card (780). The clamp
+    // slides it 30px back so its right edge meets the card's content box.
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue(box(0, 1180, 40, 780));
+    vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(box(100, 120, 700, 720));
+    vi.spyOn(tip, 'offsetWidth', 'get').mockReturnValue(200);
+    vi.spyOn(tip, 'offsetHeight', 'get').mockReturnValue(60);
+
+    hover('income-3');
+    expect(tip.style.getPropertyValue('--ui-tip-shift'), 'the readout stops at the card, not the view').toBe('-30px');
+  } finally {
+    layer.restore();
+  }
+});
+
 it('opens a spark readout in the top layer over a scrolling table', () => {
   const layer = stubPopover();
   try {

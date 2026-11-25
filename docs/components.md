@@ -665,7 +665,8 @@ underline keeps one 13px type size in both sizes, so `size` does not change it. 
 row. `neutral` marks the chosen option with the strong ink on the surface, for a view switch
 beside a page's main button; a filter or a setting keeps the accent. An option's `icon`
 draws a glyph before its label. With `iconOnly`, the glyph is the whole button and the label is
-its name and its hover title.
+its name and its hover title; the glyph is the kit's 18px icon, larger than a labelled option's 16px
+lead, so the wordless choice reads on its own.
 
 **What the user sees.** The chosen pill has the accent fill of a primary button. With `neutral`,
 the chosen pill has the strong ink on the surface, with no accent. The chosen

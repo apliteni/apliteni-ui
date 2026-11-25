@@ -83,6 +83,9 @@
    the whole label. The glyph keeps the button glyph's size and line. */
 .ui-seg button:has(> span > svg) { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
 .ui-seg button svg { display: block; width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+/* A wordless option is all glyph, so it takes the kit's 18px glyph: the card
+   row and dropdown icons size, larger than a labelled option's 16px lead. */
+.ui-seg button.ui-seg--icon svg { width: 18px; height: 18px; stroke-width: 2.1; }
 
 .ui-seg--sm button { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-tight); }
 .ui-seg--block { display: flex; align-self: stretch; justify-self: stretch; }

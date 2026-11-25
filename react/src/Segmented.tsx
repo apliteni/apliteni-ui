@@ -9,7 +9,7 @@ export function Segmented({ options, value, onChange, label, appearance = 'pill'
   const tabValue = enabled.some(o => o.value === value) ? value : enabled[0]?.value;
   return <div className={`ui-seg${size === 'sm' ? ' ui-seg--sm' : ''}${block ? ' ui-seg--block' : ''}${appearance === 'underline' ? ' ui-seg--underline' : ''}${neutral ? ' ui-seg--neutral' : ''}`} role="toolbar" aria-label={label}>
     {options.map(option => <button type="button" key={option.value} data-value={option.value} disabled={disabled || option.disabled}
-      className={value === option.value ? 'is-active' : undefined} aria-label={option.ariaLabel ?? (option.icon && option.iconOnly ? option.label : undefined)} title={option.icon && option.iconOnly ? option.label : undefined} aria-pressed={value === option.value} tabIndex={option.value === tabValue ? 0 : -1}
+      className={[(value === option.value ? 'is-active' : null), option.icon && option.iconOnly ? 'ui-seg--icon' : null].filter(Boolean).join(' ') || undefined} aria-label={option.ariaLabel ?? (option.icon && option.iconOnly ? option.label : undefined)} title={option.icon && option.iconOnly ? option.label : undefined} aria-pressed={value === option.value} tabIndex={option.value === tabValue ? 0 : -1}
       onClick={() => onChange(option.value)} onKeyDown={e => {
         const next = segmentedNextIndex(e.key, enabled.indexOf(option), enabled.length);
         if (next == null) return;
