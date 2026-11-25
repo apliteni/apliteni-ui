@@ -63,7 +63,8 @@ const rel = (p) => path.relative(root, p);
 // the other eight declarations.
 // 10 -> 12: svgOpen() classes join discovery, restoring .ch-chart--fluid's width and height.
 // 12 -> 14: the Motion guideline draws each easing curve as a plot, `.gm-plot svg`.
-const EXPECTED_SUBJECTS = 16;
+// 16 -> 18: #871's Three-column page draws the chevron of a parent row, `.tc-lay__row svg`.
+const EXPECTED_SUBJECTS = 18;
 
 /* Every file Storybook can render, plus everything under stories/ they reach.
  * The roots are the glob .storybook/main.js declares; the closure is what makes
