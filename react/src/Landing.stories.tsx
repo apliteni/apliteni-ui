@@ -36,7 +36,7 @@ function FeatureDemo({ index }: { index: number }) {
   if (index === 0) return <code className="ui-code">mcp connect --scope read</code>;
   if (index === 1) return <><Badge variant="live">Read-only</Badge><Button variant="danger" size="sm">Revoke</Button></>;
   if (index === 2) return <><Badge variant="info">Units</Badge><Badge variant="info">Connectors</Badge><Badge variant="info">Governance</Badge></>;
-  if (index === 3) return <Segmented neutral label="View" size="sm" options={[{ label: 'Deck', value: 'deck' }, { label: 'Text', value: 'text' }]}
+  if (index === 3) return <Segmented label="View" size="sm" options={[{ label: 'Deck', value: 'deck' }, { label: 'Text', value: 'text' }]}
     value={choice === 0 ? 'deck' : 'text'} onChange={(value) => setChoice(value === 'deck' ? 0 : 1)} />;
   if (index === 4) return <Segmented label="Language" size="sm" options={[{ label: 'EN', value: 'en' }, { label: 'RU', value: 'ru' }]}
     value={choice === 0 ? 'en' : 'ru'} onChange={(value) => setChoice(value === 'en' ? 0 : 1)} />;

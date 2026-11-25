@@ -289,10 +289,11 @@ describe('guideline pages in React: Dashboards and reports', () => {
   });
 
   // #867: the block's Chart and Table switch keeps the neutral form, the way the
-  // Chart component's own switch draws — a view switch stays off the page's accent.
+  // Chart component's own switch draws — the neutral form is the default, so a view
+  // switch stays off the page's accent.
   it('the block switch keeps the neutral form, not the accent', () => {
     const strip = block().querySelector('[role="tablist"]');
-    expect(strip).toHaveClass('ui-seg--neutral');
+    expect(strip).not.toHaveClass('ui-seg--accent');
   });
 
   // #863: the switch rule's cards sit inside the rule's own h2 section, so their

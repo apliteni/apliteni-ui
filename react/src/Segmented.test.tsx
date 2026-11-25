@@ -12,14 +12,22 @@ const options = [
 ];
 const props: SegmentedProps = { label: 'Language', options, value: 'en', onChange: () => {} };
 // DOM semantics and interaction only; browser captures measure shared CSS sizing and colour.
-it('preserves the default presentation and exposes both size and width modifiers', () => {
+it('draws the neutral form by default and exposes size, width and the accent form', () => {
   const { rerender } = render(<Segmented {...props} />);
   const toolbar = screen.getByRole('toolbar', { name: 'Language' });
   expect(toolbar).toHaveAttribute('class', 'ui-seg');
-  rerender(<Segmented {...props} size="sm" block appearance="underline" neutral />);
-  expect(toolbar).toHaveClass('ui-seg--sm', 'ui-seg--block', 'ui-seg--underline', 'ui-seg--neutral');
+  expect(toolbar).not.toHaveClass('ui-seg--accent');
+  rerender(<Segmented {...props} size="sm" block appearance="underline" accent />);
+  expect(toolbar).toHaveClass('ui-seg--sm', 'ui-seg--block', 'ui-seg--underline', 'ui-seg--accent');
   rerender(<Segmented {...props} />);
   expect(toolbar).toHaveAttribute('class', 'ui-seg');
+});
+
+it('ignores the deprecated neutral prop — the neutral form is the default', () => {
+  const { rerender } = render(<Segmented {...props} neutral />);
+  expect(screen.getByRole('toolbar', { name: 'Language' })).toHaveAttribute('class', 'ui-seg');
+  rerender(<Segmented {...props} neutral={false} />);
+  expect(screen.getByRole('toolbar', { name: 'Language' })).toHaveAttribute('class', 'ui-seg');
 });
 
 it.each([

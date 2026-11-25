@@ -82,7 +82,7 @@ export const Toolbar: StoryObj = {
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
-        <Segmented neutral label="View" value={view} onChange={setView}
+        <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
       </div>
       {view === 'table'
@@ -132,7 +132,7 @@ export const SmallToolbar: StoryObj = {
           items={CURRENCIES.map((item) => ({ ...item, selected: item.value === currency }))} />
         <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
-        <Segmented neutral label="View" size="sm" value={view} onChange={setView}
+        <Segmented label="View" size="sm" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table', icon: 'table', iconOnly: true }, { label: 'Board', value: 'board', icon: 'grid', iconOnly: true }]} />
       </div>
       <Card><DataTable columns={columns} rows={rows} density="dense" pager={false} selectable={false} stickyHeader

@@ -702,16 +702,17 @@ fit on one row. Use [`Tabs`](#tabs) when each choice shows a different panel. Se
 
 `appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller. The
 underline keeps one 13px type size in both sizes, so `size` does not change it. `block` fills the
-row. `neutral` marks the chosen option with the strong ink on the surface, for a view switch
-beside a page's main button; a filter or a setting keeps the accent. An option's `icon`
+row. Every control draws the neutral form by default: the chosen option is the strong ink on the
+surface. `accent` asks for the accent fill when a product needs it. `neutral` is a deprecated
+no-op kept for compatibility, and goes away at the next major. An option's `icon`
 draws a glyph before its label. With `iconOnly`, the glyph is the whole button and the label is
 its name and its hover title; the glyph is a 24px view icon, larger than a labelled option's 16px
 lead, so the wordless choice reads on its own.
 
-**What the user sees.** The chosen pill has the accent fill of a primary button. With `neutral`,
-the chosen pill has the strong ink on the surface, with no accent. The chosen
-underline tab is its label with a 2px accent bar under it, and no box; with `neutral` the bar is
-the strong ink. Hover changes only the
+**What the user sees.** The chosen pill has the strong ink on the surface, with no accent. With
+`accent`, the chosen pill has the accent fill of a primary button. The chosen
+underline tab is its label with a 2px strong bar under it, and no box; with `accent` the bar is
+the accent. Hover changes only the
 ink. When the options do not fit, they wrap onto more rows, so the strip never makes the column
 wider. A long label wraps inside its own option.
 

@@ -157,7 +157,7 @@ test('the chosen tab is a weight step and one bar, and draws no box', () => {
   const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
   const bar = ruleBody(baseCss, '.ui-seg--underline button.is-active::before');
   assert.equal(decl(slot, 'height'), '2px');
-  assert.equal(decl(slot, 'background'), 'var(--accent)');
+  assert.equal(decl(slot, 'background'), 'var(--strong)');
   assert.equal(decl(slot, 'opacity'), '0', 'a resting tab reserves the slot and draws nothing in it');
   assert.equal(decl(bar, 'opacity'), '1');
   // Inset on three sides, which is the whole of why the strip can wrap: a mark
@@ -180,9 +180,13 @@ test('the mark grows in place, the way the kit\'s other underline tab does', () 
   const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
   const navSlot = ruleBody(topLevel(readFileSync(new URL('./nav.css', import.meta.url), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '')), '.ui-nav--tabs.is-underline .ui-nav__tab::after');
-  for (const prop of ['height', 'border-radius', 'background', 'opacity', 'transform', 'transition']) {
+  for (const prop of ['height', 'border-radius', 'opacity', 'transform', 'transition']) {
     assert.equal(decl(slot, prop), decl(navSlot, prop), `the bar's ${prop} is the kit's underline tab's`);
   }
+  // The segmented bar is the neutral strong ink now, while the nav tab bar keeps its accent;
+  // the two no longer share a colour, so it is asserted apart from the structure above.
+  assert.equal(decl(slot, 'background'), 'var(--strong)', 'the segmented bar draws the strong ink');
+  assert.equal(decl(navSlot, 'background'), 'var(--accent)', 'the nav tab bar still draws the accent');
   assert.equal(decl(ruleBody(baseCss, '.ui-seg--underline button.is-active::before'), 'transform'), 'scaleX(1)');
 });
 
@@ -230,20 +234,28 @@ test('underline strips wrap and clip nothing', () => {
   assert.equal(valueOf('.ui-seg--underline', 'overflow'), 'visible', 'a scroll box would clip the focus ring against the strip padding');
 });
 
-test('the neutral pill marks the chosen option with the strong ink on the surface, and no accent edge', () => {
-  const pill = ruleBody(baseCss, '.ui-seg--neutral button.is-active');
-  assert.equal(decl(pill, 'color'), 'var(--surface)', 'the neutral ink is the surface, not accent contrast');
-  assert.equal(decl(pill, 'background'), 'var(--strong)', 'the neutral fill is the strong ink, not the accent');
-  assert.equal(decl(pill, 'box-shadow'), 'none', 'the neutral pill draws no accent edge');
-  const pressed = ruleBody(baseCss, '.ui-seg--neutral button[aria-pressed="true"]');
+test('the default pill marks the chosen option with the strong ink on the surface, and no accent edge', () => {
+  const pill = ruleBody(baseCss, '.ui-seg button.is-active');
+  assert.equal(decl(pill, 'color'), 'var(--surface)', 'the default ink is the surface, not accent contrast');
+  assert.equal(decl(pill, 'background'), 'var(--strong)', 'the default fill is the strong ink, not the accent');
+  assert.equal(decl(pill, 'box-shadow'), 'none', 'the default pill draws no accent edge');
+  const pressed = ruleBody(baseCss, '.ui-seg button[aria-pressed="true"]');
   assert.equal(decl(pressed, 'color'), 'var(--surface)');
   assert.equal(decl(pressed, 'background'), 'var(--strong)');
-  const selected = ruleBody(baseCss, '.ui-seg--neutral button[aria-selected="true"]');
+  const selected = ruleBody(baseCss, '.ui-seg button[aria-selected="true"]');
   assert.equal(decl(selected, 'color'), 'var(--surface)');
   assert.equal(decl(selected, 'background'), 'var(--strong)');
 });
 
-test('the neutral underline bar is the strong ink, not the accent', () => {
-  const bar = ruleBody(baseCss, '.ui-seg--neutral.ui-seg--underline button::before');
-  assert.equal(decl(bar, 'background'), 'var(--strong)', 'the neutral bar draws the strong ink');
+test('the accent pill takes the accent fill and edge only with the accent form', () => {
+  const pill = ruleBody(baseCss, '.ui-seg--accent button.is-active');
+  assert.equal(decl(pill, 'color'), 'var(--accent-contrast)', 'the accent ink is the accent contrast');
+  assert.equal(decl(pill, 'background'), 'var(--accent-strong)', 'the accent fill is the accent strong');
+  assert.equal(decl(pill, 'box-shadow'), 'inset 0 0 0 1px var(--accent)', 'the accent pill carries its edge');
+});
+
+test('the underline bar is the strong ink by default, and the accent only with the accent form', () => {
+  const bar = ruleBody(baseCss, '.ui-seg--underline button::before');
+  assert.equal(decl(bar, 'background'), 'var(--strong)', 'the default bar draws the strong ink');
+  assert.equal(decl(ruleBody(baseCss, '.ui-seg--accent.ui-seg--underline button::before'), 'background'), 'var(--accent)', 'the accent bar draws the accent');
 });

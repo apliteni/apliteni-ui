@@ -142,11 +142,11 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:50",
+    "ref": "src/styles/segmented.css:60",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:51",
+    "ref": "src/styles/segmented.css:61",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -183,11 +183,11 @@
   "neutral-selection": [
    {
     "ref": "react/src/Segmented.tsx:5",
-    "pattern": "neutral?: boolean"
+    "pattern": "accent?: boolean"
    },
    {
-    "ref": "src/styles/segmented.css:59",
-    "pattern": ".ui-seg--neutral button.is-active"
+    "ref": "src/styles/segmented.css:57",
+    "pattern": ".ui-seg--accent button.is-active"
    },
    {
     "ref": "src/styles/topbar.css:74",
@@ -706,11 +706,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:137",
+    "ref": "src/styles/segmented.css:135",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:146",
+    "ref": "src/styles/segmented.css:144",
     "pattern": "padding: var(--space-3)"
    }
   ]

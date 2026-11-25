@@ -91,8 +91,8 @@ const MonthTable = ({ months = MONTHS, net = NET_BY_MONTH }: { months?: string[]
 );
 
 // One block, one view at a time: the switch shares the title's row and opens on Chart.
-// Small underline tabs, not pills, in the neutral form, the way the Chart component's
-// own switch draws: a view switch keeps off the page's accent.
+// Small underline tabs, not pills — the neutral form is the default, the way the Chart
+// component's own switch draws: a view switch keeps off the page's accent.
 // Table replaces the chart, so each view is a panel: the kit's underline strip with
 // tab roles, because the kit's Tabs cannot sit in a block's title row.
 // The wrapper keeps the row's baseline, which the strip's own stretch would drop.
@@ -108,7 +108,7 @@ const MonthBlock = ({ view: initial, chartLabel, months, net, span }:
     <MonthTable months={months} net={net} />];
   return <Card><div className="gd-block-head">
     <h3 className="ui-card__title">Net settled by month</h3>
-    <div><div className="ui-seg ui-seg--sm ui-seg--underline ui-seg--neutral" role="tablist" aria-label="Net settled by month view">
+    <div><div className="ui-seg ui-seg--sm ui-seg--underline" role="tablist" aria-label="Net settled by month view">
       {VIEWS.map((option, i) => <button key={option.value} type="button" role="tab" id={`${id}-tab-${i}`} aria-controls={`${id}-panel-${i}`}
         className={option.value === view ? 'is-active' : undefined} aria-selected={option.value === view} tabIndex={option.value === view ? 0 : -1}
         onClick={() => setView(option.value)} onKeyDown={e => {

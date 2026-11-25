@@ -56,17 +56,17 @@
 
 **Except:** NavTabs pills keep accent ink on soft fill, as fill alone is too faint (#429). A Segmented pill's edge belongs to its fill.
 
-## Use the neutral form for a view switch
+## Draw Segmented controls in the neutral form
 
 <!-- rule: neutral-selection -->
 
-**Rule:** Use the neutral form for a view switch. Keep the accent form for a filter or a setting.
+**Rule:** Draw every Segmented control in the neutral form; ask for the accent form only when needed.
 
-**Why:** A view switch sits beside the page's main button, so two accent fills compete.
+**Why:** An accent fill competes with the page's main button wherever it sits.
 
-**Do:** Switch between chart and table, or between deck and text, with the neutral form.
+**Do:** Switch between chart and table, and filter a ledger, with the neutral form.
 
-**Don't:** Give a view switch the accent fill.
+**Don't:** Give a view switch, a filter or a setting the accent fill.
 
 ## Theme checks
 

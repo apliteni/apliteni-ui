@@ -1031,7 +1031,7 @@ export function Chart(props: ChartProps) {
     </ul>
   );
   const viewSwitch = showTable && (
-    <Segmented neutral size="sm" label={`${title}, view`} value={view}
+    <Segmented size="sm" label={`${title}, view`} value={view}
       onChange={(next) => setView(next as 'chart' | 'table')} options={[
         { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
         { value: 'table', label: 'Table', icon: 'table', iconOnly: true },

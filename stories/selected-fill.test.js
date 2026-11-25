@@ -171,8 +171,8 @@ const SUBJECTS = [
     paintedBy: '.ui-seg, which paints --surface',
   })),
   ...['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]'].map((state) => ({
-    name: `the chosen neutral segmented pill (${state})`,
-    rule: `.ui-seg--neutral button${state}`, ground: '--surface',
+    name: `the chosen segmented pill (${state})`,
+    rule: `.ui-seg button${state}`, ground: '--surface',
     paintedBy: '.ui-seg, which paints --surface',
   })),
   {
@@ -373,7 +373,7 @@ const edgesOf = (selector, css = rules) => css
 
 // Without the edge, the dark theme's strong fill alone is under 3:1 on its track. #832
 test('a selected pill without its inset edge falls under 3:1 in the dark theme', () => {
-  const selector = '.ui-seg button[aria-pressed="true"]';
+  const selector = '.ui-seg--accent button[aria-pressed="true"]';
   assert.ok(edgesOf(selector).length > 0, 'the selected pill has no inset edge to remove');
   const bare = rules.map((rule) => ({ ...rule, body: rule.body.replace(/box-shadow\s*:\s*inset 0 0 0 1px [^;]+;?/, '') }));
   assert.deepEqual(edgesOf(selector, bare), []);
@@ -414,7 +414,7 @@ test('segmented pills use an accent mark with at least 3:1 against their track',
   const states = ['[aria-pressed="true"]', '[aria-selected="true"]', '.is-active'];
   let count = 0;
   for (const state of states) {
-    const selector = `.ui-seg button${state}`;
+    const selector = `.ui-seg--accent button${state}`;
     const marks = discovered.filter((found) => found.selector === selector);
     assert.ok(marks.length > 0, `${selector}: no selected fill found`);
     assert.ok(!measured.has(selector), `${selector}: an accent mark is still a grey-fill subject`);
@@ -517,7 +517,7 @@ const forcedSubjects = [...new Set(readRules(dropForcedColours(forcedSource))
   .map((selector) => selector.replace(/::(?:before|after)$/, '')))];
 const row = '<a href="#" class="ui-nav__item is-active">Selected</a>';
 const forcedFixtures = [
-  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline', 'ui-seg--neutral'].map((kind) => [
+  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline', 'ui-seg--accent'].map((kind) => [
     `segmented ${kind} ${state}`, `<div class="ui-seg ${kind}"><button ${state === 'is-active' ? 'class="is-active"' : state}>Selected</button></div>`,
   ])),
   ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].map((state) => [
