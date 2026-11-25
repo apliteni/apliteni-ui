@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.198.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],
+    ],
+  },
+  {
     v: '0.197.0', date: '2026-11-25',
     changes: [
       ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],
