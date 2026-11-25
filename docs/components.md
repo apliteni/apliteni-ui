@@ -946,10 +946,10 @@ form. Use a [toast](#toast) for a short notice after an action.
 circled status glyph. Info and neutral take `info`. Pass `icon` when the tone does not say enough.
 
 A 1px line in the tone's colour draws the box. The line is inset, so the box size does not
-change. A `b` that starts the body takes the tone's status ink. Start the body with a short lead,
-such as `<b>Incomplete.</b>`. If plain text comes before the first `b` of the body, that `b` also takes the ink.
-A link in the body text is underlined in each tone. A `Button` link in `actions` keeps its button
-look.
+change. A `b` or a `strong` that starts the body takes the tone's status ink. Start the body with
+a short lead, such as `<b>Incomplete.</b>`. If plain text comes before the first `b` or `strong`
+of the body, that element also takes the ink. A link in the body text is underlined in each tone.
+A `Button` link in `actions` keeps its button look.
 
 ### Toast
 

@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.198.0', date: '2026-11-25',
     changes: [
-      ['changed', 'Each Callout tone now draws a 1px line in its colour inside the box, and a neutral Callout draws a grey line. A `b` that starts the body takes the tone\'s status ink, and a link in the body text is underlined. The box size, the padding and the wash do not change, so no page moves. Part of #881.', ['Callout']],
+      ['changed', 'Each Callout tone now draws a 1px line in its colour inside the box, and a neutral Callout draws a grey line. A `b` or a `strong` that starts the body takes the tone\'s status ink, and a link in the body text is underlined. The box size, the padding and the wash do not change, so no page moves. Part of #881.', ['Callout']],
     ],
   },
   {

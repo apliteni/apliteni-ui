@@ -837,9 +837,10 @@ for (const theme of ['dark', 'light']) {
  * AA on the wash over every opaque ground. The line is held only to exist and to
  * be the tone's own: it bounds a region that the wash already bounds, so WCAG
  * 1.4.11 asks no ratio of it.
+ * A lead is a `b` or a `strong`: the kit's own stories write both.
  * NOT REACHED: a `b` after text in the body also matches `:first-child`, because
  * a text node is not an element. It takes the same ink, so the ratio holds. */
-const CALLOUT_LEAD = '.ui-callout__body > b:first-child';
+const CALLOUT_LEADS = ['.ui-callout__body > b:first-child', '.ui-callout__body > strong:first-child'];
 
 /** The line and the lead a callout status puts in scope, over the base rule. */
 function calloutTone(status) {
@@ -863,8 +864,10 @@ for (const theme of ['dark', 'light']) {
   for (const status of calloutStatuses().map((s) => s ?? 'neutral')) {
     test(`the ${status} callout lead clears WCAG AA on its wash — ${theme}`, () => {
       const vars = new Map([...tokensFor(theme), ...Object.entries(calloutTone(status))]);
-      const ink = declOf(CALLOUT_LEAD, 'color').color;
-      assert.strictEqual(ink, 'var(--callout-lead)', `${CALLOUT_LEAD} does not paint the tone's lead ink`);
+      for (const lead of CALLOUT_LEADS) {
+        assert.strictEqual(declOf(lead, 'color').color, 'var(--callout-lead)', `${lead} does not paint the tone's lead ink`);
+      }
+      const ink = 'var(--callout-lead)';
       const wash = resolve(declOf(status === 'neutral' ? '.ui-callout' : `.ui-callout--${status}`).background, vars);
       for (const on of wash.alpha === 1 ? [undefined] : CALLOUT_ON) {
         const ground = on ? composite(wash, resolve(on, vars).rgb) : wash.rgb;
