@@ -123,6 +123,16 @@ export const problemsIn = (file, text, lookup = resolve) => {
     }
   });
 
+  // A markdown page's link to its own heading, such as a contents table's [Footer](#footer).
+  if (file.endsWith('.md')) {
+    const own = anchorsOf(text);
+    lines.forEach((line, i) => {
+      for (const m of line.matchAll(/\]\(#([\w-]+)\)/g)) {
+        if (!own.has(m[1])) problems.push(`${file}:${i + 1}\n     links #${m[1]}, and this page has no such heading`);
+      }
+    });
+  }
+
   return problems;
 };
 
@@ -191,6 +201,10 @@ test('a reference that stops landing fails with a line a reader can act on', () 
 
   assert.deepStrictEqual(withPage('a.mjs', "const LEAK_FILE = 'notes/deploy-target.md';"), [],
     'a fixture a gate plants in a synthetic repo is not a citation');
+
+  assert.deepStrictEqual(withPage('a.md', '## Footer\n\n[Footer](#footer) and [Icon](#icon)'), [
+    'a.md:3\n     links #icon, and this page has no such heading',
+  ], 'a link to a heading on the same page has to land on one');
 
   assert.deepStrictEqual(withPage('a.md', 'see [notes](notes.md) for more'), [
     'a.md:1\n     cites notes.md, and no such file exists',

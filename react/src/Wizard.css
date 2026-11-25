@@ -1,0 +1,77 @@
+/* Ordered steps. Each row is a sidebar row (.ui-nav__item), so hover, the open step's
+   plate and the focus ring are the rail's own. The mark says the state by its shape and
+   the word under the name says it again, so no state rests on colour alone.
+   why: docs/components.md#wizard */
+.ui-wizard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-sans);
+}
+.ui-wizard .ui-wizard__step {
+  display: grid;
+  grid-template-columns: var(--space-6) minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: start;
+  color: var(--text);
+}
+.ui-wizard .ui-wizard__step.is-active {
+  /* The open step takes the kit's selected-control paint, with no edge and no outline
+     (rev_80635b1e54ca/d1). */
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
+}
+.ui-wizard__text { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+.ui-wizard__state { font-size: var(--text-sm); font-weight: var(--weight-normal); }
+
+/* A 16px circle in a 24px box, on the first line of the name. */
+.ui-wizard__mark {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: calc((var(--space-6) - var(--space-4)) / 2);
+  border-radius: 50%;
+}
+.ui-wizard__mark--todo { border: 1.5px solid var(--muted); }
+.ui-wizard__mark--current { border: 1.5px solid var(--accent); }
+.ui-wizard__mark--current::after {
+  content: '';
+  width: var(--space-1);
+  height: var(--space-1);
+  border-radius: 50%;
+  background: var(--accent);
+}
+.ui-wizard__mark--done { background: var(--chip-neutral-fill); color: var(--signal-solid-success); }
+.ui-wizard__mark--blocked { color: var(--signal-solid-danger); }
+.ui-wizard__mark > span { display: grid; }
+/* A status glyph's stroke is 1.5 CSS px or wider: 3 at 12px, 1.8 at 20px. The alert's
+   circle is 20/24 of its box, so a 20px box draws the 16px circle of the other marks.
+   why: guidelines/iconography.md#status-stroke-width */
+.ui-wizard__mark--done svg { width: var(--space-3); height: var(--space-3); stroke-width: 3; }
+.ui-wizard__mark--blocked svg { width: var(--space-5); height: var(--space-5); stroke-width: 1.8; }
+
+/* The open step's content and the final action stand on the name's edge. */
+.ui-wizard__panel,
+.ui-wizard__final {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: var(--space-2);
+  margin-inline: calc(var(--space-3) + var(--space-6) + var(--space-2)) var(--space-3);
+  padding-block: var(--space-2);
+}
+.ui-wizard__panel[hidden] { display: none; } /* motion: still — one step opens as another closes, and the row's plate already transitions */
+.ui-wizard__panel:empty { display: none; }
+.ui-wizard__panel p,
+.ui-wizard__reason { margin: 0; max-width: var(--prose-caption); color: var(--text); font-size: var(--text-base); line-height: 1.5; }
+
+/* A finger needs the tap gap between the rows and the actions under them. */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-wizard,
+  .ui-wizard__panel,
+  .ui-wizard__final { gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+}

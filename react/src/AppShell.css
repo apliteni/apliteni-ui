@@ -88,6 +88,20 @@
 .ui-react-app__band-control { display: contents; }
 /* The page title is the phone band's words, and the h1 below keeps the page's name. */
 .ui-react-app__title { display: none; }
+/* A full-width page fills the well under the band, so its parts reach the page's foot, and
+   its title is the band's h1, at every width, in the band title's type. */
+.ui-react-app .ui-app__main--full { max-width: none; padding: 0; display: flex; flex: 1 1 auto; flex-direction: column; }
+.ui-react-app .ui-app__main--full > .ui-app__body { flex: 1 1 auto; }
+/* Where the band's h1 starts, from the full-width main's edge, so the page can put the first
+   words of a control that draws no box there. Above 720px it is the band's own padding. At
+   720px and below, the 8px band edge and the mark's box stand before it: 44px and a 12px
+   gap, and on a phone 40px with no gap. why: guidelines/spacing.md#put-text-on-the-column-edge */
+.ui-react-app .ui-app__bar:has(> .ui-react-app__title--page) + .ui-app__main--full { --ui-app-title-inset: clamp(24px, 4vw, 56px); }
+.ui-react-app h1.ui-react-app__title--page {
+  display: block; min-width: 0; margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: inherit; color: var(--strong); font-weight: var(--weight-semibold);
+}
 /* With a sidebar, search is the band's only control above the phone width, and it stands
    in the band's centre (#732). */
 @media (min-width: 721px) {
@@ -95,6 +109,7 @@
   .ui-react-app .ui-app__bar:has(> .ui-react-app__title) .ui-app__bar-gap { display: none; }
 }
 @media (max-width: 720px) {
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title--page) + .ui-app__main--full { --ui-app-title-inset: calc(var(--space-2) + 44px + var(--space-3)); }
   /* Mark, title, search and Menu (#732). The mark's box and Menu stand 8px from the edges,
      so the mark's glyph lines up with the page column. */
   .ui-react-app .ui-app__bar:has(> .ui-app__menu:last-child) { padding-inline: var(--space-2); }
@@ -124,6 +139,9 @@
   /* With no gap there is no room across, so a coarse pointer's tap layer stays on its own
      40px control and never covers the next one. Down, the band's 12px stays. tap-zone.css */
   .ui-react-app .ui-app__bar { --tap-clear-x: 0px; }
+  .ui-react-app .ui-app__bar:has(> .ui-react-app__title--page) + .ui-app__main--full { --ui-app-title-inset: calc(var(--space-2) + 40px); }
+  /* A full-width page's tools follow the band's h1 on the same row, so they open no room across either. */
+  .ui-react-app .ui-app__bar > .ui-react-app__band-tools { --tap-clear-x: 0px; }
   /* The rail layout's band keeps the vanilla gap between Menu and the brand mark. */
   .ui-react-app .ui-app__bar--phone { gap: var(--space-3); --tap-clear-x: var(--space-3); }
   /* A band without the menu starts on the page column. */

@@ -6,10 +6,19 @@
 
 export const RELEASES = [
   {
-    v: '0.194.0', date: '2026-11-24',
+    v: '0.195.0', date: '2026-11-25',
     changes: [
       ['changed', 'Cards and floating panels now use a smaller 12px corner. One-line typed fields use a 16px corner, and text areas and message boxes use a 24px corner. Where supported, these corners use a squircle shape. Part of #874.', ['Card', 'Dropdown', 'Modal', 'Confirm']],
       ['changed', 'A form Dropdown and native select now fit their longest option up to the field width. Their pill shape stays unchanged, and a value change does not change their width. Part of #874.', ['Dropdown']],
+      ['fixed', 'A form Dropdown\'s hidden width rows now sit inside the trigger, so a touch phone\'s 16px type and a picker\'s avatar are measured, and a long option truncates inside the trigger instead of widening the page. Part of #874.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.194.0', date: '2026-11-24',
+    changes: [
+      ['added', '`ThreeColumnPage` puts a list and its ordered steps on one half of a split page and the work of the open step on the other half. At 860px the list becomes its own view, and at 560px each area is its own view. A new Three-column page guideline states the widths and the collapse order. Resolves #871.', ['Page shell']],
+      ['added', '`AppShell` takes `width="full"` for a page whose parts reach its edges: the content column has no cap and no padding, and the page title stands in the band as its `h1`, with the page `tools` after it. Resolves #871.', ['Page shell']],
+      ['added', '`Wizard` shows ordered steps as done, current, blocked or to do, keeps one step open on the selected-control tint and holds the final action until each earlier step is done. A new Wizard guideline page gives its rules. Resolves #871.', ['Wizard']],
     ],
   },
   {
