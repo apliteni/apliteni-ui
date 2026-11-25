@@ -23,7 +23,7 @@ export const FOLDERS: Folder[] = [
   ] },
   { name: 'Archive', files: [
     f('Old plan', '2 Dec', 'Alex Example', '38 KB', 'The first plan, before the review.', 'Keep it for reference only.'),
-    f('Minutes', '28 Nov', 'Sam Sample', '5 KB', 'The minutes of the first meeting.'),
+    f('Minutes', '28 Oct', 'Sam Sample', '5 KB', 'The minutes of the first meeting.'),
   ] },
   { name: 'Shared', files: [
     f('Guide', '21 Nov', 'Sam Sample', '64 KB', 'A guide for new team members.', 'It lists the tools and the first steps.'),
@@ -59,20 +59,30 @@ export type LibraryProps = {
   loading?: boolean;
 };
 
+const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** A day such as "22 Nov" as a number that sorts: the month, then the day. */
+const dayKey = (day: string) => { const [d, m] = day.split(' '); return MONTH.indexOf(m) * 100 + Number(d); };
+const files = (n: number) => `${n} ${n === 1 ? 'file' : 'files'}`;
+/** Each depth has its own address, so the back link goes to the parent's address. */
+const libraryHref = (folder: string, file?: string) => (depth: ThreeColumnDepth) =>
+  ['#/library', depth > 1 ? `/${folder}` : '', depth > 2 && file ? `/${file}` : ''].join('');
+
 export function Library({ depth: startDepth = 3, folder: startFolder = 'Shared', menu = false, loading = false }: LibraryProps) {
   const [depth, setDepth] = useState(startDepth);
   const [folderName, setFolderName] = useState(startFolder);
   const folder = FOLDERS.find(item => item.name === folderName) ?? FOLDERS[0];
   const [fileName, setFileName] = useState(folder.files[1]?.name ?? folder.files[0]?.name);
-  const file = folder.files.find(item => item.name === fileName) ?? folder.files[0];
   const [sort, setSort] = useState('date');
   const [show, setShow] = useState('all');
-  const files = folder.files.filter(item => show === 'all' || item.day.endsWith('Nov'))
-    .sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : 0);
+  // The rows on show: the quick filter keeps the files edited in November. Date is newest first.
+  const shown = folder.files.filter(item => show === 'all' || item.day.endsWith('Nov'))
+    .sort((a, b) => sort === 'name' ? a.name.localeCompare(b.name) : dayKey(b.day) - dayKey(a.day));
+  // The open file is a row on show. When the filter hides it, the first row on show opens.
+  const file = shown.find(item => item.name === fileName) ?? shown[0];
+  const filtered = shown.length < folder.files.length;
   // A new folder replaces the files and the open file.
   const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };
   const titleMenu: ThreeColumnMenu = {
-    header: <div className="ui-dropdown__head">{folder.files.length} files</div>,
     onSelect: value => { if (value === 'name' || value === 'date') setSort(value); else if (value === 'all' || value === 'november') setShow(value); },
     // The menu holds every row, so it needs no scroll at the kit's 300px cap.
     scroll: 400,
@@ -85,17 +95,22 @@ export function Library({ depth: startDepth = 3, folder: startFolder = 'Shared',
   return <AppShell word="Example" width="full" title="Library" pathname="/library"
     sections={[{ href: '/library', label: 'Library', icon: 'doc' }, { href: '/settings', label: 'Settings', icon: 'gear' }]}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
-    <ThreeColumnPage depth={depth} onDepthChange={setDepth} columns={[
+    <ThreeColumnPage depth={depth} onDepthChange={setDepth} depthHref={libraryHref(folder.name, file?.name)} columns={[
       { title: 'Folders', count: FOLDERS.length, countLabel: `${FOLDERS.length} folders`, children: <Rows label="Folders"
-        rows={FOLDERS.map(item => ({ name: item.name, icon: 'folder', end: String(item.files.length), endLabel: `${item.files.length} files`,
+        rows={FOLDERS.map(item => ({ name: item.name, icon: 'folder', end: String(item.files.length), endLabel: files(item.files.length),
           selected: item === folder, opens: true, onOpen: () => openFolder(item) }))} /> },
-      { title: folder.name, count: loading ? undefined : folder.files.length, countLabel: `${folder.files.length} files`,
+      // With a filter on, the count says how many of the folder's files show, so the filter shows with the menu closed.
+      { title: folder.name, count: loading ? undefined : filtered ? `${shown.length} of ${folder.files.length}` : shown.length,
+        countLabel: filtered ? `${shown.length} of ${files(folder.files.length)}` : files(shown.length),
         menu: menu ? titleMenu : undefined,
         children: loading ? <Pending label="Loading the files" lines={6} />
-          : files.length ? <Rows label={`Files in ${folder.name}`} rows={files.map(item => ({ name: item.name, icon: 'doc', end: item.day,
+          : shown.length ? <Rows label={`Files in ${folder.name}`} rows={shown.map(item => ({ name: item.name, icon: 'doc', end: item.day,
             selected: item === file, opens: false, onOpen: () => { setFileName(item.name); setDepth(3); } }))} />
+          : filtered ? <div className="ui-columns__body"><EmptyState variant="no-matches" level={3} title="No files edited in November"
+            sub="Show all files to see the others." actions={<Button onClick={() => setShow('all')}>Show all files</Button>} /></div>
           : <div className="ui-columns__body"><EmptyState level={3} icon="folder" title={`No files in ${folder.name}`}
             sub="Upload a file, or open another folder." actions={<Button variant="secondary" icon="upload">Upload file</Button>} /></div> },
+      // The loading column keeps a title, so its region has a name and its header row its height.
       loading ? { title: 'File', children: <Pending label="Loading the file" lines={4} /> }
         : file ? { title: file.name, children: <div className="ui-columns__body">
           <KeyValueList rows={[{ label: 'Folder', value: folder.name }, { label: 'Edited', value: `${file.day} 2026` },

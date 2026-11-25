@@ -11,8 +11,9 @@ export default meta;
 
 // A column browser with neutral data: the folders, the files of the selected folder, and the open file.
 export const Folders: StoryObj = { render: () => <Library /> };
-// The files column's title opens a menu with the count, sorting, export and quick filters.
-export const TitleMenu: StoryObj = { render: () => <Library menu /> };
+// The files column's title opens a menu with sorting, export and quick filters. It opens at
+// depth 2, so a phone shows the menu.
+export const TitleMenu: StoryObj = { render: () => <Library menu depth={2} /> };
 // A folder with no files: the files column takes the open file's space.
 export const EmptyFolder: StoryObj = { render: () => <Library folder="Templates" depth={2} /> };
 export const Loading: StoryObj = { render: () => <Library loading /> };

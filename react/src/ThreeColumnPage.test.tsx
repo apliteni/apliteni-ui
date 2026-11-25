@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -14,8 +14,10 @@ import { MonthClose, type MonthCloseStage } from './showcases/MonthClose';
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ThreeColumnPage.css'), 'utf8');
-const at = (width: number) => vi.stubGlobal('matchMedia', (query: string) => ({
-  matches: width <= Number(/max-width: (\d+)px/.exec(query)![1]), addEventListener() {}, removeEventListener() {} }));
+const at = (width: number) => vi.stubGlobal('matchMedia', (query: string) => {
+  const max = /max-width: (\d+)px/.exec(query);
+  return { matches: max ? width <= Number(max[1]) : false, addEventListener() {}, removeEventListener() {} };
+});
 const cols = (third = true): [ThreeColumn, ThreeColumn, ThreeColumn?] => [
   { title: 'Folders', count: 5, countLabel: '5 folders', children: <button type="button">Shared</button> },
   { title: 'Shared', tools: <button type="button">Upload</button>, children: <button type="button">Contacts</button> },
@@ -83,6 +85,70 @@ it('goes one step up the chain from the back link', () => {
   expect(root()).toHaveAttribute('data-depth', '3');
 });
 
+// An uncontrolled page goes down the chain from a row, so a phone reader who goes back can
+// open a row again.
+it('goes one step down the chain from a row that calls open, with or without depth', () => {
+  at(390);
+  const onDepthChange = vi.fn();
+  const rows = (): [ThreeColumn, ThreeColumn, ThreeColumn?] => [
+    { title: 'Folders', children: open => <button type="button" onClick={open}>Shared</button> },
+    { title: 'Shared', children: open => <button type="button" onClick={open}>Contacts</button> },
+    { title: 'Contacts', children: open => <button type="button" onClick={open}>Stay</button> },
+  ];
+  render(<ThreeColumnPage columns={rows()} onDepthChange={onDepthChange} />);
+  fireEvent.click(screen.getByRole('link', { name: 'Back to Folders' }));
+  expect(root()).toHaveAttribute('data-depth', '1');
+  fireEvent.click(screen.getByRole('button', { name: 'Shared' }));
+  expect(root()).toHaveAttribute('data-depth', '2');
+  fireEvent.click(screen.getByRole('button', { name: 'Contacts' }));
+  expect(root()).toHaveAttribute('data-depth', '3');
+  // The last column has no next column, so open keeps the depth.
+  fireEvent.click(screen.getByRole('button', { name: 'Stay' }));
+  expect(root()).toHaveAttribute('data-depth', '3');
+  expect(onDepthChange.mock.calls.map(([to]) => to)).toEqual([1, 2, 3, 3]);
+  cleanup();
+  // A controlled page hears the step and keeps its depth prop.
+  render(<ThreeColumnPage columns={rows()} depth={1} onDepthChange={onDepthChange} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Shared' }));
+  expect(onDepthChange).toHaveBeenLastCalledWith(2);
+  expect(root()).toHaveAttribute('data-depth', '1');
+});
+
+// Limits: JSDOM has no layout, so the page area is a stubbed ResizeObserver entry.
+// stories/three-column.test.js measures the columns beside an open sidebar in a browser.
+it('shows two columns in a page area of 860px or less, even in a wide window', () => {
+  let report: ResizeObserverCallback = () => {};
+  vi.stubGlobal('ResizeObserver', class { constructor(fn: ResizeObserverCallback) { report = fn; } observe() {} disconnect() {} });
+  at(1280);
+  render(page({ depth: 3 }));
+  expect(screen.queryByRole('link', { name: /^Back to/ })).toBeNull();
+  const area = (width: number) => act(() => report([{ contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver));
+  area(860);
+  expect(screen.getByRole('link', { name: 'Back to Folders' })).toBeInTheDocument();
+  area(861);
+  expect(screen.queryByRole('link', { name: /^Back to/ })).toBeNull();
+  expect(root().parentElement).toHaveClass('ui-columns-area');
+});
+
+it('ends a long plain title in an ellipsis', () => {
+  render(page());
+  const words = document.querySelector('[data-column="1"] h2 > .ui-columns__words');
+  expect(words).toHaveTextContent('Folders');
+  expect(css).toMatch(/\.ui-columns__words \{[^}]*overflow: hidden; text-overflow: ellipsis; white-space: nowrap; \}/);
+});
+
+it('caps the title menu at its scroll height and draws a link row as a link', () => {
+  render(page({ columns: [cols()[0], { ...cols()[1], menu: { scroll: 400, onSelect: vi.fn(),
+    sections: [{ items: [{ label: 'Open folder', value: 'open', href: '#/folder' }] },
+      { label: 'Sort by', items: [{ label: 'Name', value: 'name', selected: true }] }] } }, cols()[2]] }));
+  fireEvent.click(within(document.querySelector<HTMLElement>('[data-column="2"] > .ui-columns__head')!).getByRole('button', { name: 'Shared' }));
+  const menu = screen.getByRole('menu');
+  expect(menu.closest<HTMLElement>('[style*="--ui-dropdown-cap"]')?.style.getPropertyValue('--ui-dropdown-cap')).toBe('400px');
+  const link = within(menu).getByRole('menuitem', { name: 'Open folder' });
+  expect(link.tagName).toBe('A');
+  expect(link).toHaveAttribute('href', '#/folder');
+});
+
 it('moves the focus to the open column\'s title when a move removes the focused row', () => {
   const { rerender } = render(page({ depth: 2 }));
   screen.getByRole('button', { name: 'Contacts' }).focus();
@@ -146,25 +212,33 @@ it('opens the title menu from the keyboard, walks it with the arrows and gives t
 });
 
 it('holds the widths: column 1 240px, column 2 26% from 260px to --panel-sm, column 3 the rest', () => {
-  expect(css).toMatch(/\.ui-columns \{[^}]*grid-template-columns: min\(240px, 25%\) clamp\(min\(260px, 30%\), 26%, var\(--panel-sm\)\) minmax\(0, 1fr\);/);
+  expect(css).toMatch(/\.ui-columns \{[^}]*grid-template-columns: 240px clamp\(260px, 26%, var\(--panel-sm\)\) minmax\(0, 1fr\);/);
   // Each column scrolls alone in the window under the band, and one line stands between two columns.
   expect(css).toMatch(/\.ui-columns \{[^}]*height: calc\(100dvh - var\(--ui-app-band, 0px\)\);/);
-  expect(css).toMatch(/\.ui-columns__col \{[^}]*overflow-y: auto; \}/);
+  // The content scrolls in a box below the header row, so the box's focus band shows its four sides.
+  expect(css).toMatch(/\.ui-columns__scroll \{[^}]*overflow-y: auto; \}/);
+  expect(css).toMatch(/\.ui-columns__scroll:focus-visible \{ outline: var\(--ring-scroll\); outline-offset: var\(--ring-scroll-offset\); \}/);
+  expect(css).not.toMatch(/position: sticky/);
+  expect(document.querySelector('.ui-columns__head + .ui-columns__scroll')).toBeNull();
+  render(page());
+  for (const n of [1, 2, 3]) expect(document.querySelector(`[data-column="${n}"] > .ui-columns__head + .ui-columns__scroll`)).not.toBeNull();
   expect(css).toMatch(/\.ui-columns__col \+ \.ui-columns__col \{ border-inline-start: 1px solid var\(--border\); \}/);
   // The header row has one height in each column.
   expect(css).toMatch(/\.ui-columns__head \{[^}]*min-height: calc\(var\(--space-12\) \+ var\(--space-2\)\);/);
 });
 
-it('shows two neighbour columns at 860px and one column at 560px, and only at those widths', () => {
-  const queries = [...css.matchAll(/@media ([^{]+)\{/g)].map(m => m[1].trim());
-  expect(queries).toEqual(['(max-width: 860px)', '(max-width: 560px)', '(max-width: 560px) and (pointer: coarse)']);
-  const block = (q: string) => css.slice(css.indexOf(`@media ${q}`)).split(/\n}\n/)[0];
-  const tablet = block('(max-width: 860px)');
+it('shows two neighbour columns in a page area of 860px and one column at 560px, and only at those widths', () => {
+  const queries = [...css.matchAll(/@(media|container) ([^{]+)\{/g)].map(m => `${m[1]} ${m[2].trim()}`);
+  expect(queries).toEqual(['container ui-columns (max-width: 860px)', 'media (max-width: 560px)', 'media (max-width: 560px) and (pointer: coarse)']);
+  // The page area, not the window, is the container, so an open sidebar counts.
+  expect(css).toMatch(/\.ui-columns-area \{ container: ui-columns \/ inline-size;/);
+  const block = (q: string) => css.slice(css.indexOf(q)).split(/\n}\n/)[0];
+  const tablet = block('@container ui-columns (max-width: 860px)');
   expect(tablet).toMatch(/grid-template-columns: minmax\(200px, 40%\) minmax\(0, 1fr\);/);
   expect(tablet).toMatch(/\.ui-columns:not\(\[data-depth='3'\]\) > \.ui-columns__col--3,\n  \.ui-columns\[data-depth='3'\] > \.ui-columns__col--1 \{ display: none; \}/);
   // The first column on show draws no line before it.
   expect(tablet).toMatch(/\.ui-columns\[data-depth='3'\] > \.ui-columns__col--2 \{ border-inline-start: 0; \}/);
-  const phone = block('(max-width: 560px)');
+  const phone = block('@media (max-width: 560px) {');
   expect(phone).toMatch(/\.ui-columns > \.ui-columns__col \{ display: none;[^}]*border-inline-start: 0; \}/);
   for (const n of [1, 2, 3]) expect(phone).toContain(`.ui-columns[data-depth='${n}'] > .ui-columns__col--${n}`);
 });
@@ -174,7 +248,10 @@ it('shows two neighbour columns at 860px and one column at 560px, and only at th
 it('gives each row a 44px target on a touch phone', () => {
   const touch = css.slice(css.indexOf('@media (max-width: 560px) and (pointer: coarse)'));
   expect(touch).toMatch(/\.ui-columns__list > \.ui-nav__list \{ gap: var\(--tap-gap\); --tap-clear-y: var\(--tap-gap\); \}/);
-  expect(touch).toMatch(/\.ui-columns__list \.ui-nav__item::after \{[^}]*height: min\(max\(100%, var\(--tap-min\)\), calc\(100% \+ var\(--tap-clear-y\)\)\);/);
+  expect(touch).toMatch(/\.ui-columns__list \.ui-nav__item::after,\n  \.ui-columns__head \.ui-columns__menu::after \{[^}]*height: min\(max\(100%, var\(--tap-min\)\), calc\(100% \+ var\(--tap-clear-y\)\)\);/);
+  // The title menu: its layer stands on the button, in the 56px header row's clear space.
+  expect(touch).toMatch(/\.ui-columns__head \{ --tap-clear-y: var\(--space-3\); \}/);
+  expect(touch).toMatch(/\.ui-columns__head \.ui-columns__menu \{ position: relative; \}/);
 });
 
 // The folders showcase: a parent row ends with a chevron, and an empty folder gives its space
@@ -204,18 +281,72 @@ it('announces the wait while the files and the open file load', () => {
 it('sorts the files from the title menu', () => {
   render(<Library menu folder="Projects" depth={2} />);
   const names = (folder = 'Projects') => [...screen.getByRole('navigation', { name: `Files in ${folder}` }).querySelectorAll('.ui-nav__label')].map(el => el.textContent);
-  expect(names()[0]).toBe('Brief');
+  // Date is the first choice: the newest file first.
+  expect(names()).toEqual(['Plan', 'Notes', 'Brief', 'Report', 'Budget', 'Risks']);
   const trigger = screen.getByRole('button', { name: 'Projects' });
   fireEvent.click(trigger);
   const menu = within(trigger.closest<HTMLElement>('.ui-dropdown')!).getByRole('menu');
-  expect(menu).toHaveTextContent('6 files');
+  // The count stands beside the title only, not in the menu.
+  expect(menu.querySelector('.ui-dropdown__head')).toBeNull();
+  expect(within(menu).getByRole('menuitemradio', { name: 'Date' })).toHaveAttribute('aria-checked', 'true');
   fireEvent.click(within(menu).getByRole('menuitemradio', { name: 'Name' }));
   expect(names()).toEqual(['Brief', 'Budget', 'Notes', 'Plan', 'Report', 'Risks']);
+  fireEvent.click(trigger);
+  fireEvent.click(within(trigger.closest<HTMLElement>('.ui-dropdown')!).getByRole('menuitemradio', { name: 'Date' }));
+  expect(names()).toEqual(['Plan', 'Notes', 'Brief', 'Report', 'Budget', 'Risks']);
   // The quick filter keeps the files edited in November, so Shared loses its October file.
   fireEvent.click(screen.getByRole('button', { name: 'Shared 3 files' }));
   fireEvent.click(screen.getByRole('button', { name: 'Shared' }));
   fireEvent.click(within(screen.getByRole('button', { name: 'Shared' }).closest<HTMLElement>('.ui-dropdown')!).getByRole('menuitemradio', { name: 'Edited in November' }));
   expect(names('Shared')).toEqual(['Contacts', 'Guide']);
+});
+
+// With a filter on, the count, the selected row and the open file follow the rows on show.
+it('counts the rows on show, and opens a row on show when the filter hides the open file', () => {
+  render(<Library menu folder="Shared" />);
+  const head = () => document.querySelector('[data-column="2"] > .ui-columns__head')!;
+  expect(head()).toHaveTextContent('3 files');
+  fireEvent.click(screen.getByRole('button', { name: 'Glossary 26 Oct' }));
+  expect(screen.getByRole('region', { name: 'Glossary' })).toBeInTheDocument();
+  const filter = (label: string) => {
+    const trigger = screen.getByRole('button', { name: 'Shared' });
+    fireEvent.click(trigger);
+    fireEvent.click(within(trigger.closest<HTMLElement>('.ui-dropdown')!).getByRole('menuitemradio', { name: label }));
+  };
+  filter('Edited in November');
+  expect(head().querySelector('.ui-columns__count')).toHaveTextContent('2 of 3');
+  expect(head()).toHaveTextContent('2 of 3 files');
+  expect(screen.getByRole('button', { name: 'Contacts 24 Nov' })).toHaveAttribute('aria-pressed', 'true');
+  expect(screen.queryByRole('region', { name: 'Glossary' })).toBeNull();
+  expect(screen.getByRole('region', { name: 'Contacts' })).toBeInTheDocument();
+  filter('All files');
+  expect(head().querySelector('.ui-columns__count')).toHaveTextContent(/^3$/);
+  cleanup();
+  // One file is "1 file".
+  render(<Library menu folder="Drafts" />);
+  expect(head()).toHaveTextContent('1 file');
+  expect(head()).not.toHaveTextContent('1 files');
+  expect(screen.getByRole('button', { name: 'Drafts 1 file' })).toBeInTheDocument();
+  cleanup();
+  // A filter that hides every row says so and offers to show them all.
+  render(<Library menu folder="Archive" />);
+  const trigger = screen.getByRole('button', { name: 'Archive' });
+  fireEvent.click(trigger);
+  fireEvent.click(within(trigger.closest<HTMLElement>('.ui-dropdown')!).getByRole('menuitemradio', { name: 'Edited in November' }));
+  expect(head().querySelector('.ui-columns__count')).toHaveTextContent('0 of 2');
+  expect(screen.getByRole('heading', { name: 'No files edited in November' })).toBeInTheDocument();
+  expect(document.querySelectorAll('.ui-columns__col')).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Show all files' }));
+  expect(screen.getByRole('button', { name: 'Minutes 28 Oct' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+it('gives the back link the address of the depth above in the showcases', () => {
+  at(390);
+  render(<Library folder="Shared" />);
+  expect(screen.getByRole('link', { name: 'Back to Shared' })).toHaveAttribute('href', '#/library/Shared');
+  cleanup();
+  render(<Library folder="Shared" depth={2} />);
+  expect(screen.getByRole('link', { name: 'Back to Folders' })).toHaveAttribute('href', '#/library');
 });
 
 // The month close showcase: the rows follow the open check, and an action that takes away the
@@ -275,9 +406,11 @@ it('replaces the checks and the rows when the reader selects another month', () 
   expect(workHeading()).toBe('Sources');
 });
 
-it('pins the payee, puts the unit in the header, and a search with no rows offers to clear the filters', () => {
+// Limits: JSDOM lays nothing out, so this reads the wrap class. stories/three-column.test.js
+// checks in a browser that the table fits column 3.
+it('lets the payee wrap, puts the unit in the header, and a search with no rows offers to clear the filters', () => {
   render(<MonthClose />);
-  expect(screen.getByRole('columnheader', { name: 'Payee' })).toHaveClass('ui-table__identity');
+  expect(screen.getByRole('cell', { name: 'Aster Paper' }).firstElementChild).toHaveClass('ui-identity__name');
   // The unit stands once, small, in the header, so each amount is a plain number.
   expect(screen.getByRole('columnheader', { name: 'Amount€' }).querySelector('.ui-value__unit')).toHaveTextContent('€');
   expect(screen.getByRole('cell', { name: '184.20' })).toBeInTheDocument();

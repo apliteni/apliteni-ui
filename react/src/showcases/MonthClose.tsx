@@ -80,7 +80,8 @@ export function MonthClose({ stage: start = 'sources', depth: startDepth = 2 }: 
     sections={[{ href: '/close', label: 'Month close', icon: 'calendar' }, { href: '/documents', label: 'Documents', icon: 'doc' },
       { href: '/reports', label: 'Reports', icon: 'chart' }, { href: '/settings', label: 'Settings', icon: 'gear' }]}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
-    <ThreeColumnPage depth={depth} onDepthChange={setDepth} columns={[
+    <ThreeColumnPage depth={depth} onDepthChange={setDepth}
+      depthHref={to => ['#/close', to > 1 ? `/${month}` : '', to > 2 ? `/${step}` : ''].join('')} columns={[
       { title: 'Months', children: <nav className="ui-nav ui-columns__list" aria-label="Months"><ul className="ui-nav__list">
         {MONTHS.map(name => <li key={name}><button type="button" aria-pressed={name === month}
           className={`ui-nav__item${name === month ? ' is-active' : ''}`} onClick={() => chooseMonth(name)}>
@@ -97,9 +98,10 @@ export function MonthClose({ stage: start = 'sources', depth: startDepth = 2 }: 
           <Segmented label="Document" size="sm" value={filter} onChange={setFilter}
             options={[{ value: 'all', label: 'All' }, { value: 'Ready', label: 'Ready' }, { value: 'Missing', label: 'Missing' }]} />
         </div>
-        {rows.length ? <DataTable<Row> selectable={false} density="compact" stickyHeader pinnedIdentity="name" pager={false}
+        {/* The payee's name wraps first, so the amount stays in view in a narrow column. */}
+        {rows.length ? <DataTable<Row> selectable={false} density="compact" stickyHeader pager={false}
           scrollLabel="Rows" caption={`Rows for ${month}`} rows={rows} columns={[
-            { key: 'name', label: 'Payee', cell: 'title' },
+            { key: 'name', label: 'Payee', render: row => <span className="ui-identity__name">{row.name}</span> },
             { key: 'day', label: 'Date', render: row => `${row.day} ${short}` },
             { key: 'doc', label: 'Document', render: row => row.doc || 'Missing' },
             { key: 'amount', label: <>Amount<span className="ui-value__unit">€</span></>, num: true },

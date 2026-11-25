@@ -193,9 +193,10 @@ const RX_SCROLL_RINGED: Record<string, string> = {
     + 'bloom lights the dialog instead of the box that scrolls. The band lands in the '
     + 'body\'s own 16px of padding. It is a stop whenever the caller\'s children hold no '
     + 'control. Artur chose the picture on #531 round r30.',
-  '.ui-columns__col': 'the inward band, on the column itself. Each of the three-column page\'s '
-    + 'columns scrolls alone. A column whose content holds no control, such as the facts and the '
-    + 'text of an open file, is a stop in Chrome, and the band lands in its own inline padding (#871).',
+  '.ui-columns__scroll': 'the inward band, on the column\'s scroll box below its header row, so '
+    + 'the four sides show. Each of the three-column page\'s columns scrolls alone. A column whose '
+    + 'content holds no control, such as the facts and the text of an open file, is a stop in '
+    + 'Chrome, and the band lands in its own inline padding (#871).',
 };
 
 describe('focus ring: scroll containers', () => {

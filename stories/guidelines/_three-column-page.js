@@ -33,6 +33,7 @@ export const SPEC_CSS = `<style>
   .tc-lay__col--child .tc-lay__ln { height: 6px; }
   /* A phone column: the page's own header row and list, on the page ground. */
   .tc-phone { display: flex; flex-direction: column; max-width: 390px; padding-bottom: var(--space-2); background: var(--bg); }
-  .tc-phone > .ui-columns__head { position: static; }
+  /* The specimen title is an h3, so it drops its own margin, as the page's h2 does. */
+  .tc-phone > .ui-columns__head > h3 { margin: 0; }
   .tc-bar { padding: 0 var(--space-5) var(--space-3); }
 </style>`;

@@ -2,41 +2,43 @@
    parent, and the open child. The columns stand on the page ground, with no card box. The
    separators are the divider's line: 1px of --border, from the band to the foot.
    why: docs/components.md#three-column-page */
+/* The page area is the query container: three columns show only where the area has room for
+   them, so an open sidebar on a small laptop gives two columns, as a tablet does. */
+.ui-columns-area { container: ui-columns / inline-size; flex: 1 1 auto; min-width: 0; }
 .ui-columns {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   /* Column 1 is 240px and column 2 is 26% between 260px and --panel-sm, so the open child
-     takes the rest. Below a main of 960px, beside an open sidebar, the two lists give up their
-     floors by percent, so the open child keeps half of the main. 240px and 260px have no
-     token: they are the column floors of the reference study for #871. */
-  grid-template-columns: min(240px, 25%) clamp(min(260px, 30%), 26%, var(--panel-sm)) minmax(0, 1fr);
-  flex: 1 1 auto;
-  min-width: 0;
+     takes the rest: at least 360px, because three columns need a page area above 860px.
+     240px and 260px have no token: they are the column floors of the reference study for #871. */
+  grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);
   /* Each column scrolls alone, so the page takes the window under the band. */
   height: calc(100dvh - var(--ui-app-band, 0px));
 }
 .ui-columns__up { grid-column: 1 / -1; padding: var(--space-3) var(--space-3) 0; }
-.ui-columns__col { display: flex; flex-direction: column; grid-row: 2; min-width: 0; overflow-y: auto; }
-.ui-columns__col:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+.ui-columns__col { display: flex; flex-direction: column; grid-row: 2; min-width: 0; min-height: 0; }
 .ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }
 /* With no third column, the children take its space. */
 .ui-columns__col--2:last-child { grid-column: 2 / -1; }
+/* The column's content scrolls below the header row. The ring is the inward band, so its four
+   sides stand inside the box. */
+.ui-columns__scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ui-columns__scroll:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 /* The header row has one height in each column, so the titles stand on one line. The title
    starts on the edge of the row glyphs: the list's inset plus the row's inset. */
 .ui-columns__head {
-  position: sticky;
-  top: 0;
-  z-index: var(--z-base);
+  flex: none;
   display: flex;
   align-items: center;
   gap: var(--space-2);
   min-height: calc(var(--space-12) + var(--space-2));
   padding: 0 var(--space-5);
-  background: var(--bg); /* code-bg: inherit — page background inherits root overrides. */
 }
-.ui-columns__head > h2 { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-columns__head > h2 { min-width: 0; margin: 0; }
 .ui-columns__head > h2:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+/* The card title is a flex box, which draws no ellipsis, so its words stand in their own box. */
+.ui-columns__words { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-columns__head > .ui-dropdown { min-width: 0; }
 /* The title menu: the title's words and a chevron, with no pill. The words keep the card
    title's rank, and the hover wash is the row's. The wash hangs into the start margin by its
@@ -70,9 +72,9 @@
 .ui-columns__body { display: flex; flex-direction: column; gap: var(--space-6); padding: 0 var(--space-5) var(--space-10); }
 .ui-columns__body > p { margin: 0; max-width: var(--prose-body); }
 
-/* Tablet: two neighbour columns in the chain. The open child stands beside its parent list,
-   and the parents go behind the back link. */
-@media (max-width: 860px) {
+/* A page area of 860px or less: two neighbour columns in the chain. The open child stands beside
+   its parent list, and the parents go behind the back link. */
+@container ui-columns (max-width: 860px) {
   .ui-columns { grid-template-columns: minmax(200px, 40%) minmax(0, 1fr); } /* 200px: the list floor, five eighths of --panel-sm */
   .ui-columns__col--2:last-child { grid-column: auto; }
   .ui-columns:not([data-depth='3']) > .ui-columns__col--3,
@@ -84,20 +86,24 @@
 @media (max-width: 560px) {
   .ui-columns { grid-template-columns: minmax(0, 1fr); height: auto; }
   .ui-columns__up { padding-inline: var(--space-2); }
-  .ui-columns > .ui-columns__col { display: none; overflow-y: visible; border-inline-start: 0; }
+  .ui-columns > .ui-columns__col { display: none; border-inline-start: 0; }
   .ui-columns[data-depth='1'] > .ui-columns__col--1,
   .ui-columns[data-depth='2'] > .ui-columns__col--2,
   .ui-columns[data-depth='3'] > .ui-columns__col--3 { display: flex; }
-  .ui-columns__head { position: static; }
+  .ui-columns__scroll { overflow-y: visible; }
   .ui-columns__head, .ui-columns__body { padding-inline: var(--space-4); }
   .ui-columns__list { padding-inline: var(--space-1); }
 }
-/* A touch phone: the rows draw 35px, so each carries the kit's transparent tap layer, which
-   reaches 44px into the gap between the rows and keeps the drawn size.
+/* A touch phone: the rows draw 35px and the title menu 33px, so each carries the kit's
+   transparent tap layer, which reaches 44px into the clear space around it and keeps the
+   drawn size. The header row is 56px, so its clear space holds the title menu's layer.
    why: guidelines/spacing.md#widen-inner-gaps-on-a-touch-phone */
 @media (max-width: 560px) and (pointer: coarse) {
   .ui-columns__list > .ui-nav__list { gap: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
-  .ui-columns__list .ui-nav__item::after {
+  .ui-columns__head { --tap-clear-y: var(--space-3); }
+  .ui-columns__head .ui-columns__menu { position: relative; }
+  .ui-columns__list .ui-nav__item::after,
+  .ui-columns__head .ui-columns__menu::after {
     content: "";
     position: absolute;
     left: 50%;

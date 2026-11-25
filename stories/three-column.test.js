@@ -1,8 +1,10 @@
 /* Rule: on the three-column page, each key, click, send and move between columns keeps the
  * focus on a shown control of the page, moves no shell chrome by more than 1px, keeps the
  * cumulative layout shift under 0.1 and causes no sideways scroll. Escape closes the title
- * menu and puts the focus back on its title. The columns hold: three above 860px, the open
- * column and its parent from 561px to 860px, and the open column alone at 560px and below.
+ * menu and puts the focus back on its title. A table in a column fits its box. The columns
+ * hold: three in a page area above 860px, the open column and its parent in a page area of
+ * 860px or less, and the open column alone in a window of 560px and less. The page area is
+ * the window less the open sidebar, so a 984px window shows two columns.
  *
  * Off unless THREE_COLUMN=1: Playwright and web-vitals are not dependencies of this
  * package, CI does not run it, and the result is reported by hand in the pull request.
@@ -15,15 +17,15 @@
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
  * phone of 466×678 and 890×626 at scale 3 with touch. react-three-column-page--month-checks
  * walks the Wizard in column 2, a check that opens its rows, a search, the back link and a new
- * month. react-three-column-page--title-menu walks the back link, a folder, the title menu
- * and Escape, and a file. The shell chrome is every fixed or sticky element outside the page,
+ * month. react-three-column-page--title-menu opens at depth 2, so a phone shows the title
+ * menu, and walks the back link, a folder, the title menu and Escape, and a file. The shell chrome is every fixed or sticky element outside the page,
  * found in the page.
  *
  * At each subject it also runs axe's label-content-name-mismatch rule on the page, so a row's
  * name starts with its visible words. Where two or three columns show, it checks that their
  * header rows have one top and one height, that each column after the first draws the 1px
  * line and the first draws none, and that each column reaches the foot of the window and
- * scrolls alone.
+ * scrolls alone below its header row.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
@@ -55,6 +57,7 @@ const READ = () => {
   return {
     focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
     chrome, cls: window.__cls, depth: page.dataset.depth, over: doc.scrollWidth - doc.clientWidth,
+    tables: [...page.querySelectorAll('.ui-table-scroll')].filter((e) => e.checkVisibility()).map((e) => e.scrollWidth - e.clientWidth),
   };
 };
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
@@ -95,8 +98,8 @@ const STORIES = [
   { id: 'react-three-column-page--month-checks', actions: MONTH, shows: { wide: ['1', '2', '3'], tablet: ['1', '2'], phone: ['2'] },
     // The back link shows from depth 2 on a phone and at depth 3 on a tablet.
     backs: { wide: 0, tablet: 1, phone: 2 } },
-  { id: 'react-three-column-page--title-menu', actions: LIBRARY, shows: { wide: ['1', '2', '3'], tablet: ['2', '3'], phone: ['3'] },
-    backs: { wide: 0, tablet: 1, phone: 2 } },
+  { id: 'react-three-column-page--title-menu', actions: LIBRARY, shows: { wide: ['1', '2', '3'], tablet: ['1', '2'], phone: ['2'] },
+    backs: { wide: 0, tablet: 0, phone: 1 } },
 ];
 
 // Opens a story in a new context, with onCLS listening from the first paint.
@@ -123,15 +126,17 @@ async function inspect(page, label) {
   for (const target of axe.bad) found.push(`${label}: label-content-name-mismatch on ${target}`);
   const cols = await page.evaluate(() => [...document.querySelectorAll('.ui-columns__col')].filter((c) => c.checkVisibility()).map((c) => {
     const head = c.querySelector(':scope > .ui-columns__head').getBoundingClientRect();
+    const box = c.querySelector(':scope > .ui-columns__head + .ui-columns__scroll');
     const r = c.getBoundingClientRect();
     const cs = getComputedStyle(c);
-    return { n: c.dataset.column, top: head.top, height: head.height, line: parseFloat(cs.borderInlineStartWidth), bottom: r.bottom, scroll: cs.overflowY, foot: innerHeight };
+    return { n: c.dataset.column, top: head.top, height: head.height, line: parseFloat(cs.borderInlineStartWidth), bottom: r.bottom,
+      scroll: box && getComputedStyle(box).overflowY, below: box && box.getBoundingClientRect().top >= head.bottom - 1, foot: innerHeight };
   }));
   if (cols.length > 1) {
     for (const c of cols) {
       if (Math.abs(c.top - cols[0].top) > 1 || Math.abs(c.height - cols[0].height) > 1) found.push(`${label}: the header rows differ: column ${c.n} is ${c.height}px at ${c.top}`);
       if (Math.abs(c.bottom - c.foot) > 1) found.push(`${label}: the line of column ${c.n} stops at ${Math.round(c.bottom)}px, not at the foot`);
-      if (c.scroll !== 'auto') found.push(`${label}: column ${c.n} does not scroll alone`);
+      if (c.scroll !== 'auto' || !c.below) found.push(`${label}: column ${c.n} does not scroll alone below its header row`);
     }
     cols.forEach((c, i) => { if ((c.line === 1) !== (i > 0)) found.push(`${label}: column ${c.n} ${i ? 'draws no line' : 'draws a line'} before it`); });
   }
@@ -157,6 +162,7 @@ async function walk(page, label, actions, { only } = {}) {
     }
     if (!(after.cls < 0.1)) found.push(`${label} ${name}: the layout shift is ${after.cls}`);
     if (after.over > 0) found.push(`${label} ${name}: the page scrolls ${after.over}px sideways`);
+    for (const over of after.tables) if (over > 1) found.push(`${label} ${name}: a table is ${over}px wider than its column`);
     if (name === 'key: Escape' && after.depth !== before.depth) found.push(`${label} ${name}: Escape changed the depth`);
     before = after;
   }
@@ -191,11 +197,11 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     for (const [label, context] of subjects) {
       for (const story of STORIES) {
         const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
-        const width = await page.evaluate(() => innerWidth);
-        const kind = width > 860 ? 'wide' : width > 560 ? 'tablet' : 'phone';
+        const [width, area] = await page.evaluate(() => [innerWidth, document.querySelector('.ui-columns-area').clientWidth]);
+        const kind = width <= 560 ? 'phone' : area > 860 ? 'wide' : 'tablet';
         const own = await inspect(page, `${label} ${story.id}`);
         findings.push(...own.found);
-        if (own.shown.join() !== story.shows[kind].join()) findings.push(`${label} ${story.id}: shows ${own.shown.join(', ')} at ${width}px, expected ${story.shows[kind].join(', ')}`);
+        if (own.shown.join() !== story.shows[kind].join()) findings.push(`${label} ${story.id}: shows ${own.shown.join(', ')} at ${width}px in a ${area}px area, expected ${story.shows[kind].join(', ')}`);
         measured += own.measured ? 1 : 0;
         views[kind] += 1;
         const { found, ran } = await walk(page, `${label} ${story.id}`, story.actions);
@@ -203,7 +209,7 @@ test('the three-column page keeps focus, chrome, layout and width through each i
         // Every action runs, less the back links that this width does not show.
         const want = story.actions.length - (2 - story.backs[kind]);
         assert.equal(ran.length, want, `${label} ${story.id}: ${ran.length} of ${want} actions ran: ${ran.join(', ')}`);
-        table.push(`${label} ${width}px ${kind} ${story.id.replace('react-three-column-page--', '')}: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
+        table.push(`${label} ${width}px area ${area}px ${kind} ${story.id.replace('react-three-column-page--', '')}: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
         await ctx.close();
       }
     }
@@ -238,7 +244,16 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     })), 'label-content-name-mismatch');
     await inspected(wide, (page) => page.addStyleTag({ content: '[data-column="3"] > .ui-columns__head { min-height: 0; }' }), 'header rows differ');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns { flex: none; height: 50vh; }' }), 'not at the foot');
-    await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns__col { overflow-y: visible; }' }), 'scroll alone');
+    await inspected(wide, (page) => page.addStyleTag({ content: '.ui-columns__scroll { overflow-y: visible; }' }), 'scroll alone');
+    // A window query in place of the page area's: three columns beside the open sidebar.
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 984, height: 1016 } }, month.id);
+      const before = (await inspect(page, 'mutated')).shown.join();
+      await page.addStyleTag({ content: '.ui-columns-area { container-type: normal; }' });
+      caught.push(['page area', before === month.shows.tablet.join() && (await inspect(page, 'mutated')).shown.join() !== before]);
+      await ctx.close();
+    }
+    await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] table { min-width: 900px; }' }), ['key: Down'], 'wider than its column');
     await inspected({ viewport: { width: 820, height: 1180 } }, (page) => page.addStyleTag({ content: '.ui-columns__col { border-inline-start: 1px solid; }' }), 'draws a line');
     await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] { min-width: 1400px; }' }), ['key: Down'], 'sideways');
     await mutate(wide, month, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');

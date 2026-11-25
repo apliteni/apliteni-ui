@@ -43,8 +43,9 @@ const Stale = () => <Columns label="Archive is selected, but columns 2 and 3 sti
   cols={[{ area: 'parents', cap: 'Folders', on: 1 }, { area: 'children', cap: 'Projects', on: 1 }, { area: 'child', cap: 'Plan' }]} />;
 const Crushed = () => <Columns cols={projects} split={false} phone label="Three columns squeezed onto a phone" />;
 const FILES = [['Brief', '22 Nov'], ['Plan', '24 Nov'], ['Notes', '23 Nov'], ['Report', '17 Nov']];
-/** A column's list with the page's own parts: a glyph, a name and a date in each row. */
-const Files = () => <nav className="ui-nav ui-columns__list" aria-label="Files in Projects"><ul className="ui-nav__list">
+/** A column's list with the page's own parts: a glyph, a name and a date in each row. Each
+ *  picture names its list, so the page's landmarks stay unique. */
+const Files = ({ label }: { label: string }) => <nav className="ui-nav ui-columns__list" aria-label={label}><ul className="ui-nav__list">
   {FILES.map(([name, day]) => <li key={name}><button type="button" aria-pressed={name === 'Plan'}
     className={`ui-nav__item${name === 'Plan' ? ' is-active' : ''}`}><span className="ui-nav__ic"><Icon name="doc" /></span>
     <span className="ui-nav__label">{name}</span>{' '}<span className="ui-columns__end">{day}</span></button></li>)}
@@ -52,7 +53,7 @@ const Files = () => <nav className="ui-nav ui-columns__list" aria-label="Files i
 const Phone = () => <div className="gl-stage tc-phone">
   <div className="ui-columns__up"><BackLink href="#" label="Folders" onClick={(e: { preventDefault: () => void }) => e.preventDefault()} /></div>
   <header className="ui-columns__head"><h3 className="ui-card__title">Projects</h3><span className="ui-columns__count">4</span></header>
-  <Files />
+  <Files label="Files in Projects, on a phone" />
 </div>;
 const Header = ({ menu }: { menu: boolean }) => <div className="gl-stage tc-phone">
   <header className="ui-columns__head">
@@ -65,7 +66,7 @@ const Header = ({ menu }: { menu: boolean }) => <div className="gl-stage tc-phon
     <Segmented label="Sort by" size="sm" value="date" onChange={noop} options={[{ value: 'name', label: 'Name' }, { value: 'date', label: 'Date' }]} />
     <Segmented label="View" size="sm" value="list" onChange={noop} options={[{ value: 'list', label: 'List' }, { value: 'grid', label: 'Grid' }]} />
   </div>}
-  <Files />
+  <Files label={menu ? 'Files in Projects, with a title menu' : 'Files in Projects, under a bar'} />
 </div>;
 
 const specimens = [

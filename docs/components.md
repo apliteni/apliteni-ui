@@ -327,7 +327,7 @@ parent, and the open child, such as folders, files and a file. Put it in `AppShe
 
 ```tsx
 <AppShell width="full" title="Library" sections={sections} pathname="/library" account={account} onSignOut={signOut}>
-  <ThreeColumnPage depth={depth} onDepthChange={setDepth} columns={[
+  <ThreeColumnPage depth={depth} onDepthChange={setDepth} depthHref={(to) => libraryAddress(to)} columns={[
     { title: 'Folders', count: 5, countLabel: '5 folders', children: <FolderRows /> },
     { title: 'Shared', count: 3, countLabel: '3 files', menu: { sections: sortAndFilter, onSelect }, children: <FileRows /> },
     { title: 'Contacts', children: <div className="ui-columns__body"><FileFacts /></div> },
@@ -338,9 +338,12 @@ parent, and the open child, such as folders, files and a file. Put it in `AppShe
 `columns` holds the three columns. Leave out the third when the selected parent has no
 children: the second column then takes its space and shows the empty state. Each column takes a
 `title`, which is its `h2` and the words of a back link to it, an optional `count` with its spoken
-`countLabel`, optional `tools`, and its `children`. `depth` is 1, 2 or 3: how far down the chain the
-reader is. `defaultDepth` is 2. `onDepthChange` hears the back link. With `depthHref`, the back link
-goes to the address of the depth above. `menu` takes the rows of a `Dropdown` menu: with it, the
+`countLabel`, optional `tools`, and its `children`. While a filter is on, give the count as "2 of 3".
+`depth` is 1, 2 or 3: how far down the chain the reader is. Pass `depth` with `onDepthChange`, or
+let the page keep it from `defaultDepth`, which is 2. `children` can be a function that gets
+`open`: a row calls it to take the reader one step down, to the next column, in either case.
+`onDepthChange` hears the back link and `open`. Give `depthHref`, so that the back link goes to
+the address of the depth above. `menu` takes the rows of a `Dropdown` menu: with it, the
 title opens the menu, and without it, the title is plain text. A menu row with `selected`, true or
 false, is one choice of its group, and the current choice shows the menu's tick. Put the actions
 in the first group and each set of choices in a labelled group. A menu taller than 300px takes
@@ -354,21 +357,26 @@ with `.ui-columns__end`, a count or a date, and a row that opens a column ends w
 
 **What the user sees.**
 
-- Above 860px, three columns. Column 1 is 240px. Column 2 is 26% of the page, from 260px to
-  320px. Column 3 takes the rest. Beside an open sidebar on a page narrower than about 1210px, the
-  two lists give up their floors, so column 3 keeps half of the page. Each column scrolls alone,
-  and a 1px `--border` line from the band to the foot stands between two columns.
-- From 561px to 860px, two neighbour columns: the parents and the children at depth 1 and 2, and
-  the children and the open child at depth 3. The first takes 40%, and at least 200px.
-- At 560px and less, the column at the depth only, and the page scrolls as one.
+- In a page area wider than 860px, three columns. Column 1 is 240px. Column 2 is 26% of the
+  page area, from 260px to 320px. Column 3 takes the rest, at least 360px. Each column scrolls
+  alone below its header row, and a 1px `--border` line from the band to the foot stands between
+  two columns.
+- In a page area of 860px or less, two neighbour columns: the parents and the children at depth 1
+  and 2, and the children and the open child at depth 3. The first takes 40%, and at least 200px.
+  An open sidebar on a small laptop thus gives two columns, as a tablet does.
+- In a window of 560px and less, the column at the depth only, and the page scrolls as one.
 - When a column before the first one on show is hidden, a back link above the columns names it.
 - Each header row has one height, so the titles stand on one line. The title is the card title's
-  size. The count follows it, and the tools stand at the row's end.
+  size, and a long title ends in an ellipsis. The count follows it, and the tools stand at the
+  row's end.
+- A list's glyphs start on the title's edge. A step list and a table keep their own inset: the
+  step mark stands 4px in, and a table's words stand in by the cell's inset, as in a card.
 
 **Keyboard and screen reader.** Each column is a region named by its title. A count with a
 `countLabel` is read as that label. When a move hides or removes the control that had the focus,
-the focus goes to the title of the column at the depth, or to its menu button. The back link is
-named "Back to" and the column's title. On a touch phone each list row has a 44px target.
+the focus goes to the title of the column at the depth, or to its menu button. A column's
+scroll box shows the inward focus band on its four sides. The back link is named "Back to" and
+the column's title. On a touch phone each list row and the title menu have a 44px target.
 
 ### Footer
 
