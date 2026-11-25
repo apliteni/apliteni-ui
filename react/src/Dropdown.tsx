@@ -262,6 +262,7 @@ export function Dropdown({
   // the label and then its own value, as a native select reads. `for` cannot do it, since
   // the id stays on the outer div and a label on a button would drop the value.
   const inField = useContext(FieldContext);
+  const inForm = Boolean(inField && id === inField.id);
   const fieldName = inField && id === inField.id && !(ariaLabel && triggerContent != null)
     ? { id: `${uid}-trigger`, labelId: inField.labelId, labelledBy: `${inField.labelId} ${uid}-trigger` } : null;
   // A trigger named by its own content, with no ariaLabel, also names its panel.
@@ -906,6 +907,9 @@ export function Dropdown({
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}
       </button>
+      {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
+        {rows.map((item, index) => <span key={index}>{item.label}</span>)}
+      </span>}
       <div
         className={cx('ui-dropdown__panel', align === 'end' && 'is-end', direction === 'up' && 'is-up',
           Boolean(scroll) && !sx && 'is-scroll', Boolean(sx) && 'ui-dropdown__panel--search', panelClass)}

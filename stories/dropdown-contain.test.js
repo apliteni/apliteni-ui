@@ -30,7 +30,7 @@ test('measured in a browser, four widths and both themes', {
 }, async (t) => {
   const lib = await import('./lib/dropdown-contain.js');
   const {
-    WIDTHS, THEMES, serve, reactPass, indexed, panels, outside, where, SHIFT_OFF,
+    WIDTHS, THEMES, serve, reactPass, indexed, openStory, panels, outside, where, SHIFT_OFF,
     reactEdgeCases, broken, whereCase, WRAP_OFF, NO_MUTATION_OBSERVER,
     NO_SCROLL_LISTENER, LONG_LABEL, NO_CHARACTER_DATA, NO_MOTION_END, playwright,
   } = lib;
@@ -110,6 +110,51 @@ test('measured in a browser, four widths and both themes', {
     assert.ok(seen.size >= FLOOR_SUBJECTS, `${seen.size} subjects, floor ${FLOOR_SUBJECTS}`);
     assert.ok(cases >= FLOOR_PAGES, `${cases} cases, floor ${FLOOR_PAGES}`);
     assert.ok(measured.length >= FLOOR_PANELS, `${measured.length} panels, floor ${FLOOR_PANELS}`);
+
+    await t.test('a form dropdown keeps its longest option width after a pick', async () => {
+      const FIELD_STORY = 'react-fields--dropdown-control';
+      const fieldStory = all.find((story) => story.id === FIELD_STORY);
+      assert.ok(fieldStory, `no story with the id ${FIELD_STORY} in the built index`);
+      const read = async (theme, mutation = '') => {
+        const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+        const page = await context.newPage();
+        try {
+          const rendered = await openStory(page, fieldStory, { port: server.port, theme });
+          assert.equal(rendered.phase, 'finished', `${theme} did not render the field story`);
+          if (mutation) await page.addStyleTag({ content: mutation });
+          return await page.evaluate(async () => {
+            const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const field = [...document.querySelectorAll('.ui-field')]
+              .find((el) => el.querySelector('.ui-field__label')?.textContent === 'Reviewer');
+            const trigger = field?.querySelector('[data-dropdown-trigger]');
+            if (!trigger) throw new Error('the Reviewer trigger is missing');
+            const pick = async (label) => {
+              trigger.click();
+              await frame();
+              const panel = field.querySelector('[data-dropdown-panel]');
+              const before = trigger.getBoundingClientRect().width;
+              const row = [...field.querySelectorAll('[data-dd-item]')]
+                .find((el) => el.textContent.trim() === label);
+              if (!row) throw new Error(`${label} is missing`);
+              row.click();
+              await frame();
+              return { before, after: trigger.getBoundingClientRect().width, panel: panel.getBoundingClientRect().width };
+            };
+            return { jordan: await pick('Jordan Example'), avery: await pick('Avery Example') };
+          });
+        } finally {
+          await context.close();
+        }
+      };
+      for (const theme of THEMES) {
+        const stable = await read(theme);
+        assert.equal(stable.jordan.before, stable.jordan.after, `${theme} changed width after Jordan Example`);
+        assert.equal(stable.jordan.after, stable.avery.after, `${theme} changed width after Avery Example`);
+        assert.ok(stable.jordan.panel >= stable.jordan.before, `${theme} panel is narrower than its trigger`);
+        const old = await read(theme, '.ui-dropdown__fit { display: none !important; }');
+        assert.notEqual(old.jordan.after, old.avery.after, `${theme} did not reject the old value-sized rule`);
+      }
+    });
 
     await t.test('every panel is inside the view it is laid out in', () => {
       const out = outside(measured);

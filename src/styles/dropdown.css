@@ -559,9 +559,20 @@
 }
 .ui-dropdown__value.is-placeholder { /* muted-ink: placeholder — no person chosen */ color: var(--muted); font-weight: var(--weight-medium); }
 
-/* A dropdown that is a form control takes its field's width, and its panel the
-   trigger's. why: docs/components.md#avatar */
-.ui-field > .ui-dropdown { display: inline-grid; max-width: 100%; }
+/* A form dropdown fits its longest option, up to the field width. Its panel is at
+   least as wide as its trigger. why: docs/components.md#fields */
+.ui-field > .ui-dropdown { display: inline-grid; grid-template-columns: minmax(0, max-content); max-width: 100%; }
+.ui-field > .ui-dropdown > .ui-dropdown__fit {
+  grid-area: 1 / 1; max-width: 100%;
+  display: grid; grid-template-columns: max-content 8px; align-items: center; gap: var(--space-2);
+  border: 1px solid transparent; padding: var(--space-3) var(--space-4);
+  font-family: var(--font-sans); font-size: var(--text-base); font-weight: var(--weight-normal);
+  line-height: normal; letter-spacing: normal; visibility: hidden; white-space: nowrap;
+}
+.ui-field > .ui-dropdown > .ui-dropdown__fit > * { grid-column: 1; grid-row: 1; }
+.ui-field > .ui-dropdown > .ui-dropdown__fit::after {
+  content: ""; width: 8px; height: 8px; grid-column: 2; grid-row: 1;
+}
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { margin-left: auto; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
 
@@ -576,6 +587,7 @@
    why: docs/components.md#fields */
 @property --ui-dropdown-line { syntax: "<length>"; inherits: true; initial-value: 0px; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger {
+  grid-area: 1 / 1; max-width: 100%;
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-base); line-height: normal;
   min-inline-size: 0;
