@@ -869,7 +869,8 @@ for (const theme of ['dark', 'light']) {
       }
       const ink = 'var(--callout-lead)';
       const wash = resolve(declOf(status === 'neutral' ? '.ui-callout' : `.ui-callout--${status}`).background, vars);
-      for (const on of wash.alpha === 1 ? [undefined] : CALLOUT_ON) {
+      // The floating panel too: a callout stands in a drawer or a dialog, and docs/foundations.md names its figure.
+      for (const on of wash.alpha === 1 ? [undefined] : [...CALLOUT_ON, 'var(--bg-elevated)']) {
         const ground = on ? composite(wash, resolve(on, vars).rgb) : wash.rgb;
         const lead = composite(resolve(ink, vars), ground);
         const r = contrast(lead, ground);

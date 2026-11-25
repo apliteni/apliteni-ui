@@ -232,7 +232,10 @@ three grounds.
 **A status word has its own ink in light.** A word with no fill stands on a selected row's accent
 wash, so `--status-warn-ink`, `--status-info-ink` and `--status-danger-ink` are deeper than the
 chip inks. They measure at least 7.01:1 on a plain, a selected and a selected hover row under
-every accent. In dark they are the chip inks, at 7.42:1 or more.
+every accent. In dark they are the chip inks, at 7.42:1 or more. The lead word of a callout is
+such a word. It takes the status ink of its tone on the tone's wash. Success has no status ink,
+so a success lead takes `--chip-success-ink`. On the page, a card, a sunken track and a floating
+panel, a lead measures at least 6.24:1 in both themes.
 
 **Archive has little contrast to spare.** Its muted ink measures 4.64:1 on the light page
 and 4.56:1 on a dark floating panel. These are the narrowest Archive pairs.
@@ -275,7 +278,8 @@ shadow. Dark draws the line only.** In light, the line is `--level-line`, half w
 `--border` and `--border-strong`. A floating surface in dark draws the outer line and an
 inner line, and it keeps `--elev-drop`. A line that divides two regions of one surface is not
 a level. It stays a line in both themes. Examples include a card's row dividers, a table's
-row rules, the rail's head band and the topbar's bottom rule. A field is not a level either
+row rules, the rail's head band and the topbar's bottom rule. A callout's tone line is not a
+level. It is an inset 1px line with no drop, and it shows the tone, not a height. A field is not a level either
 because its edge says "type here". A scroll shade is not a level. A table shades the edge
 where columns scroll under its frame or its pinned column, in both themes. A step of lightness on its own has a contrast of about
 1.1, so a level never has only its step.
