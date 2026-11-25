@@ -254,6 +254,21 @@ test('the accent pill takes the accent fill and edge only with the accent form',
   assert.equal(decl(pill, 'box-shadow'), 'inset 0 0 0 1px var(--accent)', 'the accent pill carries its edge');
 });
 
+test('the accent block sits between the default pill and the underline and disabled restatements', () => {
+  const at = (selector) => {
+    const index = rules.findIndex((rule) => splitSelectors(rule.selector).includes(selector));
+    assert.notEqual(index, -1, `expected a rule for ${selector}`);
+    return index;
+  };
+  const defaultPill = at('.ui-seg button.is-active');
+  const accentPill = at('.ui-seg--accent button.is-active');
+  const underline = at('.ui-seg--underline button.is-active');
+  const disabled = at('.ui-seg button.is-active:where(:disabled)');
+  assert.ok(defaultPill < accentPill, 'the accent fill must follow the default pill so it wins the selected fill');
+  assert.ok(accentPill < underline, 'the accent fill must precede the underline no-fill so a tab keeps its bar-only mark');
+  assert.ok(accentPill < disabled, 'the accent fill must precede the disabled surface so a disabled choice stays quiet');
+});
+
 test('the underline bar is the strong ink by default, and the accent only with the accent form', () => {
   const bar = ruleBody(baseCss, '.ui-seg--underline button::before');
   assert.equal(decl(bar, 'background'), 'var(--strong)', 'the default bar draws the strong ink');

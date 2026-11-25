@@ -186,8 +186,8 @@
     "pattern": "accent?: boolean"
    },
    {
-    "ref": "src/styles/segmented.css:57",
-    "pattern": ".ui-seg--accent button.is-active"
+    "ref": "src/styles/segmented.css:50",
+    "pattern": "background: var(--strong)"
    },
    {
     "ref": "src/styles/topbar.css:74",

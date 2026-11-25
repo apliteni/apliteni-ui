@@ -703,7 +703,7 @@ fit on one row. Use [`Tabs`](#tabs) when each choice shows a different panel. Se
 `appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller. The
 underline keeps one 13px type size in both sizes, so `size` does not change it. `block` fills the
 row. Every control draws the neutral form by default: the chosen option is the strong ink on the
-surface. `accent` asks for the accent fill when a product needs it. `neutral` is a deprecated
+surface. `accent` asks for the accent fill when a product needs it; in vanilla CSS the class is `.ui-seg--accent`. `neutral` is a deprecated
 no-op kept for compatibility, and goes away at the next major. An option's `icon`
 draws a glyph before its label. With `iconOnly`, the glyph is the whole button and the label is
 its name and its hover title; the glyph is a 24px view icon, larger than a labelled option's 16px
