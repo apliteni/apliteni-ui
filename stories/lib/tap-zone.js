@@ -526,7 +526,7 @@ export const PROBE = ({ html, size, interior, families, within }) => {
 /** The tallest page the rig lays out. A control below it has no reach to measure. */
 export const VIEW_CAP = 20000;
 
-export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [], rounds = 6 }) {
+export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [], rounds = 6, viewportHeight }) {
   const ctx = await browser.newContext({
     viewport: { width, height: 900 },
     deviceScaleFactor: 1,
@@ -570,19 +570,31 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // content, not by the capped viewport it was read through.
       // A subject may name its theme. The rest are measured in the dark theme.
       const theme = s.theme || 'dark';
-      let full = 900;
+      const fixed = viewportHeight != null;
+      let full = fixed ? viewportHeight : 900;
       let content = 900;
-      for (let round = 0; round < rounds; round++) {
-        const measured = await page.evaluate(({ html, theme }) => {
+      if (fixed) {
+        // A caller measured this story already and asks for one shared viewport,
+        // so a 70vh-capped scroll region reads the same cap in both passes.
+        await page.setViewportSize({ width, height: full });
+        content = await page.evaluate(({ html, theme }) => {
           document.documentElement.dataset.theme = theme;
           document.body.innerHTML = html;
           return document.documentElement.scrollHeight;
         }, { html: s.html, theme });
-        content = measured;
-        const next = Math.min(Math.max(measured, 900), VIEW_CAP);
-        if (next === full) break;
-        full = next;
-        await page.setViewportSize({ width, height: full });
+      } else {
+        for (let round = 0; round < rounds; round++) {
+          const measured = await page.evaluate(({ html, theme }) => {
+            document.documentElement.dataset.theme = theme;
+            document.body.innerHTML = html;
+            return document.documentElement.scrollHeight;
+          }, { html: s.html, theme });
+          content = measured;
+          const next = Math.min(Math.max(measured, 900), VIEW_CAP);
+          if (next === full) break;
+          full = next;
+          await page.setViewportSize({ width, height: full });
+        }
       }
       const height = full;
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });

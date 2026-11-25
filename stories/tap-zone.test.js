@@ -685,10 +685,31 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       'A story is taller than the rig lays out. Raise VIEW_CAP in stories/lib/tap-zone.js.',
     );
 
-    await t.test('no control is drawn at a different size', () => {
+    await t.test('no control is drawn at a different size', async () => {
       const moved = B.filter((b, i) => b.drawn[0] !== A[i].drawn[0] || b.drawn[1] !== A[i].drawn[1]);
+      // A scroll region capped at 70vh reads its cap from the viewport, so a story
+      // whose height the sheet changed settles its two passes to different
+      // viewports and the region's drawn height follows the cap, not a rule the
+      // sheet wrote for it. Re-measure each differing story at one shared viewport
+      // — the taller of the two settles — so the cap is the same for both sheets.
+      const real = [];
+      for (const id of [...new Set(moved.map((b) => b.story))]) {
+        const subj = subjects.filter((s) => s.id === id);
+        const fixed = Math.max(
+          ...before.rows.filter((r) => r.story === id).map((r) => r.height),
+          ...after.rows.filter((r) => r.story === id).map((r) => r.height),
+        );
+        const shot = (sheet) => pass(browser, {
+          subjects: subj, css: sheet, width: 390, coarse: true, size: TAP_MIN,
+          families: [...carriers, ...exempt], within: [...opened, ...specimens], viewportHeight: fixed,
+        });
+        const A1 = flatten((await shot(without)).rows);
+        const B1 = flatten((await shot(withCss)).rows);
+        real.push(...B1.filter((b, i) => b.drawn[0] !== A1[i].drawn[0] || b.drawn[1] !== A1[i].drawn[1])
+          .map((b) => `${b.story} ${name(b)}`));
+      }
       assert.deepEqual(
-        moved.map((b) => `${b.story} ${name(b)} ${A[B.indexOf(b)]}`), [],
+        real, [],
         'A control changed size with the sheet loaded. The whole premise of #488’s answer is '
         + 'that the drawn control does not move; a layer that changes layout is a visible change '
         + 'the issue rejected.',
