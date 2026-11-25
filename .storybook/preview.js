@@ -11,6 +11,12 @@ import { drawnTheme } from './theme-choice.js';
 const moved = redirectedSearch(window.location.search);
 if (moved) window.history.replaceState(null, '', `${window.location.pathname}${moved}${window.location.hash}`);
 
+// A light card hangs its side inset outside its container: 24px, and 16px at 720px and
+// below. The padded and centred frames pad 16px, so above 720px a light frame pads the hang. #875
+const frame = document.createElement('style');
+frame.textContent = '@media (min-width: 721px) { :root[data-theme="light"] :is(body.sb-main-padded, .sb-main-centered #storybook-root) { padding-inline: var(--space-6); } }';
+document.head.append(frame);
+
 // Load both faces once (Storybook manager/preview iframe). The kit names two
 // families — Poppins for --font-display, IBM Plex Sans for --font-sans — and a
 // token whose family never loads is a token that silently resolves to the system

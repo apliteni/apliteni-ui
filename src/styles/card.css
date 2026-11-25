@@ -10,6 +10,7 @@
    why: docs/foundations.md#elevation */
 .ui-card {
   --ui-card-ground: var(--surface); /* the ground a scrolling row inside covers its edge with; a tint repeats it below */
+  --ui-card-inset: var(--space-6); /* the side inset, which a table or a viewer in the card bleeds through */
   background: var(--surface);
   border: 1px solid var(--card-edge);
   box-shadow: var(--elev-rest);
@@ -34,13 +35,20 @@
    centred landing card, which keeps its own inset and never hangs out. #850 */
 :root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
   padding-block: 0;
-  margin-inline: calc(-1 * var(--space-6));
+  margin-inline: calc(-1 * var(--ui-card-inset));
 }
-@media (max-width: 560px) {
+/* The folded shell pads the page by --space-4, so the hang shrinks to it. A hang of 24px
+   put the card and its table 8px past the page from 561 to 720px. #875 */
+@media (max-width: 720px) {
   :root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
-    padding-inline: var(--space-4);
-    margin-inline: calc(-1 * var(--space-4));
+    --ui-card-inset: var(--space-4);
+    padding-inline: var(--ui-card-inset);
   }
+}
+/* A light stat tile keeps its box and its 24px inset from 561 to 720px. On a phone it pads
+   16px, as it did before #875. */
+@media (max-width: 560px) {
+  :root[data-theme="light"] .ui-stats--tiles { --ui-tile-inset: var(--space-4); }
 }
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past
@@ -109,7 +117,7 @@
    object and the row above it as the tools. Decided on #736.
    why: docs/foundations.md#elevation */
 .ui-card__viewer {
-  margin: var(--space-4) calc(-1 * var(--space-6)) 0;
+  margin: var(--space-4) calc(-1 * var(--ui-card-inset)) 0;
   border-top: 1px solid var(--card-edge);
 }
 .ui-card__viewer > .ui-toolbar {
@@ -289,7 +297,7 @@
 .ui-card__glyph svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
 
 /* A soft line between blocks: a straight hairline across the column width on the
-   block's top edge, with one inner gap of air under it. A light card hangs --space-6
+   block's top edge, with one inner gap of air under it. A light card hangs its side inset
    outside the column, but its own padding keeps the line on the column's width, and
    the ::before draws straight where a border would follow the rounded corner. Dark
    cards are boxed and already separate, so only the light rule draws.
