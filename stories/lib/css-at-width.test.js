@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { blockRules, decomment, lengthPx, mediaApplies, sheetAt } from './css-at-width.js';
+import { blockRules, decomment, flatAt, lengthPx, mediaApplies, sheetAt } from './css-at-width.js';
 
 test('mediaApplies accepts only the width queries the gates use', () => {
   assert.equal(mediaApplies('(max-width: 720px)', 390), true);
@@ -8,6 +8,10 @@ test('mediaApplies accepts only the width queries the gates use', () => {
   assert.equal(mediaApplies('(min-width: 561px) and (max-width: 720px)', 600), true);
   assert.equal(mediaApplies('(forced-colors: active)', 390), false);
   assert.throws(() => mediaApplies('(orientation: portrait)', 390), /cannot evaluate/);
+  // A caller can name a condition it leaves out, alone or in a conjunction.
+  assert.equal(mediaApplies('(max-width: 560px) and (pointer: coarse)', 390, ['(pointer: coarse)']), false);
+  assert.equal(mediaApplies('not (pointer: coarse)', 390, ['not (pointer: coarse)']), false);
+  assert.throws(() => mediaApplies('(pointer: coarse)', 390, ['(orientation: portrait)']), /cannot evaluate/);
 });
 
 test('sheetAt keeps source order while splicing only matching media blocks', () => {
@@ -21,6 +25,9 @@ test('sheetAt keeps source order while splicing only matching media blocks', () 
   assert.match(phone, /\.a \{ color: #1a1e27; \}[\s\S]*\.a \{ width: 50vw; \}[\s\S]*\.a \{ color: #0c0e13; \}/);
   assert.doesNotMatch(phone, /320px/);
   assert.match(sheetAt(css, 800), /320px/);
+  // flatAt splices the same blocks and leaves each custom property as written.
+  assert.match(flatAt(css, 390), /color: var\(--text\)[\s\S]*width: 50vw/);
+  assert.doesNotMatch(flatAt(css, 390, ['(max-width: 720px)']), /50vw/);
 });
 
 test('blockRules returns the declarations in one media block', () => {

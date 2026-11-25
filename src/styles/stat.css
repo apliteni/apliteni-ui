@@ -132,6 +132,7 @@ dd.ui-stat__caption { contain: inline-size; }
    tiles is tightly placed, so each tile keeps its soft edge and its padding.
    The edge is the card's own --card-edge in both themes. */
 :root[data-theme="light"] .ui-stats--tiles .ui-stat.ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
+  --ui-card-inset: var(--space-6); /* a tile keeps its box and its 24px inset at every width, as in dark */
   border: 1px solid var(--card-edge);
   padding-block: var(--space-5);
   margin-inline: 0;

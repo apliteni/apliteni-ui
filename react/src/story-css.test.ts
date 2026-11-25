@@ -94,8 +94,9 @@ const subjects: string[] = [...new Set([
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
 // reaching something rather than when the workspace grows. The finance comparison's
 // three filter-bar inset declarations left with its bar's move onto a card (#736). The
-// Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet.
-const FOUND = { subjects: 75, declarations: 541, carriers: 52, sheets: 6 };
+// Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet. The
+// finance comparison's ten inset declarations left when the kit took its insets back (#875).
+const FOUND = { subjects: 75, declarations: 531, carriers: 52, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -135,18 +136,9 @@ const ALLOWED: Record<string, string> = {
   // A skeleton stands in for content that is not there, so only the page knows its size.
   'react/src/PeriodPicker.stories.tsx|.ui-skel__bar.m-skeleton': 'a skeleton is the size of what it replaces',
 
-  // The comparison aligns kit controls and table cells to one inset. The story
-  // sheet owns these placements because the kit parts also serve other pages.
+  // The comparison stacks kit parts in its own column. The kit sets every inset.
   'react/src/FinanceComposition.css|.finance-comparison .ui-app__sub': 'the comparison heading sets its own gap to the subtitle',
-  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs align with the comparison text inset',
-  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline button': 'the tab labels share the comparison text inset',
-  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline button::before': 'the underline reaches both edges of its tab',
-  'react/src/FinanceComposition.css|.finance-comparison__card > .ui-table-scroll': 'the card supplies the table scroll region its inset',
-  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table': 'the table fits inside the comparison card',
-  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table td.ui-table__linked:first-child': 'the first linked cell uses the shared text inset',
-  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):first-child,\n.finance-comparison__card .ui-table td.ui-table__linked:first-child > a': 'the first column shares the comparison text inset',
-  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):last-child': 'the last column shares the comparison text inset',
-  'react/src/FinanceComposition.css|.finance-comparison__card .ui-table :is(th, td):first-child,\n  .finance-comparison__card .ui-table td.ui-table__linked:first-child > a': 'the phone first column shares the smaller text inset',
+  'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs span the card and do not widen it',
 };
 
 /* ---- the glue ceiling --------------------------------------------------- */

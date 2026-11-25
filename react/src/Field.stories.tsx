@@ -82,7 +82,7 @@ export const DropdownControl: StoryObj = { render: () => onCard(<div style={{ di
 // A text input, a dropdown and a date picker side by side: in a field all three take
 // the input's height. The input has the field corner, and the triggers keep the pill. #812, #836
 // Full screen like TextFields, so the centred layout does not shrink the row to one column.
-const formRow = (fields: ReactNode) => <div style={{ padding: 'var(--space-10) var(--space-4)' }}><div style={{ maxWidth: 'calc(var(--panel-lg) + var(--space-6) * 2)' }}>{onCard(<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))', gap: 'var(--space-5)' }}>
+const formRow = (fields: ReactNode) => <div style={{ padding: 'var(--space-10) var(--space-6)' }}><div style={{ maxWidth: 'calc(var(--panel-lg) + var(--space-6) * 2)' }}>{onCard(<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12rem, 1fr))', gap: 'var(--space-5)' }}>
   {fields}
 </div>)}</div></div>;
 export const FormRow: StoryObj = { parameters: { layout: 'fullscreen' }, render: () => formRow(<>

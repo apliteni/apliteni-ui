@@ -845,9 +845,11 @@ gives less vertical space, and `pad="lg"` makes a centred landing card. `icon` a
 centred on the title line. On a touch phone the tools stand `--tap-gap` apart. A `Chart` in a
 titled card puts its Chart and Table switch there.
 
-**A card on the light page.** A card draws no box, and its text starts on the page title's edge.
-At every width the card stays inside the page's side padding, so the page never scrolls sideways.
-A row table or a document viewer in the card reaches the card's sides and no further.
+**A card on the light page.** A card draws no box, and its text and its table text start on the
+page title's edge. To do this, the card hangs outside its container by its side inset: 24px, and
+16px at 720px and below. The page shell pads enough for this at every width. If you put a light
+card in another container, pad each side of the container by at least the hang, or the page
+scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one

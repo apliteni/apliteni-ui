@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.194.2', date: '2026-11-25',
     changes: [
-      ['fixed', 'In the light theme a card no longer goes 8px past the page from 561px to 720px, and a row table or a document viewer in a card no longer goes 8px past the card at 560px and below. The page does not scroll sideways at these widths now. The dark theme and wider light pages do not change. Part of #875.', ['Card', 'Table']],
+      ['fixed', 'In the light theme a card no longer goes 8px past the page from 561px to 720px, and a document viewer in a card no longer goes 8px past the card at 560px and below. The first and last text of a row table in a light card now start on the page title\'s edge at every width, and its row fill stays inside the page. A light stat tile keeps its 24px side inset from 561px to 720px. The dark theme does not change. Part of #875.', ['Card', 'Table', 'Stat band']],
     ],
   },
   {

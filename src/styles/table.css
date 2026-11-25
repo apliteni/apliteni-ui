@@ -620,6 +620,20 @@ a.ui-identity:hover { text-decoration: underline; }
   max-width: 100%;
   margin-inline: 0;
 }
+/* #875: a light card with no box hangs its own inset outside the column, so a table in it
+   takes no bleed of its own and its end cells meet the page title's edge. A frame hangs out
+   by its side band only. The selector names the light card as card.css does, so it outranks
+   each bleed above. A row fill stays inside the page. */
+:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table {
+  width: 100%;
+  max-width: 100%;
+  margin-inline: 0;
+}
+:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table-scroll {
+  width: calc(100% + 2 * var(--space-1));
+  max-width: none;
+  margin-inline: calc(-1 * var(--space-1));
+}
 /* #850: the row table's vertical bleed hangs it out by the card's 24px padding, but the
    light card removed that padding. The card clips its overflow, so the last row was cut and
    faded at the bottom. Reset the two ends to 0. why: docs/foundations.md#spacing-and-rhythm */

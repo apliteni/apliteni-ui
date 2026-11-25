@@ -4,7 +4,7 @@ import { Avatar } from './primitives/Avatar';
 import { Card } from './primitives/Card';
 import person from '../../stories/assets/demo-person.png';
 
-const meta: Meta = { title: 'React/Avatar', parameters: { layout: 'fullscreen' } };
+const meta: Meta = { title: 'React/Avatar', parameters: { layout: 'padded' } };
 export default meta;
 
 const NAMES = ['Avery Example', 'Jordan Okafor', 'Mia Chen', 'Noor Haddad', 'Sam Rivera', 'Lena Novak', 'Omar Reyes', 'Priya Nair'];
