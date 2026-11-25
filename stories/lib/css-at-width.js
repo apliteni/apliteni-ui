@@ -14,19 +14,22 @@ import { substitute, tokensFor } from './contrast.js';
 /** Blank out comments. A declaration inside one is not a declaration. */
 export const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
 
-/** `(max-width: 720px)`, `(min-width: 561px)` and their conjunctions. Anything else
- *  is a case a caller cannot judge, so it stops rather than passing over it. */
-export function mediaApplies(condition, width) {
+/** `(max-width: 720px)`, `(min-width: 561px)` and their conjunctions. A part that the
+ *  caller names in `skip`, such as `(pointer: coarse)`, makes the block not apply. Anything
+ *  else is a case a caller cannot judge, so it stops rather than passing over it. */
+export function mediaApplies(condition, width, skip = []) {
   return condition.split(/\s+and\s+/).map((part) => part.trim()).every((part) => {
-    if (part === '(forced-colors: active)') return false;
+    if (part === '(forced-colors: active)' || skip.includes(part)) return false;
     const m = /^\((max|min)-width:\s*(\d+(?:\.\d+)?)px\)$/.exec(part);
     assert.ok(m, `a media condition this gate cannot evaluate: ${part}`);
     return m[1] === 'max' ? width <= Number(m[2]) : width >= Number(m[2]);
   });
 }
 
-/** The stylesheet as it stands at one viewport width, with its tokens resolved. */
-export function sheetAt(css, width, theme = 'light', accent = 'default') {
+/** The stylesheet as it stands at one viewport width. `skip` names the media conditions
+ *  the caller leaves out, as `mediaApplies` reads them. Custom properties stay as written,
+ *  so a property that a rule scopes to one element still reads per element. */
+export function flatAt(css, width, skip = []) {
   const flat = decomment(css);
   let out = '';
   for (let i = 0; i < flat.length;) {
@@ -41,10 +44,16 @@ export function sheetAt(css, width, theme = 'light', accent = 'default') {
       if (flat[end] === '{') depth++;
       else if (flat[end] === '}') depth--;
     }
-    if (mediaApplies(condition, width)) out += flat.slice(open + 1, end - 1);
+    if (mediaApplies(condition, width, skip)) out += flat.slice(open + 1, end - 1);
     i = end;
   }
-  return substitute(out, tokensFor(theme, accent));
+  return out;
+}
+
+/** The stylesheet as it stands at one viewport width, with its tokens resolved. The
+ *  resolution is flat, so a custom property that a rule scopes reads as one value. */
+export function sheetAt(css, width, theme = 'light', accent = 'default') {
+  return substitute(flatAt(css, width), tokensFor(theme, accent));
 }
 
 /** Every rule one `@media` block writes, as `{ selector, declarations }`. The prelude

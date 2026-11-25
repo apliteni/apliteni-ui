@@ -734,11 +734,15 @@ function tableWidths(css) {
         // A dense hover table holds 8px at its ends, so it bleeds by that much (#773).
         '.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'calc(100% + 2 * var(--space-2))',
         '.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)': 'auto',
-        // The row table and its frame reach the card's edges, past the card's padding.
-        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--space-6))',
+        // The row table and its frame reach the card's edges, through the card's side inset.
+        '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--ui-card-inset))',
         '.ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'auto',
         // #850: on the light page a card draws no box, so its table sits flush on the column.
         ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)': '100%',
+        // #875: a light card with no box hangs its own inset, so its table sits on the column
+        // and its frame hangs out by its side band only.
+        ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table': '100%',
+        ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table-scroll': 'calc(100% + 2 * var(--space-1))',
       }[selector];
       if (width !== expected) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
@@ -753,6 +757,7 @@ function tableWidths(css) {
     ':where(.ui-card--fit) .ui-table',
     '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)',
     ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)',
+    ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table',
   ]) {
     if (!rules.some((rule) => rule.selector === selector)) {
       problems.push(`${selector} has no sizing rule`);

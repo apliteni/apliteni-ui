@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.196.1', date: '2026-11-25',
+    changes: [
+      ['fixed', 'In the light theme a card no longer goes 8px past the page from 561px to 720px, and a document viewer in a card no longer goes 8px past the card at 560px and below. The first and last text of a row table in a light card now start on the page title\'s edge at every width, and its row fill stays inside the page. A light stat tile keeps its 24px side inset from 561px to 720px, and its 16px side inset at 560px and below. The dark theme does not change. Part of #875.', ['Card', 'Table', 'Stat band']],
+    ],
+  },
+  {
     v: '0.196.0', date: '2026-11-25',
     changes: [
       ['breaking', '`ThreeColumnPage` is now a column browser: the parents, the children of the selected parent, and the open child. In a page area above 860px it shows three columns, in a narrower area the open column and its parent, and on a phone the open column under a back link that names the hidden parent. To migrate, pass `columns={[parents, children, child]}` in place of `nav`, `steps` and `work`, and `depth`, `defaultDepth` and `onDepthChange` in place of `view`, `defaultView` and `onViewChange`; drop each area\'s `link`, and the page `title` and `tools`, because the band shows the title. Part of #871.', ['Page shell']],

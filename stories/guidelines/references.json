@@ -554,7 +554,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:171",
+    "ref": "src/styles/card.css:179",
     "pattern": "rank: card-title"
    }
   ],
@@ -939,11 +939,11 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:182",
+    "ref": "src/styles/stat.css:183",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:183",
+    "ref": "src/styles/stat.css:184",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    }
   ]
@@ -1057,7 +1057,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:203",
+    "ref": "src/styles/card.css:211",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1127,7 +1127,7 @@
   ],
   "soft-lines-between-blocks": [
    {
-    "ref": "src/styles/stat.css:135",
+    "ref": "src/styles/stat.css:136",
     "pattern": "border: 1px solid var(--card-edge);"
    }
   ],
