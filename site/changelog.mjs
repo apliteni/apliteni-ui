@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.194.1', date: '2026-11-25',
+    changes: [
+      ['changed', 'The Three-column page guideline now chains the columns from parent to child: column 2 holds the children of the item selected in column 1, and column 3 holds the item selected in column 2. Two new rules keep the selected paint on each parent and replace the children when the parent changes. Part of #871.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.194.0', date: '2026-11-24',
     changes: [
       ['added', '`ThreeColumnPage` puts a list and its ordered steps on one half of a split page and the work of the open step on the other half. At 860px the list becomes its own view, and at 560px each area is its own view. A new Three-column page guideline states the widths and the collapse order. Resolves #871.', ['Page shell']],

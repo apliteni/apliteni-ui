@@ -71,7 +71,7 @@ const ENTRIES = [
   [accountContent, 'Guidelines/Account and settings', 'AccountAndSettings', 'Panels', 'The account window and the account menu'],
   [notificationsContent, 'Guidelines/Notifications', 'Notifications', 'Controls and states', 'The bell, read state and a failed load'],
   [sessionExpiredContent, 'Guidelines/Session expired', 'SessionExpired', 'Controls and states', 'The sign-in dialog, page state and a lasting notice'],
-  [threeColumnContent, 'Guidelines/Three-column page', 'ThreeColumnPage', 'Pages', 'A list, its steps and their work on one page'],
+  [threeColumnContent, 'Guidelines/Three-column page', 'ThreeColumnPage', 'Pages', 'Parents, their children and the open child in three columns'],
   [wizardContent, 'Guidelines/Wizard', 'WizardPage', 'Controls and states', 'Step states, the open step and the final action'],
 ];
 
