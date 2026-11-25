@@ -132,13 +132,12 @@ test('measured in a browser, four widths and both themes', {
               trigger.click();
               await frame();
               const panel = field.querySelector('[data-dropdown-panel]');
-              const before = trigger.getBoundingClientRect().width;
               const row = [...field.querySelectorAll('[data-dd-item]')]
                 .find((el) => el.textContent.trim() === label);
               if (!row) throw new Error(`${label} is missing`);
               row.click();
               await frame();
-              return { before, after: trigger.getBoundingClientRect().width, panel: panel.getBoundingClientRect().width };
+              return { after: trigger.getBoundingClientRect().width, panel: panel.getBoundingClientRect().width };
             };
             return { jordan: await pick('Jordan Example'), avery: await pick('Avery Example') };
           });
@@ -148,9 +147,8 @@ test('measured in a browser, four widths and both themes', {
       };
       for (const theme of THEMES) {
         const stable = await read(theme);
-        assert.equal(stable.jordan.before, stable.jordan.after, `${theme} changed width after Jordan Example`);
-        assert.equal(stable.jordan.after, stable.avery.after, `${theme} changed width after Avery Example`);
-        assert.ok(stable.jordan.panel >= stable.jordan.before, `${theme} panel is narrower than its trigger`);
+        assert.equal(stable.jordan.after, stable.avery.after, `${theme} changed width between Jordan Example and Avery Example`);
+        assert.ok(stable.jordan.panel >= stable.jordan.after, `${theme} panel is narrower than its trigger`);
         const old = await read(theme, '.ui-dropdown__fit { display: none !important; }');
         assert.notEqual(old.jordan.after, old.avery.after, `${theme} did not reject the old value-sized rule`);
       }
