@@ -13,7 +13,7 @@ const content = await loadGuideline('three-column-page.md', new URL('../../guide
 /* A three-column page cannot be drawn at life size in a specimen cell, so the layout
  * pictures are drawn to scale, as the page guideline draws a shell: the three columns as
  * blocks, and their items as the bars a reader skims. Each block's heading names the
- * parent that it belongs to, and a selected item keeps the nav's selected plate. The ratio
+ * parent that it belongs to, and a selected item keeps the page's selected paint. The ratio
  * is true and the pixels are not. The phone picture is drawn with the real parts. */
 type Area = 'list' | 'steps' | 'work';
 type Col = { area: Area; cap: string; on?: number };

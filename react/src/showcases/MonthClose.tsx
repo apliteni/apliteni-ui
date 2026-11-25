@@ -53,9 +53,11 @@ export function MonthCloseChecks({ stage, onStage, month = 'October', open, onOp
 }
 
 export function MonthClose({ stage: start = 'sources', view: startView = 'steps' }: { stage?: MonthCloseStage; view?: ThreeColumnView }) {
-  const [stage, setStage] = useState(start);
   const [view, setView] = useState(startView);
   const [month, setMonth] = useState('October');
+  // Each month has its own checks: October starts at the given stage, and the others at the first check.
+  const [stages, setStages] = useState<Record<string, MonthCloseStage>>({ October: start });
+  const stage = stages[month] ?? 'sources';
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   // The work area shows the open step, which the reader can open without completing a check.
@@ -63,7 +65,10 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
   const searchField = useRef<HTMLInputElement>(null);
   const clear = () => { setSearch(''); setFilter('all'); searchField.current?.focus(); };
   // A completed check opens the next one in the same render, so the work heading never lags.
-  const advance = (next: MonthCloseStage) => { setStage(next); setStep(workingCheck(next)); };
+  const advance = (next: MonthCloseStage) => { setStages({ ...stages, [month]: next }); setStep(workingCheck(next)); };
+  // A new month replaces the checks and the rows: the wizard opens on its first check, with no filter.
+  // The checks remount for each month, so the wizard does not move to the month's working check.
+  const chooseMonth = (name: string) => { setMonth(name); setStep(CHECKS[0].id); setSearch(''); setFilter('all'); };
   const fixed = STAGES.indexOf(stage) >= STAGES.indexOf('rates');
   const short = month.slice(0, 3);
   const rows = ROWS.map(row => fixed && !row.doc ? { ...row, doc: 'INV-106', status: 'Ready' as const } : row)
@@ -76,9 +81,9 @@ export function MonthClose({ stage: start = 'sources', view: startView = 'steps'
     <ThreeColumnPage view={view} onViewChange={setView}
       nav={{ title: '2026', link: 'Months', children: <div className="ui-nav"><ul className="ui-nav__list">
         {MONTHS.map(name => <li key={name}><button type="button" aria-pressed={name === month}
-          className={`ui-nav__item${name === month ? ' is-active' : ''}`} onClick={() => setMonth(name)}>{name}</button></li>)}
+          className={`ui-nav__item${name === month ? ' is-active' : ''}`} onClick={() => chooseMonth(name)}>{name}</button></li>)}
       </ul></div> }}
-      steps={{ title: 'Month checks', link: 'Checks', children: <MonthCloseChecks stage={stage} onStage={advance} month={month} open={step} onOpenChange={setStep} /> }}
+      steps={{ title: 'Month checks', link: 'Checks', children: <MonthCloseChecks key={month} stage={stage} onStage={advance} month={month} open={step} onOpenChange={setStep} /> }}
       work={{ title: open, link: 'Rows', children: <>
         <div className="ui-toolbar">
           <SearchField ref={searchField} ariaLabel="Search rows" size="sm" value={search} onChange={event => setSearch(event.target.value)} />

@@ -145,6 +145,31 @@ it.each([
   expect(workHeading()).toBe(work);
 });
 
+it('replaces the checks and the rows when the reader selects another month', () => {
+  render(<MonthClose stage="rows" />);
+  const month = (name: string) => screen.getByRole('button', { name, exact: true } as never);
+  fireEvent.change(screen.getByRole('searchbox', { name: 'Search rows' }), { target: { value: 'Aster' } });
+  fireEvent.click(month('September'));
+  expect(month('September')).toHaveAttribute('aria-pressed', 'true');
+  // September's own checks: the first is open and current, and the rows are its rows.
+  expect(step(1)).toHaveAttribute('aria-expanded', 'true');
+  expect(step(1)).toHaveAccessibleName(/Current/);
+  expect(step(2)).toHaveAccessibleName(/To do/);
+  expect(workHeading()).toBe('Sources');
+  expect(screen.getByRole('table', { name: 'Rows for September' })).toBeInTheDocument();
+  expect(screen.getByRole('searchbox', { name: 'Search rows' })).toHaveValue('');
+  // A new check replaces only the rows.
+  fireEvent.click(step(2));
+  expect(workHeading()).toBe('Unclassified rows');
+  expect(month('September')).toHaveAttribute('aria-pressed', 'true');
+  // October keeps its own checks, and opens on the first.
+  fireEvent.click(month('October'));
+  expect(step(1)).toHaveAttribute('aria-expanded', 'true');
+  expect(step(1)).toHaveAccessibleName(/Done/);
+  expect(step(2)).toHaveAccessibleName(/Current/);
+  expect(workHeading()).toBe('Sources');
+});
+
 it('pins the payee, puts the unit in the header, and a search with no rows offers to clear the filters', () => {
   render(<MonthClose />);
   expect(screen.getByRole('columnheader', { name: 'Payee' })).toHaveClass('ui-table__identity');

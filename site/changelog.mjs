@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.194.1', date: '2026-11-25',
     changes: [
-      ['changed', 'The Three-column page guideline now chains the columns from parent to child: column 2 holds the children of the item selected in column 1, and column 3 holds the item selected in column 2. Two new rules keep the selected paint on each parent and replace the children when the parent changes. Part of #871.', ['Guidelines']],
+      ['changed', 'The Three-column page guideline now chains the columns from parent to child: column 2 holds the children of the item selected in column 1, and column 3 holds the item selected in column 2. Two new rules keep the selected paint on each parent and replace the children when the parent changes. The Month close showcase follows them: a new month opens its own first check and its rows. Part of #871.', ['Guidelines']],
     ],
   },
   {

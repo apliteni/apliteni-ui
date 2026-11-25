@@ -1211,7 +1211,7 @@
   ],
   "selected-parent": [
    {
-    "ref": "react/src/showcases/MonthClose.tsx:78",
+    "ref": "react/src/showcases/MonthClose.tsx:83",
     "pattern": "{MONTHS.map(name => <li key={name}><button type=\"button\" aria-pressed={name === month}"
    },
    {
@@ -1226,10 +1226,14 @@
   "replace-children": [
    {
     "ref": "react/src/showcases/MonthClose.tsx:71",
+    "pattern": "const chooseMonth = (name: string) => { setMonth(name); setStep(CHECKS[0].id);"
+   },
+   {
+    "ref": "react/src/showcases/MonthClose.tsx:76",
     "pattern": "const open = CHECKS.find(check => check.id === step)?.label ?? 'Reviewed rows';"
    },
    {
-    "ref": "react/src/showcases/MonthClose.tsx:89",
+    "ref": "react/src/showcases/MonthClose.tsx:94",
     "pattern": "caption={`Rows for ${month}`}"
    }
   ],

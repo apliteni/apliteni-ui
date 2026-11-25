@@ -7,10 +7,11 @@ export const RULES = content.rules;
 
 /* The layout pictures are drawn to scale: the three columns as blocks, 1 to 2 to 4 for
    the page, or three equal columns for the don't. The separators are the divider's line,
-   and a selected item takes the nav's selected plate. The phone picture holds the real
+   and a selected item takes the page's selected paint. The phone picture holds the real
    links and steps. */
 export const SPEC_CSS = `<style>
-  .tc-lay { display: flex; height: 168px; border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
+  /* The columns stand on the page ground, as on the page, so the selected plates keep their contrast. */
+  .tc-lay { display: flex; height: 168px; background: var(--bg); border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--border); overflow: hidden; }
   .tc-lay__col { display: flex; flex-direction: column; gap: 1px; min-width: 0; padding: var(--space-3); }
   /* A phone cell: a narrower inset keeps a month's name whole in column 2. */
   .tc-lay { container-type: inline-size; }
@@ -22,9 +23,12 @@ export const SPEC_CSS = `<style>
   .tc-lay--equal > .tc-lay__col { flex: 1; }
   .tc-lay--phone { max-width: 180px; }
   .tc-lay__cap { margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--strong); }
-  .tc-lay__row { display: flex; align-items: center; gap: 5px; margin-inline: -5px; padding: 3px 5px; border-radius: var(--radius-sm); }
-  .tc-lay__row--on { background: var(--nav-active-fill); }
-  .tc-lay__row--on .tc-lay__ln { background: color-mix(in srgb, var(--strong) 70%, transparent); }
+  .tc-lay__row { display: flex; align-items: center; gap: 5px; margin-inline: -6px; padding: 3px 6px; border-radius: var(--radius-sm); }
+  /* The selected paint as the page draws it: the months list's grey selected row, and the
+     open step's tint. A selected row is a taller plate with strong ink, so it reads at a glance. */
+  .tc-lay__row--on { padding-block: 7px; background: var(--nav-active-fill); }
+  .tc-lay__col--steps > .tc-lay__row--on { background: color-mix(in srgb, var(--accent) 14%, var(--surface)); }
+  .tc-lay__row--on .tc-lay__ln { background: var(--strong); }
   .tc-lay__dot { flex: none; width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--muted); }
   .tc-lay__ln { flex: 1; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--muted) 55%, transparent); }
   .tc-lay__col--work .tc-lay__ln { height: 6px; }
