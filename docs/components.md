@@ -798,10 +798,13 @@ with a search field from ten values. When you add the filter in the same update,
 the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and the look.
 
 **What the user sees.** A chip shows only the chosen value. Without a value, it shows the filter
-name. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
+name. Each chip takes the width of its longest value, up to 224px. A value change does not change
+that width, and a reload that turns the bar off and on does not change it. Only a value longer
+than 224px ends with an ellipsis. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
 stays inside the row and never makes the page wider. The menu marks the chip's value with a soft
 accent wash and a check. Clear all and the remove mark of a chip show only when there is a value to
-clear. A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
+clear. They keep their room while they do not show, so the content under the bar does not move.
+A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
 240px, such as a catalogue with a search field, declares `--ui-filter-panel-ask` in your
 stylesheet. It is then 320px wide where the row has the room, and the width of the row where it
 does not.

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Card } from './primitives/Card';
 import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 import { Dropdown, type DropdownEntry, type DropdownProps } from './Dropdown';
 
@@ -34,6 +35,34 @@ export const Adding: Story = { args: { add: catalogue }, render: function Exampl
     }} />;
 } };
 export const Busy: Story = { args: { busy: true } };
+// A bar that reloads its rows after each change, as an app does: the bar is off during the
+// load. Each chip keeps the width of its longest value, so the card under the bar does not
+// move. stories/filter-chip-width.test.js walks it. #885
+const MEMBERS = [
+  { id: 'office', label: 'Office', any: 'Any office', values: ['Lisbon, head office', 'Porto', 'Remote'] },
+  { id: 'team', label: 'Team', any: 'Any team', values: ['Individual CEO', 'Company overhead', 'Orbit Notes'] },
+  { id: 'status', label: 'Status', any: 'Any status', values: ['Active', 'Invited'] },
+];
+export const Reloading: Story = { render: function Example() {
+  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const load = (next: Record<string, string>) => { setChosen(next); setBusy(true); };
+  useEffect(() => {
+    if (!busy) return undefined;
+    const done = setTimeout(() => setBusy(false), 600);
+    return () => clearTimeout(done);
+  }, [busy]);
+  const shown = Object.values(chosen).filter(Boolean).length;
+  return <div className="ui-stack">
+    <div className="ui-toolbar">
+      <FilterBar label="Member filters" busy={busy} onClear={() => load({})}
+        onChange={(id, value) => load({ ...chosen, [id]: value ?? '' })} onRemove={id => load({ ...chosen, [id]: '' })}
+        filters={MEMBERS.map(f => ({ id: f.id, label: f.label, value: chosen[f.id] ?? '',
+          items: [{ label: f.any, value: '' }, ...f.values.map(v => ({ label: v, value: v }))] }))} />
+    </div>
+    <Card title="Members">{shown ? `${shown} of 3 filters in use` : 'All members'}</Card>
+  </div>;
+} };
 export const Disabled: Story = { args: { disabled: true } };
 export const Empty: Story = { args: { filters: [] } };
 

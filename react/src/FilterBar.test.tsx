@@ -52,8 +52,10 @@ it('offers the clear action only once there is something to clear', () => {
 it('prints the chosen value alone and names the field it filters', () => {
   const props = callbacks();
   render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
-  expect(screen.getByRole('button', { name: 'Status: Active' })).toHaveTextContent(/^Active$/);
-  expect(screen.getByRole('button', { name: 'Region: any' })).toHaveTextContent(/^Region$/);
+  // The shown line is the one the hidden lines leave out of the accessibility tree.
+  const shown = (name: string) => screen.getByRole('button', { name }).querySelector('.ui-filter-bar__fit > :not([aria-hidden])');
+  expect(shown('Status: Active')).toHaveTextContent(/^Active$/);
+  expect(shown('Region: any')).toHaveTextContent(/^Region$/);
   expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
 });
 // The class the sheet paints with --muted; appearance itself is not measured here.
@@ -406,17 +408,37 @@ it('allows an explicit link action without changing the default skin', () => {
   expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('ui-btn--link');
 });
 
-// DOM only: which controls are drawn for a chip with no value.
-it('draws a remove mark only on a chip with a value, and Clear all only when one has', async () => {
+// DOM only: which controls are drawn for a chip with no value. The sheet hides the room
+// they keep; a browser measures that the room holds the width. #885
+it('draws a remove mark only on a chip with a value, and Clear all only when one has, and keeps their room', async () => {
   const props = callbacks();
   const unset: Filter = { id: 'Region', label: 'Region', value: '', items: [{ label: 'North', value: 'north' }] };
   const { rerender } = render(<FilterBar filters={[unset]} {...props} />);
   expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument();
+  const room = [...document.querySelectorAll('.is-reserved')];
+  expect(room.map(el => el.className)).toEqual(['ui-filter-bar__remove is-reserved', 'is-reserved']);
+  expect(room.every(el => el.getAttribute('aria-hidden') === 'true')).toBe(true);
+  expect(room[1]).toHaveAttribute('inert');
+  expect(room[1].querySelector('button')).toHaveAttribute('tabindex', '-1');
   rerender(<FilterBar filters={[unset, filters[1]]} {...props} />);
   expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Remove Status filter' })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Clear all' })).toBeInTheDocument();
+  expect(document.querySelectorAll('.is-reserved')).toHaveLength(1);
+  // A bar with no chips keeps no room, so it still draws no box.
+  rerender(<FilterBar filters={[]} {...props} />);
+  expect(document.querySelectorAll('.is-reserved')).toHaveLength(0);
+});
+// DOM only: the lines the chip measures its width against. A browser measures the width.
+it('holds every line the chip can print, so a pick does not change its width', () => {
+  const office: Filter = { id: 'office', label: 'Office', value: 'Porto', items: [{ label: 'Any office', value: '' }, '---',
+    { label: 'Lisbon, head office', value: 'Lisbon, head office' }, { label: 'Porto', value: 'Porto' }, { label: 'Remote' }] };
+  render(<FilterBar filters={[office, { ...office, id: 'off', value: 'Not in the menu' }]} {...callbacks()} />);
+  const lines = (name: string) => [...screen.getByRole('button', { name }).querySelectorAll('.ui-filter-bar__fit > [aria-hidden="true"]')].map(el => el.textContent);
+  // The empty row puts the name back, so it adds no line of its own.
+  expect(lines('Office: Porto')).toEqual(['Porto', 'Office', 'Lisbon, head office', 'Remote']);
+  expect(lines('Office: Not in the menu')).toEqual(['Not in the menu', 'Office', 'Lisbon, head office', 'Porto', 'Remote']);
 });
 
 it('keeps focus on the chip when its value is cleared and its remove mark goes', async () => {
