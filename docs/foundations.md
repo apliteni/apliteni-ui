@@ -235,7 +235,8 @@ chip inks. They measure at least 7.01:1 on a plain, a selected and a selected ho
 every accent. In dark they are the chip inks, at 7.42:1 or more. The lead word of a callout is
 such a word. It takes the status ink of its tone on the tone's wash. Success has no status ink,
 so a success lead takes `--chip-success-ink`. On the page, a card, a sunken track and a floating
-panel, a lead measures at least 6.24:1 in both themes.
+panel, a lead measures at least 6.22:1 in both themes. This figure uses the exact composite of
+the token values, which gives the lower result. The 8-bit composite gives 6.23:1 or more.
 
 **A link in a callout has its own ink.** The accent can be under 4.5:1 on a tone wash, so a link
 in the callout text mixes 65% of `--accent` with `--strong`. On each tone wash over the page, a
