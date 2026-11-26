@@ -14,6 +14,22 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.201.0', date: '2026-11-26',
+    changes: [
+      ['added', 'An action notice can now take `timer`. It then closes when the time runs out, and its action starts with a 16px ring that empties as the time runs out, over a soft full-circle track. Without `timer` an action notice stays, as before. Part of #888.', ['Toast']],
+      ['added', '`Toast` takes `limit`, the most notices on screen. A new notice over the limit closes the oldest one, and each notice keeps its own action. There is no limit by default. Part of #888.', ['Toast']],
+      ['changed', 'The pointer or the focus anywhere in the toast stack now stops every notice timer, not only the timer of that notice. Part of #888.', ['Toast']],
+      ['fixed', 'In light, the notice action shows the quiet fill `--surface-3` under the pointer. Before, its hover fill was white on the white notice. Part of #888.', ['Toast']],
+      ['fixed', 'The notice action and the focus outline of the dismiss control are now pills, `--radius-pill`, as Foundations "Control corners" says. Before, they had the 6px corner `--radius-xs`. Part of #888.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.200.1', date: '2026-11-26',
+    changes: [
+      ['fixed', 'Where a `Chart` steps its category names, it no longer prints one name over another. The step grows until the last printed name, aligned to the chart\'s edge, stays at least 4px clear of the name before it, at any width and any name length. A picked name that the chart prints stays printed. Part of #882.', ['Chart']],
+    ],
+  },
+  {
     v: '0.200.0', date: '2026-11-26',
     changes: [
       ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes the new ink `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],

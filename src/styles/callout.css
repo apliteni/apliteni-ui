@@ -52,11 +52,11 @@
 }
 
 /* Existing tone inks also colour the unfilled glyph. */
-.ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); }
-.ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
-.ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
-.ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
-.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
+.ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); --toast-timer-tone: var(--toast-timer-mix); }
+.ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); --toast-timer-tone: var(--toast-timer-mix-strong); }
+.ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); --toast-timer-tone: var(--toast-timer-mix); }
+.ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); --toast-timer-tone: var(--toast-timer-mix); }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); --toast-timer-tone: var(--toast-timer-mix-strong); }
 
 .ui-toast__icon { width: 22px; height: 1lh; flex: none; display: grid; place-items: center; background: transparent; color: var(--toast-action-ink); }
 .ui-toast__icon svg { width: var(--space-4); height: var(--space-4); stroke: currentColor; fill: none; stroke-width: 2.25; } /* 16px × 2.25 / 24 = 1.5 CSS px. */
@@ -65,9 +65,23 @@
 .ui-toast__text { color: var(--text); }
 
 /* Tone ink keeps actions readable on the neutral surface. */
-.ui-toast__action { flex: none; margin-block: -4px; /* the fill overhangs the first line by its own padding */ background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
+.ui-toast__action { flex: none; margin-block: -4px; /* the fill overhangs the first line by its own padding */ background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-pill); /* a control a reader presses is a pill. docs/foundations.md#control-corners */ font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* In light the page and the notice are one white, so a mix of --bg does not show. The hover takes
+   the quiet fill, as a light menu row does. #888 */
+:where(:root[data-theme="light"]) .ui-toast__action:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-toast__action:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+
+/* An action with a timer. Its ring is the first part of the button and empties as the time
+   runs out. The ring mixes the tone into the notice ground, so it stays soft and keeps 3:1.
+   why: docs/components.md#toast */
+.ui-toast__action--timed { display: inline-flex; align-items: center; gap: var(--space-2); }
+.ui-toast__ring { flex: none; width: var(--space-4); height: var(--space-4); rotate: -90deg; /* muted-ink: glyph — a neutral ring mixes --muted, and the ring is a graphic at 3:1 */ color: color-mix(in srgb, var(--toast-accent) var(--toast-timer-tone), var(--surface)); }
+.ui-toast__ring-arc { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 100; }
+/* The track is the full ring behind the arc, so the ring keeps its shape as the arc empties. It
+   mixes the arc's ink into the notice ground, so the arc stays clearly darker. why: docs/components.md#toast */
+.ui-toast__ring-track { fill: none; stroke: currentColor; stroke-width: 2; /* muted-ink: glyph — a neutral track mixes --muted, and the track is the ring's backdrop */ color: color-mix(in srgb, currentColor 35%, var(--surface)); }
+.ui-toast__ring-arc.is-running { animation: ui-toast-ring var(--toast-dur, 5s) linear forwards; /* motion: ambient — the ring spends the notice's dismiss timer, as the line does */ }
 
 .ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; height: 1lh; padding: 0 2px; display: grid; place-items: center; position: relative; font: inherit; }
 .ui-toast__close svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; }
@@ -91,7 +105,7 @@
   transform: translate(-50%, -50%);
 }
 .ui-toast__close:hover { color: var(--text); }
-.ui-toast__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+.ui-toast__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-pill); }
 
 /* auto-dismiss progress line — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
@@ -102,7 +116,9 @@
    countdown from drifting apart, and gives a keyboard reader the same reprieve
    a pointer reader gets. */
 .ui-toast:hover > .ui-toast__timer.is-running,
-.ui-toast:focus-within > .ui-toast__timer.is-running { animation-play-state: paused; }
+.ui-toast:focus-within > .ui-toast__timer.is-running,
+.ui-toast:hover .ui-toast__ring-arc.is-running,
+.ui-toast:focus-within .ui-toast__ring-arc.is-running { animation-play-state: paused; }
 
 /* Legacy style classes share the neutral card. */
 .ui-toast--soft, .ui-toast--solid, .ui-toast--outline { background: var(--surface); color: var(--text); }
@@ -113,6 +129,7 @@
 @keyframes ui-toast-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
 @keyframes ui-toast-out { to { opacity: 0; transform: translateX(24px); } }
 @keyframes ui-toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes ui-toast-ring { to { stroke-dashoffset: -100; } }
 .ui-toast.is-leaving { animation: ui-toast-out var(--dur-fast) var(--ease-sharp) forwards; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -121,6 +138,15 @@
      "no time spent yet" — the opposite of what it is there to say. The notice
      still expires on time; only the false readout goes. */
   .ui-toast__timer { display: none; }
+  /* The ring does not glide. The script moves it one step each second, as a count changes. */
+  .ui-toast__ring-arc.is-running { animation: none; }
+}
+
+/* An SVG keeps its author colour in forced colours, so the ring names the button's system colour.
+   The track takes GrayText, so it stays apart from the arc. */
+@media (forced-colors: active) {
+  .ui-toast__ring { color: ButtonText; }
+  .ui-toast__ring-track { color: GrayText; }
 }
 
 /* stack container for queued toasts */

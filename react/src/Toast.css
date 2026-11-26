@@ -74,6 +74,8 @@
   .ui-toast-stack--collapsed:focus-within > .ui-toast { position: static; translate: none; scale: 1; max-height: none; clip-path: none; }
 }
 
-/* A held pile pauses every notice's timer line, not only the one with focus. */
-.ui-toast-stack--collapsed:hover > .ui-toast > .ui-toast__timer.is-running,
-.ui-toast-stack--collapsed:focus-within > .ui-toast > .ui-toast__timer.is-running { animation-play-state: paused; }
+/* A held stack pauses every notice's timer line and ring, not only the one with focus. */
+.rx-toast-stack:hover > .ui-toast > .ui-toast__timer.is-running,
+.rx-toast-stack:focus-within > .ui-toast > .ui-toast__timer.is-running,
+.rx-toast-stack:hover > .ui-toast .ui-toast__ring-arc.is-running,
+.rx-toast-stack:focus-within > .ui-toast .ui-toast__ring-arc.is-running { animation-play-state: paused; }
