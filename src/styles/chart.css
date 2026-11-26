@@ -73,13 +73,13 @@
   grid-template-columns: auto minmax(0, 1fr);
   align-items: start;
   column-gap: var(--space-2);
-  padding-block: calc(var(--ring-width, 2px) + var(--ring-offset, 1px));
+  padding-block: calc(var(--ring-width, 1px) + var(--ring-offset, 2px));
   border-radius: var(--radius-xs);
 }
 /* The grid would beat the hidden attribute. */
 .ui-chart__frame[hidden] { display: none; /* motion: still — the table view takes the frame's place at once */ }
 .ui-chart__frame:focus-visible {
-  outline-offset: var(--ring-offset, 1px);
+  outline-offset: var(--ring-offset, 2px);
 }
 
 .ui-chart__axis {

@@ -487,7 +487,7 @@ describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
       .not.toMatch(/outline\s*:/);
     expect(readRepo('../../src/styles/chart.css'),
       'the chart keeps the same unpainted offset as the kit ring')
-      .toMatch(/\.ui-chart__frame:focus-visible\s*\{[^}]*outline-offset:\s*var\(--ring-offset,\s*1px\)/);
+      .toMatch(new RegExp(`\\.ui-chart__frame:focus-visible\\s*\\{[^}]*outline-offset:\\s*var\\(--ring-offset,\\s*${vars.get('--ring-gap-width')}\\)`));
     expect(readRepo('../../src/styles/chart.css'),
       'the chart must not offset focus by the tick row')
       .not.toMatch(/outline-offset:\s*calc\([^)]*ui-chart-tick/);
