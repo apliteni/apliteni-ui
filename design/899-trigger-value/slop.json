@@ -1,0 +1,182 @@
+{
+  "verdict": "warn",
+  "level": "recommended",
+  "files": [
+    {
+      "file": "rendered-dark.html",
+      "verdict": "warn",
+      "level": "recommended",
+      "findings": [
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Unit Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Unit Choose a unit",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Choose a unit",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Entity: Studio",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> currency: EUR",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> version: phoenix.2026.002",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        }
+      ],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 9
+      },
+      "visualRulesSkipped": false
+    },
+    {
+      "file": "rendered-light.html",
+      "verdict": "warn",
+      "level": "recommended",
+      "findings": [
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Unit Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Unit Choose a unit",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Choose a unit",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Engine team",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> Entity: Studio",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> currency: EUR",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        },
+        {
+          "rule": "multiword-control",
+          "level": 2,
+          "severity": "warning",
+          "span": "<button> version: phoenix.2026.002",
+          "why": "A multi-word action label makes a control harder to scan.",
+          "fix": "Use one clear verb for the action."
+        }
+      ],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 9
+      },
+      "visualRulesSkipped": false
+    }
+  ],
+  "stats": {
+    "files": 2,
+    "errors": 0,
+    "medium": 0,
+    "warnings": 18
+  }
+}

@@ -1,0 +1,14 @@
+/* Review layout only. Controls use the kit styles from main. */
+.review { max-width: var(--container); margin-inline: auto; padding: var(--space-8) var(--space-4); display: grid; gap: var(--space-8); }
+.heading { display: flex; justify-content: space-between; align-items: start; gap: var(--space-6); flex-wrap: wrap; }
+.theme-controls { display: flex; gap: var(--space-3); }
+.rule { max-width: var(--measure); }
+.case { display: grid; gap: var(--space-4); min-width: 0; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); }
+.specimen { display: grid; grid-template-rows: auto auto 1fr; align-content: start; gap: var(--space-3); min-width: 0; }
+.sample { min-width: 0; min-height: var(--space-12); display: grid; align-items: start; justify-items: start; }
+.sample > .ui-card { width: 100%; }
+.name { overflow-wrap: anywhere; }
+.decision { display: grid; gap: var(--space-3); max-width: var(--measure); }
+.single { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 560px) { .pair { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); } }

@@ -1,0 +1,564 @@
+{
+  "viewports": [
+    {
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1920,
+      "height": 1080,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 1920,
+      "height": 1080,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 360,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 844,
+      "height": 390,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 820,
+      "height": 1180,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 466,
+      "height": 678,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 984,
+      "height": 1016,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1536,
+      "height": 864,
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 2560,
+      "height": 1440,
+      "overflow": false
+    }
+  ],
+  "names": [
+    {
+      "theme": "light",
+      "case": "form",
+      "side": "before",
+      "name": "Unit Unit Engine team",
+      "tree": "- button \"Unit Unit Engine team\": Unit Engine team"
+    },
+    {
+      "theme": "light",
+      "case": "form",
+      "side": "after",
+      "name": "Unit Engine team",
+      "tree": "- button \"Unit Engine team\": Engine team"
+    },
+    {
+      "theme": "light",
+      "case": "empty",
+      "side": "before",
+      "name": "Unit Unit Choose a unit",
+      "tree": "- button \"Unit Unit Choose a unit\": Unit Choose a unit"
+    },
+    {
+      "theme": "light",
+      "case": "empty",
+      "side": "after",
+      "name": "Unit Choose a unit",
+      "tree": "- button \"Unit Choose a unit\": Choose a unit"
+    },
+    {
+      "theme": "light",
+      "case": "filter",
+      "side": "before",
+      "name": "Unit: Engine team",
+      "tree": "- 'button \"Unit: Engine team\"': Engine team"
+    },
+    {
+      "theme": "light",
+      "case": "filter",
+      "side": "after",
+      "name": "Unit: Engine team",
+      "tree": "- 'button \"Unit: Engine team\"': Engine team"
+    },
+    {
+      "theme": "light",
+      "case": "filter-empty",
+      "side": "before",
+      "name": "Unit: any",
+      "tree": "- 'button \"Unit: any\"': Unit"
+    },
+    {
+      "theme": "light",
+      "case": "filter-empty",
+      "side": "after",
+      "name": "Unit: any",
+      "tree": "- 'button \"Unit: any\"': Unit"
+    },
+    {
+      "theme": "light",
+      "case": "entity",
+      "side": "before",
+      "name": "Entity: Studio",
+      "tree": "- 'button \"Entity: Studio\"'"
+    },
+    {
+      "theme": "light",
+      "case": "entity",
+      "side": "after",
+      "name": "Entity: Studio",
+      "tree": "- 'button \"Entity: Studio\"': Studio"
+    },
+    {
+      "theme": "light",
+      "case": "currency",
+      "side": "before",
+      "name": "currency: EUR",
+      "tree": "- 'button \"currency: EUR\"'"
+    },
+    {
+      "theme": "light",
+      "case": "currency",
+      "side": "after",
+      "name": "Currency: EUR",
+      "tree": "- 'button \"Currency: EUR\"': EUR"
+    },
+    {
+      "theme": "light",
+      "case": "version",
+      "side": "before",
+      "name": "version: phoenix.2026.002",
+      "tree": "- 'button \"version: phoenix.2026.002\"'"
+    },
+    {
+      "theme": "light",
+      "case": "version",
+      "side": "after",
+      "name": "Version: phoenix.2026.002",
+      "tree": "- 'button \"Version: phoenix.2026.002\"': phoenix.2026.002"
+    },
+    {
+      "theme": "dark",
+      "case": "form",
+      "side": "before",
+      "name": "Unit Unit Engine team",
+      "tree": "- button \"Unit Unit Engine team\": Unit Engine team"
+    },
+    {
+      "theme": "dark",
+      "case": "form",
+      "side": "after",
+      "name": "Unit Engine team",
+      "tree": "- button \"Unit Engine team\": Engine team"
+    },
+    {
+      "theme": "dark",
+      "case": "empty",
+      "side": "before",
+      "name": "Unit Unit Choose a unit",
+      "tree": "- button \"Unit Unit Choose a unit\": Unit Choose a unit"
+    },
+    {
+      "theme": "dark",
+      "case": "empty",
+      "side": "after",
+      "name": "Unit Choose a unit",
+      "tree": "- button \"Unit Choose a unit\": Choose a unit"
+    },
+    {
+      "theme": "dark",
+      "case": "filter",
+      "side": "before",
+      "name": "Unit: Engine team",
+      "tree": "- 'button \"Unit: Engine team\"': Engine team"
+    },
+    {
+      "theme": "dark",
+      "case": "filter",
+      "side": "after",
+      "name": "Unit: Engine team",
+      "tree": "- 'button \"Unit: Engine team\"': Engine team"
+    },
+    {
+      "theme": "dark",
+      "case": "filter-empty",
+      "side": "before",
+      "name": "Unit: any",
+      "tree": "- 'button \"Unit: any\"': Unit"
+    },
+    {
+      "theme": "dark",
+      "case": "filter-empty",
+      "side": "after",
+      "name": "Unit: any",
+      "tree": "- 'button \"Unit: any\"': Unit"
+    },
+    {
+      "theme": "dark",
+      "case": "entity",
+      "side": "before",
+      "name": "Entity: Studio",
+      "tree": "- 'button \"Entity: Studio\"'"
+    },
+    {
+      "theme": "dark",
+      "case": "entity",
+      "side": "after",
+      "name": "Entity: Studio",
+      "tree": "- 'button \"Entity: Studio\"': Studio"
+    },
+    {
+      "theme": "dark",
+      "case": "currency",
+      "side": "before",
+      "name": "currency: EUR",
+      "tree": "- 'button \"currency: EUR\"'"
+    },
+    {
+      "theme": "dark",
+      "case": "currency",
+      "side": "after",
+      "name": "Currency: EUR",
+      "tree": "- 'button \"Currency: EUR\"': EUR"
+    },
+    {
+      "theme": "dark",
+      "case": "version",
+      "side": "before",
+      "name": "version: phoenix.2026.002",
+      "tree": "- 'button \"version: phoenix.2026.002\"'"
+    },
+    {
+      "theme": "dark",
+      "case": "version",
+      "side": "after",
+      "name": "Version: phoenix.2026.002",
+      "tree": "- 'button \"Version: phoenix.2026.002\"': phoenix.2026.002"
+    }
+  ],
+  "axe": [
+    {
+      "theme": "light",
+      "state": "closed",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "theme": "light",
+      "state": "hover",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "theme": "light",
+      "state": "focus",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "theme": "light",
+      "state": "open selected",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "state": "no results",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-required-children",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "state": "closed",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "theme": "dark",
+      "state": "hover",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "theme": "dark",
+      "state": "focus",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "theme": "dark",
+      "state": "open selected",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "state": "no results",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-required-children",
+          "nodes": 1
+        },
+        {
+          "id": "color-contrast",
+          "nodes": 2
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "theme": "light",
+      "selection": "Support team",
+      "escape": "returns focus"
+    },
+    {
+      "theme": "dark",
+      "selection": "Support team",
+      "escape": "returns focus"
+    },
+    {
+      "sandbox": "allow-scripts",
+      "themeSwitch": "pass",
+      "nestedFrames": 0
+    },
+    {
+      "theme": "light",
+      "phone": {
+        "hasTouch": true,
+        "longValueFits": true
+      }
+    },
+    {
+      "theme": "dark",
+      "phone": {
+        "hasTouch": true,
+        "longValueFits": true
+      }
+    }
+  ],
+  "limits": [
+    "Browser names were checked. No screen reader application was used.",
+    "The before controls use main 26028b76. The after controls are a proposal.",
+    "FilterBar remains unchanged. PR 897 is assessed in README.md."
+  ],
+  "manualAxeReview": [
+    {
+      "theme": "light",
+      "scene": "form",
+      "incomplete": []
+    },
+    {
+      "theme": "light",
+      "scene": "currency",
+      "incomplete": [
+        {
+          "id": "aria-required-children",
+          "nodes": [
+            {
+              "target": [
+                "#_r_j_-list"
+              ],
+              "summary": "Fix any of the following:\n  Expecting ARIA children role to be added: group, option",
+              "checks": [
+                {
+                  "message": "Expecting ARIA children role to be added: group, option",
+                  "data": [
+                    "group",
+                    "option"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "target": [
+                "article[data-case=\"currency\"][data-side=\"after\"] > .name"
+              ],
+              "summary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element",
+              "checks": [
+                {
+                  "message": "Element's background color could not be determined because it is overlapped by another element",
+                  "data": {
+                    "contrastRatio": 0,
+                    "fontSize": "10.9pt (14.5px)",
+                    "fontWeight": "normal",
+                    "messageKey": "bgOverlap",
+                    "expectedContrastRatio": "4.5:1"
+                  }
+                }
+              ]
+            },
+            {
+              "target": [
+                "article[data-case=\"currency\"][data-side=\"after\"] > .name > strong"
+              ],
+              "summary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element",
+              "checks": [
+                {
+                  "message": "Element's background color could not be determined because it is overlapped by another element",
+                  "data": {
+                    "contrastRatio": 0,
+                    "fontSize": "10.9pt (14.5px)",
+                    "fontWeight": "normal",
+                    "messageKey": "bgOverlap",
+                    "expectedContrastRatio": "4.5:1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "scene": "form",
+      "incomplete": []
+    },
+    {
+      "theme": "dark",
+      "scene": "currency",
+      "incomplete": [
+        {
+          "id": "aria-required-children",
+          "nodes": [
+            {
+              "target": [
+                "#_r_j_-list"
+              ],
+              "summary": "Fix any of the following:\n  Expecting ARIA children role to be added: group, option",
+              "checks": [
+                {
+                  "message": "Expecting ARIA children role to be added: group, option",
+                  "data": [
+                    "group",
+                    "option"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "nodes": [
+            {
+              "target": [
+                "article[data-case=\"currency\"][data-side=\"after\"] > .name"
+              ],
+              "summary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element",
+              "checks": [
+                {
+                  "message": "Element's background color could not be determined because it is overlapped by another element",
+                  "data": {
+                    "contrastRatio": 0,
+                    "fontSize": "10.9pt (14.5px)",
+                    "fontWeight": "normal",
+                    "messageKey": "bgOverlap",
+                    "expectedContrastRatio": "4.5:1"
+                  }
+                }
+              ]
+            },
+            {
+              "target": [
+                "article[data-case=\"currency\"][data-side=\"after\"] > .name > strong"
+              ],
+              "summary": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element",
+              "checks": [
+                {
+                  "message": "Element's background color could not be determined because it is overlapped by another element",
+                  "data": {
+                    "contrastRatio": 0,
+                    "fontSize": "10.9pt (14.5px)",
+                    "fontWeight": "normal",
+                    "messageKey": "bgOverlap",
+                    "expectedContrastRatio": "4.5:1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
