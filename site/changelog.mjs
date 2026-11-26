@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.203.0', date: '2026-11-26',
+    changes: [
+      ['added', 'A `Drawer` takes a `status`, such as one `Badge`, that stands directly after the title on the same line. Part of #868.', ['Drawer']],
+      ['changed', 'A drawer title now stays on one line. A long title ends in an ellipsis, and the status, the header actions and Close stay whole. A cut title is a Tab stop that shows the full title in a readout. Apps with long drawer titles see fewer characters. Part of #868.', ['Drawer']],
+      ['added', 'The Drawers guideline has a new rule, Status after the title: show the record\'s state in one badge directly after the title. Part of #868.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.200.0', date: '2026-11-26',
     changes: [
       ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes the new ink `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],

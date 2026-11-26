@@ -1175,8 +1175,14 @@ when the task needs more than one record. When a flow needs a drawer or a page:
 </Drawer>
 ```
 
-`side` is `right`, `left`, `top` or `bottom`. `size` is `sm`, `md` or `lg`. `headerActions` puts
-controls between the title and the close button.
+`side` is `right`, `left`, `top` or `bottom`. `size` is `sm`, `md` or `lg`. `status` puts the
+state of the record, such as one `Badge`, directly after the title. `headerActions` puts controls
+at the end of the header, before the close button.
+
+**A long title.** The title stays on one line. A long title ends in an ellipsis before the status,
+and the status, the actions and the close button stay whole. A cut title is a Tab stop. On hover,
+on focus and on a tap, it shows the full title in a readout below it. The dialog keeps the full
+title as its name.
 
 **What the user sees.** The panel slides in over a scrim. The body groups by heading, never by
 card. `DrawerSection` puts a heading on a 1px line, and groups stand 32px apart. `KeyValueList`

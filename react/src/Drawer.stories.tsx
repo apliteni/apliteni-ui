@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Drawer } from './Drawer';
 import { TextField } from './Field';
-import { DrawerSection } from './KeyValueList';
+import { DrawerSection, KeyValueList } from './KeyValueList';
+import { Badge } from './primitives/Badge';
 import { Button } from './primitives/Button';
 
 const meta: Meta<typeof Drawer> = { title: 'React/Drawer', component: Drawer };
@@ -51,6 +52,30 @@ export const LeftSmall: StoryObj<typeof Drawer> = {
       </>
     );
   },
+};
+
+// The record's state after its title (#868): a short title, and a title of 60 characters that
+// ends in an ellipsis before the badge.
+const SOURCE = [{ label: 'Imported', value: '23 Nov 2026' }, { label: 'Expected', value: '25 Nov 2026' },
+  { label: 'Schedule', value: 'Daily' }, { label: 'Format', value: 'CAMT.053' }];
+const StatusDrawer = ({ title }: { title: string }) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <>
+      <Button variant="primary" onClick={() => setOpen(true)}>Open</Button>
+      <Drawer open={open} title={title} onClose={() => setOpen(false)}
+        status={<Badge variant="warn">Late</Badge>}
+        headerActions={<Button size="sm">View imports</Button>}>
+        <DrawerSection title="Import"><KeyValueList rows={SOURCE} /></DrawerSection>
+      </Drawer>
+    </>
+  );
+};
+export const Status: StoryObj<typeof Drawer> = {
+  render: () => <StatusDrawer title="Northwind Bank" />,
+};
+export const StatusLongTitle: StoryObj<typeof Drawer> = {
+  render: () => <StatusDrawer title="Northwind Supply EUR operating account, daily bank statement" />,
 };
 
 // A body longer than the panel: it scrolls, and the footer stays at the panel's end (#887).
