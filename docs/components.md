@@ -480,7 +480,7 @@ dropdown must have a search field: [Component choice](../guidelines/component-ch
 
 `items` is a list of rows. A row has `label`, and can have `value`, `description`, `icon`,
 `avatar`, `badge`, `muted`, `selected` and `disabled`. `'---'` is a separator. `sections` groups
-rows under captions, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
+rows under group labels, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
 trigger off: no keyboard stop, no panel and the disabled paint.
 
@@ -518,8 +518,9 @@ trigger off: no keyboard stop, no panel and the disabled paint.
 longer current, such as an archived unit for a late invoice. Give it the state word:
 `muted: 'Archived'`. The row keeps its name in body ink and shows the word in a state badge after
 it. The row stays in the keyboard order. After a pick, the trigger shows `Cedar Studio (Archived)`.
-Use `disabled` for a row that the user cannot pick now. A disabled row is faded, and the arrow
-keys skip it.
+Use `disabled` for a row that the user cannot pick now. A disabled row keeps the body weight and
+takes an ink paler than the group label: 3.88:1 on the panel in light and 4.14:1 in dark, under
+every accent. The arrow keys skip it.
 
 **Search.** `search` adds a text field above the rows. Typing filters the rows, and the focus stays
 in the field. The match is anywhere in the label, without case or accents. Descriptions are not

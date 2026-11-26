@@ -6,7 +6,7 @@ export const RULES = content.rules;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 
 // The panel joins the flow, so the stage is as tall as what it shows. The don't paints
-// the group label as an option, the look before #886.
+// the group label in an option's normal weight and body ink. Main drew it medium.
 export const SPEC_CSS = `
   <style>
     .gl-stage--menu { display: flex; flex-direction: column; align-items: flex-start; }

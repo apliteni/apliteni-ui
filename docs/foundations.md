@@ -250,8 +250,9 @@ These fill ratios describe separation, not text contrast.
   changing one without the other is only a partial change.
 - **A disabled control is painted, never faded.** Every disabled rule with a label under it
   uses `--disabled-ink` on `--disabled-surface` at full opacity. A ghost button paints no box
-  and uses `--disabled-ink-bare`. One rule still fades: the switch track, which has no label
-  inside it.
+  and uses `--disabled-ink-bare`. A disabled option in a dropdown panel uses
+  `--disabled-ink-option`, which is paler than the panel's muted group label and keeps 3.5:1.
+  One rule still fades: the switch track, which has no label inside it.
 - **The floor is 3:1, and a disabled control never shows the pair it shows enabled.** Contrast
   provides legibility. The paint provides the state.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**

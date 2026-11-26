@@ -2,15 +2,17 @@
 // (#595), and a dropdown row draws its focus ring inward so a scrolled row's ring is never clipped (#649).
 // Every menu row in the shipped sheets keeps both, and a bleeding menu head keeps a gap above the
 // first row (#824). A group label is bold in muted ink, so it stands apart from the options, and it
-// keeps 4.5:1 on the panel in each theme and accent (#886).
+// keeps 4.5:1 on the panel in each theme and accent. A disabled option is paler than the label and
+// keeps 3.5:1, so it does not read as a label (#886).
 //
 // Coverage limits:
 // - Source only. It reads the sheet and the token values, and paints nothing. The hover
 //   step and the ring's four sides are measured in a browser and reported on the PR.
 // - The step is judged as colour distance between two token values, not as a contrast
 //   ratio, because the fill is a non-text mark.
-// - The group label is measured on the panel's own ground. A consumer who paints the panel
-//   another colour is outside it.
+// - The group label and the disabled option are measured on the panel's own ground. A consumer
+//   who paints the panel another colour is outside it.
+// - The disabled option's weight is not read: the option rule sets none, so it keeps the row's.
 //
 // why: docs/foundations.md#elevation
 // Weaken the rule and confirm that its test fails.
@@ -192,8 +194,10 @@ test('the head-gap gate fails when the account head sits flush on the first row'
 });
 
 // A group label names the options under it. Bold and muted ink set it apart from an option,
-// which is body weight in body ink (#886). Its size stays the option's.
+// which is body weight in body ink (#886). Its size stays the option's. A disabled option takes a
+// paler ink than the label, at 3.5:1 or more: the kit floor is 3:1, and the margin is the owner's.
 /** What sets the group label apart in `text`, or the faults, as sentences. */
+const OFF_FLOOR = 3.5;
 const groupFaults = (text) => {
   const body = (head) => flat(text).filter(([h]) => h.trim() === head).map(([, b]) => b).join(';');
   const group = body('.ui-dropdown__group');
@@ -203,15 +207,22 @@ const groupFaults = (text) => {
   if (!/font-weight:\s*var\(--weight-bold\)/.test(group)) faults.push('the group label is not bold');
   if (!/(?:^|;)\s*color:\s*var\(--muted\)/.test(group)) faults.push('the group label is not in muted ink');
   const ink = /(?:^|;)\s*color:\s*([^;]+)/.exec(group)?.[1] ?? 'var(--text)';
+  const off = /(?:^|;)\s*color:\s*([^;]+)/.exec(body('.ui-dropdown__item.is-disabled'))?.[1];
+  if (!off) faults.push('the disabled option paints no ink of its own');
   for (const { theme, accent } of CELLS) {
     const vars = tokensFor(theme, accent);
-    const r = ratio(colourOf(ink, vars), colourOf(ground, vars));
+    const panel = colourOf(ground, vars);
+    const r = ratio(colourOf(ink, vars), panel);
     if (r < AA_TEXT) faults.push(`the group label has ${r.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
+    if (!off) continue;
+    const o = ratio(colourOf(off, vars), panel);
+    if (o < OFF_FLOOR) faults.push(`the disabled option has ${o.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
+    if (o >= r) faults.push(`the disabled option is not paler than the group label in ${theme} ${accent}`);
   }
   return faults;
 };
 
-test('a group label is bold in muted ink and keeps 4.5:1 on the panel (#886)', () => {
+test('a group label is bold in muted ink at 4.5:1, and a disabled option is paler at 3.5:1 (#886)', () => {
   assert.equal(CELLS.length, 8, `the label was measured in ${CELLS.length} theme and accent cells, not 8`);
   assert.deepEqual(groupFaults(css), []);
 });
@@ -223,4 +234,14 @@ test('the group-label gate fails when the label goes back to body weight and ink
   assert.deepEqual(groupFaults(before), ['the group label is not bold', 'the group label is not in muted ink']);
   const faded = css.replace(/(\.ui-dropdown__group \{[^}]*color: )var\(--muted\)/, '$1var(--border)');
   assert.ok(groupFaults(faded).some((f) => /:1 on the panel in dark default$/.test(f)), groupFaults(faded).join('\n'));
+});
+
+test('the group-label gate fails when a disabled option takes the label ink, or fades too far', () => {
+  const same = css.replace('color: var(--disabled-ink-option)', 'color: var(--disabled-ink)');
+  assert.notEqual(same, css, 'the mutation found nothing to change');
+  assert.equal(groupFaults(same).length, CELLS.length, groupFaults(same).join('\n'));
+  assert.ok(groupFaults(same).every((f) => /^the disabled option is not paler than the group label in /.test(f)));
+  const faded = css.replace('color: var(--disabled-ink-option)', 'color: var(--border-strong)');
+  assert.ok(groupFaults(faded).some((f) => /^the disabled option has [\d.]+:1 on the panel in dark default$/.test(f)),
+    groupFaults(faded).join('\n'));
 });

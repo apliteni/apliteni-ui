@@ -10,11 +10,12 @@ import { SPEC_CSS } from './_dropdown.js';
 const content = await loadGuideline('dropdown.md', new URL('../../guidelines/dropdown.md', import.meta.url));
 
 const CATEGORIES: DropdownSection[] = [
-  { label: 'HR', items: [{ label: 'Staff training', value: 'training' }, { label: 'Job adverts', value: 'adverts' }] },
+  { label: 'HR', items: [{ label: 'Staff training', value: 'training', disabled: true }, { label: 'Job adverts', value: 'adverts' }] },
   { label: 'Office', items: [{ label: 'Rent', value: 'rent' }, { label: 'Supplies', value: 'supplies' }] },
 ];
 
-// `flat` gives the group label the ink and weight of an option, the look before #886.
+// `flat` gives the group label the ink and weight of an option. Staff training is disabled in both
+// pictures, so each shows the label above a disabled option.
 const Picker = ({ flat = false }: { flat?: boolean }) =>
   <div className={`gl-stage gl-stage--menu${flat ? ' gl-flat-group' : ''}`}>
     <Dropdown variant="select" ariaLabel="Category" sections={CATEGORIES} selectedValue="adverts" onSelect={noop}
