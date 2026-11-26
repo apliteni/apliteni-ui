@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
 import { DataTable } from './DataTable';
+import { SearchField } from './SearchField';
 
 const meta: Meta = { title: 'React/Toast', id: 'react-toast' };
 export default meta;
@@ -151,6 +152,7 @@ function SelectionPage({ onBar }: { onBar: (offset: number | undefined) => void 
   const push = useToast();
   const bar = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(new Set(['Field notes', 'Garden plan']));
+  const [query, setQuery] = useState('');
   const toggle = (name: string) => setSelected(current => {
     const next = new Set(current);
     if (!next.delete(name)) next.add(name);
@@ -170,7 +172,11 @@ function SelectionPage({ onBar }: { onBar: (offset: number | undefined) => void 
     return () => removeEventListener('resize', measure);
   }, [onBar, selected.size > 0]);
   return <div style={page}>
-    <DataTable columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'kind', label: 'Type' }]} rows={files}
+    <div className="ui-toolbar">
+      <SearchField ariaLabel="Search files" placeholder="File" value={query} onChange={event => setQuery(event.currentTarget.value)} />
+    </div>
+    <DataTable columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'kind', label: 'Type' }]}
+      rows={files.filter(file => file.name.toLowerCase().includes(query.trim().toLowerCase()))} empty="No files match this search."
       selected={selected} onToggle={toggle}
       onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))} />
     {selected.size > 0 && <div style={dock}>

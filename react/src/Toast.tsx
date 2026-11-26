@@ -13,8 +13,6 @@ export type ToastNotice = {
   text?: string;
   action?: { label: string; onClick: () => void };
 };
-/* `bottomOffset` is the stack's whole inset from the bottom of the view: a number in pixels or a CSS
- * length. A page with a bar at the bottom sets it to clear the bar. The default is 16px. */
 export type ToastProps = { children: ReactNode; collapse?: boolean; limit?: number; bottomOffset?: number | string };
 const Context = createContext<((notice: ToastNotice) => void) | null>(null);
 const StackHoldContext = createContext(false);
@@ -150,10 +148,15 @@ function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: numbe
     const observer = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(publish) : undefined;
     observer?.observe(element);
     // Under reduced motion the kit's net gives every change a 0.01ms transition, so a new
-    // offset moves the stack after this read. The reach is read again when the move ends.
+    // offset moves the stack after this read. The reach is read again when the move ends, or
+    // after 100ms when no end event comes, as for a stack that is not drawn.
     const moved = (event: TransitionEvent) => { if (event.target === element) publish(); };
     element.addEventListener('transitionend', moved);
-    return () => { observer?.disconnect(); element.removeEventListener('transitionend', moved); root.style.removeProperty(REACH); };
+    const late = setTimeout(publish, 100);
+    return () => {
+      observer?.disconnect(); clearTimeout(late);
+      element.removeEventListener('transitionend', moved); root.style.removeProperty(REACH);
+    };
     // A new offset moves the stack without a resize, so it publishes the reach again.
   }, [stack, count, offset]);
 }
@@ -199,6 +202,8 @@ export function Toast({ children, collapse = false, limit, bottomOffset }: Toast
   const piled = collapse && entries.length >= TOAST_PILE_MIN;
   // The pointer or the focus anywhere in the stack holds every timer, so no notice moves under it.
   const stackHeld = stackHovered || stackFocused;
+  // `bottomOffset` is the stack's whole inset from the bottom of the view: a number in pixels or a
+  // CSS length. A page with a bar at the bottom sets it to clear the bar. The default is 16px.
   const inset = typeof bottomOffset === 'number' ? `${bottomOffset}px` : bottomOffset;
   // A length the browser cannot read keeps the kit's 16px, not the last offset that it could read.
   const placed = inset !== undefined && (typeof CSS === 'undefined' || CSS.supports('bottom', inset)) ? inset : undefined;
