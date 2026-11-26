@@ -1,0 +1,77 @@
+{
+  "issue": "https://github.com/apliteni/apliteni-ui/issues/907",
+  "baseline": "a02e4fa0492cbdf1e5f4e311f1f36cc2375f3c0a",
+  "version": "0.205.0",
+  "sources": [
+    {
+      "path": "react/src/Toast.tsx",
+      "line": 18,
+      "fact": "ToastProps has no offset setting."
+    },
+    {
+      "path": "react/src/Toast.css",
+      "line": 3,
+      "fact": "The fixed stack uses --space-4 for its bottom inset."
+    },
+    {
+      "path": "src/styles/callout.css",
+      "line": 79,
+      "fact": "The arc uses the tone mix. The track at line 83 mixes 35% of that arc with --surface."
+    },
+    {
+      "path": "src/tokens/tokens.css",
+      "line": 198,
+      "fact": "Dark mixes are 45% and 60%. Light mixes at line 460 are 95% and 85%."
+    },
+    {
+      "path": "src/tokens/accents.css",
+      "line": 31,
+      "fact": "Phoenix, Ocean and Emerald supplement the default Nebula accent. Status tones remain fixed."
+    },
+    {
+      "path": "react/src/Toast.tsx",
+      "line": 141,
+      "fact": "Published reach includes the bottom inset. The current observer watches stack size, not position."
+    },
+    {
+      "path": "docs/components.md",
+      "line": 998,
+      "fact": "The current ring contract promises 2:1 against its track. The proposal raises this to 3:1."
+    },
+    {
+      "path": "docs/components.md",
+      "line": 1008,
+      "fact": "The current text calls published reach the stack height. The implementation reports viewport bottom minus stack top."
+    },
+    {
+      "path": "guidelines/component-choice.md",
+      "line": 29,
+      "fact": "Show lasting conditions is the current toast rule. No separate Toast guideline exists."
+    }
+  ],
+  "proposal": {
+    "a": "bottomOffset?: number | string. A number means pixels. A CSS length is accepted. Default: var(--space-4). The value is the total inset, not added clearance. Update published reach on prop changes and viewport resize. Consumers include safe-area clearance in this value when needed.",
+    "b": "--ui-toast-bottom on the document root. Default: var(--space-4). The body portal cannot inherit a variable from an app subtree. CSS-only position changes need separate handling for published reach.",
+    "ring": "Use var(--toast-action-ink) for the arc. Keep the full-circle track at 35% of the arc against var(--surface). No new colour token is needed.",
+    "recommendation": "A keeps the setting in React and gives published reach a clear update signal. B needs a document-wide setting and more position tracking.",
+    "documentation": "After approval, document the offset and 3:1 floor in Toast and the current toast guideline. Correct the height wording to reach."
+  },
+  "limits": [
+    "This is a static prototype. It does not change or certify the React provider.",
+    "Ring time is fixed at 75%. Timer pause, expiry, pile motion and forced colours are not newly verified.",
+    "The before side uses unchanged main CSS and matching toast markup. It is not a capture of the finance2 application.",
+    "Measurements compare opaque computed stroke colours. They do not measure antialiased edge pixels.",
+    "The source CSS is embedded for a single document in a sandbox with allow-scripts only.",
+    "Design self-review, not independent review."
+  ],
+  "assets": [
+    "Lucide circle-check and x paths, as used by the kit.",
+    "Unmodified Google Fonts Latin subsets: IBM Plex Sans and Poppins. SIL Open Font License files are included."
+  ],
+  "kitGates": {
+    "stories/story-css.test.js": "Not run. No story or kit package changed. The prototype is outside the story gate.",
+    "react/src/story-css.test.ts": "Not run. No React package changed.",
+    "stories/accent-contrast.test.js": "Not run. Published tokens are unchanged. The prototype measures all eight theme/accent cells directly.",
+    "ship_check": "Not run. The brief exempts this design branch."
+  }
+}

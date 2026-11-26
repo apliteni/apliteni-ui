@@ -1,0 +1,44 @@
+{
+  "verdict": "pass",
+  "review": "self-review",
+  "skill": "design/references/app-screens.md",
+  "audience": "The owner and the kit builder.",
+  "decision": "Choose the offset API and ring paint before the kit build.",
+  "medium": "One HTML document in a sandbox with allow-scripts only.",
+  "slop": {
+    "verdict": "pass",
+    "files": 8,
+    "errors": 0,
+    "warnings": 0,
+    "scope": "Rendered DOM and notes. Embedded source styles and scripts were excluded from the copy scan."
+  },
+  "checks": {
+    "task": "yes",
+    "kit_tokens": "yes",
+    "hierarchy": "yes",
+    "contrast": "yes for both proposals",
+    "state_pictures": "yes",
+    "keyboard": "yes",
+    "responsive": "yes",
+    "long_text": "yes",
+    "text_at_200_percent": "yes",
+    "no_horizontal_overflow_at_320px": "yes",
+    "sandbox": "yes",
+    "embedded_fonts": "yes",
+    "page_errors": "none",
+    "axe_audits": 36,
+    "axe_violations": 0
+  },
+  "fixed": [
+    "Moved the comparison caption above the phone toast.",
+    "Used the kit table checkbox markup.",
+    "Removed a repeated selection count.",
+    "Shortened Reset demo to Reset."
+  ],
+  "limits": [
+    "The before side intentionally retains the reported overlap and low ring contrast.",
+    "The prototype freezes the timers. It does not verify the production provider.",
+    "No independent review or owner approval is claimed."
+  ],
+  "security": "The design folder passed gitleaks before commit. The branch commit scan follows before push."
+}
