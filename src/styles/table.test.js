@@ -2,6 +2,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { test } from "node:test";
 import { JSDOM } from "jsdom";
 import { substitute, tokensFor } from "../../stories/lib/contrast.js";
+import { flatAt } from "../../stories/lib/css-at-width.js";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -516,6 +517,59 @@ test('the linked end-cell check rejects a row table without its last-cell inset'
     `${ROW_TABLE} td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }`);
   assert.notEqual(without, CSS);
   assert.throws(() => checkLinkedHoverInset(without));
+});
+
+/**
+ * A box that scrolls a table sideways shows no scrollbar at 560px and below, and keeps it
+ * above. The subjects are every rule of the card and table sheets that sets `overflow` or
+ * `overflow-x` to `auto` or `scroll`, so a scroll box added later is a subject the day it
+ * lands. The card that frames a table directly is one: its classic scrollbar left a strip
+ * under the last row (#885).
+ *
+ * Its limit: this reads the declarations, not the paint. Only a browser with classic
+ * scrollbars paints the strip, so the pull request records Chromium's picture.
+ */
+const CARD_CSS = readFileSync(
+  path.join(path.dirname(fileURLToPath(import.meta.url)), "card.css"),
+  "utf8",
+);
+const rulesAt = (css, width) => [...flatAt(css, width).matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .map(([, selector, body]) => ({ selectors: splitSelectorList(selector.trim()), body }));
+const scrollBoxes = (sheets) => sheets.flatMap((css) => rulesAt(css, 1280)
+  .filter(({ body }) => /(?:^|[;\s])overflow(?:-x)?\s*:\s*(?:auto|scroll)\b/.test(body))
+  .flatMap(({ selectors }) => selectors));
+const hidesBar = (sheets, width, box) => {
+  const rules = sheets.flatMap((css) => rulesAt(css, width));
+  const width0 = rules.some(({ selectors, body }) => selectors.includes(box) && /scrollbar-width\s*:\s*none/.test(body));
+  const webkit = rules.some(({ selectors, body }) => selectors.includes(`${box}::-webkit-scrollbar`) && /display\s*:\s*none/.test(body));
+  return [width0, webkit];
+};
+const checkPhoneScrollbar = (sheets) => {
+  const boxes = scrollBoxes(sheets);
+  assert.deepEqual(boxes.toSorted(), ['.ui-card:has(> .ui-table)', '.ui-table-scroll'],
+    'every sideways scroll box of the card and table sheets is measured');
+  for (const box of boxes) {
+    assert.deepEqual(hidesBar(sheets, 560, box), [true, true], `${box} shows a scrollbar at 560px`);
+    assert.deepEqual(hidesBar(sheets, 561, box), [false, false], `${box} hides its scrollbar above 560px`);
+  }
+};
+
+test('a box that scrolls a table shows no scrollbar at 560px and below', () => {
+  checkPhoneScrollbar([CSS, CARD_CSS]);
+});
+
+test('the phone-scrollbar check rejects a card that keeps its scrollbar on a phone', () => {
+  const without = CARD_CSS.replace(/  \.ui-card:has\(> \.ui-table\) \{ scrollbar-width: none; \}\n/, '');
+  assert.notEqual(without, CARD_CSS);
+  assert.throws(() => checkPhoneScrollbar([CSS, without]), /shows a scrollbar at 560px/);
+});
+
+test('the phone-scrollbar check rejects a scroll box it does not measure', () => {
+  assert.throws(() => checkPhoneScrollbar([CSS, `${CARD_CSS}\n.ui-card__body { overflow-x: scroll; }`]), /is measured/);
+});
+
+test('the phone-scrollbar check rejects a scrollbar hidden at every width', () => {
+  assert.throws(() => checkPhoneScrollbar([`${CSS}\n.ui-table-scroll { scrollbar-width: none; }`, CARD_CSS]), /above 560px/);
 });
 
 /**

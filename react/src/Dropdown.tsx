@@ -113,7 +113,8 @@ export type DropdownRowProps = {
 };
 
 export type DropdownProps = {
-  /** Muted prefix in the trigger, e.g. "version:". */
+  /** @deprecated Not drawn since 0.206.0: a trigger shows only its value. Name the control
+   *  with a `Field` label or `ariaLabel`. The prop goes in the next release. #899 */
   label?: string;
   /** What the trigger shows. Given one, the trigger is yours to update. */
   value?: string;
@@ -127,7 +128,7 @@ export type DropdownProps = {
   sections?: DropdownSection[];
   header?: ReactNode;
   footer?: ReactNode;
-  /** Replaces the trigger's label/value pair. With `ariaLabel`, names the trigger. */
+  /** Replaces the trigger's value. With `ariaLabel`, names the trigger. */
   triggerContent?: ReactNode;
   triggerClass?: string;
   /** The trigger is off: no stop, no panel, the kit's unavailable paint. #580 */
@@ -159,6 +160,16 @@ export type DropdownProps = {
   /** Draw the row yourself. `props` is everything the row needs; spread it. */
   row?: (item: DropdownItem, props: DropdownRowProps) => ReactNode;
 };
+
+// A bundler writes the mode in for `process.env.NODE_ENV`. Without one there is no
+// `process`, and the warning stays off.
+declare const process: { env: { NODE_ENV?: string } };
+const development = () => { try { return process.env.NODE_ENV !== 'production'; } catch { return false; } };
+// Once for the page, not once for each trigger.
+let labelWarned = false;
+
+// A name and the text the trigger shows, without the name twice when the text is the name.
+const named = (name: string, text: string) => (text === name ? name : `${name}: ${text}`);
 
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
@@ -229,6 +240,11 @@ export function Dropdown({
   'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
+  useEffect(() => {
+    if (label == null || labelWarned || !development()) return;
+    labelWarned = true;
+    console.warn('Dropdown: `label` is deprecated and draws nothing. A trigger shows only its value. Name it with a Field label or `ariaLabel`.');
+  }, [label]);
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
   // The row picked in this component, and the caller's own selection it was picked
@@ -251,7 +267,6 @@ export function Dropdown({
   // selected row. Read in a layout effect, because the rows have to be styled open
   // before one of them can take focus. why: docs/components.md#dropdown
   const landOn = useRef<number | 'selected' | null>(null);
-  const revealed = useRef(false);
   // The pointer's last position. A move event carrying the one it already had is the
   // browser's own after a scroll, not the reader's, and it would take the active row
   // away from the arrows.
@@ -530,16 +545,15 @@ export function Dropdown({
       el.classList.toggle('is-unbounded', !Number.isFinite(avail));
       dropdownSnap(dd, el);
     };
-    // A body too short for the panel lifts it out, before anything is sized.
+    // A Modal or Drawer body lifts the panel over it, before anything is sized, and does not scroll.
     dropdownLift(dd, el);
     size();
-    // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
-    revealed.current = dropdownReveal(dd, el) !== 0;
+    dropdownReveal(dd, el);
     /* Decided at the open and kept while the page or the body scrolls, so the panel does
      * not change height under the reader. A lifted panel follows its trigger at that
      * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
     const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
-    // The body is scrolled again where the new placement needs it, as on the open.
+    // A resize places the panel again, as on the open.
     const resize = () => { dropdownLift(dd, el); size(); dropdownReveal(dd, el); };
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', follow, true);
@@ -582,7 +596,7 @@ export function Dropdown({
         panel.current.style.minWidth = '';
         if (panel.current.offsetWidth) panel.current.style.minWidth = `${panel.current.offsetWidth}px`;
       }
-      field.current?.focus(revealed.current ? { preventScroll: true } : undefined);
+      field.current?.focus();
       return;
     }
     if (want == null) return;
@@ -590,7 +604,7 @@ export function Dropdown({
     if (!els.length) return;
     const sel = els.findIndex((el) => el.getAttribute('aria-selected') === 'true');
     const to = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
-    (els[to] || els[0]).focus(revealed.current ? { preventScroll: true } : undefined);
+    (els[to] || els[0]).focus();
   }, [open]);
 
   // Keep the active row inside the list's own scroll box, without scrolling the page
@@ -888,7 +902,10 @@ export function Dropdown({
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
         id={fieldName?.id ?? byContent}
-        aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
+        // The trigger shows only the value, so outside a Field its name is its own name and
+        // then that value, for a select and a menu alike. #899 why: docs/components.md#dropdown
+        aria-label={triggerContent != null ? ariaLabel || undefined
+          : !fieldName && (ariaLabel || label) ? named(name, shown != null ? shown : placeholder) : undefined}
         title={title}
         aria-labelledby={fieldName?.labelledBy}
         aria-describedby={describedBy}
@@ -901,7 +918,6 @@ export function Dropdown({
             {marked && (chosen?.avatar
               ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />
               : <Avatar empty />)}
-            {label && <span className="ui-dropdown__pre">{label}</span>}
             <span className={cx('ui-dropdown__value', marked && !chosen && 'is-placeholder')}>{shown != null ? shown : placeholder}</span>
           </span>
         )}
@@ -909,7 +925,6 @@ export function Dropdown({
         {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
           <span className="ui-dropdown__line">
             {marked && <Avatar empty />}
-            {label && <span className="ui-dropdown__pre">{label}</span>}
             <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
           </span>
           {rows.map((item, index) => (
@@ -917,7 +932,6 @@ export function Dropdown({
               {marked && (item.avatar
                 ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
                 : <Avatar empty />)}
-              {label && <span className="ui-dropdown__pre">{label}</span>}
               <span className="ui-dropdown__value">{shownOf(item)}</span>
             </span>
           ))}

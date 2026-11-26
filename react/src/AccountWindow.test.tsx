@@ -1,6 +1,7 @@
 // <AccountWindow>: what the window owns once a product gives it the reader and the
-// sections. jsdom applies no media query, so both navs and both closes are in the DOM
-// here; which one a reader sees is AccountWindow.css's, measured in a browser.
+// sections. jsdom applies no media query, so both screens, the back button and both closes
+// are in the DOM here; which of them a reader sees is AccountWindow.css's, measured in a
+// browser. jsdom has no checkVisibility, so a hidden back button takes focus here.
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
@@ -16,65 +17,49 @@ const sections: AccountSection[] = [
 ];
 const dialog = () => screen.getByRole('dialog', { name: 'Account' });
 const rail = () => within(dialog()).getByRole('navigation', { name: 'Account' });
-const tablist = () => within(dialog()).getByRole('tablist', { name: 'Account' });
+const view = () => dialog().getAttribute('data-view');
 
-it('shows the reader, the sections in the rail and the tabs, and the first section', () => {
+it('shows the reader, the sections in the rail, and the first section', () => {
   render(<AccountWindow open onClose={() => {}} reader={reader} sections={sections} />);
   expect(within(dialog()).getByText('Dana Example')).toBeTruthy();
   expect(within(dialog()).getByText('dana@example.com')).toBeTruthy();
   expect(within(dialog()).getByRole('heading', { level: 2 }).textContent).toBe('Profile');
+  expect(within(dialog()).getByRole('region', { name: 'Profile' })).toBeTruthy();
   const rows = within(rail()).getAllByRole('button');
   expect(rows.map(r => r.textContent)).toEqual(['Profile', 'Security']);
   expect(rows.map(r => r.getAttribute('aria-current'))).toEqual(['true', null]);
-  const tabs = within(tablist()).getAllByRole('tab');
-  expect(tabs.map(t => t.textContent)).toEqual(['Profile', 'Security']);
-  expect(tabs.map(t => t.getAttribute('aria-selected'))).toEqual(['true', 'false']);
-  expect([...rows, ...tabs].every(r => !r.hasAttribute('href') && r.tagName === 'BUTTON')).toBe(true);
+  expect(rows.every(r => !r.hasAttribute('href') && r.tagName === 'BUTTON')).toBe(true);
+  expect(within(dialog()).queryByRole('tablist')).toBeNull();
 });
 
-it('the phone tabs are one Tab stop, move with the arrows, Home and End, and label the pane', async () => {
+// On a phone the window shows one screen at a time. It opens on the section, the back
+// button opens the screen of sections, and a press there opens that section. Each
+// change moves focus to the new screen.
+it('the back button opens the sections, a section press opens it, and each screen takes focus', async () => {
   const onSectionChange = vi.fn();
-  render(<AccountWindow open onClose={() => {}} reader={reader} sections={[...sections,
-    { id: 'billing', label: 'Billing', content: <p>Plan</p> }]} onSectionChange={onSectionChange} />);
-  const tab = (name: string) => within(tablist()).getByRole('tab', { name });
-  const selected = () => within(tablist()).getByRole('tab', { selected: true });
-  expect(within(tablist()).getAllByRole('tab').map(t => t.tabIndex)).toEqual([0, -1, -1]);
-  tab('Profile').focus();
-  for (const [key, name] of [['{ArrowRight}', 'Security'], ['{End}', 'Billing'], ['{ArrowRight}', 'Profile'],
-    ['{ArrowLeft}', 'Billing'], ['{Home}', 'Profile']]) {
-    await userEvent.keyboard(key);
-    expect(selected().textContent).toBe(name);
-    expect(document.activeElement).toBe(selected());
-    expect(within(tablist()).getAllByRole('tab').filter(t => t.tabIndex === 0)).toEqual([selected()]);
-    const pane = within(dialog()).getByRole('tabpanel', { name });
-    expect(selected().getAttribute('aria-controls')).toBe(pane.id);
-  }
-  expect(onSectionChange.mock.calls.map(([id]) => id)).toEqual(['security', 'billing', 'profile', 'billing', 'profile']);
-});
-
-// jsdom lays nothing out, so the row and the selected tab are given the 390px phone's
-// boxes: a 310px row and a tab that ends 100px past its right edge. The browser's own
-// reveal is NavTabs', measured there.
-it('the phone row reveals the default section and a controlled change', () => {
-  const tabsOf = (el: Element) => el.closest('.rx-account__tabs') === el;
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return tabsOf(this) ? 310 : 0; });
-  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (this: HTMLElement) { return tabsOf(this) ? 600 : 0; });
-  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
-    if (tabsOf(this)) return { left: 40, right: 350 } as DOMRect;
-    return (this.getAttribute('aria-selected') === 'true' ? { left: 360, right: 450 } : { left: 0, right: 0 }) as DOMRect;
-  });
-  try {
-    const props = { open: true, onClose: () => {}, reader, sections };
-    render(<AccountWindow {...props} defaultSection="security" />);
-    expect(tablist().scrollLeft).toBe(100);
-    cleanup();
-    const { rerender } = render(<AccountWindow {...props} section="profile" />);
-    tablist().scrollLeft = 0;
-    rerender(<AccountWindow {...props} section="security" />);
-    expect(tablist().scrollLeft).toBe(100);
-  } finally {
-    vi.restoreAllMocks();
-  }
+  const onClose = vi.fn();
+  const { rerender } = render(<AccountWindow open onClose={onClose} reader={reader} sections={sections}
+    onSectionChange={onSectionChange} />);
+  const back = within(dialog()).getByRole('button', { name: 'Sections' });
+  expect(back.title).toBe('Sections');
+  expect(view()).toBe('section');
+  await userEvent.click(back);
+  expect(view()).toBe('sections');
+  expect(document.activeElement).toBe(within(rail()).getByRole('button', { name: 'Profile' }));
+  within(rail()).getByRole('button', { name: 'Security' }).focus();
+  await userEvent.keyboard('{Enter}');
+  expect(view()).toBe('section');
+  expect(onSectionChange).toHaveBeenCalledWith('security');
+  expect(within(dialog()).getByRole('heading', { level: 2 }).textContent).toBe('Security');
+  expect(document.activeElement).toBe(within(dialog()).getByRole('button', { name: 'Sections' }));
+  await userEvent.click(within(dialog()).getByRole('button', { name: 'Sections' }));
+  expect(document.activeElement).toBe(within(rail()).getByRole('button', { name: 'Security' }));
+  await userEvent.keyboard('{Escape}');
+  expect(onClose).toHaveBeenCalledTimes(1);
+  // A closed window opens again on the section.
+  rerender(<AccountWindow open={false} onClose={() => {}} reader={reader} sections={sections} />);
+  rerender(<AccountWindow open onClose={() => {}} reader={reader} sections={sections} />);
+  expect(view()).toBe('section');
 });
 
 it('a row opens its section and remounts the pane', async () => {
@@ -85,8 +70,7 @@ it('a row opens its section and remounts the pane', async () => {
   expect(onSectionChange).toHaveBeenCalledWith('security');
   expect(within(dialog()).getByRole('heading', { level: 2 }).textContent).toBe('Security');
   expect(within(rail()).getByRole('button', { name: 'Security' }).getAttribute('aria-current')).toBe('true');
-  expect(within(tablist()).getByRole('tab', { name: 'Security' }).getAttribute('aria-selected')).toBe('true');
-  await userEvent.click(within(tablist()).getByRole('tab', { name: 'Profile' }));
+  await userEvent.click(within(rail()).getByRole('button', { name: 'Profile' }));
   expect((screen.getByLabelText('Full name') as HTMLInputElement).value).toBe('');
 });
 

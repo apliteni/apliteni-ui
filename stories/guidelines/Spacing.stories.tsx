@@ -18,7 +18,7 @@ const FILTERS = [
   { id: 'customer', label: 'Customer', value: 'Aster Systems', items: [{ label: 'Aster Systems', value: 'Aster Systems' }] },
   { id: 'currency', label: 'Currency', value: 'EUR', items: [{ label: 'EUR', value: 'EUR' }] },
 ];
-const Chips = ({ n = 2 }: { n?: number }) => <FilterBar filters={FILTERS.slice(0, n)} onRemove={noop} onClear={noop} onChange={noop} />;
+const Chips = ({ n = 2 }: { n?: number }) => <FilterBar filters={FILTERS.slice(0, n)} onClear={noop} onChange={noop} />;
 const Strip = () => <Segmented options={['All', 'Open', 'Paid'].map(label => ({ label, value: label }))} value="Open"
   onChange={noop} appearance="underline" label="Invoice view" />;
 const Table = () => <div className="ui-table-scroll" role="region" aria-label="Invoices" tabIndex={0}>

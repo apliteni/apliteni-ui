@@ -28,7 +28,7 @@ const Band = ({ a, b }: { a: [string, string]; b: [string, string] }) => <Stage>
 
 // The chips are the frame: a reader looking at the row knows what the button clears.
 const ClearRow = ({ clearLabel }: { clearLabel: string }) => <Stage>
-  <FilterBar clearLabel={clearLabel} onRemove={noop} onClear={noop} onChange={noop} filters={[
+  <FilterBar clearLabel={clearLabel} onClear={noop} onChange={noop} filters={[
     { id: 'period', label: 'Period', value: 'This quarter', items: [{ label: 'This quarter', value: 'This quarter' }] },
     { id: 'status', label: 'Status', value: 'Paid', items: [{ label: 'Paid', value: 'Paid' }] }]} />
 </Stage>;

@@ -164,15 +164,16 @@ const Period = () => <div><Segmented label="Period" size="sm" value="1Y" onChang
 // keep the same phone card width, so the one difference is the short name.
 const REGION_LABELS = ['North region revenue', 'South region revenue', 'North region refunds',
   'South region refunds', 'North region balance', 'South region balance'];
-const REGION_SHORT = ['N rev', 'S rev', 'N ref', 'S ref', 'N bal', 'S bal'];
 const REGION_NET = [48.2, 39.1, -6.4, -7.1, 41.8, 32.0];
-const RegionNetCard = ({ short = false }: { short?: boolean }) => (
+// The Do prints each full name above its bar in the rows look (#906). The
+// Don't leaves the column names at their first word, which repeats.
+const RegionNetCard = ({ rows = false }: { rows?: boolean }) => (
   <div style={{ maxWidth: 'var(--panel-sm)' }}>
     <Card title="Net by region" level={3}>
-      <Chart title={short ? 'Net by region, six bars, short names' : 'Net by region, six bars, full names'}
-        periods={REGION_LABELS.map((label, i) => ({
-        label, compare: false, ...(short ? { short: REGION_SHORT[i] } : {}),
-      }))} series={[{ id: 'net', name: 'Net', values: REGION_NET, tone: 'info' }]} format={kEur} />
+      <Chart title={rows ? 'Net by region, six rows, full names' : 'Net by region, six bars, first words'}
+        look={rows ? 'rows' : 'columns'}
+        periods={REGION_LABELS.map((label) => ({ label, compare: false }))}
+        series={[{ id: 'net', name: 'Net', values: REGION_NET, tone: 'info' }]} format={kEur} />
     </Card>
   </div>
 );
@@ -203,18 +204,18 @@ const specimens = [
   // title, which is what "fixed by whoever built the page" looks like on a screen.
   { id: 'report-offers',
     do: () => <Stage><div className="ui-card-stack"><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Sale filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Sale filters" clearLabel="Clear all" onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Export rows</Button>
     </div><Card title="Sales"><LedgerTable label="Sales with filters" /></Card></div></Stage>,
     dont: () => <Stage><Card title="Sales, 2026"><LedgerTable label="Sales, 2026" /></Card></Stage> },
   // "Download PDF" does not start with "Export", so export-at-the-row-end does not count this row.
   { id: 'export-icon',
     do: () => <Stage><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Download PDF</Button>
     </div></Stage>,
     dont: () => <Stage><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onClear={noop} onChange={noop} />
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',
@@ -236,7 +237,7 @@ const specimens = [
       <LineCard title="Revenue against expenses" series={INCOME_SERIES} legend chartLabel="two lines" /></Stage>,
     dont: () => <Stage><LineCard title="Spend and income" series={ALL_SERIES} look="thin" legend /></Stage> },
   { id: 'bar-labels-distinct',
-    do: () => <Stage><RegionNetCard short /></Stage>,
+    do: () => <Stage><RegionNetCard rows /></Stage>,
     dont: () => <Stage><RegionNetCard /></Stage> },
 ];
 

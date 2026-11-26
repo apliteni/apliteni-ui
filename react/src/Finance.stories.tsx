@@ -23,7 +23,7 @@ function Example() {
     <div className="ui-card-stack finance-comparison__data">
     <div className="ui-toolbar">
     <SearchField ariaLabel="Search companies" placeholder="Company" value={query} onChange={e => setQuery(e.currentTarget.value)} />
-    <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}
+    <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}
       onAdd={(id, value) => { const entry = catalogue.find(f => f.id === id); if (entry) setFilters(current => [...current, { ...entry, value: value || '' }]); }} />
     </div>
     <div className="ui-card ui-card--fit finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
