@@ -113,7 +113,8 @@ export type DropdownRowProps = {
 };
 
 export type DropdownProps = {
-  /** Muted prefix in the trigger, e.g. "version:". */
+  /** @deprecated Not drawn since 0.206.0: a trigger shows only its value. Name the control
+   *  with a `Field` label or `ariaLabel`. The prop goes in the next release. #899 */
   label?: string;
   /** What the trigger shows. Given one, the trigger is yours to update. */
   value?: string;
@@ -127,7 +128,7 @@ export type DropdownProps = {
   sections?: DropdownSection[];
   header?: ReactNode;
   footer?: ReactNode;
-  /** Replaces the trigger's label/value pair. With `ariaLabel`, names the trigger. */
+  /** Replaces the trigger's value. With `ariaLabel`, names the trigger. */
   triggerContent?: ReactNode;
   triggerClass?: string;
   /** The trigger is off: no stop, no panel, the kit's unavailable paint. #580 */
@@ -162,6 +163,16 @@ export type DropdownProps = {
   /** Draw the row yourself. `props` is everything the row needs; spread it. */
   row?: (item: DropdownItem, props: DropdownRowProps) => ReactNode;
 };
+
+// A bundler writes the mode in for `process.env.NODE_ENV`. Without one there is no
+// `process`, and the warning stays off.
+declare const process: { env: { NODE_ENV?: string } };
+const development = () => { try { return process.env.NODE_ENV !== 'production'; } catch { return false; } };
+// Once for the page, not once for each trigger.
+let labelWarned = false;
+
+// A name and the text the trigger shows, without the name twice when the text is the name.
+const named = (name: string, text: string) => (text === name ? name : `${name}: ${text}`);
 
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
@@ -232,6 +243,11 @@ export function Dropdown({
   'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
+  useEffect(() => {
+    if (label == null || labelWarned || !development()) return;
+    labelWarned = true;
+    console.warn('Dropdown: `label` is deprecated and draws nothing. A trigger shows only its value. Name it with a Field label or `ariaLabel`.');
+  }, [label]);
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
   // The row picked in this component, and the caller's own selection it was picked
@@ -891,7 +907,10 @@ export function Dropdown({
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
         id={fieldName?.id ?? byContent}
-        aria-label={ariaLabel && triggerContent != null ? ariaLabel : undefined}
+        // The trigger shows only the value, so outside a Field its name is its own name and
+        // then that value, for a select and a menu alike. #899 why: docs/components.md#dropdown
+        aria-label={triggerContent != null ? ariaLabel || undefined
+          : !fieldName && (ariaLabel || label) ? named(name, shown != null ? shown : placeholder) : undefined}
         title={title}
         aria-labelledby={fieldName?.labelledBy}
         aria-describedby={describedBy}
@@ -904,7 +923,6 @@ export function Dropdown({
             {marked && (chosen?.avatar
               ? <Avatar personKey={chosen.avatar.key} name={chosen.avatar.name} src={chosen.avatar.src} empty={chosen.avatar.empty} />
               : <Avatar empty />)}
-            {label && <span className="ui-dropdown__pre">{label}</span>}
             <span className={cx('ui-dropdown__value', marked && !chosen && 'is-placeholder')}>{shown != null ? shown : placeholder}</span>
           </span>
         )}
@@ -912,7 +930,6 @@ export function Dropdown({
         {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
           <span className="ui-dropdown__line">
             {marked && <Avatar empty />}
-            {label && <span className="ui-dropdown__pre">{label}</span>}
             <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
           </span>
           {rows.map((item, index) => (
@@ -920,7 +937,6 @@ export function Dropdown({
               {marked && (item.avatar
                 ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
                 : <Avatar empty />)}
-              {label && <span className="ui-dropdown__pre">{label}</span>}
               <span className="ui-dropdown__value">{shownOf(item)}</span>
             </span>
           ))}

@@ -113,6 +113,14 @@ target once already:
 Report the result in the PR. Playwright is not a dependency and CI runs only this
 gate's source half.
 
+## Check the chart fit locally
+
+Before opening a PR that changes how a months chart or a bridge sizes its plot, or the
+`--ui-chart-col` rules in `src/styles/chart.css`, open the charts in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js CHART_FIT=1 node --test stories/chart-fit.test.js`
+Report the result in the PR. CI runs only the source half, in `react/src/Chart.test.tsx`.
+
 ## Check the disabled field paint locally
 
 Before opening a PR that changes a field's or a button's disabled paint, or

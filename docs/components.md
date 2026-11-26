@@ -491,6 +491,10 @@ small control height: 32px with a mouse and 40px on a touch screen. Use it on a
 
 **What the user sees.**
 
+- The trigger shows only the chosen value or the placeholder. Put the name of the control in a
+  [`Field`](#fields) label. In a filter row, [`FilterBar`](#filter-bar) shows the name only while
+  no value is set. `label` is deprecated: it draws nothing, warns once in development and goes in
+  the next release.
 - The panel opens below the trigger. `direction="up"` opens it above. `align` chooses the edge of
   the trigger that the panel hangs from. The panel keeps that edge where it fits, and moves along
   the row where it does not.
@@ -546,7 +550,8 @@ sends the focus to the trigger. A click outside also closes it. A select panel i
 options and a menu panel is a `menu` of menu items. With `search`, the panel is a `dialog`, because
 a listbox may own only options. The focus ring of a row is drawn inside the row, so the panel edge
 never cuts it. Inside a [`Field`](#fields), the label and then the value name the trigger. Outside
-a field, give `ariaLabel`. A placeholder is not a name.
+a field, give `ariaLabel`. A select trigger then has that name and its value, such as "Unit: Engine
+team". A placeholder is not a name.
 
 ### Command palette
 
@@ -1460,7 +1465,7 @@ chart has the title. `format` prints exact values in the readout, the live regio
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | none: columns per period with a line across them | |
+| `months` | `periods`, `series` | `columns`, a column per period with a line across them; `rows`, a bar across for each period with its full name above it | `columns` |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
 | `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
@@ -1483,17 +1488,24 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** In `months`, when the card is too narrow for every bar's name, the plot
-scrolls sideways so every bar keeps its name. A bar is one flat tone — the full tone of its series
+**What the user sees.** A `months` chart fits its card and does not scroll. It draws every bar.
+A bar is one flat tone — the full tone of its series
 — with a small corner at its measured end: --radius-xs or a quarter of the bar's width, whichever is
 smaller. Its foot stays square on the zero line. It takes two thirds of its column, and at most 48px.
-In `months` and `bridge`, the
-chart prints every bar's `short` name under its bar, and a short name that does not fit its column
-wraps at a word break. Give each bar a distinct `short` name, never one cut to a fixed length. Where
-one word alone is wider than the column, the plot scrolls so that word still fits, and every bar
-keeps its name. In the other variants, where the period labels do not fit, the chart prints every
+In `bridge`, the chart prints every step's `short` name under its step, and a name that does not fit
+its column wraps at a word break. A bridge column is as wide as its widest word, so a four-step
+bridge fits a 300px plot. Where one word alone is wider than the column, the bridge scrolls so that
+word still fits. Give each bar a distinct `short` name, never one cut to a fixed length. In the
+other variants, `months` among them, where the period labels do not fit, the chart prints every
 second, third or later label, counted from the first period that is not final, or from the latest
-period. No two printed labels overlap, whatever the name length or the width. Where the
+period. Use this for months, because a reader can infer a skipped month. For categories, such as
+units with a signed margin, set `look="rows"`: each row prints its full `label` above a bar that
+grows right from zero or left for a negative value, and the bars use the full width of the card.
+A name wider than the card wraps at its spaces. The rows look takes one `bars` or `bars-below`
+series, prints no `values`, and throws a `RangeError` for a second series or a line. Up and Down
+also step its rows. A key that steps to a row outside the view scrolls that row into view, with its
+readout. A scale caption that does not fit beside its neighbour is left out, and zero always prints.
+A name wraps at the size the chart's text is drawn at, `--text-xs`. No two printed labels overlap, whatever the name length or the width. Where the
 first step prints the picked period's label, a pick keeps it printed, and a wider step counts
 from the pick. The readout and the table keep the full name. Set `values` to print each
 bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
@@ -1509,11 +1521,12 @@ that are not final last. The hover and keyboard readout and each table row say "
 "Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
 the period before it. Set `compare: false` on a period to show its value with no comparison text.
 A switch at the top right
-shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
+shows the same numbers as a chart or as a table. The table has dense rows. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
-and `onSelect` lets the user pick a column, which gets a band behind it. At
-phone widths the plot scrolls and the value axis stays. A chart of periods that is wider than its
-card opens at its latest period. A bridge opens at its opening total.
+and `onSelect` lets the user pick a column, which gets a band behind it. A
+`line`, `area` or `stacked` chart or a bridge that is wider than its card scrolls, and the value
+axis stays. A chart of periods that is wider than its card opens at its latest period. A bridge
+opens at its opening total.
 
 **Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when

@@ -6,11 +6,28 @@
 
 export const RELEASES = [
   {
-    v: '0.207.0', date: '2026-11-26',
+    v: '0.209.0', date: '2026-11-26',
     changes: [
       ['added', '`FilterBar` and `Dropdown` take `size="sm"`, or the classes `.ui-filter-bar--sm` and `.ui-dropdown--sm`. Beside a small `SearchField` and a small `Button`, the chips, Filter, Clear all and the trigger are then 32px high with a mouse and 40px on a touch screen. Part of #903.', ['FilterBar', 'Dropdown']],
       ['changed', 'A toolbar that starts with a small search field no longer makes its chips 32px. An app with a small filter row passes `size="sm"` to its `FilterBar` and `Dropdown`, or the chips stay 40px. The height now holds when the field is in a wrapper or the bar is outside the toolbar. Part of #903.', ['FilterBar', 'SearchField']],
       ['changed', 'On a touch screen a small `Button` or `Segmented` on a toolbar is 40px high in any row, and a small wordless button is a 40px circle that reaches the 44px tap floor on a phone. A wordless button of the default size beside a small search field is no longer 46px. Give it `size="sm"`. Part of #903.', ['Button']],
+    ],
+  },
+  {
+    v: '0.208.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `months` `Chart` now fits its card and never scrolls sideways. It draws every bar and prints fewer month names where they do not fit, and no two printed names overlap. Part of #906.', ['Chart']],
+      ['added', 'A `months` `Chart` takes `look="rows"` for categories whose names must all print, such as units with a signed margin. Each full `label` stands above a bar that grows right from zero, or left for a negative value, across the full card width. The look takes one `bars` or `bars-below` series. A key that steps to a row outside the view scrolls that row into view. Part of #906.', ['Chart']],
+      ['changed', 'A `bridge` column is now as wide as its widest word, not at least 88px, so a four-step bridge fits a 300px plot. A step name still wraps at its spaces. Part of #906.', ['Chart']],
+      ['changed', 'The table behind the Chart and Table switch of every `Chart` now has dense rows. Part of #906.', ['Chart']],
+      ['changed', 'The rule Keep every bar labelled now lets a months chart skip month names, and keeps every category and bridge name complete. Part of #906.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.206.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `Dropdown` trigger now shows only its value or its placeholder. If your app passes `label`, the trigger no longer draws it: put the name in a `Field` label, or pass `ariaLabel`. `label` warns once in development and goes in the next release. Outside a `Field`, a select or menu trigger with `ariaLabel` is named by that name and its value, such as "Unit: Engine team". Part of #899.', ['Dropdown']],
+      ['added', 'The Dropdown guideline page has a new rule, Show only the value. Part of #899.', ['Guidelines']],
     ],
   },
   {
