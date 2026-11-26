@@ -345,6 +345,14 @@ const PERMITTED_FORCED = {
       + 'border and its height goes to 0 to keep the row in place. It takes no focus. #824',
     props: ['height', 'border-top'],
   },
+  '.ui-toast__ring': {
+    why: 'forced colours replace the ring\'s tone mix, so an undo notice\'s countdown ring takes ButtonText and keeps showing the time left. The ring is a graphic and carries no focus indicator. #888',
+    props: ['color'],
+  },
+  '.ui-toast__ring-track': {
+    why: 'forced colours keep the track\'s author mix, so the full circle behind the countdown arc takes GrayText and stays apart from the ButtonText arc. The track is a graphic and carries no focus indicator. #888',
+    props: ['color'],
+  },
   '.ui-table-scroll': {
     why: 'forced colours repaint transparent borders black. Canvas keeps reserved ring space light so the inward focus band remains distinct.',
     props: ['border-color'],

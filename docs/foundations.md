@@ -71,8 +71,8 @@ first label on the page title's edge.
 ## Control corners
 
 **Every control that a reader presses is a pill.** This covers each button size, each dropdown
-trigger, also in a form, a filter chip and the filter bar's add control, a select and the back
-link. The corner is `--radius-pill`. A wordless button is square, so the pill makes it a circle.
+trigger, also in a form, a filter chip and the filter bar's add control, a select, the back
+link, and a notice's action and dismiss control. The corner is `--radius-pill`. A wordless button is square, so the pill makes it a circle.
 The account button in the band is a 40px circle. In a toolbar beside a full field or a filter
 bar, a wordless button takes the row's height and stays a circle. The kit's padding keeps text,
 glyphs, units and the focus ring inside the rounded edge. Give a control of your own the same

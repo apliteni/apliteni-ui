@@ -117,3 +117,23 @@ export const ElapsingTime: StoryObj = {
   parameters: { docs: { description: { story: 'Show the notice, then hover it or Tab to its close button: the line and the countdown stop together. Turn timer off to keep the notice until it is dismissed.' } } },
   render: (args: { timer?: boolean }) => <Toast><Progress {...args} /></Toast>,
 };
+
+// Undo notices with a timer, in a stack of at most three (#888). Each Undo puts its own row back.
+const classified = [
+  'Mercado Verde set to Groceries', 'Tranvía Norte set to Transport', 'Luz del Sur set to Utilities',
+  'Farmacia Sol set to Health',
+];
+function Undos({ count }: { count: number }) {
+  const push = useToast();
+  const add = (title: string) => push({ tone: 'success', title, timer: 8, action: { label: 'Undo', onClick() {} } });
+  useEffect(() => { classified.slice(0, count).forEach(add); }, [push]);
+  return <Button onClick={() => add(classified[3])}>Classify one more</Button>;
+}
+export const UndoOne: StoryObj = {
+  parameters: { docs: { description: { story: 'An undo notice with an 8 second timer. The ring in Undo empties as the time runs out. Hover the notice to stop it.' } } },
+  render: () => <Toast limit={3}><Undos count={1} /></Toast>,
+};
+export const UndoStack: StoryObj = {
+  parameters: { docs: { description: { story: 'Three undo notices, newest at the bottom. Each Undo acts on its own notice. A fourth notice closes the oldest one.' } } },
+  render: () => <Toast limit={3}><Undos count={3} /></Toast>,
+};
