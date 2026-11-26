@@ -65,7 +65,7 @@
 .ui-toast__text { color: var(--text); }
 
 /* Tone ink keeps actions readable on the neutral surface. */
-.ui-toast__action { flex: none; margin-block: -4px; /* the fill overhangs the first line by its own padding */ background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
+.ui-toast__action { flex: none; margin-block: -4px; /* the fill overhangs the first line by its own padding */ background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-pill); /* a control a reader presses is a pill. docs/foundations.md#control-corners */ font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 /* In light the page and the notice are one white, so a mix of --bg does not show. The hover takes
    the quiet fill, as a light menu row does. #888 */
@@ -102,7 +102,7 @@
   transform: translate(-50%, -50%);
 }
 .ui-toast__close:hover { color: var(--text); }
-.ui-toast__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+.ui-toast__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-pill); }
 
 /* auto-dismiss progress line — .is-running is added by wireToastStack() */
 .ui-toast__timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--toast-accent); opacity: 0.85; transform-origin: left; }
