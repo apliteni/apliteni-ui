@@ -204,6 +204,23 @@ describe('guideline pages in React: the drawer picture', () => {
   });
 });
 
+/* The menu column in the Component choice drawer fills the panel, as the shell's own menu
+ * drawer has it. At its own 216px it was wider than the panel at 360 and 390, and the
+ * body scrolled sideways.
+ * Limits: the sheets are read as text. The width in a browser is the measurement on the
+ * pull request. */
+describe('guideline pages in React: Component choice', () => {
+  const page = pages.find(p => p.file.endsWith('/ComponentChoice.stories.tsx'))!;
+  it('fills the drawer panel with the menu column, as the shell menu does', () => {
+    const fill = /\.ui-nav--side\s*,\s*[^{]*\.ui-nav--side\s*>\s*\*\s*\{\s*width:\s*100%;?\s*\}/;
+    expect(read('./AppShell.css'), 'the shell menu no longer fills its drawer this way').toMatch(fill);
+    const root = mount(page);
+    expect(root.querySelector('.gl-component-choice__under .ui-nav--side'), 'no menu in a drawer: the gate is checking nothing').toBeTruthy();
+    const sheet = [...root.querySelectorAll('style')].map(el => el.textContent).join('\n');
+    expect(sheet).toMatch(/\.gl-component-choice__under \.ui-nav--side,\.gl-component-choice__under \.ui-nav--side>\*\{width:100%;\}/);
+  });
+});
+
 // The notice picture has no component to read, so its glyphs are held to the Toast's own table.
 describe('guideline pages in React: the notice picture is the Toast', () => {
   it('draws each tone with the glyph the Toast draws it with', () => {
