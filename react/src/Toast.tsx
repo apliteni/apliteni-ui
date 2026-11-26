@@ -17,14 +17,18 @@ export type ToastProps = { children: ReactNode; collapse?: boolean; limit?: numb
 const Context = createContext<((notice: ToastNotice) => void) | null>(null);
 const StackHoldContext = createContext(false);
 const glyphs = { success: 'circleCheck', danger: 'circleX', warn: 'circleAlert', info: 'info', neutral: 'bolt' };
-/* A notice that leaves with the focus hands it to the next newer notice, or else to the newest
- * older one, so a keyboard reader stays in the stack. */
+/* A notice that leaves with the focus hands it to the nearest newer notice with a control, or else
+ * to the newest older one with a control, so a keyboard reader stays in the stack. */
 function passFocus(notice: HTMLElement | null) {
   if (!notice?.contains(notice.ownerDocument.activeElement)) return;
   const others = [...(notice.parentElement?.children ?? [])]
     .filter(other => other !== notice && other.classList.contains('ui-toast') && !other.classList.contains('is-leaving'));
-  const next = others.find(other => notice.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING) ?? others[others.length - 1];
-  next?.querySelector<HTMLElement>('.ui-toast__action, .ui-toast__close')?.focus();
+  const newer = others.filter(other => notice.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const older = others.filter(other => !newer.includes(other)).reverse();
+  for (const other of [...newer, ...older]) {
+    const control = other.querySelector<HTMLElement>('.ui-toast__action, .ui-toast__close');
+    if (control) return control.focus();
+  }
 }
 const reducedMotion = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -193,6 +197,10 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
   const stackHeld = stackHovered || stackFocused;
   usePublishedReach(stack, entries.length);
   usePile(stack, piled, entries.length);
+  // A focused notice that leaves takes the focus with it and sends no blur, so the hold ends here.
+  useLayoutEffect(() => {
+    if (stackFocused && !stack.current?.contains(stack.current.ownerDocument.activeElement)) setStackFocused(false);
+  }, [entries, stackFocused]);
   const leaveStackFocus = (event: FocusEvent<HTMLDivElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget)) setStackFocused(false);
   };

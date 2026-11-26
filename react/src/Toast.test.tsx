@@ -417,6 +417,33 @@ it('keeps the focus in the stack when a focused notice leaves, and Escape closes
   expect(document.activeElement).toBe(undoOf(0));
   expect(titles()).toEqual(['Mercado Verde set to Groceries']);
 });
+it('releases the stack hold when the focused last notice leaves, so the next notice still expires', () => {
+  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: true }));
+  render(<Toast><Undos undo={() => {}} /></Toast>);
+  fireEvent.click(screen.getByText('Mercado Verde'));
+  act(() => screen.getByRole('button', { name: 'Undo' }).focus());
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+  expect(notices()).toHaveLength(0);
+  fireEvent.click(screen.getByText('Tranvía Norte'));
+  act(() => vi.advanceTimersByTime(8000));
+  expect(notices()).toHaveLength(0);
+});
+it('passes the focus over a newer notice without a control to a later Undo', () => {
+  function Mixed() {
+    const push = useToast();
+    return <button onClick={() => {
+      push({ title: 'Mercado Verde set to Groceries', action: { label: 'Undo', onClick() {} } });
+      push({ title: 'Syncing rows', dismissible: false, timer: false });
+      push({ title: 'Luz del Sur set to Groceries', action: { label: 'Undo', onClick() {} } });
+    }}>Notify</button>;
+  }
+  render(<Toast><Mixed /></Toast>);
+  fireEvent.click(screen.getByText('Notify'));
+  const undoOf = (title: string) => within(screen.getByText(title).closest('.ui-toast') as HTMLElement).getByRole('button', { name: 'Undo' });
+  act(() => undoOf('Mercado Verde set to Groceries').focus());
+  fireEvent.click(document.activeElement!);
+  expect(document.activeElement).toBe(undoOf('Luz del Sur set to Groceries'));
+});
 it('keeps a notice without a close button on Escape', () => {
   setup({ title: 'Removed', dismissible: false, action: { label: 'Undo', onClick() {} } });
   fireEvent.click(screen.getByText('Notify'));

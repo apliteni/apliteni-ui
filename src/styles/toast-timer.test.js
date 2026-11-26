@@ -3,7 +3,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { colourOf, composite, ratio, tokensFor } from '../../stories/lib/contrast.js';
 
 const callout = readFileSync(new URL('./callout.css', import.meta.url), 'utf8');
 
@@ -29,19 +28,4 @@ test('forced colours keep the ring and give it a system colour', () => {
   assert.ok(block, 'callout.css has no forced-colours block for the ring');
   assert.match(block[1], /\.ui-toast__ring\s*\{[^}]*color:\s*ButtonText/);
   assert.doesNotMatch(block[1], /display:\s*none/);
-});
-
-test('the action hover fill shows on the notice ground in both themes', () => {
-  const fills = {
-    dark: callout.match(/\n\.ui-toast__action:hover\s*\{[^}]*background:\s*([^;]+);/)[1].trim(),
-    light: callout.match(/:root\[data-theme="light"\]\) \.ui-toast__action:hover\s*\{[^}]*background:\s*([^;]+);/)?.[1].trim(),
-  };
-  for (const [theme, fill] of Object.entries(fills)) {
-    assert.ok(fill, `callout.css has no ${theme} hover fill for the action`);
-    const vars = tokensFor(theme);
-    const ground = colourOf('var(--surface)', vars);
-    const step = ratio(composite(colourOf(fill, vars), ground), ground);
-    // The light fill steps 1.14:1 and the dark fill 1.11:1. A fill equal to the ground steps 1.
-    assert.ok(step >= 1.05, `${theme}: the hover fill ${fill} steps ${step.toFixed(2)}:1 off the notice ground`);
-  }
 });

@@ -54,8 +54,8 @@
 /* Existing tone inks also colour the unfilled glyph. */
 .ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); --toast-timer-tone: var(--toast-timer-mix); }
 .ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); --toast-timer-tone: var(--toast-timer-mix-strong); }
-.ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); --toast-timer-tone: var(--toast-timer-mix-strong); }
-.ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); --toast-timer-tone: var(--toast-timer-mix-strong); }
+.ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); --toast-timer-tone: var(--toast-timer-mix); }
+.ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); --toast-timer-tone: var(--toast-timer-mix); }
 .ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); --toast-timer-tone: var(--toast-timer-mix-strong); }
 
 .ui-toast__icon { width: 22px; height: 1lh; flex: none; display: grid; place-items: center; background: transparent; color: var(--toast-action-ink); }
@@ -67,9 +67,6 @@
 /* Tone ink keeps actions readable on the neutral surface. */
 .ui-toast__action { flex: none; margin-block: -4px; /* the fill overhangs the first line by its own padding */ background: none; border: 0; padding: 4px 9px; border-radius: var(--radius-xs); font: inherit; font-weight: var(--weight-medium); color: var(--toast-action-ink); cursor: pointer; }
 .ui-toast__action:hover { background: color-mix(in srgb, var(--bg) 55%, transparent); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-/* Light only: --bg and the notice ground are both white there, so the mix above showed nothing.
-   --surface-3 is the quiet fill the drawer's close mark takes on hover. #888 */
-:where(:root[data-theme="light"]) .ui-toast__action:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-toast__action:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* An action with a timer. Its ring is the first part of the button and empties as the time

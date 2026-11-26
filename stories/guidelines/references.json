@@ -282,7 +282,7 @@
     "pattern": "a floating, dismissible notification"
    },
    {
-    "ref": "react/src/Toast.tsx:107",
+    "ref": "react/src/Toast.tsx:111",
     "pattern": "className={`ui-toast__action"
    }
   ],
@@ -360,7 +360,7 @@
     "pattern": "role=\"alertdialog\""
    },
    {
-    "ref": "react/src/Toast.tsx:107",
+    "ref": "react/src/Toast.tsx:111",
     "pattern": "className={`ui-toast__action"
    },
    {
@@ -1191,7 +1191,7 @@
   ],
   "read-state": [
    {
-    "ref": "react/src/Toast.tsx:48",
+    "ref": "react/src/Toast.tsx:52",
     "pattern": "const timed = ringed || (!notice.action"
    },
    {

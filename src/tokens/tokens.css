@@ -192,8 +192,8 @@
   /* A selected row takes the card's tint, and one step more under the pointer. #814 */
   --card-tint-hover: 12%;
   /* How much of its tone an undo notice's countdown ring mixes into the notice ground. The
-     success ring takes the soft mix. The other tones take the strong mix, so each ring keeps
-     3:1 on the notice ground and on the action's hover fill. #888
+     danger and neutral rings take the strong mix, so they keep 3:1 in dark. In light both
+     mixes are the same. #888
      why: docs/components.md#toast */
   --toast-timer-mix: 45%;
   --toast-timer-mix-strong: 60%;
@@ -455,7 +455,7 @@
   --card-tint: 5%;
   --card-tint-hover: 8%;
   --toast-timer-mix: 85%;
-  --toast-timer-mix-strong: 95%;
+  --toast-timer-mix-strong: 85%;
 
   --text: #1a1e27;
   --strong: #0c0e13;

@@ -989,10 +989,10 @@ ninth notice makes the pile no taller than a third. A device without hover alway
 column. Under reduced motion the timer line is not drawn, and the ring moves one step each second.
 In forced colours the ring stays, in the button colour.
 
-**Colour of the ring.** The ring mixes the notice tone into the notice ground. A success ring
-takes `--toast-timer-mix`: 45% in dark and 85% in light. The other tones take
-`--toast-timer-mix-strong`: 60% in dark and 95% in light. Every ring keeps 3:1 on the notice ground
-and on the hover fill of its action, in both themes, under every accent.
+**Colour of the ring.** The ring mixes the notice tone into the notice ground: 45% in dark and
+85% in light (`--toast-timer-mix`). A danger ring and a neutral ring take 60% in dark
+(`--toast-timer-mix-strong`). Every ring keeps 3:1 on the notice ground and on the hover fill of its
+action, in both themes, under every accent.
 
 **Keyboard and screen reader.** An ordinary notice is polite and a danger notice is assertive. A
 new notice does not move the focus.
