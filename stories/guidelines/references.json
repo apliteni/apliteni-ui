@@ -440,7 +440,7 @@
   ],
   "section-lit": [
    {
-    "ref": "react/src/SidebarNav.tsx:91",
+    "ref": "react/src/SidebarNav.tsx:92",
     "pattern": "activeIs === 'section'"
    }
   ],
@@ -1053,7 +1053,7 @@
   ],
   "nav": [
    {
-    "ref": "react/src/SidebarNav.tsx:110",
+    "ref": "react/src/SidebarNav.tsx:111",
     "pattern": "export const SidebarNav = forwardRef"
    },
    {
