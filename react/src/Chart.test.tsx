@@ -479,8 +479,8 @@ describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
     const resolved = substitute(rule, vars);
     expect(tokens, 'the ramp the resolver reads').toContain('--ring:');
     expect(resolved, 'every token resolved').not.toContain('var(');
-    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*2px solid #[0-9a-f]{3,8}/i);
-    expect(resolved).toContain('outline-offset: 1px');
+    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*1px solid #[0-9a-f]{3,8}/i);
+    expect(resolved).toContain('outline-offset: 2px');
     expect(resolved).not.toContain('box-shadow');
     expect(readRepo('../../src/styles/chart.css'),
       'the chart declares no outline of its own, so nothing reverts to the browser\'s')

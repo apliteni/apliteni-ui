@@ -275,9 +275,9 @@
 .ui-chart__value { text-anchor: middle; }
 .ui-chart__value--below { dominant-baseline: hanging; }
 /* The boundary before the first period that is not final, and the words over
-   that group. The line is the focus ring's width in the neutral chart tone, and
-   solid: a dash would read as a mark of its own. */
-.ui-chart__boundary { stroke: var(--chart-neutral); stroke-width: var(--ring-width); }
+   that group. The line keeps the old 2px ring width on purpose (#885), in the
+   neutral chart tone, and solid: a dash would read as a mark of its own. */
+.ui-chart__boundary { stroke: var(--chart-neutral); stroke-width: 2; }
 .ui-chart__group { font-weight: var(--weight-medium); }
 .ui-chart__text--strong { fill: var(--strong); font-weight: var(--weight-semibold); }
 .ui-chart__total {
