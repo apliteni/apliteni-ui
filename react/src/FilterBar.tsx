@@ -9,16 +9,21 @@ export type Filter = { id: string; label: string; /** empty or absent while noth
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; clearVariant?: 'ghost' | 'secondary' | 'link'; disabled?: boolean; busy?: boolean;
   add?: AddFilter[]; addLabel?: string;
-  onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void;
+  onClear: () => void; onChange: (id: string, value: string | undefined) => void;
   onAdd?: (id: string, value: string | undefined) => void };
 
 // A menu of ten gets a field over it. why: guidelines/component-choice.md#add-dropdown-search
 const SEARCH_AT = 10;
 const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' && !(entry as { separator?: boolean }).separator;
+// Every line the chip can print: its own, the field's name, and the value each row would
+// print after a pick. A row with an empty value puts the name back, so it adds no line. The
+// chip takes the width of the longest. why: docs/components.md#filter-bar
+const chipLines = (filter: Filter) => [filterChipText(filter), filter.label, ...(filter.items || []).filter(isRow)
+  .filter(item => String(item.value ?? item.label) !== '').map(item => String(item.value ?? item.label))];
 
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
-  const focused = useRef<{ id: string | null; index: number; remove?: boolean } | null>(null);
+  const focused = useRef<{ id: string | null; index: number } | null>(null);
   // The filter the add menu just asked for. Consumed by the first layout pass after the
   // pick, which is the pass a controlled consumer answers it in.
   const landing = useRef<string | null>(null);
@@ -52,16 +57,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     }
     const prior = focused.current;
     if (!prior || (prior.id === null && filters.some(f => !filterChipUnset(f)))) return;
-    // A chip that lost its remove mark (its value was cleared) keeps its place: the
-    // focus the mark held moves to the chip's own trigger rather than to the page.
-    const kept = filters.some(f => f.id === prior.id);
-    if (kept) {
-      const held = chips.find(c => c.dataset.filterId === prior.id && !c.disabled);
-      const lost = prior.remove && !held?.querySelector('[data-filter-remove]') && !blocked && held && bar.current && bar.current.ownerDocument.activeElement === bar.current.ownerDocument.body
-        && held.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
-      if (lost) lost.focus();
-      return;
-    }
+    // A chip that stays keeps its own trigger, and so the focus.
+    if (filters.some(f => f.id === prior.id)) return;
     const next = chips.slice(prior.index).find(chip => !chip.disabled)
       || chips.slice(0, prior.index).reverse().find(chip => !chip.disabled);
     const target = !blocked && next?.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
@@ -80,7 +77,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     }}>
     <legend className="ui-filter-bar__legend">{label}</legend>
     {filters.map((filter, index) => <fieldset key={filter.id} className="ui-filter-bar__chip" data-filter-id={filter.id} disabled={filter.disabled}
-      onFocus={event => { focused.current = { id: filter.id, index, remove: Boolean((event.target as Element).closest('[data-filter-remove]')) }; }}>
+      onFocus={() => { focused.current = { id: filter.id, index }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
           trigger's name and the chip's own legend. why: docs/components.md#data-table */}
@@ -88,12 +85,15 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
           the chip prints and the row the menu washes cannot disagree — the same
           shared call the vanilla factory makes. why: src/logic/filter-bar.js */}
       <Dropdown items={filterChipItems(filter)} variant="select" ariaLabel={filterChipName(filter)}
-        triggerContent={<span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>}
+        triggerContent={<span className="ui-filter-bar__fit">
+          {[...new Set(chipLines(filter))].map(line => <span key={line} aria-hidden="true">{line}</span>)}
+          <span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>
+        </span>}
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
         onSelect={value => { if (!blocked && !filter.disabled) onChange(filter.id, value == null ? undefined : String(value)); }} />
-      {!filterChipUnset(filter) && <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
-        onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>}
+      {/* A chip has no remove mark, so its chevron sits at its edge. A reader clears a value
+          with the menu's first row, or every value with Clear all. why: docs/components.md#filter-bar */}
     </fieldset>)}
     {/* Its onFocus clears the restore target, so nothing a controlled change does to the
         chips takes focus off this trigger. */}
@@ -110,6 +110,9 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     </div>}
     {/* Shown only once there is something to clear, as a quiet text button. The
         vanilla factory carries the reasoning. why: docs/components.md#filter-bar */}
-    {filters.some(filter => !filterChipUnset(filter)) && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
+    {filters.some(filter => !filterChipUnset(filter))
+      ? <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>
+      // With chips and nothing to clear, Clear all keeps its room and draws nothing.
+      : filters.length > 0 && <span data-filter-clear="" className="is-reserved" aria-hidden="true" inert><Button size="sm" variant={clearVariant} tabIndex={-1}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

@@ -30,30 +30,35 @@
 .rx-account__body { flex: 1 1 auto; padding: var(--space-4) var(--space-8) var(--space-8);
   /* The ring's reach outside a control, so a stop that focus scrolls in keeps its whole band. */
   scroll-padding-block: calc(var(--ring-gap-width) + var(--ring-width)); }
-/* The tabs and the rail's close are the phone's. */
-.rx-account__tabs, .rx-account__who > .ui-btn { display: none; }
-.rx-account__tabs { --ui-tabs-ground: var(--bg); }
-.rx-account__tabs .ui-nav__tab { border: 0; background: none; font-family: inherit; cursor: pointer; }
+/* The back button and the rail's close are the phone's. */
+.rx-account__head > .rx-account__back, .rx-account__who > .ui-btn { display: none; }
 .rx-account__who > .ui-btn { width: calc(var(--space-10) + var(--space-1));
   height: calc(var(--space-10) + var(--space-1)); flex: none; }
 
 /* At 560px the window floats with a --space-4 gap on each side, or the safe-area inset where
- * that is wider, and is as tall as its content up to the safe screen height. The rail becomes
- * the header: the reader, the close and the sections as tabs, over the pane, and only the
- * pane's body scrolls. why: docs/foundations.md#breakpoints */
+ * that is wider, and takes the safe screen height, so a section change keeps its size. It
+ * shows one screen. The section has a head row of the back button, the title and the close,
+ * and only its body scrolls. The back button opens the rail as the screen of sections, with
+ * the reader and the close. why: docs/foundations.md#breakpoints */
 @media (max-width: 560px) {
-  .rx-modal.rx-account { flex-direction: column; height: auto;
+  .rx-modal.rx-account { flex-direction: column;
     margin: max(var(--space-4), env(safe-area-inset-top)) max(var(--space-4), env(safe-area-inset-right))
       max(var(--space-4), env(safe-area-inset-bottom)) max(var(--space-4), env(safe-area-inset-left));
     width: calc(100vw - max(var(--space-4), env(safe-area-inset-left)) - max(var(--space-4), env(safe-area-inset-right)));
-    max-height: calc(100vh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom)));
-    max-height: calc(100dvh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom))); }
-  .rx-account__rail { overflow: visible; padding: var(--space-4) var(--space-3); gap: var(--space-2); }
+    height: calc(100vh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom)));
+    height: calc(100dvh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom))); }
+  .rx-account[data-view="section"] .rx-account__rail,
+  .rx-account[data-view="sections"] .rx-account__pane { display: none; /* motion: still — the screen changes in place, as in the approved prototype, and the window keeps its box. */ }
+  .rx-account__rail { flex: 1 1 auto; min-height: 0; padding: var(--space-4) var(--space-3); }
   .rx-account__av > .ui-avatar { --ui-avatar-size: var(--space-8); }
   .rx-account__who { padding: 0 0 0 var(--space-3); }
-  .rx-account__side, .rx-account__head > .ui-btn { display: none; }
-  .rx-account__tabs, .rx-account__who > .ui-btn { display: flex; }
+  .rx-account__who > .ui-btn { display: flex; }
+  /* The screen of sections is as wide as the window, so each row takes the rail's width. */
+  .rx-account .rx-account__side { --ui-nav-col: 100%; }
   .rx-account__pane { min-height: 0; }
-  .rx-account__head { padding: var(--space-4) var(--space-4) 0; }
+  .rx-account__head { justify-content: flex-start; gap: var(--space-1);
+    padding: var(--space-3) var(--space-3) 0 var(--space-2); }
+  .rx-account__head > .rx-account__back { display: inline-flex; }
+  .rx-account__title { flex: 1 1 auto; min-width: 0; }
   .rx-account__body { padding: var(--space-4); }
 }

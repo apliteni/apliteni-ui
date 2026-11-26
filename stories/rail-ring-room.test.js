@@ -1,7 +1,7 @@
 // Rule: a folded rail does not cut off its rows' focus ring.
 //
-// The kit ring is drawn OUTSIDE the border box of the thing that has focus — one pixel
-// of offset and two of band, from --ring-gap-width and --ring-width. stories/
+// The kit ring is drawn OUTSIDE the border box of the thing that has focus — two pixels
+// of offset and one of band, from --ring-gap-width and --ring-width. stories/
 // panel-ring-room.test.js asks a menu panel to leave that spread a way out: padding
 // inside its own box, or no clip at its edge. A folded rail has to answer the same
 // question and ONE MORE, because its rows are not cut to its width. The rail is
@@ -27,8 +27,8 @@
 //   `:focus-visible` desugared to an attribute, so JSDOM computes a real outline and a
 //   real width; it lays nothing out and paints nothing. The band is an `outline` since
 //   #578 — it was a three-layer box-shadow when this gate was written, and the property
-//   is the only thing that changed: the band is still 2px standing 1px off the border
-//   box, so every number below is the number it was written against. Chrome measured the ring
+//   is the only thing that changed: the spread is still 3px, now two pixels of gap and
+//   one of band, so every number below is the number it was written against. Chrome measured the ring
 //   itself for #575, before and after, at both widths in both themes.
 // - The band, not its offset. A subject is a box that paints the reference band. The
 //   rail rows draw it inward since #789, so the 3px of room asked for here is more than
@@ -100,7 +100,7 @@ const railMarkup = (collapsed) => render(h(kit.SidebarNav, {
   'aria-label': 'Primary', sections: SECTIONS, active: 'pending', collapsed, footer: SIGN_OUT(),
 }));
 
-/** 1px of offset and 2px of band: what --ring draws outside the border box. --ring-offset
+/** 2px of offset and 1px of band: what --ring draws outside the border box. --ring-offset
  *  is --ring-gap-width, so the spread is the same three pixels an outline leaves. */
 const spread = (() => {
   const tokens = readFileSync('src/tokens/tokens.css', 'utf8');

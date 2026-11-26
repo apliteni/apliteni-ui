@@ -202,6 +202,11 @@ const LEDGER = {
     noFocus: 'the hold hint is text the button names by aria-describedby. The button keeps the focus it '
       + 'already had, and the hint holds no control',
   },
+  '.ui-filter-bar .is-reserved': {
+    noFocus: 'the room a remove mark and Clear all keep while they draw nothing is aria-hidden and never '
+      + 'revealed — a value or a clearable chip swaps it for the real control. The clear copy is inert '
+      + 'and its button carries tabIndex -1, so nothing inside it can take focus',
+  },
 };
 
 /** Every curtain the sheets declare, as `selector → [where:line]`. */

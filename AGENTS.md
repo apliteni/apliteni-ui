@@ -104,6 +104,14 @@ target once already:
 Report the result in the PR. Playwright is not a dependency and CI runs only this
 gate's source half.
 
+## Check the chart fit locally
+
+Before opening a PR that changes how a months chart or a bridge sizes its plot, or the
+`--ui-chart-col` rules in `src/styles/chart.css`, open the charts in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js CHART_FIT=1 node --test stories/chart-fit.test.js`
+Report the result in the PR. CI runs only the source half, in `react/src/Chart.test.tsx`.
+
 ## Check the disabled field paint locally
 
 Before opening a PR that changes a field's or a button's disabled paint, or
@@ -131,9 +139,10 @@ consumer ships against is yours to measure, because Playwright is not a dependen
 
 Before opening a PR that changes `src/styles/dropdown.css`, the dropdown wiring's placement or
 React `<Dropdown>`, measure the panels in a real browser:
-`UI_PLAYWRIGHT=… DROPDOWN_EDGES=1 node --test stories/dropdown-contain.test.js`
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js DROPDOWN_EDGES=1 node --test stories/dropdown-contain.test.js`
 It needs `npm run build-storybook` first — React's fit is an effect, so it only exists
-where React is running. Report the result in the PR. Keep this check out of routine CI to save
+where React is running. It also walks the keys and clicks of a dropdown in a Modal and a
+Drawer at 10 sizes and on 6 devices. Report the result in the PR. Keep this check out of routine CI to save
 Actions minutes.
 
 ## Check the table selection column locally
@@ -268,10 +277,11 @@ Report the result in the PR. CI skips this check because Playwright is not a dep
 
 ## Check the phone account window locally
 
-Before opening a PR that changes the 560px rules of `react/src/AccountWindow.css`, measure the
-window in a real browser. Run `npm run build-storybook` first, then:
-`UI_PLAYWRIGHT=… ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
-Report the result in the PR. CI runs only this gate's source half.
+Before opening a PR that changes the 560px rules of `react/src/AccountWindow.css` or React
+`<AccountWindow>`, measure the window in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
+It also walks the keys and clicks of the window at 10 sizes and on 6 devices. Report the result
+in the PR. CI runs only this gate's source half.
 
 ## Check the file drop row locally
 
@@ -280,6 +290,13 @@ in a real browser. Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_CHROME=… ROW_HEIGHTS=1 node --test stories/row-height.test.js`
 It also opens every file drop story as Storybook draws it. Report the result in the PR. CI runs
 only this gate's source half.
+
+## Check the filter chip width locally
+
+Before opening a PR that changes `src/styles/filter-bar.css` or React `<FilterBar>`, walk a
+filter bar's keys, clicks and reloads in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js CHIP_WIDTH=1 node --test stories/filter-chip-width.test.js`
+Report the result in the PR. CI skips this check because Playwright and web-vitals are not dependencies.
 
 ## Check the three-column page locally
 

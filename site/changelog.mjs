@@ -6,9 +6,38 @@
 
 export const RELEASES = [
   {
-    v: '0.205.1', date: '2026-11-26',
+    v: '0.212.0', date: '2026-11-26',
     changes: [
+      ['changed', 'The arrow of a back link now starts on the left edge of the page title under it, in the page shell and in a three-column page. The link moves 9.2px to the left, and its hover ground starts left of the title. If your app puts a back link in its own box, keep at least 13px of room at the left of that box, so that the focus ring shows in full. Part of #869.', ['BackLink', 'ThreeColumnPage']],
       ['removed', 'The demo Payouts page and its sample data are cut. Showcases, component stories and guideline specimens now show a generic Orders page, and the code and data that only served the Payouts demo are deleted. No component, token or style behaviour changes. Part of #869.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.209.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],
+      ['changed', 'A filter chip now takes the width of its longest value, up to 224px, so a value change or a reload does not move the chips or the content below the bar. A longer value ends with an ellipsis. Clear all keeps its room while it does not show. Part of #885.', ['FilterBar']],
+      ['changed', 'A filter chip no longer has a remove mark (×), and an app that passes `onRemove` to FilterBar removes it. Part of #885.', ['FilterBar']],
+      ['changed', 'At 560px and below, the account window now fills the view and shows one section. A Sections button in its head row opens the list of sections, so a section change does not change the window height. Part of #885.', ['AccountWindow']],
+      ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
+      ['changed', 'The focus ring is now a 1px accent line, 2px from the control, in place of a 2px line 1px from it. It still ends 3px from the control and keeps at least 3:1 against each kit ground. A product that sets `--ring-width` or `--ring-gap-width` keeps its own values. Part of #885.'],
+    ],
+  },
+  {
+    v: '0.208.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `months` `Chart` now fits its card and never scrolls sideways. It draws every bar and prints fewer month names where they do not fit, and no two printed names overlap. Part of #906.', ['Chart']],
+      ['added', 'A `months` `Chart` takes `look="rows"` for categories whose names must all print, such as units with a signed margin. Each full `label` stands above a bar that grows right from zero, or left for a negative value, across the full card width. The look takes one `bars` or `bars-below` series. A key that steps to a row outside the view scrolls that row into view. Part of #906.', ['Chart']],
+      ['changed', 'A `bridge` column is now as wide as its widest word, not at least 88px, so a four-step bridge fits a 300px plot. A step name still wraps at its spaces. Part of #906.', ['Chart']],
+      ['changed', 'The table behind the Chart and Table switch of every `Chart` now has dense rows. Part of #906.', ['Chart']],
+      ['changed', 'The rule Keep every bar labelled now lets a months chart skip month names, and keeps every category and bridge name complete. Part of #906.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.206.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `Dropdown` trigger now shows only its value or its placeholder. If your app passes `label`, the trigger no longer draws it: put the name in a `Field` label, or pass `ariaLabel`. `label` warns once in development and goes in the next release. Outside a `Field`, a select or menu trigger with `ariaLabel` is named by that name and its value, such as "Unit: Engine team". Part of #899.', ['Dropdown']],
+      ['added', 'The Dropdown guideline page has a new rule, Show only the value. Part of #899.', ['Guidelines']],
     ],
   },
   {

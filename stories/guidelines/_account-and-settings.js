@@ -88,7 +88,7 @@ export const SPEC_CSS = `
       display: flex; flex-direction: column; gap: var(--space-3); overflow: hidden; }
 
     /* Below the fold the pane has no room beside a column of names, so the navigation
-       goes above it — the phone shape rule 1's Except names. */
+       goes above it. */
     @media (max-width: 720px) {
       .gas-modal__body, .gas-modal--nav .gas-modal__body { display: block; height: auto; }
       .gas-modal__nav { width: auto; padding: var(--space-2);
