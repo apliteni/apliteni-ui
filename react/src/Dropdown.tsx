@@ -168,6 +168,9 @@ const development = () => { try { return process.env.NODE_ENV !== 'production'; 
 // Once for the page, not once for each trigger.
 let labelWarned = false;
 
+// A name and the text the trigger shows, without the name twice when the text is the name.
+const named = (name: string, text: string) => (text === name ? name : `${name}: ${text}`);
+
 const cx = (...a: (string | false | undefined)[]) => a.filter(Boolean).join(' ');
 
 const isRow = (it: DropdownEntry): it is DropdownItem =>
@@ -901,10 +904,10 @@ export function Dropdown({
         aria-haspopup={sx ? 'dialog' : listRole}
         aria-expanded={open}
         id={fieldName?.id ?? byContent}
-        // The trigger shows only the value, so outside a Field a select's name is its own
-        // name and then that value. #899 why: docs/components.md#dropdown
+        // The trigger shows only the value, so outside a Field its name is its own name and
+        // then that value, for a select and a menu alike. #899 why: docs/components.md#dropdown
         aria-label={triggerContent != null ? ariaLabel || undefined
-          : isSelect && !fieldName && (ariaLabel || label) ? `${name}: ${shown != null ? shown : placeholder}` : undefined}
+          : !fieldName && (ariaLabel || label) ? named(name, shown != null ? shown : placeholder) : undefined}
         title={title}
         aria-labelledby={fieldName?.labelledBy}
         aria-describedby={describedBy}
@@ -931,7 +934,7 @@ export function Dropdown({
               {marked && (item.avatar
                 ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
                 : <Avatar empty />)}
-                <span className="ui-dropdown__value">{shownOf(item)}</span>
+              <span className="ui-dropdown__value">{shownOf(item)}</span>
             </span>
           ))}
         </span>}

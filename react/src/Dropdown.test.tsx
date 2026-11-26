@@ -422,6 +422,18 @@ it('the trigger shows only its value, and its name and value name it', () => {
   expect(shown('unit: v1.2.0')).toBe('v1.2.0');
 });
 
+// The review of #905: a menu trigger kept only "Select…" as its name. Both ways to name a
+// menu reach its accessible name, and a value that is the name is not said twice.
+it('a menu trigger keeps the name it is given, from ariaLabel or the deprecated label', () => {
+  render(<>
+    <Dropdown variant="menu" label="Actions:" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Row actions" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Token actions" value="Token actions" items={MENU} />
+  </>);
+  const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+  expect(names).toEqual(['Actions: Select…', 'Row actions: Select…', 'Token actions']);
+});
+
 // The deprecated `label` warns once for the page, in development only. A fresh module,
 // because the flag is the module's own and an earlier test in this file sets it.
 it('the deprecated label warns once in development and not in production', async () => {
