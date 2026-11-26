@@ -17,7 +17,7 @@ const NAV: DemoNavItem[] = [
 
 const Screen = ({ collapsed }: { collapsed: boolean }) =>
   <DemoShell layout="rail" nav={NAV} active="reports" defaultCollapsed={collapsed} title="Reports"
-    lede="Everything the team needs, in one place.">
+    lede="Each report runs again every night at 02:00 UTC.">
     <Card title="Reports"><p>Choose a report to see its details.</p></Card>
   </DemoShell>;
 

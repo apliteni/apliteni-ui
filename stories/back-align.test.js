@@ -12,22 +12,28 @@
  * The second test, the walk, has its own note below.
  *
  * The subjects are found, not listed: each story of a source file that draws a back
- * link, as `BackLink`, the `back` prop of AppShell or a ThreeColumnPage, opened at 390
- * and 1280. A story that shows a link at either width is a subject. Each subject is
- * measured at the 10 sizes, in light and dark. The arrow's ink is the glyph's shape
- * less half its stroke, which is where a round join paints. The title is the first
- * heading or `.gb-title` after the link in document order that shows.
+ * link, as `BackLink`, the `back` prop of AppShell or a ThreeColumnPage, or that imports
+ * such a file by a relative path, at any depth, opened at 390 and 1280. A story that
+ * shows a link at either width is a subject. Each subject is measured at the 10 sizes,
+ * in light and dark. The arrow's ink is the glyph's shape less half its stroke, which is
+ * where a round join paints. The title is the first heading or `.gb-title` after the
+ * link in document order that shows.
+ *
+ * Coverage: a subject shows the same number of links in light and dark at each size,
+ * and its largest number at each size, except in a case where a part that ABSENT names
+ * shows. A missing link or case fails, and the total must be the sum of those numbers.
  *
  * Its limits: one engine. The link is read at rest, and the ring is its width and gap
  * outside the link's box, not a painted ring. A link that stands in no flow with a
- * title, or a title that is not a heading or `.gb-title`, is not measured.
+ * title, or a title that is not a heading or `.gb-title`, is not measured. A story that
+ * draws a link through a package import, not a relative one, is not found.
  * The source half, which runs in CI, is in src/styles/back.test.js.
  * why: docs/components.md#back-link
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -36,9 +42,18 @@ const SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [
 const THEMES = ['light', 'dark'];
 const SLACK = 0.5;
 // The subjects that the build had when #869 shipped. Fewer means discovery lost some.
-const FLOOR = 18;
+const FLOOR = 20;
+// Stories that draw their link only through a component they import. Discovery must find them.
+const COMPOSED = ['apps-notifications--side-nav-record', 'apps-notifications--phone-record'];
 // A source file draws a back link when it names one of these.
 const DRAWS = /\bBackLink\b|\bback(?:=\{|:\s*\{)|\bThreeColumnPage\b/;
+// A case may show fewer links than the subject's largest number only while one of these parts shows.
+const ABSENT = [
+  // A three-column page links up only to a column it hides. Where the first column shows, it has no way up.
+  { shows: '.ui-columns__col--1', why: 'the first column of a three-column page shows' },
+];
+const EXCUSED = `() => ${JSON.stringify(ABSENT.map((a) => a.shows))}
+  .some((sel) => [...document.querySelectorAll(sel)].some((el) => el.checkVisibility()))`;
 
 /* Each visible link on the page: where its arrow's ink starts, where its title starts,
    and each edge where a box that clips, or the screen, cuts its ground or its ring. */
@@ -77,15 +92,50 @@ const READ = `() => [...document.querySelectorAll('.ui-back')].filter((a) => a.c
     title: title ? { text: title.textContent.trim().slice(0, 40), left: head.left + parseFloat(getComputedStyle(title).paddingLeft) } : null };
 })`;
 
-/** The stories of the files that draw a back link, from the build's own index. */
+const IMPORT = /(?:from|import)\s*['"](\.{1,2}\/[^'"]+)['"]/g;
+const EXTS = ['', '.tsx', '.ts', '.jsx', '.js', '/index.tsx', '/index.ts', '/index.js'];
+
+/** The stories of the files that draw a back link, or import one that does, from the build's own index. */
 function candidates(build) {
   const entries = Object.values(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries)
     .filter((e) => e.type === 'story');
   const draws = new Map();
-  return entries.filter((e) => {
-    if (!draws.has(e.importPath)) draws.set(e.importPath, DRAWS.test(readFileSync(path.join(root, e.importPath), 'utf8')));
-    return draws.get(e.importPath);
-  }).map((e) => ({ id: e.id, label: `${e.title} > ${e.name}` }));
+  const drawn = (file) => {
+    if (draws.has(file)) return draws.get(file);
+    draws.set(file, false);
+    const source = readFileSync(file, 'utf8');
+    const found = DRAWS.test(source) || [...source.matchAll(IMPORT)].some(([, spec]) => {
+      const next = EXTS.map((ext) => path.resolve(path.dirname(file), spec + ext))
+        .find((f) => /\.[jt]sx?$/.test(f) && existsSync(f) && statSync(f).isFile());
+      return next !== undefined && drawn(next);
+    });
+    draws.set(file, found);
+    return found;
+  };
+  return entries.filter((e) => drawn(path.join(root, e.importPath)))
+    .map((e) => ({ id: e.id, label: `${e.title} > ${e.name}` }));
+}
+
+const key = (id, theme, [w, h]) => `${id} ${theme} ${w}x${h}`;
+
+/** Each case where a subject shows fewer links than it should. `counts` holds the links of each
+    case, and `excused` the cases where a part that ABSENT names shows. */
+function coverage(subjects, counts, excused) {
+  const misses = [];
+  for (const story of subjects) {
+    const most = Math.max(...THEMES.flatMap((theme) => SIZES.map((size) => counts.get(key(story.id, theme, size)) ?? 0)));
+    for (const size of SIZES) {
+      const [light, dark] = THEMES.map((theme) => counts.get(key(story.id, theme, size)));
+      if (light !== dark) misses.push(`${story.label} at ${size.join('x')}: ${light} links in light, ${dark} in dark`);
+      for (const [theme, n] of [['light', light], ['dark', dark]]) {
+        if (n === undefined) misses.push(`${story.label} at ${size.join('x')} in ${theme}: not measured`);
+        else if (n < most && !excused.has(key(story.id, theme, size))) {
+          misses.push(`${story.label} at ${size.join('x')} in ${theme}: ${n} of ${most} links show`);
+        }
+      }
+    }
+  }
+  return misses;
 }
 
 test('a back link starts its arrow on the title edge, and its ground and ring stay whole', {
@@ -117,29 +167,33 @@ test('a back link starts its arrow on the title edge, and its ground and ring st
     }
     assert.ok(subjects.length >= FLOOR, `${subjects.length} stories show a back link, under the floor of ${FLOOR}: `
       + subjects.map((s) => s.id).join(', '));
+    for (const id of COMPOSED) assert.ok(subjects.some((s) => s.id === id), `discovery did not find ${id}`);
 
     const misses = [];
+    const counts = new Map();
+    const excused = new Set();
     let measured = 0;
     for (const story of subjects) {
-      let seen = 0;
       for (const theme of THEMES) {
         for (const size of SIZES) {
-          for (const link of await open(story, theme, size)) {
+          const links = await open(story, theme, size);
+          counts.set(key(story.id, theme, size), links.length);
+          if (await page.evaluate(`(${EXCUSED})()`)) excused.add(key(story.id, theme, size));
+          for (const link of links) {
             const at = `${story.label} at ${size.join('x')} in ${theme}, “${link.label}”`;
             if (!link.title) { misses.push(`${at}: no title after the link`); continue; }
-            seen += 1;
+            measured += 1;
             const off = link.ink - link.title.left;
             if (Math.abs(off) > SLACK) misses.push(`${at}: the arrow starts ${off.toFixed(2)}px from “${link.title.text}”`);
             for (const cut of link.cuts) misses.push(`${at}: the ground or the ring is cut by ${cut}`);
           }
         }
       }
-      if (!seen) misses.push(`${story.label}: no back link was measured at any size`);
-      measured += seen;
     }
+    misses.push(...coverage(subjects, counts, excused));
     t.diagnostic(`${subjects.length} stories, ${measured} links measured`);
     assert.deepEqual(misses, []);
-    assert.ok(measured >= subjects.length * SIZES.length, `only ${measured} links were measured`);
+    assert.equal(measured, [...counts.values()].reduce((a, b) => a + b, 0), 'a link that shows was not measured');
 
     // The gate catches what it guards. The link as it was before #869, and the alignment
     // with the old 8px padding, whose ring runs off a 390px screen.
@@ -150,6 +204,18 @@ test('a back link starts its arrow on the title edge, and its ground and ring st
     const padded = await open(wide, 'light', [390, 844],
       '.ui-back { padding-left: var(--space-2); margin-inline-start: calc(-1 * var(--space-2) - 16px * 7.8 / 24); }');
     assert.ok(padded.some((l) => l.cuts.length), 'an 8px padding passes the ring check at 390px');
+
+    // A case that was not measured, and a link hidden in dark only and then in both themes, fail coverage.
+    const short = subjects.find((s) => s.id === 'react-backlink--short');
+    assert.ok(short, 'React/BackLink > Short, the coverage mutation subject, shows no back link');
+    const skipped = new Map(counts);
+    skipped.delete(key(short.id, 'dark', [390, 844]));
+    assert.ok(coverage(subjects, skipped, excused).some((m) => m.endsWith('in dark: not measured')), 'a case that was not measured passes coverage');
+    const hide = '.ui-back { display: none; }';
+    const dark = new Map(counts).set(key(short.id, 'dark', [390, 844]), (await open(short, 'dark', [390, 844], hide)).length);
+    assert.ok(coverage(subjects, dark, excused).some((m) => m.startsWith(`${short.label} at 390x844`)), 'a link hidden in dark at 390px passes coverage');
+    const both = new Map(dark).set(key(short.id, 'light', [390, 844]), (await open(short, 'light', [390, 844], hide)).length);
+    assert.ok(coverage(subjects, both, excused).some((m) => m.startsWith(`${short.label} at 390x844`)), 'a link hidden in both themes at 390px passes coverage');
   } finally {
     server.proc.kill();
     await browser.close();

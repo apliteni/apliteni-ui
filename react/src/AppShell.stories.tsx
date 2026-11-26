@@ -40,11 +40,11 @@ const groups: AppShellGroup[] = [
   ] },
 ];
 
-function Example({ sections: own, groups: grouped, ...args }: Partial<AppShellProps>) {
+function Example({ sections: own, groups: grouped, children, ...args }: Partial<AppShellProps>) {
   const [pathname, setPathname] = useState(args.pathname ?? '/reports');
   const nav = grouped ? { groups: grouped } : { sections: own ?? sections };
   return <AppShell {...nav} title="Reports" word="Finance"
-    lede="Everything the team needs, in one place."
+    lede="Each report runs again every night at 02:00 UTC."
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={() => {}}
     renderLink={(section, props) => <a {...props} onClick={(event) => {
       props.onClick?.(event);
@@ -52,7 +52,7 @@ function Example({ sections: own, groups: grouped, ...args }: Partial<AppShellPr
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args} pathname={pathname}>
-    <Card title="Reports"><p>Choose a report to see its details.</p></Card>
+    {children ?? <Card title="Reports"><p>Choose a report to see its details.</p></Card>}
   </AppShell>;
 }
 const render = (args: AppShellProps) => <Example {...args} />;
@@ -68,9 +68,13 @@ export default meta;
 type Story = StoryObj<typeof AppShell>;
 export const Centered: Story = { render };
 export const Folded: Story = { render, args: { defaultCollapsed: true } };
-export const Wide: Story = { render, args: { width: 'wide',
-  back: { href: '/overview', label: 'Overview' }, actions: <Button>New report</Button>,
-  bandControl: <Button variant="ghost" size="sm">Workspace</Button> } };
+// A report record: a child page of Reports, so its back link goes to Reports and the
+// Reports row stays active with aria-current="true". why: guidelines/going-back.md
+export const Wide: Story = { render, args: { width: 'wide', pathname: '/reports/q3-2026', title: 'Q3 2026 revenue',
+  lede: 'Closed on 1 October 2026. All figures are in EUR.',
+  back: { href: '/reports', label: 'Reports' }, actions: <Button>Export CSV</Button>,
+  bandControl: <Button variant="ghost" size="sm">Workspace</Button>,
+  children: <Card title="By region"><p>North brought 41% of the quarter's revenue.</p></Card> } };
 export const Tablet: Story = { render, globals: { viewport: { value: 'tablet', isRotated: false } } };
 // A band with a control on it beside the reader's mark — the crowding that left the
 // trigger a few characters and truncated its sentence mid-word. It draws `Search`

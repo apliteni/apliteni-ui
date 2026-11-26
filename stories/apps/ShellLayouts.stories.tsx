@@ -40,7 +40,7 @@ const BELL = <Dropdown variant="menu" align="end" chevron={false} title="Notific
 
 const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) => (
   <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Reports"
-    lede="Everything the team needs, in one place."
+    lede="Each report runs again every night at 02:00 UTC."
     palette={layout === 'topbar' ? PALETTE : undefined} bandActions={layout === 'topbar' ? BELL : undefined}>
     <Card title="Reports"><p>Choose a report to see its details.</p></Card>
   </DemoShell>
