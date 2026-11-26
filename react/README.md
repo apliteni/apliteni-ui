@@ -639,6 +639,11 @@ to keep a notice until it is dismissed.
 Pass `collapse` to `Toast` to rest the notices as a pile with the newest in front. The pile fans out
 when the reader hovers it or tabs into it. On a device without hover it stays a plain column.
 
+The stack stands 16px above the bottom of the view. Pass `bottomOffset` to `Toast` to set that
+whole inset, as a number in pixels or a CSS length. A page with a bar at the bottom sets it so the
+notices stand 16px above the bar, for example `<Toast bottomOffset={88}>` over a 56px bar that
+stands 16px above the bottom. Do not move the stack with a selector on its class.
+
 ```tsx
 function SaveButton() {
   const push = useToast();

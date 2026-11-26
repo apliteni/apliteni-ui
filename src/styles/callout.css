@@ -52,11 +52,11 @@
 }
 
 /* Existing tone inks also colour the unfilled glyph. */
-.ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); --toast-timer-tone: var(--toast-timer-mix); }
-.ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); --toast-timer-tone: var(--toast-timer-mix-strong); }
-.ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); --toast-timer-tone: var(--toast-timer-mix); }
-.ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); --toast-timer-tone: var(--toast-timer-mix); }
-.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); --toast-timer-tone: var(--toast-timer-mix-strong); }
+.ui-toast--success { --toast-accent: var(--green); --toast-action-ink: var(--chip-success-ink); --toast-glow: var(--glow-green); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-success); }
+.ui-toast--danger  { --toast-accent: var(--pink);  --toast-action-ink: var(--chip-danger-ink);  --toast-glow: var(--glow-pink);  --toast-on: var(--danger-contrast); --toast-solid: var(--signal-solid-danger); }
+.ui-toast--warn    { --toast-accent: var(--amber); --toast-action-ink: var(--chip-warn-ink);    --toast-glow: color-mix(in srgb, var(--amber) 14%, transparent); --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-warn); }
+.ui-toast--info    { --toast-accent: var(--cyan);  --toast-action-ink: var(--chip-info-ink);    --toast-glow: var(--glow-cyan);  --toast-on: var(--signal-contrast); --toast-solid: var(--signal-solid-info); }
+.ui-toast--neutral { --toast-accent: var(--muted); --toast-action-ink: var(--text);            --toast-glow: var(--surface); --toast-on: var(--signal-solid-ink); --toast-solid: var(--signal-solid-neutral); }
 
 .ui-toast__icon { width: 22px; height: 1lh; flex: none; display: grid; place-items: center; background: transparent; color: var(--toast-action-ink); }
 .ui-toast__icon svg { width: var(--space-4); height: var(--space-4); stroke: currentColor; fill: none; stroke-width: 2.25; } /* 16px × 2.25 / 24 = 1.5 CSS px. */
@@ -73,14 +73,14 @@
 .ui-toast__action:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* An action with a timer. Its ring is the first part of the button and empties as the time
-   runs out. The ring mixes the tone into the notice ground, so it stays soft and keeps 3:1.
+   runs out. The ring takes the action's ink, so the arc keeps 3:1 on its track. #907
    why: docs/components.md#toast */
 .ui-toast__action--timed { display: inline-flex; align-items: center; gap: var(--space-2); }
-.ui-toast__ring { flex: none; width: var(--space-4); height: var(--space-4); rotate: -90deg; /* muted-ink: glyph — a neutral ring mixes --muted, and the ring is a graphic at 3:1 */ color: color-mix(in srgb, var(--toast-accent) var(--toast-timer-tone), var(--surface)); }
+.ui-toast__ring { flex: none; width: var(--space-4); height: var(--space-4); rotate: -90deg; color: var(--toast-action-ink); }
 .ui-toast__ring-arc { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 100; }
 /* The track is the full ring behind the arc, so the ring keeps its shape as the arc empties. It
    mixes the arc's ink into the notice ground, so the arc stays clearly darker. why: docs/components.md#toast */
-.ui-toast__ring-track { fill: none; stroke: currentColor; stroke-width: 2; /* muted-ink: glyph — a neutral track mixes --muted, and the track is the ring's backdrop */ color: color-mix(in srgb, currentColor 35%, var(--surface)); }
+.ui-toast__ring-track { fill: none; stroke: currentColor; stroke-width: 2; /* muted-ink: glyph — the track is the ring's backdrop, a soft mix of the action ink */ color: color-mix(in srgb, currentColor 35%, var(--surface)); }
 .ui-toast__ring-arc.is-running { animation: ui-toast-ring var(--toast-dur, 5s) linear forwards; /* motion: ambient — the ring spends the notice's dismiss timer, as the line does */ }
 
 .ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; height: 1lh; padding: 0 2px; display: grid; place-items: center; position: relative; font: inherit; }

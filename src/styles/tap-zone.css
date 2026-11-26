@@ -176,6 +176,11 @@
   :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
+  /* A wordless button on a toolbar is 36px or 40px wide, so it also opens across, into the
+     toolbar's own 10px gap: it takes half, and a neighbour keeps the other half. The
+     gap does not open, so no labelled button gets narrower. #488, #903 */
+  .ui-toolbar > .ui-btn--icon { --tap-clear-x: 10px; }
+
   /* Row actions open across — the pair #488 names — and cannot open down:
      a dense table's rows share an edge, and parting them is the row height the
      guideline protects. Down, they get the row's own padding, twice. */
