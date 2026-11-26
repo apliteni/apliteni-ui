@@ -514,6 +514,8 @@ or a dense table's action cell opens across. Some families get no layer. The Acc
 minimums page names all of them. Rows that share an edge have no space outside a row for a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
+A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 2 past the chip
+on each side to make 44.
 A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.
 The title clips its own text, so the layer measures against the readout trigger around it.
 A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target
