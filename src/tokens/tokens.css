@@ -223,6 +223,9 @@
      floor on the dullest ground there is (--surface-3). #273
      why: docs/foundations.md#colour-and-contrast */
   --disabled-ink-bare: #a39eb7;
+  /* A disabled option in a menu panel: paler than --muted, so it does not take the ink of the
+     bold muted group label above it. 4.14:1 on --bg-elevated, over the 3:1 floor. #886 */
+  --disabled-ink-option: color-mix(in srgb, var(--muted) 80%, var(--bg-elevated));
 
   /* Lifted from #9b5dff, which cleared the flat surfaces and failed on its own wash over
      a card; the value was already in the ramp. --ring-color is var(--accent) and follows by
@@ -469,6 +472,8 @@
      --border-strong, so the two states read 1.52:1 and 1.24:1. #564 */
   --disabled-border: var(--border);
   --disabled-ink-bare: #585e6c;
+  /* 3.88:1 on --bg-elevated. #886 */
+  --disabled-ink-option: color-mix(in srgb, var(--muted) 80%, var(--bg-elevated));
 
   --accent: #6a2dcc;
   --accent-strong: #6a2dcc; /* already dark enough for white text */

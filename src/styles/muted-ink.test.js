@@ -123,6 +123,8 @@ test('the chrome class stays on a drawing\'s own furniture', () => {
   // default, so the declarations taking it are listed rather than counted.
   // The caption is the rows look's periods and steps and the ring's caption, and
   // the shares' percent is the donut's key: both are in the values table (#742).
+  // A dropdown's group label names the rows under it, and its group keeps the
+  // name as its accessible name (#886).
   assert.deepEqual(result.subjects.filter(d => d.note?.[1] === 'chrome')
     .map(d => `${d.file} ${d.selector}`).sort(), [
     'src/styles/card.css .ui-card__title--muted',
@@ -132,6 +134,7 @@ test('the chrome class stays on a drawing\'s own furniture', () => {
     'src/styles/chart.css .ui-chart__period',
     'src/styles/chart.css .ui-chart__shares-pct',
     'src/styles/code.css .ui-snippet__bar > span',
+    'src/styles/dropdown.css .ui-dropdown__group',
   ]);
 });
 

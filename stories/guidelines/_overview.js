@@ -30,6 +30,7 @@ import * as notificationsContent from './_notifications.js';
 import * as sessionExpiredContent from './_session-expired.js';
 import * as threeColumnContent from './_three-column-page.js';
 import * as wizardContent from './_wizard.js';
+import * as dropdownContent from './_dropdown.js';
 import * as kindContent from './_dashboards-and-reports.js';
 import * as densityAccentContent from './_density-and-accents.js';
 
@@ -73,6 +74,7 @@ const ENTRIES = [
   [sessionExpiredContent, 'Guidelines/Session expired', 'SessionExpired', 'Controls and states', 'The sign-in dialog, page state and a lasting notice'],
   [threeColumnContent, 'Guidelines/Three-column page', 'ThreeColumnPage', 'Pages', 'Parents, their children and the open child in three columns'],
   [wizardContent, 'Guidelines/Wizard', 'WizardPage', 'Controls and states', 'Step states, the open step and the final action'],
+  [dropdownContent, 'Guidelines/Dropdown', 'DropdownPage', 'Controls and states', 'Group labels that stand apart from the options'],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page

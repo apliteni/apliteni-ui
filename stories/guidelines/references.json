@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:232",
+    "ref": "src/tokens/tokens.css:235",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:475",
+    "ref": "src/styles/dropdown.css:480",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:537",
+    "ref": "src/styles/dropdown.css:542",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:427",
+    "ref": "src/styles/dropdown.css:432",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -596,12 +596,12 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:432",
+    "ref": "src/styles/dropdown.css:437",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:434",
-    "pattern": "rank: label"
+    "ref": "src/styles/dropdown.css:438",
+    "pattern": ".ui-dropdown__group {"
    }
   ]
  },
@@ -888,7 +888,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:321",
+    "ref": "src/tokens/tokens.css:324",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1339,6 +1339,22 @@
    {
     "ref": "react/src/Wizard.tsx:50",
     "pattern": "state === 'blocked' && <Icon name=\"circleAlert\" />"
+   }
+  ]
+ },
+ "_dropdown.js": {
+  "group-labels": [
+   {
+    "ref": "src/styles/dropdown.css:440",
+    "pattern": "font-weight: var(--weight-bold);"
+   },
+   {
+    "ref": "src/styles/dropdown.css:442",
+    "pattern": "color: var(--muted);"
+   },
+   {
+    "ref": "react/src/Dropdown.tsx:860",
+    "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]
  }
