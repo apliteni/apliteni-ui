@@ -519,8 +519,10 @@ A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 
 A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 2 past the chip
 on each side to make 44.
 A wordless button that is a direct child of a toolbar draws 36 or 40 wide. Its layer reaches
-into half of the toolbar's 10px gap on each side to make 44, and the gap does not open.
-To give a lone button the floor, put it in a toolbar.
+into half of the toolbar's 10px gap on each side to make 44, and the gap does not open
+(src/styles/tap-zone.css:182). To give a lone small, default or large button the floor, put it
+in a toolbar. An extra-small wordless button draws 24 wide, so its layer stays under 44.
+Where a phone user taps it, use `size="sm"` or larger.
 A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.
 The title clips its own text, so the layer measures against the readout trigger around it.
 A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target
