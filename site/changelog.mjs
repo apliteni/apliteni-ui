@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.201.1', date: '2026-11-26',
+    changes: [
+      ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
+    ],
+  },
+  {
     v: '0.201.0', date: '2026-11-26',
     changes: [
       ['changed', 'At 560px and below, the account window now fills the view and shows one section. A Sections button in its head row opens the list of sections, so a section change does not change the window height.', ['AccountWindow']],

@@ -884,6 +884,9 @@ page title's edge. To do this, the card hangs outside its container by its side 
 card in another container, pad each side of the container by at least the hang, or the page
 scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
 
+**A table directly in a card.** A table wider than the card scrolls sideways inside the card. Below
+560px the card has no scrollbar, as the table's scroll frame does.
+
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
 line below 360px.
