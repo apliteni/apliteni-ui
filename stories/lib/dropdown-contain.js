@@ -428,13 +428,15 @@ export async function reactEdgeCases(browser, port, {
   await settle(page);
   await reading('a row that reorders', 'shut after the move');
 
-  // 2. A scroller around the root React renders into, rather than inside it.
+  // 2. A scroller around the root React renders into, rather than inside it. It scrolls
+  //    across only: a box that scrolls down lifts the panel over it, and a lifted panel
+  //    stays in the view with no scroll listener, so this case would measure nothing.
   await open();
   await page.evaluate(() => {
     const root = document.querySelector('#storybook-root') || document.body.firstElementChild;
     const scroller = document.createElement('div');
     scroller.id = 'scroller';
-    scroller.setAttribute('style', 'width:100%;height:300px;overflow:auto');
+    scroller.setAttribute('style', 'width:100%;height:300px;overflow-x:auto;overflow-y:hidden');
     root.parentElement.insertBefore(scroller, root);
     scroller.appendChild(root);
     root.setAttribute('style', 'width:800px;padding-left:260px');

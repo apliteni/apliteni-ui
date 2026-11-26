@@ -16,7 +16,7 @@
 //  - **One declaration.** `--ring` and `--ring-offset` are declared at `:root` and
 //    nowhere else. A second declaration is how the old shape drifted: #218 found the
 //    ring written out eight times and measured the two that were least wrong.
-//  - **The offset.** `outline-offset` is what puts the band 1px OUTSIDE the border box.
+//  - **The offset.** `outline-offset` is what puts the band 2px OUTSIDE the border box.
 //    A rule that takes the outline and leaves the offset draws the band flush against
 //    the control, closing the gap the ring is read across. Same bug as the one #557
 //    found on the inward band, same shape of check.
@@ -30,7 +30,7 @@
 //
 // Coverage limits:
 // - This reads src/**.css and react/src/**.css as text, with comments blanked. It
-//   measures no pixels: that the band lands 1px out and 2px wide in a browser is
+//   measures no pixels: that the band lands 2px out and 1px wide in a browser is
 //   stories/scroll-ring.test.js's business for the inward band and the contrast ledger's
 //   for this one.
 // - It asks whether a rule that writes the ring writes it whole. Whether the rule WINS
@@ -193,7 +193,7 @@ test('the ring is declared once, and the two bands differ only in where they lan
   assert.equal(value('--ring-scroll'), 'var(--ring)',
     'the inward band is no longer the same band as the outward one');
   assert.equal(value('--ring-scroll-offset'), 'calc(-1 * (var(--ring-gap-width) + var(--ring-width)))',
-    'the inward band no longer lands where --ring\'s band lands, mirrored: 1px of gap, then the band');
+    'the inward band no longer lands where --ring\'s band lands, mirrored: the gap, then the band');
   // The reason the four need no per-surface recomposition, held as a check rather than
   // as a sentence: none of them reads a token a surface re-points.
   for (const name of names) {
@@ -211,7 +211,7 @@ test('nothing reads or re-points --ring-gap, the colour an outline does not pain
     .map((r) => `${r.file}: ${r.selector} reads var(--ring-gap)`);
   assert.deepEqual([...back, ...read], [],
     '--ring-gap was retired with the painted gap in #578: an outline leaves its offset '
-    + 'unpainted, so the 1px between a control and its band is the surface already there');
+    + 'unpainted, so the gap between a control and its band is the surface already there');
   // And the width it was named after is still the input both offsets read.
   assert.ok(declarations.some((d) => d.name === '--ring-gap-width'),
     '--ring-gap-width is the width of the unpainted gap and both offsets are built from it');

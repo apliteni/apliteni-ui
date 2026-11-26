@@ -403,8 +403,8 @@ ladder, rather than against the page.
 
 ## The focus ring
 
-One indicator: a 2px solid accent band, drawn as a real `outline`, with 1px between it and the
-control. There is no halo. The offset is left **unpainted**, so what shows in that 1px is
+One indicator: a 1px solid accent band, drawn as a real `outline`, with 2px between it and the
+control. There is no halo. The offset is left **unpainted**, so what shows in that 2px is
 whatever surface the control is already standing on.
 
 A link that breaks across two lines draws one band per line, because an `outline` follows each
@@ -415,9 +415,9 @@ A text link, and words that open a hover readout, get a 6px corner and 4px of ro
 inside the band. Focus moves no word, because the margin gives that room back.
 
 ```css
---ring-width: 2px;
+--ring-width: 1px;
 --ring-color: var(--accent);
---ring-gap-width: 1px;
+--ring-gap-width: 2px;
 --ring: var(--ring-width) solid var(--ring-color);
 --ring-offset: var(--ring-gap-width);
 --ring-scroll: var(--ring);
@@ -436,7 +436,7 @@ are declared once each, at `:root`, and **no surface recomposes any of them**: a
 override reaches every control. There is no gap colour to hand down.
 
 **`--ring-scroll` is the indicator a box takes when its own edges are a surface's edges.** It uses
-the same 1px gap and 2px band, but draws them inward. A scroll region inside a surface is one such
+the same 2px gap and 1px band, but draws them inward. A scroll region inside a surface is one such
 box. A link filling a table cell is another, and so is a line of text inside a cell that clips.
 A navigation rail row takes it too, because the rows stand 2px apart and an outward band covers
 the next row. You need both values, or the band appears outside the box.
@@ -454,8 +454,8 @@ for a focusable that is neither a link nor a kit control — a `div` or `span` y
 
 **A focused control draws the band and nothing beside it.** A boxed text field keeps its 1px border width during visible focus.
 The same rule applies to a text area, select and search field. Their border becomes transparent during visible focus.
-This applies to every field, including the Dropdown search field. The ring keeps its 2px width and accent ink.
-It also keeps a 1px clear gap. Other edges keep their resting ink.
+This applies to every field, including the Dropdown search field. The ring keeps its 1px width and accent ink.
+It also keeps a 2px clear gap. Other edges keep their resting ink.
 If a hover rule would outrank focus, it stands aside with `:not(:focus-visible)`.
 A drop zone still recolours its dashed edge while a file is over it. That edge marks the drop target, not focus.
 
@@ -527,6 +527,8 @@ or a dense table's action cell opens across. Some families get no layer. The Acc
 minimums page names all of them. Rows that share an edge have no space outside a row for a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
+A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 2 past the chip
+on each side to make 44.
 A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.
 The title clips its own text, so the layer measures against the readout trigger around it.
 A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target

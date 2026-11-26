@@ -401,12 +401,12 @@ describe('guideline pages in React: Dashboards and reports', () => {
       .toEqual(['Sales ledger', 'Sales report rows', 'Sales with filters', 'Sales, 2026'].sort());
   });
 
-  // #863 P3: the repeated bar-label, line and months charts name themselves
+  // #863 P3: the repeated bar-label, rows, line and months charts name themselves
   // distinctly, so a reader listing the landmarks can tell one specimen from the next.
   it('names every repeated specimen chart distinctly', () => {
     const names = [...mount(page).querySelectorAll('[role="group"][aria-label]')]
       .map(group => group.getAttribute('aria-label')!);
-    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six bars|Net settled by month, first (?:half of the year|four months of the year)), /.test(name));
+    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six (?:bars|rows)|Net settled by month, first (?:half of the year|four months of the year)), /.test(name));
     expect(repeats.length, 'the repeated charts the page draws').toBe(13);
     expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(13);
   });

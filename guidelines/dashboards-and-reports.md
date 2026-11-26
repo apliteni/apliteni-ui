@@ -140,12 +140,12 @@
 
 <!-- rule: bar-labels-distinct -->
 
-**Rule:** Give each bar a distinct short name, never cut to a fixed length.
+**Rule:** Give each bar a distinct name, never cut to a fixed length.
 
 **Why:** A bar without a name loses meaning.
 
-**Do:** Short names under every bar, full names in readout and table.
+**Do:** Each full category name above its bar, and a name under every bridge step.
 
 **Don't:** Names that repeat North and South, so the bars read alike.
 
-**Except:** Where one word is wider than its column, the plot scrolls sideways so every bar keeps its name.
+**Except:** A months chart prints fewer month names where they do not fit, because a reader can infer a skipped month.

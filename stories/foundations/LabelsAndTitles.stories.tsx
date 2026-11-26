@@ -82,7 +82,7 @@ export const EveryLabel: StoryObj = {
       { label: 'Company', items: [{ id: 'ov', icon: 'layers', label: 'Overview', href: '#' }, { id: 'tx', icon: 'compass', label: 'Transactions', href: '#' }] },
       { label: 'My space', items: [{ id: 'me', icon: 'user', label: 'My invoices', href: '#' }, { id: 'st', icon: 'gear', label: 'Settings', href: '#' }] },
     ]} /></Cell>
-    <Cell text="Menu group captions and row badges" style={{ minHeight: 280 }}><Dropdown open label="version:" value="phoenix.2026.002" ariaLabel="Version" sections={[
+    <Cell text="Menu group captions and row badges" style={{ minHeight: 280 }}><Dropdown open value="phoenix.2026.002" ariaLabel="Version" sections={[
       { label: 'Current', items: [{ label: 'phoenix.2026.002', description: 'Product units, animated deck', badge: 'Live', selected: true }] },
       { label: 'Earlier', items: [{ label: 'phoenix.2026.001', description: 'Phoenix, 2026-05-17', badge: 'Archive' }] },
     ]} /></Cell>

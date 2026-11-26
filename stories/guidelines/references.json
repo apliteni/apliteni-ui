@@ -18,7 +18,7 @@
   ],
   "filter-bar": [
    {
-    "ref": "react/src/FilterBar.tsx:77",
+    "ref": "react/src/FilterBar.tsx:74",
     "pattern": "className=\"ui-filter-bar\""
    },
    {
@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:233",
+    "ref": "src/styles/tap-zone.css:230",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:484",
+    "ref": "src/styles/dropdown.css:476",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:547",
+    "ref": "src/styles/dropdown.css:539",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:436",
+    "ref": "src/styles/dropdown.css:428",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -522,7 +522,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:242",
+    "ref": "src/assets/icons.js:244",
     "pattern": "export const iconMeanings"
    },
    {
@@ -584,7 +584,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:183",
+    "ref": "src/styles/card.css:189",
     "pattern": "rank: card-title"
    }
   ],
@@ -606,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:441",
+    "ref": "src/styles/dropdown.css:433",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:442",
+    "ref": "src/styles/dropdown.css:434",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -704,15 +704,15 @@
     "pattern": "--tap-gap: var(--space-5"
    },
    {
-    "ref": "src/styles/tap-zone.css:166",
+    "ref": "src/styles/tap-zone.css:168",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:174",
+    "ref": "src/styles/tap-zone.css:176",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:175",
+    "ref": "src/styles/tap-zone.css:177",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
@@ -790,16 +790,6 @@
     "pattern": "--dur-slow: var(--duration-slow, 0.4s);"
    }
   ],
-  "hover-at-once": [
-   {
-    "ref": "src/styles/button.css:43",
-    "pattern": "transition: transform var(--dur-fast) var(--ease);"
-   },
-   {
-    "ref": "src/styles/dropdown.css:51",
-    "pattern": "transition: --ui-dropdown-field-veil var(--dur-fast) var(--ease);"
-   }
-  ],
   "easing": [
    {
     "ref": "src/tokens/tokens.css:90",
@@ -826,6 +816,16 @@
    {
     "ref": "src/styles/drawer.css:304",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
+   }
+  ],
+  "hover-at-once": [
+   {
+    "ref": "src/styles/button.css:43",
+    "pattern": "transition: transform var(--dur-fast) var(--ease);"
+   },
+   {
+    "ref": "src/styles/dropdown.css:51",
+    "pattern": "transition: --ui-dropdown-field-veil var(--dur-fast) var(--ease);"
    }
   ]
  },
@@ -1067,7 +1067,7 @@
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
-    "ref": "react/src/AccountWindow.tsx:33",
+    "ref": "react/src/AccountWindow.tsx:31",
     "pattern": "export function AccountWindow("
    }
   ],
@@ -1097,7 +1097,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:215",
+    "ref": "src/styles/card.css:221",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1193,7 +1193,7 @@
   ],
   "report-offers": [
    {
-    "ref": "react/src/FilterBar.tsx:19",
+    "ref": "react/src/FilterBar.tsx:24",
     "pattern": "export function FilterBar("
    }
   ]
@@ -1201,7 +1201,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:144",
+    "ref": "react/src/Dropdown.tsx:145",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1365,15 +1365,15 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:444",
+    "ref": "src/styles/dropdown.css:436",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:446",
+    "ref": "src/styles/dropdown.css:438",
     "pattern": "color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:860",
+    "ref": "react/src/Dropdown.tsx:874",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

@@ -196,7 +196,7 @@
 .ui-table--zebra td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: var(--space-3); }
 /* The inward band, the one a scroll region takes: a filled cell's edges are the
    table's, where the pinned column's border and the scroller's 4px side padding
-   cut an outset ring away. Its 1px gap is unpainted, and the ring is the outline. */
+   cut an outset ring away. Its gap is unpainted, and the ring is the outline. */
 .ui-table td.ui-table__linked > :is(a:not([class]), a.ui-identity):only-child:focus-visible {
   outline: var(--ring-scroll);
   outline-offset: var(--ring-scroll-offset);

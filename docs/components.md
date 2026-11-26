@@ -489,6 +489,10 @@ trigger off: no keyboard stop, no panel and the disabled paint.
 
 **What the user sees.**
 
+- The trigger shows only the chosen value or the placeholder. Put the name of the control in a
+  [`Field`](#fields) label. In a filter row, [`FilterBar`](#filter-bar) shows the name only while
+  no value is set. `label` is deprecated: it draws nothing, warns once in development and goes in
+  the next release.
 - The panel opens below the trigger. `direction="up"` opens it above. `align` chooses the edge of
   the trigger that the panel hangs from. The panel keeps that edge where it fits, and moves along
   the row where it does not.
@@ -496,17 +500,18 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   `--ui-dropdown-edge` from the edge of the view. Set that property to 0 for a panel flush with
   the edge. At 720px and below, the gap is the 16px page margin, or the safe area of the phone
   when that is wider.
-- The panel is at least 240px wide where the view allows. A long unbroken word, such as a file
-  name or a URL, breaks in the middle, so one row cannot make the panel wider than the screen.
+- The panel is at least 240px wide where the view allows. Inside a Field, the panel takes the
+  field's width instead, so a form control stays one column with its label. A long unbroken
+  word, such as a file name or a URL, breaks in the middle, so one row cannot make the panel
+  wider than the screen.
 - An open panel is never taller than the room between the trigger and the edge of the view. It
   scrolls inside, and the wheel stops at its end. By default the panel stops at 300px, in the
   middle of a row, so the user sees that the list continues. `scroll={n}` asks for another cap
   in px. A panel with fewer rows keeps its content height.
 - When the room is less than 120px, a panel that can go to the other side flips there. Otherwise
   the page can grow so that the user can scroll to the last rows.
-- In a Modal or a Drawer, the panel opens below the trigger and the body scrolls the least
-  distance that shows the whole panel, with the label and the trigger above it. A body that is too
-  short or too narrow for the panel lifts the panel over the body and its footer.
+- In a Modal or a Drawer, the panel opens below the trigger, over the body and its footer, and
+  the body does not scroll.
 - A closed panel adds no scroll room at the end of a page or a body. Closing a panel does not move
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
@@ -544,7 +549,8 @@ sends the focus to the trigger. A click outside also closes it. A select panel i
 options and a menu panel is a `menu` of menu items. With `search`, the panel is a `dialog`, because
 a listbox may own only options. The focus ring of a row is drawn inside the row, so the panel edge
 never cuts it. Inside a [`Field`](#fields), the label and then the value name the trigger. Outside
-a field, give `ariaLabel`. A placeholder is not a name.
+a field, give `ariaLabel`. A select trigger then has that name and its value, such as "Unit: Engine
+team". A placeholder is not a name.
 
 ### Command palette
 
@@ -802,29 +808,33 @@ Use a [`Dropdown`](#dropdown) instead when a list of values needs more room than
 
 ```tsx
 <FilterBar filters={filters} add={addable}
-  onChange={(id, value) => setFilter(id, value)} onRemove={removeFilter} onClear={clearFilters}
+  onChange={(id, value) => setFilter(id, value)} onClear={clearFilters}
   onAdd={(id, value) => addFilter(id, value)} />
 ```
 
-You control the bar. A filter has `id`, `label`, `items` and an optional `value`. A pick, a remove
-and Clear all call your handlers. They never change your filters. `add` and `onAdd` add a Filter
-control after the chips. Its menu holds one section for each filter that the bar does not show,
+You control the bar. A filter has `id`, `label`, `items` and an optional `value`. A chip has no
+remove mark (×). To let the user clear one filter, make the first row of its `items` an "Any …"
+row with an empty value. A pick and Clear all call your handlers. They never change your filters.
+`add` and `onAdd` add a Filter control after the chips. Its menu holds one section for each filter that the bar does not show,
 with a search field from ten values. When you add the filter in the same update, the focus goes to
 the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and the look.
 
 **What the user sees.** A chip shows only the chosen value. Without a value, it shows the filter
-name. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
+name. Each chip takes the width of its longest value, up to 224px. A value change does not change
+that width, and a reload that turns the bar off and on does not change it. Only a value longer
+than 224px ends with an ellipsis. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
 stays inside the row and never makes the page wider. The menu marks the chip's value with a soft
-accent wash and a check. Clear all and the remove mark of a chip show only when there is a value to
-clear. A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
+accent wash and a check. The chevron is at the right edge of the chip. Clear all shows only when
+there is a value to clear. It keeps its room while it does not show, so the content under the bar
+does not move. Clear all clears every filter.
+A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
 240px, such as a catalogue with a search field, declares `--ui-filter-panel-ask` in your
 stylesheet. It is then 320px wide where the row has the room, and the width of the row where it
 does not.
 
 **Keyboard and screen reader.** The name of each filter reaches the user through the trigger name
 and a hidden legend. When the user clears the last filter, the focus goes to the Filter control,
-or else to the next control that Tab would reach. If the focused remove mark goes, the focus goes
-to the chip's trigger.
+or else to the next control that Tab would reach.
 
 **Room on the screen.** The bar stands on the page directly above its table card, with no card of
 its own. Keep its search field live, because a disabled field is too faint on the page ground.
@@ -896,6 +906,11 @@ page title's edge. To do this, the card hangs outside its container by its side 
 16px at 720px and below. The page shell pads enough for this at every width. If you put a light
 card in another container, pad each side of the container by at least the hang, or the page
 scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
+
+**A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
+while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,
+as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
+scroll frame does.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
@@ -1247,11 +1262,16 @@ leaves it to the window.
 **What the user sees.** A window 1024px wide and 76% of the viewport high, with a rail of sections
 and the reader at the top. The open section has the accent. When the section changes, the pane
 mounts again, so a half-filled form does not follow the user. At 560px and below, the window
-floats with a gap on each side and is as tall as its content. The sections become tabs under the
-reader.
+floats with a gap on each side and takes the full height of the screen, so a section change does
+not change its height. On a phone the window shows one section, and a back button opens the list
+of sections. The window opens on the section. Its head row holds the back button, named Sections,
+the section title and the close control. The screen of sections holds the reader, the close
+control and the rail, with the open section marked. A press on a section opens it.
 
-**Keyboard and screen reader.** Each rail row is a button with `aria-current`. On a phone the tabs
-have one Tab stop, and the arrow keys, Home and End move between them.
+**Keyboard and screen reader.** Each rail row is a button with `aria-current`. The section body is
+a region named by the section title. On a phone, the back button moves focus to the marked
+section, and a press on a section moves focus to the back button. Escape closes the window from
+each screen.
 
 ### Tooltip
 
@@ -1448,7 +1468,7 @@ chart has the title. `format` prints exact values in the readout, the live regio
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | none: columns per period with a line across them | |
+| `months` | `periods`, `series` | `columns`, a column per period with a line across them; `rows`, a bar across for each period with its full name above it | `columns` |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
 | `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
@@ -1471,17 +1491,24 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** In `months`, when the card is too narrow for every bar's name, the plot
-scrolls sideways so every bar keeps its name. A bar is one flat tone — the full tone of its series
+**What the user sees.** A `months` chart fits its card and does not scroll. It draws every bar.
+A bar is one flat tone — the full tone of its series
 — with a small corner at its measured end: --radius-xs or a quarter of the bar's width, whichever is
 smaller. Its foot stays square on the zero line. It takes two thirds of its column, and at most 48px.
-In `months` and `bridge`, the
-chart prints every bar's `short` name under its bar, and a short name that does not fit its column
-wraps at a word break. Give each bar a distinct `short` name, never one cut to a fixed length. Where
-one word alone is wider than the column, the plot scrolls so that word still fits, and every bar
-keeps its name. In the other variants, where the period labels do not fit, the chart prints every
+In `bridge`, the chart prints every step's `short` name under its step, and a name that does not fit
+its column wraps at a word break. A bridge column is as wide as its widest word, so a four-step
+bridge fits a 300px plot. Where one word alone is wider than the column, the bridge scrolls so that
+word still fits. Give each bar a distinct `short` name, never one cut to a fixed length. In the
+other variants, `months` among them, where the period labels do not fit, the chart prints every
 second, third or later label, counted from the first period that is not final, or from the latest
-period. No two printed labels overlap, whatever the name length or the width. Where the
+period. Use this for months, because a reader can infer a skipped month. For categories, such as
+units with a signed margin, set `look="rows"`: each row prints its full `label` above a bar that
+grows right from zero or left for a negative value, and the bars use the full width of the card.
+A name wider than the card wraps at its spaces. The rows look takes one `bars` or `bars-below`
+series, prints no `values`, and throws a `RangeError` for a second series or a line. Up and Down
+also step its rows. A key that steps to a row outside the view scrolls that row into view, with its
+readout. A scale caption that does not fit beside its neighbour is left out, and zero always prints.
+A name wraps at the size the chart's text is drawn at, `--text-xs`. No two printed labels overlap, whatever the name length or the width. Where the
 first step prints the picked period's label, a pick keeps it printed, and a wider step counts
 from the pick. The readout and the table keep the full name. Set `values` to print each
 bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
@@ -1497,11 +1524,12 @@ that are not final last. The hover and keyboard readout and each table row say "
 "Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
 the period before it. Set `compare: false` on a period to show its value with no comparison text.
 A switch at the top right
-shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
+shows the same numbers as a chart or as a table. The table has dense rows. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
-and `onSelect` lets the user pick a column, which gets a band behind it. At
-phone widths the plot scrolls and the value axis stays. A chart of periods that is wider than its
-card opens at its latest period. A bridge opens at its opening total.
+and `onSelect` lets the user pick a column, which gets a band behind it. A
+`line`, `area` or `stacked` chart or a bridge that is wider than its card scrolls, and the value
+axis stays. A chart of periods that is wider than its card opens at its latest period. A bridge
+opens at its opening total.
 
 **Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when

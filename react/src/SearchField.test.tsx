@@ -148,7 +148,7 @@ const smallRow = (size?: 'sm') => render(<div className="ui-toolbar ui-toolbar--
   <SearchField ariaLabel="Search invoices" size={size} />
   <div className="ui-dropdown"><button className="ui-dropdown__trigger">Any currency</button></div>
   <fieldset className="ui-filter-bar"><fieldset className="ui-filter-bar__chip">
-    <button className="ui-dropdown__trigger">Pending</button><button className="ui-filter-bar__remove">×</button>
+    <button className="ui-dropdown__trigger">Pending</button>
   </fieldset></fieldset>
   <button className="ui-btn ui-btn--sm">New invoice</button>
 </div>).container;

@@ -119,7 +119,7 @@ it.each(['light', 'dark'])('keeps drawer spacing local in %s', theme => {
 // jsdom resolves the declared alignment; the browser captures measure the lines.
 const controlRows = [
   { label: 'Reference', value: 'INV-1001' },
-  { label: 'Status', value: <Dropdown label="Status" items={[{ label: 'Open', value: 'open' }]} /> },
+  { label: 'Status', value: <Dropdown ariaLabel="Status" items={[{ label: 'Open', value: 'open' }]} /> },
   { label: 'Currency', value: <SelectField label="Currency"><option>EUR</option></SelectField> },
   { label: 'Note', value: <TextField label="Note" defaultValue="Paid by wire" /> },
 ];

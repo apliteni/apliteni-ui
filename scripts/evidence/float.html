@@ -62,7 +62,7 @@ const ITEMS = [
 
 // Frame one: the kit's dropdown, open over a card.
 const listPanel = () => dropdown({
-  label: 'Scope:', variant: 'select', items: ITEMS, open: true, ariaLabel: 'Scope',
+  variant: 'select', items: ITEMS, open: true, ariaLabel: 'Scope',
 });
 
 // Frame two: a popover holding a small form — two selects and Save / Cancel.
@@ -71,7 +71,7 @@ const listPanel = () => dropdown({
 const formPanel = () => `
   <div class="ui-dropdown open">
     <button class="ui-dropdown__trigger" type="button" aria-haspopup="dialog" aria-expanded="true">
-      <span class="ui-dropdown__pre">Filter:</span><span class="ui-dropdown__value">2 active</span>
+      <span class="ui-dropdown__value">2 active</span>
       <span class="ui-dropdown__chevron" aria-hidden="true"></span>
     </button>
     <div class="ui-dropdown__panel fl-form" role="dialog" aria-label="Filter report">

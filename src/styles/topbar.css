@@ -337,7 +337,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   /* Chromium scrolls a focused row flush with the scrollport edge, which is 3px
-     short of the row's own ring: 1px of gap plus a 2px band. The padding above
+     short of the row's own ring: 2px of gap plus a 1px band. The padding above
      reserves that room while the menu stands still; this keeps it reserved once
      scrolling the menu — reaching the first row this PR made it do — puts a
      focused row at either end. #641's danger 2.

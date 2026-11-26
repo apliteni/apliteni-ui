@@ -1,5 +1,6 @@
 // The four chart variants that draw a whole instead of a measure against zero:
-// a line, an area, a stack and a ring. Chart.tsx owns the keyboard, the readout,
+// a line, an area, a stack and a ring, and the months chart's rows look, which
+// draws its signed bars across. Chart.tsx owns the keyboard, the readout,
 // the live region and the table; this file owns each look's geometry and the
 // SVG it draws.
 // why: docs/components.md#chart
@@ -10,6 +11,7 @@ export type ChartLineLook = 'thin' | 'points' | 'labels';
 export type ChartAreaLook = 'flat' | 'stacked' | 'share' | 'curves';
 export type ChartStackedLook = 'columns' | 'share' | 'rows';
 export type ChartDonutLook = 'thin' | 'table' | 'labels';
+export type ChartMonthsLook = 'columns' | 'rows';
 
 export type ChartSlice = { id: string; name: string; value: number; tone?: ChartTone };
 
@@ -30,9 +32,10 @@ export type Layer = {
 };
 
 export type Look = {
-  variant: 'line' | 'area' | 'stacked' | 'donut';
+  variant: 'line' | 'area' | 'stacked' | 'donut' | 'months';
   look: string;
-  layout: 'columns' | 'rows' | 'ring';
+  /** `named` is the months rows look: each row's full name over its signed bar. */
+  layout: 'columns' | 'rows' | 'ring' | 'named';
   /** Each layer sits on the one before it, and a column reads as its total. */
   stacked: boolean;
   /** Each column is drawn as shares of its total. */
@@ -41,13 +44,15 @@ export type Look = {
   totals: number[];
   /** The donut's centre caption. */
   totalLabel: string;
+  /** Each column's comparison with the one before it, where the readout has one. */
+  details?: string[];
 };
 
 export type LookGeometry = {
   look: Look;
   /** Prefixes the ids this drawing defines, so two charts on a page never share one. */
   uid: string;
-  labels: { short: string; estimated: boolean }[];
+  labels: { label: string; short: string; estimated: boolean }[];
   plotWidth: number; plotHeight: number; colWidth: number;
   pad: number; target: number; floor: number;
   y: (value: number) => number;
@@ -55,6 +60,8 @@ export type LookGeometry = {
   scale: { min: number; max: number; ticks: number[] };
   format: (value: number) => string;
   formatAxis: (value: number) => string;
+  /** A word's drawn width in the chart's text, which the named rows wrap by. */
+  textWidth: (text: string) => number;
 };
 
 export const pct = (share: number) => `${Math.round(share * 100)}%`;
@@ -69,6 +76,10 @@ const ROW_BAR = 12;
 const ROW_LEFT = 36;
 const ROW_RIGHT = 64;
 const ROW_FOOT = 24;
+/* The named rows (#906): a 16px line for each line of the name, the bar 8px
+   under the last one, and 4px under the bar, so a one-line row is 44px. The
+   scale keeps 8px at its right end for the caption there. */
+const NAMED = { line: 16, baseline: 14, bar: 16, below: 8, after: 4, right: 8 };
 /* The ring looks: the box, the ring's width, and for the labels look the widest
    box and the room a label needs beside the ring. */
 const RING = {
@@ -157,9 +168,53 @@ function columnRows(g: LookGeometry, i: number): MarkRow[] {
   return look.stacked ? rows.reverse() : rows;
 }
 
+/** A name broken at its spaces into lines no wider than `width`. A word wider
+ *  than the line is broken between its letters, so no name is cut. */
+export function wrapName(text: string, width: number, measure: (text: string) => number) {
+  const lines: string[] = [];
+  let line = '';
+  for (const word of text.split(/\s+/).filter(Boolean)) {
+    const next = line ? `${line} ${word}` : word;
+    if (measure(next) <= width) { line = next; continue; }
+    if (line) lines.push(line);
+    line = '';
+    for (const char of word) {
+      if (line && measure(line + char) > width) { lines.push(line); line = ''; }
+      line += char;
+    }
+  }
+  if (line || !lines.length) lines.push(line);
+  return lines;
+}
+
+/** Each named row's lines, its top and its height, and the bar's top in it. */
+function namedRows(g: LookGeometry) {
+  let at = 0;
+  return g.labels.map((label) => {
+    const lines = wrapName(label.label, g.plotWidth, g.textWidth);
+    const bar = (lines.length - 1) * NAMED.line + NAMED.baseline + NAMED.below + 2;
+    const h = Math.max(bar + NAMED.bar + NAMED.after, g.floor);
+    const row = { lines, top: at, h, bar: at + bar };
+    at += h;
+    return row;
+  });
+}
+
+function namedOf(g: LookGeometry) {
+  const rows = namedRows(g);
+  const bottom = rows.length ? rows[rows.length - 1].top + rows[rows.length - 1].h : 0;
+  const span = g.scale.max - g.scale.min || 1;
+  const x = (v: number) => (g.plotWidth - NAMED.right) * ((v - g.scale.min) / span);
+  return { rows, bottom, x, w: g.plotWidth, h: bottom + ROW_FOOT };
+}
+
 /** The size of the box a look draws in, when it is not the plot's own. */
 export function lookBox(g: LookGeometry) {
   const { look, plotWidth, floor, target } = g;
+  if (look.layout === 'named') {
+    const named = namedOf(g);
+    return { w: named.w, h: named.h, row: 0 };
+  }
   if (look.layout === 'rows') {
     const row = Math.max(target, floor);
     return { w: plotWidth, h: row * g.labels.length + ROW_FOOT, row };
@@ -220,6 +275,22 @@ export function lookMarks(g: LookGeometry): Mark[] {
   }
 
   const name = look.layers[0]?.name ?? '';
+  if (look.layout === 'named') {
+    const named = namedOf(g);
+    const layer = look.layers[0];
+    // A period with no value has no bar and no mark, as a months column has none.
+    return named.rows.flatMap((row, i) => {
+      if (!layer || !Number.isFinite(layer.to[i])) return [];
+      const end = named.x(layer.to[i]);
+      return [{
+        ...base, id: `${layer.id}-${i}`, column: i, name, tone: layer.tone, kind: 'column' as const,
+        value: layer.values[i], detail: look.details?.[i] ?? '',
+        x: end - 2, y: row.bar, w: 4, h: NAMED.bar,
+        hit: { x: 0, y: row.top, w: named.w, h: row.h },
+        estimated: g.labels[i].estimated,
+      }];
+    });
+  }
   if (look.layout === 'rows') {
     const rows = rowsOf(g);
     return g.labels.map((label, i) => {
@@ -258,6 +329,7 @@ export function lookDrawing(g: LookGeometry, open: number | null, pick: number |
   const { look } = g;
   if (look.layout === 'ring') return ringDrawing(g);
   if (look.layout === 'rows') return rowsDrawing(g, pick);
+  if (look.layout === 'named') return namedDrawing(g, pick);
   return look.variant === 'stacked' ? columnsDrawing(g) : linesDrawing(g, open);
 }
 
@@ -462,6 +534,93 @@ function rowsDrawing(g: LookGeometry, pick: number | null) {
           </g>
         );
       })}
+    </>
+  );
+}
+
+/** A bar across from `from`, its square foot, to `to`, its rounded end. */
+function acrossBar(from: number, to: number, y: number, h: number, r: number) {
+  if (to >= from) return rightRounded(from, y, to - from, h, r);
+  const w = from - to;
+  const k = Math.min(r, w, h / 2);
+  return `M${px(from)} ${px(y)}H${px(to + k)}A${px(k)} ${px(k)} 0 0 0 ${px(to)} ${px(y + k)}`
+    + `V${px(y + h - k)}A${px(k)} ${px(k)} 0 0 0 ${px(to + k)} ${px(y + h)}H${px(from)}Z`;
+}
+
+/** How far a bar stops short of the zero rule, as a months column does. */
+const ZERO_GAP = 1.5;
+
+/** The ground a scale caption keeps beside its neighbour: --space-2. */
+const CAPTION_GAP = 8;
+
+/** The scale ticks whose captions print. Zero prints first, then the two ends,
+ *  then the ticks between, each only where its formatted caption keeps the gap
+ *  to every caption already printed. A long currency figure leaves a tick out
+ *  and never prints over its neighbour; the tick's rule still draws. */
+function scaleCaptions(g: LookGeometry, x: (v: number) => number,
+  edge: (tick: number) => 'start' | 'end' | 'middle') {
+  const { ticks } = g.scale;
+  const span = (tick: number) => {
+    const w = g.textWidth(g.formatAxis(tick));
+    const at = x(tick);
+    const anchor = edge(tick);
+    const start = anchor === 'start' ? at : anchor === 'end' ? at - w : at - w / 2;
+    return { start, end: start + w };
+  };
+  const order = [...new Set([ticks.find((t) => t === 0), ticks[0], ticks[ticks.length - 1], ...ticks])]
+    .filter((t): t is number => t !== undefined);
+  const kept: { start: number; end: number }[] = [];
+  const printed = new Set<number>();
+  for (const tick of order) {
+    const s = span(tick);
+    if (kept.some((k) => s.start < k.end + CAPTION_GAP && k.start < s.end + CAPTION_GAP)) continue;
+    kept.push(s);
+    printed.add(tick);
+  }
+  return ticks.filter((t) => printed.has(t));
+}
+
+function namedDrawing(g: LookGeometry, pick: number | null) {
+  const { look, scale, formatAxis } = g;
+  const named = namedOf(g);
+  const layer = look.layers[0];
+  const zero = named.x(Math.min(Math.max(0, scale.min), scale.max));
+  const edge = (tick: number) => (tick === scale.ticks[0] ? 'start'
+    : tick === scale.ticks[scale.ticks.length - 1] ? 'end' : 'middle');
+  const captions = scaleCaptions(g, named.x, edge);
+  return (
+    <>
+      {named.rows.map((row, i) => (
+        <g key={`row-${i}`}>
+          {pick === i && (
+            <rect className="ui-chart__band" x="0" width={px(named.w)} y={px(row.top)} height={px(row.h)} />
+          )}
+          {/* The rules stand beside the bar and leave the name above it clear. */}
+          {scale.ticks.map((tick) => (
+            <line key={`tick-${tick}`} className={tick === 0 ? 'ui-chart__zero' : 'ui-chart__grid'}
+              x1={px(named.x(tick))} x2={px(named.x(tick))}
+              y1={px(row.bar - 2)} y2={px(row.bar + NAMED.bar + 2)} />
+          ))}
+          <text className="ui-chart__caption" aria-hidden="true" x="0" y={px(row.top + NAMED.baseline)}>
+            {row.lines.map((line, k) => (
+              <tspan key={k} x="0" dy={k ? NAMED.line : 0}>{line}</tspan>
+            ))}
+          </text>
+          {layer && Number.isFinite(layer.to[i]) && layer.to[i] !== 0 && (() => {
+            const end = named.x(layer.to[i]);
+            const room = Math.abs(end - zero) > ZERO_GAP + 1 ? ZERO_GAP : 0;
+            const from = end >= zero ? zero + room : zero - room;
+            return (
+              <path d={acrossBar(from, end, row.bar, NAMED.bar, barCorner(NAMED.bar))}
+                className={cx('ui-chart__bar', tone(layer.tone), g.labels[i].estimated && 'is-estimated')} />
+            );
+          })()}
+        </g>
+      ))}
+      {captions.map((tick) => (
+        <text key={`caption-${tick}`} className="ui-chart__caption" aria-hidden="true" textAnchor={edge(tick)}
+          x={px(named.x(tick))} y={px(named.bottom + 16)}>{formatAxis(tick)}</text>
+      ))}
     </>
   );
 }

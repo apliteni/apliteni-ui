@@ -406,9 +406,59 @@ it('Enter and Space pick the row focus is on', async () => {
   expect(picks).toEqual(['1.1.0', '1.2.0']);
 });
 
+// #899: a trigger shows only its value or its placeholder. The name moves out of the
+// trigger's text and into its accessible name. DOM text and names only.
+it('the trigger shows only its value, and its name and value name it', () => {
+  render(<>
+    <Dropdown label="version:" ariaLabel="Version" variant="select" items={SELECT} />
+    <Dropdown ariaLabel="Owner" variant="select" items={[{ label: 'One' }, { label: 'Two' }]} placeholder="Choose an owner" />
+    <Dropdown label="unit:" variant="select" items={SELECT} />
+  </>);
+  expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
+  const shown = (name: string) => screen.getByRole('button', { name }).querySelector(':scope > .ui-dropdown__line')!.textContent;
+  expect(shown('Version: v1.2.0')).toBe('v1.2.0');
+  expect(shown('Owner: Choose an owner')).toBe('Choose an owner');
+  // The deprecated prop still names the trigger, so an app that passes it keeps a name.
+  expect(shown('unit: v1.2.0')).toBe('v1.2.0');
+});
+
+// The review of #905: a menu trigger kept only "Select…" as its name. Both ways to name a
+// menu reach its accessible name, and a value that is the name is not said twice.
+it('a menu trigger keeps the name it is given, from ariaLabel or the deprecated label', () => {
+  render(<>
+    <Dropdown variant="menu" label="Actions:" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Row actions" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Invoice actions" value="Invoice actions" items={MENU} />
+  </>);
+  const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+  expect(names).toEqual(['Actions: Select…', 'Row actions: Select…', 'Invoice actions']);
+});
+
+// The deprecated `label` warns once for the page, in development only. A fresh module,
+// because the flag is the module's own and an earlier test in this file sets it.
+it('the deprecated label warns once in development and not in production', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    vi.resetModules();
+    const { Dropdown: Fresh } = await import('./Dropdown');
+    render(<><Fresh label="version:" items={SELECT} /><Fresh label="unit:" items={SELECT} /></>);
+    expect(warn.mock.calls.filter(([text]) => /`label` is deprecated/.test(String(text)))).toHaveLength(1);
+    cleanup();
+    warn.mockClear();
+    vi.resetModules();
+    vi.stubEnv('NODE_ENV', 'production');
+    const { Dropdown: Shipped } = await import('./Dropdown');
+    render(<Shipped label="version:" items={SELECT} />);
+    expect(warn).not.toHaveBeenCalled();
+  } finally {
+    vi.unstubAllEnvs();
+    warn.mockRestore();
+  }
+});
+
 it('a pick writes itself into the trigger and moves the tick, the way selectOption() does', async () => {
   const user = userEvent.setup();
-  const { container } = render(<Dropdown label="version:" variant="select" items={SELECT} />);
+  const { container } = render(<Dropdown ariaLabel="Version" variant="select" items={SELECT} />);
   const dd = container.querySelector('.ui-dropdown')!;
   expect(dd.querySelector('.ui-dropdown__value')!.textContent).toBe('v1.2.0');
   await user.click(within(dd as HTMLElement).getByRole('button'));
@@ -1298,7 +1348,7 @@ function addRow({ rowWidth = 1200, left = 146, panelWidth = 320, observer = fals
     <fieldset className="ui-filter-bar" data-filter-bar="">
       <legend className="ui-filter-bar__legend">Filters</legend>
       <div data-filter-add="">
-        <Dropdown variant="menu" label="Filter" ariaLabel="Filter" items={SECTORS} />
+        <Dropdown variant="menu" ariaLabel="Filter" items={SECTORS} />
       </div>
     </fieldset>);
   const bar = container.querySelector('.ui-filter-bar')!;
@@ -1415,7 +1465,7 @@ describe('reduced motion: the panel the keyboard opens', () => {
     expect(off).not.toEqual([]);
     const user = userEvent.setup();
     const { container } = render(
-      <Dropdown label="country:" variant="select" search
+      <Dropdown ariaLabel="Country" variant="select" search
         items={[{ label: 'Germany', value: 'de', selected: true }, { label: 'France', value: 'fr' }]} />);
     const trigger = container.querySelector('.ui-dropdown__trigger') as HTMLElement;
     trigger.focus();
@@ -1738,8 +1788,8 @@ it('an open panel is capped at the room between its trigger and the viewport edg
 });
 
 // Mocked rectangles verify effect wiring. Browser evidence verifies the layout.
-it('scrolls a long panel into view inside a scrolling body and keeps the trigger', async () => {
-  phone(600);
+/** A Modal body from 100px to 640px with a 30-row select in it, opened by a click. */
+async function inBody() {
   const { container } = render(<div style={{ overflowY: 'auto' }}>
     <Dropdown items={Array.from({ length: 30 }, (_, i) => ({ label: `Project ${i + 1}` }))} />
   </div>);
@@ -1747,42 +1797,34 @@ it('scrolls a long panel into view inside a scrolling body and keeps the trigger
   body.getBoundingClientRect = () => ({ top: 100, bottom: 640 } as DOMRect);
   Object.defineProperty(body, 'clientHeight', { value: 540 });
   const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
-  Object.defineProperty(panel, 'offsetHeight', { value: 484 });
+  Object.defineProperty(panel, 'offsetHeight', { value: 300 });
   await userEvent.setup().click(within(container).getByRole('button'));
-  // The body keeps 8px at the top and a 48px shade below, so the shadow fades before the body clips it.
-  expect(availOf(container)).toBe(`${540 - 8 - 48 - 31 - 9}px`);
-  // The shade asks for 501px, and the trigger stays: it may rise to 8px under the body's top edge and no higher.
-  expect(body.scrollTop).toBe(600 - 31 - 8 - 100);
-  expect(panel.classList.contains('is-up')).toBe(false);
-  // The body ends where the open panel ends, so the inset below it needs a spot to scroll to.
-  const root = container.querySelector('.ui-dropdown') as HTMLElement;
-  expect(root.style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 484 + 48 - 1}px`);
+  return { container, body, panel };
+}
+
+it('a panel in a scrolling body opens below its trigger, over the body, and the body does not scroll', async () => {
+  phone(600);
+  const { container, body, panel } = await inBody();
+  expect(panel.getAttribute('data-dd-lifted')).toBe('down');
+  expect(panel.style.top).toBe(`${600 + 9}px`);
+  expect(body.scrollTop).toBe(0);
+  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe('');
+  // Measured against the viewport, as a portalled panel is.
+  expect(availOf(container)).toBe(`${844 - 600 - 9 - 8}px`);
+});
+
+it('a panel in a scrolling body opens above its trigger when the view has less than 120px below it', async () => {
+  phone(844 - 9 - 119);
+  const { body, panel } = await inBody();
+  expect(panel.getAttribute('data-dd-lifted')).toBe('up');
+  expect(panel.style.bottom).toBe(`${844 - (844 - 9 - 119 - 31) + 9}px`);
+  expect(body.scrollTop).toBe(0);
 });
 
 it('a trigger in a page reserves the 8px edge under the open panel, so closing moves nothing and opening adds no scroll', () => {
   phone(600);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
   expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 0 + 8 - 1}px`);
-});
-
-it('a body too short for the floor lifts the panel out of it, under its trigger', async () => {
-  phone(160);
-  const { container } = render(<div style={{ overflowY: 'auto' }}>
-    <Dropdown items={Array.from({ length: 30 }, (_, i) => ({ label: `Project ${i + 1}` }))} />
-  </div>);
-  const body = container.firstElementChild as HTMLElement;
-  body.getBoundingClientRect = () => ({ top: 100, bottom: 260 } as DOMRect);
-  Object.defineProperty(body, 'clientHeight', { value: 160 });
-  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
-  Object.defineProperty(panel, 'offsetHeight', { value: 300 });
-  await userEvent.setup().click(within(container).getByRole('button'));
-  // 160 less the 8px edge, the trigger, the gap and the 8px edge again is 104, under the 120px floor.
-  expect(panel.getAttribute('data-dd-lifted')).toBe('down');
-  expect(panel.style.top).toBe(`${160 + 9}px`);
-  expect(body.scrollTop).toBe(0);
-  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe('');
-  // Measured against the viewport, as a portalled panel is.
-  expect(availOf(container)).toBe(`${844 - 160 - 9 - 8}px`);
 });
 
 it('a trigger with no room left is left uncapped, not pinned to a nought-pixel sliver', () => {

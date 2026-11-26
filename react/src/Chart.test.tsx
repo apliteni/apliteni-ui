@@ -74,7 +74,7 @@ const boxOf = (el: Element) => {
   let y = 0;
   for (const [, cmd, args] of (el.getAttribute('d') ?? '').matchAll(/([A-Za-z])([^A-Za-z]*)/g)) {
     const n = (args.match(/-?\d*\.?\d+/g) ?? []).map(Number);
-    if (cmd === 'M') { [x, y] = n; } else if (cmd === 'V') { [y] = n; } else if (cmd === 'v') { y += n[0]; } else if (cmd === 'H') { [x] = n; } else if (cmd === 'h') { x += n[0]; } else if (cmd === 'a') { x += n[5]; y += n[6]; }
+    if (cmd === 'M') { [x, y] = n; } else if (cmd === 'V') { [y] = n; } else if (cmd === 'v') { y += n[0]; } else if (cmd === 'H') { [x] = n; } else if (cmd === 'h') { x += n[0]; } else if (cmd === 'a') { x += n[5]; y += n[6]; } else if (cmd === 'A') { [x, y] = n.slice(5); }
     xs.push(x);
     ys.push(y);
   }
@@ -202,6 +202,8 @@ it('prints whole units on the axis and exact values in the table', () => {
   expect(ticks.every((t) => /^€\d+\.00$/.test(t!)), `axis printed ${ticks.join(', ')}`).toBe(true);
   showTable();
   expect(within(screen.getByRole('table')).getByText('€20.60')).toBeInTheDocument();
+  // Dense rows, so the table takes about the chart's height. Owner, rev_c9a30e92961c/d45.
+  expect(screen.getByRole('table'), 'the table keeps dense rows').toHaveClass('ui-table', 'ui-table--dense');
 });
 
 it('a sparkline drops the axis, the legend and the table, and still names its range', () => {
@@ -481,15 +483,15 @@ describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
     const resolved = substitute(rule, vars);
     expect(tokens, 'the ramp the resolver reads').toContain('--ring:');
     expect(resolved, 'every token resolved').not.toContain('var(');
-    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*2px solid #[0-9a-f]{3,8}/i);
-    expect(resolved).toContain('outline-offset: 1px');
+    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*1px solid #[0-9a-f]{3,8}/i);
+    expect(resolved).toContain('outline-offset: 2px');
     expect(resolved).not.toContain('box-shadow');
     expect(readRepo('../../src/styles/chart.css'),
       'the chart declares no outline of its own, so nothing reverts to the browser\'s')
       .not.toMatch(/outline\s*:/);
     expect(readRepo('../../src/styles/chart.css'),
       'the chart keeps the same unpainted offset as the kit ring')
-      .toMatch(/\.ui-chart__frame:focus-visible\s*\{[^}]*outline-offset:\s*var\(--ring-offset,\s*1px\)/);
+      .toMatch(new RegExp(`\\.ui-chart__frame:focus-visible\\s*\\{[^}]*outline-offset:\\s*var\\(--ring-offset,\\s*${vars.get('--ring-gap-width')}\\)`));
     expect(readRepo('../../src/styles/chart.css'),
       'the chart must not offset focus by the tick row')
       .not.toMatch(/outline-offset:\s*calc\([^)]*ui-chart-tick/);
@@ -862,120 +864,118 @@ it('prints no two values over each other, and gives the room of hidden values ba
     .toBeGreaterThanOrEqual(spans[i][1]));
 });
 
-it('scrolls 24 months in a 154px card so no bar loses its name', () => {
-  const months24: ChartPeriod[] = Array.from({ length: 24 }, (_, i) => ({
-    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2025 + Math.floor(i / 12)}`,
-    estimated: i === 20 ? 'incomplete' as const : i > 20 ? 'projected' as const : undefined,
-  }));
-  // The plot keeps a column as wide as the widest name — a three-letter month,
-  // 0.62 × 12px × 3 chars + the 8px gap = 30.32px, rounded up to 31px — so 24
-  // months need 744px: wider than the 154px card, the plot scrolls instead of
-  // stepping a name off its bar. JSDOM lays nothing out, so the plot and
-  // scroller widths are stubbed to the sizes the sheet's min-width would produce.
-  const FLOOR = 31;
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
-    return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 24 : 154;
-  });
-  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
-    return (this as HTMLElement).classList.contains('ui-chart__scroll') ? FLOOR * 24 : 154;
-  });
-  const { container } = render(<Chart title="Cash in" height={154} periods={months24} format={eur}
-    series={[{ id: 'in', name: 'Cash in', values: months24.map((_, i) => 30 + i), tone: 'good' }]} />);
-  const svg = container.querySelector('.ui-chart__svg')!;
-  expect(svg.getAttribute('width'), 'the plot keeps a floor column per period').toBe('744');
-  expect([...svg.querySelectorAll('path.ui-chart__bar')].map(boxOf), 'every bar').toHaveLength(24);
-  expect(container.querySelector('.ui-chart__scroll'), 'the plot scrolls inside the card').toHaveAttribute('role', 'region');
-  expect(readRepo('../../src/styles/chart.css'), 'months keeps the bridge scroll floor')
-    .not.toMatch(/\.ui-chart--months \.ui-chart__plot \{ min-width: 0; \}/);
-  const row = container.querySelector('.ui-chart__periods')!;
-  expect(classOf(row), 'no label is stepped').not.toContain('ui-chart__periods--step');
-  const labels = [...row.children].map((c) => c.textContent);
-  expect(labels, 'one span per period').toHaveLength(24);
-  // The chart opens at its latest period, so the columns scrolled away hide
-  // their names and the four whole columns in view print theirs — no name is
-  // stepped off the sequence and none is half.
-  expect(labels.filter(Boolean), 'the columns in view keep their name')
-    .toEqual(['Sep', 'Oct', 'Nov', 'Dec']);
+// #906: a months chart keeps no column floor, so it fits its card and never
+// scrolls. Where the month names do not fit, it prints fewer of them, and no two
+// printed names come closer than the 4px floor of #882. The widths are the
+// issue's 300px plot for 12, 14 and 15 months and the 154px plot of #841 for 24.
+// JSDOM lays nothing out, so the plot's width is stubbed to the width the card
+// gives it, and the names are the fallback widths, not a browser's.
+it('fits up to 24 months in their plot with every bar, printing fewer names that never overlap', () => {
+  const NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const cases = [[12, 300], [14, 300], [15, 300], [24, 154]] as const;
+  for (const [count, width] of cases) {
+    const span: ChartPeriod[] = Array.from({ length: count }, (_, i) => ({
+      label: `${NAMES[i % 12]} ${2025 + Math.floor(i / 12)}`,
+      estimated: i >= count - 2 ? 'projected' as const : undefined,
+    }));
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+    const { container } = render(<Chart title="Cash in" periods={span} format={eur}
+      series={[{ id: 'in', name: 'Cash in', values: span.map((_, i) => 30 + i), tone: 'good' }]} />);
+    const chart = container.querySelector('.ui-chart') as HTMLElement;
+    expect(chart.style.getPropertyValue('--ui-chart-col'), `${count} months keep no column floor`).toBe('0px');
+    expect(container.querySelector('.ui-chart__svg')!.getAttribute('width'), 'the plot is the card\'s width')
+      .toBe(String(width));
+    expect(container.querySelectorAll('path.ui-chart__bar'), 'every bar').toHaveLength(count);
+    expect(container.querySelector('.ui-chart__scroll'), 'the plot does not scroll').not.toHaveAttribute('role');
+    const row = container.querySelector('.ui-chart__periods')!;
+    expect(classOf(row), `${count} names at ${width}px step`).toContain('ui-chart__periods--step');
+    const spans = printedSpans(row, width);
+    expect(spans.length, 'some names print').toBeGreaterThan(1);
+    expect(spans.length, 'fewer names than bars').toBeLessThan(count);
+    spans.slice(1).forEach((s, k) => expect(s.start - spans[k].end, `${count} months, names ${spans[k].i} and ${s.i}`)
+      .toBeGreaterThanOrEqual(LABEL_FLOOR));
+    cleanup();
+    vi.restoreAllMocks();
+  }
+  const wide = months().container.querySelector('.ui-chart__periods')!;
+  expect(classOf(wide), 'every name prints where each fits').not.toContain('ui-chart__periods--step');
+  expect([...wide.children].map((c) => c.textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
+  expect(readRepo('../../src/styles/chart.css'), 'the sheet keeps no bridge column of its own')
+    .not.toMatch(/\.ui-chart--bridge\s*\{\s*--ui-chart-col/);
+});
+
+// #906: a bridge column is as wide as its widest word, with no 88px floor, so a
+// four-step bridge fits a 300px plot. A word too wide to wrap still grows the
+// column, and the bridge then scrolls rather than step a name off its bar.
+it('gives a bridge column its widest word, so four steps fit 300px and no name steps off', () => {
+  const four = [
+    { label: 'Opening total', value: 90000 },
+    { label: 'Sales received', value: 60000 },
+    { label: 'Costs paid', value: -45000 },
+    { label: 'Closing total', kind: 'total' as const },
+  ];
+  // The widest word, "received", is 8 letters at 0.62 × 12px plus the 8px gap:
+  // 67.52px, rounded up to 68px. Four of them are 272px, so the 300px plot holds them.
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(300);
+  const { container } = render(<Chart variant="bridge" title="Cash" format={eur} steps={four} />);
+  const chart = container.querySelector('.ui-chart') as HTMLElement;
+  expect(chart.style.getPropertyValue('--ui-chart-col'), 'the column is the widest word').toBe('68px');
+  expect(68 * 4, 'four columns fit the 300px plot').toBeLessThanOrEqual(300);
+  expect([...container.querySelectorAll('.ui-chart__period')].map((c) => c.textContent),
+    'every step keeps its name').toEqual(four.map((s) => s.label));
+  expect(container.querySelector('.ui-chart__scroll'), 'the bridge does not scroll').not.toHaveAttribute('role');
   cleanup();
   vi.restoreAllMocks();
-  const wide = months().container.querySelector('.ui-chart__periods')!;
-  expect(classOf(wide), 'every label prints where each fits').not.toContain('ui-chart__periods--step');
-  expect([...wide.children].map((c) => c.textContent)).toEqual(['Jan', 'Feb', 'Mar', 'Apr']);
-});
 
-// #867: the floor is the narrowest column where a name still fits, not a fixed
-// 48px. Twelve three-letter months at 466px then fit without scrolling.
-it('does not scroll twelve months at 466px, where every name fits its column', () => {
-  const twelve: ChartPeriod[] = Array.from({ length: 12 }, (_, i) => ({
-    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]} 2025`,
-  }));
-  const { container } = render(<Chart title="Income" periods={twelve} format={eur}
-    series={[{ id: 'in', name: 'Income', values: twelve.map((_, i) => 10 + i), tone: 'good' }]} />);
-  const chart = container.querySelector('.ui-chart') as HTMLElement;
-  const col = parseFloat(chart.style.getPropertyValue('--ui-chart-col'));
-  // The floor column is the widest name plus its gap, so twelve of them fit
-  // inside a 466px card and the plot does not scroll there.
-  expect(col, 'the floor column is the widest name, not the 48px default').toBeGreaterThan(0);
-  expect(col, 'a name column is far under a twelfth of 466px').toBeLessThan(466 / 12);
-  expect(col * 12, 'twelve floor columns fit inside 466px').toBeLessThanOrEqual(466);
-});
-
-// #867: the bridge keeps its own 88px column for short names and grows it for a
-// word too wide to wrap, so a long bridge name scrolls instead of stepping off
-// its bar. The floor is that word, past the bridge's 88px column.
-it('grows a bridge column for a word wider than 88px, instead of stepping its name', () => {
   const steps = [
     { label: 'Reconciliation adjustments', short: 'Reconciliation', value: 100 },
     { label: 'Customer receipts', short: 'Receipts', value: 200 },
     { label: 'Supplier payments', short: 'Payments', value: -150 },
     { label: 'Closing cash balance', short: 'Closing', kind: 'total' as const },
   ];
-  // The widest word, 14 letters at 0.62 × 12px plus the 8px gap, is 112.16px —
-  // wider than the bridge's own 88px column — so the floor grows to 113px. The
-  // plot keeps that column per step and scrolls instead of stepping a name off.
+  // "Reconciliation", 14 letters, is 112.16px with its gap, so the column is 113px.
   const FLOOR = 113;
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
-    return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 4 : 300;
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-chart__plot') ? FLOOR * 4 : 300;
   });
-  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
-    return (this as HTMLElement).classList.contains('ui-chart__scroll') ? FLOOR * 4 : 300;
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-chart__scroll') ? FLOOR * 4 : 300;
   });
-  const { container } = render(<Chart variant="bridge" title="Cash" format={eur} steps={steps} />);
-  const chart = container.querySelector('.ui-chart') as HTMLElement;
-  expect(chart.style.getPropertyValue('--ui-chart-col'), 'the bridge floor grows past its 88px column')
-    .toBe('113px');
-  const row = container.querySelector('.ui-chart__periods')!;
-  expect(classOf(row), 'the long name is not stepped').not.toContain('ui-chart__periods--step');
-  expect(container.querySelector('.ui-chart__scroll'), 'the bridge scrolls inside its card')
+  const long = render(<Chart variant="bridge" title="Cash" format={eur} steps={steps} />).container;
+  expect((long.querySelector('.ui-chart') as HTMLElement).style.getPropertyValue('--ui-chart-col'),
+    'a word too wide to wrap grows the column').toBe('113px');
+  expect(classOf(long.querySelector('.ui-chart__periods')!), 'the long name is not stepped')
+    .not.toContain('ui-chart__periods--step');
+  expect(long.querySelector('.ui-chart__scroll'), 'the bridge scrolls inside its card')
     .toHaveAttribute('role', 'region');
-  cleanup();
   vi.restoreAllMocks();
 });
 
-it('hides the name of a column cut at the scroll edge, so a name is whole or gone', () => {
-  const twelve: ChartPeriod[] = Array.from({ length: 12 }, (_, i) => ({
-    label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]} 2025`,
-  }));
-  const FLOOR = 31;
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function () {
-    return (this as HTMLElement).classList.contains('ui-chart__plot') ? FLOOR * 12 : 200;
+it('hides the name of a bridge column cut at the scroll edge, so a name is whole or gone', () => {
+  const NAMES = ['Opening', 'Sales', 'Fees', 'Refunds', 'Payroll', 'Hosting', 'Office', 'Travel', 'Closing'];
+  const FLOOR = 64;
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-chart__plot') ? FLOOR * NAMES.length : 200;
   });
-  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function () {
-    return (this as HTMLElement).classList.contains('ui-chart__scroll') ? FLOOR * 12 : 200;
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-chart__scroll') ? FLOOR * NAMES.length : 200;
   });
-  const { container } = render(<Chart title="Income" periods={twelve} format={eur}
-    series={[{ id: 'in', name: 'Income', values: twelve.map((_, i) => 10 + i), tone: 'good' }]} />);
+  const { container } = render(<Chart variant="bridge" title="Cash" format={eur}
+    steps={NAMES.map((label, i) => (i === NAMES.length - 1 ? { label, kind: 'total' as const }
+      : { label, value: i ? -10 : 1000 }))} />);
   const labels = [...container.querySelectorAll('.ui-chart__period')].map((c) => c.textContent);
-  // The chart opens at its latest period, so the left edge cuts a column; its
-  // name hides, and the names whole in view print.
-  expect(labels.filter(Boolean)).toEqual(['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
-  expect(labels[5], 'the column cut at the left edge hides its name').toBe('');
+  // A bridge opens at its opening total, so the right edge at 200px cuts the
+  // fourth 64px column; its name hides, and the three whole columns print theirs.
+  expect(labels.filter(Boolean)).toEqual(['Opening', 'Sales', 'Fees']);
+  expect(labels[3], 'the column cut at the right edge hides its name').toBe('');
+  vi.restoreAllMocks();
 });
 
-// #863: the months and bridge charts keep every bar named. A short name whose
-// words each fit its column prints and wraps; the old fit rule stepped by the
-// whole label, so a two-word short name lost its bars even where it could wrap.
-it('keeps every bar named on a months and bridge chart, stepping only where a word is too wide', () => {
+// #863 and #906: a bridge keeps every step named and wraps a name at its words.
+// A months chart prints whole names, and steps them where they do not fit.
+it('keeps every bridge step named, and steps a months chart\'s names where they do not fit', () => {
   const regions: ChartPeriod[] = [
     { label: 'North region revenue', short: 'North rev', compare: false },
     { label: 'South region revenue', short: 'South rev', compare: false },
@@ -995,13 +995,174 @@ it('keeps every bar named on a months and bridge chart, stepping only where a wo
   </>);
   const rows = [...container.querySelectorAll('.ui-chart__periods')];
   expect(rows, 'one period row per chart').toHaveLength(2);
-  for (const row of rows) {
-    expect(classOf(row), 'every short name fits its column').not.toContain('ui-chart__periods--step');
-  }
-  expect([...rows[0].children].map((c) => c.textContent), 'the months chart keeps every short name')
-    .toEqual(['North rev', 'South rev', 'North ref', 'South ref']);
+  // The unmeasured plot is four 48px columns, and "North rev" with its gap is
+  // 74.96px, so the months chart prints every second name.
+  expect(classOf(rows[0]), 'the months names step').toContain('ui-chart__periods--step');
+  expect([...rows[0].children].map((c) => c.textContent), 'counted from the latest period')
+    .toEqual(['', 'South rev', '', 'South ref']);
+  expect(classOf(rows[1]), 'every bridge name wraps in its column').not.toContain('ui-chart__periods--step');
   expect([...rows[1].children].map((c) => c.textContent), 'the bridge keeps every short name')
     .toEqual(['Open cash', 'Cash in', 'Cash out', 'Close cash']);
+});
+
+/* -- the months rows look (#906) -------------------------------------------
+ * Limits. JSDOM has no canvas, so a name's width is the fallback figure, and
+ * the plot's width is stubbed. The row geometry is read off the attributes the
+ * component writes; the browser captures on the pull request carry the paint. */
+
+const UNITS = ['Infrastructure Operations', 'Customer Support', 'Product Development',
+  'Sales Operations', 'Quality Assurance', 'Shared Services'];
+const MARGIN = [42000, -18000, 30000, 9000, -12000, 24000];
+const rowsChart = (width: number, extra: Partial<React.ComponentProps<typeof Chart>> = {}) => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+  return render(<Chart title="Margin by unit" look="rows" format={eur}
+    periods={UNITS.map((label) => ({ label, compare: false }))}
+    series={[{ id: 'margin', name: 'Margin', values: MARGIN }]} {...extra as object} />);
+};
+const rowBars = (container: HTMLElement) => [...container.querySelectorAll('path.ui-chart__bar')].map(boxOf);
+const zeroX = (container: HTMLElement) => Number(container.querySelector('.ui-chart__zero')!.getAttribute('x1'));
+
+it('draws a rows look as signed bars across the full plot, each full name above its bar', () => {
+  const { container } = rowsChart(300);
+  expect(container.querySelector('.ui-chart'), 'the look names itself').toHaveClass('ui-chart--months-rows');
+  expect(readRepo('../../src/styles/chart.css'), 'the rows look keeps no column floor')
+    .toMatch(/\.ui-chart--months-rows \.ui-chart__plot,[\s\S]*?\{ min-width: 0; \}/);
+  const svg = container.querySelector('.ui-chart__svg')!;
+  expect(svg.getAttribute('width'), 'the plot is the card\'s width').toBe('300');
+  expect(container.querySelector('.ui-chart__periods'), 'no period row under the plot').toBeNull();
+  expect(container.querySelector('.ui-chart__axis'), 'no value axis beside it').toBeNull();
+  const names = [...svg.querySelectorAll('text.ui-chart__caption')].filter((t) => t.querySelector('tspan'));
+  expect(names.map((t) => t.textContent), 'every full name prints').toEqual(UNITS);
+  const bars = rowBars(container);
+  expect(bars, 'a bar for each unit').toHaveLength(6);
+  const zero = zeroX(container);
+  MARGIN.forEach((value, i) => {
+    const bar = bars[i];
+    if (value > 0) expect(bar.x, `${UNITS[i]} grows right from zero`).toBeGreaterThan(zero);
+    else expect(bar.x + bar.width, `${UNITS[i]} grows left from zero`).toBeLessThan(zero);
+    expect(bar.height, 'a 16px bar').toBe(16);
+    expect(Number(names[i].getAttribute('y')), 'the name stands above its bar').toBeLessThan(bar.y);
+    expect(bar.x + bar.width, 'the bar stays inside the plot').toBeLessThanOrEqual(300);
+    expect(bar.x, 'the bar stays inside the plot').toBeGreaterThanOrEqual(0);
+  });
+  expect(bars[0].width, 'the largest margin spans most of the plot').toBeGreaterThan(300 * 0.5);
+  cleanup();
+  vi.restoreAllMocks();
+  // #908 review, finding 2: full euro captions of a 300px scale. Each printed
+  // caption is read at the fallback width, from its x and its anchor, and keeps
+  // 8px to the next. Zero always prints; a tick that cannot fit leaves out its
+  // caption, not its rule.
+  const { container: wide } = rowsChart(300, {
+    series: [{ id: 'margin', name: 'Margin', values: [4200000, -1800000, 30000, 9000, -12000, 24000] }],
+  });
+  const scale = [...wide.querySelectorAll('.ui-chart__svg text.ui-chart__caption')].filter((t) => !t.querySelector('tspan'));
+  const spans = scale.map((t) => {
+    const w = (t.textContent ?? '').length * 12 * 0.62;
+    const x = Number(t.getAttribute('x'));
+    const anchor = t.getAttribute('text-anchor');
+    const start = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2;
+    return { text: t.textContent, start, end: start + w };
+  });
+  expect(spans.map((c) => c.text), 'zero prints').toContain('€0');
+  expect(spans.slice(1).filter((c, k) => c.start < spans[k].end + 8).map((c) => c.text),
+    'no two printed captions come within 8px').toEqual([]);
+  expect(spans.every((c) => c.start >= 0 && c.end <= 300), 'every caption stays in the plot').toBe(true);
+  const rules = wide.querySelectorAll('.ui-chart__svg g:first-of-type line').length;
+  expect(rules, 'every tick keeps its rule').toBeGreaterThan(scale.length);
+  vi.restoreAllMocks();
+});
+
+it('steps a rows look with every arrow, and reads each row\'s full name and value', async () => {
+  const user = userEvent.setup();
+  rowsChart(300, { table: false });
+  expect(frame()).toHaveAccessibleName('Margin by unit. Arrow keys step through the 6 rows.');
+  await user.tab();
+  expect(screen.getByRole('status')).toHaveTextContent(/^Infrastructure Operations\. Margin €42,000\.$/);
+  fireEvent.keyDown(frame(), { key: 'ArrowDown' });
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Customer Support$/);
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__value')).toHaveTextContent('−€18,000');
+  // #908 review, finding 3: End steps to a row under a short landscape view.
+  // The row's hit area scrolls into view before the readout is placed, and the
+  // page scroll that move makes keeps the readout open. Limits: JSDOM has no
+  // layout, so the browser half in stories/chart-fit.test.js reads the boxes.
+  const scrolled: Element[] = [];
+  Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this); };
+  fireEvent.keyDown(frame(), { key: 'End' });
+  expect(scrolled.at(-1), 'the last row comes into view')
+    .toBe(plot().querySelector('[data-mark="margin-5"] .ui-chart__hit'));
+  fireEvent.scroll(document);
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label'), 'that scroll keeps the readout')
+    .toHaveTextContent(/^Shared Services$/);
+  delete (Element.prototype as Partial<Element>).scrollIntoView;
+  fireEvent.keyDown(frame(), { key: 'ArrowUp' });
+  expect(screen.getByRole('status')).toHaveTextContent(/^Quality Assurance\./);
+  fireEvent.keyDown(frame(), { key: 'Escape' });
+  expect(document.querySelector('.ui-tip')).not.toHaveClass('is-open');
+  hover('margin-5');
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Shared Services$/);
+  vi.restoreAllMocks();
+});
+
+it('wraps a rows name at its spaces where the plot is narrower than the name, and cuts none', () => {
+  // "Infrastructure Operations" is 25 letters, 186px at the fallback width, so a
+  // 160px plot breaks it at the space; the row grows a line and the bar moves down.
+  const { container } = rowsChart(160);
+  const first = container.querySelector('.ui-chart__svg text.ui-chart__caption')!;
+  expect([...first.querySelectorAll('tspan')].map((t) => t.textContent)).toEqual(['Infrastructure', 'Operations']);
+  const [wrapped, single] = rowBars(container);
+  // A one-line row puts its bar 24px under its top and is 44px tall.
+  expect(wrapped.y, 'the bar moves one 16px line down, under the second line').toBe(24 + 16);
+  expect(single.y, 'the wrapped row is 60px, so the next bar is 24px under 60').toBe(60 + 24);
+  cleanup();
+  vi.restoreAllMocks();
+  // A word wider than the plot breaks between its letters rather than run past the edge.
+  const { container: narrow } = rowsChart(60);
+  const lines = [...narrow.querySelector('.ui-chart__svg text.ui-chart__caption')!.querySelectorAll('tspan')]
+    .map((t) => t.textContent ?? '');
+  expect(lines.join(''), 'every letter prints').toBe('InfrastructureOperations');
+  lines.forEach((line) => expect(line.length * 12 * 0.62, `"${line}" fits 60px`).toBeLessThanOrEqual(60));
+  cleanup();
+  vi.restoreAllMocks();
+  // #908 review, finding 1: a consumer's --text-xs of 13px. The stub's widths
+  // follow the font's size, so a name measured at 12px fits 300px and at 13px
+  // does not. The name must wrap at the size the frame draws.
+  const LONG = 'Infrastructure Operations Customer Support Team Ops';
+  const width = (font: string, text: string) => text.length * Number(/([\d.]+)px/.exec(font)?.[1] ?? 0) * 0.47;
+  vi.stubGlobal('OffscreenCanvas', class {
+    getContext() { return { font: '', measureText(text: string) { return { width: width(this.font, text) }; } }; }
+  });
+  const sheet = document.head.appendChild(document.createElement('style'));
+  sheet.textContent = '.ui-chart__frame { font-size: 13px; }';
+  const { container: large } = rowsChart(300, { periods: [LONG, ...UNITS.slice(1)].map((label) => ({ label, compare: false })) });
+  const drawn = [...large.querySelector('.ui-chart__svg text.ui-chart__caption')!.querySelectorAll('tspan')]
+    .map((t) => t.textContent ?? '');
+  sheet.remove();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  expect(drawn.join(' '), 'every word prints').toBe(LONG);
+  drawn.forEach((line) => expect(width('13px', line), `"${line}" fits 300px at 13px`).toBeLessThanOrEqual(300));
+});
+
+it('draws no bar for a missing rows value, and refuses a series the rows look cannot draw', () => {
+  const { container } = rowsChart(300, {
+    series: [{ id: 'margin', name: 'Margin', values: [42000, Number.NaN, 30000, 9000, -12000, 24000] }],
+  });
+  expect(rowBars(container), 'five bars').toHaveLength(5);
+  expect(plot().querySelector('[data-mark="margin-1"]'), 'and no mark for the missing one').toBeNull();
+  cleanup();
+  vi.restoreAllMocks();
+  const two = UNITS.slice(0, 2).map((label) => ({ label }));
+  const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+  expect(() => render(<Chart title="M" look="rows" format={eur} periods={two}
+    series={[{ id: 'a', name: 'Margin', values: [1, 2] }, { id: 'b', name: 'Cost', values: [1, 2] }]} />))
+    .toThrow('Chart: a rows look draws one series of bars; Cost is a second series');
+  expect(() => render(<Chart title="M" look="rows" format={eur} periods={two}
+    series={[{ id: 'a', name: 'Net', values: [1, 2], shape: 'line' }]} />))
+    .toThrow('Chart: a rows look draws one series of bars; Net is a line');
+  err.mockRestore();
+  expect(() => render(<Chart title="M" look="rows" format={eur} periods={[]} series={[]} />),
+    'an empty rows look draws nothing and does not throw').not.toThrow();
 });
 
 it('keeps the unfinished stretch of a sparkline one solid stroke', () => {

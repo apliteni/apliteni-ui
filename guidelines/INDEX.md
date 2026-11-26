@@ -34,5 +34,5 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Session expired](session-expired.md) | A session-ended dialog, its page state and its lasting sign-in notice. | Read it before you handle an ended session. |
 | [Three-column page](three-column-page.md) | Three columns chained from parent to child: the selected parent, its children and the open child, with the widths, the collapse order and the column header. | Read it before you put a list, its children and the open item side by side. |
 | [Wizard](wizard.md) | Ordered steps, their states, the open step and the final action. | Read it before you build ordered steps. |
-| [Dropdown](dropdown.md) | Group labels in a dropdown panel. | Read it before you group the options of a dropdown. |
+| [Dropdown](dropdown.md) | Group labels in a dropdown panel, and what a trigger shows. | Read it before you group the options of a dropdown or name its trigger. |
 | [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |
