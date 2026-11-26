@@ -1136,16 +1136,21 @@ export function Chart(props: ChartProps) {
   // charts that main prints at 4.25px stay as they are.
   // A row that wraps at words keeps each name inside its own column, so two
   // names never meet there and the step stays 1.
+  // A pick never hides its own name (owner, rev_e24bde907983/d14): where the
+  // first step prints the picked name, the step counts from the pick. At the
+  // first step that is the same set of names, so only a grown step differs.
   let every = widestWord <= colWidth ? 1 : Math.ceil(labelRoom / colWidth);
+  const onStep = (from: number, i: number) => ((from - i) % every + every) % every === 0;
+  const from = pick !== null && pick >= 0 && pick < count && onStep(anchor, pick) ? pick : anchor;
   const wraps = wrapAtWords && every === 1;
   for (; !wraps && every < count; every += 1) {
     const spans: { start: number; end: number }[] = [];
     for (let i = 0; i < count; i += 1) {
-      if (((anchor - i) % every + every) % every === 0) spans.push(spanOf(i));
+      if (onStep(from, i)) spans.push(spanOf(i));
     }
     if (spans.slice(1).every((s, k) => s.start >= spans[k].end + TEXT_GAP)) break;
   }
-  const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
+  const labelled = (i: number) => onStep(from, i);
   const groupX = groupFrom >= 0 ? Math.min(Math.max(groupFrom * colWidth, 1), plotWidth - 1) : 0;
 
   return (

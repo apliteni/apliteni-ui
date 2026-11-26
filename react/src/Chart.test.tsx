@@ -1021,8 +1021,8 @@ it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
  * name inside its own column (#863), so only the other variants step whole names. */
 
 /** Twelve long unit names, the longest ones at the end, the shape of a finance
- *  report's "margin by unit" axis. The story shows the picked-name case with
- *  two alternating names, so this list stays for the edge case it names. */
+ *  report's "margin by unit" axis. The `LongCategoryNames` story uses the same
+ *  names. The repeated-name case is the weight-600 test below. */
 const LONG_UNITS = [
   'Payments Infrastructure', 'Developer Relations', 'Content Operations',
   'Global Partnerships', 'Enterprise Sales', 'Brand Marketing', 'Marketplace Growth',
@@ -1049,21 +1049,35 @@ const printedSpans = (row: Element, plotWidth: number) => {
   });
 };
 
-it('prints no two category names on top of each other at 390, 820 and 1440 px', () => {
-  for (const width of [390, 820, 1440]) {
-    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
-    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
-    const { container } = render(<Chart variant="stacked" title="Margin by unit"
-      periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
-      series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
-      format={eur} />);
-    const row = container.querySelector('.ui-chart__periods')!;
-    const spans = printedSpans(row, width);
-    cleanup();
-    vi.restoreAllMocks();
-    expect(spans.length, `${width}px prints some names`).toBeGreaterThan(1);
-    expect(spans.slice(1).filter((s, k) => s.start < spans[k].end + LABEL_FLOOR).map((s) => s.i),
-      `${width}px: every printed pair keeps the 4px floor`).toEqual([]);
+// The sweep: each pick, and no pick, at plot widths of 390px to 1440px. Where
+// main's step prints the picked name, the head must print it too: a pick never
+// hides its own name (owner, rev_e24bde907983/d14). Main's step is the widest
+// name's room over the column, counted from the last period. Limits: the
+// widths are the fallback figures, not a browser's, and the sweep is finite.
+it('prints no two category names on top of each other, and keeps the picked name, at every pick', () => {
+  const room = Math.max(...LONG_UNITS.map(labelWidth)) + 8;
+  const count = LONG_UNITS.length;
+  for (let width = 390; width <= 1440; width += 15) {
+    const mainStep = Math.max(1, Math.ceil(room / (width / count)));
+    for (const pick of [undefined, ...LONG_UNITS.keys()]) {
+      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+      const { container } = render(<Chart variant="stacked" title="Margin by unit" selected={pick}
+        periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
+        series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
+        format={eur} />);
+      const row = container.querySelector('.ui-chart__periods')!;
+      const spans = printedSpans(row, width);
+      cleanup();
+      vi.restoreAllMocks();
+      const at = `${width}px, pick ${pick ?? 'none'}`;
+      expect(spans.length, `${at} prints some names`).toBeGreaterThan(0);
+      expect(spans.slice(1).filter((s, k) => s.start < spans[k].end + LABEL_FLOOR).map((s) => s.i),
+        `${at}: every printed pair keeps the 4px floor`).toEqual([]);
+      if (pick !== undefined && (count - 1 - pick) % mainStep === 0) {
+        expect(spans.map((s) => s.i), `${at}: main prints the picked name, so the head does`).toContain(pick);
+      }
+    }
   }
 });
 

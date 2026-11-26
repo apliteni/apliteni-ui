@@ -272,21 +272,24 @@ export const Narrow: StoryObj = {
   ),
 };
 
-/** Twelve periods with two long names alternating, the shape a re-review of
- *  #882 used to find the picked name still overlapping. */
-const LONG_UNITS = Array.from({ length: 12 }, (_, i) =>
-  i % 2 === 0 ? 'Infrastructure Operations' : 'Bloom Affiliate Platform');
+/** Twelve made-up business units, each a distinct long name, the longest at the end. */
+const LONG_UNITS = [
+  'Payments Infrastructure', 'Developer Relations', 'Content Operations',
+  'Global Partnerships', 'Enterprise Sales', 'Brand Marketing', 'Marketplace Growth',
+  'Infrastructure Operations', 'Platform Engineering', 'Strategic Finance',
+  'Customer Success', 'Bloom Affiliate Platform',
+];
 
 /** Twelve periods with long names, the axis a finance report's "margin by unit"
  *  prints, in two charts. The bar chart wraps each name inside its own column and
  *  scrolls, so every bar keeps its name (#863). The stacked chart steps whole
- *  names. Its last name is picked, so it shows the weight-600 case at every
- *  width: the last name always prints, and the 4px floor keeps it off the name
- *  before it (#882). The 680px column gives the stacked plot about 600px, where
- *  the step of 0.199.0 printed the last two names over each other. */
+ *  names, and no two printed names overlap (#882). Its last name opens picked,
+ *  at weight 600. A pick keeps its own name printed. The 680px column gives the
+ *  stacked plot about 600px, where the step of 0.199.0 printed names over each other. */
 export const LongCategoryNames: StoryObj = {
-  render: () => {
-    const units = LONG_UNITS.map((unit) => ({ label: unit, short: unit }));
+  render: function LongCategoryNamesStory() {
+    const [unit, setUnit] = useState<number | null>(11);
+    const units = LONG_UNITS.map((name) => ({ label: name, short: name }));
     const margin = [{ id: 'margin', name: 'Margin', tone: 'accent' as const,
       values: [18400, 21300, 17200, 15600, 20800, 14900, 20100, 22400, 19600, 23100, 17500, 24200] }];
     return (
@@ -297,7 +300,8 @@ export const LongCategoryNames: StoryObj = {
         </Card>
         <Card title="Margin by unit, stacked">
           <Chart variant="stacked" title="Margin by unit, last 12 months, stacked" format={eur}
-            formatAxis={eurAxis} selected={11} periods={units} series={margin} />
+            formatAxis={eurAxis} selectable selected={unit} onSelect={setUnit}
+            periods={units} series={margin} />
         </Card>
       </div></div>
     );

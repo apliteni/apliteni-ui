@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.200.1', date: '2026-11-26',
     changes: [
-      ['fixed', 'Where a `Chart` steps its category names, it no longer prints one name over another. The step grows until the last printed name, aligned to the chart\'s edge, stays at least 4px clear of the name before it, at any width and any name length. Part of #882.', ['Chart']],
+      ['fixed', 'Where a `Chart` steps its category names, it no longer prints one name over another. The step grows until the last printed name, aligned to the chart\'s edge, stays at least 4px clear of the name before it, at any width and any name length. A picked name that the chart prints stays printed. Part of #882.', ['Chart']],
     ],
   },
   {
