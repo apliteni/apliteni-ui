@@ -1031,6 +1031,40 @@ it('renders the scroll region where the card bleed can reach it', () => {
   expect(container.querySelector('.ui-card > .ui-table-scroll:has(> .ui-table--dense)')).not.toBeNull();
 });
 
+// A table without a sticky or pinned column sits directly in a card, and the card scrolls it
+// sideways, so the card is the named keyboard stop the `.ui-table-scroll` frame otherwise is.
+// JSDOM lays nothing out, so the observer is called by hand after the sizes are set. #885
+it('names the card that scrolls a table directly, and makes it a stop only while it overflows', () => {
+  const resized: (() => void)[] = [];
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(read: () => void) { resized.push(read); }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  });
+  const resize = () => act(() => resized.forEach((read) => read()));
+  try {
+    const { container } = render(
+      <div className="ui-card">
+        <DataTable columns={columns} rows={rows} selectable={false} pager={false} scrollLabel="Payouts" />
+      </div>);
+    const card = container.querySelector('.ui-card')!;
+    expect(card).toHaveAttribute('role', 'region');
+    expect(card).toHaveAttribute('aria-label', 'Payouts');
+    // Nothing overflows yet, so a stop here would scroll nothing.
+    expect(card).not.toHaveAttribute('tabindex');
+    Object.defineProperties(card, {
+      clientWidth: { configurable: true, value: 300 },
+      scrollWidth: { configurable: true, value: 450 },
+    });
+    resize();
+    expect(card).toHaveAttribute('tabindex', '0');
+    Object.defineProperty(card, 'clientWidth', { configurable: true, value: 450 });
+    resize();
+    expect(card).not.toHaveAttribute('tabindex');
+  } finally { vi.unstubAllGlobals(); }
+});
+
 describe('the vanilla table hooks', () => {
   it('maps zebra and hover onto the kit modifiers, with hover on by default', () => {
     const { container, rerender } = render(<DataTable columns={columns} rows={rows} selectable={false} pager={false} />);

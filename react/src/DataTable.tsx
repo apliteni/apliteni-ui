@@ -160,6 +160,38 @@ export function DataTable<T extends { name: string }>({
     read();
     return () => observer.disconnect();
   }, [scrollable]);
+  // A table that is not sticky or pinned sits directly in a card, and the card scrolls it
+  // sideways (card.css `.ui-card:has(> .ui-table)`). The card is then the scroll region, so it
+  // takes the name and keyboard access the `.ui-table-scroll` frame takes. The attributes are
+  // written on the card and removed when the table leaves, because the card's own render does
+  // not know the table. why: docs/components.md#data-table
+  useEffect(() => {
+    if (scrollable) return;
+    const el = table.current;
+    const card = el?.parentElement;
+    if (!el || !card || !card.classList.contains('ui-card')) return;
+    card.setAttribute('role', 'region');
+    card.setAttribute('aria-label', scrollLabel);
+    const clear = () => {
+      card.removeAttribute('role');
+      card.removeAttribute('aria-label');
+      card.removeAttribute('tabindex');
+    };
+    if (typeof ResizeObserver === 'undefined') {
+      // No size to read: the card stays a stop, as the frame does without an observer.
+      card.tabIndex = 0;
+      return clear;
+    }
+    const read = () => {
+      if (card.scrollWidth > card.clientWidth) card.tabIndex = 0;
+      else card.removeAttribute('tabindex');
+    };
+    const observer = new ResizeObserver(read);
+    observer.observe(card);
+    observer.observe(el);
+    read();
+    return () => { observer.disconnect(); clear(); };
+  }, [scrollable, scrollLabel]);
   // An engine scrolls a focused control into the frame's view only when the control is
   // fully hidden, so a Tab to a control that shows in part leaves it cut. A focus that
   // the keyboard or a script moves brings the whole control in. A pointer's focus is left

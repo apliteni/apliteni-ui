@@ -87,7 +87,7 @@ function Example({ sections: own, groups: grouped, ...args }: Partial<AppShellPr
           onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
       </div>
       <Card title="Payouts this week">
-        <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} />
+        <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} scrollLabel="Payouts" />
       </Card>
       <Card title="What the width does">
         <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centered one is capped and sits in the middle of it.</p>

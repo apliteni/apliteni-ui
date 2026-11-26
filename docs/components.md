@@ -494,8 +494,10 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   `--ui-dropdown-edge` from the edge of the view. Set that property to 0 for a panel flush with
   the edge. At 720px and below, the gap is the 16px page margin, or the safe area of the phone
   when that is wider.
-- The panel is at least 240px wide where the view allows. A long unbroken word, such as a file
-  name or a URL, breaks in the middle, so one row cannot make the panel wider than the screen.
+- The panel is at least 240px wide where the view allows. Inside a Field, the panel takes the
+  field's width instead, so a form control stays one column with its label. A long unbroken
+  word, such as a file name or a URL, breaks in the middle, so one row cannot make the panel
+  wider than the screen.
 - An open panel is never taller than the room between the trigger and the edge of the view. It
   scrolls inside, and the wheel stops at its end. By default the panel stops at 300px, in the
   middle of a row, so the user sees that the list continues. `scroll={n}` asks for another cap
@@ -893,8 +895,10 @@ page title's edge. To do this, the card hangs outside its container by its side 
 card in another container, pad each side of the container by at least the hang, or the page
 scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
 
-**A table directly in a card.** A table wider than the card scrolls sideways inside the card. Below
-560px the card has no scrollbar, as the table's scroll frame does.
+**A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
+while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,
+as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
+scroll frame does.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
