@@ -11,10 +11,9 @@ export default meta;
 
 // A select in a form, in each place a form sits: a Modal, a Drawer, a page, and a
 // wrapper with `overflow: auto` that does not scroll inside a Modal body that does.
-// The panel opens below its field, the whole of it in view with the field's label,
-// and a body that cannot hold it lets the panel open over the body instead.
-// stories/dropdown-reach.test.js opens this story by id, react-dropdown-placement--in-a-form,
-// with each case as args.
+// In a Modal or a Drawer the panel opens below its field, over the body and its footer,
+// and the body does not scroll. The id is react-dropdown-placement--in-a-form, with each
+// case as args.
 type PlacementArgs = {
   stage: 'modal' | 'drawer' | 'page' | 'nested';
   // How many text fields come before the select and after it: a short form has one before.
