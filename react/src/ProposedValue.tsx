@@ -9,7 +9,7 @@ export type ProposedValueProps = {
   items: DropdownItem[];
   /** The chosen option's value. Without one the field is None. */
   value?: string | number;
-  /** The value that the app proposes. It shows only while `value` is empty and an option has it. */
+  /** The value that the app proposes. It shows only while `value` is empty and an enabled option has it. */
   proposed?: string | number;
   /** A pick from the menu, and the check, give the new value. The None row gives `undefined`. */
   onChange: (value: string | number | undefined) => void;
@@ -41,13 +41,16 @@ export function ProposedValue({
   const uid = id ?? auto;
   const field = useContext(FieldContext);
   const inForm = Boolean(field && field.id === id);
-  // The proposal that the dismiss mark dropped. A new proposal shows again.
+  // The proposal that the dismiss mark dropped. A change of `proposed` resets it, so a
+  // proposal that comes back after another one shows again.
   const [dropped, setDropped] = useState<string | number | undefined>(undefined);
+  const [seen, setSeen] = useState(proposed);
+  if (seen !== proposed) { setSeen(proposed); setDropped(undefined); }
   // After the check or the dismiss mark the group leaves, so the select that takes its place
   // takes the focus. Its menu stays shut.
   const refocus = useRef(false);
   const offer = value == null && proposed != null && proposed !== dropped
-    ? items.find((it) => it.value === proposed) : undefined;
+    ? items.find((it) => it.value === proposed && !it.disabled) : undefined;
 
   useEffect(() => {
     if (!refocus.current || offer) return;

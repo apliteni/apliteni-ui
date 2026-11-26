@@ -86,10 +86,25 @@ it('a new proposal after a dismissed one shows again', () => {
   expect(screen.getByRole('button', { name: 'Apply Utilities' })).toBeInTheDocument();
 });
 
-it('a proposal that no option has shows the empty field', () => {
-  render(<Harness proposed="rent" />);
-  expect(document.querySelector('.ui-proposed')).toBeNull();
-  expect(trigger()).toHaveTextContent('None');
+it('a dismissed proposal that comes back after another shows again', () => {
+  const props = { items: CATEGORIES, ariaLabel: 'Category', onChange: () => {} };
+  const { rerender } = render(<ProposedValue {...props} proposed="groceries" />);
+  fireEvent.click(screen.getByRole('button', { name: 'Dismiss Groceries' }));
+  rerender(<ProposedValue {...props} proposed="utilities" />);
+  rerender(<ProposedValue {...props} proposed="groceries" />);
+  expect(screen.getByRole('button', { name: 'Apply Groceries' })).toBeInTheDocument();
+});
+
+it('a proposal that no enabled option has shows the empty field', () => {
+  const onChange = vi.fn();
+  const items = CATEGORIES.map((it) => (it.value === 'utilities' ? { ...it, disabled: true } : it));
+  for (const proposed of ['rent', 'utilities']) {
+    const { unmount } = render(<Harness items={items} proposed={proposed} onChange={onChange} />);
+    expect(document.querySelector('.ui-proposed')).toBeNull();
+    expect(trigger()).toHaveTextContent('None');
+    unmount();
+  }
+  expect(onChange).not.toHaveBeenCalled();
 });
 
 it('the None row clears a set value', () => {

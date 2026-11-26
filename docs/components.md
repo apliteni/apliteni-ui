@@ -656,17 +656,18 @@ a category that a rule found for a payment. Use [`Dropdown`](#dropdown) when the
 **What the user sees.** The part has three states:
 
 - **Set.** `value` holds an option. A [ghost select](#dropdown) shows its label.
-- **Proposed.** `value` is empty, and an option has the `proposed` value. The label shows in a
+- **Proposed.** `value` is empty, and an enabled option has the `proposed` value. The label shows in a
   still two-ink gradient, from the accent to the info ink. A check button and a dismiss mark follow
   it. Every point of the gradient has at least 4.5:1 on the page, card and table grounds, in both
   themes under each accent. In forced colours the value shows in the system ink with a dashed edge.
 - **Empty.** A ghost select shows "None". `none` changes the word.
 
 The check calls `onChange` with the proposed value and opens no menu. The dismiss mark calls
-`onDismiss` and shows "None" until a different proposal comes. After either act the focus goes to
-the select. The menu has a None row first, which calls `onChange(undefined)`. The None row uses
-the value `''`, so give each option another value. A proposal that no option has shows the empty
-state. A long value ends in an ellipsis, and its pointer title shows it in full.
+`onDismiss` and shows "None" until `proposed` changes. A dismissed proposal that comes back after
+another one shows again. After either act the focus goes to the select. The menu has a None row
+first, which calls `onChange(undefined)`. The None row uses the value `''`, so give each option
+another value. A proposal that no enabled option has shows the empty state, so the check never
+sets a disabled option. A long value ends in an ellipsis, and its pointer title shows it in full.
 
 **Size.** In a `Field` the part has the height of a text input. Elsewhere it has the 32px size of a
 row control, and as the first part of a table cell its value starts on the column edge. Below
