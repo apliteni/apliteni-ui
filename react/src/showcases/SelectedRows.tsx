@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
-import { Confirm } from '../Confirm';
 import { DataTable, type Column } from '../DataTable';
 import { SelectionBar, type SelectionBarAction } from '../SelectionBar';
 
@@ -29,7 +28,6 @@ const ACTIONS: SelectionBarAction[] = [
   { id: 'tags', label: 'Tags', items: values('Guide', 'Release', 'Review') },
   { id: 'folder', label: 'Move', items: values('Library', 'Projects', 'Shared') },
   { id: 'archive', label: 'Archive' },
-  { id: 'delete', label: 'Delete' },
 ];
 
 const columns: Column<Doc>[] = [
@@ -45,7 +43,6 @@ export type SelectedRowsProps = { initialSelected?: string[] };
 export function SelectedRows({ initialSelected = ['Field guide', 'Release notes'] }: SelectedRowsProps) {
   const [rows, setRows] = useState(DOCS);
   const [selected, setSelected] = useState(() => new Set(initialSelected));
-  const [asking, setAsking] = useState(false);
   const page = useRef<HTMLDivElement>(null);
   const change = (key: keyof Doc, value: string) =>
     setRows(current => current.map(row => (selected.has(row.name) ? { ...row, [key]: value } : row)));
@@ -55,8 +52,7 @@ export function SelectedRows({ initialSelected = ['Field guide', 'Release notes'
     page.current?.querySelector<HTMLInputElement>('thead input[type="checkbox"]')?.focus();
   };
   const act = (id: string, value?: string) => {
-    if (id === 'delete') setAsking(true);
-    else if (id === 'archive') change('status', 'Archived');
+    if (id === 'archive') change('status', 'Archived');
     else if (value !== undefined) change(id as keyof Doc, value);
   };
   const toggle = (name: string) => setSelected(current => {
@@ -66,7 +62,6 @@ export function SelectedRows({ initialSelected = ['Field guide', 'Release notes'
   });
   const togglePage = (names: string[]) => setSelected(current =>
     (names.every(name => current.has(name)) ? new Set([...current].filter(name => !names.includes(name))) : new Set([...current, ...names])));
-  const noun = selected.size === 1 ? 'document' : 'documents';
 
   return <AppShell word="Workspace" title="Documents" width="wide" pathname="#documents"
     sections={[{ href: '#documents', label: 'Documents', icon: 'doc' }, { href: '#settings', label: 'Settings', icon: 'gear' }]}
@@ -76,13 +71,5 @@ export function SelectedRows({ initialSelected = ['Field guide', 'Release notes'
         selected={selected} onToggle={toggle} onTogglePage={togglePage} />
       <SelectionBar count={selected.size} actions={ACTIONS} noun="documents" onAction={act} onClear={clear} />
     </div>
-    <Confirm open={asking} title={`Delete ${selected.size} ${noun}?`} body="The selected documents leave this list."
-      confirmLabel="Delete" cancelLabel="Keep" danger
-      onCancel={() => setAsking(false)}
-      onConfirm={() => {
-        setRows(current => current.filter(row => !selected.has(row.name)));
-        setAsking(false);
-        clear();
-      }} />
   </AppShell>;
 }

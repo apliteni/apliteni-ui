@@ -7,7 +7,7 @@ const meta = {
   parameters: {
     layout: 'fullscreen',
     viewport: { options: { phone: { name: 'Phone', styles: { width: '390px', height: '844px' }, type: 'mobile' } } },
-    docs: { description: { component: 'A table of documents with two selected rows, and the selection bar under it. Each pick changes the selected rows at once, and the rows stay selected. Delete asks first. All data is sample data.' } },
+    docs: { description: { component: 'A table of documents with two selected rows, and the selection bar under it. Each pick changes the selected rows at once, and the rows stay selected. All data is sample data.' } },
   },
 } satisfies Meta<typeof SelectedRows>;
 export default meta;

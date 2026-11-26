@@ -13,7 +13,6 @@ const actions: SelectionBarAction[] = [
   { id: 'owner', label: 'Owner', items: PEOPLE },
   { id: 'tags', label: 'Tags', items: values('Guide', 'Release', 'Review') },
   { id: 'archive', label: 'Archive' },
-  { id: 'delete', label: 'Delete' },
 ];
 
 // A bar the story answers: Clear empties it, and a pick changes nothing but the count line.

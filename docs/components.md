@@ -898,7 +898,9 @@ Put the bar directly after the table, in a block that has the table's width. The
 width to decide which actions go into More. An action with `items` opens a list, and a pick calls
 `onAction` with the action's `id` and the value. An action without `items` is a button, and it
 calls `onAction` with the `id` only. `place="start"` puts the bar on the table's start edge. The
-bar is centred by default.
+bar is centred by default. Keep a destructive action, such as Delete, off the bar: the kit's danger
+ink does not reach its contrast on the bar's ground. Put it in the row or behind a `Confirm` on the
+page.
 
 **What the user sees.** At 0 rows the bar is not drawn. Otherwise it is the other theme's bar,
 dark on a light page and light on a dark page, in the page's accent family. See

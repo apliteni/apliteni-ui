@@ -282,11 +282,11 @@ with no layout, as in jsdom, shows every action.
 
 ```tsx
 <SelectionBar count={selected.size} noun="documents" onClear={clearSelection}
-  actions={[{ id: 'owner', label: 'Owner', items: people }, { id: 'delete', label: 'Delete' }]}
-  onAction={(id, value) => (id === 'delete' ? askToDelete() : setField(id, value))} />
+  actions={[{ id: 'owner', label: 'Owner', items: people }, { id: 'archive', label: 'Archive' }]}
+  onAction={(id, value) => (id === 'archive' ? archive() : setField(id, value))} />
 ```
 
-The Selected rows showcase shows it on a table, with Delete behind a `Confirm`.
+The Selected rows showcase shows it on a table.
 
 ## BackLink
 
