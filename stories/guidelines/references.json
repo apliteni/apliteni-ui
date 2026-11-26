@@ -74,11 +74,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:208",
+    "ref": "src/tokens/tokens.css:214",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:214",
+    "ref": "src/tokens/tokens.css:220",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:226",
+    "ref": "src/tokens/tokens.css:232",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -282,8 +282,8 @@
     "pattern": "a floating, dismissible notification"
    },
    {
-    "ref": "react/src/Toast.tsx:77",
-    "pattern": "className=\"ui-toast__action\""
+    "ref": "react/src/Toast.tsx:107",
+    "pattern": "className={`ui-toast__action"
    }
   ],
   "panels": [
@@ -360,8 +360,8 @@
     "pattern": "role=\"alertdialog\""
    },
    {
-    "ref": "react/src/Toast.tsx:77",
-    "pattern": "className=\"ui-toast__action\""
+    "ref": "react/src/Toast.tsx:107",
+    "pattern": "className={`ui-toast__action"
    },
    {
     "ref": "src/styles/callout.css:68",
@@ -888,7 +888,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:315",
+    "ref": "src/tokens/tokens.css:321",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1191,8 +1191,8 @@
   ],
   "read-state": [
    {
-    "ref": "react/src/Toast.tsx:36",
-    "pattern": "const timed = !notice.action"
+    "ref": "react/src/Toast.tsx:48",
+    "pattern": "const timed = ringed || (!notice.action"
    },
    {
     "ref": "src/styles/callout.css:68",
