@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
 import { Toast, useToast, type ToastNotice } from './Toast';
@@ -280,10 +280,10 @@ it('keeps a notice when its timer was turned off', () => {
   expect(notice).toBeInTheDocument();
   expect(notice).not.toHaveClass('is-leaving');
 });
-it('holds every notice while a collapsed pile is hovered', () => {
+it.each([true, false])('holds every notice while the stack is hovered (collapse: %s)', collapse => {
   vi.useFakeTimers(); const restore = stubHeights(80);
   try {
-    collapsing();
+    render(<Toast collapse={collapse}><Trigger notice={{ title: 'Saved', text: 'Your changes were saved.' }} /></Toast>);
     const notify = screen.getByText('Notify');
     for (let i = 0; i < 5; i += 1) fireEvent.click(notify);
     const stack = pile();
@@ -327,4 +327,100 @@ it('keeps a notice when its timer is zero seconds', () => {
   act(() => vi.advanceTimersByTime(60000));
   expect(notice).toBeInTheDocument();
   expect(notice.querySelector('.ui-toast__timer')).toBeNull();
+});
+
+/* An undo notice with `timer`, in a stack with a limit (#888). Each notice pushes its own row. */
+function Undos({ undo }: { undo: (row: string) => void }) {
+  const push = useToast();
+  return <>{['Mercado Verde', 'Tranvía Norte', 'Luz del Sur', 'Farmacia Sol'].map(row => (
+    <button key={row} onClick={() => push({ title: `${row} set to Groceries`, timer: 8,
+      action: { label: 'Undo', onClick: () => undo(row) } })}>{row}</button>))}</>;
+}
+const titles = () => notices().filter(el => !el.classList.contains('is-leaving'))
+  .map(el => el.querySelector('.ui-toast__title')!.textContent);
+const arcOf = (notice: Element) => notice.querySelector('.ui-toast__action .ui-toast__ring-arc') as SVGElement;
+
+it('keeps at most `limit` notices, newest at the bottom, and the oldest leaves first', () => {
+  render(<Toast limit={3}><Undos undo={() => {}} /></Toast>);
+  for (const row of ['Mercado Verde', 'Tranvía Norte', 'Luz del Sur']) fireEvent.click(screen.getByText(row));
+  expect(titles()).toEqual(['Mercado Verde set to Groceries', 'Tranvía Norte set to Groceries', 'Luz del Sur set to Groceries']);
+  fireEvent.click(screen.getByText('Farmacia Sol'));
+  expect(titles()).toEqual(['Tranvía Norte set to Groceries', 'Luz del Sur set to Groceries', 'Farmacia Sol set to Groceries']);
+  const oldest = screen.getByText('Mercado Verde set to Groceries').closest('.ui-toast')!;
+  expect(oldest).toHaveClass('is-leaving');
+  fireEvent.animationEnd(oldest);
+  expect(notices()).toHaveLength(3);
+});
+it.each([undefined, 0])('keeps every notice without a limit (limit: %s)', limit => {
+  render(<Toast limit={limit}><Undos undo={() => {}} /></Toast>);
+  for (const row of ['Mercado Verde', 'Tranvía Norte', 'Luz del Sur', 'Farmacia Sol']) fireEvent.click(screen.getByText(row));
+  expect(titles()).toHaveLength(4);
+});
+it('gives each Undo its own notice, and the ring spends the notice time', () => {
+  vi.useFakeTimers(); const undo = vi.fn();
+  render(<Toast limit={3}><Undos undo={undo} /></Toast>);
+  for (const row of ['Mercado Verde', 'Tranvía Norte', 'Luz del Sur']) fireEvent.click(screen.getByText(row));
+  for (const notice of notices()) {
+    expect(arcOf(notice)).toHaveClass('is-running');
+    // The ring takes the place of the timer line.
+    expect(notice.querySelector('.ui-toast__timer')).toBeNull();
+    expect(arcOf(notice).style).toMatchObject({ animationDuration: '8000ms', animationPlayState: 'running' });
+    expect(notice.querySelector('.ui-toast__action')).toHaveAccessibleName('Undo');
+    expect(notice).toHaveTextContent('Undo is available for 8 seconds.');
+  }
+  act(() => vi.advanceTimersByTime(3000));
+  fireEvent.click(within(notices()[1]).getByRole('button', { name: 'Undo' }));
+  expect(undo.mock.calls).toEqual([['Tranvía Norte']]);
+  expect(titles()).toEqual(['Mercado Verde set to Groceries', 'Luz del Sur set to Groceries']);
+  act(() => vi.advanceTimersByTime(4999));
+  expect(titles()).toHaveLength(2);
+  act(() => vi.advanceTimersByTime(1));
+  expect(titles()).toEqual([]);
+  expect(undo).toHaveBeenCalledTimes(1);
+});
+it('steps the ring once a second under reduced motion', () => {
+  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: true }));
+  render(<Toast><Undos undo={() => {}} /></Toast>);
+  fireEvent.click(screen.getByText('Mercado Verde'));
+  const arc = () => arcOf(notices()[0]);
+  const offset = () => Number(arc().style.strokeDashoffset);
+  expect(offset()).toBe(0);
+  act(() => vi.advanceTimersByTime(999));
+  expect(offset()).toBe(0);
+  act(() => vi.advanceTimersByTime(1));
+  expect(offset()).toBe(-12.5);
+  act(() => vi.advanceTimersByTime(999));
+  expect(offset()).toBe(-12.5);
+  act(() => vi.advanceTimersByTime(1));
+  expect(offset()).toBe(-25);
+  act(() => vi.advanceTimersByTime(6000));
+  expect(notices()).toHaveLength(0);
+});
+it('keeps an action notice without a ring unless it has a timer', () => {
+  setup({ title: 'Removed', action: { label: 'Undo', onClick() {} } });
+  fireEvent.click(screen.getByText('Notify'));
+  expect(screen.getByRole('button', { name: 'Undo' })).not.toHaveClass('ui-toast__action--timed');
+  expect(document.querySelector('.ui-toast__ring')).toBeNull();
+});
+it('keeps the focus in the stack when a focused notice leaves, and Escape closes the focused notice', () => {
+  const undo = vi.fn();
+  render(<Toast limit={3}><Undos undo={undo} /></Toast>);
+  for (const row of ['Mercado Verde', 'Tranvía Norte', 'Luz del Sur']) fireEvent.click(screen.getByText(row));
+  const undoOf = (index: number) => within(notices()[index]).getByRole('button', { name: 'Undo' });
+  act(() => undoOf(1).focus());
+  fireEvent.click(undoOf(1));
+  // The next newer notice takes the focus.
+  expect(document.activeElement).toBe(undoOf(2));
+  fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+  expect(undo).toHaveBeenCalledTimes(1);
+  // The newest notice left, so the newest older one takes the focus.
+  expect(document.activeElement).toBe(undoOf(0));
+  expect(titles()).toEqual(['Mercado Verde set to Groceries']);
+});
+it('keeps a notice without a close button on Escape', () => {
+  setup({ title: 'Removed', dismissible: false, action: { label: 'Undo', onClick() {} } });
+  fireEvent.click(screen.getByText('Notify'));
+  act(() => screen.getByRole('button', { name: 'Undo' }).focus());
+  fireEvent.keyDown(screen.getByRole('button', { name: 'Undo' }), { key: 'Escape' });
+  expect(screen.getByRole('status')).not.toHaveClass('is-leaving');
 });

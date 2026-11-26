@@ -299,6 +299,14 @@ scrolls on the Drawers guideline. Run
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js DRAWER_FOOTER=1 node --test stories/drawer-footer.test.js`
 Report the result in the PR. CI runs only the source half, in `react/src/Drawer.test.tsx`.
 
+## Check the toast stack locally
+
+Before opening a PR that changes `src/styles/callout.css`'s toast rules, `react/src/Toast.css` or
+React `<Toast>`, walk an undo stack's keys and clicks in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js TOAST_STACK=1 node --test stories/toast-stack.test.js`
+Report the result in the PR. CI runs only the source half, in `react/src/Toast.test.tsx`.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

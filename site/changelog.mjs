@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.201.0', date: '2026-11-26',
+    changes: [
+      ['added', 'An action notice can now take `timer`. It then closes when the time runs out, and its action starts with a 16px ring that empties as the time runs out. Without `timer` an action notice stays, as before. Part of #888.', ['Toast']],
+      ['added', '`Toast` takes `limit`, the most notices on screen. A new notice over the limit closes the oldest one, and each notice keeps its own action. There is no limit by default. Part of #888.', ['Toast']],
+      ['changed', 'The pointer or the focus anywhere in the toast stack now stops every notice timer, not only the timer of that notice. The hover fill of a notice action now shows in the light theme. Part of #888.', ['Toast']],
+    ],
+  },
+  {
     v: '0.199.0', date: '2026-11-25',
     changes: [
       ['changed', 'A `months` or `bridge` `Chart` now prints every bar\'s `short` name under its bar, and a short name that does not fit its column wraps at a word break. Where the card is too narrow for every bar\'s name, the plot scrolls sideways so every bar keeps its name. Give each bar a distinct short name; the readout and the table keep the full name. Resolves #863.', ['Chart']],

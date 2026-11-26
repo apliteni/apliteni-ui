@@ -536,7 +536,7 @@ const SOLID_STATUSES = [...toastStatuses().keys()];
 test('every toast status declares the whole set of paint tokens', () => {
   assert.ok(SOLID_STATUSES.length >= 5, `only ${SOLID_STATUSES.length} toast statuses found — the scan is broken`);
   for (const [status, body] of toastStatuses()) {
-    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid']
+    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid', '--toast-timer-tone']
       .filter((token) => !new RegExp(`${token}\\s*:`).test(body));
     assert.deepStrictEqual(
       missing, [],
@@ -950,3 +950,58 @@ test('the solid-toast gate actually measures something', () => {
     'both themes resolved the same solid success fill — the theme split is not working',
   );
 });
+
+/* ---- the undo notice's countdown ring ---------------------------------------
+ * A 2px ring in the notice's tone, mixed into the notice ground by --toast-timer-mix or
+ * --toast-timer-mix-strong. At 2 CSS px it is a graphic, so it is held to 3:1 against the notice
+ * ground and against the action's hover fill behind it, in both themes, under every accent and in
+ * every tone. #888 */
+const HOVER = {
+  dark: declOf('.ui-toast__action:hover').background,
+  light: declOf(':where(:root[data-theme="light"]) .ui-toast__action:hover').background,
+};
+
+/* The ring's own ink. The forced-colours rule names a system colour, which has no ratio to read. */
+const RING_INK = [...CALLOUT.matchAll(RULE)]
+  .filter(([, sel]) => splitSelectorList(sel).includes('.ui-toast__ring'))
+  .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
+  .find((ink) => ink?.includes('--toast-timer-tone'));
+
+function ringRatio(theme, accent, status) {
+  const vars = new Map(sharedTokensFor(theme, accent));
+  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+    if (!splitSelectorList(sel).includes(`.ui-toast--${status}`)) continue;
+    for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
+  }
+  const card = colourOf(declOf('.ui-toast').background, vars);
+  const hover = colourOf(HOVER[theme], vars);
+  const ring = colourOf(RING_INK, vars);
+  assert.ok(card && hover && ring, `the ${status} ring or its ground does not resolve in ${theme} ${accent}`);
+  return Math.min(...[card, compositeRgba(hover, card)].map((ground) => ratio(compositeRgba(ring, ground), ground)));
+}
+
+test('the ring is a graphic: its stroke is at least the 1.5 CSS px line', () => {
+  assert.ok(RING_INK, 'callout.css paints no ring with --toast-timer-tone');
+  assert.ok(HOVER.dark && HOVER.light, 'callout.css has no action hover fill for each theme');
+  assert.ok(Number(declOf('.ui-toast__ring-arc', 'stroke-width')['stroke-width']) >= SOLID_STROKE);
+});
+
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`the countdown ring clears 3:1 on the notice ground in every tone — ${theme} ${accent}`, () => {
+      const failures = SOLID_STATUSES.map((status) => [status, ringRatio(theme, accent, status)])
+        .filter(([, r]) => r < GRAPHIC_AA).map(([status, r]) => `${status}: ${show(r)}:1`);
+      assert.ok(SOLID_STATUSES.length >= 5, 'the toast statuses were not found');
+      assert.deepEqual(failures, []);
+    });
+  }
+}
+
+test('the ring gate rejects a ring mixed too far into the ground', () => {
+  const tokens = sharedTokensFor('light', 'default');
+  const vars = new Map(tokens).set('--toast-timer-mix', '40%');
+  const ground = colourOf('var(--surface)', vars);
+  const ring = colourOf('color-mix(in srgb, var(--green) var(--toast-timer-mix), var(--surface))', vars);
+  assert.ok(ratio(compositeRgba(ring, ground), ground) < GRAPHIC_AA);
+});
+

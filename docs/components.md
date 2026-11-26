@@ -969,14 +969,30 @@ push({ tone: 'success', title: 'Invoice sent', action: { label: 'Undo', onClick:
 Use one `Toast` provider for each document. A notice has `title`, and can have `text`, `tone`,
 `action`, `compact`, `dismissible` and `timer`. `compact` has no body text.
 `dismissible={false}` hides the close button. `timer={false}` keeps the notice until the user
-closes it. A number sets the seconds.
+closes it. A number sets the seconds. `limit` on the provider sets the most notices on screen. It
+has no limit by default.
+
+```tsx
+<Toast limit={3}><App /></Toast>
+
+push({ title: 'Mercado Verde set to Groceries', timer: 8, action: { label: 'Undo', onClick: undo } });
+```
 
 **What the user sees.** The stack is at the bottom right, with the newest notice at the bottom. A
-notice without an action closes after five seconds. Its timer line and its countdown stop while it
-is hovered, focused or held in a pile. A notice with an action stays until the user picks the
-action or closes it. With `collapse`, the stack is a pile with the newest notice in front. The pile
-opens into a column on hover and on focus. A ninth notice makes the pile no taller than a third. A
-device without hover always shows the column. Under reduced motion the timer line is not drawn.
+notice without an action closes after five seconds. A notice with an action stays until the user
+picks the action or closes it. If it also has `timer`, it closes when the time runs out. Its action
+then starts with a 16 px ring that empties as the time runs out. Each notice keeps its own action.
+When a new notice goes over `limit`, the oldest notice closes, and its change stays. All timers,
+lines and rings stop while the pointer or the focus is in the stack. With `collapse`, the stack is
+a pile with the newest notice in front. The pile opens into a column on hover and on focus. A
+ninth notice makes the pile no taller than a third. A device without hover always shows the
+column. Under reduced motion the timer line is not drawn, and the ring moves one step each second.
+In forced colours the ring stays, in the button colour.
+
+**Colour of the ring.** The ring mixes the notice tone into the notice ground. A success ring
+takes `--toast-timer-mix`: 45% in dark and 85% in light. The other tones take
+`--toast-timer-mix-strong`: 60% in dark and 95% in light. Every ring keeps 3:1 on the notice ground
+and on the hover fill of its action, in both themes, under every accent.
 
 **Keyboard and screen reader.** An ordinary notice is polite and a danger notice is assertive. A
 new notice does not move the focus.
