@@ -963,25 +963,26 @@ const ringInk = (css) => [...css.matchAll(RULE)]
   .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
   .find((ink) => ink?.includes('--toast-timer-tone'));
 
+function ringRatio(theme, accent, status, css, props) {
+  const vars = new Map(sharedTokensFor(theme, accent));
+  for (const [name, value] of Object.entries(props)) vars.set(name, value);
+  for (const [, sel, body] of css.matchAll(RULE)) {
+    if (!splitSelectorList(sel).includes(`.ui-toast--${status}`)) continue;
+    for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
+  }
+  const card = colourOf(declOf('.ui-toast', 'background', css).background, vars);
+  const hover = colourOf(declOf('.ui-toast__action:hover', 'background', css).background, vars);
+  const ring = colourOf(ringInk(css), vars);
+  assert.ok(card && hover && ring, `the ${status} ring or its ground does not resolve in ${theme} ${accent}`);
+  return Math.min(...[card, compositeRgba(hover, card)].map((ground) => ratio(compositeRgba(ring, ground), ground)));
+}
+
 /* The tones whose ring falls under 3:1 on the notice ground or on the hover fill. A mutation
- * passes its own callout source or token values, so it runs through this same gate. */
-function ringFailures(theme, accent, { css = CALLOUT, tokens = {} } = {}) {
-  const hover = declOf('.ui-toast__action:hover', 'background', css).background;
-  const ink = ringInk(css);
-  assert.ok(ink && hover, 'callout.css has no ring ink with --toast-timer-tone, or no action hover fill');
-  return SOLID_STATUSES.flatMap((status) => {
-    const vars = new Map([...sharedTokensFor(theme, accent), ...Object.entries(tokens)]);
-    for (const [, sel, body] of css.matchAll(RULE)) {
-      if (!splitSelectorList(sel).includes(`.ui-toast--${status}`)) continue;
-      for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
-    }
-    const card = colourOf(declOf('.ui-toast', 'background', css).background, vars);
-    const fill = colourOf(hover, vars);
-    const ring = colourOf(ink, vars);
-    assert.ok(card && fill && ring, `the ${status} ring or its ground does not resolve in ${theme} ${accent}`);
-    const r = Math.min(...[card, compositeRgba(fill, card)].map((ground) => ratio(compositeRgba(ring, ground), ground)));
-    return r < GRAPHIC_AA ? [`${status}: ${show(r)}:1`] : [];
-  });
+ * passes its own callout source or custom property values, so it runs through this same gate. */
+function ringFailures(theme, accent, { css = CALLOUT, props = {} } = {}) {
+  assert.ok(ringInk(css), 'callout.css has no ring ink with --toast-timer-tone');
+  return SOLID_STATUSES.map((status) => [status, ringRatio(theme, accent, status, css, props)])
+    .filter(([, r]) => r < GRAPHIC_AA).map(([status, r]) => `${status}: ${show(r)}:1`);
 }
 
 test('the ring is a graphic: its stroke is at least the 1.5 CSS px line', () => {
@@ -999,7 +1000,7 @@ for (const theme of ['dark', 'light']) {
 
 test('the ring gate rejects a ring mixed too far into the ground', () => {
   // The light soft mix at 40% instead of 85%: the three tones that take it fail.
-  assert.deepEqual(ringFailures('light', 'default', { tokens: { '--toast-timer-mix': '40%' } }).map((f) => f.split(':')[0]), ['success', 'warn', 'info']);
+  assert.deepEqual(ringFailures('light', 'default', { props: { '--toast-timer-mix': '40%' } }).map((f) => f.split(':')[0]), ['success', 'warn', 'info']);
   // Dark danger and neutral without the strong mix: 45% leaves them under 3:1.
   const weak = CALLOUT.replaceAll('--toast-timer-tone: var(--toast-timer-mix-strong)', '--toast-timer-tone: var(--toast-timer-mix)');
   assert.notStrictEqual(weak, CALLOUT, 'no tone takes --toast-timer-mix-strong');
