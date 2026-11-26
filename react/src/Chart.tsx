@@ -321,7 +321,8 @@ const FIT_CORNER = 6;
 /** The ground a value or a period label keeps beside its neighbour: --space-1, --space-2. */
 const TEXT_GAP = 4;
 const LABEL_GAP = 8;
-/** The text size the plot's words are drawn at: --text-xs. */
+/** The text size the plot's words are drawn at: --text-xs. A measure reads the
+ *  frame's own size, and this figure stands in only where nothing can measure. */
 const TEXT_SIZE = 12;
 /** The room a bar's value takes past its bar: one line of the tick's box and the gap. */
 const VALUE_ROOM = Math.ceil(TEXT_SIZE * 1.45) + TEXT_GAP;
@@ -425,7 +426,10 @@ function useTextWidth(host: RefObject<HTMLElement | null>) {
     const style = getComputedStyle(el);
     // The group label is drawn at --weight-medium and the picked period at
     // --weight-semibold; both are wider than the body weight.
-    const font = (weight: string) => `${weight} ${TEXT_SIZE}px ${style.fontFamily}`;
+    // The plot's words take the frame's size, --text-xs, which a consumer may set
+    // other than 12px; a width measured at 12px would wrap a 13px name too late.
+    const size = parseFloat(style.fontSize) || TEXT_SIZE;
+    const font = (weight: string) => `${weight} ${size}px ${style.fontFamily}`;
     setFace({
       regular: font(style.fontWeight),
       medium: font(style.getPropertyValue('--weight-medium').trim() || '500'),
@@ -737,6 +741,10 @@ export function Chart(props: ChartProps) {
   /** Focus a pointer moved onto the frame. The frame's own handler then leaves
    *  the readout and the announcement to the gesture that asked for them. */
   const pointerFocus = useRef(false);
+  /** The row a key stepped to, which the readout's placement scrolls into view
+   *  first, and the page scroll that move makes, which keeps the readout open. */
+  const reveal = useRef<string | null>(null);
+  const revealing = useRef(false);
 
   const floor = useTapFloor();
   const textWidth = useTextWidth(frameEl);
@@ -969,6 +977,19 @@ export function Chart(props: ChartProps) {
     // opens above its mark, over the legend if it must.
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
     if (!anchor) return;
+    // A rows look runs down the page, so a key can step to a row under the view.
+    // The row comes into view before the readout is placed: the readout then
+    // opens above it, or under it where the view has no room above.
+    // why: guidelines/hover-readouts.md#provide-another-access-method
+    const hit = reveal.current === openId ? anchor.parentElement?.querySelector('.ui-chart__hit') : null;
+    reveal.current = null;
+    if (hit?.scrollIntoView) {
+      revealing.current = true;
+      hit.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+      // The scroll events of that move arrive before the next frame's callbacks.
+      const view = frameEl.current.ownerDocument.defaultView;
+      view?.requestAnimationFrame(() => view.requestAnimationFrame(() => { revealing.current = false; }));
+    }
     if (layered && !tip.matches(':popover-open')) tip.showPopover();
     if (layered) placeChartTip(anchor, tip);
     else placeTip(frameEl.current, anchor, tip);
@@ -984,6 +1005,8 @@ export function Chart(props: ChartProps) {
       // keyboard reader who scrolls the plot keeps it open. A page scroll with
       // the pointer still closes it. why: guidelines/hover-readouts.md#keep-readouts-over-the-page
       if (event?.target === scroller.current) return;
+      // A key's own move of a row into view is not the reader's scroll.
+      if (event?.type === 'scroll' && revealing.current) return;
       setOpenId(null);
     };
     const escape = (event: globalThis.KeyboardEvent) => {
@@ -1040,7 +1063,9 @@ export function Chart(props: ChartProps) {
   const step = (next: number) => {
     const column = Math.max(0, Math.min(next, count - 1));
     setCursor(column);
-    show(lead(column)?.id);
+    const id = lead(column)?.id;
+    if (look?.layout === 'rows' || look?.layout === 'named') reveal.current = id ?? null;
+    show(id);
     announce(column);
     const el = scroller.current;
     if (el && el.scrollWidth > el.clientWidth) {

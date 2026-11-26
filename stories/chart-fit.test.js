@@ -17,7 +17,10 @@
  * phone of 466×678 and 890×626 at scale 3 with touch. The walk opens react-chart--fit-the-card
  * in light at each size and device. On each of its three charts it focuses the chart, presses
  * the arrows, Home and End, then clicks or taps a mark, then presses Escape. It presses Down
- * on the rows look only, because a column chart leaves Down to the page.
+ * on the rows look only, because a column chart leaves Down to the page. It also walks the rows
+ * look of react-chart--long-category-names, which is taller than a landscape phone's view.
+ * After each key, the open readout lies inside the view. After End and Home on a rows look,
+ * the last or the first row lies inside the view too.
  *
  * Its limits: one engine and the default accent. A wider bridge and the line, area, stacked
  * and donut charts may scroll, so they are not subjects. The fixed check reads every
@@ -38,6 +41,8 @@ const DEVICES = ['Galaxy Z Fold 7', 'Galaxy Z Fold 7 Cover', 'Galaxy Z Flip 7', 
 const DUO = [[466, 678], [890, 626]];
 const THEMES = ['light', 'dark'];
 const WALK = 'react-chart--fit-the-card';
+/** The rows look that runs past a landscape view, walked as its story's first chart. */
+const TALL = 'react-chart--long-category-names';
 /** The charts that must fit: a months chart, its rows look, and a bridge of up to four steps. */
 const SUBJECT = '.ui-chart--months, .ui-chart--months-rows, .ui-chart--bridge';
 
@@ -72,7 +77,17 @@ const READ = (index) => {
     focus: chart.contains(document.activeElement),
     open: Boolean(chart.querySelector('.ui-tip.is-open')),
     fixed,
+    // The vertical span of the open readout, of the first and the last row, and of the view.
+    tip: span(chart.querySelector('.ui-tip.is-open')),
+    first: span(chart.querySelector('.ui-chart__hit')),
+    last: span([...chart.querySelectorAll('.ui-chart__hit')].at(-1)),
+    view: window.innerHeight,
   };
+  function span(el) {
+    if (!el) return null;
+    const b = el.getBoundingClientRect();
+    return [b.top, b.bottom];
+  }
 };
 
 async function open(browser, port, vitals, context, story, theme) {
@@ -117,6 +132,12 @@ async function walk(page, label, index, touch) {
     if (s.cls >= 0.1) found.push(`${at}: layout shift ${s.cls.toFixed(3)}`);
     if (name === 'key: Escape' && s.open) found.push(`${at}: Escape did not close the readout`);
     if (name !== 'key: Escape' && name !== 'key: focus' && !s.open) found.push(`${at}: no readout opened`);
+    const outside = (box) => box && (box[0] < -0.5 || box[1] > s.view + 0.5);
+    if (name.startsWith('key: ') && name !== 'key: Escape' && outside(s.tip)) {
+      found.push(`${at}: the readout is out of view, ${s.tip.map(Math.round).join(' to ')} in a ${s.view}px view`);
+    }
+    const row = rows && (name === 'key: End' ? s.last : name === 'key: Home' ? s.first : null);
+    if (outside(row)) found.push(`${at}: the row is out of view, ${row.map(Math.round).join(' to ')} in a ${s.view}px view`);
     if (s.fixed.length !== before.fixed.length
       || s.fixed.some(([x, y], i) => Math.abs(x - before.fixed[i][0]) > 1 || Math.abs(y - before.fixed[i][1]) > 1)) {
       found.push(`${at}: a fixed element moved`);
@@ -140,6 +161,7 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
     .filter((id) => id.startsWith('react-chart--'));
   assert.ok(stories.length >= 20, `${stories.length} chart stories in the build. A discovery that collapsed measures nothing.`);
   assert.ok(stories.includes(WALK), `the Storybook build has no ${WALK}`);
+  assert.ok(stories.includes(TALL), `the Storybook build has no ${TALL}`);
 
   const subjects = [
     ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
@@ -187,8 +209,13 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
         walked.push(...found);
         actions += ran;
       }
-      findings.push(...walked);
       await ctx.close();
+      const tall = await open(browser, server.port, vitals, context, TALL, 'light');
+      const { found, ran } = await walk(tall.page, `${label} long names`, 0, touch);
+      walked.push(...found);
+      actions += ran;
+      await tall.ctx.close();
+      findings.push(...walked);
       table.push(`| ${label} | ${width}px | ${charts} | ${actions} | ${walked.length ? 'fail' : 'pass'} |`);
     }
     process.stdout.write(`| Size or device | Width | Charts measured | Actions | Result |\n| --- | --- | --- | --- | --- |\n${table.join('\n')}\n`);
@@ -209,8 +236,8 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
     // The months floor of 0.199.0: a column as wide as a word, so 14 months scroll.
     await mutateFit('.ui-chart--months .ui-chart__plot { min-width: 600px !important; }', 'plot');
     await mutateFit('#storybook-root { min-width: 200vw; }', 'page');
-    const mutateWalk = async (setup, says) => {
-      const { ctx, page } = await open(browser, server.port, vitals, phone, WALK, 'light');
+    const mutateWalk = async (setup, says, story = WALK, context = phone) => {
+      const { ctx, page } = await open(browser, server.port, vitals, context, story, 'light');
       await setup(page);
       const { found } = await walk(page, 'mutated', 0, false);
       caught.push([says, found.some((f) => f.includes(says))]);
@@ -236,6 +263,9 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
       bar.style.cssText = 'position: fixed; top: 0; left: 0; width: 10px; height: 10px;';
       document.addEventListener('keydown', (e) => { if (e.key === 'End') bar.style.top = '40px'; }, true);
     }), 'fixed element moved');
+    // A key that leaves its row where it is, as dad8e4f9 did: End at 844×390 steps under the view.
+    await mutateWalk((page) => page.evaluate(() => { Element.prototype.scrollIntoView = () => {}; }),
+      'out of view', TALL, { viewport: { width: 844, height: 390 } });
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
   } finally {
     await browser.close();

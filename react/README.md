@@ -948,7 +948,8 @@ readout with no comparison. A months chart fits its card and does not scroll: it
 prints fewer month names where they do not fit, and no two printed names overlap. `values` prints
 each bar's value where it fits. For categories whose names must all print, such as units with a
 signed margin, set `look="rows"`: each full `label` stands above a bar across, and the bars use
-the full width of the card. A bridge column is as wide as its widest word, and a step name wraps
+the full width of the card. A key that steps to a row outside the view scrolls that row into
+view, and a scale caption that does not fit is left out. A bridge column is as wide as its widest word, and a step name wraps
 at its spaces. A bridge whose word is wider than its column scrolls. Any other chart of periods
 that is wider than its card opens at its latest period. The chart's table has dense rows.
 

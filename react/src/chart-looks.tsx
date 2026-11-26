@@ -550,6 +550,36 @@ function acrossBar(from: number, to: number, y: number, h: number, r: number) {
 /** How far a bar stops short of the zero rule, as a months column does. */
 const ZERO_GAP = 1.5;
 
+/** The ground a scale caption keeps beside its neighbour: --space-2. */
+const CAPTION_GAP = 8;
+
+/** The scale ticks whose captions print. Zero prints first, then the two ends,
+ *  then the ticks between, each only where its formatted caption keeps the gap
+ *  to every caption already printed. A long currency figure leaves a tick out
+ *  and never prints over its neighbour; the tick's rule still draws. */
+function scaleCaptions(g: LookGeometry, x: (v: number) => number,
+  edge: (tick: number) => 'start' | 'end' | 'middle') {
+  const { ticks } = g.scale;
+  const span = (tick: number) => {
+    const w = g.textWidth(g.formatAxis(tick));
+    const at = x(tick);
+    const anchor = edge(tick);
+    const start = anchor === 'start' ? at : anchor === 'end' ? at - w : at - w / 2;
+    return { start, end: start + w };
+  };
+  const order = [...new Set([ticks.find((t) => t === 0), ticks[0], ticks[ticks.length - 1], ...ticks])]
+    .filter((t): t is number => t !== undefined);
+  const kept: { start: number; end: number }[] = [];
+  const printed = new Set<number>();
+  for (const tick of order) {
+    const s = span(tick);
+    if (kept.some((k) => s.start < k.end + CAPTION_GAP && k.start < s.end + CAPTION_GAP)) continue;
+    kept.push(s);
+    printed.add(tick);
+  }
+  return ticks.filter((t) => printed.has(t));
+}
+
 function namedDrawing(g: LookGeometry, pick: number | null) {
   const { look, scale, formatAxis } = g;
   const named = namedOf(g);
@@ -557,6 +587,7 @@ function namedDrawing(g: LookGeometry, pick: number | null) {
   const zero = named.x(Math.min(Math.max(0, scale.min), scale.max));
   const edge = (tick: number) => (tick === scale.ticks[0] ? 'start'
     : tick === scale.ticks[scale.ticks.length - 1] ? 'end' : 'middle');
+  const captions = scaleCaptions(g, named.x, edge);
   return (
     <>
       {named.rows.map((row, i) => (
@@ -586,7 +617,7 @@ function namedDrawing(g: LookGeometry, pick: number | null) {
           })()}
         </g>
       ))}
-      {scale.ticks.map((tick) => (
+      {captions.map((tick) => (
         <text key={`caption-${tick}`} className="ui-chart__caption" aria-hidden="true" textAnchor={edge(tick)}
           x={px(named.x(tick))} y={px(named.bottom + 16)}>{formatAxis(tick)}</text>
       ))}

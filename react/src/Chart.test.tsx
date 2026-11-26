@@ -1047,6 +1047,29 @@ it('draws a rows look as signed bars across the full plot, each full name above 
     expect(bar.x, 'the bar stays inside the plot').toBeGreaterThanOrEqual(0);
   });
   expect(bars[0].width, 'the largest margin spans most of the plot').toBeGreaterThan(300 * 0.5);
+  cleanup();
+  vi.restoreAllMocks();
+  // #908 review, finding 2: full euro captions of a 300px scale. Each printed
+  // caption is read at the fallback width, from its x and its anchor, and keeps
+  // 8px to the next. Zero always prints; a tick that cannot fit leaves out its
+  // caption, not its rule.
+  const { container: wide } = rowsChart(300, {
+    series: [{ id: 'margin', name: 'Margin', values: [4200000, -1800000, 30000, 9000, -12000, 24000] }],
+  });
+  const scale = [...wide.querySelectorAll('.ui-chart__svg text.ui-chart__caption')].filter((t) => !t.querySelector('tspan'));
+  const spans = scale.map((t) => {
+    const w = (t.textContent ?? '').length * 12 * 0.62;
+    const x = Number(t.getAttribute('x'));
+    const anchor = t.getAttribute('text-anchor');
+    const start = anchor === 'start' ? x : anchor === 'end' ? x - w : x - w / 2;
+    return { text: t.textContent, start, end: start + w };
+  });
+  expect(spans.map((c) => c.text), 'zero prints').toContain('€0');
+  expect(spans.slice(1).filter((c, k) => c.start < spans[k].end + 8).map((c) => c.text),
+    'no two printed captions come within 8px').toEqual([]);
+  expect(spans.every((c) => c.start >= 0 && c.end <= 300), 'every caption stays in the plot').toBe(true);
+  const rules = wide.querySelectorAll('.ui-chart__svg g:first-of-type line').length;
+  expect(rules, 'every tick keeps its rule').toBeGreaterThan(scale.length);
   vi.restoreAllMocks();
 });
 
@@ -1059,7 +1082,19 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   fireEvent.keyDown(frame(), { key: 'ArrowDown' });
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Customer Support$/);
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__value')).toHaveTextContent('−€18,000');
+  // #908 review, finding 3: End steps to a row under a short landscape view.
+  // The row's hit area scrolls into view before the readout is placed, and the
+  // page scroll that move makes keeps the readout open. Limits: JSDOM has no
+  // layout, so the browser half in stories/chart-fit.test.js reads the boxes.
+  const scrolled: Element[] = [];
+  Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this); };
   fireEvent.keyDown(frame(), { key: 'End' });
+  expect(scrolled.at(-1), 'the last row comes into view')
+    .toBe(plot().querySelector('[data-mark="margin-5"] .ui-chart__hit'));
+  fireEvent.scroll(document);
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label'), 'that scroll keeps the readout')
+    .toHaveTextContent(/^Shared Services$/);
+  delete (Element.prototype as Partial<Element>).scrollIntoView;
   fireEvent.keyDown(frame(), { key: 'ArrowUp' });
   expect(screen.getByRole('status')).toHaveTextContent(/^Quality Assurance\./);
   fireEvent.keyDown(frame(), { key: 'Escape' });
@@ -1087,7 +1122,26 @@ it('wraps a rows name at its spaces where the plot is narrower than the name, an
     .map((t) => t.textContent ?? '');
   expect(lines.join(''), 'every letter prints').toBe('InfrastructureOperations');
   lines.forEach((line) => expect(line.length * 12 * 0.62, `"${line}" fits 60px`).toBeLessThanOrEqual(60));
+  cleanup();
   vi.restoreAllMocks();
+  // #908 review, finding 1: a consumer's --text-xs of 13px. The stub's widths
+  // follow the font's size, so a name measured at 12px fits 300px and at 13px
+  // does not. The name must wrap at the size the frame draws.
+  const LONG = 'Infrastructure Operations Customer Support Team Ops';
+  const width = (font: string, text: string) => text.length * Number(/([\d.]+)px/.exec(font)?.[1] ?? 0) * 0.47;
+  vi.stubGlobal('OffscreenCanvas', class {
+    getContext() { return { font: '', measureText(text: string) { return { width: width(this.font, text) }; } }; }
+  });
+  const sheet = document.head.appendChild(document.createElement('style'));
+  sheet.textContent = '.ui-chart__frame { font-size: 13px; }';
+  const { container: large } = rowsChart(300, { periods: [LONG, ...UNITS.slice(1)].map((label) => ({ label, compare: false })) });
+  const drawn = [...large.querySelector('.ui-chart__svg text.ui-chart__caption')!.querySelectorAll('tspan')]
+    .map((t) => t.textContent ?? '');
+  sheet.remove();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  expect(drawn.join(' '), 'every word prints').toBe(LONG);
+  drawn.forEach((line) => expect(width('13px', line), `"${line}" fits 300px at 13px`).toBeLessThanOrEqual(300));
 });
 
 it('draws no bar for a missing rows value, and refuses a series the rows look cannot draw', () => {

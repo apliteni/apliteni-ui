@@ -1486,7 +1486,9 @@ units with a signed margin, set `look="rows"`: each row prints its full `label` 
 grows right from zero or left for a negative value, and the bars use the full width of the card.
 A name wider than the card wraps at its spaces. The rows look takes one `bars` or `bars-below`
 series, prints no `values`, and throws a `RangeError` for a second series or a line. Up and Down
-also step its rows. No two printed labels overlap, whatever the name length or the width. Where the
+also step its rows. A key that steps to a row outside the view scrolls that row into view, with its
+readout. A scale caption that does not fit beside its neighbour is left out, and zero always prints.
+A name wraps at the size the chart's text is drawn at, `--text-xs`. No two printed labels overlap, whatever the name length or the width. Where the
 first step prints the picked period's label, a pick keeps it printed, and a wider step counts
 from the pick. The readout and the table keep the full name. Set `values` to print each
 bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
