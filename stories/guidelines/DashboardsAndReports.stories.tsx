@@ -204,18 +204,18 @@ const specimens = [
   // title, which is what "fixed by whoever built the page" looks like on a screen.
   { id: 'report-offers',
     do: () => <Stage><div className="ui-card-stack"><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Sale filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Sale filters" clearLabel="Clear all" onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Export rows</Button>
     </div><Card title="Sales"><LedgerTable label="Sales with filters" /></Card></div></Stage>,
     dont: () => <Stage><Card title="Sales, 2026"><LedgerTable label="Sales, 2026" /></Card></Stage> },
   // "Download PDF" does not start with "Export", so export-at-the-row-end does not count this row.
   { id: 'export-icon',
     do: () => <Stage><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onClear={noop} onChange={noop} />
       <Button icon="download" iconOnly>Download PDF</Button>
     </div></Stage>,
     dont: () => <Stage><div className="ui-toolbar ui-toolbar--split">
-      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onRemove={noop} onClear={noop} onChange={noop} />
+      <FilterBar filters={FILTERS} label="Report filters" clearLabel="Clear all" onClear={noop} onChange={noop} />
       <Button icon="download">Download PDF</Button>
     </div></Stage> },
   { id: 'chart-table-switch',

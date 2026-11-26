@@ -500,17 +500,18 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   `--ui-dropdown-edge` from the edge of the view. Set that property to 0 for a panel flush with
   the edge. At 720px and below, the gap is the 16px page margin, or the safe area of the phone
   when that is wider.
-- The panel is at least 240px wide where the view allows. A long unbroken word, such as a file
-  name or a URL, breaks in the middle, so one row cannot make the panel wider than the screen.
+- The panel is at least 240px wide where the view allows. Inside a Field, the panel takes the
+  field's width instead, so a form control stays one column with its label. A long unbroken
+  word, such as a file name or a URL, breaks in the middle, so one row cannot make the panel
+  wider than the screen.
 - An open panel is never taller than the room between the trigger and the edge of the view. It
   scrolls inside, and the wheel stops at its end. By default the panel stops at 300px, in the
   middle of a row, so the user sees that the list continues. `scroll={n}` asks for another cap
   in px. A panel with fewer rows keeps its content height.
 - When the room is less than 120px, a panel that can go to the other side flips there. Otherwise
   the page can grow so that the user can scroll to the last rows.
-- In a Modal or a Drawer, the panel opens below the trigger and the body scrolls the least
-  distance that shows the whole panel, with the label and the trigger above it. A body that is too
-  short or too narrow for the panel lifts the panel over the body and its footer.
+- In a Modal or a Drawer, the panel opens below the trigger, over the body and its footer, and
+  the body does not scroll.
 - A closed panel adds no scroll room at the end of a page or a body. Closing a panel does not move
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
@@ -807,29 +808,33 @@ Use a [`Dropdown`](#dropdown) instead when a list of values needs more room than
 
 ```tsx
 <FilterBar filters={filters} add={addable}
-  onChange={(id, value) => setFilter(id, value)} onRemove={removeFilter} onClear={clearFilters}
+  onChange={(id, value) => setFilter(id, value)} onClear={clearFilters}
   onAdd={(id, value) => addFilter(id, value)} />
 ```
 
-You control the bar. A filter has `id`, `label`, `items` and an optional `value`. A pick, a remove
-and Clear all call your handlers. They never change your filters. `add` and `onAdd` add a Filter
-control after the chips. Its menu holds one section for each filter that the bar does not show,
+You control the bar. A filter has `id`, `label`, `items` and an optional `value`. A chip has no
+remove mark (×). To let the user clear one filter, make the first row of its `items` an "Any …"
+row with an empty value. A pick and Clear all call your handlers. They never change your filters.
+`add` and `onAdd` add a Filter control after the chips. Its menu holds one section for each filter that the bar does not show,
 with a search field from ten values. When you add the filter in the same update, the focus goes to
 the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and the look.
 
 **What the user sees.** A chip shows only the chosen value. Without a value, it shows the filter
-name. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
+name. Each chip takes the width of its longest value, up to 224px. A value change does not change
+that width, and a reload that turns the bar off and on does not change it. Only a value longer
+than 224px ends with an ellipsis. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
 stays inside the row and never makes the page wider. The menu marks the chip's value with a soft
-accent wash and a check. Clear all and the remove mark of a chip show only when there is a value to
-clear. A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
+accent wash and a check. The chevron is at the right edge of the chip. Clear all shows only when
+there is a value to clear. It keeps its room while it does not show, so the content under the bar
+does not move. Clear all clears every filter.
+A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
 240px, such as a catalogue with a search field, declares `--ui-filter-panel-ask` in your
 stylesheet. It is then 320px wide where the row has the room, and the width of the row where it
 does not.
 
 **Keyboard and screen reader.** The name of each filter reaches the user through the trigger name
 and a hidden legend. When the user clears the last filter, the focus goes to the Filter control,
-or else to the next control that Tab would reach. If the focused remove mark goes, the focus goes
-to the chip's trigger.
+or else to the next control that Tab would reach.
 
 **Room on the screen.** The bar stands on the page directly above its table card, with no card of
 its own. Keep its search field live, because a disabled field is too faint on the page ground.
@@ -901,6 +906,11 @@ page title's edge. To do this, the card hangs outside its container by its side 
 16px at 720px and below. The page shell pads enough for this at every width. If you put a light
 card in another container, pad each side of the container by at least the hang, or the page
 scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
+
+**A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
+while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,
+as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
+scroll frame does.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
@@ -1252,11 +1262,16 @@ leaves it to the window.
 **What the user sees.** A window 1024px wide and 76% of the viewport high, with a rail of sections
 and the reader at the top. The open section has the accent. When the section changes, the pane
 mounts again, so a half-filled form does not follow the user. At 560px and below, the window
-floats with a gap on each side and is as tall as its content. The sections become tabs under the
-reader.
+floats with a gap on each side and takes the full height of the screen, so a section change does
+not change its height. On a phone the window shows one section, and a back button opens the list
+of sections. The window opens on the section. Its head row holds the back button, named Sections,
+the section title and the close control. The screen of sections holds the reader, the close
+control and the rail, with the open section marked. A press on a section opens it.
 
-**Keyboard and screen reader.** Each rail row is a button with `aria-current`. On a phone the tabs
-have one Tab stop, and the arrow keys, Home and End move between them.
+**Keyboard and screen reader.** Each rail row is a button with `aria-current`. The section body is
+a region named by the section title. On a phone, the back button moves focus to the marked
+section, and a press on a section moves focus to the back button. Escape closes the window from
+each screen.
 
 ### Tooltip
 

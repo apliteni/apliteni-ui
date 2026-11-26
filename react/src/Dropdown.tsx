@@ -267,7 +267,6 @@ export function Dropdown({
   // selected row. Read in a layout effect, because the rows have to be styled open
   // before one of them can take focus. why: docs/components.md#dropdown
   const landOn = useRef<number | 'selected' | null>(null);
-  const revealed = useRef(false);
   // The pointer's last position. A move event carrying the one it already had is the
   // browser's own after a scroll, not the reader's, and it would take the active row
   // away from the arrows.
@@ -546,16 +545,15 @@ export function Dropdown({
       el.classList.toggle('is-unbounded', !Number.isFinite(avail));
       dropdownSnap(dd, el);
     };
-    // A body too short for the panel lifts it out, before anything is sized.
+    // A Modal or Drawer body lifts the panel over it, before anything is sized, and does not scroll.
     dropdownLift(dd, el);
     size();
-    // The scrolling body the panel sits in is moved to show it; the focus effect below must not undo that.
-    revealed.current = dropdownReveal(dd, el) !== 0;
+    dropdownReveal(dd, el);
     /* Decided at the open and kept while the page or the body scrolls, so the panel does
      * not change height under the reader. A lifted panel follows its trigger at that
      * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
     const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
-    // The body is scrolled again where the new placement needs it, as on the open.
+    // A resize places the panel again, as on the open.
     const resize = () => { dropdownLift(dd, el); size(); dropdownReveal(dd, el); };
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', follow, true);
@@ -598,7 +596,7 @@ export function Dropdown({
         panel.current.style.minWidth = '';
         if (panel.current.offsetWidth) panel.current.style.minWidth = `${panel.current.offsetWidth}px`;
       }
-      field.current?.focus(revealed.current ? { preventScroll: true } : undefined);
+      field.current?.focus();
       return;
     }
     if (want == null) return;
@@ -606,7 +604,7 @@ export function Dropdown({
     if (!els.length) return;
     const sel = els.findIndex((el) => el.getAttribute('aria-selected') === 'true');
     const to = want === 'selected' ? (sel >= 0 ? sel : 0) : want;
-    (els[to] || els[0]).focus(revealed.current ? { preventScroll: true } : undefined);
+    (els[to] || els[0]).focus();
   }, [open]);
 
   // Keep the active row inside the list's own scroll box, without scrolling the page

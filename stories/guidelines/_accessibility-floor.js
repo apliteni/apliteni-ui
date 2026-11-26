@@ -147,13 +147,6 @@ export const TAP_EXEMPT = [
       + 'below the phone step, which is the visible answer this family takes instead.',
   },
   {
-    selector: '.ui-filter-bar__remove',
-    why: 'The filter row around it opens at this width, but inside a chip there is nothing '
-      + 'to open: the value trigger and the remove mark share an edge by design, and parting '
-      + 'them would draw two controls where the reader sees one. The mark keeps the 24px '
-      + 'target the chip gives it, which clears 2.5.8.',
-  },
-  {
     selector: '.ui-toast',
     why: 'A toast clips to its own rounded corners so the timer bar can run along the bottom '
       + 'edge, and both its controls sit against that clip \u2014 the close mark in the corner, '

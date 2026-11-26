@@ -48,7 +48,7 @@ function check(css, theme, accent) {
   // The band itself, read off a control that takes it plainly, so every assertion below
   // compares against what the kit actually draws rather than against a literal.
   assert.ok(!bare(expected), 'the reference control draws no band at all');
-  assert.match(expected.outline, /(?:^|\s)2px(?:\s|$)/, 'the band is no longer 2px of solid ink');
+  assert.equal(expected.outlineWidth, vars.get('--ring-width'), 'the band follows the kit ring width');
   assert.doesNotMatch(expected.outline, /transparent/, 'the band is a visible outline, not a stand-in');
 
   const targets = win.document.querySelectorAll('.ui-snippet button, .ui-snippet a[href], .ui-snippet pre, .ui-snippet [tabindex]');

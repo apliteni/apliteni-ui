@@ -145,7 +145,7 @@
    hand the page to itself and paint the page everywhere. Backticks become a chip wherever
    the kit renders prose (fmt() in site/changelog.mjs), so a link inside one is ordinary
    markup, and the ring it draws needs nothing from the chip now that an outline leaves its
-   1px of offset unpainted. */
+   offset unpainted. */
 .ui-code {
   font-family: var(--font-mono);
   /* Inline code follows its sentence, and never draws under the smallest step. #814 */

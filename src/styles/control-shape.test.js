@@ -32,10 +32,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SHEETS = ['src/styles', 'react/src'].flatMap((dir) => readdirSync(path.join(root, dir))
   .filter((f) => f.endsWith('.css')).map((f) => `${dir}/${f}`));
 
-// The classes a reader presses: a button, a dropdown trigger, a filter chip and its remove
-// mark, a select, the back link, and a notice's action and dismiss control. #888
+// The classes a reader presses: a button, a dropdown trigger, a filter chip, a select, the
+// back link, and a notice's action and dismiss control. #888
 const CONTROLS = ['ui-btn', 'ui-fbbtn', 'toggle', 'ui-dropdown__trigger', 'ui-filter-bar__chip',
-  'ui-filter-bar__remove', 'ui-select', 'ui-pager__size-select', 'ui-app__search', 'ui-app__menu', 'ui-back',
+  'ui-select', 'ui-pager__size-select', 'ui-app__search', 'ui-app__menu', 'ui-back',
   'ui-toast__action', 'ui-toast__close'];
 // The fields a reader types into. They take the field corner. #836
 const FIELDS = ['ui-input', 'ui-textarea', 'ui-dropdown__search-input', 'ui-pager__jump-input'];
@@ -166,8 +166,9 @@ test('every control is a pill, every field and surface has its corner, and every
   assert.deepEqual(faults(allCorners, squircles), []);
   // What the tree holds today. A lower count means a class lost its declaration.
   // 18 since #847: a band action's Button and dropdown trigger take the band's 40px pill on a phone.
-  // 20 since #888: a notice's action and its dismiss control.
-  assert.equal(allCorners.filter((c) => c.value === PILL).length, 20, 'pill corners read');
+  // 19 since #885 and #888: a filter chip has no remove mark (one less), and a notice's action
+  // and its dismiss control (two more).
+  assert.equal(allCorners.filter((c) => c.value === PILL).length, 19, 'pill corners read');
   assert.equal(allCorners.filter((c) => c.value === FIELD).length, 4, 'one-line field corners read');
   assert.equal(allCorners.filter((c) => c.value === MESSAGE).length, 1, 'message box corners read');
   assert.equal(allCorners.filter((c) => c.value === SURFACE).length, 15, 'card and panel corners read');

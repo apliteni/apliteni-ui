@@ -1788,8 +1788,8 @@ it('an open panel is capped at the room between its trigger and the viewport edg
 });
 
 // Mocked rectangles verify effect wiring. Browser evidence verifies the layout.
-it('scrolls a long panel into view inside a scrolling body and keeps the trigger', async () => {
-  phone(600);
+/** A Modal body from 100px to 640px with a 30-row select in it, opened by a click. */
+async function inBody() {
   const { container } = render(<div style={{ overflowY: 'auto' }}>
     <Dropdown items={Array.from({ length: 30 }, (_, i) => ({ label: `Project ${i + 1}` }))} />
   </div>);
@@ -1797,42 +1797,34 @@ it('scrolls a long panel into view inside a scrolling body and keeps the trigger
   body.getBoundingClientRect = () => ({ top: 100, bottom: 640 } as DOMRect);
   Object.defineProperty(body, 'clientHeight', { value: 540 });
   const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
-  Object.defineProperty(panel, 'offsetHeight', { value: 484 });
+  Object.defineProperty(panel, 'offsetHeight', { value: 300 });
   await userEvent.setup().click(within(container).getByRole('button'));
-  // The body keeps 8px at the top and a 48px shade below, so the shadow fades before the body clips it.
-  expect(availOf(container)).toBe(`${540 - 8 - 48 - 31 - 9}px`);
-  // The shade asks for 501px, and the trigger stays: it may rise to 8px under the body's top edge and no higher.
-  expect(body.scrollTop).toBe(600 - 31 - 8 - 100);
-  expect(panel.classList.contains('is-up')).toBe(false);
-  // The body ends where the open panel ends, so the inset below it needs a spot to scroll to.
-  const root = container.querySelector('.ui-dropdown') as HTMLElement;
-  expect(root.style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 484 + 48 - 1}px`);
+  return { container, body, panel };
+}
+
+it('a panel in a scrolling body opens below its trigger, over the body, and the body does not scroll', async () => {
+  phone(600);
+  const { container, body, panel } = await inBody();
+  expect(panel.getAttribute('data-dd-lifted')).toBe('down');
+  expect(panel.style.top).toBe(`${600 + 9}px`);
+  expect(body.scrollTop).toBe(0);
+  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe('');
+  // Measured against the viewport, as a portalled panel is.
+  expect(availOf(container)).toBe(`${844 - 600 - 9 - 8}px`);
+});
+
+it('a panel in a scrolling body opens above its trigger when the view has less than 120px below it', async () => {
+  phone(844 - 9 - 119);
+  const { body, panel } = await inBody();
+  expect(panel.getAttribute('data-dd-lifted')).toBe('up');
+  expect(panel.style.bottom).toBe(`${844 - (844 - 9 - 119 - 31) + 9}px`);
+  expect(body.scrollTop).toBe(0);
 });
 
 it('a trigger in a page reserves the 8px edge under the open panel, so closing moves nothing and opening adds no scroll', () => {
   phone(600);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
   expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe(`${9 + 0 + 8 - 1}px`);
-});
-
-it('a body too short for the floor lifts the panel out of it, under its trigger', async () => {
-  phone(160);
-  const { container } = render(<div style={{ overflowY: 'auto' }}>
-    <Dropdown items={Array.from({ length: 30 }, (_, i) => ({ label: `Project ${i + 1}` }))} />
-  </div>);
-  const body = container.firstElementChild as HTMLElement;
-  body.getBoundingClientRect = () => ({ top: 100, bottom: 260 } as DOMRect);
-  Object.defineProperty(body, 'clientHeight', { value: 160 });
-  const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
-  Object.defineProperty(panel, 'offsetHeight', { value: 300 });
-  await userEvent.setup().click(within(container).getByRole('button'));
-  // 160 less the 8px edge, the trigger, the gap and the 8px edge again is 104, under the 120px floor.
-  expect(panel.getAttribute('data-dd-lifted')).toBe('down');
-  expect(panel.style.top).toBe(`${160 + 9}px`);
-  expect(body.scrollTop).toBe(0);
-  expect((container.querySelector('.ui-dropdown') as HTMLElement).style.getPropertyValue('--ui-dropdown-reach')).toBe('');
-  // Measured against the viewport, as a portalled panel is.
-  expect(availOf(container)).toBe(`${844 - 160 - 9 - 8}px`);
 });
 
 it('a trigger with no room left is left uncapped, not pinned to a nought-pixel sliver', () => {
