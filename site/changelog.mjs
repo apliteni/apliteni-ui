@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.202.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'The focus ring is now a 1px accent line, 2px from the control, in place of a 2px line 1px from it. It still ends 3px from the control and keeps at least 3:1 against each kit ground. A product that sets `--ring-width` or `--ring-gap-width` keeps its own values. Part of #885.'],
+    ],
+  },
+  {
     v: '0.201.1', date: '2026-11-26',
     changes: [
       ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
