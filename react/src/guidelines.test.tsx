@@ -24,7 +24,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { LINKS } from '../../stories/guidelines/_overview.js';
 // @ts-expect-error -- plain JS story module
 import { GROUND_CSS, SPEC_CSS } from '../../stories/guidelines/_layout.js';
-import { ConfirmPicture, TONE_GLYPH } from '../../stories/_guideline';
+import { ConfirmPicture, DrawerPicture, TONE_GLYPH } from '../../stories/_guideline';
 
 type Meta_ = { id?: string; title: string };
 type StoryModule = { default: Meta_ } & Record<string, { render: (args: unknown, ctx: unknown) => ReactElement }>;
@@ -72,6 +72,9 @@ describe('guideline pages in React: the collection', () => {
       const h1s = [...root.querySelectorAll('h1')].filter(h1 => !h1.parentElement?.closest(STAGE));
       expect(h1s.length, `${page.file}: one h1`).toBe(1);
       expect(titles.has(h1s[0].textContent!), `${page.file}: no Markdown has the title "${h1s[0].textContent}"`).toBe(true);
+      // A screen reader goes to the page's content by its main landmark.
+      expect(root.querySelectorAll('main').length, `${page.file}: one main`).toBe(1);
+      expect(h1s[0].closest('main'), `${page.file}: the h1 is outside main`).toBeTruthy();
     }
   });
 });
@@ -205,6 +208,55 @@ describe('guideline pages in React: Session expired', () => {
     expect(picture.querySelector('.se-page__dialog .rx-modal')).toHaveClass('rx-modal--sm');
     expect(picture.querySelector('.se-page__title')).toBeNull();
     expect(picture.querySelector('.ui-skel')).toBeNull();
+  });
+});
+
+/* The drawer picture's panel is the Drawer's own div: an aside with the group role is
+ * a role axe refuses. A body that scrolls is a named keyboard stop, so End scrolls it,
+ * and a body that fits is no stop.
+ * Limits: JSDOM lays nothing out, so the heights are stubbed. Which bodies scroll at
+ * which width is the browser measurement on the pull request. */
+describe('guideline pages in React: the drawer picture', () => {
+  const picture = () => render(<DrawerPicture title="Northwind Payments">Rows</DrawerPicture>).container;
+  it('draws its panel as a div group named by the title', () => {
+    const panel = picture().querySelector('.ui-drawer__panel')!;
+    expect(panel.localName).toBe('div');
+    expect(panel).toHaveAttribute('role', 'group');
+    expect(panel).toHaveAccessibleName('Northwind Payments');
+  });
+  it('makes a body that scrolls a named stop, and a body that fits none', () => {
+    const fits = picture().querySelector('.ui-drawer__body')!;
+    expect(fits).not.toHaveAttribute('tabindex');
+    expect(fits).not.toHaveAttribute('role');
+    const proto = HTMLElement.prototype;
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => 900 });
+    Object.defineProperty(proto, 'clientHeight', { configurable: true, get: () => 300 });
+    try {
+      const scrolls = picture().querySelector('.ui-drawer__body')!;
+      expect(scrolls).toHaveAttribute('tabindex', '0');
+      expect(scrolls).toHaveAttribute('role', 'group');
+      expect(scrolls).toHaveAccessibleName('Northwind Payments, body');
+    } finally {
+      Reflect.deleteProperty(proto, 'scrollHeight');
+      Reflect.deleteProperty(proto, 'clientHeight');
+    }
+  });
+});
+
+/* The menu column in the Component choice drawer fills the panel, as the shell's own menu
+ * drawer has it. At its own 216px it was wider than the panel at 360 and 390, and the
+ * body scrolled sideways.
+ * Limits: the sheets are read as text. The width in a browser is the measurement on the
+ * pull request. */
+describe('guideline pages in React: Component choice', () => {
+  const page = pages.find(p => p.file.endsWith('/ComponentChoice.stories.tsx'))!;
+  it('fills the drawer panel with the menu column, as the shell menu does', () => {
+    const fill = /\.ui-nav--side\s*,\s*[^{]*\.ui-nav--side\s*>\s*\*\s*\{\s*width:\s*100%;?\s*\}/;
+    expect(read('./AppShell.css'), 'the shell menu no longer fills its drawer this way').toMatch(fill);
+    const root = mount(page);
+    expect(root.querySelector('.gl-component-choice__under .ui-nav--side'), 'no menu in a drawer: the gate is checking nothing').toBeTruthy();
+    const sheet = [...root.querySelectorAll('style')].map(el => el.textContent).join('\n');
+    expect(sheet).toMatch(/\.gl-component-choice__under \.ui-nav--side,\.gl-component-choice__under \.ui-nav--side>\*\{width:100%;\}/);
   });
 });
 

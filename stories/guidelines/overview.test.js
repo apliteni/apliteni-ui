@@ -109,7 +109,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 170: Three-column page added three rules and Wizard four (#871).
   // 172: Three-column page gained selected-parent and replace-children (#871).
   // 173: Three-column page gained column-header (#871).
-  assert.equal(rules, 175);
+  // 174: Drawers gained save-under-form (#887).
+  assert.equal(rules, 176);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

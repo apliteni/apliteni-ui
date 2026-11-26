@@ -31,7 +31,9 @@ const THEMES = ['dark', 'light'];
 // 16: the KeyValueList Wide Drawer story (#811).
 // 17: the date sheet in the DatePicker Sheet In Field story (#832).
 // 18: the date sheet in the DatePicker Phone Day Last Week story (#835).
-const EXPECTED = { subjects: 18, donts: 10 };
+// 19 and 11: the save-under-form pair on the Drawers guideline (#887).
+// 20: the Drawer Long Form story (#887).
+const EXPECTED = { subjects: 20, donts: 11 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);

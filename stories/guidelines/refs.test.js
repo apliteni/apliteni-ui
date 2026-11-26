@@ -316,7 +316,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 170: Three-column page added three rules and Wizard four (#871).
   // 172: Three-column page gained selected-parent and replace-children (#871).
   // 173: Three-column page gained column-header (#871).
-  assert.equal(count, 175, 'update the rule count when adding or removing a rule');
+  // 174: Drawers gained save-under-form (#887).
+  assert.equal(count, 176, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
