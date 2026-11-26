@@ -275,18 +275,18 @@ test('the underline bar is the strong ink by default, and the accent only with t
   assert.equal(decl(ruleBody(baseCss, '.ui-seg--accent.ui-seg--underline button::before'), 'background'), 'var(--accent)', 'the accent bar draws the accent');
 });
 
-test('the wordless option is a 36px pill: a 28px button around the 24px icon, kept on phones', () => {
-  // The wordless button pads 2px inside the 24px icon, a 28px square; the
-  // track's 4px padding on each side makes the 36px pill the owner chose
-  // (rev_bde59a2fa192/d50), and below the phone step its 44px tap zone reaches
+test('the wordless option is a 32px pill: a 24px button around the 20px icon, kept on phones', () => {
+  // The wordless button pads 2px inside the 20px icon, a 24px square; the
+  // track's 4px padding on each side makes the 32px pill the owner chose
+  // (d54), and below the phone step its 44px tap zone reaches
   // past the pill, the way the back link and theme switch do.
   const button = ruleBody(baseCss, '.ui-seg button.ui-seg--icon');
-  assert.equal(decl(button, 'padding'), '2px', 'the wordless button pads 2px inside the 24px icon');
+  assert.equal(decl(button, 'padding'), '2px', 'the wordless button pads 2px inside the 20px icon');
   const icon = ruleBody(baseCss, '.ui-seg button.ui-seg--icon svg');
-  assert.equal(decl(icon, 'width'), '24px');
-  assert.equal(decl(icon, 'height'), '24px');
+  assert.equal(decl(icon, 'width'), '20px');
+  assert.equal(decl(icon, 'height'), '20px');
   // The phone tightening is for month labels; it must skip the wordless button,
-  // or the 2px padding loses there and the pill grows back to 48px.
+  // or the 2px padding loses there and the pill grows back to 44px.
   const phone = /@media \(max-width:\s*560px\)\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
   assert.match(
     phone,

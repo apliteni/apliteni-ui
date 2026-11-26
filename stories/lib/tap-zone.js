@@ -182,8 +182,8 @@ export async function rowFixtures() {
     h(kit.Button, { key: 'export', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'download', 'aria-label': 'Export' }),
     h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
   ] }));
-  // A chart's wordless view switch in the card's tools: two 28px glyph pills in a
-  // 36px track, each owning a 44px target that reads the tools' 20px clearance and
+  // A chart's wordless view switch in the card's tools: two 24px glyph pills in a
+  // 32px track, each owning a 44px target that reads the tools' 20px clearance and
   // reaches past the pill's outer edge, never across the shared middle (#863/#867).
   const wordlessSwitch = await markup(({ h, kit }) => h(kit.Card, {
     title: 'Cash in and out',

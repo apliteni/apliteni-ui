@@ -120,13 +120,13 @@
   }
   .ui-seg:not(:has(button.ui-seg--icon)) { --tap-clear-x: var(--space-1, 4px); }
 
-  /* A wordless switch keeps its 36px pill, and each option still owns a 44px
+  /* A wordless switch keeps its 32px pill, and each option still owns a 44px
      target without crossing the shared middle: the left option reaches left
      past the pill's edge, the right option reaches right, the way the 32px
      back link does. Each takes 2px toward the middle (half the gap) and,
      outward, half the track's 4px padding plus what the outer container clears
-     — 12px where it clears --tap-gap, 0 where it clears nothing, so a packed
-     toolbar's switch stays 32px instead of stealing a neighbour's pixel. */
+     — 16px where it clears --tap-gap, 0 where it clears nothing, so a packed
+     toolbar's switch stays 28px instead of stealing a neighbour's pixel. */
   .ui-seg button.ui-seg--icon:first-child::after {
     left: calc(-1 * (var(--space-1) / 2 + min(calc(var(--tap-min) - 100% - var(--space-1)), var(--tap-clear-x))));
     width: min(var(--tap-min), calc(100% + var(--space-1) + min(calc(var(--tap-min) - 100% - var(--space-1)), var(--tap-clear-x))));

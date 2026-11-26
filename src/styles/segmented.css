@@ -73,8 +73,8 @@
 }
 
 /* Standard pills tighten on phones so six short month names fit one row. The
-   wordless option is excluded: it has no label to fit, and its 36px pill is the
-   owner's decision (rev_bde59a2fa192/d50). */
+   wordless option is excluded: it has no label to fit, and its 32px pill is the
+   owner's decision (d54). */
 @media (max-width: 560px) {
   .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button:not(.ui-seg--icon) { padding: var(--space-2) var(--space-3); }
 }
@@ -83,14 +83,15 @@
    the whole label. The glyph keeps the button glyph's size and line. */
 .ui-seg button:has(> span > svg) { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
 .ui-seg button svg { display: block; width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
-/* A wordless option is all glyph: the 24px view icon the design system
-   approved (rev_fea9d6d61f3a/d38), larger than a labelled option's 16px lead.
-   The button is a 28px square — 24px icon plus 2px inside — so the track's 4px
-   padding makes a 36px pill (rev_bde59a2fa192/d50), and below the phone step
+/* A wordless option is all glyph: the 20px view icon the owner chose (d54),
+   larger than a labelled option's 16px lead.
+   The button is a 24px square — 20px icon plus 2px inside — so the track's 4px
+   padding makes a 32px pill, and below the phone step
    its 44px tap zone reaches past the pill, the way the 32px back link and the
-   34px theme switch do. */
+   34px theme switch do. The 1.8 stroke keeps the 1.5 CSS px line at 20px in
+   the 24-unit box. */
 .ui-seg button.ui-seg--icon { padding: 2px; }
-.ui-seg button.ui-seg--icon svg { width: 24px; height: 24px; stroke-width: 1.7; }
+.ui-seg button.ui-seg--icon svg { width: 20px; height: 20px; stroke-width: 1.8; }
 
 .ui-seg--sm button { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-tight); }
 .ui-seg--block { display: flex; align-self: stretch; justify-self: stretch; }

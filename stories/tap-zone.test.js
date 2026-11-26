@@ -838,8 +838,8 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     });
 
     await t.test('each wordless option owns a 44px target without crossing the shared middle', () => {
-      // The chart/table switch in a card's tools: two 28px glyph pills in a 36px
-      // track. The symmetric clamp left each at 32 across, so a tap at the pill's
+      // The chart/table switch in a card's tools: two 24px glyph pills in a 32px
+      // track. The symmetric clamp left each at 28 across, so a tap at the pill's
       // edge ran the neighbour; the fix opens the LEFT option left and the RIGHT
       // option right, past the pill's outer edge, never into the shared middle.
       const wordless = B.filter((b) => b.story === 'fixture:wordless-switch' && b.cls.split(/\s+/).includes('ui-seg--icon'));
