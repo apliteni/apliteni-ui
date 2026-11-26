@@ -140,3 +140,35 @@ export const SmallToolbar: StoryObj = {
     </div>;
   },
 };
+
+// The filters on a line of their own, under a toolbar of the search field, a dropdown and a
+// wordless button. Each control's size gives its height, so the bar outside the toolbar keeps
+// the small height: 32px with a mouse, 40px on a touch screen. #903
+export const SmallFiltersOwnLine: StoryObj = {
+  name: 'Toolbar at the small size, filters on their own line',
+  render: function Render() {
+    const [query, setQuery] = useState('');
+    const [currency, setCurrency] = useState('');
+    const [chosen, setChosen] = useState<Record<string, string>>({ status: 'Pending' });
+    const term = query.trim().toLowerCase();
+    const rows = INVOICES.filter((row) =>
+      (!chosen.status || row.status === chosen.status)
+      && (!chosen.period || row.days <= Number(chosen.period))
+      && (term === '' || `${row.name} ${row.number}`.toLowerCase().includes(term)));
+    const set = (id: string, value?: string) => setChosen((previous) => ({ ...previous, [id]: value ?? '' }));
+
+    return <div className="ui-app__body">
+      <div className="ui-toolbar">
+        <SearchField size="sm" ariaLabel="Search invoices" placeholder="Vendor or number"
+          value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
+        <Dropdown variant="select" size="sm" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
+          items={CURRENCIES.map((item) => ({ ...item, selected: item.value === currency }))} />
+        <Button size="sm" iconOnly icon="download">Export invoices</Button>
+      </div>
+      <FilterBar size="sm" label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
+        filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
+      <Card><DataTable columns={columns} rows={rows} density="dense" pager={false} selectable={false} stickyHeader
+        scrollLabel="Invoices" /></Card>
+    </div>;
+  },
+};
