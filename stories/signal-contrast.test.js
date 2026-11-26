@@ -998,8 +998,7 @@ for (const theme of ['dark', 'light']) {
 }
 
 test('the ring gate rejects a ring mixed too far into the ground', () => {
-  const tokens = sharedTokensFor('light', 'default');
-  const vars = new Map(tokens).set('--toast-timer-mix', '40%');
+  const vars = new Map(sharedTokensFor('light', 'default')).set('--toast-timer-mix', '40%');
   const ground = colourOf('var(--surface)', vars);
   const ring = colourOf('color-mix(in srgb, var(--green) var(--toast-timer-mix), var(--surface))', vars);
   assert.ok(ratio(compositeRgba(ring, ground), ground) < GRAPHIC_AA);
