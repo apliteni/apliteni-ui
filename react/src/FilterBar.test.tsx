@@ -433,12 +433,13 @@ it('draws a remove mark only on a chip with a value, and Clear all only when one
 // DOM only: the lines the chip measures its width against. A browser measures the width.
 it('holds every line the chip can print, so a pick does not change its width', () => {
   const office: Filter = { id: 'office', label: 'Office', value: 'Porto', items: [{ label: 'Any office', value: '' }, '---',
-    { label: 'Lisbon, head office', value: 'Lisbon, head office' }, { label: 'Porto', value: 'Porto' }, { label: 'Remote' }] };
+    { label: 'Lisbon, head office', value: 'Lisbon, head office' }, { label: 'Porto', value: 'Porto' }, { label: 'West', value: 'Western Europe' }] };
   render(<FilterBar filters={[office, { ...office, id: 'off', value: 'Not in the menu' }]} {...callbacks()} />);
   const lines = (name: string) => [...screen.getByRole('button', { name }).querySelectorAll('.ui-filter-bar__fit > [aria-hidden="true"]')].map(el => el.textContent);
-  // The empty row puts the name back, so it adds no line of its own.
-  expect(lines('Office: Porto')).toEqual(['Porto', 'Office', 'Lisbon, head office', 'Remote']);
-  expect(lines('Office: Not in the menu')).toEqual(['Not in the menu', 'Office', 'Lisbon, head office', 'Porto', 'Remote']);
+  // The empty row puts the name back, so it adds no line of its own. A pick prints a row's
+  // value, so a row whose label differs measures its value, not its label.
+  expect(lines('Office: Porto')).toEqual(['Porto', 'Office', 'Lisbon, head office', 'Western Europe']);
+  expect(lines('Office: Not in the menu')).toEqual(['Not in the menu', 'Office', 'Lisbon, head office', 'Porto', 'Western Europe']);
 });
 
 it('keeps focus on the chip when its value is cleared and its remove mark goes', async () => {

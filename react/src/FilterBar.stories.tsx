@@ -38,8 +38,11 @@ export const Busy: Story = { args: { busy: true } };
 // A bar that reloads its rows after each change, as an app does: the bar is off during the
 // load. Each chip keeps the width of its longest value, so the card under the bar does not
 // move. stories/filter-chip-width.test.js walks it. #885
+// The office member's first value spells its label "Lisbon" differently from the value the
+// chip prints, "Lisbon, head office", so the walk sees a chip whose longest line is a value
+// and not a label. why: docs/components.md#filter-bar
 const MEMBERS = [
-  { id: 'office', label: 'Office', any: 'Any office', values: ['Lisbon, head office', 'Porto', 'Remote'] },
+  { id: 'office', label: 'Office', any: 'Any office', values: [{ label: 'Lisbon', value: 'Lisbon, head office' }, 'Porto', 'Remote'] },
   { id: 'team', label: 'Team', any: 'Any team', values: ['Individual CEO', 'Company overhead', 'Orbit Notes'] },
   { id: 'status', label: 'Status', any: 'Any status', values: ['Active', 'Invited'] },
 ];
@@ -58,7 +61,7 @@ export const Reloading: Story = { render: function Example() {
       <FilterBar label="Member filters" busy={busy} onClear={() => load({})}
         onChange={(id, value) => load({ ...chosen, [id]: value ?? '' })} onRemove={id => load({ ...chosen, [id]: '' })}
         filters={MEMBERS.map(f => ({ id: f.id, label: f.label, value: chosen[f.id] ?? '',
-          items: [{ label: f.any, value: '' }, ...f.values.map(v => ({ label: v, value: v }))] }))} />
+          items: [{ label: f.any, value: '' }, ...f.values.map(v => typeof v === 'string' ? { label: v, value: v } : v)] }))} />
     </div>
     <Card title="Members">{shown ? `${shown} of 3 filters in use` : 'All members'}</Card>
   </div>;

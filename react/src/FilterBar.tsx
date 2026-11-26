@@ -15,11 +15,11 @@ export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: s
 // A menu of ten gets a field over it. why: guidelines/component-choice.md#add-dropdown-search
 const SEARCH_AT = 10;
 const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' && !(entry as { separator?: boolean }).separator;
-// Every line the chip can print: its own, the field's name, and the label of each row a pick
-// would show. A row with an empty value puts the name back, so it adds no line. The chip
-// takes the width of the longest. why: docs/components.md#filter-bar
+// Every line the chip can print: its own, the field's name, and the value each row would
+// print after a pick. A row with an empty value puts the name back, so it adds no line. The
+// chip takes the width of the longest. why: docs/components.md#filter-bar
 const chipLines = (filter: Filter) => [filterChipText(filter), filter.label, ...(filter.items || []).filter(isRow)
-  .filter(item => String(item.value ?? item.label) !== '').map(item => item.label)];
+  .filter(item => String(item.value ?? item.label) !== '').map(item => String(item.value ?? item.label))];
 
 export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
