@@ -86,6 +86,17 @@ export const RING_FLOOR = 3.81;
 // clears by 0.28 is still the floor, and lowering it later is a decision too.
 // why: docs/foundations.md#elevation
 export const DISABLED_FLOOR = 4.89;
+// A disabled dropdown option is the one part below that ratchet. It sits under a bold group
+// label in muted ink, so it takes a paler ink to read as an option and not as a label. The
+// owner chose it, rev_c17796fca526/d24: 3.88:1 in light and 4.14:1 in dark. Its own floor
+// keeps a margin over DISABLED_MIN, and every other part keeps DISABLED_FLOOR. #886
+export const DISABLED_OPTION_FLOOR = 3.5;
+/** The classes of the part that DISABLED_OPTION_FLOOR covers. */
+export const DISABLED_OPTION = ['ui-dropdown__item', 'is-disabled'];
+/** A walk's path ends in or passes through that part, in any class order: a selected
+ * option that became unavailable is `ui-dropdown__item is-selected is-disabled`. */
+export const isDisabledOption = (path) => path.split(' > ')
+  .some((part) => { const classes = part.split('.').slice(1); return DISABLED_OPTION.every((c) => classes.includes(c)); });
 
 /**
  * Controls under 24px that the gate lets through, each with the reason.

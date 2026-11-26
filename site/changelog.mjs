@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.200.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes the new ink `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],
+      ['added', 'A new Dropdown guideline page has one rule, Set group labels apart. Part of #886.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.199.0', date: '2026-11-25',
     changes: [
       ['changed', 'A `months` or `bridge` `Chart` now prints every bar\'s `short` name under its bar, and a short name that does not fit its column wraps at a word break. Where the card is too narrow for every bar\'s name, the plot scrolls sideways so every bar keeps its name. Give each bar a distinct short name; the readout and the table keep the full name. Resolves #863.', ['Chart']],
