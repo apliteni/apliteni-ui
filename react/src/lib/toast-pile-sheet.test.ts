@@ -64,12 +64,14 @@ test('the fan-out is keyed on both the pointer and focus', () => {
   }
 });
 
-test('a held pile pauses every timer line in it', () => {
+test('a held stack pauses every timer line and ring in it', () => {
   const selector = rules(css()).filter(rule => rule.body.includes('animation-play-state: paused'))
     .map(rule => rule.selector).join('\n');
   for (const state of [':hover', ':focus-within']) {
-    assert.ok(selector.includes(`.ui-toast-stack--collapsed${state} > .ui-toast > .ui-toast__timer.is-running`),
-      `${SHEET}: a collapsed stack on \`${state}\` does not pause every timer line it contains.`);
+    for (const mark of ['> .ui-toast__timer.is-running', '.ui-toast__ring-arc.is-running']) {
+      assert.ok(selector.includes(`.rx-toast-stack${state} > .ui-toast ${mark}`),
+        `${SHEET}: a stack on \`${state}\` does not pause every \`${mark}\` it contains.`);
+    }
   }
 });
 

@@ -294,10 +294,22 @@ Report the result in the PR. CI skips this check because Playwright and web-vita
 Before opening a PR that changes the body or footer rules of `src/styles/drawer.css`, React
 `<Drawer>` or the guideline `DrawerPicture` in `stories/_guideline.tsx`, walk the drawer's keys,
 clicks and footer in a real browser. The same run walks Tab and End into each picture body that
-scrolls on the Drawers guideline. Run
+scrolls on the Drawers guideline, and walks the keys of the header status stories. It also widens
+the window while a cut title has the focus, and checks that the focus stays in the drawer. Run
 `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js DRAWER_FOOTER=1 node --test stories/drawer-footer.test.js`
 Report the result in the PR. CI runs only the source half, in `react/src/Drawer.test.tsx`.
+
+## Check the toast stack locally
+
+Before opening a PR that changes `src/styles/callout.css`'s toast rules, `react/src/Toast.css` or
+React `<Toast>`, walk an undo stack's keys and clicks in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js TOAST_STACK=1 node --test stories/toast-stack.test.js`
+If the Playwright package has no browser of its own version, set `UI_CHROME` to a Chrome
+headless shell. The gate passes it to the launch:
+stories/toast-stack.test.js:166 `executablePath: process.env.UI_CHROME`
+Report the result in the PR. CI runs only the source half, in `react/src/Toast.test.tsx`.
 
 ## Changes
 

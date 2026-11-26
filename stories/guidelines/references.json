@@ -34,7 +34,7 @@
     "pattern": ".ui-btn--sm"
    },
    {
-    "ref": "src/styles/input.css:179",
+    "ref": "src/styles/input.css:181",
     "pattern": ".ui-check input::before"
    },
    {
@@ -74,15 +74,15 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:208",
+    "ref": "src/tokens/tokens.css:214",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:214",
+    "ref": "src/tokens/tokens.css:220",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
-    "ref": "src/styles/input.css:68",
+    "ref": "src/styles/input.css:70",
     "pattern": "opacity: 1;"
    }
   ],
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:229",
+    "ref": "src/tokens/tokens.css:235",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -252,7 +252,7 @@
     "pattern": "const isDisabled = (item: CommandItem) =>"
    },
    {
-    "ref": "src/styles/command-palette.css:258",
+    "ref": "src/styles/command-palette.css:259",
     "pattern": ".ui-cmdk__item.is-danger"
    }
   ]
@@ -282,8 +282,8 @@
     "pattern": "a floating, dismissible notification"
    },
    {
-    "ref": "react/src/Toast.tsx:77",
-    "pattern": "className=\"ui-toast__action\""
+    "ref": "react/src/Toast.tsx:106",
+    "pattern": "className={`ui-toast__action"
    }
   ],
   "panels": [
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:483",
+    "ref": "src/styles/dropdown.css:484",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:546",
+    "ref": "src/styles/dropdown.css:547",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:435",
+    "ref": "src/styles/dropdown.css:436",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -360,8 +360,8 @@
     "pattern": "role=\"alertdialog\""
    },
    {
-    "ref": "react/src/Toast.tsx:77",
-    "pattern": "className=\"ui-toast__action\""
+    "ref": "react/src/Toast.tsx:106",
+    "pattern": "className={`ui-toast__action"
    },
    {
     "ref": "src/styles/callout.css:68",
@@ -382,9 +382,19 @@
     "pattern": "--drawer-w: var(--panel-md)"
    }
   ],
+  "status-after-title": [
+   {
+    "ref": "react/src/Drawer.tsx:73",
+    "pattern": "className=\"ui-drawer__status\""
+   },
+   {
+    "ref": "src/styles/drawer.css:158",
+    "pattern": ".ui-drawer__lead {"
+   }
+  ],
   "save-under-form": [
    {
-    "ref": "src/styles/drawer.css:175",
+    "ref": "src/styles/drawer.css:188",
     "pattern": "flex: 0 1 auto;"
    }
   ],
@@ -394,7 +404,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:207",
+    "ref": "src/styles/drawer.css:220",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -404,7 +414,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:210",
+    "ref": "src/styles/drawer.css:223",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -414,7 +424,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:278",
+    "ref": "src/styles/drawer.css:291",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -440,7 +450,7 @@
   ],
   "section-lit": [
    {
-    "ref": "react/src/SidebarNav.tsx:91",
+    "ref": "react/src/SidebarNav.tsx:92",
     "pattern": "activeIs === 'section'"
    }
   ],
@@ -596,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:440",
+    "ref": "src/styles/dropdown.css:441",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:441",
+    "ref": "src/styles/dropdown.css:442",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -786,8 +796,8 @@
     "pattern": "transition: transform var(--dur-fast) var(--ease);"
    },
    {
-    "ref": "src/styles/dropdown.css:50",
-    "pattern": "transition: --ui-dropdown-field-edge var(--dur-fast) var(--ease);"
+    "ref": "src/styles/dropdown.css:51",
+    "pattern": "transition: --ui-dropdown-field-veil var(--dur-fast) var(--ease);"
    }
   ],
   "easing": [
@@ -814,7 +824,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:291",
+    "ref": "src/styles/drawer.css:304",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -898,7 +908,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:318",
+    "ref": "src/tokens/tokens.css:324",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1063,7 +1073,7 @@
   ],
   "nav": [
    {
-    "ref": "react/src/SidebarNav.tsx:110",
+    "ref": "react/src/SidebarNav.tsx:111",
     "pattern": "export const SidebarNav = forwardRef"
    },
    {
@@ -1139,11 +1149,11 @@
     "pattern": "border-radius: var(--radius-pill);"
    },
    {
-    "ref": "src/styles/input.css:42",
+    "ref": "src/styles/input.css:44",
     "pattern": ".ui-textarea { border-radius: var(--radius-2xl); }"
    },
    {
-    "ref": "src/styles/control-shape.test.js:160",
+    "ref": "src/styles/control-shape.test.js:161",
     "pattern": "every control is a pill, every field and surface has its corner, and every squircle is guarded"
    }
   ]
@@ -1201,8 +1211,8 @@
   ],
   "read-state": [
    {
-    "ref": "react/src/Toast.tsx:36",
-    "pattern": "const timed = !notice.action"
+    "ref": "react/src/Toast.tsx:50",
+    "pattern": "const timed = ringed || (!notice.action"
    },
    {
     "ref": "src/styles/callout.css:68",
@@ -1355,11 +1365,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:443",
+    "ref": "src/styles/dropdown.css:444",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:445",
+    "ref": "src/styles/dropdown.css:446",
     "pattern": "color: var(--muted);"
    },
    {

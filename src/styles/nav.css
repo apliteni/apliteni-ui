@@ -41,13 +41,13 @@
 .ui-nav__section + .ui-nav__section { margin-top: 14px; }
 .ui-nav__list { display: flex; flex-direction: column; gap: 2px; }
 .ui-nav__cap {
-  /* rank: label */
   /* Words, never a control, at BOTH widths — as __label, __badge and __caret below.
      why: docs/components.md#page-shell */
   pointer-events: none;
   font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--text);
+  font-weight: var(--weight-bold);
+  /* muted-ink: chrome — names the rows under it; the list's aria-labelledby keeps the name (#886) */
+  color: var(--muted);
   padding: 4px 12px 8px;
   /* Goes on the labels' clock — a section heading is words, and the fold takes
      every word on the rail together. */

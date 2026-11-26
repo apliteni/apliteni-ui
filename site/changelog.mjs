@@ -6,10 +6,42 @@
 
 export const RELEASES = [
   {
+    v: '0.207.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows in every table form, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves, also while the pointer stays on the field. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
+      ['added', 'The Motion guideline has a new rule, Change a hover at once. Hover is the one state change that does not fade. Part of #865.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.205.0', date: '2026-11-26',
     changes: [
-      ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
-      ['added', 'The Motion guideline has a new rule, Change a hover at once. Part of #865.', ['Guidelines']],
+      ['added', 'A `Drawer` takes a `status`, such as one `Badge`, that stands directly after the title on the same line. Part of #868.', ['Drawer']],
+      ['changed', 'A drawer title now stays on one line. A long title ends in an ellipsis, and the status, the header actions and Close stay whole. A cut title is a Tab stop that shows the full title in a readout. Apps with long drawer titles see fewer characters. Part of #868.', ['Drawer']],
+      ['added', 'The Drawers guideline has a new rule, Status after the title: show the record\'s state in one badge directly after the title. Part of #868.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.204.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A sidebar section caption and a command palette group heading are now bold and in muted ink, as a dropdown group label is. Their size and spacing stay. Part of #886.', ['AppShell', 'CommandPalette']],
+      ['changed', 'The Labels and titles and Command palette guideline pages now name the two headings with the dropdown group label. Part of #886.', ['Guidelines']],
+      ['fixed', 'The text of a sidebar row with a count now has a space between the label and the count, so it matches the row\u2019s accessible name. Speech input finds the row by what it shows. Part of #886.', ['SidebarNav']],
+    ],
+  },
+  {
+    v: '0.201.0', date: '2026-11-26',
+    changes: [
+      ['added', 'An action notice can now take `timer`. It then closes when the time runs out, and its action starts with a 16px ring that empties as the time runs out, over a soft full-circle track. Without `timer` an action notice stays, as before. Part of #888.', ['Toast']],
+      ['added', '`Toast` takes `limit`, the most notices on screen. A new notice over the limit closes the oldest one, and each notice keeps its own action. There is no limit by default. Part of #888.', ['Toast']],
+      ['changed', 'The pointer or the focus anywhere in the toast stack now stops every notice timer, not only the timer of that notice. Part of #888.', ['Toast']],
+      ['fixed', 'In light, the notice action shows the quiet fill `--surface-3` under the pointer. Before, its hover fill was white on the white notice. Part of #888.', ['Toast']],
+      ['fixed', 'The notice action and the focus outline of the dismiss control are now pills, `--radius-pill`, as Foundations "Control corners" says. Before, they had the 6px corner `--radius-xs`. Part of #888.', ['Toast']],
+    ],
+  },
+  {
+    v: '0.200.1', date: '2026-11-26',
+    changes: [
+      ['fixed', 'Where a `Chart` steps its category names, it no longer prints one name over another. The step grows until the last printed name, aligned to the chart\'s edge, stays at least 4px clear of the name before it, at any width and any name length. A picked name that the chart prints stays printed. Part of #882.', ['Chart']],
     ],
   },
   {

@@ -111,8 +111,9 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 173: Three-column page gained column-header (#871).
   // 174: Drawers gained save-under-form (#887).
   // 177: Dropdown added group-labels (#886).
-  // 178: Motion gained hover-at-once (#865).
-  assert.equal(rules, 178);
+  // 178: Drawers gained status-after-title (#868).
+  // 179: Motion gained hover-at-once (#865).
+  assert.equal(rules, 179);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

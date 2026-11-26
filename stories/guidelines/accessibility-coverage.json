@@ -510,7 +510,7 @@
     {
       "file": "react/src/CommandPalette.test.tsx",
       "name": "React: CommandPalette",
-      "does": "Compares the React palette with the vanilla factory shape by shape: panel, roles, groups and every row. It then presses keys on the mounted version, checking opening focus, return focus, arrows, Enter and confirmation for a destructive row and refusal when it has no confirmation.",
+      "does": "Compares the React palette with the vanilla factory shape by shape: panel, roles, groups and every row. It then presses keys on the mounted version, checking opening focus, return focus, arrows, Enter and confirmation for a destructive row and refusal when it has no confirmation. Its stories report a command that ran in a toast, and their delete row opens a confirm.",
       "blind": [
         "The hotkey. Cmd+K belongs to the vanilla wiring; a React host binds its own key to the `open` prop it already owns.",
         "Real browser focus and layout; these are jsdom mounts."

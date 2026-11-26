@@ -28,6 +28,20 @@
 
 **Except:** Change one field inline, without a panel. A drawer may show groups a reader only reads.
 
+## Status after the title
+
+<!-- rule: status-after-title -->
+
+**Rule:** Show the record's state in one badge directly after the title.
+
+**Why:** The far end of the header holds the actions, so a badge there reads as one of them.
+
+**Do:** Put `Late` after the source name.
+
+**Don't:** Put the badge among the header actions, beside Close.
+
+**Except:** The status of one figure stays beside that figure in the body.
+
 ## Save under the form
 
 <!-- rule: save-under-form -->

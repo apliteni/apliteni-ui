@@ -207,7 +207,137 @@ async function walkPictures(page, label) {
   return { found, bodies: bodies.length };
 }
 
-test('a drawer footer follows a short body, stays out of a long one, and holds through each interaction, and a scrolling picture body takes Tab and End', {
+/* Rule (#868): the record's status stands directly after the title, on the title's line. A
+ * long title ends in an ellipsis before it, and the status, the actions and Close stay whole.
+ * A cut title is a Tab stop whose readout shows the whole title.
+ * At each size and on each device the walk opens react-drawer--status (a short title) and
+ * react-drawer--status-long-title (60 characters). Neither body holds a control, so each
+ * drawer opens with the focus on its panel. The long walk presses Tab to the title, which
+ * opens the readout, Escape, which closes only the readout, Tab to View imports, Shift+Tab
+ * back to the title, and Escape twice. The short walk presses Tab to View imports and Escape.
+ * Before and after each key the status sits 8px after the title box, on its centre line, whole
+ * and inside the header. After each key the focus stays in the panel, the status moves at
+ * most 1px, the layout shift stays under 0.1 and the page does not scroll sideways.
+ * Its limits: one engine, the light theme and the default accent. A tap and a hover on the
+ * cut title are not walked: react/src/Tooltip.test.tsx holds them for every readout. */
+const STATUS_READ = () => {
+  const panel = document.querySelector('.ui-drawer.is-open .ui-drawer__panel');
+  const doc = document.scrollingElement;
+  const base = { cls: window.__cls, over: doc.scrollWidth - doc.clientWidth, open: Boolean(panel), width: innerWidth };
+  if (!panel) return base;
+  const r = (el) => el.getBoundingClientRect();
+  const title = panel.querySelector('.ui-drawer__title');
+  const status = panel.querySelector('.ui-drawer__status');
+  const actions = panel.querySelector('.ui-drawer__actions');
+  const header = r(panel.querySelector('.ui-drawer__header'));
+  const [t, s, a] = [r(title), r(status), r(actions)];
+  const el = document.activeElement;
+  const tip = document.querySelector('.ui-tip.is-open');
+  return {
+    ...base,
+    focus: panel.contains(el) ? (el.getAttribute('aria-label') || el.className || el.localName) : null,
+    cut: title.scrollWidth > title.clientWidth,
+    gap: s.left - t.right,
+    centre: Math.abs((s.top + s.bottom) / 2 - (t.top + t.bottom) / 2),
+    whole: status.scrollWidth <= status.clientWidth && s.right <= a.left && s.left >= header.left && s.right <= header.right,
+    statusLeft: s.left, statusTop: s.top,
+    tip: tip ? tip.textContent.trim() : null,
+  };
+};
+const LONG_TITLE = 'Northwind Supply EUR operating account, daily bank statement';
+const title = (page) => page.locator('.ui-drawer__title');
+const imports = (page) => page.getByRole('button', { name: 'View imports' });
+const STATUS_STORIES = [
+  // The short title fits from 390px. Below that it can be cut too, and then Tab reaches it first.
+  { id: 'react-drawer--status', cut: (width) => (width >= 390 ? false : null), actions: [
+    ['key: Tab to View imports', async (page, cut) => {
+      if (cut) { await page.keyboard.press('Tab'); await focused(page, title(page)); }
+      await page.keyboard.press('Tab'); await focused(page, imports(page));
+    }],
+    ['key: Escape', async (page) => { await page.keyboard.press('Escape'); await closed(page); }],
+  ] },
+  { id: 'react-drawer--status-long-title', cut: () => true, actions: [
+    ['key: Tab to the title', async (page) => { await page.keyboard.press('Tab'); await focused(page, title(page)); }],
+    ['key: Escape on the readout', async (page) => { await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.querySelector('.ui-tip.is-open')); }],
+    ['key: Tab to View imports', async (page) => { await page.keyboard.press('Tab'); await focused(page, imports(page)); }],
+    ['key: Shift+Tab to the title', async (page) => { await page.keyboard.press('Shift+Tab'); await focused(page, title(page)); }],
+    ['key: Escape on the readout', async (page) => { await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.querySelector('.ui-tip.is-open')); }],
+    ['key: Escape', async (page) => { await page.keyboard.press('Escape'); await closed(page); }],
+  ] },
+];
+
+function header(s, story, label) {
+  const found = [];
+  const cut = story.cut(s.width);
+  if (cut !== null && s.cut !== cut) found.push(`${label}: the title is ${s.cut ? '' : 'not '}cut`);
+  if (Math.abs(s.gap - 8) > 1) found.push(`${label}: the status stands ${Math.round(s.gap)}px after the title, not 8px`);
+  if (s.centre > 1) found.push(`${label}: the status is ${Math.round(s.centre)}px off the title's line`);
+  if (!s.whole) found.push(`${label}: the status is not whole`);
+  return found;
+}
+
+async function walkStatus(page, label, story) {
+  const found = [];
+  const ran = [];
+  await page.evaluate(frames);
+  let before = await page.evaluate(STATUS_READ);
+  found.push(...header(before, story, label));
+  for (const [name, run] of story.actions) {
+    const at = `${label} ${name}`;
+    // A step that cannot reach its control stops the walk, and the findings so far stand.
+    try { await run(page, before.cut); } catch (error) { found.push(`${at}: ${error.message.split('\n')[0]}`); break; }
+    await page.evaluate(frames);
+    const after = await page.evaluate(STATUS_READ);
+    ran.push(name);
+    if (name === 'key: Escape') {
+      if (after.open) found.push(`${at}: the drawer stays open`);
+    } else {
+      if (!after.focus) found.push(`${at}: the focus left the drawer`);
+      if (!after.open) found.push(`${at}: the drawer closed`);
+      else {
+        found.push(...header(after, story, at));
+        const moved = Math.max(Math.abs(after.statusLeft - before.statusLeft), Math.abs(after.statusTop - before.statusTop));
+        if (moved > 1) found.push(`${at}: the status moved ${Math.round(moved)}px`);
+        if (name.endsWith('to the title') && after.tip !== LONG_TITLE) found.push(`${at}: the readout shows "${after.tip}", not the whole title`);
+        if (name === 'key: Escape on the readout' && after.tip) found.push(`${at}: the readout stays open`);
+      }
+    }
+    if (!(after.cls < 0.1)) found.push(`${at}: the layout shift is ${after.cls}`);
+    if (after.over > 0) found.push(`${at}: the page scrolls ${after.over}px sideways`);
+    before = after;
+  }
+  return { found, ran };
+}
+
+/* Rule (#868 review): a cut title that has the focus and then fits leaves its readout, so React
+ * replaces the heading. The focus stays in the drawer. The walk turns the long-title drawer into
+ * a bottom drawer at 390×844, as a phone shows it, presses Tab to the cut title, and widens the
+ * window to 1280×800, where the title fits. Then the focus must be in the panel, and Escape
+ * closes the drawer. Its limits: one engine, one transition, and a story that React renders as a
+ * right drawer, so the walk sets the bottom class itself. */
+async function walkFit(page) {
+  const found = [];
+  await page.evaluate(() => document.querySelector('.ui-drawer').classList.replace('ui-drawer--right', 'ui-drawer--bottom'));
+  await page.evaluate(frames);
+  try {
+    await page.keyboard.press('Tab');
+    await focused(page, title(page));
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForFunction(() => {
+      const h = document.querySelector('.ui-drawer__title');
+      return h && h.scrollWidth <= h.clientWidth;
+    });
+    await page.evaluate(frames);
+  } catch (error) { return [`fit: ${error.message.split('\n')[0]}`]; }
+  const s = await page.evaluate(STATUS_READ);
+  if (!s.focus) found.push('fit: the focus left the drawer when the title stopped being cut');
+  if (s.over > 0) found.push(`fit: the page scrolls ${s.over}px sideways`);
+  await page.keyboard.press('Escape');
+  try { await closed(page); } catch { found.push('fit: Escape did not close the drawer'); }
+  return found;
+}
+
+test('a drawer footer follows a short body, stays out of a long one, and holds through each interaction, a drawer status stands whole after its title, and a scrolling picture body takes Tab and End', {
   skip: process.env.DRAWER_FOOTER !== '1' && 'set DRAWER_FOOTER=1',
 }, async () => {
   const { serve, playwright } = await import('./lib/dropdown-contain.js');
@@ -218,7 +348,7 @@ test('a drawer footer follows a short body, stays out of a long one, and holds t
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
   const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
-  for (const id of [...STORIES.map((story) => story.id), GUIDE]) assert.ok(ids.includes(id), `the Storybook build has no ${id}`);
+  for (const id of [...STORIES.map((story) => story.id), ...STATUS_STORIES.map((story) => story.id), GUIDE]) assert.ok(ids.includes(id), `the Storybook build has no ${id}`);
 
   const subjects = [
     ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
@@ -269,6 +399,50 @@ test('a drawer footer follows a short body, stays out of a long one, and holds t
       await page.evaluate(frames);
     }, ['key: Tab'], 'layout shift');
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this walk cannot see it');
+
+    const statusFindings = [];
+    const statusTable = [];
+    for (const [label, context] of subjects) {
+      for (const story of STATUS_STORIES) {
+        const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
+        const width = await page.evaluate(() => innerWidth);
+        const { found, ran } = await walkStatus(page, `${label} ${story.id}`, story);
+        statusFindings.push(...found);
+        assert.equal(ran.length, story.actions.length, `${label} ${story.id}: ${ran.length} of ${story.actions.length} actions ran`);
+        statusTable.push(`${label} ${width}px ${story.id.replace('react-drawer--', '')}: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
+        await ctx.close();
+      }
+    }
+    process.stdout.write(`${statusTable.join('\n')}\n`);
+    assert.equal(statusTable.length, subjects.length * STATUS_STORIES.length, 'a size or a device was not measured');
+    assert.deepEqual(statusFindings, []);
+
+    // The status mutations: each check must see its own failure.
+    const statusCaught = [];
+    const [statusShort, statusLong] = STATUS_STORIES;
+    const mutateStatus = async (css, says, story = statusLong) => {
+      const { ctx, page } = await open(browser, server.port, vitals, phone, story.id);
+      page.setDefaultTimeout(3000);
+      await page.addStyleTag({ content: css });
+      const { found } = await walkStatus(page, 'mutated', story);
+      statusCaught.push([says, found.some((f) => f.includes(says))]);
+      await ctx.close();
+    };
+    // The title before #868: it wraps, so nothing is cut and no readout opens.
+    await mutateStatus('.ui-drawer__title { white-space: normal; }', 'is not cut');
+    // A status that gives up its room to the title.
+    await mutateStatus('.ui-drawer__status { flex: 0 1 0; min-width: 0; overflow: hidden; }', 'not whole');
+    // The status at the far end, as headerActions put it.
+    await mutateStatus('.ui-drawer__lead { flex: 1 1 auto; justify-content: space-between; }', 'after the title, not 8px', statusShort);
+    assert.deepEqual(statusCaught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this walk cannot see it');
+
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, phone, statusLong.id);
+      const found = await walkFit(page);
+      process.stdout.write(`390×844 to 1280×800 status-long-title, bottom: ${found.length ? 'fail' : 'pass'}\n`);
+      assert.deepEqual(found, []);
+      await ctx.close();
+    }
 
     const pictures = [];
     for (const [label, context] of subjects) {

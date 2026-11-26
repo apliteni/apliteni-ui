@@ -147,9 +147,22 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--strong);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+/* The title and the record's status stand together at the start. A long title ends in an
+   ellipsis before the status, and the status stays whole: the three-column page cuts its
+   title before its count the same way. why: docs/components.md#drawer */
+.ui-drawer__lead { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+/* A cut title stands in the readout's host, which must shrink as the title does. */
+.ui-drawer__lead > .ui-tip-host { min-width: 0; }
+.ui-drawer__lead > .ui-tip-host > span:not(.ui-tip) { display: block; }
+.ui-drawer__title:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+.ui-drawer__status { display: inline-flex; flex: none; }
 /* Header actions stand at the far end, beside the close button. */
-.ui-drawer__actions { display: flex; align-items: center; gap: var(--space-1); margin-inline-start: auto; }
+.ui-drawer__actions { display: flex; flex: none; align-items: center; gap: var(--space-1); margin-inline-start: auto; }
 .ui-drawer__close {
   display: inline-flex;
   align-items: center;

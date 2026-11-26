@@ -536,7 +536,7 @@ const SOLID_STATUSES = [...toastStatuses().keys()];
 test('every toast status declares the whole set of paint tokens', () => {
   assert.ok(SOLID_STATUSES.length >= 5, `only ${SOLID_STATUSES.length} toast statuses found — the scan is broken`);
   for (const [status, body] of toastStatuses()) {
-    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid']
+    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid', '--toast-timer-tone']
       .filter((token) => !new RegExp(`${token}\\s*:`).test(body));
     assert.deepStrictEqual(
       missing, [],
@@ -574,10 +574,10 @@ function solidVars(theme, status) {
 }
 
 /** Paint properties a selector declares, across every rule that names it. */
-function declOf(selector, props = 'background|color') {
+function declOf(selector, props = 'background|color', css = CALLOUT) {
   const want = new RegExp(`(?:^|;)\\s*(${props})\\s*:\\s*([^;]+)`, 'g');
   const out = {};
-  for (const [, sel, body] of CALLOUT.matchAll(RULE)) {
+  for (const [, sel, body] of css.matchAll(RULE)) {
     if (!splitSelectorList(sel).includes(selector)) continue;
     for (const [, prop, value] of body.matchAll(want)) out[prop] = value.trim();
   }
@@ -950,3 +950,131 @@ test('the solid-toast gate actually measures something', () => {
     'both themes resolved the same solid success fill — the theme split is not working',
   );
 });
+
+/* ---- the undo notice's countdown ring ---------------------------------------
+ * A 2px ring in the notice's tone, mixed into the notice ground by --toast-timer-mix or
+ * --toast-timer-mix-strong. At 2 CSS px it is a graphic, so it is held to 3:1 against the notice
+ * ground and against the action's hover fill behind it, in both themes, under every accent and in
+ * every tone. Its track is the full circle behind the arc. The track must show on both grounds, and
+ * the arc must stay clearly apart from it. Limit: it reads the declarations, not a rendered ring. #888 */
+
+/* The ring's own ink. The forced-colours rule names a system colour, which has no ratio to read. */
+const ringInk = (css) => [...css.matchAll(RULE)]
+  .filter(([, sel]) => splitSelectorList(sel).includes('.ui-toast__ring'))
+  .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
+  .find((ink) => ink?.includes('--toast-timer-tone'));
+
+/* The action's hover fill in a theme. A theme's own rule, as `:where(:root[data-theme="light"])`
+ * gives it, wins over the plain rule. */
+const LIGHT_HOVER = ':where(:root[data-theme="light"]) .ui-toast__action:hover';
+const hoverFill = (theme, css) => (theme === 'light' && declOf(LIGHT_HOVER, 'background', css).background)
+  || declOf('.ui-toast__action:hover', 'background', css).background;
+
+/* The notice ground, the hover fill composited on it, and the ring, in one theme, accent and tone. */
+function ringPaint(theme, accent, status, css, props) {
+  const vars = new Map(sharedTokensFor(theme, accent));
+  for (const [name, value] of Object.entries(props)) vars.set(name, value);
+  for (const [, sel, body] of css.matchAll(RULE)) {
+    if (!splitSelectorList(sel).includes(`.ui-toast--${status}`)) continue;
+    for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
+  }
+  const card = colourOf(declOf('.ui-toast', 'background', css).background, vars);
+  const hover = colourOf(hoverFill(theme, css), vars);
+  const ring = colourOf(ringInk(css), vars);
+  assert.ok(card && hover && ring, `the ${status} ring or its ground does not resolve in ${theme} ${accent}`);
+  const track = trackOf(ring, css, vars);
+  assert.ok(track, `the ${status} ring track does not resolve in ${theme} ${accent}`);
+  return { card, hover: compositeRgba(hover, card), ring, track };
+}
+
+/* The track mixes the arc's own ink, its currentColor, into the notice ground. The forced-colours
+ * rule names a system colour, which has no ratio to read. */
+const trackInk = (css) => [...css.matchAll(RULE)]
+  .filter(([, sel]) => splitSelectorList(sel).includes('.ui-toast__ring-track'))
+  .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
+  .find((ink) => ink?.includes('currentColor'));
+const trackOf = (ring, css, vars) => colourOf(trackInk(css).replace('currentColor', `rgb(${ring.slice(0, 3).join(' ')})`), vars);
+
+function ringRatio(theme, accent, status, css, props) {
+  const { card, hover, ring } = ringPaint(theme, accent, status, css, props);
+  return Math.min(...[card, hover].map((ground) => ratio(compositeRgba(ring, ground), ground)));
+}
+
+/* The tones whose ring falls under 3:1 on the notice ground or on the hover fill. A mutation
+ * passes its own callout source or custom property values, so it runs through this same gate. */
+function ringFailures(theme, accent, { css = CALLOUT, props = {} } = {}) {
+  assert.ok(ringInk(css), 'callout.css has no ring ink with --toast-timer-tone');
+  return SOLID_STATUSES.map((status) => [status, ringRatio(theme, accent, status, css, props)])
+    .filter(([, r]) => r < GRAPHIC_AA).map(([status, r]) => `${status}: ${show(r)}:1`);
+}
+
+/* The track shows on the notice ground and on the hover fill, and the arc stays this far from it.
+ * The track is soft, so it is held to a visible step and not to 3:1: the arc carries the reading. */
+const TRACK_SHOWS = 1.2;
+const ARC_OVER_TRACK = 2;
+function trackFailures(theme, accent, { css = CALLOUT } = {}) {
+  assert.ok(trackInk(css), 'callout.css has no ring track that mixes the arc ink');
+  return SOLID_STATUSES.flatMap((status) => {
+    const { card, hover, ring, track } = ringPaint(theme, accent, status, css, {});
+    const shows = Math.min(ratio(track, card), ratio(track, hover));
+    const apart = ratio(ring, track);
+    return [
+      ...(shows < TRACK_SHOWS ? [`${status} track: ${show(shows)}:1`] : []),
+      ...(apart < ARC_OVER_TRACK ? [`${status} arc over track: ${show(apart)}:1`] : []),
+    ];
+  });
+}
+
+test('the ring is a graphic: its stroke is at least the 1.5 CSS px line', () => {
+  assert.ok(Number(declOf('.ui-toast__ring-arc', 'stroke-width')['stroke-width']) >= SOLID_STROKE);
+});
+
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`the countdown ring clears 3:1 on the notice ground in every tone — ${theme} ${accent}`, () => {
+      assert.ok(SOLID_STATUSES.length >= 5, 'the toast statuses were not found');
+      assert.deepEqual(ringFailures(theme, accent), []);
+      assert.deepEqual(trackFailures(theme, accent), []);
+    });
+  }
+}
+
+/* The hover fill must show on the notice ground. The kit's quiet fill on the white card is the
+ * floor: a fill that the eye cannot tell from the ground measures 1:1. Limit: it reads the
+ * declarations. The pull request gives the measured value from a real browser. */
+const HOVER_SHOWS = 1.1;
+const hoverStep = (theme, accent, css = CALLOUT) => {
+  const { card, hover } = ringPaint(theme, accent, 'success', css, {});
+  return ratio(hover, card);
+};
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`the action's hover fill shows on the notice ground — ${theme} ${accent}`, () => {
+      assert.ok(hoverStep(theme, accent) >= HOVER_SHOWS, `the hover fill measures ${show(hoverStep(theme, accent))}:1 on the notice ground`);
+    });
+  }
+}
+
+test('the hover gate rejects a light hover fill that does not show', () => {
+  const plain = CALLOUT.replace(LIGHT_HOVER, '.ui-toast__light-hover-gone');
+  assert.notStrictEqual(plain, CALLOUT, `callout.css has no ${LIGHT_HOVER} rule`);
+  assert.ok(hoverStep('light', 'default', plain) < HOVER_SHOWS);
+});
+
+test('the track gate rejects a track that does not show and a track as dark as the arc', () => {
+  const faint = CALLOUT.replace(/(\.ui-toast__ring-track\s*\{[^}]*currentColor )35%/, '$110%');
+  const dark = CALLOUT.replace(/(\.ui-toast__ring-track\s*\{[^}]*currentColor )35%/, '$170%');
+  assert.ok(faint !== CALLOUT && dark !== CALLOUT, 'callout.css has no 35% ring track to mutate');
+  assert.ok(trackFailures('light', 'default', { css: faint }).some((f) => f.includes(' track: ')));
+  assert.ok(trackFailures('dark', 'default', { css: dark }).some((f) => f.includes('arc over track')));
+});
+
+test('the ring gate rejects a ring mixed too far into the ground', () => {
+  // The light soft mix at 40% instead of 95%: the three tones that take it fail.
+  assert.deepEqual(ringFailures('light', 'default', { props: { '--toast-timer-mix': '40%' } }).map((f) => f.split(':')[0]), ['success', 'warn', 'info']);
+  // Dark danger and neutral without the strong mix: 45% leaves them under 3:1.
+  const weak = CALLOUT.replaceAll('--toast-timer-tone: var(--toast-timer-mix-strong)', '--toast-timer-tone: var(--toast-timer-mix)');
+  assert.notStrictEqual(weak, CALLOUT, 'no tone takes --toast-timer-mix-strong');
+  assert.deepEqual(ringFailures('dark', 'default', { css: weak }).map((f) => f.split(':')[0]), ['danger', 'neutral']);
+});
+

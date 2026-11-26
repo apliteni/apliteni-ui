@@ -33,7 +33,9 @@ const THEMES = ['dark', 'light'];
 // 18: the date sheet in the DatePicker Phone Day Last Week story (#835).
 // 19 and 11: the save-under-form pair on the Drawers guideline (#887).
 // 20: the Drawer Long Form story (#887).
-const EXPECTED = { subjects: 20, donts: 11 };
+// 23 and 12: the Drawer Status and Status Long Title stories, and the status-after-title pair on
+// the Drawers guideline (#868).
+const EXPECTED = { subjects: 23, donts: 12 };
 
 function walk(theme: string) {
   const { vars, css } = kitCssFor(theme);
