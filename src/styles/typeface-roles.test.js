@@ -93,7 +93,8 @@ const familyDecls = () => {
 // a form dropdown's hidden `ui-dropdown__fit` labels state the text role, so the width they
 // measure matches the trigger wherever the field sits (#874). 55 to 54: the fit labels moved
 // inside the trigger and inherit its face, so the role they used to state is now inherited (#874).
-const EXPECTED_SUBJECTS = 54;
+// 54 to 53: a filter chip has no remove mark, so its `font: inherit` is gone (#885).
+const EXPECTED_SUBJECTS = 53;
 
 test('every family in the kit is a role, never a family name', () => {
   const decls = familyDecls();
