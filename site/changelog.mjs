@@ -6,11 +6,19 @@
 
 export const RELEASES = [
   {
-    v: '0.214.0', date: '2026-11-26',
+    v: '0.216.0', date: '2026-11-26',
     changes: [
       ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
       ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
       ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.212.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `StatBand` with `variant="band"` and up to three figures now keeps them in one row on a phone. Below 42rem of band width the value steps down to 22px, 18px and then 15.5px, and the gap between figures closes to 16px, 8px and then 4px. Three values of `−€9,999,999` fit in one row above 19rem, and the figures stack only at 19rem or below. Tiles, an open band and a band of four figures keep their folds. Part of #865.', ['Stat band']],
+      ['changed', 'A toolbar directly after a stat band in the page body now keeps one group gap, 32px, in both themes, in place of the group gap plus the body gap. Part of #865.', ['Stat band', 'Toolbar']],
+      ['changed', 'The Density and accents guideline rule Check a narrow stat band now says: a band keeps up to three figures in one row above 19rem and stacks them at 19rem or below. A new Transactions showcase shows the band above a search, a filter and a table. Part of #865.', ['Guidelines']],
     ],
   },
   {

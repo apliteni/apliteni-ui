@@ -4,13 +4,15 @@
 
 <!-- rule: check-density -->
 
-**Rule:** At block widths of 28rem or less, a stat band shows one figure per row; two figures side by side fail this check.
+**Rule:** A band keeps up to three figures in one row above 19rem and stacks them at 19rem or below.
 
-**Why:** Stacking gives each label and value the full width of the block.
+**Why:** One row keeps the band short on a phone.
 
-**Do:** Stack Paid and In transit, as Stat band tiles do in a narrow panel.
+**Do:** Let the band's width set the layout.
 
-**Don't:** Force the same figures side by side in that panel.
+**Don't:** Force the other layout at that width.
+
+**Except:** Tiles and an open band stack sooner.
 
 ## Keep the summary short
 
@@ -32,7 +34,7 @@
 
 **Why:** One accented action is easier to find than several competing actions.
 
-**Do:** Make Open payout the primary action and Copy reference the secondary action. Keep the amount and date neutral.
+**Do:** Make Open payout primary and Copy reference secondary. Keep the amount and date neutral.
 
 **Don't:** Make both actions primary or colour every label and value with the accent.
 

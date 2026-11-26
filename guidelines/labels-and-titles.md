@@ -38,7 +38,7 @@
 
 **Except:** Keep inherently capitalised words as written, including acronyms, currency codes and key names such as USD, API and Esc.
 
-**Do:** Write “Total revenue” and display it without a text-transform override.
+**Do:** Write “Total revenue” with no text-transform override.
 
 **Don't:** Display “TOTAL REVENUE” above the figure.
 

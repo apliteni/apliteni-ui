@@ -1482,15 +1482,28 @@ On a touch phone, the change is a 44 by 44px target in the layout, in every vari
 container. The figure is taller there by the difference. With a mouse, the figure keeps its size.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
-flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
-keeps one group gap of air below the figures, on top of the body's own gap. A toolbar directly before
-an open band keeps 24px to the figure labels, in the page body and in a card stack, also on a touch
-phone.
+flex row or an `auto` grid track. On a page, a `StatBand` closes a section. Leave one group gap
+between a stat band and the controls for its table. Another block after the band keeps one group gap
+of air below the figures, on top of the body's own gap. A toolbar directly before an open band keeps
+24px to the figure labels, in the page body and in a card stack, also on a touch phone.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
 | Band and tiles | 56rem | 42rem | 28rem | 14rem |
 | Open | 66rem | 50rem | 32rem | 15rem |
+
+A `band` of up to three figures keeps them in one row above 19rem and stacks them at 19rem or below.
+In place of the folds above, its value steps down one rank at a time and the columns close up. At the
+lower edge of each range, three values of `−€9,999,999` fit in one row in both themes, also
+when the text has hinted glyphs, as on Linux:
+
+| Band width | Value | Gap between figures |
+|---|---|---|
+| Above 42rem | 30px | 40px |
+| Above 28rem, to 42rem | 22px | 16px |
+| Above 22rem, to 28rem | 18px | 8px |
+| Above 19rem, to 22rem | 15.5px | 4px |
+| 19rem or below | As the table above gives | One figure per row |
 
 **Keyboard and screen reader.** The band is a description list, so a screen reader reads each
 figure as one statement.
