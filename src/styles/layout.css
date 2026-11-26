@@ -343,7 +343,7 @@
 .ui-app--topbar > .ui-app__rail > .ui-app__head { height: var(--ui-app-band); padding-bottom: 0; }
 
 /* Drawn as a field, behaving as a button. The hairline and the radius are the
-   field's — src/styles/input.css:21 `.ui-input,` sets both — because what it looks
+   field's — src/styles/input.css:22 `.ui-input,` sets both — because what it looks
    like is the point. The STEP is not, and that is the one thing this control does
    differently from every other field in the kit: the reason is on the declaration
    below. It gives way before anything else on the band.

@@ -49,6 +49,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { customPropertiesIn } from '../scripts/lib/box-shadow.js';
+import { inlineLocals } from './lib/contrast.js';
 
 const files = ['src', 'react/src'].flatMap((base) => readdirSync(base, { recursive: true })
   .filter((file) => String(file).endsWith('.css')).map((file) => `${base}/${file}`));
@@ -254,7 +255,9 @@ const accent = (value, seen = new Set()) => references(value).some((name) => {
 /** The edge properties a second band can arrive on, beside the `outline` the band takes. */
 const EDGE = /(?:^|;)\s*(border(?:-(?:top|right|bottom|left))?(?:-color)?|box-shadow|outline-color)\s*:\s*([^;]+)/g;
 const fillOf = (body) => /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body)?.[1].trim();
-const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.matchAll(EDGE)]
+// A rule's own properties are put in place first, so a field's ink under its focus veil reads
+// as the edge that rule settles on.
+const secondBands = (subjects) => subjects.flatMap((rule) => [...inlineLocals(rule.body).matchAll(EDGE)]
   .filter(([, , value]) => accent(value))
   // A border in the FILL's own colour is the fill reaching the border box, not an edge
   // beside the band — the primary button's hover and the picker's chosen day both
@@ -304,7 +307,11 @@ test('the second-band gate rejects each way of drawing one', () => {
   const real = consumers.find((r) => r.file === 'src/styles/input.css');
   assert.ok(real, 'input.css no longer takes the ring; move this check');
   assert.deepEqual(secondBands([{ ...real, body: `border-color: var(--accent); ${real.body}` }]),
-    [`src/styles/input.css: ${real.selector} paints border-color in the accent beside the band`]);
+    [`src/styles/input.css: ${real.selector} paints border-color in the accent beside the band`]);  // An accent ink under a veil that stays open is the same second band.
+  const veiled = consumers.find((r) => r.file === 'src/styles/dropdown.css' && /trigger:focus-visible/.test(r.selector));
+  assert.ok(veiled, 'the dropdown trigger no longer takes the ring; move this check');
+  assert.deepEqual(secondBands([{ ...veiled, body: veiled.body.replace('--ui-dropdown-field-veil: 100%;', '--ui-dropdown-field-edge: var(--accent); --ui-dropdown-field-veil: 0%;') }]),
+    [`src/styles/dropdown.css: ${veiled.selector} paints border-color in the accent beside the band`]);
 });
 
 // An always-on accent edge is the same second band, drawn by the pointer instead of by

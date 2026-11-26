@@ -145,6 +145,11 @@ export function inlineLocals(body) {
       (whole, share, ink) => (share === '100' ? 'transparent' : !share || share === '0' ? ink.trim() : whole));
 }
 
+/** Settle each rule that names a field's focus veil, through `inlineLocals`, before the walk
+ *  reads the sheet. The ink and the veil are per-element states, not tokens, so a substitution
+ *  would give every field the last value written anywhere. Limit: as `inlineLocals`. */
+export const settleVeils = (css) => css.replace(/\{([^{}]*-veil\)[^{}]*)\}/g, (whole, body) => `{${inlineLocals(body)}}`);
+
 /** Substitute var() until a pass changes nothing (tokens reference tokens). */
 export function substitute(css, vars) {
   let out = css;
@@ -503,7 +508,7 @@ export function effectiveBackground(el, win, styleOf = (node) => win.getComputed
 export function kitCssFor(theme, accent = 'default') {
   const vars = tokensFor(theme, accent);
   const raw = decomment(STYLE_FILES.map(read).join('\n'));
-  return { vars, css: expandAnchors(desugar(substitute(specialiseContextual(raw), vars))) };
+  return { vars, css: expandAnchors(desugar(substitute(specialiseContextual(settleVeils(raw)), vars))) };
 }
 
 /** The element a state tag sits on, given the text in front of the tag.

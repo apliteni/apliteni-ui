@@ -13,7 +13,7 @@ import { markup } from './lib/react-markup.js';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { tokensFor, substitute, parseColour } from './lib/contrast.js';
+import { tokensFor, substitute, parseColour, inlineLocals } from './lib/contrast.js';
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const read = (p) => readFileSync(fileURLToPath(new URL(`../${p}`, import.meta.url)), 'utf8');
@@ -54,10 +54,11 @@ function rules(css) {
 const parts = splitSelectorList;
 
 /** The edge ink a body declares: `border-color`, or the colour out of a `border`
- *  shorthand. The last one wins, as it does in a browser. */
+ *  shorthand. The last one wins, as it does in a browser. An ink under a focus veil reads
+ *  as its settled edge, through `inlineLocals`. */
 function edgeIn(body) {
   let ink = null;
-  for (const [, property, value] of body.matchAll(/(?:^|;)\s*(border|border-color)\s*:([^;]*)/g)) {
+  for (const [, property, value] of inlineLocals(body).matchAll(/(?:^|;)\s*(border|border-color)\s*:([^;]*)/g)) {
     const raw = value.trim();
     ink = property === 'border-color' ? raw : (/(var\(--[\w-]+\)|#[0-9a-fA-F]{3,8}|\btransparent\b|rgba?\([^)]*\))/.exec(raw) || [null])[0];
   }
@@ -325,12 +326,13 @@ test('every subject, box and state the sheet aims at this row is measured', () =
 
 test('the gate refuses a sheet that brings any of it back', () => {
   const MUTATIONS = [
-    ['the add control\'s resting edge dropped', (css) => css.replace('min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent;', 'min-height: var(--ui-filter-row-h); background: transparent;')],
-    ['the add control\'s resting edge back to a trigger\'s --border', (css) => css.replace('border-color: var(--control-edge); background: transparent;', 'border-color: var(--border); background: transparent;')],
+    ['the add control\'s resting edge dropped', (css) => css.replace(/min-height: var\(--ui-filter-row-h\); --ui-dropdown-field-edge: var\(--control-edge\); border-color: [^;]+; background: transparent;/, 'min-height: var(--ui-filter-row-h); background: transparent;')],
+    ['the add control\'s resting edge back to a trigger\'s --border', (css) => css.replace('--ui-dropdown-field-edge: var(--control-edge);', '--ui-dropdown-field-edge: var(--border);')],
     ['the add control\'s unavailable edge dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:disabled \{ border-color: var\(--disabled-border\); \}/, '')],
     ['the add control\'s aria-disabled edge dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*\[aria-disabled="true"\],\n[^\n]*\[data-filter-add\][^\n]*\[aria-disabled="true"\]:hover:not\(:focus-visible\) \{ border-color: var\(--disabled-border\); \}/, '')],
-    ['the add control hover response dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:hover[^{]*\{ border-color: var\(--accent\); \}/, '')],
-    ['the add control answering a pointer with its resting edge', (css) => css.replace('.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }', '.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--border-strong); }')],
+    ['the add control hover response dropped', (css) => css.replace(/\n[^\n]*\[data-filter-add\][^\n]*:hover[^{]*\{ --ui-dropdown-field-edge: var\(--accent\); border-color: [^;]+; \}/, '')],
+    ['the add control answering a pointer with its resting edge', (css) => css.replace('.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent);', '.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--border-strong);')],
+    ['the add control keeping its edge under the band', (css) => css.replace('[data-filter-add] .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%;', '[data-filter-add] .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 0%;')],
     ['a state the gate has no ink for', (css) => `${css}\n${BAR} [data-filter-add] .ui-dropdown__trigger:active { border-color: #000; }\n`],
     ['a second neighbour given only the unavailable edge', (css) => `${css}\n${BAR} [data-filter-export] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }\n`],
     // The discovery is the attribute, so a wrapper holding a box and declaring no edge at all is
