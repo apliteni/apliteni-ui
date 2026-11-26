@@ -69,8 +69,9 @@
   transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .dtsw a:hover { color: var(--strong); }
-.dtsw a.cur { color: var(--accent-contrast); background: var(--accent); }
-:where(:root[data-theme="dark"]) .dtsw a.cur { color: var(--signal-contrast); }
+/* The current view is a view switch, so it takes the neutral selected fill:
+   the strong ink on the surface, never the accent. */
+.dtsw a.cur { color: var(--surface); background: var(--strong); }
 @media (forced-colors: active) {
   .dtsw a.cur { forced-color-adjust: none; background: Highlight; color: HighlightText; --ring: var(--ring-width) solid CanvasText; }
 }

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { Drawer } from './Drawer';
+import { TextField } from './Field';
+import { DrawerSection } from './KeyValueList';
 import { Button } from './primitives/Button';
 
 const meta: Meta<typeof Drawer> = { title: 'React/Drawer', component: Drawer };
@@ -45,6 +47,34 @@ export const LeftSmall: StoryObj<typeof Drawer> = {
               <option>Pending</option>
             </select>
           </div>
+        </Drawer>
+      </>
+    );
+  },
+};
+
+// A body longer than the panel: it scrolls, and the footer stays at the panel's end (#887).
+const SUPPLIER = ['Name', 'Legal name', 'Country', 'Currency', 'Payment terms', 'Account holder', 'IBAN', 'BIC',
+  'Bank name', 'Street', 'City', 'Postcode', 'VAT number', 'Contact', 'Cost centre', 'Contract start', 'Contract end',
+  'Notice period', 'Monthly limit', 'Note'];
+export const LongForm: StoryObj<typeof Drawer> = {
+  render: () => {
+    const [open, setOpen] = useState(true);
+    return (
+      <>
+        <Button variant="primary" onClick={() => setOpen(true)}>Open</Button>
+        <Drawer open={open} title="New supplier" onClose={() => setOpen(false)}
+          footer={(
+            <>
+              <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+              <Button variant="primary" onClick={() => setOpen(false)}>Save</Button>
+            </>
+          )}>
+          <DrawerSection title="Supplier">
+            <div className="ui-stack">
+              {SUPPLIER.map((label) => <TextField key={label} label={label} />)}
+            </div>
+          </DrawerSection>
         </Drawer>
       </>
     );

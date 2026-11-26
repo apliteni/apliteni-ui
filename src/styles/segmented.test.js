@@ -157,7 +157,7 @@ test('the chosen tab is a weight step and one bar, and draws no box', () => {
   const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
   const bar = ruleBody(baseCss, '.ui-seg--underline button.is-active::before');
   assert.equal(decl(slot, 'height'), '2px');
-  assert.equal(decl(slot, 'background'), 'var(--accent)');
+  assert.equal(decl(slot, 'background'), 'var(--strong)');
   assert.equal(decl(slot, 'opacity'), '0', 'a resting tab reserves the slot and draws nothing in it');
   assert.equal(decl(bar, 'opacity'), '1');
   // Inset on three sides, which is the whole of why the strip can wrap: a mark
@@ -180,9 +180,13 @@ test('the mark grows in place, the way the kit\'s other underline tab does', () 
   const slot = ruleBody(baseCss, '.ui-seg--underline button::before');
   const navSlot = ruleBody(topLevel(readFileSync(new URL('./nav.css', import.meta.url), 'utf8')
     .replace(/\/\*[\s\S]*?\*\//g, '')), '.ui-nav--tabs.is-underline .ui-nav__tab::after');
-  for (const prop of ['height', 'border-radius', 'background', 'opacity', 'transform', 'transition']) {
+  for (const prop of ['height', 'border-radius', 'opacity', 'transform', 'transition']) {
     assert.equal(decl(slot, prop), decl(navSlot, prop), `the bar's ${prop} is the kit's underline tab's`);
   }
+  // The segmented bar is the neutral strong ink now, while the nav tab bar keeps its accent;
+  // the two no longer share a colour, so it is asserted apart from the structure above.
+  assert.equal(decl(slot, 'background'), 'var(--strong)', 'the segmented bar draws the strong ink');
+  assert.equal(decl(navSlot, 'background'), 'var(--accent)', 'the nav tab bar still draws the accent');
   assert.equal(decl(ruleBody(baseCss, '.ui-seg--underline button.is-active::before'), 'transform'), 'scaleX(1)');
 });
 
@@ -228,4 +232,65 @@ test('underline strips wrap and clip nothing', () => {
   // later rule; stories/segmented-wrap.test.js measures the rendered outcome.
   assert.equal(valueOf('.ui-seg--underline', 'flex-wrap'), 'wrap', 'underline tabs must wrap rather than hide the ones past the fold');
   assert.equal(valueOf('.ui-seg--underline', 'overflow'), 'visible', 'a scroll box would clip the focus ring against the strip padding');
+});
+
+test('the default pill marks the chosen option with the strong ink on the surface, and no accent edge', () => {
+  const pill = ruleBody(baseCss, '.ui-seg button.is-active');
+  assert.equal(decl(pill, 'color'), 'var(--surface)', 'the default ink is the surface, not accent contrast');
+  assert.equal(decl(pill, 'background'), 'var(--strong)', 'the default fill is the strong ink, not the accent');
+  assert.equal(decl(pill, 'box-shadow'), 'none', 'the default pill draws no accent edge');
+  const pressed = ruleBody(baseCss, '.ui-seg button[aria-pressed="true"]');
+  assert.equal(decl(pressed, 'color'), 'var(--surface)');
+  assert.equal(decl(pressed, 'background'), 'var(--strong)');
+  const selected = ruleBody(baseCss, '.ui-seg button[aria-selected="true"]');
+  assert.equal(decl(selected, 'color'), 'var(--surface)');
+  assert.equal(decl(selected, 'background'), 'var(--strong)');
+});
+
+test('the accent pill takes the accent fill and edge only with the accent form', () => {
+  const pill = ruleBody(baseCss, '.ui-seg--accent button.is-active');
+  assert.equal(decl(pill, 'color'), 'var(--accent-contrast)', 'the accent ink is the accent contrast');
+  assert.equal(decl(pill, 'background'), 'var(--accent-strong)', 'the accent fill is the accent strong');
+  assert.equal(decl(pill, 'box-shadow'), 'inset 0 0 0 1px var(--accent)', 'the accent pill carries its edge');
+});
+
+test('the accent block sits between the default pill and the underline and disabled restatements', () => {
+  const at = (selector) => {
+    const index = rules.findIndex((rule) => splitSelectors(rule.selector).includes(selector));
+    assert.notEqual(index, -1, `expected a rule for ${selector}`);
+    return index;
+  };
+  const defaultPill = at('.ui-seg button.is-active');
+  const accentPill = at('.ui-seg--accent button.is-active');
+  const underline = at('.ui-seg--underline button.is-active');
+  const disabled = at('.ui-seg button.is-active:where(:disabled)');
+  assert.ok(defaultPill < accentPill, 'the accent fill must follow the default pill so it wins the selected fill');
+  assert.ok(accentPill < underline, 'the accent fill must precede the underline no-fill so a tab keeps its bar-only mark');
+  assert.ok(accentPill < disabled, 'the accent fill must precede the disabled surface so a disabled choice stays quiet');
+});
+
+test('the underline bar is the strong ink by default, and the accent only with the accent form', () => {
+  const bar = ruleBody(baseCss, '.ui-seg--underline button::before');
+  assert.equal(decl(bar, 'background'), 'var(--strong)', 'the default bar draws the strong ink');
+  assert.equal(decl(ruleBody(baseCss, '.ui-seg--accent.ui-seg--underline button::before'), 'background'), 'var(--accent)', 'the accent bar draws the accent');
+});
+
+test('the wordless option is a 32px pill: a 24px button around the 20px icon, kept on phones', () => {
+  // The wordless button pads 2px inside the 20px icon, a 24px square; the
+  // track's 4px padding on each side makes the 32px pill the owner chose
+  // (d54), and below the phone step its 44px tap zone reaches
+  // past the pill, the way the back link and theme switch do.
+  const button = ruleBody(baseCss, '.ui-seg button.ui-seg--icon');
+  assert.equal(decl(button, 'padding'), '2px', 'the wordless button pads 2px inside the 20px icon');
+  const icon = ruleBody(baseCss, '.ui-seg button.ui-seg--icon svg');
+  assert.equal(decl(icon, 'width'), '20px');
+  assert.equal(decl(icon, 'height'), '20px');
+  // The phone tightening is for month labels; it must skip the wordless button,
+  // or the 2px padding loses there and the pill grows back to 44px.
+  const phone = /@media \(max-width:\s*560px\)\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+  assert.match(
+    phone,
+    /\.ui-seg:not\(\.ui-seg--sm\):not\(\.ui-seg--underline\) button:not\(\.ui-seg--icon\)\s*\{/,
+    'the phone tightening must exclude the wordless button with :not(.ui-seg--icon)',
+  );
 });

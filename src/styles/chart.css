@@ -108,8 +108,6 @@
 }
 
 .ui-chart__plot { min-width: calc(var(--ui-chart-col) * var(--ui-chart-cols, 1)); }
-/* The months chart's periods share the card's width, so it never scrolls. */
-.ui-chart--months .ui-chart__plot { min-width: 0; }
 .ui-chart__svg { display: block; }
 
 .ui-chart__periods {
@@ -128,6 +126,13 @@
   text-align: center;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+/* The months and bridge charts print every bar's short name and wrap it at a
+   word break, so a word is never cut. Where one word alone is wider than its
+   column, the component steps the labels instead. */
+.ui-chart--months .ui-chart__period,
+.ui-chart--bridge .ui-chart__period {
+  overflow-wrap: normal;
 }
 /* The picked column's label: the body ink the rest of the row gives up, at the
    weight a reader who separates no colours still reads. Selection is otherwise
@@ -172,15 +177,15 @@
 .ui-chart__band { fill: var(--surface-3); }
 
 .ui-chart__bar {
-  /* A bar fades from a tint of its tone at the base to the full tone at the data
-     end. The fade is allowed because it carries no value: the strong data end, the
-     zero line and the base hold the bar's length, and the data end alone clears
-     3:1. The component names the ramp per bar as --ui-chart-paint. A bridge bar
-     fades from the previous running total to the new one. */
-  fill: var(--ui-chart-paint, var(--ui-chart-tone));
+  /* One flat tone: the full tone of the bar's own series, which clears 3:1 on the
+     card and the page. The measured end carries a small corner of --radius-xs or a
+     quarter of the bar, whichever is smaller, and the foot on the zero line stays
+     square, so the bar's length reads off the one rule the chart draws. */
+  fill: var(--ui-chart-tone);
   stroke: none;
 }
-/* The ramp's two stops. Each reads the tone of the gradient that holds it. */
+/* The ramp's two stops, which an area uses to fade over its own values. Each
+   stop reads the tone of the gradient that holds it. */
 .ui-chart__fade-base { stop-color: var(--ui-chart-fade); }
 .ui-chart__fade-end { stop-color: var(--ui-chart-tone); }
 
@@ -230,8 +235,8 @@
 .ui-chart--pick [data-mark] { cursor: pointer; }
 
 /* The tones. A series names one, and each is the kit's own pair of tokens: the
-   tone, which is the data end and every line, legend key and dot, and its fade,
-   which is a bar's base. Both are fixed steps in each theme, so a chart does not
+   tone, which is every bar, line, legend key and dot, and its fade, which fills
+   an area's base. Both are fixed steps in each theme, so a chart does not
    follow the product accent and accent-soft is not a mix towards the ground. */
 .ui-chart__tone--accent { --ui-chart-tone: var(--chart-accent); --ui-chart-fade: var(--chart-accent-fade); }
 .ui-chart__tone--accent-soft { --ui-chart-tone: var(--chart-accent-soft); --ui-chart-fade: var(--chart-accent-soft-fade); }

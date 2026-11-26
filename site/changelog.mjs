@@ -8,31 +8,28 @@ export const RELEASES = [
   {
     v: '0.202.0', date: '2026-11-26',
     changes: [
+      ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],
+      ['changed', 'A filter chip now takes the width of its longest value, up to 224px, so a value change or a reload does not move the chips or the content below the bar. A longer value ends with an ellipsis. The remove mark and Clear all keep their room while they do not show. Part of #885.', ['FilterBar']],
+      ['changed', 'At 560px and below, the account window now fills the view and shows one section. A Sections button in its head row opens the list of sections, so a section change does not change the window height. Part of #885.', ['AccountWindow']],
+      ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
       ['changed', 'The focus ring is now a 1px accent line, 2px from the control, in place of a 2px line 1px from it. It still ends 3px from the control and keeps at least 3:1 against each kit ground. A product that sets `--ring-width` or `--ring-gap-width` keeps its own values. Part of #885.'],
     ],
   },
   {
-    v: '0.201.1', date: '2026-11-26',
+    v: '0.199.0', date: '2026-11-25',
     changes: [
-      ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
+      ['changed', 'A `months` or `bridge` `Chart` now prints every bar\'s `short` name under its bar, and a short name that does not fit its column wraps at a word break. Where the card is too narrow for every bar\'s name, the plot scrolls sideways so every bar keeps its name. Give each bar a distinct short name; the readout and the table keep the full name. Resolves #863.', ['Chart']],
+      ['added', 'The dashboards and reports guideline has a new rule, Keep every bar labelled: give each bar a distinct short name, never one cut to a fixed length. Resolves #863.', ['Guidelines']],
+      ['changed', 'Every `Segmented` control now draws the neutral form by default — the selected pill or underline bar in the strong ink — so a filter and a setting stay off the page\'s accent, the way a view switch already did. Products that used the accent as the default now turn neutral; ask for the accent with the new `accent` prop, or the `.ui-seg--accent` class. The old `neutral` prop is a deprecated no-op, removed at the next major. Resolves #867.', ['Segmented', 'Chart']],
+      ['changed', 'The icon-only `Segmented` switch draws a 32px pill around its 20px icon, and below the phone step keeps a 44px tap zone outside the pill, the way the back link and theme switch do. Resolves #867.', ['Segmented']],
+      ['fixed', 'In the light theme, a hover table or its scroll frame held directly in a card no longer hangs past the card at phone widths; it stays on the column, matching the plain table. Resolves #863.', ['Table']],
     ],
   },
   {
-    v: '0.201.0', date: '2026-11-26',
+    v: '0.198.0', date: '2026-11-25',
     changes: [
-      ['changed', 'At 560px and below, the account window now fills the view and shows one section. A Sections button in its head row opens the list of sections, so a section change does not change the window height.', ['AccountWindow']],
-    ],
-  },
-  {
-    v: '0.199.0', date: '2026-11-26',
-    changes: [
-      ['changed', 'A filter chip now takes the width of its longest value, up to 224px, so a value change or a reload does not move the chips or the content below the bar. A longer value ends with an ellipsis. The remove mark and Clear all keep their room while they do not show. Part of #885.', ['FilterBar']],
-    ],
-  },
-  {
-    v: '0.198.0', date: '2026-11-26',
-    changes: [
-      ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],
+      ['changed', 'A drawer body now takes only the height of its content, so in a short drawer the footer with Save stands directly under the last group. A long body still scrolls, and the footer stays at the panel\'s end. The app shell\'s menu keeps its account at the foot. Part of #887.', ['Drawer']],
+      ['added', 'The Drawers guideline has a new rule, Save under the form: put the form in the last group, so Save stands under it. Part of #887.', ['Guidelines']],
     ],
   },
   {

@@ -4,25 +4,17 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 export const RULES = content.rules;
 // The shape of a rule and the gates that walk this page: docs/components.md
-import { CHART_CSS } from '../_chart.js';
 
 // One made-up portal supplies every specimen, and the Report showcase
 // prints the same sales with the same fees and nets —
 // react/src/dashboard-report-refs.test.tsx holds the two in step. The halves of a
 // pair differ in one decision.
-export const SPEC_CSS = `${CHART_CSS}
+export const SPEC_CSS = `
   <style>
     .gd-stage { display: flex; flex-direction: column; gap: var(--space-4); }
-    /* The chart is a picture above a table, not the table's own head band: the
-       scale's gap is what keeps the bar baselines off the header's cap height. */
-    /* The dense table in the Table view hangs out of its card by --space-3 so its
-       columns start on the card's text edge; the chart takes the same bleed, so
-       both views are one width. */
-    .gd-chart { display: flex; flex-direction: column; gap: var(--space-2);
-      width: calc(100% + 2 * var(--space-3)); margin-inline: calc(-1 * var(--space-3));
-      margin-bottom: var(--space-4); }
-    .gd-chart__months { display: flex; }
-    .gd-chart__months span { flex: 1 1 0; min-width: 0; text-align: center; }
+    /* The Don't of "Switch a chart to its table" stacks the chart above the
+       table, so the chart keeps one step of room before the table's header. */
+    .gd-chart { margin-bottom: var(--space-4); }
     /* A block's title and its Chart and Table switch share one row, at phone
        width too: the title takes what the switch leaves and wraps, and baseline
        alignment keeps its first line on the switch's text. The margin is the

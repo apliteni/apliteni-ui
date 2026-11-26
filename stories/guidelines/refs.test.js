@@ -311,10 +311,13 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 161: The page gained sign-in-note (#850).
   // 162: Dashboards and reports gained soft-lines-between-blocks (#850).
   // 163: Text length gained field-length (#850).
+  // 164: Dashboards and reports gained bar-labels (#863).
+  // 165: Colour and theming gained neutral-selection (#867).
   // 170: Three-column page added three rules and Wizard four (#871).
   // 172: Three-column page gained selected-parent and replace-children (#871).
   // 173: Three-column page gained column-header (#871).
-  assert.equal(count, 173, 'update the rule count when adding or removing a rule');
+  // 174: Drawers gained save-under-form (#887).
+  assert.equal(count, 176, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

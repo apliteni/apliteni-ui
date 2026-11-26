@@ -28,6 +28,18 @@
 
 **Except:** Change one field inline, without a panel. A drawer may show groups a reader only reads.
 
+## Save under the form
+
+<!-- rule: save-under-form -->
+
+**Rule:** Put the form in the last group, so Save stands under it.
+
+**Why:** Save in a far corner makes the reader search.
+
+**Do:** Show the record first and the form last.
+
+**Don't:** Put the form first.
+
 ## Grouped content
 
 <!-- rule: no-cards -->

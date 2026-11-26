@@ -24,7 +24,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { LINKS } from '../../stories/guidelines/_overview.js';
 // @ts-expect-error -- plain JS story module
 import { GROUND_CSS, SPEC_CSS } from '../../stories/guidelines/_layout.js';
-import { ConfirmPicture, TONE_GLYPH } from '../../stories/_guideline';
+import { ConfirmPicture, DrawerPicture, TONE_GLYPH } from '../../stories/_guideline';
 
 type Meta_ = { id?: string; title: string };
 type StoryModule = { default: Meta_ } & Record<string, { render: (args: unknown, ctx: unknown) => ReactElement }>;
@@ -72,6 +72,9 @@ describe('guideline pages in React: the collection', () => {
       const h1s = [...root.querySelectorAll('h1')].filter(h1 => !h1.parentElement?.closest(STAGE));
       expect(h1s.length, `${page.file}: one h1`).toBe(1);
       expect(titles.has(h1s[0].textContent!), `${page.file}: no Markdown has the title "${h1s[0].textContent}"`).toBe(true);
+      // A screen reader goes to the page's content by its main landmark.
+      expect(root.querySelectorAll('main').length, `${page.file}: one main`).toBe(1);
+      expect(h1s[0].closest('main'), `${page.file}: the h1 is outside main`).toBeTruthy();
     }
   });
 });
@@ -140,6 +143,25 @@ describe('guideline pages in React: a readout that wraps', () => {
   });
 });
 
+/* The clipped readout (Prefer above the mark) clamps to its clip's own width,
+ * not to 100vw, which counts a vertical scrollbar the clip's box does not. The
+ * clip is a size container, so 100cqw is the width behind its inset. Limit: this
+ * reads the declarations, not layout; the clip itself was measured in a browser
+ * at 360x800 with a classic 15px scrollbar. */
+describe('guideline pages in React: the clipped readout clamps to its box', () => {
+  const hover = read('../../stories/guidelines/_hover-readouts.js');
+  it('makes the clip a size container and clamps the readout to its content width', () => {
+    expect(hover).toMatch(/\.gh-clip\s*\{[^}]*container-type:\s*inline-size/);
+    expect(hover).toMatch(/\.gh-clip\s+\.gh-host\s+\.ui-tip\s*\{[^}]*max-width:\s*100cqw/);
+    expect(hover).toMatch(/calc\(100cqw\s*-\s*var\(--ui-tip-x\)\s*-\s*100%\)/);
+  });
+  it('rejects a clamp read from the viewport instead of the box', () => {
+    const clamped = hover.replace(/\bmax-width:\s*100cqw\b/, 'max-width: calc(100vw - var(--space-10) * 2 - var(--space-3) * 2)');
+    expect(clamped).not.toBe(hover);
+    expect(clamped).not.toMatch(/max-width:\s*100cqw/);
+  });
+});
+
 /* Stands in for destructive-actions.test.js "the specimen measure is the confirm
  * component's own declared width", which pins the vanilla confirm. The React page
  * draws the React Confirm, which is a Modal, so what is held here is that the
@@ -186,6 +208,55 @@ describe('guideline pages in React: Session expired', () => {
     expect(picture.querySelector('.se-page__dialog .rx-modal')).toHaveClass('rx-modal--sm');
     expect(picture.querySelector('.se-page__title')).toBeNull();
     expect(picture.querySelector('.ui-skel')).toBeNull();
+  });
+});
+
+/* The drawer picture's panel is the Drawer's own div: an aside with the group role is
+ * a role axe refuses. A body that scrolls is a named keyboard stop, so End scrolls it,
+ * and a body that fits is no stop.
+ * Limits: JSDOM lays nothing out, so the heights are stubbed. Which bodies scroll at
+ * which width is the browser measurement on the pull request. */
+describe('guideline pages in React: the drawer picture', () => {
+  const picture = () => render(<DrawerPicture title="Northwind Payments">Rows</DrawerPicture>).container;
+  it('draws its panel as a div group named by the title', () => {
+    const panel = picture().querySelector('.ui-drawer__panel')!;
+    expect(panel.localName).toBe('div');
+    expect(panel).toHaveAttribute('role', 'group');
+    expect(panel).toHaveAccessibleName('Northwind Payments');
+  });
+  it('makes a body that scrolls a named stop, and a body that fits none', () => {
+    const fits = picture().querySelector('.ui-drawer__body')!;
+    expect(fits).not.toHaveAttribute('tabindex');
+    expect(fits).not.toHaveAttribute('role');
+    const proto = HTMLElement.prototype;
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => 900 });
+    Object.defineProperty(proto, 'clientHeight', { configurable: true, get: () => 300 });
+    try {
+      const scrolls = picture().querySelector('.ui-drawer__body')!;
+      expect(scrolls).toHaveAttribute('tabindex', '0');
+      expect(scrolls).toHaveAttribute('role', 'group');
+      expect(scrolls).toHaveAccessibleName('Northwind Payments, body');
+    } finally {
+      Reflect.deleteProperty(proto, 'scrollHeight');
+      Reflect.deleteProperty(proto, 'clientHeight');
+    }
+  });
+});
+
+/* The menu column in the Component choice drawer fills the panel, as the shell's own menu
+ * drawer has it. At its own 216px it was wider than the panel at 360 and 390, and the
+ * body scrolled sideways.
+ * Limits: the sheets are read as text. The width in a browser is the measurement on the
+ * pull request. */
+describe('guideline pages in React: Component choice', () => {
+  const page = pages.find(p => p.file.endsWith('/ComponentChoice.stories.tsx'))!;
+  it('fills the drawer panel with the menu column, as the shell menu does', () => {
+    const fill = /\.ui-nav--side\s*,\s*[^{]*\.ui-nav--side\s*>\s*\*\s*\{\s*width:\s*100%;?\s*\}/;
+    expect(read('./AppShell.css'), 'the shell menu no longer fills its drawer this way').toMatch(fill);
+    const root = mount(page);
+    expect(root.querySelector('.gl-component-choice__under .ui-nav--side'), 'no menu in a drawer: the gate is checking nothing').toBeTruthy();
+    const sheet = [...root.querySelectorAll('style')].map(el => el.textContent).join('\n');
+    expect(sheet).toMatch(/\.gl-component-choice__under \.ui-nav--side,\.gl-component-choice__under \.ui-nav--side>\*\{width:100%;\}/);
   });
 });
 
@@ -267,6 +338,71 @@ describe('guideline pages in React: Dashboards and reports', () => {
     const [chart, table] = card.querySelectorAll<HTMLElement>('[role="tab"]');
     fireEvent.keyDown(chart, { key: 'ArrowRight' });
     expect([table.getAttribute('aria-selected'), document.activeElement === table, table.tabIndex, chart.tabIndex]).toEqual(['true', true, 0, -1]);
+  });
+
+  // #867: the block's Chart and Table switch keeps the neutral form, the way the
+  // Chart component's own switch draws — the neutral form is the default, so a view
+  // switch stays off the page's accent.
+  it('the block switch keeps the neutral form, not the accent', () => {
+    const strip = block().querySelector('[role="tablist"]');
+    expect(strip).not.toHaveClass('ui-seg--accent');
+  });
+
+  // #863: the switch rule's cards sit inside the rule's own h2 section, so their
+  // titles are h3, one level under it (Labels and titles, heading levels).
+  it('the chart-table-switch card titles are headings one level under the rule', () => {
+    const section = mount(page).querySelector('[data-rule="chart-table-switch"]');
+    expect(section, 'no rule "chart-table-switch" on the page: the gate is checking nothing').toBeTruthy();
+    const titles = [...section!.querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.map(t => t.tagName.toLowerCase()), 'one card title per specimen block')
+      .toEqual(['h3', 'h3', 'h3']);
+  });
+
+  // #863: the two new bar-label cards sit inside the rule's own h2 section, so
+  // their titles are h3, one level under it (Labels and titles, heading levels).
+  it('the bar-labels cards are headings one level under the rule', () => {
+    const section = mount(page).querySelector('[data-rule="bar-labels-distinct"]');
+    expect(section, 'no rule "bar-labels-distinct" on the page: the gate is checking nothing').toBeTruthy();
+    const titles = [...section!.querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.map(t => t.tagName.toLowerCase()), 'one card title per specimen half').toEqual(['h3', 'h3']);
+  });
+
+  // #863: the four wide ledgers scroll sideways, so each gets the kit's keyboard
+  // stop: a named, focusable region (Accessibility minimums, keyboard first).
+  // #863 P3: each region also carries a distinct name, so a reader listing the
+  // landmarks can tell one Sales ledger from the next (landmark-unique).
+  it('gives every wide ledger a distinct named keyboard stop', () => {
+    const frames = [...mount(page).querySelectorAll('.ui-table-scroll')]
+      .filter(frame => frame.querySelector('table thead th')?.textContent?.trim() === 'Reference');
+    expect(frames.length, 'four ledger scroll regions on the page').toBe(4);
+    for (const frame of frames) {
+      expect(frame.getAttribute('role')).toBe('region');
+      expect(frame.getAttribute('tabindex')).toBe('0');
+    }
+    expect(frames.map(frame => frame.getAttribute('aria-label')).sort(), 'each ledger names itself distinctly')
+      .toEqual(['Sales ledger', 'Sales report rows', 'Sales with filters', 'Sales, 2026'].sort());
+  });
+
+  // #863 P3: the repeated bar-label, line and months charts name themselves
+  // distinctly, so a reader listing the landmarks can tell one specimen from the next.
+  it('names every repeated specimen chart distinctly', () => {
+    const names = [...mount(page).querySelectorAll('[role="group"][aria-label]')]
+      .map(group => group.getAttribute('aria-label')!);
+    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six bars|Net settled by month, first (?:half of the year|four months of the year)), /.test(name));
+    expect(repeats.length, 'the repeated charts the page draws').toBe(13);
+    expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(13);
+  });
+});
+
+/* The Hover readouts specimens stand inside each rule's own h2 section, so their
+ * six card titles are h3, one level under it (Labels and titles, heading levels). */
+describe('guideline pages in React: Hover readouts', () => {
+  const page = pages.find(p => p.file.endsWith('/HoverReadouts.stories.tsx'))!;
+  it('the specimen cards are headings one level under the rule', () => {
+    const titles = [...mount(page).querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.length, 'six specimen cards on the page').toBe(6);
+    expect(titles.map(t => t.tagName.toLowerCase()), 'each card title is an h3')
+      .toEqual(Array(6).fill('h3'));
   });
 });
 

@@ -110,11 +110,33 @@
    * ships this sheet without those sheets, where order is the consumer's.   */
 
   /* A strip keeps its pills packed across — that tight track IS the control —
-     and opens down, where the room is free until it wraps. */
+     and opens down, where the room is free until it wraps. The 4px gap between
+     options is the horizontal clearance while every option is labelled; a
+     wordless strip reads its OUTER container's clearance instead, so its
+     options stop where the outer room stops. */
   .ui-seg {
     row-gap: var(--tap-gap) !important;
-    --tap-clear-x: var(--space-1, 4px);
     --tap-clear-y: var(--tap-gap);
+  }
+  .ui-seg:not(:has(button.ui-seg--icon)) { --tap-clear-x: var(--space-1, 4px); }
+
+  /* A wordless switch keeps its 32px pill, and each option still owns a 44px
+     target without crossing the shared middle: the left option reaches left
+     past the pill's edge, the right option reaches right, the way the 32px
+     back link does. Each takes 2px toward the middle (half the gap) and,
+     outward, half the track's 4px padding plus what the outer container clears
+     — 16px where it clears --tap-gap, 0 where it clears nothing, so a packed
+     toolbar's switch stays 28px instead of stealing a neighbour's pixel. */
+  .ui-seg button.ui-seg--icon:first-child::after {
+    left: calc(-1 * (var(--space-1) / 2 + min(calc(var(--tap-min) - 100% - var(--space-1)), var(--tap-clear-x))));
+    width: min(var(--tap-min), calc(100% + var(--space-1) + min(calc(var(--tap-min) - 100% - var(--space-1)), var(--tap-clear-x))));
+    transform: translateY(-50%);
+  }
+  .ui-seg button.ui-seg--icon:last-child::after {
+    right: calc(-1 * (var(--space-1) / 2 + min(calc(var(--tap-min) - 100% - var(--space-1)), var(--tap-clear-x))));
+    left: auto;
+    width: min(var(--tap-min), calc(100% + var(--space-1) + min(calc(var(--tap-min) - 100% - var(--space-1)), var(--tap-clear-x))));
+    transform: translateY(-50%);
   }
 
   /* The underline appearance keeps the gap it draws, at every width and under
@@ -180,7 +202,8 @@
      button: across, the room beside it is title text, and down, the row opens
      to 12px, because the layer reaches 10px under it and the title gap is 8.
      Between two tools the gap opens to --tap-gap, so neither layer reaches the
-     other. A chart's switch there keeps the clearance .ui-seg declares. */
+     other. A chart's wordless switch reads this clearance for its outer edge,
+     so it reaches 44px past the pill. */
   .ui-card__head { margin-bottom: var(--space-3, 12px) !important; }
   .ui-card__tools { column-gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
   /* The page's title row holds small tools the same way: the room beside them is title
@@ -236,6 +259,10 @@
   /* The opened rows outgrow the menu's 300px cap, whose scroll edge cut the last
      week's tap layers in a phone popover. The panel keeps the viewport and edge limits. */
   .ui-datepicker__panel { --ui-dropdown-max: 100dvh; }
+  /* The same cut in the sheet: the opened grid outgrows the md drawer (45vh), so
+     its body scrolls and the scroll edge clips the last week's layers. The lg
+     step (72vh) fits the six weeks and the shortcuts. */
+  .ui-drawer:has(.ui-datepicker__body.is-sheet) { --drawer-h: 72vh; }
 
   /* Neither axis is opened: the room is already there, a hundred pixels to the
      caption and twelve to the grid, which is how `.ui-tabs__list` declares its

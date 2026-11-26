@@ -2,12 +2,15 @@
 // dialog behaviour it shares with Modal through ./dialog. Each shape case was compared
 // with drawer() until #429 removed it; the shape both agreed on is stored as a snapshot,
 // written in the commit where the comparison last passed.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Drawer, type DrawerProps } from './Drawer';
+import { LongForm } from './Drawer.stories';
 import { Modal } from './Modal';
 import { Tooltip } from './Tooltip';
 import { classesOfEl } from './test/classlist';
@@ -100,6 +103,59 @@ it('opens as a modal dialog named by its title, portalled to the body', () => {
   expect(dialog).toHaveAttribute('aria-modal', 'true');
   expect(container.contains(dialog)).toBe(false);
   expect(root()!.parentElement).toBe(document.body);
+});
+
+// A short drawer's footer stands directly under the last group, next to the form its Save
+// saves (#887): the body takes its content height and gives up space only to scroll. The
+// shell's menu keeps its account at the panel's foot, so its body fills the panel.
+// Limits: jsdom resolves the cascade, not layout, so this proves the flex values reach the
+// body on every side and size. stories/drawer-footer.test.js measures the footer in Chromium.
+describe('the footer follows the body', () => {
+  const sheet = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+  const kit = (css: string) => {
+    const style = document.createElement('style');
+    style.dataset.fixture = '';
+    style.textContent = css;
+    document.head.appendChild(style);
+  };
+  const flex = () => {
+    const body = getComputedStyle(document.querySelector('.ui-drawer__body')!);
+    const foot = getComputedStyle(document.querySelector('.ui-drawer__footer')!);
+    return { body: [body.flexGrow, body.flexShrink, body.minHeight, body.overflowY], foot: [foot.flexGrow, foot.flexShrink] };
+  };
+  const CSS = sheet('../../src/styles/drawer.css') + sheet('./AppShell.css');
+
+  for (const side of SIDES) {
+    for (const size of SIZES) {
+      it(`${side} ${size}: the body takes its content height and scrolls when it is long`, () => {
+        kit(CSS);
+        render(<Drawer open side={side} size={size} title="Transaction" onClose={noop} footer={<button type="button">Save</button>}>
+          <section className="ui-drawer__section">form</section>
+        </Drawer>);
+        expect(getComputedStyle(panel()).flexDirection).toBe('column');
+        expect(flex()).toEqual({ body: ['0', '1', '0px', 'auto'], foot: ['0', '0'] });
+      });
+    }
+  }
+
+  // The Long Form story spaces its fields by the kit's stack, so a label reads with its own field.
+  // jsdom does not resolve var() to a computed margin, so this reads which kit rule matches.
+  it('the long form puts the kit gap between its fields', () => {
+    kit(sheet('../../src/styles/base.css'));
+    const Story = (LongForm as { render: () => ReactElement }).render;
+    render(<Story />);
+    const gaps = [...document.styleSheets].flatMap((s) => [...s.cssRules])
+      .filter((r): r is CSSStyleRule => r instanceof CSSStyleRule && r.style.marginTop === 'var(--space-4)');
+    const fields = [...document.querySelectorAll('.ui-drawer__body .ui-field')];
+    expect(fields).toHaveLength(20);
+    expect(fields.slice(1).filter((f) => !gaps.some((r) => f.matches(r.selectorText)))).toEqual([]);
+  });
+
+  it('the shell menu keeps its account at the foot', () => {
+    kit(CSS);
+    render(<Drawer open title="Menu" onClose={noop} footer={<div className="ui-app__drawer">Account</div>}>rows</Drawer>);
+    expect(flex().body).toEqual(['1', '1', '0px', 'auto']);
+  });
 });
 
 // The panel must be a plain div: an <aside> owns the complementary role and cannot

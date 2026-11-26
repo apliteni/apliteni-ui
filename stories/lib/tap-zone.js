@@ -182,6 +182,21 @@ export async function rowFixtures() {
     h(kit.Button, { key: 'export', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'download', 'aria-label': 'Export' }),
     h(kit.Button, { key: 'more', variant: 'ghost', size: 'sm', iconOnly: true, icon: 'moreHorizontal', 'aria-label': 'More actions' }),
   ] }));
+  // A chart's wordless view switch in the card's tools: two 24px glyph pills in a
+  // 32px track, each owning a 44px target that reads the tools' 20px clearance and
+  // reaches past the pill's outer edge, never across the shared middle (#863/#867).
+  const wordlessSwitch = await markup(({ h, kit }) => h(kit.Card, {
+    title: 'Cash in and out',
+    tools: [
+      h(kit.Segmented, {
+        label: 'View', value: 'chart', size: 'sm',
+        options: [
+          { value: 'chart', label: 'Chart', icon: 'chart', iconOnly: true },
+          { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
+        ],
+      }),
+    ],
+  }));
   // A folded open band whose values are links, and one whose trend is a target: two
   // neighbours of a change. The first change is the short `1%`, the narrowest that a
   // band draws (#849).
@@ -223,6 +238,7 @@ export async function rowFixtures() {
     row('drawer', drawer),
     row('card-row', cardRow),
     row('card-tools', cardTools),
+    row('wordless-switch', wordlessSwitch),
 
     // The pair #488 names: a dense table's row actions, a labelled button
     // against an icon-only one in the same cell. Written out, because no story
@@ -508,9 +524,9 @@ export const PROBE = ({ html, size, interior, families, within }) => {
  * kit untouched and call that a green.
  */
 /** The tallest page the rig lays out. A control below it has no reach to measure. */
-export const VIEW_CAP = 16000;
+export const VIEW_CAP = 20000;
 
-export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [] }) {
+export async function pass(browser, { subjects, css, width, coarse, size, interior = 8, families = [], within = [], rounds = 6, viewportHeight }) {
   const ctx = await browser.newContext({
     viewport: { width, height: 900 },
     deviceScaleFactor: 1,
@@ -531,6 +547,10 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
     }));
     const rows = [];
     for (const s of subjects) {
+      // Measure each story's height from the same fixed 900px box: a story sized
+      // in viewport units (min-height: 100vh) has to read its own height, not the
+      // previous story's grown viewport, or a tall neighbour makes it look cut.
+      await page.setViewportSize({ width, height: 900 });
       // The viewport has to hold the whole story before anything is asked of
       // it: elementFromPoint answers about the VIEWPORT, and returns null below
       // the fold. Measured with a fixed 900px box, every control on the lower
@@ -539,18 +559,46 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // was never applied. A story taller than the cap is reported as `cut`:
       // at 6000 a filter bar that the sheet moved across the fold read as a
       // shrink (#814).
+      //
+      // A `max-height: 70vh` scroll region reads its cap on a short box, so its
+      // height and the story's height chase each other: settle the pair before
+      // the PROBE resets the innerHTML and reads the region a different size.
+      //
+      // The viewport `full` is clamped to VIEW_CAP, so it never exceeds the cap.
+      // The measured content height is kept apart from it: `content` is the last
+      // scrollHeight the page reported, and an oversized story is `cut` by its
+      // content, not by the capped viewport it was read through.
       // A subject may name its theme. The rest are measured in the dark theme.
-      const full = await page.evaluate(({ html, theme }) => {
-        document.documentElement.dataset.theme = theme;
-        document.body.innerHTML = html;
-        return document.documentElement.scrollHeight;
-      }, { html: s.html, theme: s.theme || 'dark' });
-      const height = Math.min(Math.max(full, 900), VIEW_CAP);
-      if (height !== page.viewportSize().height) {
-        await page.setViewportSize({ width, height });
+      const theme = s.theme || 'dark';
+      const fixed = viewportHeight != null;
+      let full = fixed ? viewportHeight : 900;
+      let content = 900;
+      if (fixed) {
+        // A caller measured this story already and asks for one shared viewport,
+        // so a 70vh-capped scroll region reads the same cap in both passes.
+        await page.setViewportSize({ width, height: full });
+        content = await page.evaluate(({ html, theme }) => {
+          document.documentElement.dataset.theme = theme;
+          document.body.innerHTML = html;
+          return document.documentElement.scrollHeight;
+        }, { html: s.html, theme });
+      } else {
+        for (let round = 0; round < rounds; round++) {
+          const measured = await page.evaluate(({ html, theme }) => {
+            document.documentElement.dataset.theme = theme;
+            document.body.innerHTML = html;
+            return document.documentElement.scrollHeight;
+          }, { html: s.html, theme });
+          content = measured;
+          const next = Math.min(Math.max(measured, 900), VIEW_CAP);
+          if (next === full) break;
+          full = next;
+          await page.setViewportSize({ width, height: full });
+        }
       }
+      const height = full;
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });
-      if (targets.length) rows.push({ story: s.id, targets, height, cut: full > VIEW_CAP });
+      if (targets.length) rows.push({ story: s.id, targets, height, cut: content > VIEW_CAP });
     }
     return { media, rows };
   } finally {

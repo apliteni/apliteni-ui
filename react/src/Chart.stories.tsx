@@ -99,8 +99,7 @@ export const SparkInScrollingTable: StoryObj = {
 };
 
 /** The same months with no unfinished period, so no readout names a state.
- *  The story's id is kept from the round that named it after the fade it no
- *  longer draws. */
+ *  The story's id is kept from the round that first named it. */
 export const Solid: StoryObj = {
   render: () => (
     <Card title="Income and spend">
@@ -130,8 +129,9 @@ const CASH_IN = [31200, 33850, 30410, 35120, 36240, 29980, 37310, 38860, 40120, 
 
 /** Look A, with a value on each bar and no comparison in the readout (#841).
  *  One solid line stands before November, the running month, and "Not final"
- *  stands over it and the three projected months. Every bar stays solid in the
- *  series tone; the readout and the table say "Incomplete" or "Projected". */
+ *  stands over it and the three projected months. Every bar stays one flat tone,
+ *  final or projected; the readout and the table say
+ *  "Incomplete" or "Projected". */
 export const Forecast: StoryObj = {
   render: () => (
     <Card title="Revenue">
@@ -180,9 +180,8 @@ export const SideBySide: StoryObj = {
 };
 
 /** Every tone the chart offers, one series each, in the order ChartTone lists
- *  them. Each bar fades from a tint at its base on zero to the full tone at its
- *  data end, and a bar under zero fades the other way. Seven tones need a key,
- *  so this story asks for the legend, and its keys stay solid in the full tone.
+ *  them. Each bar is one flat tone. Seven tones need a key, so this story asks
+ *  for the legend, and its keys stay solid in the full tone.
  *  Made-up seat changes for a made-up company. */
 export const Palette: StoryObj = {
   render: () => (
@@ -220,6 +219,43 @@ export const Bridge: StoryObj = {
           { label: 'Closing', short: 'Closing', kind: 'total' },
         ]} />
     </Card>
+  ),
+};
+
+/* The narrow-card fixtures from #863: a four-step bridge and a six-bar months
+   chart, each with a 20-character full name per bar and a distinct short name
+   under it, so every bar keeps its label at a phone width. A short name wraps
+   at a word break where it does not fit its column. All names and figures are
+   fabricated. */
+const NARROW_REGIONS: ChartPeriod[] = [
+  { label: 'North region revenue', short: 'N rev', compare: false },
+  { label: 'South region revenue', short: 'S rev', compare: false },
+  { label: 'North region refunds', short: 'N ref', compare: false },
+  { label: 'South region refunds', short: 'S ref', compare: false },
+  { label: 'North region balance', short: 'N bal', compare: false },
+  { label: 'South region balance', short: 'S bal', compare: false },
+];
+const NARROW_NET = [48200, 39100, -6400, -7100, 41800, 32000];
+
+export const ShortNames: StoryObj = {
+  render: () => (
+    <div style={{ maxWidth: 'var(--panel-sm)' }}><div className="ui-card-stack">
+      <Card title="Cash">
+        <Chart variant="bridge" title="Cash from opening to closing, narrow card"
+          format={eur} formatAxis={eurAxis} legend
+          steps={[
+            { label: 'Opening cash balance', short: 'Open', value: 120000 },
+            { label: 'Customer cash inflow', short: 'In', value: 42600 },
+            { label: 'Supplier cash spends', short: 'Out', value: -21600 },
+            { label: 'Closing cash balance', short: 'Close', kind: 'total' },
+          ]} />
+      </Card>
+      <Card title="Net by region">
+        <Chart title="Net by region, narrow card"
+          periods={NARROW_REGIONS} format={eur} formatAxis={eurAxis}
+          series={[{ id: 'net', name: 'Net', values: NARROW_NET, tone: 'info' }]} />
+      </Card>
+    </div></div>
   ),
 };
 
