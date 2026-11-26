@@ -93,6 +93,15 @@ the `index.mjs` file of a Playwright package, then run:
 `UI_PLAYWRIGHT=…/playwright/index.mjs TAP_ZONES=1 node --test stories/tap-zone.test.js`
 Report the result in the PR. CI runs only this gate's source half, so the measurement is yours.
 
+## Check the small control heights locally
+
+Before opening a PR that changes `--control-height-sm`, a small size of a search field, filter
+bar, dropdown or button, or a toolbar's height rules, measure the controls in a real browser.
+Run `npm run build -w react` first, then:
+`UI_PLAYWRIGHT=… CONTROL_HEIGHTS=1 node --test stories/control-height.test.js`
+It measures them with a mouse and with touch, and the 44px tap floor at 390px.
+Report the result in the PR. CI runs only the source half, in `react/src/SearchField.test.tsx`.
+
 ## Check the chart's point targets locally
 
 Before opening a PR that changes a chart's point target, its plot height or

@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.214.0', date: '2026-11-26',
+    changes: [
+      ['added', '`FilterBar` and `Dropdown` take `size="sm"`, or the classes `.ui-filter-bar--sm` and `.ui-dropdown--sm`. Beside a small `SearchField` and a small `Button`, the chips, Filter, Clear all and the trigger are then 32px high with a mouse and 40px on a touch screen. Part of #903.', ['FilterBar', 'Dropdown']],
+      ['changed', 'A toolbar that starts with a small search field no longer makes its chips 32px. An app with a small filter row passes `size="sm"` to its `FilterBar` and `Dropdown`, or the chips stay 40px. The height now holds when the field is in a wrapper or the bar is outside the toolbar. Part of #903.', ['FilterBar', 'SearchField']],
+      ['changed', 'On a touch screen a small `Button` or `Segmented` on a toolbar is 40px high in any row, and a small wordless button is a 40px circle. On a phone, a wordless button of the small, default or large size on a toolbar reaches the 44px tap floor. An extra-small wordless button (`size="xs"`) does not reach it, so use `size="sm"` or larger where a phone user taps it. A wordless button of the default size beside a small search field is no longer 46px. Give it `size="sm"`. Part of #903.', ['Button']],
+    ],
+  },
+  {
     v: '0.213.0', date: '2026-11-26',
     changes: [
       ['added', '`Toast` takes `bottomOffset`, the inset of the stack from the bottom of the view, in pixels or a CSS length. The default stays 16px. A page with a bar at the bottom sets it so the notices stand above the bar. Remove any selector that moves `.rx-toast-stack`. Part of #907.', ['Toast']],

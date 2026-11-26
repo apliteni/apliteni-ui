@@ -485,7 +485,9 @@ dropdown must have a search field: [Component choice](../guidelines/component-ch
 `avatar`, `badge`, `muted`, `selected` and `disabled`. `'---'` is a separator. `sections` groups
 rows under group labels, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
-trigger off: no keyboard stop, no panel and the disabled paint.
+trigger off: no keyboard stop, no panel and the disabled paint. `size="sm"` gives the trigger the
+small control height: 32px with a mouse and 40px on a touch screen. Use it on a
+[toolbar](#toolbar) beside a small search field.
 
 **What the user sees.**
 
@@ -647,7 +649,8 @@ a dense table. With a mouse it is 32px high with `--text-sm`. On a touch screen 
 16px text, because iOS zooms into a field with smaller text. `width` sizes the whole group, icon
 included, for a field that should fit its expected input instead of growing across the toolbar row;
 give it a CSS width such as `24ch`. The field has no clear button of its
-own, because the browser draws one. See [Toolbar](#toolbar).
+own, because the browser draws one. The page structure around the field does not change its
+height. See [Toolbar](#toolbar).
 
 ### Checkbox and switch
 
@@ -818,6 +821,9 @@ row with an empty value. A pick and Clear all call your handlers. They never cha
 `add` and `onAdd` add a Filter control after the chips. Its menu holds one section for each filter that the bar does not show,
 with a search field from ten values. When you add the filter in the same update, the focus goes to
 the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and the look.
+`size="sm"` gives the chips, Filter and Clear all the small control height: 32px with a mouse and
+40px on a touch screen. The bar keeps it in a toolbar, in a wrapper or on a line of its own.
+Without `size`, a chip is 40px high.
 
 **What the user sees.** A chip shows only the chosen value. Without a value, it shows the filter
 name. Each chip takes the width of its longest value, up to 224px. A value change does not change
@@ -847,17 +853,23 @@ view switch. Put a create action on its own row above the toolbar, at the left.
 ```tsx
 <div className="ui-toolbar">
   <SearchField ariaLabel="Search invoices" size="sm" />
-  <FilterBar … />
+  <FilterBar size="sm" … />
+  <Dropdown size="sm" … />
   <Segmented label="View" size="sm" … />
+  <Button size="sm" iconOnly icon="download">Export rows</Button>
 </div>
 ```
 
 **What the user sees.** Each control on a toolbar line has the same height, so a button beside a
 field has the same top and bottom edge. Do not change the size of a control to make it fit. A
-toolbar that starts with a small search field is a small row: with a mouse, the chips, Filter,
-Clear all, a dropdown trigger, a small Segmented and a small button are 32px. Give the Segmented
-and the button `size="sm"` yourself. The small search field stops at 320px. On a touch screen the
-row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, also on a phone.
+small row gives each control `size="sm"`: the search field, the filter bar, a dropdown, a
+Segmented and a button. With a mouse they are 32px high, and on a touch screen 40px. A wordless
+small button is a circle of that height. The size prop sets the height, not the page structure,
+so a wrapper around the field or a filter bar outside the toolbar keeps it. On a touch screen a
+small button or Segmented takes 40px as a direct child of `.ui-toolbar`. Without React, the
+classes are `.ui-input--sm`, `.ui-filter-bar--sm`, `.ui-dropdown--sm`, `.ui-seg--sm` and
+`.ui-btn--sm`. The small search field stops at 320px. `.ui-toolbar--split` puts the last control
+at the end of the row, also on a phone.
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
