@@ -10,9 +10,7 @@ export const SPEC_CSS = `<style>
   .gda-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
   .gda-table { overflow-x: auto; }
   .gda-band { max-width: 28rem; }
-  .gda-forced { overflow-x: auto; }
-  .gda-forced .ui-stats__list { flex-wrap: nowrap; }
-  .gda-forced .ui-stats__list > .ui-stat { flex-basis: 0; }
+  .gda-stacked .ui-stats__list { flex-direction: column; }
   .gda-coloured .ui-drawer__row dt, .gda-coloured .ui-drawer__row dd { color: var(--accent); }
   /* Two panes in one order, so the only thing that moves between Do and Don't is which
      pane is given the width, the weight and the accent. The tracks are 2:1 rather than

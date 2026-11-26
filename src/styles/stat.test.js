@@ -260,7 +260,7 @@ test('the open form draws no rule over a figure', () => {
 // a recorded exception to the 8px inner gap (#849), in the page body and in a card stack. At rest the gap is layout.css's. On a
 // touch phone tap-zone.css is read with its media query open, as jsdom evaluates none.
 // Limits: jsdom lays nothing out, so this adds the parent's gap and the two margins.
-test('a toolbar keeps 24px to an open band and 20px to a block on a touch phone, in both themes', () => {
+test('a toolbar keeps 24px to an open band, 20px to a block on a touch phone, and one group gap below a band, in both themes', () => {
   const sheet = (name) => decomment(readFileSync(path.join(here, name), 'utf8'));
   const layout = sheet('card.css') + sheet('layout.css');
   const tap = sheet('tap-zone.css').replace(/@media[^{]*\{([\s\S]*)\}\s*$/, '$1');
@@ -286,6 +286,27 @@ test('a toolbar keeps 24px to an open band and 20px to a block on a touch phone,
       assert.equal(gapTo(layout + tap, theme, parent, '<div class="ui-card"></div>'), 20, `${where}: a toolbar over a block on a touch phone`);
       assert.equal(gapTo(before, theme, parent, OPEN), 8, `${where}: the gap without the rule`);
     }
+  }
+  // Below a band on a page, the controls for its table keep one group gap, 32px, and any
+  // other block keeps the group gap on top of the body's (#865). Read at rest and on a
+  // touch phone, where tap-zone.css widens the toolbar's own bottom margin only.
+  const below = (css, theme, next) => {
+    const win = new JSDOM(`<!doctype html><html data-theme="${theme}"><head><style>${substitute(css, tokensFor(theme, 'default'))}</style></head><body>
+      <div class="ui-app__body"><div class="ui-stats ui-stats--band"></div>${next}</div></body></html>`).window;
+    const style = (sel) => win.getComputedStyle(win.document.querySelector(sel));
+    return { gap: px(style('.ui-app__body').gap), margin: px(style('.ui-stats + *').marginTop) };
+  };
+  const total = (css, theme, next) => { const { gap, margin } = below(css, theme, next); return gap + margin; };
+  const doubled = layout.replace(/^.*\.ui-stats \+ \.ui-toolbar.*$/gm, '');
+  assert.notEqual(doubled, layout, 'the mutation did not land: layout.css has no rule for a toolbar below a band');
+  for (const theme of ['dark', 'light']) {
+    for (const css of [layout, layout + tap]) {
+      assert.equal(total(css, theme, '<div class="ui-toolbar"></div>'), 32, `${theme}: a toolbar below a band`);
+    }
+    // jsdom resolves --ui-block-gap to its last declaration in either theme, so the card
+    // is read as the body's gap plus the group gap, whatever that gap is.
+    assert.equal(below(layout, theme, '<div class="ui-card"></div>').margin, 32, `${theme}: a card below a band`);
+    assert.notEqual(total(doubled, theme, '<div class="ui-toolbar"></div>'), 32, `${theme}: the gap without the rule`);
   }
 });
 
@@ -359,9 +380,13 @@ test('good news takes the success ink, bad news the danger ink, and nothing else
 const CONTAINER_BLOCKS = [...CSS.matchAll(/@container\s*\(([^)]*)\)\s*\{\s*([\s\S]*?)\n\}/g)]
   .flatMap(([, cond, inner]) => [...inner.matchAll(/([^{}]+)\{([^}]*)\}/g)]
     .map(([, sel, body]) => ({ cond, sel: sel.trim().replace(/\s+/g, ' '), body })));
+// A band of up to three figures keeps one row in place of the folds (#865). Its
+// blocks are read by their own test below, so the two tests here see the folds alone.
+const COMPACT = ':not(:has(> .ui-stat:nth-child(4)))';
+const LAYOUT_BLOCKS = CONTAINER_BLOCKS.filter((b) => !b.sel.includes(COMPACT));
 
 test('the folds are the ones the specification records, and their ranges do not overlap', () => {
-  const folds = CONTAINER_BLOCKS.filter((b) => valueOf(b.body, 'flex-basis')).map(({ cond, sel, body }) => {
+  const folds = LAYOUT_BLOCKS.filter((b) => valueOf(b.body, 'flex-basis')).map(({ cond, sel, body }) => {
     const upper = /width\s*<=\s*(\d+)rem/.exec(cond);
     const lower = /(\d+)rem\s*<\s*width/.exec(cond);
     assert.ok(upper, `a fold without an upper width: ${cond}`);
@@ -412,7 +437,7 @@ test('the folds are the ones the specification records, and their ranges do not 
  * resolves no @container and lays nothing out; the widths come from a browser
  * sweep of every band in the kit's own stories, recorded in the specification. */
 test('the figure steps down at the width the specification records, one rank per layout', () => {
-  const steps = CONTAINER_BLOCKS.filter((b) => valueOf(b.body, 'font-size'));
+  const steps = LAYOUT_BLOCKS.filter((b) => valueOf(b.body, 'font-size'));
   assert.equal(steps.length, 2, `found ${steps.length} type steps, not one per layout`);
 
   const stepFor = (layout) => {
@@ -458,4 +483,62 @@ test('the figure steps down at the width the specification records, one rank per
   // different widths. Equal widths would mean one of them was never measured.
   assert.notEqual(stepFor('band').upper, stepFor('open').upper,
     'both layouts step at the same width, which no measurement produced');
+});
+
+/* A band of up to three figures keeps one row above 19rem, and its value steps
+ * down one rank at a time in place of the folds (#865). The sheet is resolved in
+ * jsdom at a set of band widths: each @container block whose range holds the width
+ * is opened, the others are dropped, and the cascade then answers. The widths are
+ * each range's two ends, so a moved boundary fails, and each result is checked
+ * against the table in the specification.
+ *
+ * WHAT THIS DOES NOT REACH: whether three figures fit in that row. jsdom lays
+ * nothing out; the PR's browser captures measure the 390px and 320px phones. */
+test('a band of up to three figures keeps one row above 19rem, as the specification records', async () => {
+  const table = /^A `band` of up to three figures[\s\S]*?\n\n((?:\|.*\n)+)/m.exec(COMPONENTS_DOC);
+  assert.ok(table, 'docs/components.md has no table for the compact band');
+  const rows = table[1].split('\n').slice(2).filter(Boolean).map((line) => line.split('|').slice(1, -1).map((c) => c.trim()));
+  const ranges = rows.map(([width, value, gap]) => {
+    const above = /Above (\d+)rem/.exec(width);
+    const to = /to (\d+)rem|(\d+)rem or below/.exec(width);
+    return { lower: above ? Number(above[1]) : 0, upper: to ? Number(to[1] ?? to[2]) : Infinity, value, gap };
+  });
+  assert.equal(ranges.length, 5, `found ${ranges.length} rows in the compact table`);
+  const sheetAt = (rem, css = RAW) => substitute(decomment(css).replace(/@container\s*\(([^)]*)\)\s*\{\s*([\s\S]*?)\n\}/g, (all, cond, inner) => {
+    const lower = /(\d+(?:\.\d+)?)rem\s*<\s*width/.exec(cond);
+    const upper = /width\s*<=\s*(\d+(?:\.\d+)?)rem/.exec(cond);
+    return (!lower || rem > Number(lower[1])) && (!upper || rem <= Number(upper[1])) ? inner : '';
+  }), tokensFor('dark', 'default'));
+  const figure = (label) => ({ label, value: '€ 2,315,750' });
+  const band = (variant, count) => statBand({ variant, stats: ['Income', 'Spend', 'Net', 'Held'].slice(0, count).map(figure) });
+  const read = async (rem, variant, count, css) => {
+    const win = new JSDOM(`<!doctype html><html><head><style>${sheetAt(rem, css)}</style></head><body>${await band(variant, count)}</body></html>`).window;
+    const style = (sel) => win.getComputedStyle(win.document.querySelector(sel));
+    return { basis: style('.ui-stat').flexBasis, size: style('.ui-stat__value').fontSize, gap: style('.ui-stats__list').columnGap };
+  };
+  const inRow = (got) => got.basis !== '100%';
+  for (const { lower, upper, value, gap } of ranges) {
+    for (const rem of [lower + 0.5, upper === Infinity ? lower + 20 : upper]) {
+      for (const count of [2, 3]) {
+        const got = await read(rem, 'band', count);
+        if (upper <= 19) {
+          assert.equal(got.basis, '100%', `a band of ${count} at ${rem}rem keeps a row the specification stacks`);
+          continue;
+        }
+        assert.ok(inRow(got), `a band of ${count} at ${rem}rem stacks, the specification keeps one row`);
+        assert.equal(got.size, value, `a band of ${count} at ${rem}rem sets its value at ${got.size}, the specification says ${value}`);
+        assert.equal(got.gap, gap, `a band of ${count} at ${rem}rem keeps ${got.gap} between figures, the specification says ${gap}`);
+      }
+    }
+  }
+  // Four figures in a band, and three as tiles or open, keep the folds above.
+  assert.equal((await read(25, 'band', 4)).basis, '100%', 'a band of four figures lost its fold');
+  assert.equal((await read(35, 'tiles', 3)).basis, '100%', 'tiles of three figures lost their fold');
+  assert.equal((await read(45, 'open', 3)).basis, '100%', 'an open band of three figures lost its fold');
+  // The compact blocks weigh the same as the folds, so they work only after them.
+  const moved = RAW.slice(RAW.indexOf('/* A band of up to three figures'));
+  assert.notEqual(moved, RAW, 'the mutation did not land: stat.css has no compact band');
+  const first = moved + RAW.slice(0, RAW.indexOf('/* A band of up to three figures'));
+  assert.equal((await read(25, 'band', 3, first)).basis, '100%', 'before the folds the compact band would still win: this measures no order');
+  assert.ok(inRow(await read(25, 'band', 3)), 'the compact band no longer follows the folds');
 });

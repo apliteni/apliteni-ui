@@ -4,13 +4,15 @@
 
 <!-- rule: check-density -->
 
-**Rule:** At block widths of 28rem or less, a stat band must show one figure per row; placing two figures side by side fails this check.
+**Rule:** A band keeps up to three figures in one row above 19rem and stacks them at 19rem or below.
 
-**Why:** Stacking gives each label and value the full width of the block.
+**Why:** One row keeps the band short on a phone.
 
-**Do:** Stack Paid and In transit, as Stat band tiles do in a narrow panel.
+**Do:** Keep Paid, In transit and Held in one row in a narrow panel.
 
-**Don't:** Force the same figures side by side in that panel.
+**Don't:** Stack them in that panel.
+
+**Except:** Tiles and an open band stack sooner.
 
 ## Keep the summary short
 

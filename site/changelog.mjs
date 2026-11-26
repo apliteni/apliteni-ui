@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.206.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `StatBand` with `variant="band"` and up to three figures now keeps them in one row on a phone. Below 42rem of band width the value steps down to 22px, 18px and then 15.5px, and the figures stack only at 19rem or below. Tiles, an open band and a band of four figures keep their folds. Part of #865.', ['Stat band']],
+      ['changed', 'A toolbar directly after a stat band in the page body now keeps one group gap, 32px, in both themes, in place of the group gap plus the body gap. Part of #865.', ['Stat band', 'Toolbar']],
+      ['changed', 'The Density and accents guideline rule Check a narrow stat band now says: a band keeps up to three figures in one row above 19rem and stacks them at 19rem or below. A new Transactions showcase shows the band above a search, a filter and a table. Part of #865.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.204.0', date: '2026-11-26',
     changes: [
       ['changed', 'A sidebar section caption and a command palette group heading are now bold and in muted ink, as a dropdown group label is. Their size and spacing stay. Part of #886.', ['AppShell', 'CommandPalette']],
