@@ -1,0 +1,33 @@
+{
+  "verdict": "warn",
+  "level": "recommended",
+  "files": [
+    {
+      "file": "Rendered prototype DOM, default accent, light theme, set state",
+      "verdict": "warn",
+      "level": "recommended",
+      "findings": [
+        {
+          "rule": "stock-palette",
+          "level": 2,
+          "severity": "warning",
+          "span": "near-black and acid-green palette",
+          "why": "Near-black with acid green, or cream with earth accents such as terracotta, amber, brown or forest green, are common generated palettes.",
+          "fix": "Choose the palette for the subject or keep an intentional established system."
+        }
+      ],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 1
+      },
+      "visualRulesSkipped": false
+    }
+  ],
+  "stats": {
+    "files": 1,
+    "errors": 0,
+    "medium": 0,
+    "warnings": 1
+  }
+}

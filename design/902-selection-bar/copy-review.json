@@ -1,0 +1,60 @@
+{
+  "verdict": "pass",
+  "level": "recommended",
+  "files": [
+    {
+      "file": "design/902-selection-bar/README.md",
+      "verdict": "pass",
+      "level": "recommended",
+      "findings": [],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 0
+      },
+      "visualRulesSkipped": false
+    },
+    {
+      "file": "design/902-selection-bar/notes.md",
+      "verdict": "pass",
+      "level": "recommended",
+      "findings": [],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 0
+      },
+      "visualRulesSkipped": false
+    },
+    {
+      "file": "design/902-selection-bar/pattern.md",
+      "verdict": "pass",
+      "level": "recommended",
+      "findings": [],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 0
+      },
+      "visualRulesSkipped": false
+    },
+    {
+      "file": "design/902-selection-bar/review.md",
+      "verdict": "pass",
+      "level": "recommended",
+      "findings": [],
+      "stats": {
+        "errors": 0,
+        "medium": 0,
+        "warnings": 0
+      },
+      "visualRulesSkipped": false
+    }
+  ],
+  "stats": {
+    "files": 4,
+    "errors": 0,
+    "medium": 0,
+    "warnings": 0
+  }
+}

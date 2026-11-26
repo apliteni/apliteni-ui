@@ -1,0 +1,337 @@
+{
+  "errors": [],
+  "captures": [
+    "a-light-390x844",
+    "a-light-390-end",
+    "a-light-820x1180",
+    "a-light-1280x800",
+    "a-light-1920x1080",
+    "a-dark-390x844",
+    "a-dark-390-end",
+    "a-dark-820x1180",
+    "a-dark-1280x800",
+    "a-dark-1920x1080",
+    "b-light-390x844",
+    "b-light-390-end",
+    "b-light-820x1180",
+    "b-light-1280x800",
+    "b-light-1920x1080",
+    "b-dark-390x844",
+    "b-dark-390-end",
+    "b-dark-820x1180",
+    "b-dark-1280x800",
+    "b-dark-1920x1080",
+    "a-light-selected",
+    "a-light-focus",
+    "a-light-open",
+    "a-light-long",
+    "a-light-hover",
+    "a-light-pressed",
+    "a-light-busy",
+    "a-light-cleared",
+    "b-light-overflow",
+    "b-light-overflow-open",
+    "a-dark-selected",
+    "a-dark-focus",
+    "a-dark-open",
+    "a-dark-long",
+    "a-dark-hover",
+    "a-dark-pressed",
+    "a-dark-busy",
+    "a-dark-cleared",
+    "b-dark-overflow",
+    "b-dark-overflow-open",
+    "a-light-1-fields-390",
+    "a-light-1-fields-1280",
+    "a-light-3-fields-390",
+    "a-light-3-fields-1280",
+    "a-text-200",
+    "b-text-200",
+    "a-forced-colors",
+    "a-touch-390",
+    "b-touch-390"
+  ],
+  "checks": [
+    "a light 390: no page overflow; last row clear",
+    "a light 820: no page overflow; last row clear",
+    "a light 1280: no page overflow; last row clear",
+    "a light 1920: no page overflow; last row clear",
+    "a dark 390: no page overflow; last row clear",
+    "a dark 820: no page overflow; last row clear",
+    "a dark 1280: no page overflow; last row clear",
+    "a dark 1920: no page overflow; last row clear",
+    "b light 390: no page overflow; last row clear",
+    "b light 820: no page overflow; last row clear",
+    "b light 1280: no page overflow; last row clear",
+    "b light 1920: no page overflow; last row clear",
+    "b dark 390: no page overflow; last row clear",
+    "b dark 820: no page overflow; last row clear",
+    "b dark 1280: no page overflow; last row clear",
+    "b dark 1920: no page overflow; last row clear",
+    "a extra width 320: no page overflow",
+    "b extra width 320: no page overflow",
+    "a extra width 360: no page overflow",
+    "b extra width 360: no page overflow",
+    "a extra width 466: no page overflow",
+    "b extra width 466: no page overflow",
+    "a extra width 844: no page overflow",
+    "b extra width 844: no page overflow",
+    "a extra width 984: no page overflow",
+    "b extra width 984: no page overflow",
+    "a extra width 1536: no page overflow",
+    "b extra width 1536: no page overflow",
+    "a extra width 2560: no page overflow",
+    "b extra width 2560: no page overflow",
+    "a: 200% control text has no page overflow",
+    "b: 200% control text has no page overflow",
+    "sandbox allow-scripts: selection, menu and Apply work; no nested frame",
+    "Forced colors and reduced motion rendered",
+    "a: coarse-pointer bar targets are at least 44 by 44",
+    "b: coarse-pointer bar targets are at least 44 by 44",
+    "Keyboard, Escape order, clear recovery, count status, fixed field width, one Apply call: passed"
+  ],
+  "contrast": [
+    {
+      "theme": "light",
+      "accent": "nebula",
+      "colors": {
+        "bg": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "fieldBg": "rgb(14, 13, 20)",
+        "chevron": "rgb(162, 157, 182)",
+        "ring": "rgb(180, 121, 255)",
+        "applyBg": "rgb(124, 58, 237)",
+        "applyText": "rgb(255, 255, 255)"
+      },
+      "ratios": {
+        "text": 15.79,
+        "edge": 7.4,
+        "chevron": 7.4,
+        "ring": 6.55,
+        "applyText": 5.7,
+        "applyEdge": 3.39
+      }
+    },
+    {
+      "theme": "light",
+      "accent": "phoenix",
+      "colors": {
+        "bg": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "fieldBg": "rgb(14, 13, 20)",
+        "chevron": "rgb(162, 157, 182)",
+        "ring": "rgb(255, 106, 61)",
+        "applyBg": "rgb(255, 106, 61)",
+        "applyText": "rgb(36, 16, 6)"
+      },
+      "ratios": {
+        "text": 15.79,
+        "edge": 7.4,
+        "chevron": 7.4,
+        "ring": 6.79,
+        "applyText": 6.41,
+        "applyEdge": 6.79
+      }
+    },
+    {
+      "theme": "light",
+      "accent": "ocean",
+      "colors": {
+        "bg": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "fieldBg": "rgb(14, 13, 20)",
+        "chevron": "rgb(162, 157, 182)",
+        "ring": "rgb(59, 157, 255)",
+        "applyBg": "rgb(59, 157, 255)",
+        "applyText": "rgb(4, 18, 31)"
+      },
+      "ratios": {
+        "text": 15.79,
+        "edge": 7.4,
+        "chevron": 7.4,
+        "ring": 6.86,
+        "applyText": 6.71,
+        "applyEdge": 6.86
+      }
+    },
+    {
+      "theme": "light",
+      "accent": "emerald",
+      "colors": {
+        "bg": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "fieldBg": "rgb(14, 13, 20)",
+        "chevron": "rgb(162, 157, 182)",
+        "ring": "rgb(22, 201, 138)",
+        "applyBg": "rgb(22, 201, 138)",
+        "applyText": "rgb(4, 24, 15)"
+      },
+      "ratios": {
+        "text": 15.79,
+        "edge": 7.4,
+        "chevron": 7.4,
+        "ring": 8.98,
+        "applyText": 8.54,
+        "applyEdge": 8.98
+      }
+    },
+    {
+      "theme": "dark",
+      "accent": "nebula",
+      "colors": {
+        "bg": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "fieldBg": "rgb(255, 255, 255)",
+        "chevron": "rgb(92, 98, 112)",
+        "ring": "rgb(106, 45, 204)",
+        "applyBg": "rgb(106, 45, 204)",
+        "applyText": "rgb(255, 255, 255)"
+      },
+      "ratios": {
+        "text": 16.68,
+        "edge": 6.11,
+        "chevron": 6.11,
+        "ring": 7.34,
+        "applyText": 7.34,
+        "applyEdge": 7.34
+      }
+    },
+    {
+      "theme": "dark",
+      "accent": "phoenix",
+      "colors": {
+        "bg": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "fieldBg": "rgb(255, 255, 255)",
+        "chevron": "rgb(92, 98, 112)",
+        "ring": "rgb(168, 55, 12)",
+        "applyBg": "rgb(168, 55, 12)",
+        "applyText": "rgb(255, 255, 255)"
+      },
+      "ratios": {
+        "text": 16.68,
+        "edge": 6.11,
+        "chevron": 6.11,
+        "ring": 6.53,
+        "applyText": 6.53,
+        "applyEdge": 6.53
+      }
+    },
+    {
+      "theme": "dark",
+      "accent": "ocean",
+      "colors": {
+        "bg": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "fieldBg": "rgb(255, 255, 255)",
+        "chevron": "rgb(92, 98, 112)",
+        "ring": "rgb(0, 90, 180)",
+        "applyBg": "rgb(0, 90, 180)",
+        "applyText": "rgb(255, 255, 255)"
+      },
+      "ratios": {
+        "text": 16.68,
+        "edge": 6.11,
+        "chevron": 6.11,
+        "ring": 6.73,
+        "applyText": 6.73,
+        "applyEdge": 6.73
+      }
+    },
+    {
+      "theme": "dark",
+      "accent": "emerald",
+      "colors": {
+        "bg": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "fieldBg": "rgb(255, 255, 255)",
+        "chevron": "rgb(92, 98, 112)",
+        "ring": "rgb(7, 108, 72)",
+        "applyBg": "rgb(7, 108, 72)",
+        "applyText": "rgb(255, 255, 255)"
+      },
+      "ratios": {
+        "text": 16.68,
+        "edge": 6.11,
+        "chevron": 6.11,
+        "ring": 6.47,
+        "applyText": 6.47,
+        "applyEdge": 6.47
+      }
+    }
+  ],
+  "axe": [
+    {
+      "label": "light nebula set",
+      "violations": []
+    },
+    {
+      "label": "light phoenix set",
+      "violations": []
+    },
+    {
+      "label": "light ocean set",
+      "violations": []
+    },
+    {
+      "label": "light emerald set",
+      "violations": []
+    },
+    {
+      "label": "dark nebula set",
+      "violations": []
+    },
+    {
+      "label": "dark phoenix set",
+      "violations": []
+    },
+    {
+      "label": "dark ocean set",
+      "violations": []
+    },
+    {
+      "label": "dark emerald set",
+      "violations": []
+    },
+    {
+      "label": "light selected",
+      "violations": []
+    },
+    {
+      "label": "light open",
+      "violations": []
+    },
+    {
+      "label": "light busy",
+      "violations": []
+    },
+    {
+      "label": "light overflow",
+      "violations": []
+    },
+    {
+      "label": "dark selected",
+      "violations": []
+    },
+    {
+      "label": "dark open",
+      "violations": []
+    },
+    {
+      "label": "dark busy",
+      "violations": []
+    },
+    {
+      "label": "dark overflow",
+      "violations": []
+    }
+  ]
+}
