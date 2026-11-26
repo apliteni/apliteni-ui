@@ -18,12 +18,11 @@ const QUOTED = 'A tracking link appears here once the carrier scans the parcel.'
 // where the fixed offset this replaces was tuned to the height of exactly one.
 // It stays inline because the gap is the page's choice, and because a var() the
 // token file does not declare must not enter a react/src stylesheet. The pill
-// fades out while its dialog is open: two filled accent pills in one view is the
+// hides while its dialog is open: two filled accent pills in one view is the
 // competition `the-page: one-primary` warns about.
 const trigger = {
   position: 'fixed', right: 'var(--space-4)',
   bottom: 'calc(var(--rx-toast-stack, 0px) + var(--space-4))',
-  transition: 'bottom var(--dur-med) var(--ease), opacity var(--dur-med) var(--ease)',
 } as const;
 
 const meta = {
@@ -59,21 +58,21 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
           <h1>Order DEMO-1042</h1>
           <p className="fbs-lede">Packed on 27 September. The carrier has not collected it yet.</p>
           <section>
-            <h2>Contents</h2>
+            <h2 className="ui-card__title">Contents</h2>
             <p>A desk lamp and a notebook, in one box.</p>
           </section>
           <section>
-            <h2>Delivery</h2>
+            <h2 className="ui-card__title">Delivery</h2>
             <p>The parcel will leave on the next weekday collection at 16:00.</p>
             <p>{QUOTED}</p>
           </section>
           <section>
-            <h2>Payment</h2>
+            <h2 className="ui-card__title">Payment</h2>
             <p>Paid in full on 26 September. The invoice was sent with the order confirmation.</p>
           </section>
         </Card>
       </main>
-      <div style={{ ...trigger, opacity: open ? 0 : 1 }}>
+      <div style={trigger} hidden={open}>
         <Button variant="primary" icon="chat" aria-haspopup="dialog" onClick={() => setOpen(true)}>
           Feedback
         </Button>
@@ -82,9 +81,9 @@ function FeedbackExample({ withExcerpt = true, fail = false }: Args) {
         footer={<>
           <Button variant="ghost" onClick={close}>Cancel</Button>
           <Button variant="primary" type="submit" form={formId} busy={state === 'sending'}
-            completionMessage={state === 'failed' ? '' : undefined} disabled={!note.trim()}>Send feedback</Button>
+            completionMessage={state === 'failed' ? '' : undefined} disabled={!note.trim()}>Send</Button>
         </>}>
-        <div className="fbs-chip">Delivery, on order DEMO-1042</div>
+        <div className="ui-eyebrow">Delivery, on order DEMO-1042</div>
         {withExcerpt && <blockquote className="fbs-quote">{QUOTED}</blockquote>}
         <form id={formId} onSubmit={event => {
           event.preventDefault();

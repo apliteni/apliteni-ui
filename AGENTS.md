@@ -329,7 +329,9 @@ Report the result in the PR. CI runs only the source half, in `react/src/Drawer.
 ## Check the toast stack locally
 
 Before opening a PR that changes `src/styles/callout.css`'s toast rules, `react/src/Toast.css` or
-React `<Toast>`, walk an undo stack's keys and clicks in a real browser. Run
+React `<Toast>`, walk an undo stack's keys and clicks in a real browser. The same run walks a page
+with a bottom bar and checks that the stack stands 16px above the bar. It checks that five notices
+stay inside the view at each size, and that the reach follows a resize of the view. Run
 `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js TOAST_STACK=1 node --test stories/toast-stack.test.js`
 If the Playwright package has no browser of its own version, set `UI_CHROME` to a Chrome

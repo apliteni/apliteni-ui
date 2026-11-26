@@ -148,11 +148,12 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // 16 -> 18: #789 rings the nav row inward, at rest and current, because the rows stand
   // 2px apart and an outward band crossed into the next row.
   // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
-  assert.equal(scrollRules.length, 19,
+  // 19 -> 20: #907 rings a toast stack inward while it is taller than the view and scrolls.
+  assert.equal(scrollRules.length, 20,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 4,
-    'React\'s modal body, the picker\'s shortcut row, the account rail and the three-column page\'s columns '
-    + 'are not all among them, so the walk '
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 5,
+    'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns '
+    + 'and the scrolling toast stack are not all among them, so the walk '
     + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules, '--ring-scroll'), []);
 });
@@ -276,7 +277,8 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
   assert.equal(consumers.length, 48, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
-  assert.equal(scrollRules.length, 19, 'scroll-ring consumer discovery changed');
+  // 19 -> 20: #907 adds the scrolling toast stack.
+  assert.equal(scrollRules.length, 20, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 
