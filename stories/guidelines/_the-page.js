@@ -19,6 +19,11 @@ export const SPEC_CSS = `
     .tp-out { display: flex; flex-direction: column; gap: var(--space-2); }
     /* The rail's own ground, so the current row's plate shows as it does in the shell. */
     .tp-side { background: var(--bg); border-radius: var(--radius-md); padding: var(--space-2); }
+    /* The shell's rail in a cell: it keeps its paint and gives up the window's height. */
+    .tp-rail { display: block; min-height: 0; background: none; }
+    .tp-rail .ui-app__rail { position: static; height: auto; border-radius: var(--radius-md); }
+    /* The version moved onto the names' edge: the symbol box and its gap. */
+    .tp-rail .tp-note--off { padding-inline-start: calc(var(--space-2) + var(--ui-app-av) + var(--space-2)); }
     .tp-out__row { display: flex; align-items: baseline; gap: var(--space-3);
       font: 400 13px/1.5 var(--font-sans); color: var(--text); }
     /* Rank chip. Longhands and no line-height, because the chip rank inherits

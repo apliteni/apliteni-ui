@@ -14,6 +14,7 @@ import '../../react/src/AppShell.css';
 import { KeyValueList } from '../../react/src/KeyValueList';
 import { SidebarNav, type SidebarNavSections } from '../../react/src/SidebarNav';
 import { RestingFilters } from '../_table-filters';
+import { prism } from '@apliteni/apliteni-ui';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -37,6 +38,21 @@ const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side">
   sections={(mixed ? [{ label: 'Money', items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts] },
     { label: 'Workspace', items: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }] }]
     : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
+
+// The open sidebar's two columns, drawn with the shell's own parts: the logo, the glyphs,
+// the version and the avatar on one edge, or the version moved onto the names' edge.
+const SideColumn = ({ off }: { off: boolean }) => <Stage><div className="ui-app ui-react-app tp-rail"><div className="ui-app__rail">
+  <div className="ui-app__head"><a className="ui-app__brand" href="#" aria-label="Finance">
+    <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`tp-mark-${off}`, 24) }} /><span>Finance</span>
+  </a></div>
+  <SidebarNav aria-label={off ? 'Sections, version off the column' : 'Sections, one column'} active="payouts"
+    sections={[{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, { id: 'payouts', icon: 'card', label: 'Payouts' }] }]} />
+  <p className={`ui-app__note${off ? ' tp-note--off' : ''}`}>v2.14.0</p>
+  <div className="ui-app__user"><span className="ui-app__user-trigger">
+    <span className="ui-app__av" aria-hidden="true"><Avatar personKey="dana@example.com" name="Dana Reyes" size={32} /></span>
+    <span className="ui-app__who"><b>Dana Reyes</b><span>dana@example.com</span></span>
+  </span></div>
+</div></div></Stage>;
 
 // The one primary action.
 const Agents = ({ all = false }: { all?: boolean }) => <Stage>
@@ -169,6 +185,7 @@ const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="
 const specimens = [
   { id: 'layout', do: () => <Shells moved={false} />, dont: () => <Shells moved /> },
   { id: 'sidebar', do: () => <Side mixed={false} />, dont: () => <Side mixed /> },
+  { id: 'sidebar-column', do: () => <SideColumn off={false} />, dont: () => <SideColumn off /> },
   { id: 'bar-end', do: () => <BarEnd page={false} />, dont: () => <BarEnd page /> },
   { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
   { id: 'head', do: () => <Head parts={['back', 'title', 'sub', 'filters']} />,

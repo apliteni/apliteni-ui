@@ -24,6 +24,18 @@
 
 **Don't:** Put Payouts and its sub-items under a Money label.
 
+## Align the sidebar on one column
+
+<!-- rule: sidebar-column -->
+
+**Rule:** Align the logo, navigation icons, version, and avatar on one column, and hide the version when the sidebar folds.
+
+**Why:** One edge leads the eye from the logo to the account, and a folded strip has no room for words.
+
+**Do:** Put one fact, such as the version, above the account.
+
+**Don't:** Start the version under the section names.
+
 ## Keep the bar’s end for product alerts
 
 <!-- rule: bar-end -->

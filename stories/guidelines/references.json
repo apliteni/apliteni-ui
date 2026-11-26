@@ -384,7 +384,7 @@
   ],
   "status-after-title": [
    {
-    "ref": "react/src/Drawer.tsx:73",
+    "ref": "react/src/Drawer.tsx:76",
     "pattern": "className=\"ui-drawer__status\""
    },
    {
@@ -394,7 +394,7 @@
   ],
   "save-under-form": [
    {
-    "ref": "src/styles/drawer.css:192",
+    "ref": "src/styles/drawer.css:194",
     "pattern": "flex: 0 1 auto;"
    }
   ],
@@ -404,7 +404,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:224",
+    "ref": "src/styles/drawer.css:226",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -414,7 +414,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:227",
+    "ref": "src/styles/drawer.css:229",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -424,7 +424,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:295",
+    "ref": "src/styles/drawer.css:297",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -444,7 +444,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:186",
+    "ref": "react/src/AppShell.tsx:194",
     "pattern": "back && <BackLink"
    }
   ],
@@ -580,7 +580,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:416",
+    "ref": "src/styles/layout.css:450",
     "pattern": "rank: page-title"
    },
    {
@@ -632,7 +632,7 @@
   ],
   "measure": [
    {
-    "ref": "src/styles/layout.css:308",
+    "ref": "src/styles/layout.css:342",
     "pattern": "var(--ui-app-main, var(--measure))"
    },
    {
@@ -666,7 +666,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:555",
+    "ref": "src/styles/layout.css:589",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -690,11 +690,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:468",
+    "ref": "src/styles/layout.css:502",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:469",
+    "ref": "src/styles/layout.css:503",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -814,7 +814,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:308",
+    "ref": "src/styles/drawer.css:310",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -1053,7 +1053,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:67",
+    "ref": "react/src/AppShell.tsx:70",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {

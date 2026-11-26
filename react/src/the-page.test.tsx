@@ -63,7 +63,7 @@ const GATED: { id: string; says: string }[] = [
 ];
 
 // The floors are what the tree holds today, not a round number underneath it.
-const FOUND = { files: 11, screens: 31, apps: 25, ledes: 15, sidebars: 29, bandEnds: 3 };
+const FOUND = { files: 11, screens: 31, apps: 25, ledes: 15, sidebars: 29, bandEnds: 3, notes: 9 };
 
 describe('the page: React screens', () => {
   it('found the kit’s own screens', () => {
@@ -124,6 +124,17 @@ describe('the page: React screens', () => {
     doc.body.innerHTML = '<div class="ui-auth__card"><h1>Sign in</h1>'
       + '<div class="ui-auth__foot">Only apliteni.com accounts can sign in.</div></div>';
     expect(CHECKS['sign-in-note']({ ...drawn[0], where: 'named', doc })).toHaveLength(1);
+  });
+
+  // `sidebar-column` only reads a screen with a sidebar note, so this counts them, and a
+  // second note, a note with parts and a note away from the account must fail it.
+  it('the sidebar-column check reaches sidebar notes and refuses a misplaced one', () => {
+    const drawn = screens.filter((s) => s.doc.querySelector('.ui-app__note'));
+    expect(drawn.length, 'screens with a sidebar note').toBeGreaterThanOrEqual(FOUND.notes);
+    const doc = document.implementation.createHTMLDocument('misplaced');
+    doc.body.innerHTML = '<div class="ui-app__rail"><p class="ui-app__note">v2.14.0</p><nav></nav>'
+      + '<p class="ui-app__note"><a href="#">v2.14.0</a></p><div class="ui-app__user"></div></div>';
+    expect(CHECKS['sidebar-column']({ ...drawn[0], where: 'misplaced', doc })).toHaveLength(3);
   });
 
   for (const rule of GATED) {

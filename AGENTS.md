@@ -260,6 +260,14 @@ band's title or search from 561px to 800px, measure the band in a real browser:
 `UI_PLAYWRIGHT=… BAND_ACTIONS=1 node --test stories/band-actions.test.js`
 Report the result in the PR. CI skips this check because Playwright is not a dependency.
 
+## Check the sidebar edges locally
+
+Before opening a PR that changes the open or folded sidebar's horizontal spacing, the phone menu's
+rows or head, or React `<AppShell>`'s sidebar note, measure the edges in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… SIDEBAR_EDGES=1 node --test stories/sidebar-edges.test.js`
+Report the result in the PR. CI runs only the source half, in `react/src/AppShell.test.tsx`.
+
 ## Check the account menu at the phone breakpoint locally
 
 Before opening a PR that changes React `<AccountMenu>` or how it leaves with the sidebar,

@@ -627,3 +627,99 @@ describe('band actions', () => {
     expect(css).toMatch(/@media \(min-width: 561px\) and \(max-width: 720px\) \{[^@]*\.ui-react-app__title \{ flex-shrink: 0; max-width: 50%; \}/);
   });
 });
+
+// One short line at the foot of the section list, above the account (#869). jsdom lays
+// nothing out, so the order is read from the markup and the edges from the stylesheets;
+// stories/sidebar-edges.test.js measures them in Chromium.
+describe('sidebar note', () => {
+  const rail = () => document.querySelector('.ui-app__rail')!;
+  const kids = (el: Element) => [...el.children].map(c => c.className.split(' ')[0]);
+
+  it('stands after the section list and before the account, in each layout, and is not drawn when empty', () => {
+    const { rerender } = render(<AppShell {...props} sidebarNote="v2.14.0" />);
+    expect(kids(rail()).slice(-3)).toEqual(['ui-nav', 'ui-app__note', 'ui-app__user']);
+    expect(rail().querySelector('.ui-app__note')).toHaveTextContent('v2.14.0');
+    rerender(<AppShell {...props} layout="rail" sidebarNote="v2.14.0" />);
+    expect(kids(rail()).slice(-3)).toEqual(['ui-nav', 'ui-app__note', 'ui-app__user']);
+    rerender(<AppShell {...props} sidebarNote="" />);
+    expect(kids(rail()).slice(-2)).toEqual(['ui-nav', 'ui-app__user']);
+    rerender(<AppShell {...props} />);
+    expect(document.querySelector('.ui-app__note')).toBeNull();
+  });
+
+  it('is the last line of the phone menu, above the account, under a head that starts with the mark', () => {
+    for (const layout of ['topbar', 'rail'] as const) {
+      render(<AppShell {...props} layout={layout} word="Finance" sidebarNote="v2.14.0" />);
+      fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
+      const dialog = screen.getByRole('dialog', { name: 'Finance' });
+      const list = dialog.querySelector('.ui-drawer__body')!.firstElementChild!;
+      expect(list.lastElementChild).toHaveClass('ui-app__note');
+      expect(list.lastElementChild).toHaveTextContent('v2.14.0');
+      expect(dialog.querySelector('.ui-drawer__footer .ui-app__user')).not.toBeNull();
+      expect(dialog.querySelector('.ui-drawer__lead > .ui-drawer__mark > .ui-react-app__mark svg')).not.toBeNull();
+      cleanup();
+    }
+  });
+
+  it('takes the caption rank in body ink, and leaves when the sidebar folds', () => {
+    const css = read('../../src/styles/layout.css');
+    const rule = css.match(/\n\.ui-app__note \{([^}]*)\}/)![1];
+    expect(rule).toMatch(/font-size: var\(--text-sm\);\s*font-weight: var\(--weight-normal\);\s*color: var\(--text\);/);
+    expect(rule).not.toMatch(/muted/);
+    // A long note stays on one line and ends in an ellipsis.
+    expect(rule).toMatch(/white-space: nowrap;\s*overflow: hidden;\s*text-overflow: ellipsis;/);
+    expect(css).toContain(':where(.ui-app.is-collapsed) .ui-app__rail .ui-app__note { opacity: 0; visibility: hidden; }');
+  });
+
+  // The CI half of stories/sidebar-edges.test.js: the edges as the declarations add up.
+  // It reads the rules by their selectors, so it does not see a rule that overrides them.
+  it('puts each symbol at 24px and each name at 62px in the open rail, and at 99px and 137px in the phone menu', () => {
+    const sheets = read('../../src/styles/layout.css') + read('./AppShell.css') + read('../../src/styles/drawer.css');
+    const tokens = read('../../src/tokens/tokens.css');
+    const flat = sheets.replace(/\/\*[\s\S]*?\*\//g, ' ');
+    const decl = (selector: string, prop: string) => {
+      const rule = [...flat.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+        .filter(m => m[1].split(/,(?![^(]*\))/).map(s => s.trim()).includes(selector))
+        .map(m => new RegExp(`(?:^|[;\\s])${prop}:\\s*([^;]+);`).exec(m[2])?.[1].trim()).filter(Boolean).at(-1);
+      expect(rule, `${selector} { ${prop} }`).toBeDefined();
+      return rule!;
+    };
+    const token = (name: string) => {
+      const own = new RegExp(`${name}:\\s*([\\d.]+)px`).exec(tokens) ?? new RegExp(`${name}:\\s*([\\d.]+)px`).exec(flat);
+      expect(own, name).not.toBeNull();
+      return Number(own![1]);
+    };
+    // One length: a px, a var(), or a calc() sum of them.
+    const px = (value: string): number => value.replace(/^calc\((.*)\)$/, '$1').split('+')
+      .map(part => part.trim()).reduce((sum, part) => sum + (/^var\(/.test(part) ? token(/var\((--[\w-]+)/.exec(part)![1]) : parseFloat(part)), 0);
+    const inline = (value: string) => px(value.split(/\s+(?![^(]*\))/).at(-1)!);
+
+    const open = '.ui-app:not(.is-collapsed) > .ui-app__rail .ui-nav--side .ui-nav__item:not(.ui-nav__item--sub)';
+    const fill = inline(decl('.ui-app__rail', 'padding'));
+    const av = px(decl('.ui-app', '--ui-app-av'));
+    const symbol = fill + px(decl(open, 'padding-inline'));
+    expect(symbol).toBe(24);
+    expect(symbol + px(decl(`${open} > .ui-nav__ic`, 'width')) + px(decl(open, 'gap'))).toBe(62);
+    expect(fill + px(decl('.ui-app__rail .ui-app__brand', 'padding-inline'))).toBe(24);
+    expect(px(decl('.ui-react-app .ui-app__rail .ui-react-app__mark', 'width'))).toBe(av);
+    expect(symbol + av + px(decl('.ui-app__brand', 'gap'))).toBe(62);
+    expect(fill + px(decl('.ui-app:not(.is-collapsed) > .ui-app__rail .ui-nav__cap', 'padding-inline'))).toBe(24);
+    expect(fill + px(decl('.ui-app__note', 'padding-inline'))).toBe(24);
+    expect(fill + px(decl('.ui-app:not(.is-collapsed) > .ui-app__rail .ui-app__av', 'margin-inline-start'))).toBe(24);
+    expect(decl('.ui-app__rail .ui-app__user-trigger .ui-avatar', 'margin')).toBe('0');
+    expect(24 + av + px(decl('.ui-app .ui-app__user-trigger', 'gap'))).toBe(62);
+
+    // The menu panel is --panel-sm wide at the end of a 390px window, with a 1px edge.
+    const panel = 390 - token('--panel-sm') + 1;
+    const body = panel + px(decl('.ui-drawer__body', 'padding'));
+    const menu = ':is(.ui-react-app__menu, .ui-drawer__body > .ui-app__drawer) .ui-nav__item:not(.ui-nav__item--sub)';
+    const menuAv = px(decl('.ui-react-app__menu', '--ui-app-av'));
+    expect(body + px(decl(menu, 'padding-inline'))).toBe(99);
+    expect(body + px(decl(menu, 'padding-inline')) + px(decl(`${menu} > .ui-nav__ic`, 'width')) + px(decl(menu, 'gap'))).toBe(137);
+    const head = panel + px(decl('.ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__header', 'padding-inline-start'));
+    expect(head).toBe(99);
+    expect(head + menuAv + px(decl('.ui-drawer__lead', 'gap'))).toBe(137);
+    expect(body + px(decl('.ui-app__drawer .ui-app__av', 'margin-inline-start'))).toBe(99);
+    expect(99 + menuAv + px(decl('.ui-app__drawer .ui-app__user-trigger', 'gap'))).toBe(137);
+  });
+});

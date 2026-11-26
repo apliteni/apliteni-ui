@@ -63,6 +63,9 @@ export type AppShellProps = AppShellNav & {
   /** @deprecated Not drawn since #729: the phone trigger shows only its glyph. */
   searchShortLabel?: string;
   account: { name: string; email: string };
+  /** One short line of text at the foot of the section list, above the account, such as
+   *  the product's version. A folded sidebar hides it (#869). */
+  sidebarNote?: string;
   /** Rows above the theme row and Sign out in every account menu (#736). */
   accountItems?: readonly AppShellAccountItem[];
   onSignOut: () => void;
@@ -79,7 +82,7 @@ export type AppShellProps = AppShellNav & {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
-  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
+  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, bandActions, account, accountItems = [], onSignOut, sidebarNote,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
   const uid = useId();
@@ -166,6 +169,11 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <span>{word}</span>
   </a>;
 
+  // The phone menu's head starts with the mark, on the column the row glyphs stand on (#869).
+  const drawerMark = brand ?? <i className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-menu`, 24) }} />;
+  // The last line of the section list, in the sidebar and in the phone menu (#869).
+  const note = sidebarNote ? <p className="ui-app__note">{sidebarNote}</p> : null;
+
   // A product's rows lead every account menu, keyed by place so a label never meets the
   // shell's own values (#736).
   const ownItems = accountItems.map(({ label, icon, href }, i) => ({ label, icon, href, value: `item-${i}` }));
@@ -196,6 +204,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <div className="ui-app__rail" role="region" aria-label="Sidebar">
       <div className="ui-app__head">{lockup}{foldControl}</div>
       {sidebar('Sections')}
+      {note}
       {accountBlock()}
     </div>
     <header className="ui-app__bar ui-app__bar--phone">
@@ -206,9 +215,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
       </a>
     </header>
     {page}
-    <Drawer open={menu} onClose={() => setMenu(false)} title={word}
+    <Drawer open={menu} onClose={() => setMenu(false)} title={word} mark={drawerMark}
       side={drawerSide ?? 'left'} size="sm" footer={<div className="ui-app__drawer">{accountBlock()}</div>}>
-      <div className="ui-app__drawer">{sidebar('Menu sections')}</div>
+      <div className="ui-app__drawer">{sidebar('Menu sections')}{note}</div>
     </Drawer>
   </div>;
 
@@ -224,6 +233,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
       <div className="ui-app__head">{lockup}{foldControl}</div>
       {control}
       {sidebar('Sections')}
+      {note}
       {accountBlock(true)}
     </div>}
     <div className="ui-app__well">
@@ -259,9 +269,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
       </header>
       {page}
     </div>
-    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side={drawerSide ?? 'right'} size="sm" initialFocusRef={firstRow}
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} mark={drawerMark} side={drawerSide ?? 'right'} size="sm" initialFocusRef={firstRow}
       headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
-      <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
+      <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}{note}</div>
     </Drawer>}
     <CommandPalette {...(palette ?? { groups: groups
       ? groups.map(group => ({ label: group.label, items: group.sections.map(({ href, label, icon }) => ({ id: href, href, label, icon })) }))
