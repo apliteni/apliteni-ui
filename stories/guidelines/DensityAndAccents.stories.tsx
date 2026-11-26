@@ -53,8 +53,8 @@ const Orders = () => <div className="ui-card-stack"><RestingFilters search="Sear
       <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td><td>{status}</td></tr>)}</tbody>
   </table>
 </div></div></div>;
-const Figures = () => <StatBand variant="tiles" basis="September orders"
-  stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
+const Figures = () => <StatBand variant="band" basis="September orders"
+  stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }, { label: 'Held', value: '€ 310' }]} />;
 
 // A document preview beside the fields a parser read from it. Both panels print the
 // same two cards, so what a reader compares is the width, the value weight and
@@ -77,7 +77,7 @@ const Consequence = ({ savedLeads }: { savedLeads: boolean }) => <Stage>
 </Stage>;
 
 const specimens = [
-  { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-forced"><Figures /></Stage> },
+  { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-inverted"><Figures /></Stage> },
   { id: 'reduce-density', do: () => <Stage><Orders /><Preview /></Stage>, dont: () => <Stage><Orders /><Preview bad /></Stage> },
   { id: 'purposeful-accent', do: () => <Stage><Preview /></Stage>, dont: () => <Stage><Preview colourful /></Stage> },
   { id: 'follow-the-consequence', do: () => <Consequence savedLeads />, dont: () => <Consequence savedLeads={false} /> },

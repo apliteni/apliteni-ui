@@ -337,6 +337,14 @@ It measures each story that shows a back link at the 10 sizes, in light and dark
 keys and the pointer of the shell's back link at 10 sizes and on 6 devices. Report the result in the
 PR. CI runs only the source half, in `src/styles/back.test.js`.
 
+## Check the stat band fit locally
+
+Before opening a PR that changes the compact band ranges of `src/styles/stat.css` or the
+Transactions showcase, measure them in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_CHROME=… UI_WEB_VITALS=…/web-vitals.iife.js STAT_FIT=1 node --test stories/stat-band-fit.test.js`
+Report the result in the PR. CI runs only the source halves, in `src/styles/stat.test.js` and
+`react/src/transactions.test.tsx`.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

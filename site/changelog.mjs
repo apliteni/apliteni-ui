@@ -6,10 +6,18 @@
 
 export const RELEASES = [
   {
-    v: '0.212.0', date: '2026-11-26',
+    v: '0.216.0', date: '2026-11-26',
     changes: [
       ['changed', 'The arrow of a back link now starts on the left edge of the page title under it, in the page shell and in a three-column page. The link moves 9.2px to the left, and its hover ground starts left of the title. If your app puts a back link in its own box, keep at least 13px of room at the left of that box, so that the focus ring shows in full. Part of #869.', ['BackLink', 'ThreeColumnPage']],
       ['removed', 'The demo Payouts page and its sample data are cut. Showcases, component stories and guideline specimens now show a generic Orders page, and the code and data that only served the Payouts demo are deleted. No component, token or style behaviour changes. Part of #869.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.212.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `StatBand` with `variant="band"` and up to three figures now keeps them in one row on a phone. Below 42rem of band width the value steps down to 22px, 18px and then 15.5px, and the gap between figures closes to 16px, 8px and then 4px. Three values of `−€9,999,999` fit in one row above 19rem, and the figures stack only at 19rem or below. Tiles, an open band and a band of four figures keep their folds. Part of #865.', ['Stat band']],
+      ['changed', 'A toolbar directly after a stat band in the page body now keeps one group gap, 32px, in both themes, in place of the group gap plus the body gap. Part of #865.', ['Stat band', 'Toolbar']],
+      ['changed', 'The Density and accents guideline rule Check a narrow stat band now says: a band keeps up to three figures in one row above 19rem and stacks them at 19rem or below. A new Transactions showcase shows the band above a search, a filter and a table. Part of #865.', ['Guidelines']],
     ],
   },
   {
