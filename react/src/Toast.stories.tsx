@@ -131,9 +131,11 @@ function Undos({ count }: { count: number }) {
   useEffect(() => { classified.slice(0, count).forEach(add); }, [push]);
   return <Button onClick={() => add(classified[3])}>Classify one more</Button>;
 }
-export const UndoOne: StoryObj = {
+export const UndoOne: StoryObj<{ bottomOffset?: string }> = {
+  // A CSS length in bottomOffset, such as 10vh, moves the notice from the bottom of the view.
+  argTypes: { bottomOffset: { control: 'text' } },
   parameters: { docs: { description: { story: 'An undo notice with an 8 second timer. The ring in Undo empties as the time runs out. Hover the notice to stop it.' } } },
-  render: () => <Toast limit={3}><Undos count={1} /></Toast>,
+  render: ({ bottomOffset }) => <Toast limit={3} bottomOffset={bottomOffset || undefined}><Undos count={1} /></Toast>,
 };
 export const UndoStack: StoryObj = {
   parameters: { docs: { description: { story: 'Three undo notices, newest at the bottom. Each Undo acts on its own notice. A fourth notice closes the oldest one.' } } },

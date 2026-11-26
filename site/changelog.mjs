@@ -10,6 +10,8 @@ export const RELEASES = [
     changes: [
       ['added', '`Toast` takes `bottomOffset`, the inset of the stack from the bottom of the view, in pixels or a CSS length. The default stays 16px. A page with a bar at the bottom sets it so the notices stand above the bar. Remove any selector that moves `.rx-toast-stack`. Part of #907.', ['Toast']],
       ['changed', 'The countdown ring of an undo notice takes the ink of its action, so it keeps 3:1 on its track in each tone and theme. The `--toast-timer-mix` and `--toast-timer-mix-strong` custom properties are removed. Part of #907.', ['Toast']],
+      ['fixed', 'A toast stack that is taller than the view stops 16px below the top and scrolls, so every notice stays on screen on a short phone. The published reach follows a resize of the view. The Dismiss button of a notice has a hover title. Part of #907.', ['Toast']],
+      ['fixed', 'An icon-only `Button` with an `aria-label` takes it as its hover title too, unless you set a `title`. Part of #907.', ['Button']],
     ],
   },
   {

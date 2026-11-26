@@ -418,8 +418,8 @@ decorative content before the label, and it wins over `icon`. `block` fills the 
 `<button type="button">`. Refs and native attributes go to the element that it draws.
 
 **Icon-only buttons.** With `iconOnly`, the glyph is the whole button. The button copies its
-string children, or else its icon name, into `aria-label` and `title`. With neither, it has no
-name. Earn a wordless button on the Button labels page of the guidelines.
+string children, or else its icon name, into `aria-label` and `title`. An `aria-label` that you
+set is also the `title`, unless you set a `title`. With neither, it has no name. Earn a wordless button on the Button labels page of the guidelines.
 
 **Busy.** `busy` shows three pulsing dots in place of the label, and the button keeps its size.
 The button keeps the focus. Clicks, Enter and Space do nothing while it is busy. A status region
@@ -1020,8 +1020,11 @@ length. Set it to the height of the bar, the gap under the bar and 16 px, so tha
 
 The provider sets `--rx-toast-stack` on the document root to how far the stack reaches up from
 the bottom of the view, or `0px` when it is empty. The reach includes `bottomOffset`, and the
-provider sets it again when `bottomOffset` changes. A fixed page action can use it to stay clear of
-the notices.
+provider sets it again when `bottomOffset` changes and when the view changes size. A fixed page
+action can use it to stay clear of the notices.
+
+A stack that is taller than the room above its inset stops 16 px below the top of the view and
+scrolls. It shows its newest notice. A pile does not scroll.
 
 ### Success confirmations
 

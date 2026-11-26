@@ -88,6 +88,8 @@ it('stays paused until both hover and focus leave, including repeated pauses', (
   vi.useFakeTimers(); setup(); fireEvent.click(screen.getByText('Notify'));
   const notice = screen.getByText('Saved').closest('.ui-toast')!;
   const close = screen.getByRole('button', { name: 'Dismiss' });
+  // A wordless button has a hover title as well as its name (Button labels: Earn a wordless button).
+  expect(close).toHaveAttribute('title', 'Dismiss');
   act(() => vi.advanceTimersByTime(1000));
   act(() => close.focus());
   act(() => vi.advanceTimersByTime(10000));
@@ -154,9 +156,15 @@ it('moves the stack by bottomOffset and publishes the new reach', () => {
   let lag = false;
   HTMLElement.prototype.getBoundingClientRect = function () {
     if (!this.classList.contains('rx-toast-stack')) return real.call(this);
-    const inset = this.style.bottom && !lag ? parseFloat(this.style.bottom) : 16;
-    return { height: 85, top: window.innerHeight - inset - 85 } as DOMRect;
+    const bottom = this.style.bottom;
+    const inset = bottom && !lag ? parseFloat(bottom) * (bottom.endsWith('vh') ? window.innerHeight / 100 : 1) : 16;
+    return { height: 85, top: window.innerHeight - inset - 85, bottom: window.innerHeight - inset } as DOMRect;
   };
+  let content = 85;
+  const scrollHeight = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollHeight')!;
+  Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { configurable: true,
+    get() { return this.classList.contains('rx-toast-stack') ? content : 0; } });
+  const height = window.innerHeight;
   const page = (bottomOffset?: number | string) => <Toast bottomOffset={bottomOffset}><Trigger notice={{ title: 'Saved' }} /></Toast>;
   try {
     const { rerender } = render(page());
@@ -183,8 +191,25 @@ it('moves the stack by bottomOffset and publishes the new reach', () => {
     expect(reach()).toBe('101px');
     fireEvent.transitionEnd(stack());
     expect(reach()).toBe('165px');
+    // An offset in view units moves the stack when the view changes size, and nothing in the stack
+    // changes size, so the view's resize publishes the reach again.
+    rerender(page('10vh'));
+    expect(reach()).toBe(`${Math.round(height / 10 + 85)}px`);
+    window.innerHeight = 1000;
+    fireEvent(window, new Event('resize'));
+    expect(reach()).toBe('185px');
+    // A stack taller than the room above its inset scrolls, and stops when the notices fit again.
+    expect(stack()).not.toHaveClass('rx-toast-stack--scroll');
+    content = 1000;
+    fireEvent(window, new Event('resize'));
+    expect(stack()).toHaveClass('rx-toast-stack--scroll');
+    content = 85;
+    fireEvent(window, new Event('resize'));
+    expect(stack()).not.toHaveClass('rx-toast-stack--scroll');
   } finally {
     HTMLElement.prototype.getBoundingClientRect = real;
+    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', scrollHeight);
+    window.innerHeight = height;
   }
 });
 

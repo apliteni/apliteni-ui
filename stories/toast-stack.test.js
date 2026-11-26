@@ -228,6 +228,11 @@ test('an undo stack keeps three notices, each Undo acts on its own notice, and t
  * and presses Escape. After each step it reads the gap to the bar or to the bottom, the reach
  * against the stack's top, the layout shift, the sideways overflow, and, after a key, the focus.
  *
+ * The same test opens react-toast--tones (five notices that stay) at each size and device, and
+ * checks that the stack stands inside the view and shows its newest notice whole. A taller stack
+ * scrolls. Then it opens react-toast--undo-one with bottomOffset 10vh at 1280×800 with full
+ * motion, makes the view 1000px tall, and checks that the published reach follows the stack.
+ *
  * Its limits: one engine, the light theme and the default accent. The focus is placed by script,
  * so it reads where the focus is, not how the ring paints. The source half is in
  * react/src/Toast.test.tsx. #907
@@ -285,6 +290,54 @@ async function openBar(browser, port, vitals, context) {
   return { ctx, page };
 }
 
+// A stack of five notices on a short view stands inside the view and shows its newest notice whole.
+const TALL_STORY = 'react-toast--tones';
+const READ_TALL = () => {
+  const stack = document.querySelector('.rx-toast-stack');
+  const box = stack.getBoundingClientRect();
+  const newest = stack.lastElementChild.getBoundingClientRect();
+  const doc = document.scrollingElement;
+  return {
+    count: stack.querySelectorAll('.ui-toast').length, top: box.top, bottom: innerHeight - box.bottom,
+    hidden: Math.max(0, box.top - newest.top, newest.bottom - box.bottom), over: doc.scrollWidth - doc.clientWidth,
+  };
+};
+async function openAt(browser, port, context, id, args = '', reducedMotion = 'reduce', init = '') {
+  const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion });
+  if (init) await ctx.addInitScript({ content: init });
+  const page = await ctx.newPage();
+  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=theme:light${args}`);
+  await page.waitForFunction((story) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
+    && window.__STORYBOOK_PREVIEW__.currentRender.id === story, id);
+  return { ctx, page };
+}
+async function checkTall(page, label) {
+  await live(page, 5);
+  await page.evaluate(frames);
+  const state = await page.evaluate(READ_TALL);
+  const found = [];
+  if (state.top < 0) found.push(`${label}: the stack stands ${Math.round(-state.top)}px above the view`);
+  if (Math.abs(state.bottom - 16) > 1) found.push(`${label}: the stack stands ${Math.round(state.bottom)}px above the bottom`);
+  if (state.hidden > 1) found.push(`${label}: ${Math.round(state.hidden)}px of the newest notice is out of the stack`);
+  if (state.over > 0) found.push(`${label}: the page scrolls ${state.over}px sideways`);
+  return found;
+}
+// An offset in view units moves the stack when the view changes size. The reach follows it. Full
+// motion, because under reduced motion the net's transition on the move ends in a read of its own.
+async function checkResize(page, label) {
+  await live(page, 1);
+  await page.evaluate(frames);
+  const found = [];
+  for (const height of [800, 1000]) {
+    await page.setViewportSize({ width: 1280, height });
+    await page.evaluate(frames);
+    const state = await page.evaluate(READ_BAR);
+    if (Math.abs(state.gap - height / 10) > 1) found.push(`${label} ${height}px: the stack stands ${Math.round(state.gap)}px above the bottom`);
+    if (Math.abs(state.reach - state.top) > 1) found.push(`${label} ${height}px: the published reach is ${state.reach}px and the stack reaches ${Math.round(state.top)}px`);
+  }
+  return found;
+}
+
 async function walkBar(page, label, { only } = {}) {
   const found = [];
   const ran = [];
@@ -337,9 +390,17 @@ test('a page with a bottom bar keeps the stack 16px above the bar, and the reach
       assert.equal(ran.length, BAR_ACTIONS.length, `${label}: ${ran.length} of ${BAR_ACTIONS.length} actions ran`);
       table.push(`bottom bar ${label} ${width}px: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
       await ctx.close();
+      const tall = await openAt(browser, server.port, context, TALL_STORY);
+      const high = await checkTall(tall.page, `five notices ${label}`);
+      findings.push(...high);
+      table.push(`five notices ${label} ${width}px: ${high.length ? 'fail' : 'pass'}`);
+      await tall.ctx.close();
     }
+    const resized = await openAt(browser, server.port, { viewport: { width: 1280, height: 800 } }, 'react-toast--undo-one', '&args=bottomOffset:10vh', 'no-preference');
+    findings.push(...await checkResize(resized.page, 'bottomOffset 10vh'));
+    await resized.ctx.close();
     process.stdout.write(`${table.join('\n')}\n`);
-    assert.equal(table.length, SIZES.length + DEVICES.length + DUO.length, 'a size or a device was not measured');
+    assert.equal(table.length, 2 * (SIZES.length + DEVICES.length + DUO.length), 'a size or a device was not measured');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -360,6 +421,19 @@ test('a page with a bottom bar keeps the stack 16px above the bar, and the reach
     await mutate((page) => page.evaluate(() => document.addEventListener('keydown', () => setTimeout(() => document.activeElement.blur()), true)),
       BAR_ACTIONS.map(([name]) => name).filter((name) => name !== 'click: Clear'), 'focus left');
     await mutate((page) => page.addStyleTag({ content: '#storybook-root { min-width: 200vw; }' }), [], 'sideways');
+    // A stack with no top, as on ee4b2d7c: five notices rise out of a landscape phone's view.
+    const landscape = await openAt(browser, server.port, { viewport: { width: 844, height: 390 } }, TALL_STORY);
+    await landscape.page.addStyleTag({ content: '.ui-toast-stack.rx-toast-stack.rx-toast-stack--scroll { top: auto; }' });
+    const risen = await checkTall(landscape.page, 'mutated');
+    caught.push(['above the view', risen.some((f) => f.includes('above the view')), risen]);
+    await landscape.ctx.close();
+    // A reach that the view's resize does not publish again, as on ee4b2d7c.
+    // The window runs its own listeners in the order they came, so this one comes before the page's.
+    const unheard = await openAt(browser, server.port, { viewport: { width: 1280, height: 800 } }, 'react-toast--undo-one', '&args=bottomOffset:10vh', 'no-preference',
+      "addEventListener('resize', (event) => event.stopImmediatePropagation());");
+    const stale = await checkResize(unheard.page, 'mutated');
+    caught.push(['1000px: the published reach', stale.some((f) => f.includes('1000px: the published reach')), stale]);
+    await unheard.ctx.close();
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');
   } finally {
     await browser.close();

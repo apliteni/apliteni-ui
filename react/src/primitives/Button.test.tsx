@@ -229,9 +229,12 @@ it('names an icon-only button from its children', () => {
   expect(getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close');
 });
 
-it('lets an explicit aria-label win over the children fallback', () => {
-  const { getByRole } = render(<Button iconOnly icon="x" aria-label="Dismiss">Close</Button>);
-  expect(getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+it('lets an explicit aria-label win over the children fallback, and gives it as the hover title', () => {
+  const { getByRole } = render(<><Button iconOnly icon="x" aria-label="Dismiss">Close</Button>
+    <Button iconOnly icon="menu" aria-label="Menu" title="Open the menu" /></>);
+  // Button labels: Earn a wordless button asks for a name and a hover title.
+  expect(getByRole('button', { name: 'Dismiss' })).toHaveAttribute('title', 'Dismiss');
+  expect(getByRole('button', { name: 'Menu' })).toHaveAttribute('title', 'Open the menu');
 });
 
 it('falls back to the icon name rather than shipping a nameless button', () => {
