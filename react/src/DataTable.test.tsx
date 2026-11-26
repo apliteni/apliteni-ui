@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { DataTable, sortTableRows, type Column, type TableSort } from './DataTable';
 import { PinnedSortable, ServerPaged } from './DataTable.stories';
+import { Card } from './primitives/Card';
 
 type Row = { name: string; clicks: number };
 const rows: Row[] = [
@@ -1063,6 +1064,28 @@ it('names the card that scrolls a table directly, and makes it a stop only while
     resize();
     expect(card).not.toHaveAttribute('tabindex');
   } finally { vi.unstubAllGlobals(); }
+});
+
+it('leaves a link card alone: href keeps the link role and name', () => {
+  const { container } = render(
+    <Card href="/summary" title="Summary Name Example">
+      <DataTable columns={columns} rows={rows} selectable={false} pager={false} />
+    </Card>);
+  const link = container.querySelector('a.ui-card')!;
+  expect(link.tagName).toBe('A');
+  expect(link).not.toHaveAttribute('role');
+  expect(link).not.toHaveAttribute('aria-label');
+  expect(link).toHaveAccessibleName(/Summary Name Example/);
+});
+
+it('leaves a card that declares its own role alone', () => {
+  const { container } = render(
+    <div className="ui-card" role="group">
+      <DataTable columns={columns} rows={rows} selectable={false} pager={false} />
+    </div>);
+  const card = container.querySelector('.ui-card')!;
+  expect(card).toHaveAttribute('role', 'group');
+  expect(card).not.toHaveAttribute('aria-label');
 });
 
 describe('the vanilla table hooks', () => {

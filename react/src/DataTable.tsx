@@ -170,6 +170,13 @@ export function DataTable<T extends { name: string }>({
     const el = table.current;
     const card = el?.parentElement;
     if (!el || !card || !card.classList.contains('ui-card')) return;
+    // A card that is itself a link or a button, or that already declares a role, name or
+    // stop of its own, keeps them: the table inside scrolls without a named region rather
+    // than stealing the card's role and name. Only a plain, unnamed card takes the frame's.
+    if (card.tagName === 'A' || card.tagName === 'BUTTON') return;
+    for (const attr of ['role', 'aria-label', 'aria-labelledby', 'tabindex']) {
+      if (card.hasAttribute(attr)) return;
+    }
     card.setAttribute('role', 'region');
     card.setAttribute('aria-label', scrollLabel);
     const clear = () => {
