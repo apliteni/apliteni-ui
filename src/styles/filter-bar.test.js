@@ -267,7 +267,7 @@ function restated(rest, state) {
 const SHEETS = [...ENTRY.matchAll(/@import\s+"([^"]+)"/g)].map((m) => read(path.join('..', m[1]))).join('\n');
 const ROWS = await markup(({ h, kit }) => {
   const noop = () => {};
-  const bar = { label: 'Invoice filters', onChange: noop, onRemove: noop, onClear: noop, onAdd: noop,
+  const bar = { label: 'Invoice filters', onChange: noop, onClear: noop, onAdd: noop,
     filters: [{ id: 'status', label: 'Status', value: 'Paid', items: [{ label: 'Any', value: '' }, { label: 'Paid', value: 'Paid' }] },
       { id: 'period', label: 'Period', value: '', items: [{ label: 'Any', value: '' }, { label: 'Q3', value: 'Q3' }] }],
     add: [{ id: 'vendor', label: 'Vendor', items: [{ label: 'Northwind', value: 'Northwind' }] }] };
@@ -348,4 +348,73 @@ test('the filter row height rounds up to a whole pixel', () => {
   const mutant = BAR.replace(/round\(up, (calc\([^;]*\)), 1px\)/, '$1');
   assert.notEqual(mutant, BAR, 'the mutation found no round() to remove');
   assert.ok(!whole(mutant), 'the check passes a fractional row height');
+});
+
+/**
+ * Rule: a chip keeps its width when the bar turns off or on, and when its value changes. #885
+ * An empty chip's name keeps the regular weight while the bar is off. The chip stops at
+ * --ui-filter-chip-max, 224px. Its hidden lines and the room of an absent Clear all draw
+ * nothing. The rows come from the React kit, and the cascade from
+ * every sheet index.css imports, in its order.
+ *
+ * WHAT THIS DOES NOT REACH: layout. JSDOM lays out nothing and does not resolve var(), so this
+ * reads which declaration wins, not the widths. stories/filter-chip-width.test.js measures the
+ * widths in a browser.
+ */
+const CHIPS = await markup(({ h, kit }) => {
+  const noop = () => {};
+  const bar = (busy) => h(kit.FilterBar, { busy, onChange: noop, onClear: noop,
+    filters: [{ id: 'office', label: 'Office', value: '', items: [{ label: 'Any office', value: '' }, { label: 'Lisbon, head office', value: 'Lisbon, head office' }] }] });
+  return h('div', null, bar(false), bar(true));
+});
+const chips = (css) => {
+  const { window } = new JSDOM(`<style>${css}</style>${CHIPS}`);
+  const style = (el) => window.getComputedStyle(el);
+  const bars = [...window.document.querySelectorAll('.ui-filter-bar')];
+  return {
+    weights: bars.map((bar) => style(bar.querySelector('.is-placeholder')).fontWeight),
+    hidden: [...window.document.querySelectorAll('.ui-filter-bar__fit > [aria-hidden="true"], .is-reserved')].map((el) => style(el).visibility),
+    shown: bars.map((bar) => style(bar.querySelector('.ui-dropdown__value')).visibility),
+  };
+};
+const OLD_WEIGHT = '.ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { color: var(--text); font-weight: var(--weight-normal); }';
+const NEW_WEIGHT = '.ui-filter-bar .ui-dropdown__value.is-placeholder { font-weight: var(--weight-normal); }';
+
+test('an empty chip keeps the name\'s weight when the bar turns off', () => {
+  const { weights } = chips(SHEETS);
+  assert.deepEqual(weights, ['400', '400'], 'the name changes weight, so the chip changes width');
+  assert.ok(SHEETS.includes(NEW_WEIGHT), `the sheets no longer hold \`${NEW_WEIGHT}\``);
+  const before = chips(SHEETS.replace(NEW_WEIGHT, '').replace('.ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { color: var(--text); }', OLD_WEIGHT));
+  assert.notEqual(before.weights[0], before.weights[1], 'the check passes the weight that only a live chip takes');
+});
+
+test('the hidden lines and the kept room draw nothing, and the shown line draws', () => {
+  const { hidden, shown } = chips(SHEETS);
+  // Two lines each for the name and the one value, and Clear all in each bar.
+  assert.equal(hidden.length, 6);
+  assert.deepEqual([...new Set(hidden)], ['hidden']);
+  assert.deepEqual(shown, ['visible', 'visible']);
+  const rule = '.ui-filter-bar .is-reserved { visibility: hidden; }';
+  assert.ok(SHEETS.includes('.ui-filter-bar__fit > [aria-hidden="true"],\n.ui-filter-bar .is-reserved { visibility: hidden; }'));
+  const mutant = chips(SHEETS.replace('.ui-filter-bar__fit > [aria-hidden="true"],\n', '').replace(rule, ''));
+  assert.ok(mutant.hidden.some((v) => v !== 'hidden'), 'the check passes a hidden line that draws');
+});
+
+test('a chip has the inner space of a select: 13px before the text and 11px after the chevron', () => {
+  const px = (value) => value.trim().split(/\s+/).map((part) => {
+    const step = part.match(/^var\((--[\w-]+)\)$/);
+    return Number.parseFloat(step ? SHEETS.match(new RegExp(`${step[1]}:\\s*([\\d.]+)px`))[1] : part);
+  });
+  const sides = (body) => { const [top, end = top, , start = end] = px(valueOf(body, 'padding')); return { start, end }; };
+  const select = sides(rules(DROPDOWN).find((r) => r.selector === '.ui-dropdown__trigger' && valueOf(r.body, 'padding')).body);
+  const chip = sides(rules(BAR).find((r) => r.selector === '.ui-filter-bar__chip' && valueOf(r.body, 'padding')).body);
+  const trigger = sides(rules(BAR).find((r) => r.selector === '.ui-filter-bar__chip .ui-dropdown__trigger' && valueOf(r.body, 'padding')).body);
+  assert.deepEqual({ start: chip.start + trigger.start, end: chip.end + trigger.end }, select);
+});
+
+test('a chip stops at the owner\'s 224px', () => {
+  const cap = rules(BAR).find((r) => r.selector === '.ui-filter-bar__chip' && valueOf(r.body, 'max-inline-size'));
+  assert.equal(valueOf(cap?.body ?? '', 'max-inline-size'), 'var(--ui-filter-chip-max)');
+  const token = rules(BAR).find((r) => r.selector === '.ui-filter-bar' && valueOf(r.body, '--ui-filter-chip-max'));
+  assert.equal(valueOf(token?.body ?? '', '--ui-filter-chip-max'), '224px');
 });

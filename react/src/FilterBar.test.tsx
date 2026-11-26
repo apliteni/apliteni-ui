@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { useState, type ReactNode } from 'react';
 import { vi } from 'vitest';
 import { nextFocusStop } from '@apliteni/apliteni-ui';
-import { FilterBar, type AddFilter, type Filter } from './FilterBar';
+import { FilterBar, type AddFilter, type Filter, type FilterBarProps } from './FilterBar';
 
 const filters: Filter[] = ['Region', 'Status'].map(label => ({ id: label, label, value: 'All', items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }));
-const callbacks = () => ({ onRemove: vi.fn(), onClear: vi.fn(), onChange: vi.fn() });
+const callbacks = () => ({ onClear: vi.fn(), onChange: vi.fn() });
 // The catalogue the add menu offers: two filters, three values between them.
 const catalogue: AddFilter[] = [
   { id: 'Month', label: 'Month', items: [{ label: 'March', value: 'March' }, { label: 'April', value: 'April' }] },
@@ -16,7 +16,7 @@ const catalogue: AddFilter[] = [
 // is measurable: a consumer that answers it a tick later owns where focus goes.
 function Adding({ add = catalogue, onAdd, ...rest }: { add?: AddFilter[]; onAdd?: (id: string, value: string | undefined) => void; filters?: Filter[]; busy?: boolean; disabled?: boolean }) {
   const [items, setItems] = useState<Filter[]>(rest.filters ?? [filters[0]]);
-  return <FilterBar {...rest} filters={items} add={add} onRemove={() => {}} onClear={() => {}} onChange={() => {}}
+  return <FilterBar {...rest} filters={items} add={add} onClear={() => {}} onChange={() => {}}
     onAdd={(id, value) => {
       onAdd?.(id, value);
       const entry = catalogue.find(f => f.id === id);
@@ -30,8 +30,6 @@ it('requests changes and preserves controlled filters', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Region: All' }));
   await userEvent.keyboard('{End}{Enter}');
   expect(props.onChange).toHaveBeenCalledWith('Region', 'active');
-  await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
-  expect(props.onRemove).toHaveBeenCalledWith('Region');
   expect(screen.getByRole('button', { name: 'Region: All' })).toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: 'Clear all' }));
   expect(props.onClear).toHaveBeenCalledTimes(1);
@@ -52,8 +50,10 @@ it('offers the clear action only once there is something to clear', () => {
 it('prints the chosen value alone and names the field it filters', () => {
   const props = callbacks();
   render(<FilterBar filters={[{ id: 'status', label: 'Status', value: 'Active', items: [] }, { id: 'region', label: 'Region', items: [] }]} {...props} />);
-  expect(screen.getByRole('button', { name: 'Status: Active' })).toHaveTextContent(/^Active$/);
-  expect(screen.getByRole('button', { name: 'Region: any' })).toHaveTextContent(/^Region$/);
+  // The shown line is the one the hidden lines leave out of the accessibility tree.
+  const shown = (name: string) => screen.getByRole('button', { name }).querySelector('.ui-filter-bar__fit > :not([aria-hidden])');
+  expect(shown('Status: Active')).toHaveTextContent(/^Active$/);
+  expect(shown('Region: any')).toHaveTextContent(/^Region$/);
   expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
 });
 // The class the sheet paints with --muted; appearance itself is not measured here.
@@ -70,17 +70,20 @@ it('marks the valueless chip so the sheet can give it the placeholder ink', () =
 // keeps a wording the bar's own label drops. why: guidelines/labels-and-titles.md#say-the-noun-once
 function Example({ start = filters, between }: { start?: Filter[]; between?: ReactNode }) {
   const [items, setItems] = useState(start);
-  return <><FilterBar filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))} onClear={() => setItems([])} onChange={() => setItems(items.map(f => ({ ...f, value: 'Active' })))} />
+  return <><FilterBar filters={items} onClear={() => setItems([])} onChange={() => setItems(items.map(f => ({ ...f, value: 'Active' })))} />
     {between}<button type="button">Add filter</button></>;
 }
-it('preserves focused controls across updates and moves focus after removal', async () => {
-  render(<Example />);
-  await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
+it('moves focus to the next chip, then past the bar, when the app takes a focused chip away', () => {
+  const props = callbacks();
+  const page = (items: Filter[]) => <><FilterBar filters={items} {...props} /><button type="button">Add filter</button></>;
+  const { rerender } = render(page(filters));
+  screen.getByRole('button', { name: 'Region: All' }).focus();
+  rerender(page([filters[1]]));
   expect(screen.getByRole('button', { name: 'Status: All' })).toHaveFocus();
   // Which control holds the focus, not whether it draws a box: JSDOM has no
   // layout. The emptied fieldset measuring 0 high is measured in a browser and
   // reported in the pull request.
-  await userEvent.click(screen.getByRole('button', { name: 'Remove Status filter' }));
+  rerender(page([]));
   expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();
 });
 it('hands the focus to the action beside it when clearing empties the bar', async () => {
@@ -143,18 +146,16 @@ it.each(['busy', 'disabled'] as const)('blocks controls and open panels when %s'
   const props = callbacks();
   render(<FilterBar filters={filters.map(f => ({ ...f, open: true }))} {...props} {...{ [flag]: true }} />);
   expect(screen.getByRole('button', { name: 'Region: All' })).toBeDisabled();
-  await userEvent.click(screen.getByRole('button', { name: 'Remove Region filter' }));
-  expect(props.onRemove).not.toHaveBeenCalled();
   expect(document.querySelector('.ui-dropdown.open')).toBeNull();
 });
 it('keeps DOM identity and focus when labels update', () => {
   const props = callbacks();
   const { rerender } = render(<FilterBar filters={filters} {...props} />);
-  const remove = screen.getByRole('button', { name: 'Remove Region filter' });
-  remove.focus();
+  const trigger = screen.getByRole('button', { name: 'Region: All' });
+  trigger.focus();
   rerender(<FilterBar filters={filters.map(f => ({ ...f, label: `${f.label} updated` }))} {...props} />);
-  expect(screen.getByRole('button', { name: 'Remove Region updated filter' })).toBe(remove);
-  expect(remove).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Region updated: All' })).toBe(trigger);
+  expect(trigger).toHaveFocus();
 });
 it('responds to open prop changes after interaction', async () => {
   const props = callbacks();
@@ -307,7 +308,6 @@ it('adds a filter from the bar and lands focus on the new chip', async () => {
   await userEvent.click(screen.getByRole('menuitem', { name: 'April' }));
   expect(onAdd).toHaveBeenCalledWith('Month', 'April');
   expect(screen.getByRole('button', { name: 'Month: April' })).toHaveFocus();
-  expect(screen.getByRole('button', { name: 'Remove Month filter' })).toBeInTheDocument();
 });
 it('closes the add menu on Escape without adding', async () => {
   const onAdd = vi.fn();
@@ -362,7 +362,6 @@ it('draws no add control without a catalogue or without onAdd', () => {
 function Emptying({ start = filters, add = catalogue }: { start?: Filter[]; add?: AddFilter[] }) {
   const [items, setItems] = useState<Filter[]>(start);
   return <><FilterBar filters={items} add={add} onAdd={() => {}}
-    onRemove={id => setItems(items.filter(f => f.id !== id))}
     onClear={() => setItems([])} onChange={() => {}} />
     <button type="button">Add filter</button></>;
 }
@@ -376,10 +375,13 @@ it('lands the focus on the add control when clearing empties the chips', async (
   // page's own button past the row: one list, both faces.
   expect(nextFocusStop(document.querySelector('[data-filter-bar]'))).toBe(add);
 });
-it('lands the focus on the add control when the last chip is removed', async () => {
-  render(<Emptying start={[filters[0]]} />);
-  await userEvent.click(screen.getByRole('button', { name: `Remove ${filters[0].label} filter` }));
-  expect(screen.queryByRole('button', { name: `Remove ${filters[0].label} filter` })).toBeNull();
+it('lands the focus on the add control when the app takes the last chip away', () => {
+  const props = callbacks();
+  const page = (items: Filter[]) => <><FilterBar filters={items} add={catalogue} onAdd={() => {}} {...props} />
+    <button type="button">Add filter</button></>;
+  const { rerender } = render(page([filters[0]]));
+  screen.getByRole('button', { name: 'Region: All' }).focus();
+  rerender(page([]));
   expect(screen.getByRole('button', { name: 'Filter' })).toHaveFocus();
 });
 
@@ -402,29 +404,57 @@ it('clears the width a searching menu held when it closes inside the row', async
 
 it('allows an explicit link action without changing the default skin', () => {
   render(<FilterBar filters={[{ id: 'sector', label: 'Sector', value: 'Energy', items: [] }]}
-    clearLabel="Clear filters" clearVariant="link" onRemove={() => {}} onClear={() => {}} onChange={() => {}} />);
+    clearLabel="Clear filters" clearVariant="link" onClear={() => {}} onChange={() => {}} />);
   expect(screen.getByRole('button', { name: 'Clear filters' })).toHaveClass('ui-btn--link');
 });
 
-// DOM only: which controls are drawn for a chip with no value.
-it('draws a remove mark only on a chip with a value, and Clear all only when one has', async () => {
-  const props = callbacks();
-  const unset: Filter = { id: 'Region', label: 'Region', value: '', items: [{ label: 'North', value: 'north' }] };
+// DOM only: which controls a chip draws. The sheet hides the room Clear all keeps; a browser
+// measures that the room holds the width. #885
+it('draws no remove mark on any chip, and Clear all only when a chip has a value, and keeps its room', () => {
+  // A filter and a bar as an app wrote them for 0.201.0, with the props this release removes.
+  // The chip draws no mark: it holds its legend and its trigger, and the chevron is at its edge.
+  // rev_8f3cc2e115a3
+  const old = { removable: true } as unknown as Partial<Filter>;
+  const oldBar = { onRemove: vi.fn() } as unknown as Partial<FilterBarProps>;
+  const props = { ...callbacks(), ...oldBar };
+  const unset: Filter = { id: 'Region', label: 'Region', value: '', items: [{ label: 'Any region', value: '' }, { label: 'North', value: 'north' }], ...old };
   const { rerender } = render(<FilterBar filters={[unset]} {...props} />);
-  expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument();
-  rerender(<FilterBar filters={[unset, filters[1]]} {...props} />);
-  expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Remove Status filter' })).toBeInTheDocument();
+  const room = [...document.querySelectorAll('.is-reserved')];
+  expect(room.map(el => el.className)).toEqual(['is-reserved']);
+  expect(room[0]).toHaveAttribute('aria-hidden', 'true');
+  expect(room[0]).toHaveAttribute('inert');
+  expect(room[0].querySelector('button')).toHaveAttribute('tabindex', '-1');
+  rerender(<FilterBar filters={[unset, { ...filters[1], ...old }]} {...props} />);
+  expect(screen.queryByRole('button', { name: /^Remove / })).not.toBeInTheDocument();
+  expect([...document.querySelectorAll('[data-filter-id]')].map(chip => [...chip.children].map(el => el.className)))
+    .toEqual([['ui-filter-bar__legend', 'ui-dropdown'], ['ui-filter-bar__legend', 'ui-dropdown']]);
   expect(screen.getByRole('button', { name: 'Clear all' })).toBeInTheDocument();
+  expect(document.querySelectorAll('.is-reserved')).toHaveLength(0);
+  // A bar with no chips keeps no room, so it still draws no box.
+  rerender(<FilterBar filters={[]} {...props} />);
+  expect(document.querySelectorAll('.is-reserved')).toHaveLength(0);
+});
+// DOM only: the lines the chip measures its width against. A browser measures the width.
+it('holds every line the chip can print, so a pick does not change its width', () => {
+  const office: Filter = { id: 'office', label: 'Office', value: 'Porto', items: [{ label: 'Any office', value: '' }, '---',
+    { label: 'Lisbon, head office', value: 'Lisbon, head office' }, { label: 'Porto', value: 'Porto' }, { label: 'West', value: 'Western Europe' }] };
+  render(<FilterBar filters={[office, { ...office, id: 'off', value: 'Not in the menu' }]} {...callbacks()} />);
+  const lines = (name: string) => [...screen.getByRole('button', { name }).querySelectorAll('.ui-filter-bar__fit > [aria-hidden="true"]')].map(el => el.textContent);
+  // The empty row puts the name back, so it adds no line of its own. A pick prints a row's
+  // value, so a row whose label differs measures its value, not its label.
+  expect(lines('Office: Porto')).toEqual(['Porto', 'Office', 'Lisbon, head office', 'Western Europe']);
+  expect(lines('Office: Not in the menu')).toEqual(['Not in the menu', 'Office', 'Lisbon, head office', 'Porto', 'Western Europe']);
 });
 
-it('keeps focus on the chip when its value is cleared and its remove mark goes', async () => {
+// A reader clears one filter with the first row of its menu. The chip and its trigger stay,
+// and so does the focus.
+it('keeps focus on the chip when its value is cleared', () => {
   const props = callbacks();
   const { rerender } = render(<FilterBar filters={[filters[0]]} {...props} />);
-  const remove = screen.getByRole('button', { name: 'Remove Region filter' });
-  remove.focus();
+  const trigger = screen.getByRole('button', { name: 'Region: All' });
+  trigger.focus();
   rerender(<FilterBar filters={[{ ...filters[0], value: '' }]} {...props} />);
-  expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
-  expect(document.activeElement).toBe(screen.getByRole('button', { name: /Region/ }));
+  expect(screen.getByRole('button', { name: 'Region: any' })).toBe(trigger);
+  expect(trigger).toHaveFocus();
 });

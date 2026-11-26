@@ -366,7 +366,7 @@ const roomIn = (rule) => {
 
 const baseRule = (name) => rules.find((r) => r.selector === `.${name}`);
 
-/** 1px of gap and 2px of ring: what --ring draws outside the border box. */
+/** 2px of gap and 1px of ring: what --ring draws outside the border box. */
 const spread = (() => {
   const tokens = readFileSync('src/tokens/tokens.css', 'utf8');
   const read = (name) => Number(/^\s*(-?\d+(?:\.\d+)?)px$/.exec(

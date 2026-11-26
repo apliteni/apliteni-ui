@@ -1453,7 +1453,7 @@ describe('the hover edge', () => {
   });
 
   /* A focused current period draws ONE band. `.is-today` keeps an accent BORDER at
-   * rest, inside the box, and the band sits 1px outside it, so left standing the two
+   * rest, inside the box, and the band sits outside it, so left standing the two
    * painted the double accent mark #578 round r34 took off the fields — Chrome read
    * `outline: rgb(106,45,204) solid 2px; border: 1px solid rgb(106,45,204)` (#590).
    * Held as text, for the reason the describe above is: JSDOM resolves no outline, so

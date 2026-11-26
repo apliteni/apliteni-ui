@@ -162,7 +162,9 @@
   .ui-pager { row-gap: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
 
   /* Chips open both ways: the row wraps, and the button at the end of it is a
-     target like the chips are. */
+     target like the chips are. A chip has no remove mark, so its trigger is its
+     one control and reads this clearance: 30 drawn, 44 reached, 2px past the
+     chip's edge. #885 */
   .ui-filter-bar { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
   /* In a split toolbar the rail row beside the report sits on the same line as
      Clear all. One step plus 1px keeps the button's layer off that row. */
@@ -173,11 +175,6 @@
      In .ui-stack the bar's margin collapses with the block's 8px one. An open band keeps its 24px. */
   :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
-
-  /* Inside a chip there is nothing to open: parting the value from its remove
-     mark would draw two controls where the reader sees one. Named on the
-     Accessibility minimums page. */
-  .ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }
 
   /* Row actions open across — the pair #488 names — and cannot open down:
      a dense table's rows share an edge, and parting them is the row height the
