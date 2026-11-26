@@ -105,6 +105,111 @@ it('opens as a modal dialog named by its title, portalled to the body', () => {
   expect(root()!.parentElement).toBe(document.body);
 });
 
+// #868: the record's state stands directly after the title, and a long title ends in an
+// ellipsis before it. A cut title is a Tab stop whose readout shows the whole title.
+// Limits: jsdom lays nothing out, so the cut is stubbed through scrollWidth and clientWidth,
+// and the cascade is read, not the widths. stories/drawer-footer.test.js measures the
+// header in Chromium.
+describe('the status after the title', () => {
+  const LONG = 'Northwind Supply EUR operating account, daily bank statement';
+  const rel = '../../src/styles/drawer.css';
+  const CSS = readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+  const css = () => {
+    const style = document.createElement('style');
+    style.dataset.fixture = '';
+    style.textContent = CSS;
+    document.head.appendChild(style);
+  };
+  const source = (title: string) => render(
+    <Drawer open title={title} onClose={noop} status={<span className="ui-badge ui-badge--warn">Late</span>}
+      headerActions={<button type="button">View imports</button>}>body</Drawer>,
+  );
+  // ResizeObservers that each read when `resize` is called, and a title that is wider than
+  // its box while `layout.cut` is true.
+  const layout = { cut: false, reads: new Set<() => void>(), resize: () => layout.reads.forEach((read) => read()) };
+  const stubLayout = (cut: boolean) => {
+    layout.cut = cut;
+    layout.reads.clear();
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(private read: () => void) {}
+      observe() { layout.reads.add(this.read); }
+      disconnect() { layout.reads.delete(this.read); }
+    });
+    const proto = HTMLElement.prototype;
+    Object.defineProperty(proto, 'scrollWidth', { configurable: true, get() { return layout.cut && this.localName === 'h2' ? 600 : 0; } });
+    Object.defineProperty(proto, 'clientWidth', { configurable: true, get() { return 0; } });
+    return () => {
+      vi.unstubAllGlobals();
+      Reflect.deleteProperty(proto, 'scrollWidth');
+      Reflect.deleteProperty(proto, 'clientWidth');
+    };
+  };
+  const title = () => document.querySelector('.ui-drawer__title') as HTMLElement;
+
+  it('stands after the title on the title\'s line, before the actions and Close', () => {
+    css();
+    source('Northwind Bank');
+    const header = document.querySelector('.ui-drawer__header')!;
+    expect([...header.querySelectorAll('h2, .ui-drawer__status, .ui-drawer__actions, .ui-drawer__close')]
+      .map((n) => n.className)).toEqual(['ui-drawer__title', 'ui-drawer__status', 'ui-drawer__actions', 'ui-drawer__close']);
+    const lead = title().parentElement!;
+    expect(lead).toHaveClass('ui-drawer__lead');
+    expect(lead.querySelector('.ui-drawer__status')).toHaveTextContent('Late');
+    expect(getComputedStyle(lead).display).toBe('flex');
+    expect(getComputedStyle(lead).flexWrap).not.toBe('wrap');
+    // The title gives up its room and ends in an ellipsis. The status and the actions keep theirs.
+    const t = getComputedStyle(title());
+    expect([t.minWidth, t.overflow, t.textOverflow, t.whiteSpace]).toEqual(['0px', 'hidden', 'ellipsis', 'nowrap']);
+    expect(getComputedStyle(document.querySelector('.ui-drawer__status')!).flexShrink).toBe('0');
+    expect(getComputedStyle(document.querySelector('.ui-drawer__actions')!).flexShrink).toBe('0');
+    expect(screen.getByRole('dialog', { name: 'Northwind Bank' })).toBeInTheDocument();
+    cleanup();
+    // Without a status, the lead holds the title alone.
+    render(<Drawer open title="Filters" onClose={noop}>body</Drawer>);
+    expect(title().parentElement).toHaveClass('ui-drawer__lead');
+    expect(document.querySelector('.ui-drawer__status')).toBeNull();
+  });
+
+  it('a cut title is a Tab stop, its readout shows the whole title, Escape closes only the readout, and the focus stays in the drawer when the title fits', async () => {
+    // A title that fits is no Tab stop and has no readout.
+    let restore = stubLayout(false);
+    try {
+      source('Northwind Bank');
+      expect(title()).not.toHaveAttribute('tabindex');
+      expect(screen.queryByRole('tooltip', { hidden: true })).toBeNull();
+    } finally {
+      restore();
+      cleanup();
+    }
+    restore = stubLayout(true);
+    const layer = stubPopover();
+    try {
+      const closeDrawer = vi.fn();
+      render(<Drawer open title={LONG} onClose={closeDrawer} status={<span className="ui-badge">Late</span>}>body</Drawer>);
+      expect(title()).toHaveAttribute('tabindex', '0');
+      expect(screen.getByRole('dialog', { name: LONG })).toBeInTheDocument();
+      const tip = screen.getByRole('tooltip', { hidden: true });
+      expect(tip).toHaveTextContent(LONG);
+      await userEvent.tab();
+      expect(title()).toHaveFocus();
+      await waitFor(() => expect(tip).toHaveClass('is-open'));
+      await userEvent.keyboard('{Escape}');
+      expect(tip).not.toHaveClass('is-open');
+      expect(closeDrawer).not.toHaveBeenCalled();
+      expect(title()).toHaveFocus();
+      // The drawer widens and the title fits. React replaces the focused heading, and the
+      // focus stays in the drawer, on its panel.
+      layout.cut = false;
+      act(() => layout.resize());
+      expect(title()).not.toHaveAttribute('tabindex');
+      expect(screen.getByRole('dialog')).toHaveFocus();
+    } finally {
+      layer.restore();
+      restore();
+    }
+  });
+});
+
 // A short drawer's footer stands directly under the last group, next to the form its Save
 // saves (#887): the body takes its content height and gives up space only to scroll. The
 // shell's menu keeps its account at the panel's foot, so its body fills the panel.

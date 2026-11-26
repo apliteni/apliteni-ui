@@ -28,8 +28,10 @@ const GROUPS = [
 const rows = (pairs: string[][]): KeyValueRow[] => pairs.map(([label, value]) => ({ label, value }));
 
 // A drawer is position: fixed, so each specimen is held inside a frame of its own.
-const Frame = ({ title = 'Northwind Payments', footer, children }: { title?: string; footer?: ReactNode; children: ReactNode }) =>
-  <div className="gd-frame"><DrawerPicture title={title} footer={footer}>{children}</DrawerPicture></div>;
+const Frame = ({ title = 'Northwind Payments', status, actions, footer, children }: {
+  title?: string; status?: ReactNode; actions?: ReactNode; footer?: ReactNode; children: ReactNode;
+}) =>
+  <div className="gd-frame"><DrawerPicture title={title} status={status} actions={actions} footer={footer}>{children}</DrawerPicture></div>;
 const Group = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
   <DrawerSection title={title}><KeyValueList rows={rows(pairs)} /></DrawerSection>;
 // The record's key figure, which leads the drawer in a group with no heading.
@@ -94,6 +96,14 @@ const Saves = ({ formFirst = false }: { formFirst?: boolean }) => <Frame footer=
   <Group rows={PAYMENT.slice(0, 2)} />
   {!formFirst && <Classify />}
 </Frame>;
+// One import source that is late: its badge after the name, and the same badge among the actions.
+const IMPORT = [['Imported', '23 Nov 2026'], ['Expected', '25 Nov 2026'], ['Schedule', 'Daily']];
+const late = <Badge variant="warn">Late</Badge>;
+const imports = <Button variant="secondary" size="sm">View imports</Button>;
+const Source = ({ beside = true }: { beside?: boolean }) =>
+  <Frame title="Northwind Bank" status={beside ? late : undefined} actions={beside ? imports : <>{late}{imports}</>}>
+    <Group rows={IMPORT} />
+  </Frame>;
 const Lined = ({ title, rows: pairs }: { title?: string; rows: string[][] }) =>
   <DrawerSection title={title}><Ruled pairs={pairs} /></DrawerSection>;
 const footer = <Button variant="primary">Save</Button>;
@@ -101,6 +111,7 @@ const footer = <Button variant="primary">Save</Button>;
 const specimens = [
   { id: 'one-record', do: () => <QuickEdit />, dont: () => <LongForm /> },
   { id: 'drawer-or-page', do: () => <PageDo />, dont: () => <PageDont /> },
+  { id: 'status-after-title', do: () => <Source />, dont: () => <Source beside={false} /> },
   { id: 'save-under-form', do: () => <Saves />, dont: () => <Saves formFirst /> },
   { id: 'no-cards', do: () => <Frame><Figure />{GROUPS.slice(1).map((g, i) => <Group key={i} {...g} />)}</Frame>,
     dont: () => <Frame><Card><Figure /></Card>{GROUPS.slice(1).map((g, i) => <Card key={i}><Group {...g} /></Card>)}</Frame> },

@@ -71,8 +71,8 @@ export const ConfirmPicture = ({ title, body, children, cancelLabel, confirmLabe
  * A body that scrolls is a keyboard stop with a name, so End and the arrows scroll
  * it. A body that fits is no stop: a stop that scrolls nothing leads nowhere. Which
  * bodies scroll changes with the width, so the body is read again on each resize. */
-export const DrawerPicture = ({ title, footer, side = 'right', size = 'md', children }: {
-  title: string; footer?: ReactNode; side?: 'left' | 'right'; size?: 'sm' | 'md'; children?: ReactNode;
+export const DrawerPicture = ({ title, status, actions, footer, side = 'right', size = 'md', children }: {
+  title: string; status?: ReactNode; actions?: ReactNode; footer?: ReactNode; side?: 'left' | 'right'; size?: 'sm' | 'md'; children?: ReactNode;
 }) => {
   const body = useRef<HTMLDivElement>(null);
   const [scrolls, setScrolls] = useState(false);
@@ -89,7 +89,11 @@ export const DrawerPicture = ({ title, footer, side = 'right', size = 'md', chil
     <div className="ui-drawer__scrim" />
     <div className="ui-drawer__panel" role="group" aria-label={title}>
       <header className="ui-drawer__header">
-        <h2 className="ui-drawer__title">{title}</h2>
+        <div className="ui-drawer__lead">
+          <h2 className="ui-drawer__title">{title}</h2>
+          {status && <span className="ui-drawer__status">{status}</span>}
+        </div>
+        {actions && <div className="ui-drawer__actions">{actions}</div>}
         <button type="button" className="ui-drawer__close" aria-label="Close"><Icon name="x" /></button>
       </header>
       <div className="ui-drawer__body" ref={body}
