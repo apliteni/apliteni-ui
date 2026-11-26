@@ -492,7 +492,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:242",
+    "ref": "src/assets/icons.js:244",
     "pattern": "export const iconMeanings"
    },
    {
@@ -1027,7 +1027,7 @@
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
-    "ref": "react/src/AccountWindow.tsx:33",
+    "ref": "react/src/AccountWindow.tsx:31",
     "pattern": "export function AccountWindow("
    }
   ],
