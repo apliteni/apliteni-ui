@@ -508,8 +508,9 @@ trigger off: no keyboard stop, no panel and the disabled paint.
   the field while the user is still scrolled into the room that the panel needed.
 - The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
   or a transition.
-- A row names its item in the body weight, as a native list does. A group caption is a compact
-  label in body ink.
+- A row names its item in the body weight, as a native list does. A group label is 13px, bold
+  and in muted ink, at 5.60:1 on the panel in dark and 6.11:1 in light under every accent. The
+  options under it are not indented.
 - Each row answers the pointer with a fill and draws no edge. A destructive row turns `--pink` on
   hover and focus. In forced colours a separator stays a visible line.
 

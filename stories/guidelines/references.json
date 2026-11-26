@@ -586,8 +586,8 @@
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:434",
-    "pattern": "rank: label"
+    "ref": "src/styles/dropdown.css:433",
+    "pattern": ".ui-dropdown__group {"
    }
   ]
  },
@@ -1325,6 +1325,22 @@
    {
     "ref": "react/src/Wizard.tsx:50",
     "pattern": "state === 'blocked' && <Icon name=\"circleAlert\" />"
+   }
+  ]
+ },
+ "_dropdown.js": {
+  "group-labels": [
+   {
+    "ref": "src/styles/dropdown.css:435",
+    "pattern": "font-weight: var(--weight-bold);"
+   },
+   {
+    "ref": "src/styles/dropdown.css:437",
+    "pattern": "color: var(--muted);"
+   },
+   {
+    "ref": "react/src/Dropdown.tsx:860",
+    "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]
  }

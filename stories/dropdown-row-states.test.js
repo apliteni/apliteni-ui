@@ -1,13 +1,16 @@
 // Rule: a dropdown row and a version row show a hover step in both themes with no outline
 // (#595), and a dropdown row draws its focus ring inward so a scrolled row's ring is never clipped (#649).
 // Every menu row in the shipped sheets keeps both, and a bleeding menu head keeps a gap above the
-// first row (#824).
+// first row (#824). A group label is bold in muted ink, so it stands apart from the options, and it
+// keeps 4.5:1 on the panel in each theme and accent (#886).
 //
 // Coverage limits:
 // - Source only. It reads the sheet and the token values, and paints nothing. The hover
 //   step and the ring's four sides are measured in a browser and reported on the PR.
 // - The step is judged as colour distance between two token values, not as a contrast
 //   ratio, because the fill is a non-text mark.
+// - The group label is measured on the panel's own ground. A consumer who paints the panel
+//   another colour is outside it.
 //
 // why: docs/foundations.md#elevation
 // Weaken the rule and confirm that its test fails.
@@ -15,7 +18,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
-import { tokensFor } from './lib/contrast.js';
+import { AA_TEXT, colourOf, ratio, tokensFor } from './lib/contrast.js';
+import { CELLS } from './lib/accessibility-walks.js';
 
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 const sheet = (file) => readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -185,4 +189,38 @@ test('the head-gap gate fails when the account head sits flush on the first row'
   const weakened = topbar.replace(/margin: -6px -6px 5px;/, 'margin: -6px -6px 0;');
   assert.notEqual(weakened, topbar, 'the mutation found nothing to change');
   assert.deepEqual(flushHeads([['src/styles/topbar.css', weakened]]), ['src/styles/topbar.css: .amenu .ahead']);
+});
+
+// A group label names the options under it. Bold and muted ink set it apart from an option,
+// which is body weight in body ink (#886). Its size stays the option's.
+/** What sets the group label apart in `text`, or the faults, as sentences. */
+const groupFaults = (text) => {
+  const body = (head) => flat(text).filter(([h]) => h.trim() === head).map(([, b]) => b).join(';');
+  const group = body('.ui-dropdown__group');
+  const ground = /(?:^|;)\s*background:\s*([^;]+)/.exec(body('.ui-dropdown__panel'))?.[1];
+  if (!ground) return ['the panel paints no ground to measure on'];
+  const faults = [];
+  if (!/font-weight:\s*var\(--weight-bold\)/.test(group)) faults.push('the group label is not bold');
+  if (!/(?:^|;)\s*color:\s*var\(--muted\)/.test(group)) faults.push('the group label is not in muted ink');
+  const ink = /(?:^|;)\s*color:\s*([^;]+)/.exec(group)?.[1] ?? 'var(--text)';
+  for (const { theme, accent } of CELLS) {
+    const tokens = tokensFor(theme, accent);
+    const r = ratio(colourOf(ink, tokens), colourOf(ground, tokens));
+    if (r < AA_TEXT) faults.push(`the group label has ${r.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
+  }
+  return faults;
+};
+
+test('a group label is bold in muted ink and keeps 4.5:1 on the panel (#886)', () => {
+  assert.equal(CELLS.length, 8, `the label was measured in ${CELLS.length} theme and accent cells, not 8`);
+  assert.deepEqual(groupFaults(css), []);
+});
+
+test('the group-label gate fails when the label goes back to body weight and ink, or fades too far', () => {
+  const before = css.replace('font-weight: var(--weight-bold)', 'font-weight: var(--weight-medium)')
+    .replace(/(\.ui-dropdown__group \{[^}]*color: )var\(--muted\)/, '$1var(--text)');
+  assert.notEqual(before, css, 'the mutation found nothing to change');
+  assert.deepEqual(groupFaults(before), ['the group label is not bold', 'the group label is not in muted ink']);
+  const faded = css.replace(/(\.ui-dropdown__group \{[^}]*color: )var\(--muted\)/, '$1var(--border)');
+  assert.ok(groupFaults(faded).some((f) => /:1 on the panel in dark default$/.test(f)), groupFaults(faded).join('\n'));
 });

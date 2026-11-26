@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.200.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. Part of #886.', ['Dropdown']],
+      ['added', 'A new Dropdown guideline page has one rule, Set group labels apart. Part of #886.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.198.0', date: '2026-11-25',
     changes: [
       ['changed', 'A drawer body now takes only the height of its content, so in a short drawer the footer with Save stands directly under the last group. A long body still scrolls, and the footer stays at the panel\'s end. The app shell\'s menu keeps its account at the foot. Part of #887.', ['Drawer']],
