@@ -94,6 +94,7 @@ what the user sees.
 | Choose one value from a list, or open a menu of actions | `Dropdown` | [Dropdown](#dropdown) |
 | Find and run anything with ⌘K | `CommandPalette` | [Command palette](#command-palette) |
 | A labelled form control | `TextField`, `TextArea`, `SelectField`, `FileField`, `Field` | [Fields](#fields) |
+| A value that the app proposes and the user applies or dismisses | `ProposedValue` | [Proposed value](#proposed-value) |
 | Search a list from its toolbar | `SearchField` | [Search field](#search-field) |
 | A yes or no, or a set of options | `Checkbox`, `CheckList`, `Switch` | [Checkbox and switch](#checkbox-and-switch) |
 | A month, a date or a range | `DatePicker` | [Date picker](#date-picker) |
@@ -487,6 +488,13 @@ rows under group labels, with space before each next group. `header` and `footer
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
 trigger off: no keyboard stop, no panel and the disabled paint.
 
+**Ghost trigger.** `ghost` draws the trigger with no edge and no ground at rest. It keeps the
+chevron, the focus ring and the invalid edge. The pointer and an open panel give it the fill of a
+hovered table row. Off, it draws no box and shows the off ink. In a field and as the first part of a
+table cell, its value starts on the column edge, and the pill hangs into the room before it. In a
+row it stands on the centre of the first text line, so the row keeps its height. Without `ghost`
+the trigger keeps its edge.
+
 **What the user sees.**
 
 - The trigger shows only the chosen value or the placeholder. Put the name of the control in a
@@ -632,6 +640,44 @@ not move.
 **Room on the screen.** Put a form on a card, not on the page ground. A field is drawn by its edge,
 and on the page ground that edge is too faint. See
 [Colour and contrast](foundations.md#colour-and-contrast). A filter bar is the one exception.
+
+### Proposed value
+
+Use `ProposedValue` when the app proposes a value for a select and the user decides: for example,
+a category that a rule found for a payment. Use [`Dropdown`](#dropdown) when there is no proposal.
+
+```tsx
+<Field label="Category">{control => (
+  <ProposedValue {...control} items={categories} value={category} proposed={suggested}
+    onChange={setCategory} onDismiss={dropSuggestion} />
+)}</Field>
+```
+
+**What the user sees.** The part has three states:
+
+- **Set.** `value` holds an option. A [ghost select](#dropdown) shows its label.
+- **Proposed.** `value` is empty, and an option has the `proposed` value. The label shows in a
+  still two-ink gradient, from the accent to the info ink. A check button and a dismiss mark follow
+  it. Every point of the gradient has at least 4.5:1 on the page, card and table grounds, in both
+  themes under each accent. In forced colours the value shows in the system ink with a dashed edge.
+- **Empty.** A ghost select shows "None". `none` changes the word.
+
+The check calls `onChange` with the proposed value and opens no menu. The dismiss mark calls
+`onDismiss` and shows "None" until a different proposal comes. After either act the focus goes to
+the select. The menu has a None row first, which calls `onChange(undefined)`. The None row uses
+the value `''`, so give each option another value. A proposal that no option has shows the empty
+state. A long value ends in an ellipsis, and its pointer title shows it in full.
+
+**Size.** In a `Field` the part has the height of a text input. Elsewhere it has the 32px size of a
+row control, and as the first part of a table cell its value starts on the column edge. Below
+560px on a touch screen, the check and the dismiss mark keep a 44px tap zone. The part stays on one
+line. In a table, set the column's `width` to its widest state, the value with its check and
+dismiss mark, so an act moves no column and no row.
+
+**Keyboard and screen reader.** The proposed state is a group. In a field the label and the word
+"suggested" name it. Outside a field it takes `ariaLabel` and then "suggested", and the select
+reads `ariaLabel` and then its value. The check is named "Apply" and the value. The dismiss mark
+is named "Dismiss" and the value. Both names are also the pointer titles.
 
 ### Search field
 

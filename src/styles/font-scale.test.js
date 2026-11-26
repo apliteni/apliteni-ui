@@ -28,6 +28,8 @@ const KEPT = [
   { file: 'field-zoom.css', value: '16px !important' },
   { file: 'dropdown.css', selector: FIELD_TRIGGER, value: '16px' },
   { file: 'layout.css', selector: FIELD_CIRCLE, value: '16px' },
+  // A proposed value takes the field trigger's size, so Apply moves no letter. #888
+  { file: 'ProposedValue.css', selector: '.ui-field > .ui-proposed > .ui-proposed__value', value: '16px' },
   // Fluid display type of the landing page.
   { file: 'layout.css', selector: '.ui-hero__title', value: 'clamp(38px, 6.4vw, 66px)' },
   { file: 'layout.css', selector: '.ui-hero__sub', value: 'clamp(16px, 2.1vw, 20px)' },

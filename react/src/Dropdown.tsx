@@ -131,6 +131,9 @@ export type DropdownProps = {
   /** Replaces the trigger's value. With `ariaLabel`, names the trigger. */
   triggerContent?: ReactNode;
   triggerClass?: string;
+  /** A trigger with no edge and no ground at rest, as a ghost button draws. It keeps the
+   *  chevron, the hover fill and the focus ring. Off by default. */
+  ghost?: boolean;
   /** The trigger is off: no stop, no panel, the kit's unavailable paint. #580 */
   disabled?: boolean;
   chevron?: boolean;
@@ -234,7 +237,7 @@ const SEARCH_DEFAULTS = {
 
 export function Dropdown({
   label, value, selectedValue, placeholder = 'Select…', variant, items, sections,
-  header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
+  header, footer, triggerContent, triggerClass = '', ghost = false, disabled = false, chevron = true,
   align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, title, id, panelClass = '',
   'aria-describedby': describedBy, 'aria-invalid': invalid,
@@ -896,7 +899,7 @@ export function Dropdown({
     <div className={cx('ui-dropdown', open && 'open')} id={id} ref={root} onKeyDown={onKeyDown}>
       <button
         type="button"
-        className={cx('ui-dropdown__trigger', triggerClass)}
+        className={cx('ui-dropdown__trigger', ghost && 'ui-dropdown__trigger--ghost', triggerClass)}
         data-dropdown-trigger=""
         disabled={disabled || undefined}
         aria-haspopup={sx ? 'dialog' : listRole}

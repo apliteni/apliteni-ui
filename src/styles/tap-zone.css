@@ -194,6 +194,13 @@
     --tap-clear-y: var(--tap-gap);
   }
   .ui-table__act { --tap-clear-x: var(--tap-gap); --tap-clear-y: 0px; }
+  /* A proposed value's check and dismiss mark open both ways, as a file drop's pair does: the
+     field or the row around them has the room, and in a narrow cell they wrap below the value. #888 */
+  .ui-proposed__acts {
+    gap: var(--tap-gap) !important;
+    --tap-clear-x: var(--tap-gap);
+    --tap-clear-y: var(--tap-gap);
+  }
 
   /* A card's title row holds small tools at its end, such as a 24px icon-only
      button: across, the room beside it is title text, and down, the row opens

@@ -8,7 +8,7 @@
 
 **Why:** Without a legend, readers need labels for unfamiliar glyphs.
 
-**Except:** New entries require a decision and pass Earn a wordless button on Button labels. Allowed: close, copy, overflow, expand, collapse and export. Theme and sidebar toggles and collapsed-rail links have separate approval. Owner additions: Table beside Chart or Board ([#742](https://github.com/apliteni/apliteni-ui/issues/742), [#832](https://github.com/apliteni/apliteni-ui/issues/832)), the account avatar ([#834](https://github.com/apliteni/apliteni-ui/issues/834)), an AppShell search trigger below 560px for one light icon row ([#729](https://github.com/apliteni/apliteni-ui/issues/729)), and a notifications bell with its count ([#798](https://github.com/apliteni/apliteni-ui/issues/798)). The last two are named by their sentence: phones show no title.
+**Except:** New entries require a decision and pass Earn a wordless button on Button labels. Allowed: close, copy, overflow, expand, collapse and export. Theme and sidebar toggles and collapsed-rail links have separate approval. Owner additions: Table beside Chart or Board ([#742](https://github.com/apliteni/apliteni-ui/issues/742), [#832](https://github.com/apliteni/apliteni-ui/issues/832)), the account avatar ([#834](https://github.com/apliteni/apliteni-ui/issues/834)), the proposed-value check (#888), an AppShell search trigger below 560px for one light icon row ([#729](https://github.com/apliteni/apliteni-ui/issues/729)), and a notifications bell with its count ([#798](https://github.com/apliteni/apliteni-ui/issues/798)). The last two are named by their sentence: phones show no title.
 
 **Do:** A wordless overflow and a labelled Settings.
 
@@ -22,7 +22,7 @@
 
 **Why:** Two meanings make readers guess from context.
 
-**Except:** Most glyphs, such as `globe`, `database` and `layers`, show a thing, not a state or action. The split guides component choice only.
+**Except:** Most glyphs, such as `globe`, `database` and `layers`, show things, not states or actions. The split guides component choice only.
 
 **Do:** `circleX` reports the failure; the bare `x` closes the toast.
 
@@ -34,9 +34,9 @@
 
 **Rule:** Use the Lucide path unchanged, and record any rename.
 
-**Why:** One source keeps the set consistent, and a recorded rename stays traceable.
+**Why:** One source keeps the set consistent; a recorded rename stays traceable.
 
-**Except:** Vendor marks with no Lucide original, such as `github` and `linkedin`, are allowed in BRAND.
+**Except:** Vendor marks with no Lucide original, such as `github` and `linkedin`, go in BRAND.
 
 **Do:** `circleCheck`: Lucide’s circle-check-big, same path, rename recorded.
 

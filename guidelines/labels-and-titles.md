@@ -12,6 +12,8 @@
 
 **Don't:** Use muted ink at different sizes to show rank.
 
+**Except:** A proposed value takes the gradient ink until applied (#888).
+
 ## Limit muted ink
 
 <!-- rule: text-ink-exceptions -->
@@ -82,7 +84,7 @@
 
 <!-- rule: eyebrow-names-the-kind -->
 
-**Rule:** Place an eyebrow above a title to identify what kind of thing it is, never as a replacement for the title.
+**Rule:** Place an eyebrow above a title to name its kind, never to replace the title.
 
 **Why:** An eyebrow alone cannot describe the card’s content.
 

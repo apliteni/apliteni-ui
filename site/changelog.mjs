@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.214.0', date: '2026-11-26',
+    changes: [
+      ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
+      ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
+      ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.209.0', date: '2026-11-26',
     changes: [
       ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],

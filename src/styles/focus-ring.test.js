@@ -99,8 +99,11 @@ test('focused fields keep one ring with a transparent border', () => {
   const sheets = Object.fromEntries([...new Set(FIELD_FOCUS.map(([file]) => file))]
     .map((file) => [file, readFileSync(path.join(here, file), 'utf8')]));
   checkFieldFocus(sheets);
-  for (const file of Object.keys(sheets)) {
-    const changed = { ...sheets, [file]: sheets[file].replace('border-color: transparent;', 'border-color: var(--field-edge);') };
+  // Each mutation edits the focus rule itself; a sheet holds other transparent edges (#888).
+  for (const [file, selector] of FIELD_FOCUS) {
+    const body = fieldFocusBody(sheets[file], selector);
+    assert.ok(sheets[file].includes(body), `${selector} is written with no comment inside it`);
+    const changed = { ...sheets, [file]: sheets[file].replace(body, body.replace(/border-color:\s*transparent\s*;/, 'border-color: var(--field-edge);')) };
     assert.throws(() => checkFieldFocus(changed), /hides its own border ink/);
   }
 });
