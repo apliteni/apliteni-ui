@@ -958,6 +958,24 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       for (const line of report) t.diagnostic(line);
     });
 
+    // #868: a drawer title cut by its ellipsis is a Tab stop and a tap target. The title clips
+    // its own text, so its layer hangs on the readout trigger around it.
+    const CUT_TITLE = 'react-drawer--status-long-title';
+    const cutTitles = (rows) => rows.filter((b) => b.story === CUT_TITLE && b.cls.split(/\s+/).includes('ui-drawer__title'));
+    await t.test('a cut drawer title reaches the floor', () => {
+      const titles = cutTitles(B);
+      assert.equal(titles.length, 1, `${titles.length} cut titles measured in ${CUT_TITLE}, not 1.`);
+      assert.deepEqual(titles.filter((b) => b.floorMiss > 0).map((b) => `${name(b)} ${b.reach.join('x')}`), []);
+    });
+
+    await t.test('a cut drawer title without its layer is rejected', async () => {
+      const sheet = withCss.replace(/\.ui-drawer__lead > \.ui-tip-host > span:not\(\.ui-tip\) > \.ui-drawer__title::after \{[^}]*\}/, '');
+      assert.notEqual(sheet, withCss, 'The mutation did not apply, so it proves nothing.');
+      const titles = cutTitles(flatten((await at(390, true, sheet, subjects.filter((s) => s.id === CUT_TITLE))).rows));
+      assert.equal(titles.length, 1);
+      assert.ok(titles[0].floorMiss > 0, `Without its layer the cut title still reached ${titles[0].reach.join('x')}.`);
+    });
+
     await t.test('no target reaches less than it did without the sheet', async () => {
       // The floor only ever goes up. The gate used to assert that the COUNT of
       // targets at 44 rises, which is a different claim: at 992c2a2 every
