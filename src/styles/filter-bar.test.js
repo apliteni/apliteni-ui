@@ -267,7 +267,7 @@ function restated(rest, state) {
 const SHEETS = [...ENTRY.matchAll(/@import\s+"([^"]+)"/g)].map((m) => read(path.join('..', m[1]))).join('\n');
 const ROWS = await markup(({ h, kit }) => {
   const noop = () => {};
-  const bar = { label: 'Invoice filters', onChange: noop, onRemove: noop, onClear: noop, onAdd: noop,
+  const bar = { label: 'Invoice filters', onChange: noop, onClear: noop, onAdd: noop,
     filters: [{ id: 'status', label: 'Status', value: 'Paid', items: [{ label: 'Any', value: '' }, { label: 'Paid', value: 'Paid' }] },
       { id: 'period', label: 'Period', value: '', items: [{ label: 'Any', value: '' }, { label: 'Q3', value: 'Q3' }] }],
     add: [{ id: 'vendor', label: 'Vendor', items: [{ label: 'Northwind', value: 'Northwind' }] }] };
@@ -353,8 +353,8 @@ test('the filter row height rounds up to a whole pixel', () => {
 /**
  * Rule: a chip keeps its width when the bar turns off or on, and when its value changes. #885
  * An empty chip's name keeps the regular weight while the bar is off. The chip stops at
- * --ui-filter-chip-max, 224px. Its hidden lines, the room of an absent remove mark and the room
- * of an absent Clear all draw nothing. The rows come from the React kit, and the cascade from
+ * --ui-filter-chip-max, 224px. Its hidden lines and the room of an absent Clear all draw
+ * nothing. The rows come from the React kit, and the cascade from
  * every sheet index.css imports, in its order.
  *
  * WHAT THIS DOES NOT REACH: layout. JSDOM lays out nothing and does not resolve var(), so this
@@ -363,8 +363,8 @@ test('the filter row height rounds up to a whole pixel', () => {
  */
 const CHIPS = await markup(({ h, kit }) => {
   const noop = () => {};
-  const bar = (busy) => h(kit.FilterBar, { busy, onChange: noop, onRemove: noop, onClear: noop,
-    filters: [{ id: 'office', label: 'Office', value: '', removable: true, items: [{ label: 'Any office', value: '' }, { label: 'Lisbon, head office', value: 'Lisbon, head office' }] }] });
+  const bar = (busy) => h(kit.FilterBar, { busy, onChange: noop, onClear: noop,
+    filters: [{ id: 'office', label: 'Office', value: '', items: [{ label: 'Any office', value: '' }, { label: 'Lisbon, head office', value: 'Lisbon, head office' }] }] });
   return h('div', null, bar(false), bar(true));
 });
 const chips = (css) => {
@@ -390,8 +390,8 @@ test('an empty chip keeps the name\'s weight when the bar turns off', () => {
 
 test('the hidden lines and the kept room draw nothing, and the shown line draws', () => {
   const { hidden, shown } = chips(SHEETS);
-  // Two lines each for the name and the one value, a remove mark and Clear all in each bar.
-  assert.equal(hidden.length, 8);
+  // Two lines each for the name and the one value, and Clear all in each bar.
+  assert.equal(hidden.length, 6);
   assert.deepEqual([...new Set(hidden)], ['hidden']);
   assert.deepEqual(shown, ['visible', 'visible']);
   const rule = '.ui-filter-bar .is-reserved { visibility: hidden; }';

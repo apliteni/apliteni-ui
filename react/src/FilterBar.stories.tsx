@@ -15,24 +15,24 @@ const catalogue: AddFilter[] = [
   { id: 'unit', label: 'Unit', items: [{ label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }] },
 ];
 const meta: Meta<typeof FilterBar> = { title: 'React/FilterBar', component: FilterBar,
-  args: { filters, onRemove: () => {}, onClear: () => {}, onChange: () => {} } };
+  args: { filters, onClear: () => {}, onChange: () => {} } };
 export default meta;
 type Story = StoryObj<typeof FilterBar>;
-// A bar whose chips the user can take away: the app turns the remove mark on for each chip.
+// A bar the app controls: a pick and Clear all change the app's own filters.
 export const Controlled: Story = { render: function Example(args) {
-  const [items, setItems] = useState(args.filters.map(f => ({ ...f, removable: true })));
-  return <FilterBar {...args} filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))}
+  const [items, setItems] = useState(args.filters);
+  return <FilterBar {...args} filters={items}
     onClear={() => setItems([])} onChange={(id, value) => setItems(items.map(f => f.id === id ? { ...f, value: value ?? '' } : f))} />;
 } };
 // A chip with nothing chosen shows the field it filters; a chosen one shows the value.
 export const Unset: Story = { args: { filters: [{ id: 'listing', label: 'Listing', items: [{ label: 'Any listing', value: '' }, { label: 'Primary', value: 'Primary' }] }, ...filters] } };
 export const Adding: Story = { args: { add: catalogue }, render: function Example(args) {
-  const [items, setItems] = useState(args.filters.map(f => ({ ...f, removable: true })));
-  return <FilterBar {...args} filters={items} onRemove={id => setItems(items.filter(f => f.id !== id))}
+  const [items, setItems] = useState(args.filters);
+  return <FilterBar {...args} filters={items}
     onClear={() => setItems([])} onChange={(id, value) => setItems(items.map(f => f.id === id ? { ...f, value: value ?? '' } : f))}
     onAdd={(id, value) => {
       const entry = catalogue.find(f => f.id === id);
-      if (entry) setItems(current => [...current, { ...entry, value: value ?? '', removable: true }]);
+      if (entry) setItems(current => [...current, { ...entry, value: value ?? '' }]);
     }} />;
 } };
 export const Busy: Story = { args: { busy: true } };
@@ -41,8 +41,8 @@ export const Busy: Story = { args: { busy: true } };
 // move. stories/filter-chip-width.test.js walks it. #885
 // The office member's first value spells its label "Lisbon" differently from the value the
 // chip prints, "Lisbon, head office", so the walk sees a chip whose longest line is a value
-// and not a label. The office chip has the remove mark turned on, so the walk measures a chip
-// with the mark and the chips without it. why: docs/components.md#filter-bar
+// and not a label. Each first row has an empty value, so a pick of it clears that chip.
+// why: docs/components.md#filter-bar
 const MEMBERS = [
   { id: 'office', label: 'Office', any: 'Any office', values: [{ label: 'Lisbon', value: 'Lisbon, head office' }, 'Porto', 'Remote'] },
   { id: 'team', label: 'Team', any: 'Any team', values: ['Individual CEO', 'Company overhead', 'Orbit Notes'] },
@@ -61,8 +61,8 @@ export const Reloading: Story = { render: function Example() {
   return <div className="ui-stack">
     <div className="ui-toolbar">
       <FilterBar label="Member filters" busy={busy} onClear={() => load({})}
-        onChange={(id, value) => load({ ...chosen, [id]: value ?? '' })} onRemove={id => load({ ...chosen, [id]: '' })}
-        filters={MEMBERS.map(f => ({ id: f.id, label: f.label, value: chosen[f.id] ?? '', removable: f.id === 'office',
+        onChange={(id, value) => load({ ...chosen, [id]: value ?? '' })}
+        filters={MEMBERS.map(f => ({ id: f.id, label: f.label, value: chosen[f.id] ?? '',
           items: [{ label: f.any, value: '' }, ...f.values.map(v => typeof v === 'string' ? { label: v, value: v } : v)] }))} />
     </div>
     <Card title="Members">{shown ? `${shown} of 3 filters in use` : 'All members'}</Card>
@@ -92,8 +92,6 @@ const Chip = ({ id, name, ...rest }: { id: string; name: string } & Partial<Drop
   <fieldset className="ui-filter-bar__chip" data-filter-id={id}>
     <legend className="ui-filter-bar__legend">{name}</legend>
     <Dropdown variant="select" ariaLabel={name} value="All" items={SECTORS} {...rest} />
-    <button type="button" className="ui-filter-bar__remove" data-filter-remove=""
-      aria-label={`Remove ${name} filter`}>×</button>
   </fieldset>
 );
 

@@ -32,10 +32,10 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SHEETS = ['src/styles', 'react/src'].flatMap((dir) => readdirSync(path.join(root, dir))
   .filter((f) => f.endsWith('.css')).map((f) => `${dir}/${f}`));
 
-// The classes a reader presses: a button, a dropdown trigger, a filter chip and its remove
-// mark, a select and the back link.
+// The classes a reader presses: a button, a dropdown trigger, a filter chip, a select and the
+// back link.
 const CONTROLS = ['ui-btn', 'ui-fbbtn', 'toggle', 'ui-dropdown__trigger', 'ui-filter-bar__chip',
-  'ui-filter-bar__remove', 'ui-select', 'ui-pager__size-select', 'ui-app__search', 'ui-app__menu', 'ui-back'];
+  'ui-select', 'ui-pager__size-select', 'ui-app__search', 'ui-app__menu', 'ui-back'];
 // The fields a reader types into. They take the field corner. #836
 const FIELDS = ['ui-input', 'ui-textarea', 'ui-dropdown__search-input', 'ui-pager__jump-input'];
 // Cards and floating panels: dialogs, dropdown panels, menus, callouts, toasts, success
@@ -165,7 +165,8 @@ test('every control is a pill, every field and surface has its corner, and every
   assert.deepEqual(faults(allCorners, squircles), []);
   // What the tree holds today. A lower count means a class lost its declaration.
   // 18 since #847: a band action's Button and dropdown trigger take the band's 40px pill on a phone.
-  assert.equal(allCorners.filter((c) => c.value === PILL).length, 18, 'pill corners read');
+  // 17 since #885: a filter chip has no remove mark. rev_8f3cc2e115a3
+  assert.equal(allCorners.filter((c) => c.value === PILL).length, 17, 'pill corners read');
   assert.equal(allCorners.filter((c) => c.value === FIELD).length, 4, 'one-line field corners read');
   assert.equal(allCorners.filter((c) => c.value === MESSAGE).length, 1, 'message box corners read');
   assert.equal(allCorners.filter((c) => c.value === SURFACE).length, 15, 'card and panel corners read');

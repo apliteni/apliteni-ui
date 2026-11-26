@@ -799,14 +799,14 @@ Use a [`Dropdown`](#dropdown) instead when a list of values needs more room than
 
 ```tsx
 <FilterBar filters={filters} add={addable}
-  onChange={(id, value) => setFilter(id, value)} onRemove={removeFilter} onClear={clearFilters}
+  onChange={(id, value) => setFilter(id, value)} onClear={clearFilters}
   onAdd={(id, value) => addFilter(id, value)} />
 ```
 
-You control the bar. A filter has `id`, `label`, `items` and an optional `value`. Set `removable`
-on a filter to give its chip a remove mark (×) that calls `onRemove`. A pick, a remove and Clear
-all call your handlers. They never change your filters. `add` and `onAdd` add a Filter
-control after the chips. Its menu holds one section for each filter that the bar does not show,
+You control the bar. A filter has `id`, `label`, `items` and an optional `value`. A chip has no
+remove mark (×). To let the user clear one filter, make the first row of its `items` an "Any …"
+row with an empty value. A pick and Clear all call your handlers. They never change your filters.
+`add` and `onAdd` add a Filter control after the chips. Its menu holds one section for each filter that the bar does not show,
 with a search field from ten values. When you add the filter in the same update, the focus goes to
 the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and the look.
 
@@ -815,10 +815,9 @@ name. Each chip takes the width of its longest value, up to 224px. A value chang
 that width, and a reload that turns the bar off and on does not change it. Only a value longer
 than 224px ends with an ellipsis. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
 stays inside the row and never makes the page wider. The menu marks the chip's value with a soft
-accent wash and a check. A chip without `removable` has no remove mark and keeps no room for it,
-so its chevron is at the right edge of the chip. Clear all, and the remove mark of a `removable`
-chip, show only when there is a value to clear. They keep their room while they do not show, so the
-content under the bar does not move. Clear all clears every filter.
+accent wash and a check. The chevron is at the right edge of the chip. Clear all shows only when
+there is a value to clear. It keeps its room while it does not show, so the content under the bar
+does not move. Clear all clears every filter.
 A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
 240px, such as a catalogue with a search field, declares `--ui-filter-panel-ask` in your
 stylesheet. It is then 320px wide where the row has the room, and the width of the row where it
@@ -826,8 +825,7 @@ does not.
 
 **Keyboard and screen reader.** The name of each filter reaches the user through the trigger name
 and a hidden legend. When the user clears the last filter, the focus goes to the Filter control,
-or else to the next control that Tab would reach. If the focused remove mark goes, the focus goes
-to the chip's trigger.
+or else to the next control that Tab would reach.
 
 **Room on the screen.** The bar stands on the page directly above its table card, with no card of
 its own. Keep its search field live, because a disabled field is too faint on the page ground.

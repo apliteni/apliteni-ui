@@ -4,13 +4,12 @@ import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { useIsoLayoutEffect } from './dialog';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '@apliteni/apliteni-ui';
-export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean;
-  /** draws a remove mark (×) while the chip has a value, and keeps its room while it has none. Off by default */ removable?: boolean };
+export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
 /** A filter the bar can put on itself: the chip's name, and the values its menu offers. */
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; clearVariant?: 'ghost' | 'secondary' | 'link'; disabled?: boolean; busy?: boolean;
   add?: AddFilter[]; addLabel?: string;
-  /** called by the remove mark of a `removable` chip */ onRemove?: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void;
+  onClear: () => void; onChange: (id: string, value: string | undefined) => void;
   onAdd?: (id: string, value: string | undefined) => void };
 
 // A menu of ten gets a field over it. why: guidelines/component-choice.md#add-dropdown-search
@@ -22,9 +21,9 @@ const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' &
 const chipLines = (filter: Filter) => [filterChipText(filter), filter.label, ...(filter.items || []).filter(isRow)
   .filter(item => String(item.value ?? item.label) !== '').map(item => String(item.value ?? item.label))];
 
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
-  const focused = useRef<{ id: string | null; index: number; remove?: boolean } | null>(null);
+  const focused = useRef<{ id: string | null; index: number } | null>(null);
   // The filter the add menu just asked for. Consumed by the first layout pass after the
   // pick, which is the pass a controlled consumer answers it in.
   const landing = useRef<string | null>(null);
@@ -58,16 +57,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     }
     const prior = focused.current;
     if (!prior || (prior.id === null && filters.some(f => !filterChipUnset(f)))) return;
-    // A chip that lost its remove mark (its value was cleared) keeps its place: the
-    // focus the mark held moves to the chip's own trigger rather than to the page.
-    const kept = filters.some(f => f.id === prior.id);
-    if (kept) {
-      const held = chips.find(c => c.dataset.filterId === prior.id && !c.disabled);
-      const lost = prior.remove && !held?.querySelector('[data-filter-remove]') && !blocked && held && bar.current && bar.current.ownerDocument.activeElement === bar.current.ownerDocument.body
-        && held.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
-      if (lost) lost.focus();
-      return;
-    }
+    // A chip that stays keeps its own trigger, and so the focus.
+    if (filters.some(f => f.id === prior.id)) return;
     const next = chips.slice(prior.index).find(chip => !chip.disabled)
       || chips.slice(0, prior.index).reverse().find(chip => !chip.disabled);
     const target = !blocked && next?.querySelector<HTMLButtonElement>('[data-dropdown-trigger]');
@@ -86,7 +77,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     }}>
     <legend className="ui-filter-bar__legend">{label}</legend>
     {filters.map((filter, index) => <fieldset key={filter.id} className="ui-filter-bar__chip" data-filter-id={filter.id} disabled={filter.disabled}
-      onFocus={event => { focused.current = { id: filter.id, index, remove: Boolean((event.target as Element).closest('[data-filter-remove]')) }; }}>
+      onFocus={() => { focused.current = { id: filter.id, index }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
           trigger's name and the chip's own legend. why: docs/components.md#data-table */}
@@ -101,12 +92,8 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
         onSelect={value => { if (!blocked && !filter.disabled) onChange(filter.id, value == null ? undefined : String(value)); }} />
-      {/* Only a chip the app makes removable draws the mark, so the chevron of any other chip
-          sits at its edge. why: docs/components.md#filter-bar */}
-      {filter.removable && (filterChipUnset(filter)
-        ? <span className="ui-filter-bar__remove is-reserved" aria-hidden="true">×</span>
-        : <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
-          onClick={() => { if (!blocked && !filter.disabled) onRemove?.(filter.id); }}>×</button>)}
+      {/* A chip has no remove mark, so its chevron sits at its edge. A reader clears a value
+          with the menu's first row, or every value with Clear all. why: docs/components.md#filter-bar */}
     </fieldset>)}
     {/* Its onFocus clears the restore target, so nothing a controlled change does to the
         chips takes focus off this trigger. */}
