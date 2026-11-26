@@ -209,7 +209,7 @@ dd.ui-stat__caption { contain: inline-size; }
 
 /* A band of up to three figures keeps one row above 19rem: the figure steps down one
    rank at a time and the columns close up. The gaps let three values of -€9,999,999 fit
-   at each range's lower edge. At 19rem or below the folds above stack it.
+   at each range's lower edge, with hinted glyphs too. At 19rem or below the folds stack it.
    These come after the folds, which have the same weight. Tiles and an open band keep
    their folds. why: docs/components.md#stat-bands, #865 */
 @container (28rem < width <= 42rem) {
@@ -225,7 +225,7 @@ dd.ui-stat__caption { contain: inline-size; }
   .ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat > .ui-stat__label { flex: 1 0 auto; }
 }
 @container (19rem < width <= 22rem) {
-  .ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) { column-gap: var(--space-2); }
+  .ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) { column-gap: var(--space-1); }
   .ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat { flex-basis: 0; }
   .ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) .ui-stat__value { font-size: var(--text-md); }
   .ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat > .ui-stat__label { flex: 1 0 auto; }

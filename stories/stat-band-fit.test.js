@@ -10,7 +10,10 @@
  *   UI_PLAYWRIGHT=… UI_CHROME=… UI_WEB_VITALS=…/web-vitals/dist/web-vitals.iife.js STAT_FIT=1 \
  *     node --test stories/stat-band-fit.test.js
  *
- * The fit half opens react-stat-band--three-figures in each theme. It sets the band so that
+ * The fit half opens react-stat-band--three-figures in each theme and in two text renderings.
+ * The hinted one is the default of the headless shell on Linux: it rounds each glyph advance
+ * to a whole pixel, so −€9,999,999 at 15.5px takes about 98.3px. The fractional one keeps the
+ * advances that Chrome on macOS uses, about 95.25px. It sets the band so that
  * its list is 1px above each range's lower edge, then reads the row of each figure and the
  * overflow of each value. It also reads the story at a 390px window, where the dark card
  * leaves 308px. The walk half opens apps-transactions--default at ten window sizes, on the
@@ -18,10 +21,9 @@
  * and 890×626 at scale 3 with touch. It clicks the Amount sort twice. The sort opens no part,
  * so the focus stays on the sort control and no Escape applies.
  *
- * Its limits: one engine and the default accent. The text has fractional glyph advances, as on
- * macOS. Linux with full hinting rounds each advance to a whole pixel, so a value is about 3%
- * wider there, and three of them need 310.9px. The walk reads the light theme only. The
- * layout shift is web-vitals' onCLS, which does not count a shift within 500ms of an input.
+ * Its limits: one engine, the default accent and the fonts of the host. The walk reads the
+ * light theme only, with hinted text. The layout shift is web-vitals' onCLS, which does not
+ * count a shift within 500ms of an input.
  * The source half of the ranges is in src/styles/stat.test.js, and of the sort in
  * react/src/transactions.test.tsx.
  * why: docs/components.md#stat-bands, #865
@@ -83,7 +85,7 @@ const FIT = async (page, target) => {
   }, [WIDEST, target]);
 };
 
-async function fit(browser, port, css = '') {
+async function fit(browser, rendering, port, css = '') {
   const found = [];
   const table = [];
   for (const theme of ['dark', 'light']) {
@@ -93,10 +95,11 @@ async function fit(browser, port, css = '') {
       const { ctx, page } = await open(browser, port, BAND, theme, context);
       if (css) await page.addStyleTag({ content: css });
       const got = await FIT(page, target);
-      table.push(`${theme} ${label}: list ${got.list}px, value ${got.size}, ${got.rows} row(s), ${got.cut} cut`);
-      if (target && got.list !== target) found.push(`${theme} ${label}: the list is ${got.list}px, not ${target}px`);
-      if (got.rows !== 1) found.push(`${theme} ${label}: three figures take ${got.rows} rows`);
-      if (got.cut) found.push(`${theme} ${label}: ${got.cut} value(s) cut`);
+      const at = `${rendering} ${theme} ${label}`;
+      table.push(`${at}: list ${got.list}px, value ${got.size}, ${got.rows} row(s), ${got.cut} cut`);
+      if (target && got.list !== target) found.push(`${at}: the list is ${got.list}px, not ${target}px`);
+      if (got.rows !== 1) found.push(`${at}: three figures take ${got.rows} rows`);
+      if (got.cut) found.push(`${at}: ${got.cut} value(s) cut`);
       await ctx.close();
     }
   }
@@ -158,14 +161,16 @@ test('three seven-digit figures keep one row at each compact edge, and the Trans
     ...DEVICES.map((name) => { assert.ok(pw.devices[name], `Playwright has no device "${name}"`); return [name, pw.devices[name]]; }),
     ...DUO.map(([width, height]) => [`two-screen ${width}×${height}`, { viewport: { width, height }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }]),
   ];
-  // Fractional glyph advances, as Chrome on macOS lays out text. With the default hinting the
-  // headless shell on Linux rounds each advance, and −€9,999,999 at 15.5px takes 98.3px, not 95.25px.
-  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME, args: ['--font-render-hinting=none'] });
+  // The default launch hints the text. The second keeps fractional glyph advances.
+  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME });
+  const fractional = await pw.chromium.launch({ executablePath: env.UI_CHROME, args: ['--font-render-hinting=none'] });
   const server = await serve(build, path.join(build, 'iframe.html'));
   try {
-    const sized = await fit(browser, server.port);
+    const hinted = await fit(browser, 'hinted', server.port);
+    const exact = await fit(fractional, 'fractional', server.port);
+    const sized = { table: [...hinted.table, ...exact.table], found: [...hinted.found, ...exact.found] };
     process.stdout.write(`${sized.table.join('\n')}\n`);
-    assert.equal(sized.table.length, 2 * (EDGES.length + 1), 'an edge or a theme was not measured');
+    assert.equal(sized.table.length, 2 * 2 * (EDGES.length + 1), 'an edge, a theme or a rendering was not measured');
     assert.deepEqual(sized.found, []);
 
     const findings = [];
@@ -184,9 +189,10 @@ test('three seven-digit figures keep one row at each compact edge, and the Trans
 
     // The mutations: each check must see its own failure.
     const caught = [];
-    // The gaps before #865's fit: 24px at 22px and 12px at 18px and 15.5px.
-    const wide = '.ui-stats--band .ui-stats__list { column-gap: 12px !important; }';
-    const { found: gaps } = await fit(browser, server.port, wide);
+    // The 8px gap that the 15.5px range had before the hinted fit. It fits with fractional advances
+    // and wraps with hinted text, so only the hinted cases see it.
+    const wide = '.ui-stats--band .ui-stats__list { column-gap: 8px !important; }';
+    const { found: gaps } = await fit(browser, 'hinted', server.port, wide);
     caught.push(['rows', gaps.some((f) => f.includes('dark 19rem + 1px') && f.includes('rows')) && gaps.some((f) => f.includes('dark 390px window')), gaps]);
     const phone = { viewport: { width: 390, height: 844 } };
     const mutate = async (setup, says) => {
@@ -206,6 +212,7 @@ test('three seven-digit figures keep one row at each compact edge, and the Trans
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this gate cannot see it');
   } finally {
     await browser.close();
+    await fractional.close();
     server.proc.kill();
   }
 });
