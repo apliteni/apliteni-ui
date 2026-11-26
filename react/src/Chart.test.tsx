@@ -1429,6 +1429,35 @@ it('keeps the keyboard readout open when the chart\'s own plot scrolls, and clos
   vi.restoreAllMocks();
 });
 
+// #863: WebKit collapses a zero-height anchor's bounding box to nothing at the
+// svg's origin, so the scroll handler's visibility check read the bar as
+// scrolled out (x -19.56, width 0) and closed the readout although the bar was
+// in view. The check reads the anchor's own coordinates through the svg's box.
+it('keeps the readout open when the anchor\'s collapsed rect sits outside the scroller but the bar is in view', async () => {
+  const user = userEvent.setup();
+  const { container } = months();
+  await tabToFrame(user);
+  fireEvent.keyDown(frame(), { key: 'ArrowRight' });
+  expect(screen.getByRole('tooltip')).toHaveClass('is-open');
+
+  const scroller = container.querySelector('.ui-chart__scroll')!;
+  const anchor = container.querySelector('[data-anchor="income-1"]')!;
+  const svg = anchor.closest('svg')!;
+  const rect = (r: Partial<DOMRect>) => r as DOMRect;
+  // The svg reports its real box; WebKit reports the collapsed anchor at the
+  // svg's origin, off the left of the scroller and zero wide.
+  vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue(
+    rect({ left: 0, top: 0, right: 192, bottom: 216, width: 192, height: 216, x: 0, y: 0 }));
+  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(
+    rect({ left: -19.56, top: 0, right: -19.56, bottom: 0, width: 0, height: 0, x: -19.56, y: 0 }));
+  vi.spyOn(scroller, 'getBoundingClientRect').mockReturnValue(
+    rect({ left: 0, top: 0, right: 200, bottom: 100, width: 200, height: 100, x: 0, y: 0 }));
+
+  fireEvent.scroll(scroller);
+  expect(screen.getByRole('tooltip'), 'the bar is in view, so the readout stays open').toHaveClass('is-open');
+  vi.restoreAllMocks();
+});
+
 it('keeps the value axis out of the scroller, so it stays put', () => {
   const { container } = months();
   const axis = container.querySelector('.ui-chart__axis')!;
@@ -2043,7 +2072,8 @@ it('clears a readout when scrolling its mark outside the viewport', () => {
   hover('income-0');
   const anchor = container.querySelector('[data-anchor="income-0"]')!;
   const scroll = container.querySelector('.ui-chart__scroll')!;
-  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue({ left: -30, right: -6 } as DOMRect);
+  vi.spyOn(anchor, 'getBoundingClientRect').mockReturnValue(
+    { left: -30, right: -6, top: 0, bottom: 10, width: 24, height: 10, x: -30, y: 0, toJSON: () => ({}) } as DOMRect);
   vi.spyOn(scroll, 'getBoundingClientRect').mockReturnValue({ left: 0, right: 300 } as DOMRect);
   fireEvent.scroll(scroll);
   expect(screen.queryByRole('tooltip')).toBeNull();

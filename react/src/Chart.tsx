@@ -1172,9 +1172,9 @@ export function Chart(props: ChartProps) {
             const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
               .find((el) => el.getAttribute('data-anchor') === openId);
             if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
-            const mark = anchor.getBoundingClientRect();
+            const mark = anchorScreenBox(anchor);
             const view = scroller.current.getBoundingClientRect();
-            if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
+            if (mark.left + mark.width <= view.left || mark.left >= view.right) setOpenId(null);
             else if (topLayer) placeChartTip(anchor, tipEl.current);
             else placeTip(frameEl.current, anchor, tipEl.current);
           }}
