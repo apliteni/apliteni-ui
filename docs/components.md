@@ -1470,7 +1470,9 @@ wraps at a word break. Give each bar a distinct `short` name, never one cut to a
 one word alone is wider than the column, the plot scrolls so that word still fits, and every bar
 keeps its name. In the other variants, where the period labels do not fit, the chart prints every
 second, third or later label, counted from the first period that is not final, or from the latest
-period. The readout and the table keep the full name. Set `values` to print each
+period. No two printed labels overlap, whatever the name length or the width. Where the
+first step prints the picked period's label, a pick keeps it printed, and a wider step counts
+from the pick. The readout and the table keep the full name. Set `values` to print each
 bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
 that grows down. A value takes at most half the space to the next value,
 at the 12px text size, and stays inside the plot. A value that does not fit there is left out.

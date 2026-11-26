@@ -272,6 +272,42 @@ export const Narrow: StoryObj = {
   ),
 };
 
+/** Twelve made-up business units, each a distinct long name, the longest at the end. */
+const LONG_UNITS = [
+  'Payments Infrastructure', 'Developer Relations', 'Content Operations',
+  'Global Partnerships', 'Enterprise Sales', 'Brand Marketing', 'Marketplace Growth',
+  'Infrastructure Operations', 'Platform Engineering', 'Strategic Finance',
+  'Customer Success', 'Bloom Affiliate Platform',
+];
+
+/** Twelve periods with long names, the axis a finance report's "margin by unit"
+ *  prints, in two charts. The bar chart wraps each name inside its own column and
+ *  scrolls, so every bar keeps its name (#863). The stacked chart steps whole
+ *  names, and no two printed names overlap (#882). Its last name opens picked,
+ *  at weight 600. A pick keeps its own name printed. The 680px column gives the
+ *  stacked plot about 600px, where the step of 0.199.0 printed names over each other. */
+export const LongCategoryNames: StoryObj = {
+  render: function LongCategoryNamesStory() {
+    const [unit, setUnit] = useState<number | null>(11);
+    const units = LONG_UNITS.map((name) => ({ label: name, short: name }));
+    const margin = [{ id: 'margin', name: 'Margin', tone: 'accent' as const,
+      values: [18400, 21300, 17200, 15600, 20800, 14900, 20100, 22400, 19600, 23100, 17500, 24200] }];
+    return (
+      <div style={{ maxWidth: '680px' }}><div className="ui-card-stack">
+        <Card title="Margin by unit">
+          <Chart title="Margin by unit, last 12 months" format={eur} formatAxis={eurAxis}
+            periods={units} series={margin} />
+        </Card>
+        <Card title="Margin by unit, stacked">
+          <Chart variant="stacked" title="Margin by unit, last 12 months, stacked" format={eur}
+            formatAxis={eurAxis} selectable selected={unit} onSelect={setUnit}
+            periods={units} series={margin} />
+        </Card>
+      </div></div>
+    );
+  },
+};
+
 /** The picked month is drawn — a band behind its column and its label at weight
  *  — and said, through the chart's own live region. A line under the card
  *  repeating it told a reader nothing the chart had not already told them. */
