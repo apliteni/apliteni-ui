@@ -169,6 +169,10 @@ describe('document review flow', () => {
     // The fields the reader came to check stay usable without the preview.
     expect(screen.getByText('Sample Studio')).toBeInTheDocument();
     expect(status()).toHaveTextContent('Preview unavailable');
+    // Try again reloads the preview alone, so the fields stay and nothing below them moves.
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    expect(screen.getByText('Loading the preview')).toBeInTheDocument();
+    expect(screen.getByText('Sample Studio')).toBeInTheDocument();
 
     rerender(<Default preview="loading" />);
     expect(screen.getByText('Loading the preview')).toHaveAttribute('role', 'status');

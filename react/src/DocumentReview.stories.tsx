@@ -97,6 +97,9 @@ export const Default: StoryObj<Args> = {
     }, []);
 
     const loading = state === 'loading';
+    // The fields load with the document. A retry reloads the preview alone, so the fields
+    // that are ready stay in place.
+    const fieldsLoading = loading && preview === 'loading';
     const failed = step === 'error';
     const onConfirm = failed || step === 'confirm';
     const retryPreview = () => {
@@ -161,7 +164,7 @@ export const Default: StoryObj<Args> = {
       <p className="ui-app__sub">
         Check the fields read from the document against the document itself. Approval saves them to the record.
       </p>
-      {loading ? <Skeleton lines={8} /> : <>
+      {fieldsLoading ? <Skeleton lines={8} /> : <>
         <KeyValueList rows={identity} />
         {/* Figures the reader compares belong in a right-aligned table, in the document's
             own format. why: guidelines/dense-tables.md#align-numeric-values */}

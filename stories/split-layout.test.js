@@ -17,7 +17,8 @@
  * phone of 466×678 and 890×626 at scale 3 with touch. The Document review walks Zoom in by
  * key, Zoom out to its end, Fit by Tab and Enter, Escape, Continue to approval and Back to
  * review. Its unavailable preview walks Try again, Tab and Escape. The zoomed split layout
- * walks Tab into the scrolled page, ArrowDown, End, a click on an action and Escape. The shell
+ * walks Tab into the scrolled page, ArrowDown and End where the sheet is taller than its stage,
+ * then a click on an action and Escape. The shell
  * chrome is every fixed or sticky element outside the split, found in the page, and the
  * action row.
  *
@@ -105,17 +106,26 @@ const UNAVAILABLE = [
   }],
   ['key: Escape', async (page) => { await page.keyboard.press('Escape'); }],
 ];
+// A 200% sheet fits the height of its stage in a large window, so there the three scroll
+// actions do not run.
+const scrolls = (page) => page.evaluate(() => {
+  const stage = document.querySelector('.ui-split__stage');
+  return stage.scrollHeight > stage.clientHeight + 1;
+});
 const ZOOMED = [
   ['key: Tab into the page', async (page) => {
+    if (!await scrolls(page)) return false;
     await button(page, 'Fit').focus();
     await page.keyboard.press('Tab');
     await focused(page.getByRole('region', { name: 'Signed copy, page' }));
   }],
   ['key: ArrowDown', async (page) => {
+    if (!await scrolls(page)) return false;
     await page.keyboard.press('ArrowDown');
     await page.waitForFunction(() => document.querySelector('.ui-split__stage').scrollTop > 0);
   }],
   ['key: End', async (page) => {
+    if (!await scrolls(page)) return false;
     const was = await page.evaluate(() => document.querySelector('.ui-split__stage').scrollTop);
     await page.keyboard.press('End');
     await page.waitForFunction((w) => document.querySelector('.ui-split__stage').scrollTop > w, was);
@@ -129,7 +139,7 @@ const ZOOMED = [
 const STORIES = [
   { id: 'apps-document-review--default', actions: REVIEW },
   { id: 'apps-document-review--default', args: 'preview:unavailable', actions: UNAVAILABLE },
-  { id: 'react-split-layout--zoomed', actions: ZOOMED },
+  { id: 'react-split-layout--zoomed', actions: ZOOMED, optional: 3 },
 ];
 const label = (story) => `${story.id}${story.args ? ` ${story.args}` : ''}`;
 
@@ -176,7 +186,7 @@ async function walk(page, name, actions, { only } = {}) {
   if (before.chrome.length === 0) found.push(`${name}: no chrome found to hold still`);
   for (const [act, run] of actions.filter(([act]) => !only || only.includes(act))) {
     try {
-      await run(page);
+      if (await run(page) === false) continue;
     } catch (error) {
       found.push(`${name} ${act}: ${error.message.split('\n')[0]}`);
       break;
@@ -221,6 +231,7 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     const findings = [];
     const table = [];
     const views = { wide: 0, stacked: 0 };
+    let skipped = 0;
     for (const [name, context] of subjects) {
       for (const story of STORIES) {
         const { ctx, page } = await open(browser, server.port, vitals, context, story);
@@ -229,7 +240,8 @@ test('the split layout keeps focus, chrome, layout and width through each intera
         views[own.wide ? 'wide' : 'stacked'] += 1;
         const { found, ran } = await walk(page, `${name} ${label(story)}`, story.actions);
         findings.push(...found);
-        if (ran.length !== story.actions.length) findings.push(`${name} ${label(story)}: ${ran.length} of ${story.actions.length} actions ran: ${ran.join(', ')}`);
+        if (story.optional && ran.length === story.actions.length - story.optional) skipped += 1;
+        else if (ran.length !== story.actions.length) findings.push(`${name} ${label(story)}: ${ran.length} of ${story.actions.length} actions ran: ${ran.join(', ')}`);
         table.push(`${name} ${own.wide ? 'split' : 'stacked'} ${label(story)}: ${ran.length} actions, ${found.length || own.found.length ? 'fail' : 'pass'}`);
         await ctx.close();
       }
@@ -238,6 +250,9 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     // SPLIT_LAYOUT_ONLY=<label> runs one size while a fault is found; it skips the counts.
     if (!process.env.SPLIT_LAYOUT_ONLY) assert.equal(table.length, (SIZES.length + DEVICES.length + DUO.length) * STORIES.length, 'a size or a device was not measured');
     if (!process.env.SPLIT_LAYOUT_ONLY) assert.ok(views.wide >= 15 && views.stacked >= 15, `too few sizes in a band: ${JSON.stringify(views)}`);
+    // The scroll actions run wherever the 200% sheet is taller than its stage: all but the
+    // largest windows.
+    if (!process.env.SPLIT_LAYOUT_ONLY) assert.ok(skipped <= 2, `the scroll actions ran at only ${subjects.length - skipped} subjects`);
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
