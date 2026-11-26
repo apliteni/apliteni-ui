@@ -967,11 +967,11 @@
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    },
    {
-    "ref": "src/styles/stat.css:226",
+    "ref": "src/styles/stat.css:227",
     "pattern": "@container (19rem < width <= 22rem) {"
    },
    {
-    "ref": "src/styles/stat.css:228",
+    "ref": "src/styles/stat.css:229",
     "pattern": ".ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat { flex-basis: 0; }"
    }
   ]

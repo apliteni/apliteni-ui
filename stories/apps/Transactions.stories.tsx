@@ -27,29 +27,31 @@ const FIGURES = [
   { label: 'Net', value: '€1,284,500' },
 ];
 
-type Row = { name: string; date: string; description: string; account: string; amount: string };
+type Row = { name: string; date: string; description: string; account: string; amount: number };
 const ROWS: Row[] = ([
-  ['2026-11-26', 'Invoice 1084', 'Operating', '+€184,500.00'],
-  ['2026-11-25', 'Office rent', 'Operating', '−€4,200.00'],
-  ['2026-11-24', 'Invoice 1083', 'Operating', '+€128,400.00'],
-  ['2026-11-23', 'Cloud hosting', 'Card', '−€1,850.00'],
-  ['2026-11-22', 'Invoice 1082', 'Operating', '+€96,350.00'],
-  ['2026-11-21', 'Software licences', 'Card', '−€640.00'],
-  ['2026-11-20', 'Invoice 1081', 'Operating', '+€78,500.00'],
-  ['2026-11-19', 'Equipment', 'Card', '−€3,200.00'],
-  ['2026-11-18', 'Invoice 1080', 'Operating', '+€54,200.00'],
-  ['2026-11-17', 'Travel', 'Card', '−€1,240.00'],
-  ['2026-11-16', 'Invoice 1079', 'Operating', '+€42,600.00'],
-  ['2026-11-15', 'Insurance', 'Operating', '−€2,800.00'],
+  ['2026-11-26', 'Invoice 1084', 'Operating', 184_500],
+  ['2026-11-25', 'Office rent', 'Operating', -4_200],
+  ['2026-11-24', 'Invoice 1083', 'Operating', 128_400],
+  ['2026-11-23', 'Cloud hosting', 'Card', -1_850],
+  ['2026-11-22', 'Invoice 1082', 'Operating', 96_350],
+  ['2026-11-21', 'Software licences', 'Card', -640],
+  ['2026-11-20', 'Invoice 1081', 'Operating', 78_500],
+  ['2026-11-19', 'Equipment', 'Card', -3_200],
+  ['2026-11-18', 'Invoice 1080', 'Operating', 54_200],
+  ['2026-11-17', 'Travel', 'Card', -1_240],
+  ['2026-11-16', 'Invoice 1079', 'Operating', 42_600],
+  ['2026-11-15', 'Insurance', 'Operating', -2_800],
 ] as const).map(([date, description, account, amount]) => ({ name: `${date} ${description}`, date, description, account, amount }));
 
-// The date sorts as written, and reads as a day, a month and a year.
+// The date sorts as written, and reads as a day, a month and a year. The amount sorts as a
+// number, and reads with its sign and two decimals.
+const money = (n: number) => `${n < 0 ? '−' : '+'}€${Math.abs(n).toLocaleString('en-GB', { minimumFractionDigits: 2 })}`;
 const day = (iso: string) => new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 const COLUMNS: Column<Row>[] = [
   { key: 'date', label: 'Date', sortable: true, render: row => day(row.date) },
   { key: 'description', label: 'Description', sortable: true, cell: 'title' },
   { key: 'account', label: 'Account', sortable: true },
-  { key: 'amount', label: 'Amount', num: true, sortable: true },
+  { key: 'amount', label: 'Amount', num: true, sortable: true, render: row => money(row.amount) },
 ];
 const ACCOUNTS = [{ label: 'Operating', value: 'Operating' }, { label: 'Card', value: 'Card' }];
 

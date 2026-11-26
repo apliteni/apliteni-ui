@@ -8,9 +8,9 @@
 
 **Why:** One row keeps the band short on a phone.
 
-**Do:** Keep Paid, In transit and Held in one row in a narrow panel.
+**Do:** Let the band's width set the layout.
 
-**Don't:** Stack them in that panel.
+**Don't:** Force the other layout at that width.
 
 **Except:** Tiles and an open band stack sooner.
 

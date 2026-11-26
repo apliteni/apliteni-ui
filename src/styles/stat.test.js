@@ -488,12 +488,13 @@ test('the figure steps down at the width the specification records, one rank per
 /* A band of up to three figures keeps one row above 19rem, and its value steps
  * down one rank at a time in place of the folds (#865). The sheet is resolved in
  * jsdom at a set of band widths: each @container block whose range holds the width
- * is opened, the others are dropped, and the cascade then answers. The widths are
- * each range's two ends, so a moved boundary fails, and each result is checked
- * against the table in the specification.
+ * is opened, the others are dropped, and the cascade then answers. Each range is
+ * read 1px above its lower edge and at its upper edge, so a boundary moved by 1px
+ * fails, and each result is checked against the table in the specification.
+ * 19.25rem is the 308px list of the dark card at a 390px window.
  *
  * WHAT THIS DOES NOT REACH: whether three figures fit in that row. jsdom lays
- * nothing out; the PR's browser captures measure the 390px and 320px phones. */
+ * nothing out; stories/stat-band-fit.test.js measures it in a browser. */
 test('a band of up to three figures keeps one row above 19rem, as the specification records', async () => {
   const table = /^A `band` of up to three figures[\s\S]*?\n\n((?:\|.*\n)+)/m.exec(COMPONENTS_DOC);
   assert.ok(table, 'docs/components.md has no table for the compact band');
@@ -504,7 +505,7 @@ test('a band of up to three figures keeps one row above 19rem, as the specificat
     return { lower: above ? Number(above[1]) : 0, upper: to ? Number(to[1] ?? to[2]) : Infinity, value, gap };
   });
   assert.equal(ranges.length, 5, `found ${ranges.length} rows in the compact table`);
-  const sheetAt = (rem, css = RAW) => substitute(decomment(css).replace(/@container\s*\(([^)]*)\)\s*\{\s*([\s\S]*?)\n\}/g, (all, cond, inner) => {
+  const sheetAt = (rem, css = RAW) => substitute(decomment(css).replace(/@container\s*\(([^)]*)\)\s*\{((?:[^{}]*\{[^{}]*\})*)\s*\}/g, (all, cond, inner) => {
     const lower = /(\d+(?:\.\d+)?)rem\s*<\s*width/.exec(cond);
     const upper = /width\s*<=\s*(\d+(?:\.\d+)?)rem/.exec(cond);
     return (!lower || rem > Number(lower[1])) && (!upper || rem <= Number(upper[1])) ? inner : '';
@@ -518,7 +519,7 @@ test('a band of up to three figures keeps one row above 19rem, as the specificat
   };
   const inRow = (got) => got.basis !== '100%';
   for (const { lower, upper, value, gap } of ranges) {
-    for (const rem of [lower + 0.5, upper === Infinity ? lower + 20 : upper]) {
+    for (const rem of [lower + 1 / 16, ...(lower === 19 ? [19.25] : []), upper === Infinity ? lower + 20 : upper]) {
       for (const count of [2, 3]) {
         const got = await read(rem, 'band', count);
         if (upper <= 19) {
@@ -541,4 +542,19 @@ test('a band of up to three figures keeps one row above 19rem, as the specificat
   const first = moved + RAW.slice(0, RAW.indexOf('/* A band of up to three figures'));
   assert.equal((await read(25, 'band', 3, first)).basis, '100%', 'before the folds the compact band would still win: this measures no order');
   assert.ok(inRow(await read(25, 'band', 3)), 'the compact band no longer follows the folds');
+  // The guideline pair for Check a narrow stat band differs at each width: the Do follows
+  // the rule, and the Don't breaks it. At a 390px window the panel's band is about 13rem.
+  const { SPEC_CSS } = await import('../../stories/guidelines/_density-and-accents.js');
+  const specimen = SPEC_CSS.replace(/<\/?style>/g, '');
+  const rowIn = async (rem, mod) => {
+    const win = new JSDOM(`<!doctype html><html><head><style>${sheetAt(rem, RAW + specimen)}</style></head><body>
+      <div class="gda-stage gda-band ${mod}">${await band('band', 3)}</div></body></html>`).window;
+    const style = (sel) => win.getComputedStyle(win.document.querySelector(sel));
+    const list = style('.ui-stats__list');
+    return list.flexDirection !== 'column' && (list.flexWrap === 'nowrap' || style('.ui-stat').flexBasis !== '100%');
+  };
+  for (const rem of [13, 19, 19 + 1 / 16, 25]) {
+    assert.equal(await rowIn(rem, ''), rem > 19, `the Do at ${rem}rem does not follow the rule`);
+    assert.equal(await rowIn(rem, 'gda-inverted'), rem <= 19, `the Don't at ${rem}rem looks the same as the Do`);
+  }
 });

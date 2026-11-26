@@ -77,7 +77,7 @@ const Consequence = ({ savedLeads }: { savedLeads: boolean }) => <Stage>
 </Stage>;
 
 const specimens = [
-  { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-stacked"><Figures /></Stage> },
+  { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-inverted"><Figures /></Stage> },
   { id: 'reduce-density', do: () => <Stage><Payouts /><Preview /></Stage>, dont: () => <Stage><Payouts /><Preview bad /></Stage> },
   { id: 'purposeful-accent', do: () => <Stage><Preview /></Stage>, dont: () => <Stage><Preview colourful /></Stage> },
   { id: 'follow-the-consequence', do: () => <Consequence savedLeads />, dont: () => <Consequence savedLeads={false} /> },

@@ -10,7 +10,10 @@ export const SPEC_CSS = `<style>
   .gda-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-4); }
   .gda-table { overflow-x: auto; }
   .gda-band { max-width: 28rem; }
-  .gda-stacked .ui-stats__list { flex-direction: column; }
+  /* The Don't breaks Check a narrow stat band at every width: it stacks a band above 19rem
+     and forces one row at 19rem or below, so the pair differs on a phone too (#865). */
+  @container (19rem < width) { .gda-inverted .ui-stats__list { flex-direction: column; } }
+  @container (width <= 19rem) { .gda-inverted .ui-stats__list { flex-wrap: nowrap; overflow: clip; } }
   .gda-coloured .ui-drawer__row dt, .gda-coloured .ui-drawer__row dd { color: var(--accent); }
   /* Two panes in one order, so the only thing that moves between Do and Don't is which
      pane is given the width, the weight and the accent. The tracks are 2:1 rather than

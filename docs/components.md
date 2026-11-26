@@ -1420,14 +1420,15 @@ of air below the figures, on top of the body's own gap. A toolbar directly befor
 | Open | 66rem | 50rem | 32rem | 15rem |
 
 A `band` of up to three figures keeps them in one row above 19rem and stacks them at 19rem or below.
-In place of the folds above, its value steps down one rank at a time and the columns close up:
+In place of the folds above, its value steps down one rank at a time and the columns close up. At the
+lower edge of each range, three values of `−€9,999,999` fit in one row in both themes:
 
 | Band width | Value | Gap between figures |
 |---|---|---|
 | Above 42rem | 30px | 40px |
-| Above 28rem, to 42rem | 22px | 24px |
-| Above 22rem, to 28rem | 18px | 12px |
-| Above 19rem, to 22rem | 15.5px | 12px |
+| Above 28rem, to 42rem | 22px | 16px |
+| Above 22rem, to 28rem | 18px | 8px |
+| Above 19rem, to 22rem | 15.5px | 8px |
 | 19rem or below | As the table above gives | One figure per row |
 
 **Keyboard and screen reader.** The band is a description list, so a screen reader reads each
