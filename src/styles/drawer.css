@@ -236,9 +236,9 @@
   font-weight: var(--weight-semibold);
   color: var(--strong);
 }
-/* #850: on the light page a drawer group title has no line under it; space owns the group.
-   why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-drawer__section-title { border-bottom: 0; padding-bottom: 0; }
+/* #900: the light drawer group title keeps the dark theme's spacing — the 1px line and the
+   8px padding under it — but the line is transparent, so space still owns the group. #850 */
+:root[data-theme="light"] .ui-drawer__section-title { border-bottom-color: transparent; }
 /* The record's lead figure: a <dl> of one label over its value, with a status badge
    beside the value. It stands in a group with no heading, before the other groups.
    why: docs/components.md#drawer */

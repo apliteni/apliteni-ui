@@ -369,6 +369,9 @@
    is-sub, the only rows showing.
    why: docs/components.md#dropdown */
 .ui-dropdown__aside { margin-left: auto; flex: none; font-size: var(--text-xs); color: var(--text); }
+/* #900: the theme row's aside shows the current theme name, whose text width changes as the
+   reader switches. A stable min-width and right alignment keep the chevron and name in place. */
+:root .ui-app__user-panel [data-value="theme"] > .ui-dropdown__aside { min-width: var(--space-8); text-align: right; }
 .ui-dropdown__more { margin-left: auto; display: inline-flex; flex: none; /* muted-ink: glyph — submenu chevron */ color: var(--muted); }
 .ui-dropdown__aside + .ui-dropdown__more { margin-left: 0; }
 .ui-dropdown__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.25; }

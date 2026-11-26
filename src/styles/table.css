@@ -612,33 +612,9 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: calc(-1 * var(--space-5)); }
 .ui-card--pad-sm > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: calc(-1 * var(--space-5)); }
 .ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))) { width: auto; max-width: calc(100% + 2 * var(--ui-card-inset)); }
-/* #850: on the light page a table in a card sits on the column, so its rules and its end
-   cells end on the column edges. The frame keeps its side bands below.
-   why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: 0;
-}
-/* #875: a light card with no box hangs its own inset outside the column, so a table in it
-   takes no bleed of its own and its end cells meet the page title's edge. A frame hangs out
-   by its side band only. The selector names the light card as card.css does, so it outranks
-   each bleed above. A row fill stays inside the page. */
-:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: 0;
-}
-:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table-scroll {
-  width: calc(100% + 2 * var(--space-1));
-  max-width: none;
-  margin-inline: calc(-1 * var(--space-1));
-}
-/* #850: the row table's vertical bleed hangs it out by the card's 24px padding, but the
-   light card removed that padding. The card clips its overflow, so the last row was cut and
-   faded at the bottom. Reset the two ends to 0. why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child { margin-top: 0; }
-:root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child { margin-bottom: 0; }
+/* #900: a table in a light card keeps the dark theme's width, margins and end-cell padding,
+   so the card's rows and their bleed stay put when the theme changes. The paint above is the
+   only difference. #850 */
 /* The frame keeps its side bands and takes a top band, because the sticky header covers a
    ring drawn anywhere else. The frame clips its cells to the inner curve of the bands, so
    the header follows the ring at the top corners. The header gives the top band back from
@@ -653,18 +629,8 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-card > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: var(--space-6); }
 /* In a frame, the side band holds space-1 of the card's text edge. */
 .ui-card > .ui-table-scroll > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) { --cell-edge: calc(var(--space-6) - var(--space-1)); }
-/* #850: on the light page the table sits on the column, so its end cells are flush with the
-   column edges. The dense, zebra and compact end insets go, and the row table's --cell-edge
-   room is zeroed per cell rather than by redefining the token: the contrast walk reads
-   scoped custom properties flat, and a 0px winner would zero every row table it meets. */
-:root[data-theme="light"] .ui-card .ui-table :is(th, td):first-child { padding-left: 0; }
-:root[data-theme="light"] .ui-card .ui-table :is(th, td):last-child { padding-right: 0; }
-:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):first-child:not(:where(.ui-table--pinned) .ui-table__selection) { padding-left: 0; }
-:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):last-child { padding-right: 0; }
-:root[data-theme="light"] .ui-card .ui-table td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: 0; }
-:root[data-theme="light"] .ui-card .ui-table td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
-:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:first-child > :is(a:not([class]), a.ui-identity):only-child { padding-left: 0; }
-:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) td.ui-table__linked:last-child > :is(a:not([class]), a.ui-identity):only-child { padding-right: 0; }
+/* #900: a table in a light card keeps the dark theme's end-cell padding, so its rules and
+   cells end where the dark theme put them. The paint above is the only difference. #850 */
 /* In a drawer group the table hangs out by its end-cell inset, into the body's padding, so
    the first column starts on the edge of the group heading and the drawer title. */
 .ui-drawer .ui-drawer__section > .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) {

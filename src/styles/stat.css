@@ -134,6 +134,7 @@ dd.ui-stat__caption { contain: inline-size; }
 :root[data-theme="light"] .ui-stats--tiles .ui-stat.ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
   --ui-card-inset: var(--ui-tile-inset, var(--space-6)); /* a tile keeps its box, so the folded page does not narrow it. card.css sets the phone inset */
   border: 1px solid var(--card-edge);
+  padding-inline: var(--ui-card-inset); /* #900: the tile keeps its own 24px inset above 560px, and 16px on a phone, as before #875 */
   padding-block: var(--space-5);
   margin-inline: 0;
 }

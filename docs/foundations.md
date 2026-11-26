@@ -162,7 +162,7 @@ only. Every duration is one of four tokens:
 | token           | resolves to | what it times                                                        |
 | --------------- | ----------- | -------------------------------------------------------------------- |
 | `--dur-instant` | `80ms`      | a press: the frame of feedback under a finger, too short to read as motion |
-| `--dur-fast`    | `150ms`     | a control changing state — hover, focus, a colour, a border, a caret turning |
+| `--dur-fast`    | `150ms`     | a control changing state — hover, focus, a colour, a border, a caret turning, a count or status line cross-fading |
 | `--dur-med`     | `250ms`     | a surface arriving or leaving — drawer, confirm, dropdown, menu, toast, scrim |
 | `--dur-slow`    | `400ms`     | an entrance or a reveal: the motion library's effects, scroll reveals   |
 
@@ -171,7 +171,10 @@ Every easing is also a token. `--ease` is the default. The other options are `--
 
 - **Any transition of `visibility` uses `linear`.**
 - **Anything that appears or leaves after the page has loaded moves.** Nothing animates on
-  first render. Text that changes in place, such as a count or a range, changes immediately.
+  first render. Text that changes in place, such as a count or a range, cross-fades in 150ms.
+- **A theme change cross-fades the whole page, its scrollbar and an open scrim together** in
+  250ms on `--ease`, from the React theme control. Under reduced motion, and where the browser
+  has no view transition, the change is one step.
 - A `transition` always reads a duration token. An `animation` may keep its own number in two
   cases, named at the declaration: **ambient** motion with no interaction origin, and
   **choreographed** sequences timed against each other. There is no third kind.
@@ -300,6 +303,9 @@ Each level reads its line from one token in both themes: `--card-edge`, `--rail-
 `--float-edge`, `--float-edge-inner` and `--modal-edge`. Re-point the token to change the line
 of a level. The modal draws `--modal-edge` as an inset line. On the light page, a card is a
 grouping of space, so it draws no line and no shadow; dark keeps the card's line. #850
+
+The light card keeps the dark card's spacing, so no box changes place or size when the theme
+changes. Only the paint differs: no fill, edge or shadow. #900
 
 The ladder, from bottom to top:
 

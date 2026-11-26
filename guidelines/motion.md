@@ -12,7 +12,19 @@
 
 **Don't:** Make new content appear in one frame.
 
-**Except:** Update counts, ranges, and status lines immediately.
+## Every visible change is a smooth transition
+
+<!-- rule: every-change -->
+
+**Rule:** Give every visible change of state a smooth transition with a kit duration and easing.
+
+**Why:** A change that snaps reads as a fault, and one shared timing keeps each change fluent.
+
+**Do:** Cross-fade a count that changes in place in 150ms, and fade a theme change across the page in 250ms.
+
+**Don't:** Leave a value, a drawer or a theme change in one frame.
+
+**Except:** The focus ring and text typed in a field stay in one step on purpose.
 
 ## Match duration to motion
 

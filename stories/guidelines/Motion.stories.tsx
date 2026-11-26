@@ -37,6 +37,24 @@ const Film = ({ frames }: { frames: [string, Step][] }) => <div className="gm-fi
 const SLIDE: [string, Step][] = [['0 ms', 'closed'], ['125 ms, 78% of the way', 'half'], ['250 ms', 'open']];
 const JUMP: [string, Step][] = [['0 ms', 'closed'], ['16 ms, the next frame', 'open']];
 
+// A count that changes in place: cross-faded over 150ms, or snapped in one frame.
+const CountFilm = ({ fade }: { fade: boolean }) => {
+  const frames: [string, string, number][] = fade
+    ? [['0 ms', '14,941.27', 1], ['75 ms, both show', '14,942.27', 0.55], ['150 ms', '14,942.27', 1]]
+    : [['0 ms', '14,941.27', 1], ['16 ms, the next frame', '14,942.27', 1]];
+  return <div className="gm-film">
+    {frames.map(([time, value, opacity]) => [
+      <p key={`${time}-t`}>{time}</p>,
+      <div key={time} className="gl-stage gm-frame">
+        <div className="ui-stats ui-stats--open"><div className="ui-stats__list"><div className="ui-stat">
+          <dt className="ui-stat__label">Paid this month</dt>
+          <dd className="ui-stat__value" style={{ opacity }}>{value}</dd>
+        </div></div></div>
+      </div>,
+    ])}
+  </div>;
+};
+
 // What each motion is written with.
 const Durations = ({ rows }: { rows: [string, string, string][] }) => <div className="gl-stage"><div className="ui-card-stack"><RestingFilters search="Search motions" placeholder="Motion" label="Motion filters" /><table className="ui-table">
   <thead><tr><th>Motion</th><th>Written as</th><th className="ui-table__num">Time</th></tr></thead>
@@ -94,6 +112,7 @@ const Curves = ({ off = false }: { off?: boolean }) => <div className="gl-stage"
 
 const specimens = [
   { id: 'after-load', do: () => <Film frames={SLIDE} />, dont: () => <Film frames={JUMP} /> },
+  { id: 'every-change', do: () => <CountFilm fade />, dont: () => <CountFilm fade={false} /> },
   { id: 'durations',
     do: () => <Durations rows={[['Button hover', '--dur-fast', '150 ms'], ['Drawer slide', '--dur-med', '250 ms'],
       ['Entrance', '--dur-slow', '400 ms'], ['Button press', '--dur-instant', '80 ms']]} />,

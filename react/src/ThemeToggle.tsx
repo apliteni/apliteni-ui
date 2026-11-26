@@ -59,10 +59,35 @@ export function useThemeChoice() {
   const label = theme === 'auto' ? 'Auto' : theme === 'light' ? 'Light' : 'Dark';
   const name = `Theme: ${label}. Switch to ${next}.`;
   const set = (choice: Theme) => {
+    const nextTheme = choice === 'auto' ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : choice;
     document.documentElement.setAttribute('data-theme-choice', choice);
-    document.documentElement.setAttribute('data-theme', choice === 'auto' ? (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : choice);
     try { localStorage.setItem(STORAGE_KEY, choice); } catch { /* Keep the choice for this page. */ }
     window.dispatchEvent(new Event(CHOICE_EVENT));
+    // #900: the theme change cross-fades the whole page, its scrollbar and any open scrim
+    // in 250ms (--dur-med), as ThemeToggle.css times it. The view transition carries the page
+    // and the scrim, but the browser keeps the viewport scrollbar outside it, so its colour is
+    // animated with the same time and easing. Under reduced motion, and where the browser has
+    // no view transition, the change is one step.
+    const doc = document as Document & { startViewTransition?: (apply: () => void) => unknown };
+    const root = document.documentElement;
+    const apply = () => root.setAttribute('data-theme', nextTheme);
+    const crossfade = () => {
+      const before = getComputedStyle(root).scrollbarColor;
+      apply();
+      const after = getComputedStyle(root).scrollbarColor;
+      const style = getComputedStyle(root);
+      const time = style.getPropertyValue('--dur-med').trim();
+      const easing = style.getPropertyValue('--ease').trim() || 'ease';
+      const ms = time.endsWith('ms') ? parseFloat(time) : parseFloat(time) * 1000;
+      if (before !== 'auto' && after !== 'auto' && before !== after && typeof root.animate === 'function' && Number.isFinite(ms)) {
+        root.animate({ scrollbarColor: [before, after] }, { duration: ms, easing, fill: 'both' });
+      }
+    };
+    if (typeof doc.startViewTransition === 'function' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      doc.startViewTransition(crossfade);
+    } else {
+      apply();
+    }
   };
   const toggle = () => set(next);
   return { theme, next, label, name, toggle, set };
