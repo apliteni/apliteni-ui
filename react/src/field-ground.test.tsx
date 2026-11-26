@@ -101,8 +101,9 @@ const THEMES = ['dark', 'light'] as const;
 // expiry (#850).
 // Then the rows search field in the four Three-column page stories (#871).
 // Then the twenty text fields of the Drawer Long Form story (#887).
+// Then the search field of the Transactions showcase (#865).
 // Move this count with the specimens.
-const FIELD_COUNT = 208;
+const FIELD_COUNT = 209;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

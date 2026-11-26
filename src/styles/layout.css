@@ -441,6 +441,9 @@
    top of the body's: the air the old soft line used to give, now as space alone.
    why: guidelines/dashboards-and-reports.md, #850 */
 .ui-app__body > .ui-stats + * { margin-top: var(--space-8); }
+/* The controls for a table under the band belong to the next section, so one group gap
+   in place of both. why: docs/components.md#stat-bands, #865 */
+.ui-app__body > .ui-stats + .ui-toolbar { margin-top: calc(var(--space-8) - var(--ui-block-gap)); }
 /* A flex child's min-width is its content by default, so one wide block — a
    ledger, a code sample — pushes the whole page sideways instead of scrolling
    inside itself. This is what keeps the shell narrower than the window. */
