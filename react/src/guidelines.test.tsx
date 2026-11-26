@@ -193,7 +193,10 @@ describe('guideline pages in React: Session expired', () => {
 });
 
 /* The drawer picture's panel is the Drawer's own div: an aside with the group role is
- * a role axe refuses. */
+ * a role axe refuses. A body that scrolls is a named keyboard stop, so End scrolls it,
+ * and a body that fits is no stop.
+ * Limits: JSDOM lays nothing out, so the heights are stubbed. Which bodies scroll at
+ * which width is the browser measurement on the pull request. */
 describe('guideline pages in React: the drawer picture', () => {
   const picture = () => render(<DrawerPicture title="Northwind Payments">Rows</DrawerPicture>).container;
   it('draws its panel as a div group named by the title', () => {
@@ -201,6 +204,23 @@ describe('guideline pages in React: the drawer picture', () => {
     expect(panel.localName).toBe('div');
     expect(panel).toHaveAttribute('role', 'group');
     expect(panel).toHaveAccessibleName('Northwind Payments');
+  });
+  it('makes a body that scrolls a named stop, and a body that fits none', () => {
+    const fits = picture().querySelector('.ui-drawer__body')!;
+    expect(fits).not.toHaveAttribute('tabindex');
+    expect(fits).not.toHaveAttribute('role');
+    const proto = HTMLElement.prototype;
+    Object.defineProperty(proto, 'scrollHeight', { configurable: true, get: () => 900 });
+    Object.defineProperty(proto, 'clientHeight', { configurable: true, get: () => 300 });
+    try {
+      const scrolls = picture().querySelector('.ui-drawer__body')!;
+      expect(scrolls).toHaveAttribute('tabindex', '0');
+      expect(scrolls).toHaveAttribute('role', 'group');
+      expect(scrolls).toHaveAccessibleName('Northwind Payments, body');
+    } finally {
+      Reflect.deleteProperty(proto, 'scrollHeight');
+      Reflect.deleteProperty(proto, 'clientHeight');
+    }
   });
 });
 

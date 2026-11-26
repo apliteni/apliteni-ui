@@ -291,8 +291,10 @@ Report the result in the PR. CI skips this check because Playwright and web-vita
 
 ## Check the drawer footer locally
 
-Before opening a PR that changes the body or footer rules of `src/styles/drawer.css` or React
-`<Drawer>`, walk the drawer's keys, clicks and footer in a real browser. Run
+Before opening a PR that changes the body or footer rules of `src/styles/drawer.css`, React
+`<Drawer>` or the guideline `DrawerPicture` in `stories/_guideline.tsx`, walk the drawer's keys,
+clicks and footer in a real browser. The same run walks Tab and End into each picture body that
+scrolls on the Drawers guideline. Run
 `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js DRAWER_FOOTER=1 node --test stories/drawer-footer.test.js`
 Report the result in the PR. CI runs only the source half, in `react/src/Drawer.test.tsx`.

@@ -101,7 +101,7 @@ async function open(browser, port, vitals, context, story) {
   await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:light`);
   await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
     && window.__STORYBOOK_PREVIEW__.currentRender.id === id, story);
-  await page.locator('.ui-drawer.is-open .ui-drawer__panel').waitFor();
+  await page.locator('.ui-drawer.is-open .ui-drawer__panel').first().waitFor();
   await page.waitForFunction(() => document.fonts.status === 'loaded');
   return { ctx, page };
 }
@@ -147,7 +147,67 @@ async function walk(page, label, story, { only } = {}) {
   return { found, ran };
 }
 
-test('a drawer footer follows a short body, stays out of a long one, and holds through each interaction', {
+/* The Drawers guideline draws its drawers as pictures, and a picture body that is taller
+ * than its frame scrolls. Which bodies scroll changes with the width. At each size and on
+ * each device, the walk clicks the title of each picture whose body scrolls, then presses
+ * Tab to Close, Tab to the body and End. After each key the focus stays in that picture,
+ * the picture's footer moves at most 1px, the layout shift stays under 0.1 and the page
+ * does not scroll sideways. After End the body is at its end. A picture is never open or
+ * closed, so Escape has nothing to close here.
+ * Its limits: one engine, the light theme and the default accent. Only the Drawers page is
+ * walked. The source half is in react/src/guidelines.test.tsx. */
+const GUIDE = 'guidelines-drawers--drawers';
+async function walkPictures(page, label) {
+  const found = [];
+  // Each picture body that scrolls at this size, named by its rule and its half.
+  const bodies = await page.evaluate(() => [...document.querySelectorAll('.ui-drawer__body')]
+    .filter((b) => b.scrollHeight > b.clientHeight + 1)
+    .map((b) => `[data-rule="${b.closest('[data-rule]').dataset.rule}"] [data-specimen="${b.closest('[data-specimen]').dataset.specimen}"]`));
+  if (!bodies.length) found.push(`${label}: no picture body scrolls, so the walk checks nothing`);
+  for (const where of bodies) {
+    const panel = page.locator(`${where} .ui-drawer__panel`);
+    const read = () => panel.evaluate((p) => {
+      const doc = document.scrollingElement;
+      const body = p.querySelector('.ui-drawer__body');
+      const foot = p.querySelector('.ui-drawer__footer');
+      const el = document.activeElement;
+      return {
+        cls: window.__cls, over: doc.scrollWidth - doc.clientWidth, inside: p.contains(el), onBody: el === body,
+        end: body.scrollHeight - body.clientHeight - body.scrollTop,
+        footTop: foot ? foot.getBoundingClientRect().top - p.getBoundingClientRect().top : 0,
+      };
+    });
+    await panel.locator('.ui-drawer__title').click();
+    let before = await read();
+    const steps = [
+      ['key: Tab to Close', async () => { await page.keyboard.press('Tab'); await focused(page, panel.getByRole('button', { name: 'Close' })); }],
+      ['key: Tab to the body', async () => { await page.keyboard.press('Tab'); await focused(page, panel.locator('.ui-drawer__body')); }],
+      ['key: End', async () => {
+        await page.keyboard.press('End');
+        await page.waitForFunction((sel) => {
+          const b = document.querySelector(`${sel} .ui-drawer__body`);
+          return b.scrollHeight - b.clientHeight - b.scrollTop <= 1;
+        }, where);
+      }],
+    ];
+    for (const [name, run] of steps) {
+      await run();
+      await page.evaluate(frames);
+      const after = await read();
+      const at = `${label} ${where} ${name}`;
+      if (!after.inside) found.push(`${at}: the focus left the picture`);
+      if (name === 'key: Tab to the body' && !after.onBody) found.push(`${at}: the body is not a keyboard stop`);
+      if (name === 'key: End' && after.end > 1) found.push(`${at}: the body stops ${Math.round(after.end)}px before its end`);
+      if (Math.abs(after.footTop - before.footTop) > 1) found.push(`${at}: the footer moved ${Math.round(after.footTop - before.footTop)}px`);
+      if (!(after.cls < 0.1)) found.push(`${at}: the layout shift is ${after.cls}`);
+      if (after.over > 0) found.push(`${at}: the page scrolls ${after.over}px sideways`);
+      before = after;
+    }
+  }
+  return { found, bodies: bodies.length };
+}
+
+test('a drawer footer follows a short body, stays out of a long one, and holds through each interaction, and a scrolling picture body takes Tab and End', {
   skip: process.env.DRAWER_FOOTER !== '1' && 'set DRAWER_FOOTER=1',
 }, async () => {
   const { serve, playwright } = await import('./lib/dropdown-contain.js');
@@ -158,7 +218,7 @@ test('a drawer footer follows a short body, stays out of a long one, and holds t
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
   const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
-  for (const story of STORIES) assert.ok(ids.includes(story.id), `the Storybook build has no ${story.id}`);
+  for (const id of [...STORIES.map((story) => story.id), GUIDE]) assert.ok(ids.includes(id), `the Storybook build has no ${id}`);
 
   const subjects = [
     ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
@@ -209,6 +269,26 @@ test('a drawer footer follows a short body, stays out of a long one, and holds t
       await page.evaluate(frames);
     }, ['key: Tab'], 'layout shift');
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this walk cannot see it');
+
+    const pictures = [];
+    for (const [label, context] of subjects) {
+      const { ctx, page } = await open(browser, server.port, vitals, context, GUIDE);
+      const width = await page.evaluate(() => innerWidth);
+      const { found, bodies } = await walkPictures(page, label);
+      findings.push(...found);
+      pictures.push(`${label} ${width}px drawers guideline: ${bodies} scrolling bodies, ${found.length ? 'fail' : 'pass'}`);
+      await ctx.close();
+    }
+    process.stdout.write(`${pictures.join('\n')}\n`);
+    assert.equal(pictures.length, subjects.length, 'a size or a device was not measured');
+    assert.deepEqual(findings, []);
+    // The mutation: a body with no tab stop, as before #887 round 2, must fail the walk.
+    const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 1280, height: 800 } }, GUIDE);
+    page.setDefaultTimeout(3000);
+    await page.evaluate(() => document.querySelectorAll('.ui-drawer__body[tabindex]').forEach((b) => b.removeAttribute('tabindex')));
+    const { found } = await walkPictures(page, 'mutated').catch((error) => ({ found: [String(error)] }));
+    await ctx.close();
+    assert.ok(found.length, 'a body with no tab stop passed: this walk cannot see it');
   } finally {
     await browser.close();
     server.proc.kill();

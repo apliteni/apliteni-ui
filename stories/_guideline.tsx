@@ -1,5 +1,5 @@
 // The shape of a rule: AGENTS.md#the-guidelines-collection
-import { useLayoutEffect, useRef, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Badge } from '../react/src/primitives/Badge';
 import { Button } from '../react/src/primitives/Button';
 import { Icon } from '../react/src/primitives/Icon';
@@ -67,21 +67,37 @@ export const ConfirmPicture = ({ title, body, children, cancelLabel, confirmLabe
 </div>;
 
 /* A drawer drawn in place, as a picture of the React Drawer: the same markup,
- * open, with no portal, no trap and no inert page, inside a frame the page sizes. */
+ * open, with no portal, no trap and no inert page, inside a frame the page sizes.
+ * A body that scrolls is a keyboard stop with a name, so End and the arrows scroll
+ * it. A body that fits is no stop: a stop that scrolls nothing leads nowhere. Which
+ * bodies scroll changes with the width, so the body is read again on each resize. */
 export const DrawerPicture = ({ title, footer, side = 'right', size = 'md', children }: {
   title: string; footer?: ReactNode; side?: 'left' | 'right'; size?: 'sm' | 'md'; children?: ReactNode;
-}) =>
-  <div className={`ui-drawer ui-drawer--${side} ui-drawer--${size} is-open`}>
+}) => {
+  const body = useRef<HTMLDivElement>(null);
+  const [scrolls, setScrolls] = useState(false);
+  useLayoutEffect(() => {
+    const box = body.current!;
+    const read = () => setScrolls(box.scrollHeight > box.clientHeight || box.scrollWidth > box.clientWidth);
+    const observer = new ResizeObserver(read);
+    observer.observe(box);
+    for (const child of box.children) observer.observe(child);
+    read();
+    return () => observer.disconnect();
+  }, []);
+  return <div className={`ui-drawer ui-drawer--${side} ui-drawer--${size} is-open`}>
     <div className="ui-drawer__scrim" />
     <div className="ui-drawer__panel" role="group" aria-label={title}>
       <header className="ui-drawer__header">
         <h2 className="ui-drawer__title">{title}</h2>
         <button type="button" className="ui-drawer__close" aria-label="Close"><Icon name="x" /></button>
       </header>
-      <div className="ui-drawer__body">{children}</div>
+      <div className="ui-drawer__body" ref={body}
+        {...(scrolls ? { tabIndex: 0, role: 'group', 'aria-label': `${title}, body` } : {})}>{children}</div>
       {footer && <footer className="ui-drawer__footer">{footer}</footer>}
     </div>
   </div>;
+};
 
 /* A search field with words already in it, as a reader leaves it. An open
  * Dropdown starts every open from the whole list and takes the focus, so the words
