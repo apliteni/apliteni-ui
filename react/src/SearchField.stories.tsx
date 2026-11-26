@@ -80,7 +80,7 @@ export const Toolbar: StoryObj = {
       <div className="ui-toolbar">
         <SearchField ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
+        <FilterBar label="Invoice filters" onChange={set} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table' }, { label: 'Board', value: 'board' }]} />
@@ -130,7 +130,7 @@ export const SmallToolbar: StoryObj = {
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
         <Dropdown variant="select" size="sm" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
           items={CURRENCIES.map((item) => ({ ...item, selected: item.value === currency }))} />
-        <FilterBar size="sm" label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
+        <FilterBar size="sm" label="Invoice filters" onChange={set} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" size="sm" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table', icon: 'table', iconOnly: true }, { label: 'Board', value: 'board', icon: 'grid', iconOnly: true }]} />

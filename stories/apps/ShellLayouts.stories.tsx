@@ -70,7 +70,7 @@ const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 
     <div className="ui-toolbar">
       <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
       <FilterBar filters={[{ ...STATUS, value: status }]} label="Payout filters"
-        onChange={(_, value) => setStatus(value ?? '')} onRemove={() => setStatus('')} onClear={() => setStatus('')} />
+        onChange={(_, value) => setStatus(value ?? '')} onClear={() => setStatus('')} />
     </div>
     {/* The table stays a direct child of the card, as the finance screens' does. */}
     <Card title="Payouts this week">

@@ -471,3 +471,184 @@ test('measured in a browser, four widths and both themes', {
     server.proc.kill();
   }
 });
+
+/* Rule: in a Modal or a Drawer, a dropdown panel opens below its trigger, over the body and
+ * its footer, and the body does not scroll. When the view has less than 120px below the
+ * trigger, the panel opens above it. After each key and click the trigger stays under the
+ * pointer, the focus stays in the dropdown while it is open, Escape closes it and gives the
+ * focus back to the trigger, no fixed element moves by more than 1px, no box scrolls, the
+ * cumulative layout shift stays under 0.1 and the page does not scroll sideways.
+ *
+ * Off unless DROPDOWN_EDGES=1, as the sweep above is, and it needs web-vitals too:
+ *
+ *   UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals/dist/web-vitals.iife.js DROPDOWN_EDGES=1 \
+ *     node --test stories/dropdown-contain.test.js
+ *
+ * It opens react-dropdown-placement--in-a-form in a Modal and in a Drawer, with four fields
+ * above the select and two below it, at each of ten window sizes and on six devices: the
+ * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
+ * phone of 466×678 and 890×626 at scale 3 with touch. One more run scrolls the body when a
+ * panel opens, and the walk must report that the trigger moved.
+ *
+ * Its limits: one engine, the light theme and the default accent. The layout shift is
+ * web-vitals' onCLS, which does not count a shift within 500ms of an input.
+ * why: docs/components.md#dropdown
+ */
+const FLOAT_STORY = 'react-dropdown-placement--in-a-form';
+const FLOAT_SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [360, 800], [466, 678], [984, 1016], [1536, 864], [2560, 1440]];
+const FLOAT_DEVICES = ['Galaxy Z Fold 7', 'Galaxy Z Fold 7 Cover', 'Galaxy Z Flip 7', 'Galaxy Z Flip 7 Cover'];
+const FLOAT_DUO = [[466, 678], [890, 626]];
+const FLOAT_STAGES = ['modal', 'drawer'];
+
+// The state after one action: the trigger, the panel and its side, the focus, every fixed
+// element outside the dropdown, every box that scrolls, the layout shift and the sideways
+// overflow.
+const FLOAT_READ = () => {
+  const dd = document.querySelector('.ui-dropdown');
+  const trigger = dd.querySelector('[data-dropdown-trigger]');
+  const panel = dd.querySelector('.ui-dropdown__panel');
+  const t = trigger.getBoundingClientRect();
+  const p = panel.getBoundingClientRect();
+  const all = [...document.querySelectorAll('body *')].filter((e) => !dd.contains(e));
+  const el = document.activeElement;
+  const doc = document.scrollingElement;
+  return {
+    open: dd.classList.contains('open'),
+    side: panel.getAttribute('data-dd-lifted'),
+    trigger: { x: t.left, top: t.top, bottom: t.bottom },
+    panel: { top: p.top, bottom: p.bottom, left: p.left, right: p.right },
+    focus: !dd.contains(el) ? null : panel.contains(el) ? 'panel' : el === trigger ? 'trigger' : 'dropdown',
+    fixed: all.filter((e) => getComputedStyle(e).position === 'fixed')
+      .map((e) => { const r = e.getBoundingClientRect(); return { name: `${e.tagName.toLowerCase()}.${[...e.classList].join('.')}`, x: r.left, y: r.top }; }),
+    scrolled: [...all, doc].filter((e) => e.scrollHeight > e.clientHeight).map((e) => e.scrollTop),
+    cls: window.__cls,
+    over: doc.scrollWidth - doc.clientWidth,
+    view: [innerWidth, innerHeight],
+  };
+};
+// Waits for the dropdown to be open or shut and for every animation to end.
+const settle = (page, open) => page.waitForFunction((want) => document.querySelector('.ui-dropdown').classList.contains('open') === want
+  && document.getAnimations().every((a) => a.playState !== 'running'), open);
+const press = (key, open) => [`key: ${key}`, async (page) => { await page.keyboard.press(key); await settle(page, open); }];
+const hit = (name, locate, open) => [`${name}`, async (page, touch) => {
+  const at = locate(page);
+  await (touch ? at.tap() : at.click());
+  await settle(page, open);
+}];
+const FLOAT_ACTIONS = [
+  hit('click: trigger', (page) => page.locator('.ui-dropdown [data-dropdown-trigger]'), true),
+  press('ArrowDown', true),
+  press('End', true),
+  press('Escape', false),
+  press('ArrowDown', true),
+  hit('click: Account 3', (page) => page.getByRole('option', { name: 'Account 3' }), false),
+];
+
+// Runs every action and returns the findings and the open panels' sides.
+async function floatWalk(page, label, touch) {
+  const found = [];
+  const sides = [];
+  let before = await page.evaluate(FLOAT_READ);
+  if (before.fixed.length === 0) found.push(`${label}: no fixed element found to hold still`);
+  for (const [name, run] of FLOAT_ACTIONS) {
+    await run(page, touch);
+    const after = await page.evaluate(FLOAT_READ);
+    const at = `${label} ${name}`;
+    const moved = Math.max(Math.abs(after.trigger.x - before.trigger.x), Math.abs(after.trigger.top - before.trigger.top));
+    if (moved > 1) found.push(`${at}: the trigger moved ${Math.round(after.trigger.top - before.trigger.top)}px`);
+    for (const f of after.fixed) {
+      const was = before.fixed.find((b) => b.name === f.name);
+      if (was && Math.max(Math.abs(f.x - was.x), Math.abs(f.y - was.y)) > 1) found.push(`${at}: ${f.name} moved ${Math.round(f.x - was.x)},${Math.round(f.y - was.y)}px`);
+    }
+    if (after.scrolled.join() !== before.scrolled.join()) found.push(`${at}: a box scrolled from ${before.scrolled} to ${after.scrolled}`);
+    if (!(after.cls < 0.1)) found.push(`${at}: the layout shift is ${after.cls}`);
+    if (after.over > 0) found.push(`${at}: the page scrolls ${after.over}px sideways`);
+    if (after.open) {
+      if (!after.focus) found.push(`${at}: the focus left the open dropdown`);
+      // Below the trigger, unless the view has less than the 120px floor there.
+      const want = after.view[1] - after.trigger.bottom - 9 < 120 ? 'up' : 'down';
+      if (after.side !== want) found.push(`${at}: the panel opens ${after.side ?? 'in the body'}, not ${want}`);
+      if (after.side === 'down' && after.panel.top < after.trigger.bottom) found.push(`${at}: the panel covers its trigger`);
+      if (after.side === 'up' && after.panel.bottom > after.trigger.top) found.push(`${at}: the panel covers its trigger`);
+      if (after.panel.top < 0 || after.panel.bottom > after.view[1] || after.panel.left < 0 || after.panel.right > after.view[0]) found.push(`${at}: the panel leaves the view`);
+      sides.push(after.side);
+    } else if (name === 'key: Escape' && after.focus !== 'trigger') found.push(`${at}: Escape did not give the focus back to the trigger`);
+    before = after;
+  }
+  return { found, sides };
+}
+
+// Scrolls the body 80px when a panel opens: the scroll that this rule removed.
+const SCROLL_ON_OPEN = `new MutationObserver(() => {
+  const dd = document.querySelector('.ui-dropdown.open');
+  if (!dd || dd.__mutated) return;
+  dd.__mutated = true;
+  let box = dd.parentElement;
+  while (box && !['auto', 'scroll'].includes(getComputedStyle(box).overflowY)) box = box.parentElement;
+  if (box) box.scrollTop += 80;
+}).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });`;
+
+test('in a Modal or a Drawer, each key and click opens the panel over the body and moves nothing', {
+  skip: !RUN && 'set DROPDOWN_EDGES=1',
+}, async () => {
+  const { serve, playwright } = await import('./lib/dropdown-contain.js');
+  const { readFileSync } = await import('node:fs');
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_EDGES=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  assert.ok(process.env.UI_WEB_VITALS && existsSync(process.env.UI_WEB_VITALS), 'point UI_WEB_VITALS at web-vitals/dist/web-vitals.iife.js');
+  const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
+  const build = path.join(root, 'storybook-static');
+  assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
+  assert.ok(ids.includes(FLOAT_STORY), `the Storybook build has no ${FLOAT_STORY}`);
+
+  const subjects = [
+    ...FLOAT_SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
+    ...FLOAT_DEVICES.map((name) => { assert.ok(pw.devices[name], `Playwright has no device "${name}"`); return [name, pw.devices[name]]; }),
+    ...FLOAT_DUO.map(([width, height]) => [`two-screen ${width}×${height}`, { viewport: { width, height }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }]),
+  ];
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  const open = async (context, stage, script) => {
+    const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
+    await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });\n${script ?? ''}` });
+    const page = await ctx.newPage();
+    await page.goto(`http://127.0.0.1:${server.port}/iframe.html?id=${FLOAT_STORY}&viewMode=story&globals=theme:light&args=stage:${stage};before:4;after:2;rows:12`);
+    await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
+      && window.__STORYBOOK_PREVIEW__.currentRender.id === id, FLOAT_STORY);
+    await settle(page, false);
+    // A person scrolls the field into view before they use it, and so does a click here.
+    await page.locator('.ui-dropdown [data-dropdown-trigger]').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'));
+    return { ctx, page };
+  };
+  try {
+    const findings = [];
+    const table = [];
+    const seen = new Set();
+    for (const [label, context] of subjects) {
+      for (const stage of FLOAT_STAGES) {
+        const { ctx, page } = await open(context, stage);
+        const { found, sides } = await floatWalk(page, `${label} ${stage}`, !!context.hasTouch);
+        findings.push(...found);
+        sides.forEach((s) => seen.add(s));
+        table.push(`${label} ${stage}: ${FLOAT_ACTIONS.length} actions, opens ${[...new Set(sides)].join(' and ')}, ${found.length ? 'fail' : 'pass'}`);
+        await ctx.close();
+      }
+    }
+    process.stdout.write(`${table.join('\n')}\n`);
+    assert.equal(table.length, (FLOAT_SIZES.length + FLOAT_DEVICES.length + FLOAT_DUO.length) * FLOAT_STAGES.length, 'a size or a device was not measured');
+    assert.deepEqual(findings, []);
+    // Both sides are reached, so the 120px choice is measured and not only the usual side.
+    assert.deepEqual([...seen].sort(), ['down', 'up'], `the panels opened only ${[...seen]}`);
+
+    // The mutation: a body that scrolls on the open must be caught.
+    const { ctx, page } = await open({ viewport: { width: 1280, height: 800 } }, 'modal', SCROLL_ON_OPEN);
+    const { found } = await floatWalk(page, 'mutated', false);
+    await ctx.close();
+    assert.ok(found.some((f) => f.includes('the trigger moved')), `a body scrolled on the open and the walk found: ${found.join('; ') || 'nothing'}`);
+  } finally {
+    await browser.close();
+    server.proc.kill();
+  }
+});

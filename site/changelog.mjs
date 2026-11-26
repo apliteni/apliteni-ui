@@ -6,11 +6,22 @@
 
 export const RELEASES = [
   {
-    v: '0.209.0', date: '2026-11-26',
+    v: '0.210.0', date: '2026-11-26',
     changes: [
       ['added', '`FilterBar` and `Dropdown` take `size="sm"`, or the classes `.ui-filter-bar--sm` and `.ui-dropdown--sm`. Beside a small `SearchField` and a small `Button`, the chips, Filter, Clear all and the trigger are then 32px high with a mouse and 40px on a touch screen. Part of #903.', ['FilterBar', 'Dropdown']],
       ['changed', 'A toolbar that starts with a small search field no longer makes its chips 32px. An app with a small filter row passes `size="sm"` to its `FilterBar` and `Dropdown`, or the chips stay 40px. The height now holds when the field is in a wrapper or the bar is outside the toolbar. Part of #903.', ['FilterBar', 'SearchField']],
-      ['changed', 'On a touch screen a small `Button` or `Segmented` on a toolbar is 40px high in any row, and a small wordless button is a 40px circle that reaches the 44px tap floor on a phone. A wordless button of the default size beside a small search field is no longer 46px. Give it `size="sm"`. Part of #903.', ['Button']],
+      ['changed', 'On a touch screen a small `Button` or `Segmented` on a toolbar is 40px high in any row, and a small wordless button is a 40px circle. On a phone, a wordless button of any size on a toolbar reaches the 44px tap floor. A wordless button of the default size beside a small search field is no longer 46px. Give it `size="sm"`. Part of #903.', ['Button']],
+    ],
+  },
+  {
+    v: '0.209.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],
+      ['changed', 'A filter chip now takes the width of its longest value, up to 224px, so a value change or a reload does not move the chips or the content below the bar. A longer value ends with an ellipsis. Clear all keeps its room while it does not show. Part of #885.', ['FilterBar']],
+      ['changed', 'A filter chip no longer has a remove mark (×), and an app that passes `onRemove` to FilterBar removes it. Part of #885.', ['FilterBar']],
+      ['changed', 'At 560px and below, the account window now fills the view and shows one section. A Sections button in its head row opens the list of sections, so a section change does not change the window height. Part of #885.', ['AccountWindow']],
+      ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
+      ['changed', 'The focus ring is now a 1px accent line, 2px from the control, in place of a 2px line 1px from it. It still ends 3px from the control and keeps at least 3:1 against each kit ground. A product that sets `--ring-width` or `--ring-gap-width` keeps its own values. Part of #885.'],
     ],
   },
   {

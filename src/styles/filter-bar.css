@@ -6,27 +6,40 @@
 .ui-filter-bar__chip {
   display: inline-flex; align-items: center; min-width: 0; margin: 0;
   border: 1px solid var(--control-edge); border-radius: var(--radius-pill); padding: var(--space-1);
-  /* The chip holds two focus targets of its own — the trigger and the remove
-     button — so it is a painted container, not a control that inherits the gap
+  /* The chip is a painted container around its trigger, not a control that inherits the gap
      outside it. It joins the shared recomposition in tokens.css beside .ui-seg,
      which is also what hands an inline code chip the page from here. */
   background: var(--surface);
-  /* A chip with no value draws no remove mark, so it stops taking its height from the
-     mark's line box. The bar names the height; every chip keeps it. */
+  /* The bar names the height; every chip keeps it. */
   min-height: var(--ui-filter-row-h);
 }
-.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); min-height: calc(var(--ui-filter-row-h) - 2px - 2 * var(--space-1)); } /* fills the chip: a fieldset's content does not follow its min-height. #822 */
+/* The chip's 4px and the trigger's own inline padding give the select trigger's 13px before the
+   text and 11px after the chevron, so a chip has a select's inner space. A chip has no remove
+   mark. rev_9d7b1a81accc, rev_8f3cc2e115a3 */
+.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) 7px var(--space-1) 9px; min-height: calc(var(--ui-filter-row-h) - 2px - 2 * var(--space-1)); } /* fills the chip: a fieldset's content does not follow its min-height. #822 */
+/* A chip is as wide as the longest line it can print, up to --ui-filter-chip-max, so a pick
+   does not move the row or the content under it. The hidden lines and the shown one share one
+   grid cell. Only a line longer than the cap ends in an ellipsis. #885
+   why: docs/components.md#filter-bar */
+.ui-filter-bar { --ui-filter-chip-max: 224px; /* the owner's cap for a chip, #885 */ }
+.ui-filter-bar__chip { max-inline-size: var(--ui-filter-chip-max); }
+.ui-filter-bar__chip .ui-dropdown { flex: 1 1 auto; min-width: 0; }
+.ui-filter-bar__chip .ui-dropdown__trigger { inline-size: 100%; min-width: 0; justify-content: space-between; }
+.ui-filter-bar__chip .ui-dropdown__chevron { flex: none; }
+.ui-filter-bar__fit { display: inline-grid; grid-template-columns: minmax(0, max-content); min-width: 0; text-align: start; letter-spacing: normal; }
+.ui-filter-bar__fit > * { grid-area: 1 / 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* A hidden line and Clear all with nothing to clear keep their room and draw nothing, so a
+   value or a reload does not move the row. #885 */
+.ui-filter-bar__fit > [aria-hidden="true"],
+.ui-filter-bar .is-reserved { visibility: hidden; }
 /* The chip is the edge the row's other boxes are measured against, so it fades with them:
    off, the chips stayed at full strength and only their ink said so. Two carriers, because
    a bar turned off disables the controls in a nested fieldset and not the fieldset. #518
    why: guidelines/accessibility-floor.md#disabled-control-legibility */
 .ui-filter-bar__chip:disabled,
 .ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
-.ui-filter-bar__remove { border: 0; background: transparent; /* muted-ink: glyph — filter remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-pill); cursor: pointer; }
-.ui-filter-bar__remove:focus-visible,
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
-.ui-filter-bar .ui-filter-bar__remove:disabled { /* muted-ink: state — unavailable remove mark on the page */ color: var(--disabled-ink-bare); }
 
 .ui-filter-bar .ui-dropdown__value { color: inherit; font-weight: inherit; letter-spacing: normal; }
 /* A chip with nothing chosen prints the field's name in the slot the value will
@@ -35,7 +48,10 @@
    reserves for that; the pick keeps the heavier, darker value ink, so a chosen
    chip and an empty one are still told apart. `:enabled` leaves a disabled chip
    its own ink. why: guidelines/labels-and-titles.md, #505 */
-.ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { color: var(--text); font-weight: var(--weight-normal); }
+.ui-filter-bar button:enabled .ui-dropdown__value.is-placeholder { color: var(--text); }
+/* The name keeps its regular weight while the bar is off, so a reload does not change the
+   chip's width. #885 */
+.ui-filter-bar .ui-dropdown__value.is-placeholder { font-weight: var(--weight-normal); }
 
 /* Shut, a panel is the trigger's width, never the 240px floor a standalone
    dropdown gets: it is laid out while hidden, so a wider one widened the page
@@ -126,8 +142,8 @@
    why: docs/components.md#filter-bar */
 .ui-filter-bar .ui-dropdown__item.is-selected:hover { background: color-mix(in srgb, var(--glow-purple), var(--accent) 9%); /* code-bg: inherit — a translucent wash moves the ground, not the chip on it. */ }
 
-/* A chip's height — a remove mark's line box, padding and border — named so every chip,
-   with or without a mark, and a control on a line of its own stand as tall. A toolbar
+/* A chip's height — a large line box, padding and border — named so every chip and a
+   control on a line of its own stand as tall. A toolbar
    names it too, for the control at the end of a split row. Rounded up to a whole pixel:
    a fractional line moved a scrolled table below it off the pixel its hit test uses. #768 */
 .ui-filter-bar, .ui-toolbar { --ui-filter-row-h: round(up, calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)), 1px); }
@@ -141,7 +157,6 @@
 .ui-filter-bar--sm { --ui-filter-row-h: var(--control-height-sm); }
 .ui-filter-bar--sm .ui-filter-bar__chip { padding-block: 0; }
 .ui-filter-bar--sm .ui-filter-bar__chip .ui-dropdown__trigger { min-height: calc(var(--ui-filter-row-h) - 2px); }
-.ui-filter-bar--sm .ui-filter-bar__remove { line-height: var(--leading-tight); }
 .ui-filter-bar--sm [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
 .ui-filter-bar--sm [data-filter-add] .ui-dropdown__trigger { padding-block: 0; }
 

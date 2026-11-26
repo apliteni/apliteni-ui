@@ -12,7 +12,7 @@
 
 **Don't:** Open a window with its own sections for a photo and a theme.
 
-**Except:** On a phone the window's sections become tabs under the reader.
+**Except:** On a phone the window shows one section, and a back button opens the list of sections.
 
 ## Give the account window its own navigation
 
@@ -22,7 +22,7 @@
 
 **Why:** A reader already knows which group they came for, and a list of names is read faster than every group in turn.
 
-**Do:** Stand the entries beside the pane — above it on a phone — and mark the one shown.
+**Do:** Mark the open entry in the list beside the pane.
 
 **Don't:** Run all five groups down one scroll.
 

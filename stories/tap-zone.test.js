@@ -594,6 +594,20 @@ test('the shrink check reads an edge-stopped side as a lower bound', async () =>
     'An edge in the pass without the sheet hid the reach a control took in the pass with it.');
 });
 
+/* A filter chip has no remove mark, so its trigger is the chip's one control and reads the
+ * bar's clearance. A chip that zeroed it kept the trigger at its 30px box on a phone. Limit:
+ * this reads the sheet's declarations only; the browser half below measures the reach. #885 */
+const chipClearance = (sheet) => [...sheet.matchAll(/([^{}]*)\{([^{}]*)\}/g)]
+  .filter((m) => /\.ui-filter-bar__chip\b/.test(m[1]) && /--tap-clear-[xy]\s*:/.test(m[2]))
+  .map((m) => m[1].trim());
+
+test('a filter chip does not shut the clearance its trigger reads', () => {
+  assert.deepEqual(chipClearance(css), [], 'A chip sets its own clearance, so its trigger stays under 44.');
+  const shut = css.replace(/\.ui-filter-bar \{/, '.ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }\n  .ui-filter-bar {');
+  assert.notEqual(shut, css, 'The mutation did not apply, so it proves nothing.');
+  assert.equal(chipClearance(shut).length, 1, 'The check passed a chip that shuts its clearance again.');
+});
+
 /* -- The browser half ------------------------------------------------------- */
 
 const RUN = process.env.TAP_ZONES === '1';
@@ -974,6 +988,42 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       const titles = cutTitles(flatten((await at(390, true, sheet, subjects.filter((s) => s.id === CUT_TITLE))).rows));
       assert.equal(titles.length, 1);
       assert.ok(titles[0].floorMiss > 0, `Without its layer the cut title still reached ${titles[0].reach.join('x')}.`);
+    });
+
+    // #885: a filter chip has no remove mark, so its trigger is the one control in it. Measured
+    // at the three phone widths the review used, because the row wraps differently at each.
+    // Limit: only the stories and fixtures that draw a chip, and only the chip's trigger.
+    const CHIP_WIDTHS = [360, 390, 466];
+    const chipSubjects = subjects.filter((s) => s.html.includes('ui-filter-bar__chip'));
+    const chipTriggers = async (width, sheet) => flatten((await pass(browser, {
+      subjects: chipSubjects, css: sheet, width, coarse: true, size: TAP_MIN,
+      families: [...carriers, ...exempt], within: ['.ui-filter-bar__chip'],
+    })).rows).filter((b) => b.within.length && b.cls.split(/\s+/).includes('ui-dropdown__trigger'));
+    await t.test('a filter chip trigger reaches 44 at 360, 390 and 466', async () => {
+      assert.ok(chipSubjects.length >= 10, `${chipSubjects.length} subjects draw a filter chip, 10 or more expected.`);
+      for (const width of CHIP_WIDTHS) {
+        const off = await chipTriggers(width, without);
+        const on = await chipTriggers(width, withCss);
+        assert.ok(on.length >= 30, `${width}: ${on.length} chip triggers measured, 30 or more expected.`);
+        assert.equal(on.length, off.length, `${width}: the two runs found different chip triggers.`);
+        assert.deepEqual(on.filter((b, i) => b.drawn.join() !== off[i].drawn.join()).map((b) => `${b.story} ${name(b)}`), [],
+          `${width}: the sheet changed how big a chip trigger draws.`);
+        assert.deepEqual(on.filter((b) => b.floorMiss > 0).map((b) => `${b.story} ${name(b)} reaches ${b.reach.join('x')}`), [],
+          `${width}: a chip trigger misses the ${TAP_MIN}px floor.`);
+        assert.deepEqual(on.filter((b, i) => b.lostTo.length > off[i].lostTo.length).map((b) => `${b.story} ${name(b)} <- ${b.lostTo.map(([, w]) => w)}`), [],
+          `${width}: a chip trigger lost a drawn pixel to another control.`);
+        t.diagnostic(`${width}: ${on.length} chip triggers, drawn height ${[...new Set(on.map((b) => b.drawn[1]))].join('/')}, `
+          + `smallest reach ${Math.min(...on.map((b) => Math.min(...b.reach)))}`);
+      }
+    });
+
+    await t.test('a chip that shuts its clearance again is rejected', async () => {
+      const shut = withCss.replace(/(\.ui-filter-bar \{ gap: var\(--tap-gap\) !important;[^}]*\})/,
+        '$1\n  .ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }');
+      assert.notEqual(shut, withCss, 'The mutation did not apply, so it proves nothing.');
+      const short = (await chipTriggers(390, shut)).filter((b) => b.floorMiss > 0);
+      assert.ok(short.length > 0, 'Chip triggers under a zero clearance still reached 44, so the check above holds nothing.');
+      t.diagnostic(`a shut chip clearance leaves ${short.length} trigger(s) under the floor, at ${short[0].reach.join('x')}`);
     });
 
     await t.test('no target reaches less than it did without the sheet', async () => {

@@ -69,15 +69,13 @@ describe('finance composition', () => {
       expect(screen.getByText('USD')).toBeInTheDocument();
     } finally { vi.unstubAllGlobals(); }
   });
-  it('removes and clears controlled filters while recovering keyboard focus', () => {
+  it('clears controlled filters while recovering keyboard focus', () => {
     function Demo() {
       const [filters, setFilters] = useState([{ id: 'a', label: 'Sector', value: 'Energy', items: [] }, { id: 'b', label: 'Market', value: 'US', items: [] }]);
-      return <><FilterBar filters={filters} onChange={() => {}} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} />
+      return <><FilterBar filters={filters} onChange={() => {}} onClear={() => setFilters([])} />
         <button type="button">Add filter</button></>;
     }
-    render(<Demo />); const remove = screen.getByRole('button', { name: 'Remove Sector filter' }); remove.focus(); fireEvent.click(remove);
-    expect(screen.queryByRole('button', { name: 'Remove Sector filter' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Market/ , expanded: false })).toHaveFocus();
+    render(<Demo />);
     const clear = screen.getByRole('button', { name: 'Clear all' }); clear.focus(); fireEvent.click(clear);
     // The bar is empty and draws no box, so the focus leaves it for the action beside it.
     expect(screen.getByRole('button', { name: 'Add filter' })).toHaveFocus();

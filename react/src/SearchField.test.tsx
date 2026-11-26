@@ -151,7 +151,7 @@ const smallRow = (size?: 'sm') => render(<div className="ui-toolbar ui-toolbar--
   <SearchField ariaLabel="Search invoices" size={size} />
   <div className="ui-dropdown"><button className="ui-dropdown__trigger">Any currency</button></div>
   <fieldset className="ui-filter-bar"><fieldset className="ui-filter-bar__chip">
-    <button className="ui-dropdown__trigger">Pending</button><button className="ui-filter-bar__remove">×</button>
+    <button className="ui-dropdown__trigger">Pending</button>
   </fieldset></fieldset>
   <button className="ui-btn ui-btn--sm">New invoice</button>
 </div>).container;
@@ -197,7 +197,7 @@ const noop = () => {};
 const STATUS_CHIP = { id: 'status', label: 'Status', value: 'Pending', items: [{ label: 'Any', value: '' }, { label: 'Pending', value: 'Pending' }] };
 const smallControls = (wrapped: boolean) => {
   const field = <SearchField ariaLabel="Search invoices" size="sm" />;
-  const bar = <FilterBar size="sm" label="Invoice filters" filters={[STATUS_CHIP]} onChange={noop} onRemove={noop} onClear={noop} />;
+  const bar = <FilterBar size="sm" label="Invoice filters" filters={[STATUS_CHIP]} onChange={noop} onClear={noop} />;
   return render(<>
     <div className="ui-toolbar">
       {wrapped ? <div>{field}</div> : field}

@@ -75,7 +75,8 @@ const endBesideChips = (layout, filterBar) => {
   // A small bar's row is excluded: its end control takes the small height by its own size. #903
   const end = phone.match(/\.ui-toolbar--split:has\(\.ui-filter-bar:not\(\.ui-filter-bar--sm\)\)\s*>\s*:last-child\s*\{([^}]*)\}/);
   if (!end || !/min-height:\s*var\(--ui-filter-row-h\)/.test(end[1])) return 'the phone end control takes no chip height';
-  const named = [...filterBar.matchAll(/([^{}]+)\{([^}]*--ui-filter-row-h:[^}]*)\}/g)]
+  // Without comments: an apostrophe in a comment would open a string for the selector split.
+  const named = [...filterBar.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*--ui-filter-row-h:[^}]*)\}/g)]
     .some(([, selector]) => splitSelectorList(selector.trim()).includes('.ui-toolbar'));
   return named ? null : 'the toolbar does not name --ui-filter-row-h, so the end control takes no height';
 };

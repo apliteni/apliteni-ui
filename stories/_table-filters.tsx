@@ -21,7 +21,7 @@ export function useTableFilters<Row>(rows: Row[], { search, placeholder, label, 
   const set = (id: string, value?: string) => setValues((previous) => ({ ...previous, [id]: value ?? '' }));
   const bar = <div className="ui-toolbar">
     <SearchField ariaLabel={search} placeholder={placeholder} size={size} width={width} value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-    {facets.length > 0 && <FilterBar label={label} onChange={set} onRemove={(id) => set(id)} onClear={() => setValues({})}
+    {facets.length > 0 && <FilterBar label={label} onChange={set} onClear={() => setValues({})}
       filters={facets.map((facet) => ({
         id: facet.id, label: facet.label, value: values[facet.id] ?? '',
         items: [{ label: facet.any, value: '' }, ...[...new Set(rows.map(facet.of))].map((value) => ({ label: value, value }))],
@@ -38,7 +38,7 @@ export type Chip = { id: string; label: string; any: string; values: string[] };
 export const RestingFilters = ({ search, placeholder, label, chips = [], size, width }: { search: string; placeholder: string; label: string; chips?: Chip[]; size?: 'sm'; width?: string }) =>
   <div className="ui-toolbar">
     <SearchField ariaLabel={search} placeholder={placeholder} size={size} width={width} />
-    {chips.length > 0 && <FilterBar label={label} onChange={noop} onRemove={noop} onClear={noop}
+    {chips.length > 0 && <FilterBar label={label} onChange={noop} onClear={noop}
       filters={chips.map((chip) => ({ id: chip.id, label: chip.label, value: '',
         items: [{ label: chip.any, value: '' }, ...chip.values.map((value) => ({ label: value, value }))] }))} />}
   </div>;
