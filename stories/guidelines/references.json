@@ -18,8 +18,8 @@
   ],
   "filter-bar": [
    {
-    "ref": "react/src/FilterBar.tsx:74",
-    "pattern": "className=\"ui-filter-bar\""
+    "ref": "react/src/FilterBar.tsx:77",
+    "pattern": "<fieldset ref={bar} className={size === 'sm' ? 'ui-filter-bar ui-filter-bar--sm' : 'ui-filter-bar'}"
    },
    {
     "ref": "src/styles/filter-bar.css:1",
@@ -30,7 +30,7 @@
  "_accessibility-floor.js": {
   "target-size": [
    {
-    "ref": "src/styles/button.css:128",
+    "ref": "src/styles/button.css:136",
     "pattern": ".ui-btn--sm"
    },
    {
@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:230",
+    "ref": "src/styles/tap-zone.css:235",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -70,15 +70,15 @@
   ],
   "disabled-legibility": [
    {
-    "ref": "src/styles/button.css:145",
+    "ref": "src/styles/button.css:153",
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:214",
+    "ref": "src/tokens/tokens.css:208",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:220",
+    "ref": "src/tokens/tokens.css:214",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,11 +128,11 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:235",
+    "ref": "src/tokens/tokens.css:229",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
-    "ref": "src/styles/button.css:64",
+    "ref": "src/styles/button.css:72",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:474",
-    "pattern": ".ui-dropdown__panel--search"
+    "ref": "src/styles/dropdown.css:475",
+    "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:534",
+    "ref": "src/styles/dropdown.css:537",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -332,11 +332,11 @@
  "_destructive-actions.js": {
   "colour": [
    {
-    "ref": "src/styles/button.css:116",
+    "ref": "src/styles/button.css:124",
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:424",
+    "ref": "src/styles/dropdown.css:428",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -516,7 +516,7 @@
     "pattern": "every icon-only control is one the closed list allows"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:246",
+    "ref": "react/src/primitives/Button.tsx:248",
     "pattern": "const named = iconOnly"
    }
   ],
@@ -606,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:429",
+    "ref": "src/styles/dropdown.css:433",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:430",
+    "ref": "src/styles/dropdown.css:434",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -666,7 +666,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:555",
+    "ref": "src/styles/layout.css:558",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -690,11 +690,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:468",
+    "ref": "src/styles/layout.css:471",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:469",
+    "ref": "src/styles/layout.css:472",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -898,17 +898,17 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:324",
+    "ref": "src/tokens/tokens.css:318",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
   "busy": [
    {
-    "ref": "react/src/primitives/Button.tsx:267",
+    "ref": "react/src/primitives/Button.tsx:269",
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
-    "ref": "src/styles/button.css:182",
+    "ref": "src/styles/button.css:190",
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
@@ -963,7 +963,7 @@
  "_density-and-accents.js": {
   "purposeful-accent": [
    {
-    "ref": "src/styles/button.css:64",
+    "ref": "src/styles/button.css:72",
     "pattern": "background: var(--accent-strong)"
    }
   ],
@@ -975,6 +975,14 @@
    {
     "ref": "src/styles/stat.css:184",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
+   },
+   {
+    "ref": "src/styles/stat.css:227",
+    "pattern": "@container (19rem < width <= 22rem) {"
+   },
+   {
+    "ref": "src/styles/stat.css:229",
+    "pattern": ".ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat { flex-basis: 0; }"
    }
   ]
  },
@@ -1097,7 +1105,7 @@
     "pattern": "export const Button = forwardRef"
    },
    {
-    "ref": "src/styles/button.css:63",
+    "ref": "src/styles/button.css:71",
     "pattern": ".ui-btn--primary {"
    }
   ]
@@ -1105,11 +1113,11 @@
  "_button-labels.js": {
   "words-first": [
    {
-    "ref": "react/src/primitives/Button.tsx:286",
+    "ref": "react/src/primitives/Button.tsx:288",
     "pattern": "ui-btn__label-slot"
    },
    {
-    "ref": "react/src/primitives/Button.test.tsx:232",
+    "ref": "react/src/primitives/Button.test.tsx:234",
     "pattern": "lets an explicit aria-label win over the children fallback"
    }
   ],
@@ -1125,7 +1133,7 @@
     "pattern": "export const iconOnlyAllowed"
    },
    {
-    "ref": "react/src/primitives/Button.tsx:246",
+    "ref": "react/src/primitives/Button.tsx:248",
     "pattern": "const named = iconOnly"
    },
    {
@@ -1135,7 +1143,7 @@
   ],
   "one-shape": [
    {
-    "ref": "src/styles/button.css:32",
+    "ref": "src/styles/button.css:40",
     "pattern": "border-radius: var(--radius-pill);"
    },
    {
@@ -1183,7 +1191,7 @@
   ],
   "report-offers": [
    {
-    "ref": "react/src/FilterBar.tsx:24",
+    "ref": "react/src/FilterBar.tsx:27",
     "pattern": "export function FilterBar("
    }
   ]
@@ -1191,7 +1199,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:145",
+    "ref": "react/src/Dropdown.tsx:148",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1355,15 +1363,15 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:432",
+    "ref": "src/styles/dropdown.css:436",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:434",
-    "pattern": "color: var(--muted);"
+    "ref": "src/styles/dropdown.css:438",
+    "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:874",
+    "ref": "react/src/Dropdown.tsx:877",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

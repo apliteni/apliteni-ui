@@ -96,10 +96,11 @@ const subjects: string[] = [...new Set([
 // three filter-bar inset declarations left with its bar's move onto a card (#736). The
 // Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet. The
 // finance comparison's ten inset declarations left when the kit took its insets back (#875).
-// The command palette story's two muted notes became kit callouts (#886).
-// The Document review's forty-five declarations, in two showcase files, left when it
-// moved onto SplitLayout (#903).
-const FOUND = { subjects: 75, declarations: 486, carriers: 49, sheets: 5 };
+// The command palette story's two muted notes became kit callouts (#886). The Feedback
+// showcase's type, colour, opacity and motion became kit classes (#907). The Document
+// review's forty-five declarations, in two showcase files, left when it moved onto
+// SplitLayout (#903).
+const FOUND = { subjects: 75, declarations: 480, carriers: 49, sheets: 5 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -166,8 +167,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 2 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
-  'react/src/FeedbackShowcase.css': { shadow: 11 },
-  'react/src/FeedbackShowcase.stories.tsx': { shadow: 2 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   // The phone ground and one-row viewer toolbar need five more placements than the
   // ceiling: the bleed, the clear space above the ground, and the tighter toolbar fit.

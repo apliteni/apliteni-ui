@@ -344,21 +344,20 @@
 .ui-switch input:focus-visible + .ui-switch__track { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-switch input:disabled + .ui-switch__track { opacity: 0.5; cursor: not-allowed; }
 
-/* The small field: 32px with the dense rows' 13px text, level with a small button, a
-   dropdown trigger and a small segmented control. Only a fine pointer gets it. On a touch
-   screen it keeps 16px text, because iOS zooms into a field under 16px, and stands 40px,
-   a chip's height. rev_1bef7d7c3b22/d5, #832 The group's
+/* The small field: the small control height, level with a small button, filter bar and
+   dropdown. With a mouse it has the dense rows' 13px text. On a touch screen it keeps 16px
+   text, because iOS zooms into a field under 16px. rev_1bef7d7c3b22/d5, #832, #903 The group's
    42px left padding outranks the side padding here, so the glyph keeps its place. #822
    why: docs/components.md#search-field */
 @media not (pointer: coarse) {
   .ui-input--sm {
     font-size: var(--text-sm);
     line-height: var(--leading-tight);
-    min-height: var(--btn-height-sm);
+    min-height: var(--control-height-sm);
     padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-lg); /* why: docs/foundations.md#control-corners */
   }
 }
 @media (pointer: coarse) {
-  .ui-input--sm { height: var(--ui-filter-row-h, 40px); min-height: var(--ui-filter-row-h, 40px); padding-block: 0; }
+  .ui-input--sm { height: var(--control-height-sm); min-height: var(--control-height-sm); padding-block: 0; }
 }

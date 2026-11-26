@@ -9,12 +9,15 @@ export default meta;
 
 // Vendor artwork from the existing vanilla BrandIcon specimen.
 const googleG = <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M45 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h11.8c-.5 2.7-2 5-4.4 6.6v5.5h7.1C42.7 36.4 45 30.9 45 24.5z"/><path fill="#34A853" d="M24 46c6 0 11-2 14.6-5.4l-7.1-5.5c-2 1.3-4.5 2.1-7.5 2.1-5.8 0-10.7-3.9-12.4-9.2H4.3v5.7C7.9 41.1 15.3 46 24 46z"/><path fill="#FBBC05" d="M11.6 27.9c-.4-1.3-.7-2.6-.7-4s.3-2.7.7-4v-5.7H4.3C2.8 17.3 2 20.6 2 24s.8 6.7 2.3 9.6l7.3-5.7z"/><path fill="#EA4335" d="M24 10.8c3.3 0 6.2 1.1 8.5 3.3l6.3-6.3C35 4.2 30 2 24 2 15.3 2 7.9 6.9 4.3 14.4l7.3 5.7C13.3 14.7 18.2 10.8 24 10.8z"/></svg>;
-// Keep the vanilla gallery spacing for direct visual comparison.
+// The group gap between specimens and the inner gap inside one. A specimen keeps each
+// button at its own width, so a wordless button stays a circle. why: docs/foundations.md#spacing-and-rhythm
+// Each button stands in a toolbar, the kit row that gives it the 44px tap floor on a phone.
+// why: guidelines/accessibility-floor.md#space-between-small-targets
 const canvas = (children: React.ReactNode) => <div style={{ padding: 'var(--space-10)', minHeight: '100vh' }}>
-  <div style={{ display: 'flex', flexDirection: 'column', gap: 18, maxWidth: 640 }}>{children}</div>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-8)', maxWidth: 640 }}>{children}</div>
 </div>;
-const specimen = (label: string, children: React.ReactNode) => <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-  <div className="ui-eyebrow">{label}</div>{children}
+const specimen = (label: string, children: React.ReactNode) => <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 'var(--space-2)' }}>
+  <div className="ui-eyebrow">{label}</div><div className="ui-toolbar">{children}</div>
 </div>;
 
 export const BrandIcon: StoryObj = {
@@ -35,20 +38,22 @@ export const Links: StoryObj = {
 };
 
 // The outline variant keeps a visible edge on a flat ground, for a glyph-only button.
+// Both glyphs are on the closed list, and the words give the name and the hover title.
+// why: guidelines/button-labels.md#earn-a-wordless-button
 export const Outline: StoryObj = {
   name: 'Outline (icon only)',
   render: () => canvas(<>
-    {specimen('Outline — idle', <Button variant="outline" icon="copy" iconOnly aria-label="Copy" />)}
-    {specimen('Outline — second glyph', <Button variant="outline" icon="chevronRight" iconOnly aria-label="Next" />)}
+    {specimen('Outline — idle', <Button variant="outline" icon="copy" iconOnly>Copy</Button>)}
+    {specimen('Outline — second glyph', <Button variant="outline" icon="x" iconOnly>Close</Button>)}
   </>),
 };
 
 function BusyExample() {
   const [busy, setBusy] = useState(false);
-  return canvas(<>
+  return canvas(<div className="ui-toolbar">
     <Button href="#details" leading={googleG} busy={busy} onClick={event => { event.preventDefault(); setBusy(true); }}>Continue with Google</Button>
     <Button variant="ghost" onClick={() => setBusy(false)}>Finish request</Button>
-  </>);
+  </div>);
 }
 export const BusyTransition: StoryObj = { render: () => <BusyExample /> };
 
@@ -64,7 +69,7 @@ function HoldExample({ variant, label, done }: { variant: 'primary' | 'danger'; 
       ? <div style={{ display: 'flex', alignItems: 'center', minHeight: 'var(--btn-height-md)' }}>
         <span ref={result} className="ui-sx__count-text" role="status" tabIndex={-1}>{done}</span>
       </div>
-      : <Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button>}
+      : <div className="ui-toolbar"><Button hold variant={variant} onConfirm={() => setConfirmed(true)}>{label}</Button></div>}
   </div>);
 }
 export const HoldPrimary: StoryObj = {
