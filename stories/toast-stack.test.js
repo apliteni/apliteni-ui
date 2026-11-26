@@ -230,8 +230,12 @@ test('an undo stack keeps three notices, each Undo acts on its own notice, and t
  *
  * The same test opens react-toast--tones (five notices that stay) at each size and device, and
  * checks that the stack stands inside the view and shows its newest notice whole. A taller stack
- * scrolls. Then it opens react-toast--undo-one with bottomOffset 10vh at 1280×800 with full
- * motion, makes the view 1000px tall, and checks that the published reach follows the stack.
+ * scrolls. It also opens react-toast--presentations-gallery with actions at each size and device,
+ * with full and reduced motion. It presses Enter twice on Show toasts for ten notices, Tab to the
+ * oldest notice's Undo and Escape, and checks that the focus goes to Reload, which stays whole
+ * inside the stack and the view. Then it opens react-toast--undo-one with bottomOffset 10vh at
+ * 1280×800 with full motion, makes the view 1000px tall, and checks that the published reach
+ * follows the stack.
  *
  * Its limits: one engine, the light theme and the default accent. The focus is placed by script,
  * so it reads where the focus is, not how the ring paints. The source half is in
@@ -322,6 +326,27 @@ async function checkTall(page, label) {
   if (state.over > 0) found.push(`${label}: the page scrolls ${state.over}px sideways`);
   return found;
 }
+// A stack that scrolls keeps the focused control in view when a notice leaves.
+const KEPT_STORY = 'react-toast--presentations-gallery';
+async function checkKept(page, label) {
+  await page.getByRole('button', { name: 'Show toasts' }).focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  await live(page, 10);
+  await page.keyboard.press('Tab');
+  await focused(page, button(page, 'Deployment live', 'Undo').first());
+  await page.keyboard.press('Escape');
+  await live(page, 9);
+  await focused(page, button(page, 'Sync scheduled', 'Reload').first());
+  await page.evaluate(frames);
+  const hidden = await page.evaluate(() => {
+    const box = document.querySelector('.rx-toast-stack').getBoundingClientRect();
+    const control = document.activeElement.getBoundingClientRect();
+    const top = Math.max(0, box.top), bottom = Math.min(innerHeight, box.bottom);
+    return Math.max(0, top - control.top, control.bottom - bottom);
+  });
+  return hidden > 1 ? [`${label}: ${Math.round(hidden)}px of the focused Reload is out of view`] : [];
+}
 // An offset in view units moves the stack when the view changes size. The reach follows it. Full
 // motion, because under reduced motion the net's transition on the move ends in a read of its own.
 async function checkResize(page, label) {
@@ -395,12 +420,19 @@ test('a page with a bottom bar keeps the stack 16px above the bar, and the reach
       findings.push(...high);
       table.push(`five notices ${label} ${width}px: ${high.length ? 'fail' : 'pass'}`);
       await tall.ctx.close();
+      for (const motion of ['no-preference', 'reduce']) {
+        const kept = await openAt(browser, server.port, context, KEPT_STORY, '&args=action:!true', motion);
+        const lost = await checkKept(kept.page, `focus after a dismissal ${label} ${motion}`);
+        findings.push(...lost);
+        table.push(`focus after a dismissal ${label} ${width}px ${motion}: ${lost.length ? 'fail' : 'pass'}`);
+        await kept.ctx.close();
+      }
     }
     const resized = await openAt(browser, server.port, { viewport: { width: 1280, height: 800 } }, 'react-toast--undo-one', '&args=bottomOffset:10vh', 'no-preference');
     findings.push(...await checkResize(resized.page, 'bottomOffset 10vh'));
     await resized.ctx.close();
     process.stdout.write(`${table.join('\n')}\n`);
-    assert.equal(table.length, 2 * (SIZES.length + DEVICES.length + DUO.length), 'a size or a device was not measured');
+    assert.equal(table.length, 4 * (SIZES.length + DEVICES.length + DUO.length), 'a size or a device was not measured');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -427,6 +459,14 @@ test('a page with a bottom bar keeps the stack 16px above the bar, and the reach
     const risen = await checkTall(landscape.page, 'mutated');
     caught.push(['above the view', risen.some((f) => f.includes('above the view')), risen]);
     await landscape.ctx.close();
+    // A stack that shows its newest notice after every change, as on 0d821a3f: the focused Reload
+    // scrolls out of a landscape phone's view.
+    const scrolled = await openAt(browser, server.port, { viewport: { width: 844, height: 390 } }, KEPT_STORY, '&args=action:!true', 'no-preference',
+      "new MutationObserver(() => { const s = document.querySelector('.rx-toast-stack'); if (s) s.scrollTop = s.scrollHeight; }).observe(document, { childList: true, subtree: true });");
+    scrolled.page.setDefaultTimeout(3000);
+    const away = await checkKept(scrolled.page, 'mutated').catch((error) => [String(error)]);
+    caught.push(['out of view', away.some((f) => f.includes('out of view')), away]);
+    await scrolled.ctx.close();
     // A reach that the view's resize does not publish again, as on ee4b2d7c.
     // The window runs its own listeners in the order they came, so this one comes before the page's.
     const unheard = await openAt(browser, server.port, { viewport: { width: 1280, height: 800 } }, 'react-toast--undo-one', '&args=bottomOffset:10vh', 'no-preference',

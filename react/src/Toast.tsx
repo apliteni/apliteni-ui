@@ -146,8 +146,15 @@ function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: numbe
       setScroll(element.scrollHeight > box.bottom - (parseFloat(view.getComputedStyle(element).right) || 0));
     };
     publish();
-    // The newest notice is at the bottom, so a stack that scrolls shows it.
-    element.scrollTop = element.scrollHeight;
+    // The newest notice is at the bottom, so a stack that scrolls shows it. While a control in the
+    // stack holds the focus, the stack keeps that control in view instead, so a dismissal that
+    // hands the focus on does not hide it.
+    const focus = element.ownerDocument.activeElement;
+    if (focus && focus !== element && element.contains(focus)) {
+      const box = element.getBoundingClientRect();
+      const control = focus.getBoundingClientRect();
+      element.scrollTop += Math.min(0, control.top - box.top) + Math.max(0, control.bottom - box.bottom);
+    } else element.scrollTop = element.scrollHeight;
     // A notice grows when its text wraps and the stack grows with every notice
     // added, so the height is watched rather than read once.
     const observer = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(publish) : undefined;

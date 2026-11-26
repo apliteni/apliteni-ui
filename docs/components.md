@@ -1034,7 +1034,8 @@ provider sets it again when `bottomOffset` changes and when the view changes siz
 action can use it to stay clear of the notices.
 
 A stack that is taller than the room above its inset stops 16 px below the top of the view and
-scrolls. It shows its newest notice. A pile does not scroll.
+scrolls. It shows its newest notice. While a control in the stack has the focus, the stack keeps
+that control in view, also after a notice leaves. A pile does not scroll.
 
 ### Success confirmations
 
