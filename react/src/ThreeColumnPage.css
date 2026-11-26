@@ -17,7 +17,9 @@
   height: calc(100dvh - var(--ui-app-band, 0px));
   overflow-y: clip;
 }
-.ui-columns__up { grid-column: 1 / -1; padding: var(--space-3) var(--space-3) 0; }
+/* The up row's inset is the column head's, so the back link's arrow starts on the edge of the
+   column title below it. #869 */
+.ui-columns__up { grid-column: 1 / -1; padding: var(--space-3) var(--space-5) 0; }
 .ui-columns__col { display: flex; flex-direction: column; grid-row: 2; min-width: 0; min-height: 0; }
 .ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }
 /* With no third column, the children take its space. */
@@ -87,13 +89,12 @@
 /* Phone: one column, the open one, and the page scrolls as one. */
 @media (max-width: 560px) {
   .ui-columns { grid-template-columns: minmax(0, 1fr); height: auto; overflow-y: visible; }
-  .ui-columns__up { padding-inline: var(--space-2); }
   .ui-columns > .ui-columns__col { display: none; border-inline-start: 0; }
   .ui-columns[data-depth='1'] > .ui-columns__col--1,
   .ui-columns[data-depth='2'] > .ui-columns__col--2,
   .ui-columns[data-depth='3'] > .ui-columns__col--3 { display: flex; }
   .ui-columns__scroll { overflow-y: visible; }
-  .ui-columns__head, .ui-columns__body { padding-inline: var(--space-4); }
+  .ui-columns__up, .ui-columns__head, .ui-columns__body { padding-inline: var(--space-4); }
   .ui-columns__list { padding-inline: var(--space-1); }
 }
 /* A touch phone: the rows draw 35px and the title menu 33px, so each carries the kit's

@@ -59,14 +59,59 @@ test('the resting colour is a token, and not the accent', () => {
   assert.doesNotMatch(color, /accent/);
 });
 
-// #834: 32px tall and a pill, with 8px before the arrow and 12px after the words.
+// #834: 32px tall and a pill, with 12px after the words. #869 took the space before
+// the arrow to 4px, so the ring stays on a phone's screen; the test below holds why.
 test('the link is a 32px pill', () => {
   const base = rules.find((r) => r.selector === '.ui-back');
   const m = /min-height\s*:\s*var\(--(space-[\w-]+)\)/.exec(base.body);
   assert.ok(m, '.ui-back declares no min-height from the spacing scale');
   assert.ok(SPACE[m[1]] >= 32, `--${m[1]} is ${SPACE[m[1]]}px`);
   assert.match(base.body, /(?:^|;)\s*border-radius\s*:\s*var\(--radius-pill\)/);
-  assert.match(base.body, /(?:^|;)\s*padding\s*:\s*0 var\(--space-3\) 0 var\(--space-2\)/);
+  assert.match(base.body, /(?:^|;)\s*padding\s*:\s*0 var\(--space-3\) 0 var\(--space-1\)/);
+});
+
+// #869: the arrow's ink starts on the edge the title starts on. The ink's offset is the
+// left padding plus the chevron's empty space: its leftmost point less half a round
+// join's stroke, scaled from the 24-unit box to the glyph's width. Read from the glyph
+// and the sheets, so a new glyph, stroke, size or padding moves the sum. Its limits: it
+// assumes the arrow is the link's first box, and it does not lay anything out —
+// stories/back-align.test.js measures the ink against the title in a browser.
+test("the arrow's ink starts on the column edge, and the ring stays on a phone's screen", () => {
+  const decl = (rule, prop) => new RegExp(`(?:^|;)\\s*${prop}\\s*:\\s*([^;]+)`).exec(rule.body)?.[1].trim();
+  const px = (expr) => {
+    const lengths = { ...SPACE, ...Object.fromEntries([...decomment(read('../tokens/tokens.css'))
+      .matchAll(/--(ring-[\w-]+):\s*(\d+)px/g)].map((m) => [m[1], Number(m[2])])) };
+    const arithmetic = expr.replace(/var\(--([\w-]+)\)/g, (_, name) => {
+      assert.ok(name in lengths, `--${name} has no px value in the kit sheet`);
+      return String(lengths[name]);
+    }).replace(/calc\(/g, '(').replace(/(\d+(?:\.\d+)?)px/g, '$1');
+    assert.match(arithmetic, /^[\d\s.+\-*/()]+$/, `cannot evaluate "${expr}"`);
+    return Function(`return ${arithmetic}`)();
+  };
+  const glyph = /<Icon name="(\w+)"/.exec(read('../../react/src/BackLink.tsx'))?.[1];
+  assert.equal(glyph, 'chevronLeft', 'BackLink draws another glyph: check its empty space');
+  const shape = new RegExp(`${glyph}: '<polyline points="([^"]+)"`).exec(read('../assets/icons.js'));
+  assert.ok(shape, `no polyline for ${glyph} in icons.js`);
+  const xs = shape[1].trim().split(/\s+/).filter((_, i) => i % 2 === 0).map(Number);
+  const svg = rules.find((r) => r.selector === '.ui-back svg');
+  const width = px(decl(svg, 'width'));
+  const inset = (Math.min(...xs) - Number(decl(svg, 'stroke-width')) / 2) / 24 * width;
+
+  const base = rules.find((r) => r.selector === '.ui-back');
+  const before = px(decl(base, 'padding').split(/\s+(?![^(]*\))/)[3]);
+  const margin = decl(base, 'margin-inline-start');
+  assert.ok(margin, '.ui-back declares no margin-inline-start: its arrow starts right of the title');
+  const ink = px(margin) + before + inset;
+  assert.ok(Math.abs(ink) <= 0.5, `the arrow's ink starts ${ink.toFixed(2)}px from the column edge`);
+
+  // The ring and its gap stand outside the pill, which now starts left of the column.
+  // The shell's phone gutter must hold both.
+  const layout = decomment(read('layout.css'));
+  const phone = /@media \(max-width: 720px\)[\s\S]*?\.ui-app__main\s*\{\s*padding:\s*\S+\s+var\(--(space-[\w-]+)\)/.exec(layout);
+  assert.ok(phone, "no phone padding for .ui-app__main in layout.css");
+  const ring = px('var(--ring-width) + var(--ring-gap-width)');
+  const room = SPACE[phone[1]] + px(margin) - ring;
+  assert.ok(room >= 0, `the focus ring runs ${(-room).toFixed(2)}px off a phone's screen`);
 });
 
 // #834: on a phone with touch the tap layer takes the 32px link to the 44px floor. Read

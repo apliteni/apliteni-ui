@@ -19,7 +19,11 @@
      with touch, tap-zone.css lifts the target to 44px. A pill, as every control. #834
      why: docs/foundations.md#control-corners */
   min-height: var(--space-8);
-  padding: 0 var(--space-3) 0 var(--space-2);
+  padding: 0 var(--space-3) 0 var(--space-1);
+  /* The arrow's ink starts on the column edge, the title's left edge: the margin takes
+     back the padding and the chevron's empty space, (9 − 2.4 / 2) / 24 of the 16px glyph,
+     which is 5.2px. Only 4px of padding, so the ring keeps 3.8px from a phone's edge. #869 */
+  margin-inline-start: calc(-1 * var(--space-1) - 16px * 7.8 / 24);
   border-radius: var(--radius-pill);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
