@@ -955,7 +955,8 @@ test('the solid-toast gate actually measures something', () => {
  * A 2px ring in the notice's tone, mixed into the notice ground by --toast-timer-mix or
  * --toast-timer-mix-strong. At 2 CSS px it is a graphic, so it is held to 3:1 against the notice
  * ground and against the action's hover fill behind it, in both themes, under every accent and in
- * every tone. Limit: it reads the declarations, not a rendered ring. #888 */
+ * every tone. Its track is the full circle behind the arc. The track must show on both grounds, and
+ * the arc must stay clearly apart from it. Limit: it reads the declarations, not a rendered ring. #888 */
 
 /* The ring's own ink. The forced-colours rule names a system colour, which has no ratio to read. */
 const ringInk = (css) => [...css.matchAll(RULE)]
@@ -981,8 +982,18 @@ function ringPaint(theme, accent, status, css, props) {
   const hover = colourOf(hoverFill(theme, css), vars);
   const ring = colourOf(ringInk(css), vars);
   assert.ok(card && hover && ring, `the ${status} ring or its ground does not resolve in ${theme} ${accent}`);
-  return { card, hover: compositeRgba(hover, card), ring };
+  const track = trackOf(ring, css, vars);
+  assert.ok(track, `the ${status} ring track does not resolve in ${theme} ${accent}`);
+  return { card, hover: compositeRgba(hover, card), ring, track };
 }
+
+/* The track mixes the arc's own ink, its currentColor, into the notice ground. The forced-colours
+ * rule names a system colour, which has no ratio to read. */
+const trackInk = (css) => [...css.matchAll(RULE)]
+  .filter(([, sel]) => splitSelectorList(sel).includes('.ui-toast__ring-track'))
+  .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
+  .find((ink) => ink?.includes('currentColor'));
+const trackOf = (ring, css, vars) => colourOf(trackInk(css).replace('currentColor', `rgb(${ring.slice(0, 3).join(' ')})`), vars);
 
 function ringRatio(theme, accent, status, css, props) {
   const { card, hover, ring } = ringPaint(theme, accent, status, css, props);
@@ -997,6 +1008,23 @@ function ringFailures(theme, accent, { css = CALLOUT, props = {} } = {}) {
     .filter(([, r]) => r < GRAPHIC_AA).map(([status, r]) => `${status}: ${show(r)}:1`);
 }
 
+/* The track shows on the notice ground and on the hover fill, and the arc stays this far from it.
+ * The track is soft, so it is held to a visible step and not to 3:1: the arc carries the reading. */
+const TRACK_SHOWS = 1.2;
+const ARC_OVER_TRACK = 2;
+function trackFailures(theme, accent, { css = CALLOUT } = {}) {
+  assert.ok(trackInk(css), 'callout.css has no ring track that mixes the arc ink');
+  return SOLID_STATUSES.flatMap((status) => {
+    const { card, hover, ring, track } = ringPaint(theme, accent, status, css, {});
+    const shows = Math.min(ratio(track, card), ratio(track, hover));
+    const apart = ratio(ring, track);
+    return [
+      ...(shows < TRACK_SHOWS ? [`${status} track: ${show(shows)}:1`] : []),
+      ...(apart < ARC_OVER_TRACK ? [`${status} arc over track: ${show(apart)}:1`] : []),
+    ];
+  });
+}
+
 test('the ring is a graphic: its stroke is at least the 1.5 CSS px line', () => {
   assert.ok(Number(declOf('.ui-toast__ring-arc', 'stroke-width')['stroke-width']) >= SOLID_STROKE);
 });
@@ -1006,6 +1034,7 @@ for (const theme of ['dark', 'light']) {
     test(`the countdown ring clears 3:1 on the notice ground in every tone — ${theme} ${accent}`, () => {
       assert.ok(SOLID_STATUSES.length >= 5, 'the toast statuses were not found');
       assert.deepEqual(ringFailures(theme, accent), []);
+      assert.deepEqual(trackFailures(theme, accent), []);
     });
   }
 }
@@ -1030,6 +1059,14 @@ test('the hover gate rejects a light hover fill that does not show', () => {
   const plain = CALLOUT.replace(LIGHT_HOVER, '.ui-toast__light-hover-gone');
   assert.notStrictEqual(plain, CALLOUT, `callout.css has no ${LIGHT_HOVER} rule`);
   assert.ok(hoverStep('light', 'default', plain) < HOVER_SHOWS);
+});
+
+test('the track gate rejects a track that does not show and a track as dark as the arc', () => {
+  const faint = CALLOUT.replace(/(\.ui-toast__ring-track\s*\{[^}]*currentColor )35%/, '$110%');
+  const dark = CALLOUT.replace(/(\.ui-toast__ring-track\s*\{[^}]*currentColor )35%/, '$170%');
+  assert.ok(faint !== CALLOUT && dark !== CALLOUT, 'callout.css has no 35% ring track to mutate');
+  assert.ok(trackFailures('light', 'default', { css: faint }).some((f) => f.includes(' track: ')));
+  assert.ok(trackFailures('dark', 'default', { css: dark }).some((f) => f.includes('arc over track')));
 });
 
 test('the ring gate rejects a ring mixed too far into the ground', () => {

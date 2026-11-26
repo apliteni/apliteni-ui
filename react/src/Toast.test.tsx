@@ -362,6 +362,9 @@ it('gives each Undo its own notice, and the ring spends the notice time', () => 
   for (const row of ['Mercado Verde', 'Tranvía Norte', 'Luz del Sur']) fireEvent.click(screen.getByText(row));
   for (const notice of notices()) {
     expect(arcOf(notice)).toHaveClass('is-running');
+    // A full track sits behind the arc, so the ring keeps its shape as the arc empties.
+    expect(arcOf(notice).previousElementSibling).toHaveClass('ui-toast__ring-track');
+    expect(arcOf(notice).previousElementSibling).toHaveAttribute('r', arcOf(notice).getAttribute('r'));
     // The ring takes the place of the timer line.
     expect(notice.querySelector('.ui-toast__timer')).toBeNull();
     expect(arcOf(notice).style).toMatchObject({ animationDuration: '8000ms', animationPlayState: 'running' });

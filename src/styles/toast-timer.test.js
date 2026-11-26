@@ -23,9 +23,10 @@ test('reduced motion hides the timer line, and the ring steps instead of gliding
   assert.doesNotMatch(block[1], /\.ui-toast__ring[^{]*\{[^}]*display:\s*none/);
 });
 
-test('forced colours keep the ring and give it a system colour', () => {
+test('forced colours keep the ring and its track, each in its own system colour', () => {
   const block = callout.match(/@media \(forced-colors: active\)\s*\{([\s\S]*?)\n\}/);
   assert.ok(block, 'callout.css has no forced-colours block for the ring');
   assert.match(block[1], /\.ui-toast__ring\s*\{[^}]*color:\s*ButtonText/);
+  assert.match(block[1], /\.ui-toast__ring-track\s*\{[^}]*color:\s*GrayText/);
   assert.doesNotMatch(block[1], /display:\s*none/);
 });

@@ -106,6 +106,7 @@ function Notice({ notice, remove, leave, evicted }: { notice: ToastNotice; remov
       {notice.action && <button type="button" className={`ui-toast__action${ringed ? ' ui-toast__action--timed' : ''}`} disabled={leaving}
         onClick={() => { if (!dismissed.current) { dismiss(); notice.action!.onClick(); } }}>
         {ringed && <svg className="ui-toast__ring" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <circle className="ui-toast__ring-track" cx="8" cy="8" r="7" />
           <circle className="ui-toast__ring-arc is-running" cx="8" cy="8" r="7" pathLength="100"
             style={{ animationDuration: `${duration}ms`, animationPlayState: paused ? 'paused' : 'running',
               strokeDashoffset: reducedMotion() ? (secondsLeft * 1000 / duration - 1) * 100 : undefined }} />

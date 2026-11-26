@@ -983,19 +983,20 @@ push({ title: 'Mercado Verde set to Groceries', timer: 8, action: { label: 'Undo
 **What the user sees.** The stack is at the bottom right, with the newest notice at the bottom. A
 notice without an action closes after five seconds. A notice with an action stays until the user
 picks the action or closes it. If it also has `timer`, it closes when the time runs out. Its action
-then starts with a 16 px ring that empties as the time runs out. Each notice keeps its own action.
+then starts with a 16 px ring that empties as the time runs out, over a soft full-circle track. Each notice keeps its own action.
 When a new notice goes over `limit`, the oldest notice closes, and its change stays. All timers,
 lines and rings stop while the pointer or the focus is in the stack. With `collapse`, the stack is
 a pile with the newest notice in front. The pile opens into a column on hover and on focus. A
 ninth notice makes the pile no taller than a third. A device without hover always shows the
 column. Under reduced motion the timer line is not drawn, and the ring moves one step each second.
-In forced colours the ring stays, in the button colour.
+In forced colours the ring stays, in the button colour, and its track takes the grey text colour.
 
 **Colour of the ring.** The ring mixes the notice tone into the notice ground: 45% in dark and
 95% in light (`--toast-timer-mix`). A danger ring and a neutral ring take 60% in dark and 85% in
 light (`--toast-timer-mix-strong`). Every ring keeps 3:1 on the notice ground and on the hover fill
-of its action, in both themes, under every accent. In light the hover fill of the action is
-`--surface-3`, because a mix of `--bg` does not show on the white notice.
+of its action, in both themes, under every accent. The track mixes 35% of the ring colour into the
+notice ground. It shows on both grounds, and the ring keeps 2:1 against it. In light the hover
+fill of the action is `--surface-3`, because a mix of `--bg` does not show on the white notice.
 
 **Keyboard and screen reader.** An ordinary notice is polite and a danger notice is assertive. A
 new notice does not move the focus.

@@ -78,6 +78,9 @@
 .ui-toast__action--timed { display: inline-flex; align-items: center; gap: var(--space-2); }
 .ui-toast__ring { flex: none; width: var(--space-4); height: var(--space-4); rotate: -90deg; /* muted-ink: glyph — a neutral ring mixes --muted, and the ring is a graphic at 3:1 */ color: color-mix(in srgb, var(--toast-accent) var(--toast-timer-tone), var(--surface)); }
 .ui-toast__ring-arc { fill: none; stroke: currentColor; stroke-width: 2; stroke-dasharray: 100; }
+/* The track is the full ring behind the arc, so the ring keeps its shape as the arc empties. It
+   mixes the arc's ink into the notice ground, so the arc stays clearly darker. why: docs/components.md#toast */
+.ui-toast__ring-track { fill: none; stroke: currentColor; stroke-width: 2; /* muted-ink: glyph — a neutral track mixes --muted, and the track is the ring's backdrop */ color: color-mix(in srgb, currentColor 35%, var(--surface)); }
 .ui-toast__ring-arc.is-running { animation: ui-toast-ring var(--toast-dur, 5s) linear forwards; /* motion: ambient — the ring spends the notice's dismiss timer, as the line does */ }
 
 .ui-toast__close { flex: none; align-self: flex-start; background: none; border: 0; /* muted-ink: glyph — dismiss icon */ color: var(--muted); cursor: pointer; height: 1lh; padding: 0 2px; display: grid; place-items: center; position: relative; font: inherit; }
@@ -139,9 +142,11 @@
   .ui-toast__ring-arc.is-running { animation: none; }
 }
 
-/* An SVG keeps its author colour in forced colours, so the ring names the button's system colour. */
+/* An SVG keeps its author colour in forced colours, so the ring names the button's system colour.
+   The track takes GrayText, so it stays apart from the arc. */
 @media (forced-colors: active) {
   .ui-toast__ring { color: ButtonText; }
+  .ui-toast__ring-track { color: GrayText; }
 }
 
 /* stack container for queued toasts */
