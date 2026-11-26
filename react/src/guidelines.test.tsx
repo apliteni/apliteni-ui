@@ -72,6 +72,9 @@ describe('guideline pages in React: the collection', () => {
       const h1s = [...root.querySelectorAll('h1')].filter(h1 => !h1.parentElement?.closest(STAGE));
       expect(h1s.length, `${page.file}: one h1`).toBe(1);
       expect(titles.has(h1s[0].textContent!), `${page.file}: no Markdown has the title "${h1s[0].textContent}"`).toBe(true);
+      // A screen reader goes to the page's content by its main landmark.
+      expect(root.querySelectorAll('main').length, `${page.file}: one main`).toBe(1);
+      expect(h1s[0].closest('main'), `${page.file}: the h1 is outside main`).toBeTruthy();
     }
   });
 });

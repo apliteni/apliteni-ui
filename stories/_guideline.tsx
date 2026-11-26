@@ -126,11 +126,11 @@ export const Sheet = ({ css }: { css: string }) =>
 const Mono = ({ as: Tag, className, text }: { as: 'h1' | 'h2' | 'p' | 'div' | 'span'; className?: string; text: string }) =>
   <Tag className={className} dangerouslySetInnerHTML={{ __html: mono(text) }} />;
 
-/** The reading surface every guideline page stands on. `css` comes after the
- *  ground's own sheet, where the vanilla page put the page sheets. */
+/** The reading surface every guideline page stands on, and its main landmark.
+ *  `css` comes after the ground's own sheet, where the vanilla page put the page sheets. */
 export const Ground = ({ css = '', children }: { css?: string; children: ReactNode }) => <>
   <Sheet css={GROUND_CSS + css} />
-  <div className="gl-page">{children}</div>
+  <main className="gl-page">{children}</main>
 </>;
 
 // data-specimen names which half a cell is, so a gate that measures specimens
