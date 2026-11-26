@@ -349,6 +349,10 @@ const PERMITTED_FORCED = {
     why: 'forced colours replace the ring\'s tone mix, so an undo notice\'s countdown ring takes ButtonText and keeps showing the time left. The ring is a graphic and carries no focus indicator. #888',
     props: ['color'],
   },
+  '.ui-toast__ring-track': {
+    why: 'forced colours keep the track\'s author mix, so the full circle behind the countdown arc takes GrayText and stays apart from the ButtonText arc. The track is a graphic and carries no focus indicator. #888',
+    props: ['color'],
+  },
   '.ui-table-scroll': {
     why: 'forced colours repaint transparent borders black. Canvas keeps reserved ring space light so the inward focus band remains distinct.',
     props: ['border-color'],
