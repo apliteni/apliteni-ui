@@ -428,10 +428,10 @@ it('a menu trigger keeps the name it is given, from ariaLabel or the deprecated 
   render(<>
     <Dropdown variant="menu" label="Actions:" items={MENU} />
     <Dropdown variant="menu" ariaLabel="Row actions" items={MENU} />
-    <Dropdown variant="menu" ariaLabel="Token actions" value="Token actions" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Invoice actions" value="Invoice actions" items={MENU} />
   </>);
   const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
-  expect(names).toEqual(['Actions: Select…', 'Row actions: Select…', 'Token actions']);
+  expect(names).toEqual(['Actions: Select…', 'Row actions: Select…', 'Invoice actions']);
 });
 
 // The deprecated `label` warns once for the page, in development only. A fresh module,
