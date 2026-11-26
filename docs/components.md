@@ -1214,7 +1214,8 @@ when the task needs more than one record. When a flow needs a drawer or a page:
 
 `side` is `right`, `left`, `top` or `bottom`. `size` is `sm`, `md` or `lg`. `status` puts the
 state of the record, such as one `Badge`, directly after the title. `headerActions` puts controls
-at the end of the header, before the close button.
+at the end of the header, before the close button. `mark` puts a mark, such as a product logo,
+before the title. Screen readers skip it, and the title stays the drawer's name.
 
 **A long title.** The title stays on one line. A long title ends in an ellipsis before the status,
 and the status, the actions and the close button stay whole. A cut title is a Tab stop. On hover,
