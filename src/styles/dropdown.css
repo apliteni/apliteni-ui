@@ -77,12 +77,9 @@
   /* muted-ink: state — unavailable control */ color: var(--disabled-ink);
   cursor: not-allowed;
 }
-/* The prefix and the value carry inks of their own, so they take the state's. */
-.ui-dropdown__trigger:disabled .ui-dropdown__pre,
+/* The value carries an ink of its own, so it takes the state's. */
 .ui-dropdown__trigger:disabled .ui-dropdown__value,
-.ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__pre,
 .ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
-.ui-dropdown__pre { color: var(--text); }
 .ui-dropdown__value { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 
 /* Chevron — border caret that flips when the container is .open. Its ink is an L
