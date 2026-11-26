@@ -124,11 +124,19 @@ describe('the status after the title', () => {
     <Drawer open title={title} onClose={noop} status={<span className="ui-badge ui-badge--warn">Late</span>}
       headerActions={<button type="button">View imports</button>}>body</Drawer>,
   );
-  // A ResizeObserver that reads once, and a title that is wider than its box when `cut`.
+  // ResizeObservers that each read when `resize` is called, and a title that is wider than
+  // its box while `layout.cut` is true.
+  const layout = { cut: false, reads: new Set<() => void>(), resize: () => layout.reads.forEach((read) => read()) };
   const stubLayout = (cut: boolean) => {
-    vi.stubGlobal('ResizeObserver', class { observe() {} disconnect() {} });
+    layout.cut = cut;
+    layout.reads.clear();
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(private read: () => void) {}
+      observe() { layout.reads.add(this.read); }
+      disconnect() { layout.reads.delete(this.read); }
+    });
     const proto = HTMLElement.prototype;
-    Object.defineProperty(proto, 'scrollWidth', { configurable: true, get() { return cut && this.localName === 'h2' ? 600 : 0; } });
+    Object.defineProperty(proto, 'scrollWidth', { configurable: true, get() { return layout.cut && this.localName === 'h2' ? 600 : 0; } });
     Object.defineProperty(proto, 'clientWidth', { configurable: true, get() { return 0; } });
     return () => {
       vi.unstubAllGlobals();
@@ -162,7 +170,7 @@ describe('the status after the title', () => {
     expect(document.querySelector('.ui-drawer__status')).toBeNull();
   });
 
-  it('a cut title is a Tab stop, its readout shows the whole title, and Escape closes only the readout', async () => {
+  it('a cut title is a Tab stop, its readout shows the whole title, Escape closes only the readout, and the focus stays in the drawer when the title fits', async () => {
     // A title that fits is no Tab stop and has no readout.
     let restore = stubLayout(false);
     try {
@@ -189,6 +197,12 @@ describe('the status after the title', () => {
       expect(tip).not.toHaveClass('is-open');
       expect(closeDrawer).not.toHaveBeenCalled();
       expect(title()).toHaveFocus();
+      // The drawer widens and the title fits. React replaces the focused heading, and the
+      // focus stays in the drawer, on its panel.
+      layout.cut = false;
+      act(() => layout.resize());
+      expect(title()).not.toHaveAttribute('tabindex');
+      expect(screen.getByRole('dialog')).toHaveFocus();
     } finally {
       layer.restore();
       restore();

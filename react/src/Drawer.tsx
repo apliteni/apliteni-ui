@@ -37,12 +37,18 @@ export function Drawer({
   const scope = useDialog(shown, { root, panel, body, initialFocus: initialFocusRef }, onClose);
   // A title cut by its ellipsis is a Tab stop that shows the whole title in a readout.
   // It is read again on each resize. Without a ResizeObserver the title has no readout.
+  // A title that stops being cut leaves its readout, so React replaces the heading. If the
+  // heading has the focus, the panel takes it first and the focus stays in the drawer.
   const heading = useRef<HTMLHeadingElement>(null);
   const [cut, setCut] = useState(false);
   useLayoutEffect(() => {
     const h = heading.current;
     if (!h || typeof ResizeObserver === 'undefined') return;
-    const read = () => setCut(h.scrollWidth > h.clientWidth);
+    const read = () => {
+      const now = h.scrollWidth > h.clientWidth;
+      if (!now && h === h.ownerDocument.activeElement) panel.current?.focus();
+      setCut(now);
+    };
     const observer = new ResizeObserver(read);
     observer.observe(h);
     read();

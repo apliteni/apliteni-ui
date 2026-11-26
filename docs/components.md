@@ -1182,7 +1182,8 @@ at the end of the header, before the close button.
 **A long title.** The title stays on one line. A long title ends in an ellipsis before the status,
 and the status, the actions and the close button stay whole. A cut title is a Tab stop. On hover,
 on focus and on a tap, it shows the full title in a readout below it. The dialog keeps the full
-title as its name.
+title as its name. If a focused title fits again, such as after the window widens, the focus
+moves to the panel.
 
 **What the user sees.** The panel slides in over a scrim. The body groups by heading, never by
 card. `DrawerSection` puts a heading on a 1px line, and groups stand 32px apart. `KeyValueList`

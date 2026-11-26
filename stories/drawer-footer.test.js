@@ -309,6 +309,34 @@ async function walkStatus(page, label, story) {
   return { found, ran };
 }
 
+/* Rule (#868 review): a cut title that has the focus and then fits leaves its readout, so React
+ * replaces the heading. The focus stays in the drawer. The walk turns the long-title drawer into
+ * a bottom drawer at 390×844, as a phone shows it, presses Tab to the cut title, and widens the
+ * window to 1280×800, where the title fits. Then the focus must be in the panel, and Escape
+ * closes the drawer. Its limits: one engine, one transition, and a story that React renders as a
+ * right drawer, so the walk sets the bottom class itself. */
+async function walkFit(page) {
+  const found = [];
+  await page.evaluate(() => document.querySelector('.ui-drawer').classList.replace('ui-drawer--right', 'ui-drawer--bottom'));
+  await page.evaluate(frames);
+  try {
+    await page.keyboard.press('Tab');
+    await focused(page, title(page));
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.waitForFunction(() => {
+      const h = document.querySelector('.ui-drawer__title');
+      return h && h.scrollWidth <= h.clientWidth;
+    });
+    await page.evaluate(frames);
+  } catch (error) { return [`fit: ${error.message.split('\n')[0]}`]; }
+  const s = await page.evaluate(STATUS_READ);
+  if (!s.focus) found.push('fit: the focus left the drawer when the title stopped being cut');
+  if (s.over > 0) found.push(`fit: the page scrolls ${s.over}px sideways`);
+  await page.keyboard.press('Escape');
+  try { await closed(page); } catch { found.push('fit: Escape did not close the drawer'); }
+  return found;
+}
+
 test('a drawer footer follows a short body, stays out of a long one, and holds through each interaction, a drawer status stands whole after its title, and a scrolling picture body takes Tab and End', {
   skip: process.env.DRAWER_FOOTER !== '1' && 'set DRAWER_FOOTER=1',
 }, async () => {
@@ -407,6 +435,14 @@ test('a drawer footer follows a short body, stays out of a long one, and holds t
     // The status at the far end, as headerActions put it.
     await mutateStatus('.ui-drawer__lead { flex: 1 1 auto; justify-content: space-between; }', 'after the title, not 8px', statusShort);
     assert.deepEqual(statusCaught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this walk cannot see it');
+
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, phone, statusLong.id);
+      const found = await walkFit(page);
+      process.stdout.write(`390×844 to 1280×800 status-long-title, bottom: ${found.length ? 'fail' : 'pass'}\n`);
+      assert.deepEqual(found, []);
+      await ctx.close();
+    }
 
     const pictures = [];
     for (const [label, context] of subjects) {

@@ -384,7 +384,7 @@
   ],
   "status-after-title": [
    {
-    "ref": "react/src/Drawer.tsx:67",
+    "ref": "react/src/Drawer.tsx:73",
     "pattern": "className=\"ui-drawer__status\""
    },
    {

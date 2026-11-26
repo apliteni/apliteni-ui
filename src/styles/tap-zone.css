@@ -301,6 +301,19 @@
   .ui-drawer__header:has(> .ui-drawer__actions) {
     padding-inline-end: calc(var(--space-5) - (var(--tap-gap) - var(--space-3)));
   }
+  /* The cut title's layer. The title clips its own text, so the layer measures against the
+     readout trigger around it, which the clip does not reach. The title already draws wider
+     than the floor, so only the height grows, into the header's clearance. #868 */
+  .ui-drawer__lead > .ui-tip-host > span:not(.ui-tip) { position: relative; }
+  .ui-drawer__lead > .ui-tip-host > span:not(.ui-tip) > .ui-drawer__title::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
+  }
 
   /* Two 52px rows, each holding a control the kit draws under the floor: the
      shell band's palette trigger, 37.05 tall once the phone band swaps its
