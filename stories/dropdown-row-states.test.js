@@ -204,8 +204,8 @@ const groupFaults = (text) => {
   if (!/(?:^|;)\s*color:\s*var\(--muted\)/.test(group)) faults.push('the group label is not in muted ink');
   const ink = /(?:^|;)\s*color:\s*([^;]+)/.exec(group)?.[1] ?? 'var(--text)';
   for (const { theme, accent } of CELLS) {
-    const tokens = tokensFor(theme, accent);
-    const r = ratio(colourOf(ink, tokens), colourOf(ground, tokens));
+    const vars = tokensFor(theme, accent);
+    const r = ratio(colourOf(ink, vars), colourOf(ground, vars));
     if (r < AA_TEXT) faults.push(`the group label has ${r.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
   }
   return faults;
