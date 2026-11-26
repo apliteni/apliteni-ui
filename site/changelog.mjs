@@ -10,6 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'A sidebar section caption and a command palette group heading are now bold and in muted ink, as a dropdown group label is. Their size and spacing stay. Part of #886.', ['AppShell', 'CommandPalette']],
       ['changed', 'The Labels and titles and Command palette guideline pages now name the two headings with the dropdown group label. Part of #886.', ['Guidelines']],
+      ['fixed', 'The text of a sidebar row with a count now has a space between the label and the count, so it matches the row\u2019s accessible name. Speech input finds the row by what it shows. Part of #886.', ['SidebarNav']],
     ],
   },
   {

@@ -76,7 +76,8 @@ function Row({ item, active, activeIs, collapsed, renderLink, sub }: RowProps) {
     isActive && 'is-active', childActive && 'is-current', item.disabled && 'is-disabled', item.danger && 'is-danger'].filter(Boolean).join(' ');
   const children = <>{(item.leading ?? item.icon) && <span className="ui-nav__ic">{item.leading ?? <Icon name={item.icon!} />}</span>}
     <span className="ui-nav__label">{item.label}</span>
-    {count != null && count !== '' && <span className={`ui-nav__badge is-${typeof item.badge === 'object' ? item.badge.tone ?? 'neutral' : 'neutral'}`}>{count}</span>}
+    {/* The space keeps the count a separate word in the visible text, so it sits in the name. A flex row draws no gap for it. */}
+    {count != null && count !== '' && <>{' '}<span className={`ui-nav__badge is-${typeof item.badge === 'object' ? item.badge.tone ?? 'neutral' : 'neutral'}`}>{count}</span></>}
     {group && <span className="ui-nav__caret" aria-hidden="true" />}</>;
   const common = { className, 'aria-label': name, title: collapsed ? name : undefined, children };
   if (group) return <li className={`ui-nav__group${open ? ' is-open' : ''}`}>

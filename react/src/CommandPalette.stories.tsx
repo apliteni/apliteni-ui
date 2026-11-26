@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { CommandPalette, type CommandGroup } from './CommandPalette';
 import { Button } from './primitives/Button';
+import { Callout } from './primitives/Callout';
 
 const meta: Meta<typeof CommandPalette> = { title: 'React/Command palette', component: CommandPalette };
 export default meta;
@@ -38,8 +39,10 @@ export const Playground: StoryObj<typeof CommandPalette> = {
     const [ran, setRan] = useState<string | null>(null);
     return (
       <>
-        <Button variant="secondary" onClick={() => setOpen(true)}>Search or run a command</Button>
-        {ran && <p style={{ color: 'var(--dim)' }}>Ran: {ran}</p>}
+        <div className="ui-stack">
+          <Button variant="secondary" onClick={() => setOpen(true)}>Search or run a command</Button>
+          {ran && <Callout>Ran: {ran}</Callout>}
+        </div>
         <CommandPalette
           open={open}
           groups={GROUPS}
@@ -72,8 +75,10 @@ export const Destructive: StoryObj<typeof CommandPalette> = {
     const [asked, setAsked] = useState(false);
     return (
       <>
-        <Button variant="secondary" onClick={() => setOpen(true)}>Open</Button>
-        {asked && <p style={{ color: 'var(--dim)' }}>The confirm would be up now.</p>}
+        <div className="ui-stack">
+          <Button variant="secondary" onClick={() => setOpen(true)}>Open</Button>
+          {asked && <Callout variant="info">The confirm would be up now.</Callout>}
+        </div>
         <CommandPalette
           open={open}
           hint={false}
