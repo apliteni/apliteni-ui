@@ -24,7 +24,7 @@ import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 import { LINKS } from '../../stories/guidelines/_overview.js';
 // @ts-expect-error -- plain JS story module
 import { GROUND_CSS, SPEC_CSS } from '../../stories/guidelines/_layout.js';
-import { ConfirmPicture, TONE_GLYPH } from '../../stories/_guideline';
+import { ConfirmPicture, DrawerPicture, TONE_GLYPH } from '../../stories/_guideline';
 
 type Meta_ = { id?: string; title: string };
 type StoryModule = { default: Meta_ } & Record<string, { render: (args: unknown, ctx: unknown) => ReactElement }>;
@@ -186,6 +186,18 @@ describe('guideline pages in React: Session expired', () => {
     expect(picture.querySelector('.se-page__dialog .rx-modal')).toHaveClass('rx-modal--sm');
     expect(picture.querySelector('.se-page__title')).toBeNull();
     expect(picture.querySelector('.ui-skel')).toBeNull();
+  });
+});
+
+/* The drawer picture's panel is the Drawer's own div: an aside with the group role is
+ * a role axe refuses. */
+describe('guideline pages in React: the drawer picture', () => {
+  const picture = () => render(<DrawerPicture title="Northwind Payments">Rows</DrawerPicture>).container;
+  it('draws its panel as a div group named by the title', () => {
+    const panel = picture().querySelector('.ui-drawer__panel')!;
+    expect(panel.localName).toBe('div');
+    expect(panel).toHaveAttribute('role', 'group');
+    expect(panel).toHaveAccessibleName('Northwind Payments');
   });
 });
 

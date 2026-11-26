@@ -73,14 +73,14 @@ export const DrawerPicture = ({ title, footer, side = 'right', size = 'md', chil
 }) =>
   <div className={`ui-drawer ui-drawer--${side} ui-drawer--${size} is-open`}>
     <div className="ui-drawer__scrim" />
-    <aside className="ui-drawer__panel" role="group" aria-label={title}>
+    <div className="ui-drawer__panel" role="group" aria-label={title}>
       <header className="ui-drawer__header">
         <h2 className="ui-drawer__title">{title}</h2>
         <button type="button" className="ui-drawer__close" aria-label="Close"><Icon name="x" /></button>
       </header>
       <div className="ui-drawer__body">{children}</div>
       {footer && <footer className="ui-drawer__footer">{footer}</footer>}
-    </aside>
+    </div>
   </div>;
 
 /* A search field with words already in it, as a reader leaves it. An open
