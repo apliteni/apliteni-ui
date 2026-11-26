@@ -17,6 +17,7 @@
 .ui-field__error { color: var(--pink); font-size: var(--text-sm); margin-top: 7px; display: flex; align-items: center; gap: 6px; }
 .ui-field__error svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
+@property --ui-field-edge { syntax: "<color>"; inherits: false; initial-value: transparent; }
 .ui-input,
 .ui-textarea,
 .ui-select {
@@ -26,9 +27,13 @@
   /* Fields use the card surface and an edge in both themes.
      why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  border: 1px solid var(--field-edge);
+  /* The edge ink is a registered colour, so focus fades it in and out. A hover sets
+     border-color itself, so a hover edge changes at once. why: docs/foundations.md#motion */
+  --ui-field-edge: var(--field-edge);
+  border: 1px solid var(--ui-field-edge);
   padding: 12px 15px;
   width: 100%;
+  transition: --ui-field-edge var(--dur-med) var(--ease);
 }
 /* A one-line field has the large field corner. A text area has the larger message corner.
    The select is a control the reader presses, so it keeps the pill below. #836
@@ -65,17 +70,16 @@
 }
 
 .ui-input.is-invalid, .ui-select.is-invalid,
-.ui-textarea.is-invalid { border-color: var(--pink); }
+.ui-textarea.is-invalid { --ui-field-edge: var(--pink); border-color: var(--ui-field-edge); }
 /* Keep the border's width, but make its ink transparent while the ring shows.
    This also outranks the invalid and hover edges, so focus has one line. */
 .ui-input:focus-visible,
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
-  border-color: transparent;
+  --ui-field-edge: transparent;
+  border-color: var(--ui-field-edge);
   outline: var(--ring);
   outline-offset: var(--ring-offset);
-  /* Only focus fades the edge. A hover edge changes at once. why: docs/foundations.md#motion */
-  transition: border-color var(--dur-med) var(--ease);
 }
 
 /* A search field with a value gets the browser's own clear button, and the

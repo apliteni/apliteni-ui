@@ -129,6 +129,17 @@ export function tokensFor(theme, accent = 'default') {
   return vars;
 }
 
+/**
+ * Put a rule's own custom properties in place: `--x: transparent; border-color: var(--x)`
+ * reads as `border-color: transparent`. A field states its edge ink this way, so focus
+ * can fade it in both directions. Limit: only a property the same body declares.
+ */
+export function inlineLocals(body) {
+  const locals = new Map([...body.matchAll(/(?:^|[;{\s])(--[\w-]+)\s*:\s*([^;]+)/g)]
+    .map((m) => [m[1], m[2].trim()]));
+  return body.replace(/var\(\s*(--[\w-]+)\s*\)/g, (whole, name) => locals.get(name) ?? whole);
+}
+
 /** Substitute var() until a pass changes nothing (tokens reference tokens). */
 export function substitute(css, vars) {
   let out = css;

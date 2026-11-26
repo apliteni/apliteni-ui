@@ -24,6 +24,7 @@
 }
 
 /* Trigger — pill button: [pre] [value] [chevron] */
+@property --ui-dropdown-field-edge { syntax: "<color>"; inherits: false; initial-value: transparent; }
 .ui-dropdown__trigger {
   display: inline-flex;
   align-items: center;
@@ -38,11 +39,15 @@
      is what --disabled-border resolves to in LIGHT, so a live trigger used to draw
      the exact line the kit paints an unavailable control with. #580
      why: docs/foundations.md#colour-and-contrast */
-  border: 1px solid var(--control-edge);
+  --ui-dropdown-field-edge: var(--control-edge);
+  border: 1px solid var(--ui-dropdown-field-edge);
   border-radius: var(--radius-pill);
   /* The button's tight 13px line, so the two texts share a baseline. #822 This block padding,
      between two steps, and the edge hold the pill at 32px, level with an sm button. #814 */
   line-height: var(--leading-tight); padding: 7.2px 11px 7.2px 13px;
+  /* Focus fades the edge ink in and out. A hover sets border-color itself, so it
+     changes at once. why: docs/foundations.md#motion */
+  transition: --ui-dropdown-field-edge var(--dur-fast) var(--ease);
 }
 /* The hover edge steps aside under the band: an accent edge one pixel inside an
    accent band is the second band #578 round r34 took off the focus rules, and a
@@ -54,12 +59,11 @@
    off rules below tie it and come later still, so an off trigger keeps the off edge. #835
    why: docs/components.md#fields */
 .ui-dropdown__trigger[aria-invalid="true"],
-.ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { border-color: var(--pink); }
+.ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--pink); border-color: var(--ui-dropdown-field-edge); }
 /* As a select: under the ring the edge keeps its width and goes transparent, so focus has
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
-/* Only focus fades the edge. A hover edge changes at once. why: docs/foundations.md#motion */
-.ui-dropdown__trigger:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); transition: border-color var(--dur-fast) var(--ease); }
+.ui-dropdown__trigger:focus-visible { --ui-dropdown-field-edge: transparent; border-color: var(--ui-dropdown-field-edge); outline: var(--ring); outline-offset: var(--ring-offset); }
 /* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
@@ -500,12 +504,14 @@
   color: var(--strong);
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  border: 1px solid var(--field-edge);
+  --ui-dropdown-field-edge: var(--field-edge);
+  border: 1px solid var(--ui-dropdown-field-edge);
   border-radius: var(--radius-lg); /* The one-line field corner, as .ui-input. #836 */
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
   min-height: 38px;
+  transition: --ui-dropdown-field-edge var(--dur-fast) var(--ease); /* Focus only, as on the trigger. */
 }
 /* The light-only `background: var(--bg)` override this field used to carry is gone:
    --field-bg says the same thing for every field. Gated by
@@ -513,8 +519,7 @@
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
-/* Only focus fades the edge, as on .ui-input. why: docs/foundations.md#motion */
-.ui-dropdown__search-input:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); transition: border-color var(--dur-fast) var(--ease); }
+.ui-dropdown__search-input:focus-visible { --ui-dropdown-field-edge: transparent; border-color: var(--ui-dropdown-field-edge); outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */

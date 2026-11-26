@@ -176,8 +176,9 @@ Every easing is also a token. `--ease` is the default. The other options are `--
   limit from Robert B. Miller, "Response time in man-computer conversational transactions",
   AFIPS Fall Joint Computer Conference, 1968. A 150ms fade ends after that limit, so the fill
   trails the pointer and reads as lag. A press, a focus edge, a turning caret
-  and a lift keep their motion. Where one of them shares a control with a hover, the transition
-  goes on that state's own rule, such as `:focus-visible`. A selected, checked or current fill
+  and a lift keep their motion. A transition on a state's own rule runs only when the state
+  arrives, so a field keeps its edge ink in a custom property of its own. Focus fades that
+  property in and out, and a hover sets `border-color` at once. A selected, checked or current fill
   that a hover also paints changes at once too, because it answers a click.
 - **Anything that appears or leaves after the page has loaded moves.** Nothing animates on
   first render. Text that changes in place, such as a count or a range, changes immediately.

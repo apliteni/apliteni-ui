@@ -34,7 +34,7 @@
     "pattern": ".ui-btn--sm"
    },
    {
-    "ref": "src/styles/input.css:175",
+    "ref": "src/styles/input.css:179",
     "pattern": ".ui-check input::before"
    },
    {
@@ -82,7 +82,7 @@
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
-    "ref": "src/styles/input.css:63",
+    "ref": "src/styles/input.css:68",
     "pattern": "opacity: 1;"
    }
   ],
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:479",
+    "ref": "src/styles/dropdown.css:483",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:541",
+    "ref": "src/styles/dropdown.css:546",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:431",
+    "ref": "src/styles/dropdown.css:435",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -596,11 +596,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:436",
+    "ref": "src/styles/dropdown.css:440",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:437",
+    "ref": "src/styles/dropdown.css:441",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -786,8 +786,8 @@
     "pattern": "transition: transform var(--dur-fast) var(--ease);"
    },
    {
-    "ref": "src/styles/dropdown.css:62",
-    "pattern": "transition: border-color var(--dur-fast) var(--ease);"
+    "ref": "src/styles/dropdown.css:50",
+    "pattern": "transition: --ui-dropdown-field-edge var(--dur-fast) var(--ease);"
    }
   ],
   "easing": [
@@ -1139,7 +1139,7 @@
     "pattern": "border-radius: var(--radius-pill);"
    },
    {
-    "ref": "src/styles/input.css:37",
+    "ref": "src/styles/input.css:42",
     "pattern": ".ui-textarea { border-radius: var(--radius-2xl); }"
    },
    {
@@ -1355,11 +1355,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:439",
+    "ref": "src/styles/dropdown.css:443",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:441",
+    "ref": "src/styles/dropdown.css:445",
     "pattern": "color: var(--muted);"
    },
    {

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
+import { inlineLocals } from '../../stories/lib/contrast.js';
 
 // Every link and button the React shell writes must take the kit ring, so none falls
 // back to the browser's own outline. Subjects are discovered from the markup, so a new
@@ -71,6 +72,10 @@ test('the check rejects a shell control dropped from the ring', () => {
 // A focused field keeps one accent ring. The five classes that draw their own border hide
 // its ink while the ring shows, the Dropdown and DatePicker trigger since #837. The browser captures check the painted line; this check holds
 // the declarations and rejects a border brought back under the ring. why: #661
+// The edge also fades when focus arrives and when it leaves. A transition that the focus
+// rule declares runs only on the way in, so the field's own rule fades a property of its
+// own, and a hover's plain border-color changes at once. why: docs/foundations.md#motion
+// Limit: it reads the declarations; the fade itself is measured in the PR's Chromium run.
 const FIELD_FOCUS = [
   ['input.css', '.ui-input:focus-visible'],
   ['input.css', '.ui-textarea:focus-visible'],
@@ -78,30 +83,47 @@ const FIELD_FOCUS = [
   ['dropdown.css', '.ui-dropdown__search-input:focus-visible'],
   ['dropdown.css', '.ui-dropdown__trigger:focus-visible'],
 ];
+const rulesOf = (sheet) => [...sheet.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .map(([, head, body]) => ({ selectors: splitSelectorList(head), body }));
 const fieldFocusBody = (sheet, selector) => {
-  const css = sheet.replace(/\/\*[\s\S]*?\*\//g, '');
-  const matches = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
-    .filter(([, head]) => splitSelectorList(head).includes(selector));
+  const matches = rulesOf(sheet).filter(({ selectors }) => selectors.includes(selector));
   assert.equal(matches.length, 1, `${selector} needs one field focus rule`);
-  return matches[0][2];
+  return matches[0].body;
 };
 const checkFieldFocus = (sheets) => {
   assert.equal(FIELD_FOCUS.length, 5, 'text, textarea, select, Dropdown search and the trigger are measured');
   for (const [file, selector] of FIELD_FOCUS) {
-    const body = fieldFocusBody(sheets[file], selector);
+    const raw = fieldFocusBody(sheets[file], selector);
+    const body = inlineLocals(raw);
     assert.match(body, /border-color:\s*transparent\s*;/, `${selector} hides its own border ink`);
     assert.match(body, /outline:\s*var\(--ring\)/, `${selector} keeps the kit ring`);
     assert.match(body, /outline-offset:\s*var\(--ring-offset\)/, `${selector} keeps the gap`);
+    const edge = /border-color:\s*var\((--[\w-]+)\)/.exec(raw)?.[1];
+    assert.ok(edge, `${selector} names no edge property, so its edge cannot fade when focus leaves`);
+    assert.doesNotMatch(raw, /(^|;)\s*transition/, `${selector} declares a transition, which runs only when focus arrives`);
+    const field = selector.replace(':focus-visible', '');
+    const own = rulesOf(sheets[file]).filter(({ selectors }) => selectors.includes(field)).map(({ body: b }) => b).join(';');
+    assert.match(own, new RegExp(`transition:[^;]*${edge}\\s`), `${field} does not fade ${edge}, so the edge jumps when focus leaves`);
   }
 };
 
-test('focused fields keep one ring with a transparent border', () => {
+test('focused fields keep one ring with a transparent border, and the edge fades in and out', () => {
   const sheets = Object.fromEntries([...new Set(FIELD_FOCUS.map(([file]) => file))]
     .map((file) => [file, readFileSync(path.join(here, file), 'utf8')]));
   checkFieldFocus(sheets);
+  const mutations = [
+    [/(--ui-[\w-]+-edge): transparent;/, '$1: var(--field-edge);', /hides its own border ink/],
+    // The shape that faded the edge only on the way in.
+    [/(--ui-[\w-]+-edge): transparent;\s*border-color: var\(\1\);/, 'border-color: transparent; transition: border-color 1s;', /names no edge property/],
+    [/(--ui-[\w-]+-edge): transparent;/, '$1: transparent; transition: border-color 1s;', /runs only when focus arrives/],
+    [/transition: (--ui-[\w-]+-edge) [^;]+;/g, '', /jumps when focus leaves/],
+  ];
   for (const file of Object.keys(sheets)) {
-    const changed = { ...sheets, [file]: sheets[file].replace('border-color: transparent;', 'border-color: var(--field-edge);') };
-    assert.throws(() => checkFieldFocus(changed), /hides its own border ink/);
+    for (const [from, to, refusal] of mutations) {
+      const changed = { ...sheets, [file]: sheets[file].replace(from, to) };
+      assert.notEqual(changed[file], sheets[file], `${file}: the mutation ${from} did not apply`);
+      assert.throws(() => checkFieldFocus(changed), refusal);
+    }
   }
 });
 
