@@ -114,7 +114,7 @@ const Controls = ({ query, onQuery, filters, onChange, onClear }: {
   onChange: (id: string, value: string | undefined) => void; onClear: () => void;
 }) => <div className="ui-toolbar ui-toolbar--split">
   <SearchField size="sm" width="26ch" ariaLabel="Search sales" placeholder="Reference or sale ID" value={query} onChange={e => onQuery(e.currentTarget.value)} />
-  <div><FilterBar filters={filters} label="Sale filters" clearLabel="Clear all" onChange={onChange} onClear={onClear} /></div>
+  <div><FilterBar size="sm" filters={filters} label="Sale filters" clearLabel="Clear all" onChange={onChange} onClear={onClear} /></div>
   <Button variant="ghost" size="sm" icon="download" iconOnly>Export rows</Button>
 </div>;
 

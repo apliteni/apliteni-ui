@@ -88,6 +88,8 @@ it('stays paused until both hover and focus leave, including repeated pauses', (
   vi.useFakeTimers(); setup(); fireEvent.click(screen.getByText('Notify'));
   const notice = screen.getByText('Saved').closest('.ui-toast')!;
   const close = screen.getByRole('button', { name: 'Dismiss' });
+  // A wordless button has a hover title as well as its name (Button labels: Earn a wordless button).
+  expect(close).toHaveAttribute('title', 'Dismiss');
   act(() => vi.advanceTimersByTime(1000));
   act(() => close.focus());
   act(() => vi.advanceTimersByTime(10000));
@@ -143,6 +145,71 @@ it('publishes how far the stack reaches so a fixed page action can clear it', ()
     expect(reach()).toBe('');
   } finally {
     HTMLElement.prototype.getBoundingClientRect = real;
+  }
+});
+// A page with a bar at the bottom moves the stack with `bottomOffset`, not with a selector on the
+// kit's node (#907). The stub reads the inset from the stack's own style, as a browser would place it.
+it('moves the stack by bottomOffset and publishes the new reach', () => {
+  const reach = () => document.documentElement.style.getPropertyValue('--rx-toast-stack');
+  const stack = () => document.querySelector('.rx-toast-stack') as HTMLElement;
+  const real = HTMLElement.prototype.getBoundingClientRect;
+  let lag = false;
+  HTMLElement.prototype.getBoundingClientRect = function () {
+    if (!this.classList.contains('rx-toast-stack')) return real.call(this);
+    const bottom = this.style.bottom;
+    const inset = bottom && !lag ? parseFloat(bottom) * (bottom.endsWith('vh') ? window.innerHeight / 100 : 1) : 16;
+    return { height: 85, top: window.innerHeight - inset - 85, bottom: window.innerHeight - inset } as DOMRect;
+  };
+  let content = 85;
+  const scrollHeight = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollHeight')!;
+  Object.defineProperty(HTMLElement.prototype, 'scrollHeight', { configurable: true,
+    get() { return this.classList.contains('rx-toast-stack') ? content : 0; } });
+  const height = window.innerHeight;
+  const page = (bottomOffset?: number | string) => <Toast bottomOffset={bottomOffset}><Trigger notice={{ title: 'Saved' }} /></Toast>;
+  try {
+    const { rerender } = render(page());
+    expect(stack().style.bottom).toBe('');
+    fireEvent.click(screen.getByText('Notify'));
+    expect(reach()).toBe('101px');
+    rerender(page(80));
+    expect(stack().style.bottom).toBe('80px');
+    expect(reach()).toBe('165px');
+    rerender(page('120px'));
+    expect(stack().style.bottom).toBe('120px');
+    expect(reach()).toBe('205px');
+    // A length the browser cannot read leaves the kit's 16px.
+    rerender(page('one bar'));
+    expect(stack().style.bottom).toBe('');
+    expect(reach()).toBe('101px');
+    // Under reduced motion the move is a 0.01ms transition, so the stack is still at 16px when
+    // the offset is set. The reach follows when the move ends.
+    lag = true;
+    rerender(page(80));
+    expect(reach()).toBe('101px');
+    lag = false;
+    fireEvent.transitionEnd(stack().firstElementChild!);
+    expect(reach()).toBe('101px');
+    fireEvent.transitionEnd(stack());
+    expect(reach()).toBe('165px');
+    // An offset in view units moves the stack when the view changes size, and nothing in the stack
+    // changes size, so the view's resize publishes the reach again.
+    rerender(page('10vh'));
+    expect(reach()).toBe(`${Math.round(height / 10 + 85)}px`);
+    window.innerHeight = 1000;
+    fireEvent(window, new Event('resize'));
+    expect(reach()).toBe('185px');
+    // A stack taller than the room above its inset scrolls, and stops when the notices fit again.
+    expect(stack()).not.toHaveClass('rx-toast-stack--scroll');
+    content = 1000;
+    fireEvent(window, new Event('resize'));
+    expect(stack()).toHaveClass('rx-toast-stack--scroll');
+    content = 85;
+    fireEvent(window, new Event('resize'));
+    expect(stack()).not.toHaveClass('rx-toast-stack--scroll');
+  } finally {
+    HTMLElement.prototype.getBoundingClientRect = real;
+    Object.defineProperty(HTMLElement.prototype, 'scrollHeight', scrollHeight);
+    window.innerHeight = height;
   }
 });
 
