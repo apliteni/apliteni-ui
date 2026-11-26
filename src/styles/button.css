@@ -14,6 +14,14 @@
   /* The outer height of an sm button, with or without a glyph. It stands level with a
      pill dropdown trigger. #814 */
   --btn-height-sm: var(--space-8);
+  /* The small control height: a small search field, filter bar, dropdown and toolbar
+     button. 32px with a mouse. #903 why: docs/components.md#toolbar */
+  --control-height-sm: var(--btn-height-sm);
+}
+/* On a touch screen a small field keeps 16px text, so iOS does not zoom, and the small
+   controls stand 40px beside it. #832, #903 */
+@media (pointer: coarse) {
+  :root { --control-height-sm: var(--space-10); }
 }
 
 .ui-btn {

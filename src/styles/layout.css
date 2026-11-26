@@ -603,9 +603,9 @@
    give a stretched box a width from its height, so the button takes the height that
    the row gets: a chip's height beside a filter bar, and beside a full field the field's
    own height, which is the line box of the field's text, its 12px padding and its edge.
-   On a touch screen every field is a full field with 16px text. #831
+   On a touch screen a full field has 16px text. A small row gives the button size="sm". #831, #903
    why: docs/foundations.md#control-corners */
-.ui-toolbar:has(.ui-filter-bar) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
+.ui-toolbar:has(.ui-filter-bar:not(.ui-filter-bar--sm)) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
   min-width: var(--ui-filter-row-h);
   min-height: var(--ui-filter-row-h);
 }
@@ -620,7 +620,7 @@
   }
 }
 @media (pointer: coarse) {
-  .ui-toolbar:has(> .ui-input-group > .ui-input, > .ui-input) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
+  .ui-toolbar:has(> .ui-input-group > .ui-input:not(.ui-input--sm), > .ui-input:not(.ui-input--sm)) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm) {
     font-size: 16px;
     line-height: normal;
     min-width: calc(1lh + 26px);
@@ -628,7 +628,16 @@
   }
 }
 @media (max-width: 560px) {
-  .ui-toolbar--split:has(.ui-filter-bar) > :last-child { min-height: var(--ui-filter-row-h); }
+  .ui-toolbar--split:has(.ui-filter-bar:not(.ui-filter-bar--sm)) > :last-child { min-height: var(--ui-filter-row-h); }
+}
+/* On a touch screen a small button or segmented control on a toolbar line takes the small
+   control height, and a wordless one is a circle of it. A small search field, filter bar
+   and dropdown take that height by their own size, so no other control on the row sets it.
+   With a mouse a small button is that height already. #822, #832, #903
+   why: docs/components.md#toolbar */
+@media (pointer: coarse) {
+  .ui-toolbar > :is(.ui-btn--sm, .ui-seg--sm) { min-height: var(--control-height-sm); }
+  .ui-toolbar > .ui-btn--icon.ui-btn--sm { min-width: var(--control-height-sm); }
 }
 /* On a touch screen a dropdown trigger alone on a toolbar line takes a chip's height too,
    not its own 32px, so every control under the full field is one height. #822 */

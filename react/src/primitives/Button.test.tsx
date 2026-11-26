@@ -1,7 +1,9 @@
-import { createRef } from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+import { createRef, type ReactElement } from 'react';
+import { render, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { Button } from './Button';
 import { classesOfEl } from '../test/classlist';
+import * as stories from '../Button.stories';
+import { iconOnlyNames } from '../../../src/assets/icons.js';
 
 // The class lists the vanilla button() wrote, held after #429 removed it.
 it.each([
@@ -229,9 +231,12 @@ it('names an icon-only button from its children', () => {
   expect(getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close');
 });
 
-it('lets an explicit aria-label win over the children fallback', () => {
-  const { getByRole } = render(<Button iconOnly icon="x" aria-label="Dismiss">Close</Button>);
-  expect(getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
+it('lets an explicit aria-label win over the children fallback, and gives it as the hover title', () => {
+  const { getByRole } = render(<><Button iconOnly icon="x" aria-label="Dismiss">Close</Button>
+    <Button iconOnly icon="menu" aria-label="Menu" title="Open the menu" /></>);
+  // Button labels: Earn a wordless button asks for a name and a hover title.
+  expect(getByRole('button', { name: 'Dismiss' })).toHaveAttribute('title', 'Dismiss');
+  expect(getByRole('button', { name: 'Menu' })).toHaveAttribute('title', 'Open the menu');
 });
 
 it('falls back to the icon name rather than shipping a nameless button', () => {
@@ -418,4 +423,29 @@ it('forwards refs to the native root, including after changing roots', () => {
   rerender(<Button href="#details" ref={linkRef}>Details</Button>);
   expect(linkRef.current).toBe(getByRole('link'));
   expect(buttonRef.current).toBeNull();
+});
+
+// The Button gallery shows each wordless button as a circle with a name and a hover title,
+// for an action on the closed list, and spaces its specimens with the kit's two gaps.
+// Limits: JSDOM reads the inline layout, not the pixels.
+// why: guidelines/button-labels.md#earn-a-wordless-button, docs/foundations.md#spacing-and-rhythm
+const CLOSED = ['x', 'copy', 'moreHorizontal', 'moreVertical', 'chevronDown', 'chevronUp', 'download'] as const;
+const closedWords = new Set(CLOSED.flatMap(glyph => iconOnlyNames[glyph]));
+const gallery = Object.entries(stories).filter(([key]) => key !== 'default') as [string, { render: () => ReactElement }][];
+it.each(gallery)('%s: a wordless button is a titled circle on the closed list, in a gallery of two gaps', (_, story) => {
+  const Story = story.render;
+  const { container } = render(<Story />);
+  for (const button of Array.from(container.querySelectorAll<HTMLElement>('.ui-btn--icon'))) {
+    const name = button.getAttribute('aria-label') ?? '';
+    expect(button.getAttribute('title'), name).toBe(name);
+    expect(closedWords, name).toContain(name.split(/\s+/)[0].toLowerCase());
+  }
+  // A column stretches its children unless it aligns them.
+  for (const button of Array.from(container.querySelectorAll<HTMLElement>('.ui-btn'))) {
+    const column = button.parentElement!.style;
+    if (column.flexDirection === 'column') expect(column.alignItems, button.textContent ?? '').toBe('flex-start');
+  }
+  const gaps = Array.from(container.querySelectorAll<HTMLElement>('[style]')).map(el => el.style.gap).filter(Boolean);
+  expect(gaps.filter(gap => !['var(--space-8)', 'var(--space-2)'].includes(gap))).toEqual([]);
+  cleanup();
 });
