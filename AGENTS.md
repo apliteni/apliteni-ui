@@ -306,6 +306,15 @@ Before opening a PR that changes `react/src/ThreeColumnPage.css`, `react/src/Wiz
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js THREE_COLUMN=1 node --test stories/three-column.test.js`
 Report the result in the PR. CI skips this check because Playwright and web-vitals are not dependencies.
 
+## Check the split layout locally
+
+Before opening a PR that changes `react/src/SplitLayout.css`, React `<SplitLayout>` or the
+Document review showcase, walk the split's keys and clicks in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js SPLIT_LAYOUT=1 node --test stories/split-layout.test.js`
+It walks the zoom, Try again and the step changes at 10 sizes and on 6 devices. Report the
+result in the PR. CI runs only the source half, in `react/src/SplitLayout.test.tsx`.
+
 ## Check the drawer footer locally
 
 Before opening a PR that changes the body or footer rules of `src/styles/drawer.css`, React

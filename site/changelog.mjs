@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.213.0', date: '2026-11-26',
+    changes: [
+      ['added', '`SplitLayout` splits a page under the band into two full-height panes: 60% for the values to check and their actions, and 40% for a preview of the source document on the document ground. Each pane scrolls on its own, and at 860px and below they stack in one scroll with the preview tools and the actions kept in view. The preview has Fit and 50% to 200% zoom, and a loading and an unavailable state with Try again. Part of #903.', ['SplitLayout']],
+      ['changed', 'In `AppShell`, a sidebar row whose path is above the `pathname`, such as `/invoices` for `/invoices/1042`, is now marked as the parent section (`aria-current="true"`) also without a `back` link. Before, it was marked as the page. Apps with sub-routes and no back link are affected. Part of #903.', ['AppShell']],
+      ['changed', 'The Document review showcase now uses `SplitLayout` and writes no CSS of its own. Its review screen holds its title in the first pane. Part of #903.', ['SplitLayout']],
+    ],
+  },
+  {
     v: '0.209.0', date: '2026-11-26',
     changes: [
       ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],

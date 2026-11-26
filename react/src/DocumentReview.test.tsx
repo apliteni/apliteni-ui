@@ -1,51 +1,22 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { composeStories } from '@storybook/react';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import * as stories from './DocumentReview.stories';
-// stories/lib is plain JS outside this workspace's tsconfig, shared the way the contrast
-// arithmetic is. Its own unit tests live beside it.
-// @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
-import { accentOffences } from '../../stories/lib/accent-paint.js';
-
-/* The showcase's one stylesheet file, read as text. Vitest does not apply imported CSS in
- * jsdom, so a rule living there cannot be measured through getComputedStyle; it is held
- * as the declaration it is. It lives there rather than in the story's <style> because the
- * React contrast walk substitutes this workspace's CSS for both themes and judges what it
- * finds, while an inline block reaches it with var() intact and is counted as a colour
- * that would not parse. */
-const SHEET = readFileSync(path.join(process.cwd(), 'src/DocumentReview.css'), 'utf8');
 
 /* The three-step flow, driven through the story the showcase publishes, so the test and
  * the screen a reader sees cannot drift apart. jsdom has no layout, so what this covers
  * is structure, naming, order and state: which step is on screen, what each step offers,
- * and what is announced. Column geometry, the sticky action row at 560px, the sheet's
- * zoom and every contrast pair are checked in the browser captures on #385, not here. */
+ * and what is announced. The split, the sticky action row and every contrast pair are
+ * checked in the browser captures on the #903 PR. The zoom and the preview states are
+ * SplitLayout's, and SplitLayout.test.tsx holds them. */
 
 const { Default } = composeStories(stories);
-// jsdom 31 resolves var() in computed styles, so the weight tokens the showcase
-// declares are loaded here or every var(--weight-*) falls back to the initial 400
-// and the cascade cannot tell the ranks apart. The values match src/tokens/tokens.css.
-const WEIGHT_TOKENS = {
-  '--weight-normal': '400',
-  '--weight-medium': '500',
-  '--weight-semibold': '600',
-} as const;
-beforeEach(() => {
-  for (const [name, value] of Object.entries(WEIGHT_TOKENS)) {
-    document.documentElement.style.setProperty(name, value);
-  }
-});
 afterEach(() => {
   cleanup();
   document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/';
-  for (const name of Object.keys(WEIGHT_TOKENS)) {
-    document.documentElement.style.removeProperty(name);
-  }
 });
 
-const actions = () => within(document.querySelector('.doc-flow__actions') as HTMLElement);
+const actions = () => within(document.querySelector('.ui-split__actions, .ui-toolbar') as HTMLElement);
 const status = () => document.querySelector('.ui-busy .ui-sr') as HTMLElement;
 
 describe('document review flow', () => {
@@ -77,6 +48,14 @@ describe('document review flow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to review' }));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Review invoice DEMO-1042');
     expect(screen.getByText('Interface design')).toBeInTheDocument();
+  });
+
+  it('puts the focus on the new step\'s title when the pressed button leaves', () => {
+    render(<Default />);
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to approval' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Confirm approval' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to review' }));
+    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Review invoice DEMO-1042' }));
   });
 
   it('marks the whole screen busy from one flag and announces the result', () => {
@@ -151,20 +130,13 @@ describe('document review flow', () => {
     // Fix 11: both sides write 1,440.00 with the unit in the header, and both put the
     // figure in a right-aligned numeric cell so the decimal points line up.
     for (const table of [document_, extracted]) {
-      const total = [...table.querySelectorAll('tfoot tr')].at(-1) as HTMLElement;
+      const rows = table.querySelectorAll('tr');
+      const total = rows[rows.length - 1] as HTMLElement;
       expect(total).toHaveTextContent('Total');
       const figure = total.querySelector('td') as HTMLElement;
       expect(figure).toHaveTextContent('1,440.00');
       expect(figure).toHaveClass('ui-table__num');
       expect(figure).toHaveClass('ui-table__num--strong');
-    }
-    // The label column shares one edge with its own header. The header is left by the
-    // kit's `.ui-table th` default, so the showcase sends the body and footer labels
-    // there too instead of leaving the header and its values on opposite sides.
-    // Limit: jsdom applies the story's own <style> and not the kit stylesheet, so this
-    // measures the override; the rendered columns are in the #385 browser captures.
-    for (const label of extracted.querySelectorAll('tbody th, tfoot th')) {
-      expect(getComputedStyle(label).textAlign).toBe('left');
     }
     expect(extracted.querySelector('thead th:last-child')).toHaveTextContent('EUR');
     expect(document_.querySelector('thead th:last-child')).toHaveTextContent('Amount (EUR)');
@@ -173,198 +145,21 @@ describe('document review flow', () => {
     expect(extracted.textContent).not.toContain('€');
   });
 
-  // The kit's weight tokens, in rank order, resolved by getComputedStyle through the
-  // tokens loaded in beforeEach. The showcase declares a weight on every label and
-  // every value in the leading pane rather than inheriting one, because the kit
-  // stylesheet is not loaded here: an inherited weight reads as the body weight
-  // `.ui-table th` actually paints, which is how the inverted amounts table passed
-  // the first version of this gate.
-  const declaresWeight = (el: Element): boolean => {
-    if ((el as HTMLElement).style?.fontWeight) return true;
-    const walk = (rules: CSSRuleList): boolean => {
-      for (const rule of [...rules]) {
-        if ('selectorText' in rule && 'style' in rule) {
-          if (rule.style.getPropertyValue('font-weight') && el.matches(rule.selectorText)) return true;
-        } else if ('cssRules' in rule) {
-          if (walk((rule as CSSGroupingRule).cssRules)) return true;
-        }
-      }
-      return false;
-    };
-    return [...document.styleSheets].some((sheet) => walk(sheet.cssRules));
-  };
-  const RANK: Record<string, number> = {
-    '400': 400,
-    '500': 500,
-    '600': 600,
-  };
-  /** The value a matching rule declares for one property, in source order. jsdom 31
-   * resolves var() in computed styles, so this reads the declaration, not the resolved
-   * value; the width and grid checks below hold what the showcase writes. It reads
-   * base rules only: breakpoint overrides are measured in the #385 captures. */
-  const declaredValue = (el: Element | null, property: string): string => {
-    let declared = '';
-    const visit = (rules: CSSRuleList) => {
-      for (const rule of [...rules]) {
-        if ('selectorText' in rule && 'style' in rule) {
-          if (!(el as HTMLElement).matches(rule.selectorText)) continue;
-          const value = rule.style.getPropertyValue(property);
-          if (value) declared = value;
-        } else if ('cssRules' in rule) {
-          if ('media' in rule) continue; // jsdom 31 ships no matchMedia to judge these
-          visit((rule as CSSGroupingRule).cssRules);
-        }
-      }
-    };
-    for (const sheet of [...document.styleSheets]) visit(sheet.cssRules);
-    return declared;
-  };
-  const rank = (el: Element | null, what: string) => {
-    const weight = getComputedStyle(el as HTMLElement).fontWeight;
-    if (!(weight in RANK) || !declaresWeight(el as HTMLElement)) {
-      throw new Error(`${what} carries no weight this showcase declares (${weight || 'nothing'}); `
-        + 'the leading pane must state its own ranking, not inherit one.');
-    }
-    return RANK[weight];
-  };
-
-  it('gives the values that get saved more emphasis than the document they came from', () => {
-    const { container } = render(<Default />);
-    const panes = [...container.querySelectorAll('.doc-flow__panes > .ui-card')];
-    // Discover the panes rather than naming them: a step that grows a third pane should
-    // fail here until this gate is told what emphasis it carries.
-    expect(panes).toHaveLength(2);
-    const titles = panes.map((pane) => pane.querySelector('.ui-card__title')?.textContent);
-    expect(titles).toEqual(['Extracted fields', 'Document preview']);
-    const [saved, source] = panes;
-
-    // Position, width, weight and accent are the rule's four levers, and the preview
-    // holds none of them. why: guidelines/density-and-accents.md#follow-the-consequence
-    //
-    // Accent. It is ink on the leading pane's own name, and it is the only accent in
-    // either pane. Not a border: an edge strong enough to read as the signal measured
-    // 2.76:1 against the kit hairline's 1.24:1 and read as an outlined box, which is why
-    // the sheet below bounds any accent mix this showcase writes.
-    // why: guidelines/density-and-accents.md#follow-the-consequence
-    expect(saved).toHaveClass('doc-flow__saved-pane');
-    // The colour is in DocumentReview.css so the contrast walk can resolve it, so this
-    // holds the selector that sheet paints together with the class the markup wears —
-    // the two halves that put the accent on this one name.
-    expect(SHEET).toMatch(/\.doc-flow__saved-pane\s+\.ui-card__title\s*\{[^}]*color:\s*var\(--accent\)/);
-    // The preview carries none of it: not on its name and not on a card ground.
-    expect(source).not.toHaveClass('doc-flow__saved-pane');
-    expect(source.querySelectorAll('.ui-card--accent, .ui-card--live, .doc-flow__saved-pane'))
-      .toHaveLength(0);
-    // Neither card draws an edge of its own, so both keep one hairline between them.
-    // Limit: the kit stylesheet is not loaded here, so this holds that the showcase
-    // declares no edge on either card; the painted hairlines are measured in the #385
-    // captures, where both read 1.12:1 light and 1.50:1 dark against the page.
-    expect(getComputedStyle(saved as HTMLElement).borderTopColor)
-      .toBe(getComputedStyle(source as HTMLElement).borderTopColor);
-
-    // The leading pane is the one that says what approval writes, and it is the only
-    // one carrying that sentence — the preview stays a preview.
-    expect(saved.querySelector('.ui-card__sub')).toHaveTextContent('Saved to the record when you approve.');
-    expect(source.querySelector('.ui-card__sub')).toBeNull();
-
-    // Weight, on every label/value pair the leading pane holds — the drawer rows and
-    // the amounts table alike, discovered rather than listed, with the count checked so
-    // a pair the gate does not reach fails it.
-    // Limit: jsdom applies the story's own <style> and not the kit stylesheet, so this
-    // measures the showcase's declarations; the rendered weight, the column widths and
-    // the preview's scale are in the #385 browser captures.
-    const pairs: { what: string; label: Element | null; value: Element | null }[] = [
-      ...[...saved.querySelectorAll('.doc-flow__saved .ui-drawer__row')].map((row) => ({
-        what: row.querySelector('dt')?.textContent ?? 'drawer row',
-        label: row.querySelector('dt'),
-        value: row.querySelector('dd'),
-      })),
-      ...[...saved.querySelectorAll('.doc-flow__amounts :is(tbody, tfoot) tr')].map((row) => ({
-        what: row.querySelector('th')?.textContent ?? 'amounts row',
-        label: row.querySelector('th'),
-        value: row.querySelector('td'),
-      })),
-    ];
-    const rowsInPane = saved.querySelectorAll('.ui-drawer__row, .doc-flow__amounts :is(tbody, tfoot) tr');
-    expect(pairs, 'every label/value row in the leading pane is measured')
-      .toHaveLength(rowsInPane.length);
-    expect(pairs.length).toBeGreaterThan(5);
-
-    for (const { what, label, value } of pairs) {
-      expect(label).not.toBeNull();
-      expect(value).not.toBeNull();
-      // The value outranks its label, and nothing is faded to get there: the rank is
-      // weight, and the showcase writes no colour of its own.
-      // why: guidelines/labels-and-titles.md#limit-muted-ink
-      expect(rank(value, `${what}: the value`),
-        `${what}: the value must outrank its label`).toBeGreaterThan(rank(label, `${what}: the label`));
-      expect(getComputedStyle(value as HTMLElement).color)
-        .toBe(getComputedStyle(label as HTMLElement).color);
-    }
-
-    // The preview is quieter by being narrower, not by being scaled down: the sheet's
-    // own page width is the panel it sits in, so Fit lands near 1:1.
-    const sheet = container.querySelector('.doc-flow__sheet') as HTMLElement;
-    expect(declaredValue(sheet, 'width')).toBe('var(--panel-md)');
-    const panes_ = container.querySelector('.doc-flow__panes') as HTMLElement;
-    expect(declaredValue(panes_, 'grid-template-columns')).toBe('minmax(0, 1fr) var(--panel-md)');
-  });
-
-  // The showcase paints the accent as ink on one name. This holds that it paints no line
-  // from it anywhere — in the sheet beside the story or the block the story injects — and
-  // that no accent mix it writes is louder than the kit's own edge. The judgement is
-  // shared with the vanilla specimen's gate; the coverage check below is this
-  // workspace's own. why: guidelines/density-and-accents.md#follow-the-consequence
-  it('paints the accent as ink only, never as a line, and never louder than the kit', () => {
+  it('splits the review screen: the fields and the action first, the document on its ground', () => {
     render(<Default />);
-    const inline = [...document.querySelectorAll('style')].map((s) => s.textContent ?? '').join('\n');
-    expect(inline, 'the story injects its own stylesheet').toContain('.doc-flow');
-    expect(SHEET, 'the showcase ships a sheet beside the story').toContain('.doc-flow__saved-pane');
-    // Both halves are judged, and named apart, so a sheet that stops being read shows up
-    // as a missing subject rather than a silent pass.
-    const sheets = [['DocumentReview.css', SHEET], ['the story\u2019s own <style>', inline]] as const;
-    expect(sheets.filter(([, css]) => css.trim()), 'both sheets reach this gate').toHaveLength(2);
-    expect(sheets.flatMap(([where, css]) => accentOffences(css, where))).toEqual([]);
+    // The review screen holds its own h1, so the shell takes the full width and no title.
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+    const fields = screen.getByRole('region', { name: 'Extracted fields' });
+    expect(within(fields).getByRole('heading', { level: 1 })).toHaveTextContent('Review invoice DEMO-1042');
+    expect(within(fields).getByRole('link', { name: 'Back to Invoices' })).toBeInTheDocument();
+    expect(within(fields).getByText(/Approval saves them to the record/)).toBeInTheDocument();
+    const preview = screen.getByRole('region', { name: 'Document preview' });
+    expect(preview).toHaveClass('ui-document-ground');
+    expect(within(preview).getByText('Interface design')).toBeInTheDocument();
+    expect(document.querySelector('.ui-app__main')).toHaveClass('ui-app__main--full');
   });
 
-  it('lays the document on a recessed stage under its own toolbar, as a kit page', () => {
-    const { container } = render(<Default />);
-    // The sheet is the kit's page inside the kit's viewer, so the kit draws the ground,
-    // edge and recess and the showcase draws none of it.
-    // Limit: jsdom applies the story's own <style> only, so this holds the structure and
-    // the declarations the showcase writes; the paint of both themes is in the #736
-    // browser captures.
-    const viewer = container.querySelector('.doc-flow__panes > .ui-card:last-child > .ui-card__viewer');
-    expect(viewer).not.toBeNull();
-    expect(viewer?.firstElementChild).toHaveClass('ui-toolbar');
-    const sheet = viewer?.querySelector(':scope > .ui-table-scroll > .doc-flow__sheet') as HTMLElement;
-    expect(sheet).toHaveClass('ui-card__page');
-    const box = getComputedStyle(sheet);
-    expect(box.backgroundColor).toBe('rgba(0, 0, 0, 0)');
-    expect(box.borderTopWidth).toBe('0px');
-
-    // One page in the demo: the count says so and neither page step can act.
-    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Previous page' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled();
-
-    // The zoom steps through the same four presets and stops at each end.
-    const out = screen.getByRole('button', { name: 'Zoom out' });
-    const zoomIn = screen.getByRole('button', { name: 'Zoom in' });
-    fireEvent.click(out);
-    expect(screen.getByText('50%')).toBeInTheDocument();
-    expect(sheet.style.zoom).toBe('0.5');
-    expect(out).toBeDisabled();
-    fireEvent.click(zoomIn); // back to Fit
-    fireEvent.click(zoomIn);
-    expect(screen.getByText('150%')).toBeInTheDocument();
-    fireEvent.click(zoomIn);
-    expect(screen.getByText('200%')).toBeInTheDocument();
-    expect(sheet.style.zoom).toBe('2');
-    expect(zoomIn).toBeDisabled();
-  });
-
-  it('offers no download and no zoom it cannot apply while the preview is missing', () => {
+  it('offers no download, and keeps the fields while the preview is missing', () => {
     const { rerender } = render(<Default preview="unavailable" />);
     // Artur removed "Download text" on PR #437: it wrote a summary, not the document.
     expect(screen.queryByRole('button', { name: /Download/ })).not.toBeInTheDocument();
@@ -376,7 +171,7 @@ describe('document review flow', () => {
     expect(status()).toHaveTextContent('Preview unavailable');
 
     rerender(<Default preview="loading" />);
-    expect(status()).toHaveTextContent('Loading the invoice');
+    expect(screen.getByText('Loading the preview')).toHaveAttribute('role', 'status');
     expect(screen.getByRole('button', { name: 'Continue to approval' })).toBeDisabled();
   });
 });
