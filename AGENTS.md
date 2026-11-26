@@ -269,10 +269,11 @@ Report the result in the PR. CI skips this check because Playwright is not a dep
 
 ## Check the phone account window locally
 
-Before opening a PR that changes the 560px rules of `react/src/AccountWindow.css`, measure the
-window in a real browser. Run `npm run build-storybook` first, then:
-`UI_PLAYWRIGHT=… ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
-Report the result in the PR. CI runs only this gate's source half.
+Before opening a PR that changes the 560px rules of `react/src/AccountWindow.css` or React
+`<AccountWindow>`, measure the window in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js ACCOUNT_PHONE=1 node --test stories/account-window-phone.test.js`
+It also walks the keys and clicks of the window at 10 sizes and on 6 devices. Report the result
+in the PR. CI runs only this gate's source half.
 
 ## Check the file drop row locally
 

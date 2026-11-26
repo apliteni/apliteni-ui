@@ -1027,7 +1027,7 @@
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
-    "ref": "react/src/AccountWindow.tsx:33",
+    "ref": "react/src/AccountWindow.tsx:31",
     "pattern": "export function AccountWindow("
    }
   ],

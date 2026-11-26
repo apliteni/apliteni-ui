@@ -1204,11 +1204,16 @@ leaves it to the window.
 **What the user sees.** A window 1024px wide and 76% of the viewport high, with a rail of sections
 and the reader at the top. The open section has the accent. When the section changes, the pane
 mounts again, so a half-filled form does not follow the user. At 560px and below, the window
-floats with a gap on each side and is as tall as its content. The sections become tabs under the
-reader.
+floats with a gap on each side and takes the full height of the screen, so a section change does
+not change its height. On a phone the window shows one section, and a back button opens the list
+of sections. The window opens on the section. Its head row holds the back button, named Sections,
+the section title and the close control. The screen of sections holds the reader, the close
+control and the rail, with the open section marked. A press on a section opens it.
 
-**Keyboard and screen reader.** Each rail row is a button with `aria-current`. On a phone the tabs
-have one Tab stop, and the arrow keys, Home and End move between them.
+**Keyboard and screen reader.** Each rail row is a button with `aria-current`. The section body is
+a region named by the section title. On a phone, the back button moves focus to the marked
+section, and a press on a section moves focus to the back button. Escape closes the window from
+each screen.
 
 ### Tooltip
 

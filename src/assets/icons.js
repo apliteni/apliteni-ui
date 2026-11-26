@@ -186,7 +186,9 @@ export const iconOnlyAllowed = {
   menu: 'open the navigation drawer',
   // A document viewer's page and zoom steps, chosen by Artur on #736: a slim row of
   // steppers either side of the readout they move, so the readout names the action.
-  chevronLeft: 'step to the previous page',
+  // The phone account window's back button, chosen by Artur on #885: the head row of a
+  // section goes back to the screen of sections.
+  chevronLeft: 'step to the previous page, or back to the list of sections',
   chevronRight: 'step to the next page',
   minus: 'zoom out',
   plus: 'zoom in',
@@ -218,7 +220,7 @@ export const iconOnlyNames = {
   // something else.
   download: ['export', 'download'],
   menu: ['menu'],
-  chevronLeft: ['previous'],
+  chevronLeft: ['previous', 'sections'],
   chevronRight: ['next'],
   minus: ['zoom'],
   plus: ['zoom'],
