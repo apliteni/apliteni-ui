@@ -328,6 +328,14 @@ headless shell. The gate passes it to the launch:
 stories/toast-stack.test.js:166 `executablePath: process.env.UI_CHROME`
 Report the result in the PR. CI runs only the source half, in `react/src/Toast.test.tsx`.
 
+## Check the back link's alignment locally
+
+Before opening a PR that changes `src/styles/back.css`, React `<BackLink>` or the place of a back
+link above a title, measure the links in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… BACK_ALIGN=1 node --test stories/back-align.test.js`
+It measures each story that shows a back link at the 10 sizes, in light and dark. Report the result
+in the PR. CI runs only the source half, in `src/styles/back.test.js`.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

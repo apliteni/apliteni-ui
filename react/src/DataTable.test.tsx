@@ -1047,11 +1047,11 @@ it('names the card that scrolls a table directly, and makes it a stop only while
   try {
     const { container } = render(
       <div className="ui-card">
-        <DataTable columns={columns} rows={rows} selectable={false} pager={false} scrollLabel="Payouts" />
+        <DataTable columns={columns} rows={rows} selectable={false} pager={false} scrollLabel="Orders" />
       </div>);
     const card = container.querySelector('.ui-card')!;
     expect(card).toHaveAttribute('role', 'region');
-    expect(card).toHaveAttribute('aria-label', 'Payouts');
+    expect(card).toHaveAttribute('aria-label', 'Orders');
     // Nothing overflows yet, so a stop here would scroll nothing.
     expect(card).not.toHaveAttribute('tabindex');
     Object.defineProperties(card, {

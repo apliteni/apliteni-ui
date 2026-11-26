@@ -241,7 +241,9 @@ Do not use it as a history step. When a page takes one: [Going back](../guidelin
 ```
 
 **What the user sees.** A link with an arrow and the name of the parent page, as the sidebar
-writes it. It stands above the title, in the place of a trail. A long name is cut, not wrapped.
+writes it. It stands above the title, in the place of a trail. Its arrow starts on the left edge
+of the title, and its hover ground starts 9.2px left of that edge. Keep 13px of room at the left of
+the title for the focus ring. A long name is cut, not wrapped.
 The section of the parent page stays marked with `aria-current="true"`. Without an `href`, or with
 a `javascript:` address, it draws nothing. `as` lets a router link draw it.
 
