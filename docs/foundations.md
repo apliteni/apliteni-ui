@@ -254,7 +254,10 @@ These fill ratios describe separation, not text contrast.
   `--disabled-ink-option`, which is paler than the panel's muted group label and keeps 3.5:1.
   One rule still fades: the switch track, which has no label inside it.
 - **The floor is 3:1, and a disabled control never shows the pair it shows enabled.** Contrast
-  provides legibility. The paint provides the state.
+  provides legibility. The paint provides the state. The kit keeps every disabled label at
+  4.89:1 or more on the surface it sits on. A disabled dropdown option is the one exception: it
+  keeps 3.5:1 or more, so it stays paler than the group label above it. If you repaint a
+  disabled label, keep it at these figures.
 - **A field has no fill step, so the ground you put it on decides whether its box is seen.**
   `--field-bg` and `--disabled-surface` are both `--surface` in both themes. A field is
   therefore drawn by its edge. On the page ground, a disabled field measures 1.12:1, because

@@ -22,6 +22,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { AA_TEXT, colourOf, ratio, tokensFor } from './lib/contrast.js';
 import { CELLS } from './lib/accessibility-walks.js';
+import { DISABLED_OPTION_FLOOR } from './guidelines/_accessibility-floor.js';
 
 import { splitSelectorList } from '../scripts/lib/selector-list.js';
 const sheet = (file) => readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -197,7 +198,6 @@ test('the head-gap gate fails when the account head sits flush on the first row'
 // which is body weight in body ink (#886). Its size stays the option's. A disabled option takes a
 // paler ink than the label, at 3.5:1 or more: the kit floor is 3:1, and the margin is the owner's.
 /** What sets the group label apart in `text`, or the faults, as sentences. */
-const OFF_FLOOR = 3.5;
 const groupFaults = (text) => {
   const body = (head) => flat(text).filter(([h]) => h.trim() === head).map(([, b]) => b).join(';');
   const group = body('.ui-dropdown__group');
@@ -216,7 +216,7 @@ const groupFaults = (text) => {
     if (r < AA_TEXT) faults.push(`the group label has ${r.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
     if (!off) continue;
     const o = ratio(colourOf(off, vars), panel);
-    if (o < OFF_FLOOR) faults.push(`the disabled option has ${o.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
+    if (o < DISABLED_OPTION_FLOOR) faults.push(`the disabled option has ${o.toFixed(2)}:1 on the panel in ${theme} ${accent}`);
     if (o >= r) faults.push(`the disabled option is not paler than the group label in ${theme} ${accent}`);
   }
   return faults;
