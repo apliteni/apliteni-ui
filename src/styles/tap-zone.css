@@ -286,14 +286,33 @@
     --tap-clear-y: var(--tap-gap);
   }
 
-  /* Both ways: fixed squares cannot overflow the way labels can, and a drawer
-     header spends its column gap on the title. Not the accent picker — its
-     swatches are on no carrier list, so opening it bought no reach. */
+  /* Both ways: fixed squares cannot overflow the way labels can. Not the accent
+     picker — its swatches are on no carrier list, so opening it bought no reach. */
   .ui-footer__socials,
   .ui-drawer__header {
     gap: var(--tap-gap) !important;
     --tap-clear-x: var(--tap-gap);
     --tap-clear-y: var(--tap-gap);
+  }
+  /* A cut title is a control, so the header keeps its width: the lead gives back the gap
+     after it, and the end padding gives back the gap that opens between the actions and
+     Close. Close keeps 12px of padding past it, more than the 7px its layer needs. #868 */
+  .ui-drawer__header > .ui-drawer__lead { margin-inline-end: calc(var(--space-3) - var(--tap-gap)); }
+  .ui-drawer__header:has(> .ui-drawer__actions) {
+    padding-inline-end: calc(var(--space-5) - (var(--tap-gap) - var(--space-3)));
+  }
+  /* The cut title's layer. The title clips its own text, so the layer measures against the
+     readout trigger around it, which the clip does not reach. The title already draws wider
+     than the floor, so only the height grows, into the header's clearance. #868 */
+  .ui-drawer__lead > .ui-tip-host > span:not(.ui-tip) { position: relative; }
+  .ui-drawer__lead > .ui-tip-host > span:not(.ui-tip) > .ui-drawer__title::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));
+    height: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-y)));
   }
 
   /* Two 52px rows, each holding a control the kit draws under the floor: the

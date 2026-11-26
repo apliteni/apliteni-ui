@@ -6,10 +6,18 @@
 
 export const RELEASES = [
   {
+    v: '0.206.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `Dropdown` trigger now shows only its value or its placeholder. If your app passes `label`, the trigger no longer draws it: put the name in a `Field` label, or pass `ariaLabel`. `label` warns once in development and goes in the next release. Outside a `Field`, a select or menu trigger with `ariaLabel` is named by that name and its value, such as "Unit: Engine team". Part of #899.', ['Dropdown']],
+      ['added', 'The Dropdown guideline page has a new rule, Show only the value. Part of #899.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.205.0', date: '2026-11-26',
     changes: [
-      ['changed', 'A `Dropdown` trigger now shows only its value or its placeholder. If your app passes `label`, the trigger no longer draws it: put the name in a `Field` label, or pass `ariaLabel`. `label` warns once in development and goes in the next release. Outside a `Field`, a select trigger with `ariaLabel` is named by that name and its value, such as "Unit: Engine team". Part of #899.', ['Dropdown']],
-      ['added', 'The Dropdown guideline page has a new rule, Show only the value. Part of #899.', ['Guidelines']],
+      ['added', 'A `Drawer` takes a `status`, such as one `Badge`, that stands directly after the title on the same line. Part of #868.', ['Drawer']],
+      ['changed', 'A drawer title now stays on one line. A long title ends in an ellipsis, and the status, the header actions and Close stay whole. A cut title is a Tab stop that shows the full title in a readout. Apps with long drawer titles see fewer characters. Part of #868.', ['Drawer']],
+      ['added', 'The Drawers guideline has a new rule, Status after the title: show the record\'s state in one badge directly after the title. Part of #868.', ['Guidelines']],
     ],
   },
   {

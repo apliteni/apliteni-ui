@@ -113,7 +113,7 @@ export type DropdownRowProps = {
 };
 
 export type DropdownProps = {
-  /** @deprecated Not drawn since 0.205.0: a trigger shows only its value. Name the control
+  /** @deprecated Not drawn since 0.206.0: a trigger shows only its value. Name the control
    *  with a `Field` label or `ariaLabel`. The prop goes in the next release. #899 */
   label?: string;
   /** What the trigger shows. Given one, the trigger is yours to update. */
