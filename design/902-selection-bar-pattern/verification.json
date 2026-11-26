@@ -1,0 +1,360 @@
+{
+  "browser": "Chromium headless shell, Playwright 1.65.0",
+  "timezone": "UTC",
+  "pixelScale": 1,
+  "checks": [
+    "light 390: page and bar fit",
+    "light 390: last row clears bar",
+    "light 844: page and bar fit",
+    "light 844: last row clears bar",
+    "light 820: page and bar fit",
+    "light 820: last row clears bar",
+    "light 1280: page and bar fit",
+    "light 1280: last row clears bar",
+    "light 1920: page and bar fit",
+    "light 1920: last row clears bar",
+    "light 360: page and bar fit",
+    "light 360: last row clears bar",
+    "light 466: page and bar fit",
+    "light 466: last row clears bar",
+    "light 984: page and bar fit",
+    "light 984: last row clears bar",
+    "light 1536: page and bar fit",
+    "light 1536: last row clears bar",
+    "light 2560: page and bar fit",
+    "light 2560: last row clears bar",
+    "light 1440: page and bar fit",
+    "light 1440: last row clears bar",
+    "light: focus indicator visible",
+    "light: overflow opens field",
+    "dark 390: page and bar fit",
+    "dark 390: last row clears bar",
+    "dark 844: page and bar fit",
+    "dark 844: last row clears bar",
+    "dark 820: page and bar fit",
+    "dark 820: last row clears bar",
+    "dark 1280: page and bar fit",
+    "dark 1280: last row clears bar",
+    "dark 1920: page and bar fit",
+    "dark 1920: last row clears bar",
+    "dark 360: page and bar fit",
+    "dark 360: last row clears bar",
+    "dark 466: page and bar fit",
+    "dark 466: last row clears bar",
+    "dark 984: page and bar fit",
+    "dark 984: last row clears bar",
+    "dark 1536: page and bar fit",
+    "dark 1536: last row clears bar",
+    "dark 2560: page and bar fit",
+    "dark 2560: last row clears bar",
+    "dark 1440: page and bar fit",
+    "dark 1440: last row clears bar",
+    "dark: focus indicator visible",
+    "dark: overflow opens field",
+    "Pick applies immediately and keeps selection and field name",
+    "Escape closes a picker before clearing selection",
+    "Checkbox announces each count",
+    "Clear returns focus to Select all",
+    "Search with no match remains usable",
+    "Delete focuses Keep, traps focus and preserves selection when canceled",
+    "Delete changes only selected rows",
+    "320 px reflow fits",
+    "200 percent text fits page and bar",
+    "Reduced motion has no long animation",
+    "Sandbox allow-scripts runs with no nested frame",
+    "No browser script errors"
+  ],
+  "captures": [
+    "light-390x844",
+    "light-390-end",
+    "light-844x390",
+    "light-820x1180",
+    "light-1280x800",
+    "light-1920x1080",
+    "light-360x800",
+    "light-466x678",
+    "light-984x1016",
+    "light-1536x864",
+    "light-2560x1440",
+    "light-1440x900",
+    "light-picker-open",
+    "light-applied",
+    "light-all-selected",
+    "light-more-open",
+    "light-none",
+    "light-confirm-delete",
+    "light-hover",
+    "light-focus",
+    "light-pressed",
+    "light-phone-more",
+    "light-phone-owner",
+    "light-long-value",
+    "dark-390x844",
+    "dark-390-end",
+    "dark-844x390",
+    "dark-820x1180",
+    "dark-1280x800",
+    "dark-1920x1080",
+    "dark-360x800",
+    "dark-466x678",
+    "dark-984x1016",
+    "dark-1536x864",
+    "dark-2560x1440",
+    "dark-1440x900",
+    "dark-picker-open",
+    "dark-applied",
+    "dark-all-selected",
+    "dark-more-open",
+    "dark-none",
+    "dark-confirm-delete",
+    "dark-hover",
+    "dark-focus",
+    "dark-pressed",
+    "dark-phone-more",
+    "dark-phone-owner",
+    "dark-long-value",
+    "no-matches",
+    "320-reflow",
+    "text-200",
+    "reduced-motion",
+    "forced-colors",
+    "sandbox"
+  ],
+  "axe": [
+    {
+      "state": "light picker-open",
+      "violations": []
+    },
+    {
+      "state": "light applied",
+      "violations": []
+    },
+    {
+      "state": "light all-selected",
+      "violations": []
+    },
+    {
+      "state": "light more-open",
+      "violations": []
+    },
+    {
+      "state": "light none",
+      "violations": []
+    },
+    {
+      "state": "light confirm-delete",
+      "violations": []
+    },
+    {
+      "state": "light phone More",
+      "violations": []
+    },
+    {
+      "state": "light phone Owner",
+      "violations": []
+    },
+    {
+      "state": "dark picker-open",
+      "violations": []
+    },
+    {
+      "state": "dark applied",
+      "violations": []
+    },
+    {
+      "state": "dark all-selected",
+      "violations": []
+    },
+    {
+      "state": "dark more-open",
+      "violations": []
+    },
+    {
+      "state": "dark none",
+      "violations": []
+    },
+    {
+      "state": "dark confirm-delete",
+      "violations": []
+    },
+    {
+      "state": "dark phone More",
+      "violations": []
+    },
+    {
+      "state": "dark phone Owner",
+      "violations": []
+    },
+    {
+      "state": "light nebula selected",
+      "violations": []
+    },
+    {
+      "state": "light phoenix selected",
+      "violations": []
+    },
+    {
+      "state": "light ocean selected",
+      "violations": []
+    },
+    {
+      "state": "light emerald selected",
+      "violations": []
+    },
+    {
+      "state": "dark nebula selected",
+      "violations": []
+    },
+    {
+      "state": "dark phoenix selected",
+      "violations": []
+    },
+    {
+      "state": "dark ocean selected",
+      "violations": []
+    },
+    {
+      "state": "dark emerald selected",
+      "violations": []
+    }
+  ],
+  "contrast": [
+    {
+      "theme": "light",
+      "accent": "nebula",
+      "colors": {
+        "background": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "focus": "rgb(180, 121, 255)",
+        "hover": "rgb(45, 41, 60)",
+        "danger": "rgb(233, 124, 165)"
+      },
+      "text": 15.79,
+      "edge": 7.4,
+      "focus": 6.55,
+      "hoverText": 11.48,
+      "danger": 7.26
+    },
+    {
+      "theme": "light",
+      "accent": "phoenix",
+      "colors": {
+        "background": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "focus": "rgb(255, 106, 61)",
+        "hover": "rgb(45, 41, 60)",
+        "danger": "rgb(233, 124, 165)"
+      },
+      "text": 15.79,
+      "edge": 7.4,
+      "focus": 6.79,
+      "hoverText": 11.48,
+      "danger": 7.26
+    },
+    {
+      "theme": "light",
+      "accent": "ocean",
+      "colors": {
+        "background": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "focus": "rgb(59, 157, 255)",
+        "hover": "rgb(45, 41, 60)",
+        "danger": "rgb(233, 124, 165)"
+      },
+      "text": 15.79,
+      "edge": 7.4,
+      "focus": 6.86,
+      "hoverText": 11.48,
+      "danger": 7.26
+    },
+    {
+      "theme": "light",
+      "accent": "emerald",
+      "colors": {
+        "background": "rgb(14, 13, 20)",
+        "text": "rgb(233, 231, 240)",
+        "edge": "rgb(162, 157, 182)",
+        "focus": "rgb(22, 201, 138)",
+        "hover": "rgb(45, 41, 60)",
+        "danger": "rgb(233, 124, 165)"
+      },
+      "text": 15.79,
+      "edge": 7.4,
+      "focus": 8.98,
+      "hoverText": 11.48,
+      "danger": 7.26
+    },
+    {
+      "theme": "dark",
+      "accent": "nebula",
+      "colors": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "focus": "rgb(106, 45, 204)",
+        "hover": "rgb(238, 240, 245)",
+        "danger": "rgb(169, 45, 89)"
+      },
+      "text": 16.68,
+      "edge": 6.11,
+      "focus": 7.34,
+      "hoverText": 14.63,
+      "danger": 6.55
+    },
+    {
+      "theme": "dark",
+      "accent": "phoenix",
+      "colors": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "focus": "rgb(168, 55, 12)",
+        "hover": "rgb(238, 240, 245)",
+        "danger": "rgb(169, 45, 89)"
+      },
+      "text": 16.68,
+      "edge": 6.11,
+      "focus": 6.53,
+      "hoverText": 14.63,
+      "danger": 6.55
+    },
+    {
+      "theme": "dark",
+      "accent": "ocean",
+      "colors": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "focus": "rgb(0, 90, 180)",
+        "hover": "rgb(238, 240, 245)",
+        "danger": "rgb(169, 45, 89)"
+      },
+      "text": 16.68,
+      "edge": 6.11,
+      "focus": 6.73,
+      "hoverText": 14.63,
+      "danger": 6.55
+    },
+    {
+      "theme": "dark",
+      "accent": "emerald",
+      "colors": {
+        "background": "rgb(255, 255, 255)",
+        "text": "rgb(26, 30, 39)",
+        "edge": "rgb(92, 98, 112)",
+        "focus": "rgb(7, 108, 72)",
+        "hover": "rgb(238, 240, 245)",
+        "danger": "rgb(169, 45, 89)"
+      },
+      "text": 16.68,
+      "edge": 6.11,
+      "focus": 6.47,
+      "hoverText": 14.63,
+      "danger": 6.55
+    }
+  ],
+  "result": "pass"
+}
