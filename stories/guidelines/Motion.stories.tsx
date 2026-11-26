@@ -39,13 +39,13 @@ const JUMP: [string, Step][] = [['0 ms', 'closed'], ['16 ms, the next frame', 'o
 
 // A table row under the pointer, as still frames at the times printed above them. `fill`
 // is how far the row's hover fill has come, 0 to 1; a fade over --dur-fast on --ease has
-// come 3% at 16ms and 46% at 50ms. A frame is still, so its table takes no live hover, which
-// would paint over the timed fill under the pointer.
+// come 3% at 16ms and 46% at 50ms. A frame is still, so it takes no pointer: the live hover
+// would paint over the timed fill (`_motion.js`).
 const HoverFilm = ({ frames }: { frames: [string, number][] }) => <div className="gm-film">
   {frames.map(([time, fill]) => [
     <p key={`${time}-t`}>{time}</p>,
-    <div key={time} className="gl-stage">
-      <table className="ui-table">
+    <div key={time} className="gl-stage gm-still">
+      <table className="ui-table ui-table--hover">
         <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
         <tbody>
           <tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr>

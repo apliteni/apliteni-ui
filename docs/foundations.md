@@ -170,17 +170,18 @@ Every easing is also a token. `--ease` is the default. The other options are `--
 `--ease-in`, `--ease-sharp` and `--ease-spring`. `linear` is also available.
 
 - **Any transition of `visibility` uses `linear`.**
-- **A hover changes its fill, ink and border at once.** No `transition` gives a hover's
-  `background`, `color`, `border-color`, `box-shadow` or `filter` a duration. About 0.1s is
-  the limit for the person to feel that the system reacts instantly: Jakob Nielsen, *Usability
-  Engineering*, 1993, chapter 5, "Response times: the 3 important limits". Nielsen takes the
-  limit from Robert B. Miller, "Response time in man-computer conversational transactions",
-  AFIPS Fall Joint Computer Conference, 1968. A 150ms fade ends after that limit, so the fill
-  trails the pointer and reads as lag. A press, a focus edge, a turning caret
-  and a lift keep their motion. A transition on a state's own rule runs only when the state
-  arrives, so a field keeps its edge ink in a custom property of its own. Focus fades that
-  property in and out, and a hover sets `border-color` at once. A selected, checked or current fill
-  that a hover also paints changes at once too, because it answers a click.
+- **Hover is the one state change that does not fade.** A hover changes its fill, ink and
+  border at once. No `transition` gives a hover's `background`, `color`, `border-color`,
+  `box-shadow` or `filter` a duration. A response within about 0.1s feels instant: Robert B.
+  Miller, "Response time in man-computer conversational transactions", AFIPS Fall Joint
+  Computer Conference, 1968, and Jakob Nielsen, *Usability Engineering*, 1993, chapter 5,
+  "Response times: the 3 important limits". A 150ms fade ends after that limit, so the fill
+  trails the pointer and reads as lag. A press, a focus edge, a turning caret and a lift keep
+  their motion. A field's edge has an ink and a focus veil. A state sets the ink at once, and
+  focus fades the veil in and out, so the focus edge fades also while the pointer stays on the
+  field. A selected, checked or current fill that a hover also paints changes at once too,
+  because it answers a click. A table row changes at once in every table form: plain, zebra,
+  dense and selected.
 - **Anything that appears or leaves after the page has loaded moves.** Nothing animates on
   first render. Text that changes in place, such as a count or a range, changes immediately.
 - A `transition` always reads a duration token. An `animation` may keep its own number in two

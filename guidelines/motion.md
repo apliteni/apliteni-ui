@@ -30,9 +30,9 @@
 
 <!-- rule: hover-at-once -->
 
-**Rule:** Change a hovered control's fill, ink and border at once.
+**Rule:** Change a hover at once, as the one state change that does not fade.
 
-**Why:** About 0.1 seconds is the limit for a reply to feel instant (Nielsen, 1993, after Miller, 1968), so a 150ms fade trails the pointer as lag.
+**Why:** A reply within about 0.1 seconds feels instant (Miller, 1968, Nielsen, 1993), and a hover fade trails the pointer.
 
 **Do:** Fill a table row, a button or a menu row in the pointer's first frame.
 

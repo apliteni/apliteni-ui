@@ -543,8 +543,10 @@ describe('guideline pages in React: Motion', () => {
       expect(fills.length, 'a frame without its hovered row').toBe(times.length);
       return times.map((ms, i) => ({ ms, fill: fills[i] }));
     });
-    // A frame is still: a live hover would paint over its timed fill under the pointer. #865 review
-    expect(section!.querySelectorAll('.gm-film .ui-table--hover').length, 'a still frame answers the pointer').toBe(0);
+    // A frame is still: the live hover would paint over its timed fill under the pointer. #865 review
+    const stages = [...section!.querySelectorAll('.gm-film > .gl-stage')];
+    expect(stages.length, 'no frame stage found').toBeGreaterThan(0);
+    for (const stage of stages) expect(getComputedStyle(stage).pointerEvents, 'a still frame answers the pointer').toBe('none');
     expect(doSide).toEqual([{ ms: 0, fill: 0 }, { ms: 16, fill: 1 }]);
     expect(dontSide.some(f => f.fill > 0 && f.fill < 1), 'the fade shows no frame part way').toBe(true);
     for (const f of dontSide) expect(Math.abs(f.fill - at(curves['--ease'], Math.min(f.ms / fast, 1))), `${f.ms} ms`).toBeLessThanOrEqual(0.01);

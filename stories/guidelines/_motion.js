@@ -52,4 +52,6 @@ export const SPEC_CSS = `
 
     /* A row's hover fill part of the way in: the kit's row hover over the table's ground. */
     .gm-hover > td { background: color-mix(in srgb, var(--surface-3) calc(var(--gm-fill, 0) * 100%), var(--table-bg)); }
+    /* A still frame takes no pointer, so the live row hover cannot paint over its timed fill. */
+    .gm-still { pointer-events: none; }
   </style>`;
