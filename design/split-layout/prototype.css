@@ -1,0 +1,41 @@
+/* Proposed kit ownership. These rules exist only in this design specimen. */
+.split-layout { max-width: var(--container); container: split / inline-size; display: flex; flex-direction: column; gap: var(--space-8); }
+.split-layout__panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, var(--panel-md)); gap: var(--space-8); align-items: start; }
+.split-layout__panes > * { min-width: 0; }
+.split-layout__primary > .ui-card__title { color: var(--accent); }
+.split-layout__primary > .ui-kv + .ui-table { margin-top: var(--space-8); }
+.split-layout__primary dt,
+.split-layout__primary .ui-table :is(tbody, tfoot) th { font-weight: var(--weight-normal); text-align: start; }
+.split-layout__primary dd,
+.split-layout__primary .ui-table :is(tbody, tfoot) td,
+.split-layout__primary .ui-table tfoot th.ui-table__num--strong { font-weight: var(--weight-medium); }
+.split-layout__primary .ui-table tfoot td.ui-table__num--strong { font-weight: var(--weight-semibold); }
+.split-layout__tools { justify-content: flex-start; }
+.split-layout__zoom { display: flex; align-items: center; gap: var(--space-2); --tap-clear-x: var(--space-2); --tap-clear-y: var(--space-4); flex-wrap: wrap; }
+.split-layout__scale { min-width: 3em; text-align: center; }
+.split-layout__sheet { width: var(--panel-md); }
+.split-layout__sheet > p { margin: 0 0 var(--space-2); }
+.split-layout__sheet > p:last-of-type { margin-bottom: var(--space-4); }
+.split-layout__sheet > h3 { margin-top: 0; }
+.split-layout__actions { --tap-clear-y: var(--space-3); --tap-clear-x: var(--space-3); display: flex; flex-wrap: wrap; gap: var(--space-3); }
+@media (prefers-reduced-motion: no-preference) {
+  .split-layout__sheet { transition: zoom var(--dur-med) var(--ease-out); }
+}
+@container split (max-width: 860px) {
+  .split-layout__panes { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .split-layout__actions { position: sticky; bottom: 0; margin-inline: calc(-1 * var(--space-4));
+    padding: var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom));
+    background: var(--bg); border-top: 1px solid var(--border); z-index: var(--z-sticky); }
+}
+/* Review controls are outside the proposed component. */
+.review-tools { --tap-clear-y: var(--space-4); --tap-clear-x: var(--space-2); display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-bottom: 1px solid var(--border); background: var(--bg); }
+.review-tools__choice { display: flex; align-items: center; gap: var(--space-2); }
+.review-tools [aria-pressed="true"] { background: var(--strong); color: var(--surface); }
+.review-state { display: flex; align-items: center; gap: var(--space-2); margin-inline-start: auto; }
+.review-state .ui-select { width: auto; }
+.review-canvas { isolation: isolate; }
+.review-confirm { display: grid; justify-items: start; gap: var(--space-3); }
+
+.split-layout :is(button, [tabindex]) { scroll-margin-block: var(--space-16); }
