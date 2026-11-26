@@ -15,6 +15,11 @@ export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: s
 // A menu of ten gets a field over it. why: guidelines/component-choice.md#add-dropdown-search
 const SEARCH_AT = 10;
 const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' && !(entry as { separator?: boolean }).separator;
+// Every line the chip can print: its own, the field's name, and the label of each row a pick
+// would show. A row with an empty value puts the name back, so it adds no line. The chip
+// takes the width of the longest. why: docs/components.md#filter-bar
+const chipLines = (filter: Filter) => [filterChipText(filter), filter.label, ...(filter.items || []).filter(isRow)
+  .filter(item => String(item.value ?? item.label) !== '').map(item => item.label)];
 
 export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
@@ -88,12 +93,17 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
           the chip prints and the row the menu washes cannot disagree — the same
           shared call the vanilla factory makes. why: src/logic/filter-bar.js */}
       <Dropdown items={filterChipItems(filter)} variant="select" ariaLabel={filterChipName(filter)}
-        triggerContent={<span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>}
+        triggerContent={<span className="ui-filter-bar__fit">
+          {[...new Set(chipLines(filter))].map(line => <span key={line} aria-hidden="true">{line}</span>)}
+          <span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>
+        </span>}
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
         onSelect={value => { if (!blocked && !filter.disabled) onChange(filter.id, value == null ? undefined : String(value)); }} />
-      {!filterChipUnset(filter) && <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
-        onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>}
+      {filterChipUnset(filter)
+        ? <span className="ui-filter-bar__remove is-reserved" aria-hidden="true">×</span>
+        : <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
+          onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>}
     </fieldset>)}
     {/* Its onFocus clears the restore target, so nothing a controlled change does to the
         chips takes focus off this trigger. */}
@@ -110,6 +120,9 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     </div>}
     {/* Shown only once there is something to clear, as a quiet text button. The
         vanilla factory carries the reasoning. why: docs/components.md#filter-bar */}
-    {filters.some(filter => !filterChipUnset(filter)) && <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>}
+    {filters.some(filter => !filterChipUnset(filter))
+      ? <span data-filter-clear="" onFocus={() => { focused.current = { id: null, index: 0 }; }}><Button size="sm" variant={clearVariant} onClick={() => { if (!blocked) onClear(); }}>{clearLabel}</Button></span>
+      // With chips and nothing to clear, Clear all keeps its room and draws nothing.
+      : filters.length > 0 && <span data-filter-clear="" className="is-reserved" aria-hidden="true" inert><Button size="sm" variant={clearVariant} tabIndex={-1}>{clearLabel}</Button></span>}
   </fieldset></div>;
 }

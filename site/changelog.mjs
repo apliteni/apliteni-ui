@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.199.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A filter chip now takes the width of its longest value, up to 224px, so a value change or a reload does not move the chips or the content below the bar. A longer value ends with an ellipsis. The remove mark and Clear all keep their room while they do not show. Part of #885.', ['FilterBar']],
+    ],
+  },
+  {
     v: '0.198.0', date: '2026-11-26',
     changes: [
       ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],

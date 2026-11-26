@@ -282,6 +282,13 @@ in a real browser. Run `npm run build-storybook` first, then:
 It also opens every file drop story as Storybook draws it. Report the result in the PR. CI runs
 only this gate's source half.
 
+## Check the filter chip width locally
+
+Before opening a PR that changes `src/styles/filter-bar.css` or React `<FilterBar>`, walk a
+filter bar's keys, clicks and reloads in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js CHIP_WIDTH=1 node --test stories/filter-chip-width.test.js`
+Report the result in the PR. CI skips this check because Playwright and web-vitals are not dependencies.
+
 ## Check the three-column page locally
 
 Before opening a PR that changes `react/src/ThreeColumnPage.css`, `react/src/Wizard.tsx` or React
