@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { useState } from 'react';
 import { CommandPalette, type CommandGroup } from './CommandPalette';
+import { Confirm } from './Confirm';
+import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
-import { Callout } from './primitives/Callout';
 
 const meta: Meta<typeof CommandPalette> = { title: 'React/Command palette', component: CommandPalette };
 export default meta;
@@ -33,21 +34,21 @@ const GROUPS: CommandGroup[] = [
   },
 ];
 
+// A command that ran is something that happened, so it reports in a toast.
+// guidelines/component-choice.md: Show lasting conditions.
 export const Playground: StoryObj<typeof CommandPalette> = {
+  decorators: [(Story) => <Toast><Story /></Toast>],
   render: () => {
     const [open, setOpen] = useState(true);
-    const [ran, setRan] = useState<string | null>(null);
+    const push = useToast();
     return (
       <>
-        <div className="ui-stack">
-          <Button variant="secondary" onClick={() => setOpen(true)}>Search or run a command</Button>
-          {ran && <Callout>Ran: {ran}</Callout>}
-        </div>
+        <Button variant="secondary" onClick={() => setOpen(true)}>Search or run a command</Button>
         <CommandPalette
           open={open}
           groups={GROUPS}
           onClose={() => setOpen(false)}
-          onSelect={(item) => setRan(item.label)}
+          onSelect={(item) => push({ title: `Ran ${item.label}`, compact: true })}
         />
       </>
     );
@@ -68,17 +69,16 @@ export const Roomy: StoryObj<typeof CommandPalette> = {
 
 // A destructive row that has a question to ask, beside one that has none. The
 // second is rendered disabled: the component refuses to run a delete the reader
-// was never asked about.
+// was never asked about. The first opens a confirm over the palette.
 export const Destructive: StoryObj<typeof CommandPalette> = {
+  decorators: [(Story) => <Toast><Story /></Toast>],
   render: () => {
     const [open, setOpen] = useState(true);
     const [asked, setAsked] = useState(false);
+    const push = useToast();
     return (
       <>
-        <div className="ui-stack">
-          <Button variant="secondary" onClick={() => setOpen(true)}>Open</Button>
-          {asked && <Callout variant="info">The confirm would be up now.</Callout>}
-        </div>
+        <Button variant="secondary" onClick={() => setOpen(true)}>Open</Button>
         <CommandPalette
           open={open}
           hint={false}
@@ -90,6 +90,16 @@ export const Destructive: StoryObj<typeof CommandPalette> = {
             ],
           }]}
           onClose={() => setOpen(false)}
+        />
+        <Confirm
+          open={asked}
+          danger
+          title="Delete workspace Nebula?"
+          body="Everything in Nebula goes with it. You cannot restore the workspace."
+          confirmLabel="Delete workspace"
+          cancelLabel="Keep the workspace"
+          onCancel={() => setAsked(false)}
+          onConfirm={() => { setAsked(false); setOpen(false); push({ title: 'Workspace deleted', compact: true }); }}
         />
       </>
     );

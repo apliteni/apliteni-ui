@@ -12,9 +12,11 @@
 // on one page cannot collide the way a fixed prefix would.
 import { render, screen, cleanup, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { composeStories } from '@storybook/react';
 import { useState } from 'react';
 import { afterEach, describe, it, expect, vi } from 'vitest';
 import { CommandPalette, type CommandGroup } from './CommandPalette';
+import * as stories from './CommandPalette.stories';
 import { Modal } from './Modal';
 import { classesOfEl } from './test/classlist';
 
@@ -328,5 +330,27 @@ describe('the keyboard and the focus', () => {
     expect(onQueryChange).toHaveBeenLastCalledWith('set');
     expect([...mounted().querySelectorAll('.ui-cmdk__label')].map((l) => l.textContent))
       .toEqual(['New invoice', 'Invite a teammate', 'Reports', 'Settings']);
+  });
+});
+
+// The stories' own feedback, in JSDOM: what a reader sees after a command runs.
+// It does not check where the toast stack sits; the PR captures show that.
+describe('the stories', () => {
+  const { Playground, Destructive } = composeStories(stories);
+
+  it('reports a command that ran in a toast, and a delete asks first', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<Playground />);
+    await user.keyboard('{Enter}');
+    expect((await screen.findByRole('status')).textContent).toContain('Ran New invoice');
+    expect(document.querySelector('.ui-callout')).toBeNull();
+    unmount();
+
+    render(<Destructive />);
+    await user.keyboard('{Enter}');
+    const question = screen.getByRole('alertdialog', { name: 'Delete workspace Nebula?' });
+    await user.click(within(question).getByRole('button', { name: 'Delete workspace' }));
+    expect((await screen.findByRole('status')).textContent).toContain('Workspace deleted');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 });
