@@ -282,14 +282,15 @@ const LONG_UNITS = Array.from({ length: 12 }, (_, i) =>
  *  scrolls, so every bar keeps its name (#863). The stacked chart steps whole
  *  names. Its last name is picked, so it shows the weight-600 case at every
  *  width: the last name always prints, and the 4px floor keeps it off the name
- *  before it (#882). */
+ *  before it (#882). The 680px column gives the stacked plot about 600px, where
+ *  the step of 0.199.0 printed the last two names over each other. */
 export const LongCategoryNames: StoryObj = {
   render: () => {
     const units = LONG_UNITS.map((unit) => ({ label: unit, short: unit }));
     const margin = [{ id: 'margin', name: 'Margin', tone: 'accent' as const,
       values: [18400, 21300, 17200, 15600, 20800, 14900, 20100, 22400, 19600, 23100, 17500, 24200] }];
     return (
-      <div style={{ maxWidth: '355px' }}><div className="ui-card-stack">
+      <div style={{ maxWidth: '680px' }}><div className="ui-card-stack">
         <Card title="Margin by unit">
           <Chart title="Margin by unit, last 12 months" format={eur} formatAxis={eurAxis}
             periods={units} series={margin} />
