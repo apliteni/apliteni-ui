@@ -10,6 +10,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],
       ['changed', 'A filter chip now takes the width of its longest value, up to 224px, so a value change or a reload does not move the chips or the content below the bar. A longer value ends with an ellipsis. The remove mark and Clear all keep their room while they do not show. Part of #885.', ['FilterBar']],
+      ['changed', 'A filter chip now shows its remove mark (×) only when the app sets `removable` on its filter, so an app that lets the user remove a chip with the × must set `removable` on that filter. Part of #885.', ['FilterBar']],
       ['changed', 'At 560px and below, the account window now fills the view and shows one section. A Sections button in its head row opens the list of sections, so a section change does not change the window height. Part of #885.', ['AccountWindow']],
       ['fixed', 'At 560px and below, a card that frames a table directly no longer shows a scroll bar under the table, as the table scroll frame does. The table still scrolls sideways. Part of #885.', ['Table', 'Card']],
       ['changed', 'The focus ring is now a 1px accent line, 2px from the control, in place of a 2px line 1px from it. It still ends 3px from the control and keeps at least 3:1 against each kit ground. A product that sets `--ring-width` or `--ring-gap-width` keeps its own values. Part of #885.'],

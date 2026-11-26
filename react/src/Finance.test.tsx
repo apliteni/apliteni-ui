@@ -71,7 +71,7 @@ describe('finance composition', () => {
   });
   it('removes and clears controlled filters while recovering keyboard focus', () => {
     function Demo() {
-      const [filters, setFilters] = useState([{ id: 'a', label: 'Sector', value: 'Energy', items: [] }, { id: 'b', label: 'Market', value: 'US', items: [] }]);
+      const [filters, setFilters] = useState([{ id: 'a', label: 'Sector', value: 'Energy', removable: true, items: [] }, { id: 'b', label: 'Market', value: 'US', removable: true, items: [] }]);
       return <><FilterBar filters={filters} onChange={() => {}} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} />
         <button type="button">Add filter</button></>;
     }

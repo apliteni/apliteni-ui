@@ -364,7 +364,7 @@ test('the filter row height rounds up to a whole pixel', () => {
 const CHIPS = await markup(({ h, kit }) => {
   const noop = () => {};
   const bar = (busy) => h(kit.FilterBar, { busy, onChange: noop, onRemove: noop, onClear: noop,
-    filters: [{ id: 'office', label: 'Office', value: '', items: [{ label: 'Any office', value: '' }, { label: 'Lisbon, head office', value: 'Lisbon, head office' }] }] });
+    filters: [{ id: 'office', label: 'Office', value: '', removable: true, items: [{ label: 'Any office', value: '' }, { label: 'Lisbon, head office', value: 'Lisbon, head office' }] }] });
   return h('div', null, bar(false), bar(true));
 });
 const chips = (css) => {
@@ -398,6 +398,18 @@ test('the hidden lines and the kept room draw nothing, and the shown line draws'
   assert.ok(SHEETS.includes('.ui-filter-bar__fit > [aria-hidden="true"],\n.ui-filter-bar .is-reserved { visibility: hidden; }'));
   const mutant = chips(SHEETS.replace('.ui-filter-bar__fit > [aria-hidden="true"],\n', '').replace(rule, ''));
   assert.ok(mutant.hidden.some((v) => v !== 'hidden'), 'the check passes a hidden line that draws');
+});
+
+test('a chip has the inner space of a select: 13px before the text and 11px after the chevron', () => {
+  const px = (value) => value.trim().split(/\s+/).map((part) => {
+    const step = part.match(/^var\((--[\w-]+)\)$/);
+    return Number.parseFloat(step ? SHEETS.match(new RegExp(`${step[1]}:\\s*([\\d.]+)px`))[1] : part);
+  });
+  const sides = (body) => { const [top, end = top, , start = end] = px(valueOf(body, 'padding')); return { start, end }; };
+  const select = sides(rules(DROPDOWN).find((r) => r.selector === '.ui-dropdown__trigger' && valueOf(r.body, 'padding')).body);
+  const chip = sides(rules(BAR).find((r) => r.selector === '.ui-filter-bar__chip' && valueOf(r.body, 'padding')).body);
+  const trigger = sides(rules(BAR).find((r) => r.selector === '.ui-filter-bar__chip .ui-dropdown__trigger' && valueOf(r.body, 'padding')).body);
+  assert.deepEqual({ start: chip.start + trigger.start, end: chip.end + trigger.end }, select);
 });
 
 test('a chip stops at the owner\'s 224px', () => {

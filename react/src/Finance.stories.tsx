@@ -17,14 +17,14 @@ const catalogue: AddFilter[] = [
 ];
 function Example() {
   const [view, setView] = useState('overview');
-  const [filters, setFilters] = useState<Filter[]>([{ ...catalogue[0], value: 'All sectors' }]);
+  const [filters, setFilters] = useState<Filter[]>([{ ...catalogue[0], value: 'All sectors', removable: true }]);
   const [query, setQuery] = useState('');
   return <main className="ui-app__main ui-app__main--wide finance-comparison"><header className="finance-comparison__head"><h1>Company comparison</h1><p id="react-finance-basis" className="ui-app__sub">Changes since the previous close.</p></header>
     <div className="ui-card-stack finance-comparison__data">
     <div className="ui-toolbar">
     <SearchField ariaLabel="Search companies" placeholder="Company" value={query} onChange={e => setQuery(e.currentTarget.value)} />
     <FilterBar clearVariant="link" clearLabel="Clear filters" filters={filters} add={catalogue} onRemove={id => setFilters(filters.filter(f => f.id !== id))} onClear={() => setFilters([])} onChange={(id, value) => setFilters(filters.map(f => f.id === id ? { ...f, value: value || '' } : f))}
-      onAdd={(id, value) => { const entry = catalogue.find(f => f.id === id); if (entry) setFilters(current => [...current, { ...entry, value: value || '' }]); }} />
+      onAdd={(id, value) => { const entry = catalogue.find(f => f.id === id); if (entry) setFilters(current => [...current, { ...entry, value: value || '', removable: true }]); }} />
     </div>
     <div className="ui-card ui-card--fit finance-comparison__card"><Segmented label="Dataset view" value={view} onChange={setView} appearance="underline" options={[{ label: 'Overview', value: 'overview' }, { label: 'Performance', value: 'performance' }]} />
     <DataTable rows={rows.filter(r => r.name.toLowerCase().includes(query.trim().toLowerCase()) && filters.every(f => !f.value || f.value === (f.id === 'sector' ? 'All sectors' : 'All markets') || r[f.id as 'sector' | 'market'] === f.value))} pageSize={20} empty="No companies match these filters." selectable={false} density="compact" stickyHeader pinnedIdentity scrollLabel="Company comparison"

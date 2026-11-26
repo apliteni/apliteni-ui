@@ -183,8 +183,9 @@ test('a filter chip keeps its width through each key, click and reload', {
     // src/styles/filter-bar.test.js holds the weight.
     // A chip as wide as its value.
     await mutate('.ui-filter-bar__fit > [aria-hidden="true"] { display: none; }', ['click: Team', 'click: Company overhead'], 'chip 2 is');
-    // A remove mark and Clear all that take no room while they do not show.
-    await mutate('.ui-filter-bar .is-reserved { display: none; }', ['click: Team', 'click: Company overhead'], 'chip 2 is');
+    // A remove mark and Clear all that take no room while they do not show. Only the office
+    // chip has the remove mark turned on, so the pick is on that chip.
+    await mutate('.ui-filter-bar .is-reserved { display: none; }', ['key: Enter', 'key: Down', 'key: Down again', 'key: Enter on a value'], 'chip 1 is');
     // No cap: a long value widens the chip past 224px.
     await mutate('.ui-filter-bar { --ui-filter-chip-max: none; } .ui-filter-bar__chip { min-width: 260px; }', ['key: Escape'], 'over the');
     // The card moves for the length of a reload when the bar grows while it is off.

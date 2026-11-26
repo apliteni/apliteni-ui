@@ -5,7 +5,7 @@ import { vi } from 'vitest';
 import { nextFocusStop } from '@apliteni/apliteni-ui';
 import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 
-const filters: Filter[] = ['Region', 'Status'].map(label => ({ id: label, label, value: 'All', items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }));
+const filters: Filter[] = ['Region', 'Status'].map(label => ({ id: label, label, value: 'All', removable: true, items: [{ label: 'All', value: 'all' }, { label: 'Active', value: 'active' }] }));
 const callbacks = () => ({ onRemove: vi.fn(), onClear: vi.fn(), onChange: vi.fn() });
 // The catalogue the add menu offers: two filters, three values between them.
 const catalogue: AddFilter[] = [
@@ -20,7 +20,7 @@ function Adding({ add = catalogue, onAdd, ...rest }: { add?: AddFilter[]; onAdd?
     onAdd={(id, value) => {
       onAdd?.(id, value);
       const entry = catalogue.find(f => f.id === id);
-      if (entry) setItems(current => [...current, { ...entry, value: value ?? '' }]);
+      if (entry) setItems(current => [...current, { ...entry, value: value ?? '', removable: true }]);
     }} />;
 }
 // DOM behavior only; Dropdown owns keyboard coverage and these tests do not measure appearance.
@@ -410,9 +410,18 @@ it('allows an explicit link action without changing the default skin', () => {
 
 // DOM only: which controls are drawn for a chip with no value. The sheet hides the room
 // they keep; a browser measures that the room holds the width. #885
-it('draws a remove mark only on a chip with a value, and Clear all only when one has, and keeps their room', async () => {
+it('draws a remove mark only on a removable chip with a value, and Clear all only when one has, and keeps their room', async () => {
   const props = callbacks();
-  const unset: Filter = { id: 'Region', label: 'Region', value: '', items: [{ label: 'North', value: 'north' }] };
+  // A chip the app does not make removable draws no mark and keeps no room for one, with a
+  // value or without. rev_9d7b1a81accc
+  const plain: Filter = { id: 'Team', label: 'Team', value: 'Sales', items: [{ label: 'Sales', value: 'Sales' }] };
+  const { rerender: plainRerender, unmount } = render(<FilterBar filters={[plain]} {...props} />);
+  expect(screen.queryByRole('button', { name: 'Remove Team filter' })).not.toBeInTheDocument();
+  expect(document.querySelector('.ui-filter-bar__remove')).toBeNull();
+  plainRerender(<FilterBar filters={[{ ...plain, value: '' }]} {...props} />);
+  expect(document.querySelector('.ui-filter-bar__remove')).toBeNull();
+  unmount();
+  const unset: Filter = { id: 'Region', label: 'Region', value: '', removable: true, items: [{ label: 'North', value: 'north' }] };
   const { rerender } = render(<FilterBar filters={[unset]} {...props} />);
   expect(screen.queryByRole('button', { name: 'Remove Region filter' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Clear all' })).not.toBeInTheDocument();

@@ -6,16 +6,19 @@
 .ui-filter-bar__chip {
   display: inline-flex; align-items: center; min-width: 0; margin: 0;
   border: 1px solid var(--control-edge); border-radius: var(--radius-pill); padding: var(--space-1);
-  /* The chip holds two focus targets of its own — the trigger and the remove
-     button — so it is a painted container, not a control that inherits the gap
+  /* The chip can hold two focus targets of its own — the trigger and, when the app
+     makes the chip removable, the remove button — so it is a painted container, not a control that inherits the gap
      outside it. It joins the shared recomposition in tokens.css beside .ui-seg,
      which is also what hands an inline code chip the page from here. */
   background: var(--surface);
-  /* A chip with no value draws no remove mark, so it stops taking its height from the
-     mark's line box. The bar names the height; every chip keeps it. */
+  /* Most chips draw no remove mark, so a chip does not take its height from the mark's
+     line box. The bar names the height; every chip keeps it. */
   min-height: var(--ui-filter-row-h);
 }
-.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) var(--space-2); min-height: calc(var(--ui-filter-row-h) - 2px - 2 * var(--space-1)); } /* fills the chip: a fieldset's content does not follow its min-height. #822 */
+/* The chip's 4px and the trigger's own inline padding give the select trigger's 13px before the
+   text and 11px after the chevron, so a chip without a remove mark has a select's inner space.
+   rev_9d7b1a81accc */
+.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; background: transparent; padding: var(--space-1) 7px var(--space-1) 9px; min-height: calc(var(--ui-filter-row-h) - 2px - 2 * var(--space-1)); } /* fills the chip: a fieldset's content does not follow its min-height. #822 */
 /* A chip is as wide as the longest line it can print, up to --ui-filter-chip-max, so a pick
    does not move the row or the content under it. The hidden lines and the shown one share one
    grid cell. Only a line longer than the cap ends in an ellipsis. #885
@@ -27,8 +30,10 @@
 .ui-filter-bar__chip .ui-dropdown__chevron { flex: none; }
 .ui-filter-bar__fit { display: inline-grid; grid-template-columns: minmax(0, max-content); min-width: 0; text-align: start; letter-spacing: normal; }
 .ui-filter-bar__fit > * { grid-area: 1 / 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-/* A hidden line, a remove mark with no value to remove and Clear all with nothing to clear
-   keep their room and draw nothing, so a value or a reload does not move the row. #885 */
+/* A hidden line, the remove mark of a removable chip with no value and Clear all with nothing
+   to clear keep their room and draw nothing, so a value or a reload does not move the row. A
+   chip that is not removable has no mark and keeps no room, so its chevron is at its edge. #885,
+   rev_9d7b1a81accc */
 .ui-filter-bar__fit > [aria-hidden="true"],
 .ui-filter-bar .is-reserved { visibility: hidden; }
 /* The chip is the edge the row's other boxes are measured against, so it fades with them:

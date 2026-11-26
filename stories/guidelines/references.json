@@ -18,7 +18,7 @@
   ],
   "filter-bar": [
    {
-    "ref": "react/src/FilterBar.tsx:82",
+    "ref": "react/src/FilterBar.tsx:83",
     "pattern": "className=\"ui-filter-bar\""
    },
    {
@@ -1173,7 +1173,7 @@
   ],
   "report-offers": [
    {
-    "ref": "react/src/FilterBar.tsx:24",
+    "ref": "react/src/FilterBar.tsx:25",
     "pattern": "export function FilterBar("
    }
   ]

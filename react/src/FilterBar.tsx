@@ -4,12 +4,13 @@ import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { useIsoLayoutEffect } from './dialog';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '@apliteni/apliteni-ui';
-export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
+export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean;
+  /** draws a remove mark (×) while the chip has a value, and keeps its room while it has none. Off by default */ removable?: boolean };
 /** A filter the bar can put on itself: the chip's name, and the values its menu offers. */
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; clearVariant?: 'ghost' | 'secondary' | 'link'; disabled?: boolean; busy?: boolean;
   add?: AddFilter[]; addLabel?: string;
-  onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void;
+  /** called by the remove mark of a `removable` chip */ onRemove?: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void;
   onAdd?: (id: string, value: string | undefined) => void };
 
 // A menu of ten gets a field over it. why: guidelines/component-choice.md#add-dropdown-search
@@ -100,10 +101,12 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
         open={!blocked && !filter.disabled && (opened[filter.id] && opened[filter.id].against === filter.open ? opened[filter.id].open : !!filter.open)}
         onOpenChange={open => setOpened(previous => ({ ...previous, [filter.id]: { open, against: filter.open } }))}
         onSelect={value => { if (!blocked && !filter.disabled) onChange(filter.id, value == null ? undefined : String(value)); }} />
-      {filterChipUnset(filter)
+      {/* Only a chip the app makes removable draws the mark, so the chevron of any other chip
+          sits at its edge. why: docs/components.md#filter-bar */}
+      {filter.removable && (filterChipUnset(filter)
         ? <span className="ui-filter-bar__remove is-reserved" aria-hidden="true">×</span>
         : <button type="button" className="ui-filter-bar__remove" data-filter-remove="" aria-label={`Remove ${filter.label} filter`}
-          onClick={() => { if (!blocked && !filter.disabled) onRemove(filter.id); }}>×</button>}
+          onClick={() => { if (!blocked && !filter.disabled) onRemove?.(filter.id); }}>×</button>)}
     </fieldset>)}
     {/* Its onFocus clears the restore target, so nothing a controlled change does to the
         chips takes focus off this trigger. */}
