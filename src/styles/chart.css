@@ -28,7 +28,6 @@
   color: var(--text);
 }
 
-.ui-chart--bridge { --ui-chart-col: calc(var(--space-16) + var(--space-6)); }
 .ui-chart--spark {
   --ui-chart-col: var(--space-6);
   gap: 0;
@@ -127,10 +126,8 @@
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
-/* The months and bridge charts print every bar's short name and wrap it at a
-   word break, so a word is never cut. Where one word alone is wider than its
-   column, the component steps the labels instead. */
-.ui-chart--months .ui-chart__period,
+/* The bridge prints every step's short name and wraps it at a word break, so a
+   word is never cut. The component sets its column to the widest word. */
 .ui-chart--bridge .ui-chart__period {
   overflow-wrap: normal;
 }
@@ -301,11 +298,13 @@
 .ui-chart__row { display: flex; justify-content: space-between; gap: var(--space-3); }
 .ui-chart__row .ui-chart__key { color: var(--text); font-weight: var(--weight-normal); }
 
-/* The rows look and the ring draw their own scale, so the scroller takes the
+/* The rows looks and the ring draw their own scale, so the scroller takes the
    whole frame and the plot needs no column floor. */
 .ui-chart--stacked-rows .ui-chart__frame,
+.ui-chart--months-rows .ui-chart__frame,
 .ui-chart--donut .ui-chart__frame { grid-template-columns: minmax(0, 1fr); }
 .ui-chart--stacked-rows .ui-chart__plot,
+.ui-chart--months-rows .ui-chart__plot,
 .ui-chart--donut .ui-chart__plot { min-width: 0; }
 /* The table look's ring too, so it stays centred over a list that drops under it. */
 .ui-chart--donut-thin .ui-chart__svg,

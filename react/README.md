@@ -933,7 +933,8 @@ drift.
 
 `Chart` draws three shapes from the kit's tokens: `months`, a column per period with bars and
 a line across them; `bridge`, one period walked from a starting total to a result; and `spark`,
-one series at text size with no axis, for a stat band's `trend` slot.
+one series at text size with no axis, for a stat band's `trend` slot. The `line`, `area`,
+`stacked` and `donut` variants and their looks are in `docs/components.md`.
 
 The numbers are yours and so is the wording. `format` prints exact values in the readout, the
 live region and the table; `formatAxis` prints the ticks, which are whole units, and defaults
@@ -943,9 +944,14 @@ the period that is still running, `'projected'` a future period, and `true` any 
 A months chart draws one solid line before the first period that is not final, with "Not final"
 over that group. The readout and the optional table say "Incomplete", "Projected" or
 "Estimated", followed by the `note`. A period with `compare: false` shows its value in the
-readout with no comparison. A months chart fits its card and does not scroll: it prints fewer
-period labels where they do not fit, and `values` prints each bar's value where it fits. Any
-other chart of periods that is wider than its card opens at its latest period.
+readout with no comparison. A months chart fits its card and does not scroll: it draws every bar,
+prints fewer month names where they do not fit, and no two printed names overlap. `values` prints
+each bar's value where it fits. For categories whose names must all print, such as units with a
+signed margin, set `look="rows"`: each full `label` stands above a bar across, and the bars use
+the full width of the card. A key that steps to a row outside the view scrolls that row into
+view, and a scale caption that does not fit is left out. A bridge column is as wide as its widest word, and a step name wraps
+at its spaces. A bridge whose word is wider than its column scrolls. Any other chart of periods
+that is wider than its card opens at its latest period. The chart's table has dense rows.
 
 A bar series names a tone. Each tone has its own hue: `accent` is blue and `accent-soft` is
 cyan, so two series read apart by hue. `good` and `bad` say which way
