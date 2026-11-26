@@ -272,6 +272,37 @@ export const Narrow: StoryObj = {
   ),
 };
 
+/** Twelve periods with two long names alternating, the shape a re-review of
+ *  #882 used to find the picked name still overlapping. */
+const LONG_UNITS = Array.from({ length: 12 }, (_, i) =>
+  i % 2 === 0 ? 'Infrastructure Operations' : 'Bloom Affiliate Platform');
+
+/** Twelve periods with long names, the axis a finance report's "margin by unit"
+ *  prints, in two charts. The bar chart wraps each name inside its own column and
+ *  scrolls, so every bar keeps its name (#863). The stacked chart steps whole
+ *  names. Its last name is picked, so it shows the weight-600 case at every
+ *  width: the last name always prints, and the 4px floor keeps it off the name
+ *  before it (#882). */
+export const LongCategoryNames: StoryObj = {
+  render: () => {
+    const units = LONG_UNITS.map((unit) => ({ label: unit, short: unit }));
+    const margin = [{ id: 'margin', name: 'Margin', tone: 'accent' as const,
+      values: [18400, 21300, 17200, 15600, 20800, 14900, 20100, 22400, 19600, 23100, 17500, 24200] }];
+    return (
+      <div style={{ maxWidth: '355px' }}><div className="ui-card-stack">
+        <Card title="Margin by unit">
+          <Chart title="Margin by unit, last 12 months" format={eur} formatAxis={eurAxis}
+            periods={units} series={margin} />
+        </Card>
+        <Card title="Margin by unit, stacked">
+          <Chart variant="stacked" title="Margin by unit, last 12 months, stacked" format={eur}
+            formatAxis={eurAxis} selected={11} periods={units} series={margin} />
+        </Card>
+      </div></div>
+    );
+  },
+};
+
 /** The picked month is drawn — a band behind its column and its label at weight
  *  — and said, through the chart's own live region. A line under the card
  *  repeating it told a reader nothing the chart had not already told them. */

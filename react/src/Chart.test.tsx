@@ -1011,6 +1011,166 @@ it('keeps the unfinished stretch of a sparkline one solid stroke', () => {
     .not.toBeNull();
 });
 
+/* -- the printed category labels -------------------------------------------
+ * Limits. JSDOM has no layout and no canvas, so the width a label measures is
+ * the component's own fallback (length × 12 × 0.62), the one a browser replaces
+ * with its real measure. The spans below read the printed labels back from the
+ * DOM and place them the way the sheet does: centred on their column, or flush
+ * with the plot's edge. Two printed names on top of each other is the #882
+ * failure. The charts are `stacked` charts: a `months` or `bridge` chart wraps each
+ * name inside its own column (#863), so only the other variants step whole names. */
+
+/** Twelve long unit names, the longest ones at the end, the shape of a finance
+ *  report's "margin by unit" axis. The story shows the picked-name case with
+ *  two alternating names, so this list stays for the edge case it names. */
+const LONG_UNITS = [
+  'Payments Infrastructure', 'Developer Relations', 'Content Operations',
+  'Global Partnerships', 'Enterprise Sales', 'Brand Marketing', 'Marketplace Growth',
+  'Infrastructure Operations', 'Platform Engineering', 'Strategic Finance',
+  'Customer Success', 'Bloom Affiliate Platform',
+];
+
+const labelWidth = (text: string) => text.length * 12 * 0.62;
+/** The floor a printed label keeps beside its neighbour: --space-1, 4 px. */
+const LABEL_FLOOR = 4;
+/** The printed labels' pixel spans, in column order, as the sheet places them. */
+const printedSpans = (row: Element, plotWidth: number) => {
+  const count = row.children.length;
+  const colWidth = plotWidth / count;
+  return [...row.children].flatMap((child, i) => {
+    const text = child.textContent ?? '';
+    if (!text) return [];
+    const w = labelWidth(text);
+    const cls = classOf(child);
+    if (cls.includes('is-start')) return [{ i, start: i * colWidth, end: i * colWidth + w }];
+    if (cls.includes('is-end')) return [{ i, start: (i + 1) * colWidth - w, end: (i + 1) * colWidth }];
+    const centre = (i + 0.5) * colWidth;
+    return [{ i, start: centre - w / 2, end: centre + w / 2 }];
+  });
+};
+
+it('prints no two category names on top of each other at 390, 820 and 1440 px', () => {
+  for (const width of [390, 820, 1440]) {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+    const { container } = render(<Chart variant="stacked" title="Margin by unit"
+      periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
+      series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
+      format={eur} />);
+    const row = container.querySelector('.ui-chart__periods')!;
+    const spans = printedSpans(row, width);
+    cleanup();
+    vi.restoreAllMocks();
+    expect(spans.length, `${width}px prints some names`).toBeGreaterThan(1);
+    expect(spans.slice(1).filter((s, k) => s.start < spans[k].end + LABEL_FLOOR).map((s) => s.i),
+      `${width}px: every printed pair keeps the 4px floor`).toEqual([]);
+  }
+});
+
+// #882: the picked label is drawn at weight 600, wider than the body weight.
+// At 258px the real face prints the picked name and the last name together, and
+// the head's step check left them 1px apart, below the 4px floor. The widths
+// are IBM Plex Sans 12px, measured in a Chromium browser: the picked name reads
+// 134.098px at weight 600, and the two names read 120.949px and 121.096px at
+// weight 400. The spans below read the same widths back, so the picked name is
+// measured as drawn.
+it('keeps the picked category name off the one before it, at its own weight', () => {
+  const WIDTHS: Record<string, { regular: number; semibold: number }> = {
+    'Infrastructure Operations': { regular: 120.949, semibold: 134.098 },
+    'Bloom Affiliate Platform': { regular: 121.096, semibold: 127.295 },
+  };
+  vi.stubGlobal('OffscreenCanvas', class {
+    getContext() {
+      return {
+        font: '',
+        measureText(text: string) {
+          const semibold = this.font.trimStart().startsWith('600');
+          const w = WIDTHS[text];
+          return { width: w ? (semibold ? w.semibold : w.regular) : text.length * 12 * 0.62 };
+        },
+      };
+    }
+  });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(258);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(258);
+  const units = Array.from({ length: 12 }, (_, i) =>
+    i % 2 === 0 ? 'Infrastructure Operations' : 'Bloom Affiliate Platform');
+  const { container } = render(<Chart variant="stacked" title="Margin by unit" selected={0}
+    periods={units.map((unit) => ({ label: unit, short: unit }))}
+    series={[{ id: 'margin', name: 'Margin', values: units.map((_, i) => 20 + i), tone: 'accent' }]}
+    format={eur} />);
+  const row = container.querySelector('.ui-chart__periods')!;
+  const plotWidth = 258;
+  const colWidth = plotWidth / row.children.length;
+  const spans = [...row.children].flatMap((child, i) => {
+    const text = child.textContent ?? '';
+    if (!text) return [];
+    const cls = classOf(child);
+    const semibold = cls.includes('is-selected');
+    const raw = WIDTHS[text] ? (semibold ? WIDTHS[text].semibold : WIDTHS[text].regular) : text.length * 12 * 0.62;
+    const w = raw;
+    if (cls.includes('is-start')) return [{ i, start: i * colWidth, end: i * colWidth + w }];
+    if (cls.includes('is-end')) return [{ i, start: (i + 1) * colWidth - w, end: (i + 1) * colWidth }];
+    const centre = (i + 0.5) * colWidth;
+    return [{ i, start: centre - w / 2, end: centre + w / 2 }];
+  });
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  expect(spans.length, 'some names print').toBeGreaterThan(0);
+  expect(spans.slice(1).filter((s, k) => s.start < spans[k].end + LABEL_FLOOR).map((s) => s.i),
+    'every printed pair keeps the 4px floor').toEqual([]);
+});
+
+// #882, design review of 2b0d81a8, line 9: a pick changes the printed names only
+// where main's names fall under the 4px floor. At these plot widths main prints
+// the names below with the third name picked, and keeps 8.56px to 37.14px between
+// them. The widths are IBM Plex Sans 12px at weight 400 and 600, read from an
+// OffscreenCanvas in a full Chromium browser with the loaded face; a headless
+// shell rounds each width to a whole pixel. Limits: JSDOM has no layout, so the
+// plot's rounded clientWidth and its exact rect width are mocked.
+it('prints main\'s names with a pick where main keeps the 4px floor', () => {
+  const REGIONS: Record<string, [number, number]> = {
+    'North America': [78.121, 80.821], 'South America': [78.973, 81.817],
+    'Western Europe': [86.089, 89.02], 'Asia Pacific': [61.212, 64.218],
+    'Middle East': [62.724, 64.852], Africa: [31.428, 33.144],
+  };
+  vi.stubGlobal('OffscreenCanvas', class {
+    getContext() {
+      return {
+        font: '',
+        measureText(text: string) {
+          return { width: REGIONS[text][this.font.trimStart().startsWith('600') ? 1 : 0] };
+        },
+      };
+    }
+  });
+  const names = Object.keys(REGIONS);
+  const rows: [number[], string[]][] = [
+    [[142.77, 143.77, 144.77, 145.77], ['South America', 'Africa']],
+    [[189.77, 190.77, 191.77, 192.77, 193.77, 194.77], ['Western Europe', 'Africa']],
+    [[284.77, 285.77, 286.77, 287.77, 288.77, 289.77, 290.77, 291.77, 292.77],
+      ['South America', 'Asia Pacific', 'Africa']],
+    [[582.77, 583.77, 584.77, 585.77, 586.77], names],
+  ];
+  for (const [plots, printed] of rows) {
+    for (const plot of plots) {
+      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(Math.round(plot));
+      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(Math.round(plot));
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, plot, 100));
+      const { container } = render(<Chart variant="stacked" title="Margin by region" selected={2}
+        periods={names.map((name) => ({ label: name, short: name }))}
+        series={[{ id: 'margin', name: 'Margin', values: names.map((_, i) => 20 + i), tone: 'accent' }]}
+        format={eur} />);
+      const labels = [...container.querySelector('.ui-chart__periods')!.children]
+        .map((c) => c.textContent).filter(Boolean);
+      cleanup();
+      vi.restoreAllMocks();
+      expect(labels, `${plot}px plot`).toEqual(printed);
+    }
+  }
+  vi.unstubAllGlobals();
+});
+
 // #863: a bar is one flat tone from its foot on zero to its data end. No ramp
 // fades it; the full tone carries the value at every point.
 it('paints every bar one flat tone, with no ramp', () => {

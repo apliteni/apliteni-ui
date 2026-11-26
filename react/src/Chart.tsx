@@ -408,19 +408,26 @@ function useTapFloor() {
  * printed only where it fits. A browser measures it; where no canvas can
  * (server-rendered, or a test environment) a figure is taken as 0.62 of the text
  * size, which is wider than any figure of the kit's face, so an estimate never
- * prints a word over its neighbour.
+ * prints a word over its neighbour. The width is rounded up unless the caller
+ * asks for the exact one: a collision check reads the exact drawn span, while a
+ * fit or an edge decision keeps the conservative figure.
  */
 function useTextWidth(host: RefObject<HTMLElement | null>) {
-  const [face, setFace] = useState<{ regular: string; medium: string } | null>(null);
+  const [face, setFace] = useState<{ regular: string; medium: string; semibold: string } | null>(null);
   // A web font that arrives after the first draw changes every width.
   const [loaded, setLoaded] = useState(0);
   useEffect(() => {
     const el = host.current;
     if (!el || typeof OffscreenCanvas === 'undefined') return;
     const style = getComputedStyle(el);
-    // The group label is drawn at --weight-medium, which is wider than the body weight.
+    // The group label is drawn at --weight-medium and the picked period at
+    // --weight-semibold; both are wider than the body weight.
     const font = (weight: string) => `${weight} ${TEXT_SIZE}px ${style.fontFamily}`;
-    setFace({ regular: font(style.fontWeight), medium: font(style.getPropertyValue('--weight-medium').trim() || '500') });
+    setFace({
+      regular: font(style.fontWeight),
+      medium: font(style.getPropertyValue('--weight-medium').trim() || '500'),
+      semibold: font(style.getPropertyValue('--weight-semibold').trim() || '600'),
+    });
     let live = true;
     el.ownerDocument.fonts?.ready.then(() => { if (live) setLoaded((n) => n + 1); });
     return () => { live = false; };
@@ -428,10 +435,11 @@ function useTextWidth(host: RefObject<HTMLElement | null>) {
   return useMemo(() => {
     void loaded;
     const ctx = face ? new OffscreenCanvas(1, 1).getContext('2d') : null;
-    return (text: string, medium = false) => {
+    return (text: string, weight: 'regular' | 'medium' | 'semibold' = 'regular', exact = false) => {
       if (!ctx || !face) return text.length * TEXT_SIZE * 0.62;
-      ctx.font = medium ? face.medium : face.regular;
-      return Math.ceil(ctx.measureText(text).width);
+      ctx.font = face[weight];
+      const width = ctx.measureText(text).width;
+      return exact ? width : Math.ceil(width);
     };
   }, [face, loaded]);
 }
@@ -706,6 +714,9 @@ export function Chart(props: ChartProps) {
   const floor = useTapFloor();
   const textWidth = useTextWidth(frameEl);
   const [width, setWidth] = useState(0);
+  /** The plot's drawn width: clientWidth rounds it, so the collision check reads
+   *  the fractional figure the browser actually lays out. */
+  const [spanWidth, setSpanWidth] = useState(0);
   /** The scroller's own width, which the axis beside it can still change after
    *  the plot has its width: a chart that opens at its end follows it there. */
   const [boxWidth, setBoxWidth] = useState(0);
@@ -888,6 +899,7 @@ export function Chart(props: ChartProps) {
     if (!el || !box) return;
     const read = () => {
       setWidth(el.clientWidth);
+      setSpanWidth(el.getBoundingClientRect().width);
       setBoxWidth(box.clientWidth);
       setOverflows(box.scrollWidth > box.clientWidth);
     };
@@ -1070,11 +1082,17 @@ export function Chart(props: ChartProps) {
      first period that is not final, or from the latest one, so the period a
      reader came for keeps its label. */
   const wrapAtWords = variant === 'months' || variant === 'bridge';
+  /** A period label's drawn width: the picked column's label carries the
+   *  semibold weight, the rest the body weight, so placement measures each
+   *  label in the weight it is drawn in. */
+  const labelWidth = (i: number) => textWidth(columns[i].short, pick === i ? 'semibold' : 'regular');
+  // The first step reads every label at the body weight, as a chart with no pick
+  // does: a pick changes the printed names only where the step check below finds
+  // a pair under the floor, so it keeps the names, and itself, where they fit.
   const labelRoom = Math.max(0, ...columns.map((c) => textWidth(c.short))) + LABEL_GAP;
   const widestWord = wrapAtWords
     ? Math.max(0, ...columns.flatMap((c) => c.short.split(/\s+/).map((word) => textWidth(word)))) + LABEL_GAP
     : labelRoom;
-  const every = widestWord <= colWidth ? 1 : Math.ceil(labelRoom / colWidth);
   /** The column the plot keeps, `--ui-chart-col` in the sheet: a months column
    *  is the widest word, a bridge keeps its own column and grows past it for a
    *  word too wide to wrap. */
@@ -1082,11 +1100,10 @@ export function Chart(props: ChartProps) {
     ? Math.ceil(widestWord)
     : variant === 'bridge' ? Math.max(BRIDGE_COL, Math.ceil(widestWord)) : null;
   const anchor = groupFrom >= 0 ? groupFrom : count - 1;
-  const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
   /** A stepped label wider than its column stands centred on it, or on the
    *  plot's edge where centring would carry it past that edge. */
   const edgeOf = (i: number) => {
-    const half = textWidth(columns[i].short) / 2;
+    const half = labelWidth(i) / 2;
     return centre(i) - half < 0 ? 'is-start' : centre(i) + half > plotWidth ? 'is-end' : null;
   };
   /** A wrap label sits in a scrolled column. Where the scroll cuts a column at
@@ -1098,6 +1115,37 @@ export function Chart(props: ChartProps) {
     const right = left + colWidth;
     return left >= scrolled - 0.5 && right <= scrolled + boxWidth + 0.5;
   };
+  /** The pixel span a printed label owns, read back from where the sheet puts
+   *  it: centred on its column, or flush with the plot's edge. The span reads
+   *  the exact drawn widths and the exact plot width, so the 4px floor the step
+   *  check keeps is the one the browser draws: a width rounded up by Math.ceil
+   *  or by clientWidth each moved the floor by up to half a pixel. */
+  const colSpan = spanWidth > 0 ? spanWidth / count : colWidth;
+  const centreSpan = (i: number) => i * colSpan + colSpan / 2;
+  const spanOf = (i: number) => {
+    const w = textWidth(columns[i].short, pick === i ? 'semibold' : 'regular', true);
+    const edge = edgeOf(i);
+    if (edge === 'is-start') return { start: i * colSpan, end: i * colSpan + w };
+    if (edge === 'is-end') return { start: (i + 1) * colSpan - w, end: (i + 1) * colSpan };
+    return { start: centreSpan(i) - w / 2, end: centreSpan(i) + w / 2 };
+  };
+  // The step grows past the widest label's room while two printed labels keep
+  // less than the 4px floor: hugging the edge pulls the last printed label inward
+  // past the gap the widest label alone reserved for it, and two names that touch
+  // read as one name (#882). The floor is --space-1, not --space-2, so short-name
+  // charts that main prints at 4.25px stay as they are.
+  // A row that wraps at words keeps each name inside its own column, so two
+  // names never meet there and the step stays 1.
+  let every = widestWord <= colWidth ? 1 : Math.ceil(labelRoom / colWidth);
+  const wraps = wrapAtWords && every === 1;
+  for (; !wraps && every < count; every += 1) {
+    const spans: { start: number; end: number }[] = [];
+    for (let i = 0; i < count; i += 1) {
+      if (((anchor - i) % every + every) % every === 0) spans.push(spanOf(i));
+    }
+    if (spans.slice(1).every((s, k) => s.start >= spans[k].end + TEXT_GAP)) break;
+  }
+  const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
   const groupX = groupFrom >= 0 ? Math.min(Math.max(groupFrom * colWidth, 1), plotWidth - 1) : 0;
 
   return (
@@ -1284,7 +1332,7 @@ export function Chart(props: ChartProps) {
                   <line className="ui-chart__boundary"
                     x1={px(groupX)} x2={px(groupX)} y1={BOUNDARY_TOP} y2={px(plotHeight - PAD)} />
                   <text className="ui-chart__text ui-chart__group" y={GROUP_BASELINE}
-                    x={px(Math.max(0, Math.min(groupX + TEXT_GAP, plotWidth - textWidth(GROUP_WORDS, true))))}
+                    x={px(Math.max(0, Math.min(groupX + TEXT_GAP, plotWidth - textWidth(GROUP_WORDS, 'medium'))))}
                   >{GROUP_WORDS}</text>
                 </>
               )}
