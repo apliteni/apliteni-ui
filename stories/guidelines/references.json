@@ -252,7 +252,7 @@
     "pattern": "const isDisabled = (item: CommandItem) =>"
    },
    {
-    "ref": "src/styles/command-palette.css:258",
+    "ref": "src/styles/command-palette.css:259",
     "pattern": ".ui-cmdk__item.is-danger"
    }
   ]

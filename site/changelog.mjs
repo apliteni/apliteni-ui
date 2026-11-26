@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.204.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A sidebar section caption and a command palette group heading are now bold and in muted ink, as a dropdown group label is. Their size and spacing stay. Part of #886.', ['AppShell', 'CommandPalette']],
+      ['changed', 'The Labels and titles and Command palette guideline pages now name the two headings with the dropdown group label. Part of #886.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.200.0', date: '2026-11-26',
     changes: [
       ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes the new ink `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],
