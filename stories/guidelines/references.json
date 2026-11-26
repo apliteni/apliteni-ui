@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:480",
+    "ref": "src/styles/dropdown.css:477",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:542",
+    "ref": "src/styles/dropdown.css:539",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:432",
+    "ref": "src/styles/dropdown.css:429",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -606,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:437",
+    "ref": "src/styles/dropdown.css:434",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:438",
+    "ref": "src/styles/dropdown.css:435",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -1191,7 +1191,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:144",
+    "ref": "react/src/Dropdown.tsx:145",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1355,15 +1355,15 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:440",
+    "ref": "src/styles/dropdown.css:437",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:442",
+    "ref": "src/styles/dropdown.css:439",
     "pattern": "color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:860",
+    "ref": "react/src/Dropdown.tsx:876",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

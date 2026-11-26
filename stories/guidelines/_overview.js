@@ -74,7 +74,7 @@ const ENTRIES = [
   [sessionExpiredContent, 'Guidelines/Session expired', 'SessionExpired', 'Controls and states', 'The sign-in dialog, page state and a lasting notice'],
   [threeColumnContent, 'Guidelines/Three-column page', 'ThreeColumnPage', 'Pages', 'Parents, their children and the open child in three columns'],
   [wizardContent, 'Guidelines/Wizard', 'WizardPage', 'Controls and states', 'Step states, the open step and the final action'],
-  [dropdownContent, 'Guidelines/Dropdown', 'DropdownPage', 'Controls and states', 'Group labels that stand apart from the options'],
+  [dropdownContent, 'Guidelines/Dropdown', 'DropdownPage', 'Controls and states', 'Group labels that stand apart, and a trigger that shows only its value'],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page
