@@ -16,25 +16,21 @@ const page = (children: ReactNode, width: number | string = 720) => <div style={
 const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack">{bar}{table}</div>;
 const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 
-type Order = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
+type Order = { name: string; id: string; placed: string; items: string; total: string; tone: string; status: string };
 const ORDERS: Order[] = [
-  ['1162', 'OR-1042', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
-  ['1163', 'OR-1041', '2026-06-29', '14,490.70', '574.19', '27,834.31', 'success', 'Paid'],
-  ['1164', 'OR-1040', '2026-06-26', '14,566.66', '483.97', '15,201.57', 'pending', 'In transit'],
-  ['41', 'OR-1039', '2026-06-25', '39,054.98', '1,369.76', '32,156.22', 'success', 'Paid'],
-  ['42', 'OR-1038', '2026-06-24', '14,969.33', '472.71', '18,774.34', 'danger', 'Failed'],
-  ['43', 'OR-1037', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
-].map(([name, id, arrival, gross, fees, net, tone, status]) => ({ name, id, arrival, gross, fees, net, tone, status }));
+  ['1162', 'OR-1042', '2026-06-30', '3', '1,240.00', 'success', 'Paid'],
+  ['1163', 'OR-1041', '2026-06-29', '1', '860.00', 'pending', 'In transit'],
+  ['1164', 'OR-1040', '2026-06-28', '2', '2,100.00', 'danger', 'Failed'],
+].map(([name, id, placed, items, total, tone, status]) => ({ name, id, placed, items, total, tone, status }));
 
-// The net head carries the currency once. On a phone the table scrolls in its frame,
+// The total head carries the currency once. On a phone the table scrolls in its frame,
 // with the order ID pinned.
 const orderColumns: Column<Order>[] = [
   { key: 'name', label: 'ID', linked: true, render: (r) => <a href="#order">{r.name}</a> },
   { key: 'id', label: 'Order ID', cell: 'code' },
-  { key: 'arrival', label: 'Arrival' },
-  { key: 'gross', label: 'Gross', num: true, render: (r) => <NumericValue value={r.gross} /> },
-  { key: 'fees', label: 'Fees', num: true, render: (r) => <NumericValue value={r.fees} /> },
-  { key: 'net', label: 'Net (EUR)', num: true, cell: 'strong', render: (r) => <NumericValue value={r.net} /> },
+  { key: 'placed', label: 'Placed' },
+  { key: 'items', label: 'Items', num: true, render: (r) => <NumericValue value={r.items} /> },
+  { key: 'total', label: 'Total (EUR)', num: true, cell: 'strong', render: (r) => <NumericValue value={r.total} /> },
   { key: 'status', label: 'Status', render: (r) => <Badge variant={r.tone}>{r.status}</Badge> },
 ];
 

@@ -26,8 +26,8 @@ const NAV = [
     icon: 'card',
     label: 'Orders',
     items: [
-      { id: 'pending', icon: 'clock', label: 'Pending', badge: 3 },
-      { id: 'history', icon: 'doc', label: 'History' },
+      { id: 'open', icon: 'doc', label: 'Open', badge: 3 },
+      { id: 'drafts', icon: 'clock', label: 'Drafts' },
     ],
   },
   ...ACCOUNT_NAV,
@@ -38,17 +38,16 @@ const settingRow = (lab, hint, value) =>
 
 const screen = (collapsed) => appShell({
   nav: NAV,
-  active: 'pending',
+  active: 'open',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
   signOutHref: '#logout',
-  title: 'Pending orders',
-  sub: 'Three orders are waiting for a second approval.',
+  title: 'Orders',
+  sub: 'Open orders and drafts in one place.',
   collapsed,
   body: card({
-    title: 'Waiting for approval',
-    body: settingRow('Northwind Traders', 'Requested by Ada Lovelace', '<span>€4,200.00</span>')
-      + settingRow('Globex', 'Requested by Ada Lovelace', '<span>€860.00</span>')
-      + settingRow('Initech', 'Requested by Ada Lovelace', '<span>€1,975.50</span>'),
+    title: 'Open orders',
+    body: settingRow('Acme Studio', 'Placed by Dana Reyes', '<span>€480.00</span>')
+      + settingRow('Blue Fern', 'Placed by Dana Reyes', '<span>€612.40</span>'),
   }),
 });
 
@@ -62,24 +61,23 @@ const laid = ({ layout, width, collapsed }) => appShell({
   width,
   search: layout === 'topbar' ? PALETTE_ID : undefined,
   nav: NAV,
-  active: 'pending',
+  active: 'open',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
   signOutHref: '#logout',
-  title: 'Pending orders',
-  sub: 'Three of the nine that arrived this week are waiting for a second approval.',
+  title: 'Orders',
+  sub: 'Open orders and drafts.',
   collapsed,
   body: card({
-    title: 'Waiting for approval',
-    body: settingRow('Northwind Traders', 'Requested by Ada Lovelace', '<span>€4,200.00</span>')
-      + settingRow('Globex', 'Requested by Ada Lovelace', '<span>€860.00</span>')
-      + settingRow('Initech', 'Requested by Ada Lovelace', '<span>€1,975.50</span>'),
+    title: 'Open orders',
+    body: settingRow('Acme Studio', 'Placed by Dana Reyes', '<span>€480.00</span>')
+      + settingRow('Blue Fern', 'Placed by Dana Reyes', '<span>€612.40</span>'),
   }) + (layout === 'topbar' ? commandPalette({
     id: PALETTE_ID,
     groups: [{
       label: 'Go to',
       items: [
         { id: 'overview', label: 'Overview', description: 'Traffic and revenue', icon: 'chart', href: '#overview' },
-        { id: 'pending', label: 'Pending orders', description: 'Three waiting', icon: 'clock', href: '#pending' },
+        { id: 'open', label: 'Open orders', description: 'Three open', icon: 'doc', href: '#open' },
       ],
     }],
   }) : ''),
@@ -96,9 +94,9 @@ const collapsed = params.get('collapsed') === '1'
 // head alone and the shot shows what a page could not have without writing the
 // kit's padding out by hand.
 const FILTERS = [
-  { label: 'Unpaid', description: '12 orders', icon: 'clock' },
-  { label: 'Awaiting approval', description: '3 orders', icon: 'shield' },
-  { label: 'Paid this month', description: '48 orders', icon: 'check' },
+  { label: 'Open', description: '12 orders', icon: 'doc' },
+  { label: 'Drafts', description: '3 orders', icon: 'clock' },
+  { label: 'Closed', description: '48 orders', icon: 'check' },
 ];
 const HEAD = '<div class="ui-dropdown__head"><b>Filter orders</b></div>';
 const PANELS = {
@@ -149,7 +147,7 @@ if (params.get('subject') === 'caret') {
 // reader is standing on inside a group — the row a shut group used to swallow.
 } else if (params.get('subject') === 'nav') {
   document.body.innerHTML = `<div class="navbox">${sidebarNav({
-    items: NAV, active: 'pending', collapsed: true,
+    items: NAV, active: 'open', collapsed: true,
   })}</div>`;
   // On the rail's own surface, because that is the only place a collapsed
   // sidebarNav() is drawn — #295 took that surface down a step.

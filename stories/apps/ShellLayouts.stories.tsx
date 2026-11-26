@@ -20,7 +20,7 @@ export default meta;
 
 const NAV: DemoNavItem[] = [
   { id: 'overview', icon: 'chart', label: 'Overview' },
-  { id: 'reports', icon: 'table', label: 'Reports' },
+  { id: 'reports', icon: 'table', label: 'Reports', count: 4 },
   { id: 'settings', icon: 'gear', label: 'Settings' },
 ];
 

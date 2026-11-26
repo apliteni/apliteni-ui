@@ -20,9 +20,9 @@
 
 **Why:** Both together make a long sidebar that scrolls, so the reader cannot see all the sections at once.
 
-**Do:** Put Pending and History under Orders, with no group labels.
+**Do:** Put Open and Drafts under Orders, with no group labels.
 
-**Don't:** Put Orders and its sub-items under a Money label.
+**Don't:** Put Orders and its sub-items under a Workspace label.
 
 ## Keep the bar’s end for product alerts
 

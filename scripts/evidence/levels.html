@@ -32,8 +32,8 @@ const NAV = [
     icon: 'card',
     label: 'Orders',
     items: [
-      { id: 'pending', icon: 'clock', label: 'Pending', badge: 3 },
-      { id: 'history', icon: 'doc', label: 'History' },
+      { id: 'open', icon: 'doc', label: 'Open', badge: 3 },
+      { id: 'drafts', icon: 'clock', label: 'Drafts' },
     ],
   },
   ...ACCOUNT_NAV,
@@ -46,34 +46,34 @@ const row = (lab, hint, value) =>
 /* Three cards side by side, as the reference's artifact grid is, plus one that
  * holds fields — the level that keeps its edge whatever the theme does. */
 const GRID = '<div class="lv-grid">'
-  + card({ title: 'Waiting for approval', sub: 'Three orders need a second signature.',
-    body: row('Northwind Traders', 'Requested by Ada Lovelace', '&euro;4,200.00')
-      + row('Globex', 'Requested by Ada Lovelace', '&euro;860.00')
-      + row('Initech', 'Requested by Ada Lovelace', '&euro;1,975.50') })
+  + card({ title: 'Open orders', sub: 'Three orders need a reply.',
+    body: row('Acme Studio', 'Placed by Dana Reyes', '&euro;480.00')
+      + row('Blue Fern', 'Placed by Dana Reyes', '&euro;612.40')
+      + row('Cedar Co', 'Placed by Sam Lee', '&euro;1,240.00') })
   + card({ title: 'This month', sub: 'Across every workspace.',
-    body: '<div class="lv-fig">&euro;31,480</div>'
-      + `<div class="lv-meta">${badge('Settled', 'success')} 48 orders</div>` })
-  + card({ title: 'Order account', sub: 'Where settled money lands.',
-    body: field({ label: 'Account name', control: input({ value: 'Apliteni OU' }) })
-      + field({ label: 'Currency', control: select({ options: ['EUR', 'USD'], value: 'EUR' }) })
-      + field({ label: 'Reference', hint: 'Shown on the statement.',
+    body: '<div class="lv-fig">128 GB</div>'
+      + `<div class="lv-meta">${badge('On track', 'success')} 34 files</div>` })
+  + card({ title: 'Workspace', sub: 'Applied to every project.',
+    body: field({ label: 'Workspace name', control: input({ value: 'Apliteni' }) })
+      + field({ label: 'Region', control: select({ options: ['EU', 'US'], value: 'EU' }) })
+      + field({ label: 'Tag', hint: 'Shown on every card.',
         control: input({ placeholder: 'Optional', disabled: true }) })
-      + `<div class="lv-meta">${checkbox({ label: 'Email a receipt', checked: true })}`
-      + `${checkbox({ label: 'Hold until approved', disabled: true })}</div>` })
+      + `<div class="lv-meta">${checkbox({ label: 'Email a weekly summary', checked: true })}`
+      + `${checkbox({ label: 'Hold changes for review', disabled: true })}</div>` })
   + '</div>';
 
 /* The open menu, over the grid rather than beside it, so the panel's own
  * separation is read against the card it covers — the case the light theme has
  * no surface step for. */
 const MENU = dd.dropdown({
-  value: 'Filter orders',
+  value: 'Filter',
   variant: 'menu',
   ariaLabel: 'Filter orders',
   open: true,
   items: [
-    { label: 'Unpaid', description: '12 orders', icon: 'clock' },
-    { label: 'Awaiting approval', description: '3 orders', icon: 'shield' },
-    { label: 'Paid this month', description: '48 orders', icon: 'check' },
+    { label: 'Open', description: '12 orders', icon: 'doc' },
+    { label: 'Drafts', description: '3 orders', icon: 'clock' },
+    { label: 'Closed', description: '48 orders', icon: 'check' },
   ],
 });
 
@@ -93,8 +93,8 @@ if (params.get('subject') === 'elevated') {
       + button({ label: 'Continue', variant: 'primary' })
       + '<div class="ui-auth__foot">Only work accounts can sign in.</div>'
     + '</div></div>'
-    + sx.success({ layout: 'compact', backdrop: 'flat', title: 'Order approved',
-        body: 'Northwind Traders will be paid on the next run.' })
+    + sx.success({ layout: 'compact', backdrop: 'flat', title: 'Change saved',
+        body: 'Your workspace settings are saved.' })
     + '</div>'
     + fb.feedbackWidget({ label: 'Give feedback' });
   document.querySelector('.ui-fbcomposer').classList.add('show');
@@ -113,12 +113,12 @@ if (params.get('subject') === 'elevated') {
 document.body.innerHTML = appShell({
   word: 'Finance',
   nav: NAV,
-  active: 'pending',
+  active: 'open',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
   signOutHref: '#logout',
-  title: 'Pending orders',
-  sub: 'Three of the nine that arrived this week are waiting for a second approval.',
-  body: `<div class="lv-bar">${MENU}${button({ label: 'Approve all', variant: 'primary' })}`
+  title: 'Orders',
+  sub: 'Open orders and drafts in one place.',
+  body: `<div class="lv-bar">${MENU}${button({ label: 'New order', variant: 'primary' })}`
     + `${button({ label: 'Export', variant: 'ghost', disabled: true })}</div>${GRID}`,
 });
 if (typeof wireShell === 'function') wireShell(document.body);

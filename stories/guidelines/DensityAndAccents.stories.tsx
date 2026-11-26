@@ -19,7 +19,7 @@ const rows = (pairs: [string, string][]) => pairs.map(([label, value]) => ({ lab
 const Section = ({ title, pairs }: { title?: string; pairs: [string, string][] }) =>
   <DrawerSection title={title}><KeyValueList rows={rows(pairs)} /></DrawerSection>;
 
-const FACTS: [string, string][] = [['Amount', '€ 1,240.00'], ['Arrival', '30 Sep 2026'], ['Source', 'Bank feed']];
+const FACTS: [string, string][] = [['Amount', '€ 1,240.00'], ['Arrival', '30 Sep 2026'], ['Source', 'Web store']];
 const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?: boolean }) =>
   <div className={`ui-card ui-card--pad-sm ${colourful ? 'gda-coloured' : ''}`}>
     <h3 className="ui-card__title">Order 1162</h3>
@@ -27,7 +27,7 @@ const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?
     <Section pairs={FACTS} />
     {bad && <>
       <Section title="Order details" pairs={[['Order reference', 'Order 1162'], ['Order status', 'In transit'], ['Order amount', '€ 1,240.00']]} />
-      <Section title="History" pairs={[['28 Sep, 09:00', 'Created'], ['28 Sep, 09:02', 'Approved'], ['29 Sep, 08:00', 'Sent to bank']]} />
+      <Section title="History" pairs={[['28 Sep, 09:00', 'Created'], ['28 Sep, 09:02', 'Confirmed'], ['29 Sep, 08:00', 'Shipped']]} />
     </>}
     <div className="gda-actions">
       <Button variant="primary" size="sm">Open order</Button>
