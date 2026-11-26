@@ -15,7 +15,10 @@
  * Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen phone of
  * 466×678 and 890×626 at scale 3 with touch. The walk clicks the button, so the oldest notice
  * leaves, then presses Tab into the stack, Tab, Tab, Enter on the second Undo, Escape and
- * Escape. A walk that cannot reach a control stops with Playwright's timeout. The click starts
+ * Escape. Then it clicks the button into the empty stack, clicks that Undo with the pointer, and
+ * clicks the button again: the pointer is off the stack, so the new timer must run. A walk that
+ * cannot reach the focus it waits for stops, and its error says that the focus
+ * left. A walk that cannot reach another control stops with Playwright's timeout. The click starts
  * outside the stack, so the focus is read from the first Tab on. The last Escape closes the
  * last notice, so the focus after it is not read.
  *
@@ -49,11 +52,24 @@ const READ = () => {
     inside: stack.contains(document.activeElement),
     titles: live.map((el) => el.querySelector('.ui-toast__title').textContent),
     rings: live.filter((el) => el.querySelector('.ui-toast__action .ui-toast__ring')?.checkVisibility()).length,
+    // The script's hold, which the ring's inline play state shows. The sheet's :hover is not read.
+    held: live.filter((el) => el.querySelector('.ui-toast__ring-arc')?.style.animationPlayState === 'paused').length,
   };
 };
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
 const live = (page, count) => page.waitForFunction((n) => document.querySelectorAll('.rx-toast-stack .ui-toast').length === n, count);
-const focused = (page, name) => page.locator(':focus').and(name).waitFor();
+// A wait for the focus that times out names the focus loss, and where the focus went, so the
+// gate and its focus mutation read one message.
+const FOCUS_LEFT = 'the focus left the control that the walk waits for';
+const focused = async (page, name) => {
+  try {
+    await page.locator(':focus').and(name).waitFor();
+  } catch (error) {
+    if (error.name !== 'TimeoutError') throw error;
+    const at = await page.evaluate(() => (document.activeElement === document.body ? 'the page body' : document.activeElement.outerHTML.slice(0, 80)));
+    throw new Error(`${FOCUS_LEFT}, and is on ${at}`, { cause: error });
+  }
+};
 const notice = (page, title) => page.locator('.rx-toast-stack .ui-toast').filter({ hasText: title });
 const button = (page, title, name) => notice(page, title).getByRole('button', { name });
 
@@ -79,6 +95,15 @@ const ACTIONS = [
     await focused(page, button(page, 'Tranvía', 'Undo'));
   }, ['Tranvía Norte set to Transport']],
   ['key: Escape on the last notice', async (page) => { await page.keyboard.press('Escape'); await live(page, 0); }, []],
+  ['click: Classify one more into the empty stack', async (page) => {
+    await page.getByRole('button', { name: 'Classify one more' }).click();
+    await live(page, 1);
+  }, ['Farmacia Sol set to Health']],
+  ['click: Undo with the pointer', async (page) => { await button(page, 'Farmacia', 'Undo').click(); await live(page, 0); }, []],
+  ['click: Classify one more after the pointer left', async (page) => {
+    await page.getByRole('button', { name: 'Classify one more' }).click();
+    await live(page, 1);
+  }, ['Farmacia Sol set to Health']],
 ];
 
 async function open(browser, port, vitals, context) {
@@ -110,6 +135,7 @@ async function walk(page, label, { only } = {}) {
     const at = `${label} ${name}`;
     if (name.startsWith('key:') && name !== 'key: Escape on the last notice' && !after.inside) found.push(`${at}: the focus left the stack`);
     if (titles && JSON.stringify(after.titles) !== JSON.stringify(titles)) found.push(`${at}: the stack shows ${JSON.stringify(after.titles)}`);
+    if (name === 'click: Classify one more after the pointer left' && after.held) found.push(`${at}: ${after.held} timer stays held with no pointer or focus in the stack`);
     // The stack is fixed to its corner. An empty stack keeps the corner too.
     const moved = Math.max(Math.abs(after.bottom - before.bottom), Math.abs(after.right - before.right));
     if (moved > 1) found.push(`${at}: the stack's corner moved ${Math.round(moved)}px`);
@@ -162,9 +188,9 @@ test('an undo stack keeps three notices, each Undo acts on its own notice, and t
       const { ctx, page } = await open(browser, server.port, vitals, phone);
       page.setDefaultTimeout(3000);
       await setup(page);
-      // A walk that cannot reach the focus it waits for stops, and its error names that wait.
+      // A walk that cannot reach the focus it waits for stops, and its error says that the focus left.
       const { found } = await walk(page, 'mutated', { only }).catch((error) => ({ found: [String(error)] }));
-      caught.push([says, found.some((f) => f.includes(says))]);
+      caught.push([says, found.some((f) => f.includes(says)), found]);
       await ctx.close();
     };
     await mutate((page) => page.evaluate(() => document.addEventListener('keydown', () => setTimeout(() => document.activeElement.blur()), true)), ['click: Classify one more', 'key: Tab into the stack'], 'focus left');
@@ -180,7 +206,10 @@ test('an undo stack keeps three notices, each Undo acts on its own notice, and t
       await page.evaluate(frames);
     }, ['key: Tab into the stack'], 'layout shift');
     await mutate((page) => page.addStyleTag({ content: '.ui-toast__ring { display: none; }' }), [], 'show a ring');
-    assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this walk cannot see it');
+    assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');
+    // The focus mutation fails with the focus loss, never with a bare timeout.
+    const [, , lost] = caught.find(([says]) => says === 'focus left');
+    assert.ok(lost.length && lost.every((f) => f.includes('focus left') && !/^TimeoutError/.test(f)), `the focus mutation failed for another reason: ${JSON.stringify(lost)}`);
   } finally {
     await browser.close();
     server.proc.kill();

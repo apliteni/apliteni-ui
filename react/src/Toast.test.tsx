@@ -417,16 +417,46 @@ it('keeps the focus in the stack when a focused notice leaves, and Escape closes
   expect(document.activeElement).toBe(undoOf(0));
   expect(titles()).toEqual(['Mercado Verde set to Groceries']);
 });
-it('releases the stack hold when the focused last notice leaves, so the next notice still expires', () => {
-  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: true }));
+/* The browser sends no mouseleave when a notice leaves from under a still pointer, so the stack
+ * asks the document what lies under the pointer. JSDOM has no elementFromPoint: the stub answers. */
+function pointerOver(under: () => Element | null) {
+  Object.defineProperty(document, 'elementFromPoint', { configurable: true, value: under });
+  return () => { delete (document as { elementFromPoint?: unknown }).elementFromPoint; };
+}
+it.each([
+  ['focus', false], ['focus', true], ['hover', false], ['hover', true],
+])('releases the %s hold when the last notice leaves, so the next notice still expires (reduced motion: %s)', (hold, reduced) => {
+  vi.useFakeTimers(); vi.stubGlobal('matchMedia', () => ({ matches: reduced }));
+  const restore = pointerOver(() => document.body);
+  try {
+    render(<Toast><Undos undo={() => {}} /></Toast>);
+    fireEvent.click(screen.getByText('Mercado Verde'));
+    const undo = screen.getByRole('button', { name: 'Undo' });
+    if (hold === 'focus') act(() => undo.focus());
+    else fireEvent.mouseEnter(undo);
+    fireEvent.click(undo);
+    if (!reduced) fireEvent.animationEnd(notices()[0]);
+    expect(notices()).toHaveLength(0);
+    fireEvent.click(screen.getByText('Tranvía Norte'));
+    act(() => vi.advanceTimersByTime(8000));
+    if (!reduced) fireEvent.animationEnd(notices()[0]);
+    expect(notices()).toHaveLength(0);
+  } finally { restore(); }
+});
+it.each([true, false])('keeps the hover hold after a notice leaves only while a notice is under the pointer (still over one: %s)', still => {
+  vi.useFakeTimers();
   render(<Toast><Undos undo={() => {}} /></Toast>);
-  fireEvent.click(screen.getByText('Mercado Verde'));
-  act(() => screen.getByRole('button', { name: 'Undo' }).focus());
-  fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
-  expect(notices()).toHaveLength(0);
-  fireEvent.click(screen.getByText('Tranvía Norte'));
-  act(() => vi.advanceTimersByTime(8000));
-  expect(notices()).toHaveLength(0);
+  for (const row of ['Mercado Verde', 'Tranvía Norte']) fireEvent.click(screen.getByText(row));
+  const restore = pointerOver(() => still ? notices()[0] : document.body);
+  try {
+    const newest = within(notices()[1]).getByRole('button', { name: 'Undo' });
+    fireEvent.mouseEnter(newest);
+    fireEvent.click(newest);
+    fireEvent.animationEnd(notices()[1]);
+    act(() => vi.advanceTimersByTime(8000));
+    if (still) expect(titles()).toEqual(['Mercado Verde set to Groceries']);
+    else expect(notices()[0]).toHaveClass('is-leaving');
+  } finally { restore(); }
 });
 it('passes the focus over a newer notice without a control to a later Undo', () => {
   function Mixed() {

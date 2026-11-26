@@ -990,9 +990,10 @@ column. Under reduced motion the timer line is not drawn, and the ring moves one
 In forced colours the ring stays, in the button colour.
 
 **Colour of the ring.** The ring mixes the notice tone into the notice ground: 45% in dark and
-85% in light (`--toast-timer-mix`). A danger ring and a neutral ring take 60% in dark
-(`--toast-timer-mix-strong`). Every ring keeps 3:1 on the notice ground and on the hover fill of its
-action, in both themes, under every accent.
+95% in light (`--toast-timer-mix`). A danger ring and a neutral ring take 60% in dark and 85% in
+light (`--toast-timer-mix-strong`). Every ring keeps 3:1 on the notice ground and on the hover fill
+of its action, in both themes, under every accent. In light the hover fill of the action is
+`--surface-3`, because a mix of `--bg` does not show on the white notice.
 
 **Keyboard and screen reader.** An ordinary notice is polite and a danger notice is assertive. A
 new notice does not move the focus.

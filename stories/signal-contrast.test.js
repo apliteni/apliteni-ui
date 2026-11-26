@@ -963,7 +963,14 @@ const ringInk = (css) => [...css.matchAll(RULE)]
   .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
   .find((ink) => ink?.includes('--toast-timer-tone'));
 
-function ringRatio(theme, accent, status, css, props) {
+/* The action's hover fill in a theme. A theme's own rule, as `:where(:root[data-theme="light"])`
+ * gives it, wins over the plain rule. */
+const LIGHT_HOVER = ':where(:root[data-theme="light"]) .ui-toast__action:hover';
+const hoverFill = (theme, css) => (theme === 'light' && declOf(LIGHT_HOVER, 'background', css).background)
+  || declOf('.ui-toast__action:hover', 'background', css).background;
+
+/* The notice ground, the hover fill composited on it, and the ring, in one theme, accent and tone. */
+function ringPaint(theme, accent, status, css, props) {
   const vars = new Map(sharedTokensFor(theme, accent));
   for (const [name, value] of Object.entries(props)) vars.set(name, value);
   for (const [, sel, body] of css.matchAll(RULE)) {
@@ -971,10 +978,15 @@ function ringRatio(theme, accent, status, css, props) {
     for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+)/g)) vars.set(name, value.trim());
   }
   const card = colourOf(declOf('.ui-toast', 'background', css).background, vars);
-  const hover = colourOf(declOf('.ui-toast__action:hover', 'background', css).background, vars);
+  const hover = colourOf(hoverFill(theme, css), vars);
   const ring = colourOf(ringInk(css), vars);
   assert.ok(card && hover && ring, `the ${status} ring or its ground does not resolve in ${theme} ${accent}`);
-  return Math.min(...[card, compositeRgba(hover, card)].map((ground) => ratio(compositeRgba(ring, ground), ground)));
+  return { card, hover: compositeRgba(hover, card), ring };
+}
+
+function ringRatio(theme, accent, status, css, props) {
+  const { card, hover, ring } = ringPaint(theme, accent, status, css, props);
+  return Math.min(...[card, hover].map((ground) => ratio(compositeRgba(ring, ground), ground)));
 }
 
 /* The tones whose ring falls under 3:1 on the notice ground or on the hover fill. A mutation
@@ -998,8 +1010,30 @@ for (const theme of ['dark', 'light']) {
   }
 }
 
+/* The hover fill must show on the notice ground. The kit's quiet fill on the white card is the
+ * floor: a fill that the eye cannot tell from the ground measures 1:1. Limit: it reads the
+ * declarations. The pull request gives the measured value from a real browser. */
+const HOVER_SHOWS = 1.1;
+const hoverStep = (theme, accent, css = CALLOUT) => {
+  const { card, hover } = ringPaint(theme, accent, 'success', css, {});
+  return ratio(hover, card);
+};
+for (const theme of ['dark', 'light']) {
+  for (const accent of STATUS_ACCENTS) {
+    test(`the action's hover fill shows on the notice ground — ${theme} ${accent}`, () => {
+      assert.ok(hoverStep(theme, accent) >= HOVER_SHOWS, `the hover fill measures ${show(hoverStep(theme, accent))}:1 on the notice ground`);
+    });
+  }
+}
+
+test('the hover gate rejects a light hover fill that does not show', () => {
+  const plain = CALLOUT.replace(LIGHT_HOVER, '.ui-toast__light-hover-gone');
+  assert.notStrictEqual(plain, CALLOUT, `callout.css has no ${LIGHT_HOVER} rule`);
+  assert.ok(hoverStep('light', 'default', plain) < HOVER_SHOWS);
+});
+
 test('the ring gate rejects a ring mixed too far into the ground', () => {
-  // The light soft mix at 40% instead of 85%: the three tones that take it fail.
+  // The light soft mix at 40% instead of 95%: the three tones that take it fail.
   assert.deepEqual(ringFailures('light', 'default', { props: { '--toast-timer-mix': '40%' } }).map((f) => f.split(':')[0]), ['success', 'warn', 'info']);
   // Dark danger and neutral without the strong mix: 45% leaves them under 3:1.
   const weak = CALLOUT.replaceAll('--toast-timer-tone: var(--toast-timer-mix-strong)', '--toast-timer-tone: var(--toast-timer-mix)');

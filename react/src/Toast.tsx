@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type ReactNode, type RefObject } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type FocusEvent, type MouseEvent, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { clearToastPile, watchToastPile, TOAST_PILE_MIN } from './lib/toast-stack';
 import { Icon } from './primitives/Icon';
@@ -42,10 +42,8 @@ function Notice({ notice, remove, leave, evicted }: { notice: ToastNotice; remov
   const root = useRef<HTMLDivElement>(null);
   const [leaving, setLeaving] = useState(false);
   const dismissed = useRef(false);
-  const [hovered, setHovered] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const stackHeld = useContext(StackHoldContext);
-  const paused = hovered || focused || stackHeld;
+  // The stack holds the pointer and the focus for every notice in it, so a notice keeps no hold of its own.
+  const paused = useContext(StackHoldContext);
   const tone = notice.tone ?? 'success';
   // An action notice keeps today's default and stays. With `timer` its action shows a ring.
   const ringed = !!notice.action && (notice.timer === true || (typeof notice.timer === 'number' && notice.timer > 0));
@@ -98,10 +96,7 @@ function Notice({ notice, remove, leave, evicted }: { notice: ToastNotice; remov
   return (
     <div ref={root} className={`ui-toast ui-toast--${tone} ui-toast--soft${notice.compact ? ' ui-toast--compact' : ''}${leaving ? ' is-leaving' : ''}`}
       role={tone === 'danger' ? 'alert' : 'status'} aria-live={tone === 'danger' ? 'assertive' : 'polite'}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-      onFocus={() => setFocused(true)}
-      onKeyDown={event => { if (event.key === 'Escape' && notice.dismissible !== false) dismiss(); }}
-      onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
+      onKeyDown={event => { if (event.key === 'Escape' && notice.dismissible !== false) dismiss(); }}>
       <span className="ui-toast__icon"><Icon name={glyphs[tone]} /></span>
       <div className="ui-toast__body">
         <div className="ui-toast__title">{notice.title}</div>
@@ -173,6 +168,7 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [stackHovered, setStackHovered] = useState(false);
   const [stackFocused, setStackFocused] = useState(false);
+  const pointer = useRef<{ x: number; y: number } | null>(null);
   const nextId = useRef(0);
   const leaving = useRef(new Set<number>());
   const cap = useRef(Infinity);
@@ -197,10 +193,20 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
   const stackHeld = stackHovered || stackFocused;
   usePublishedReach(stack, entries.length);
   usePile(stack, piled, entries.length);
-  // A focused notice that leaves takes the focus with it and sends no blur, so the hold ends here.
+  /* A focused notice that leaves takes the focus with it and sends no blur. A notice that leaves
+   * from under a still pointer sends no mouseleave. So each hold is read again here when a notice
+   * leaves: the focus from the document, the pointer from what is under its last point now. */
   useLayoutEffect(() => {
-    if (stackFocused && !stack.current?.contains(stack.current.ownerDocument.activeElement)) setStackFocused(false);
-  }, [entries, stackFocused]);
+    const element = stack.current;
+    if (!element) return;
+    const document = element.ownerDocument;
+    if (stackFocused && !element.contains(document.activeElement)) setStackFocused(false);
+    const at = pointer.current;
+    // Without elementFromPoint (jsdom) nothing tells where the pointer is, so the hold stays.
+    if (stackHovered && at && typeof document.elementFromPoint === 'function'
+      && !element.contains(document.elementFromPoint(at.x, at.y))) setStackHovered(false);
+  }, [entries, stackFocused, stackHovered]);
+  const trackPointer = (event: MouseEvent<HTMLDivElement>) => { pointer.current = { x: event.clientX, y: event.clientY }; };
   const leaveStackFocus = (event: FocusEvent<HTMLDivElement>) => {
     if (!event.currentTarget.contains(event.relatedTarget)) setStackFocused(false);
   };
@@ -209,7 +215,8 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
     {typeof document !== 'undefined' && createPortal(
       <div className={`ui-toast-stack rx-toast-stack${piled ? ' ui-toast-stack--collapsed' : ''}`} ref={stack}
         tabIndex={piled ? 0 : undefined} role={piled ? 'region' : undefined} aria-label={piled ? 'Notifications' : undefined}
-        onMouseEnter={() => setStackHovered(true)} onMouseLeave={() => setStackHovered(false)}
+        onMouseEnter={event => { trackPointer(event); setStackHovered(true); }} onMouseMove={trackPointer}
+        onMouseLeave={() => setStackHovered(false)}
         onFocus={() => setStackFocused(true)} onBlur={leaveStackFocus}>
         <StackHoldContext.Provider value={stackHeld}>
           {entries.map(entry => <Notice key={entry.id} notice={entry.notice} remove={entry.remove}
