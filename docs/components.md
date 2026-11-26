@@ -489,6 +489,10 @@ trigger off: no keyboard stop, no panel and the disabled paint.
 
 **What the user sees.**
 
+- The trigger shows only the chosen value or the placeholder. Put the name of the control in a
+  [`Field`](#fields) label. In a filter row, [`FilterBar`](#filter-bar) shows the name only while
+  no value is set. `label` is deprecated: it draws nothing, warns once in development and goes in
+  the next release.
 - The panel opens below the trigger. `direction="up"` opens it above. `align` chooses the edge of
   the trigger that the panel hangs from. The panel keeps that edge where it fits, and moves along
   the row where it does not.
@@ -545,7 +549,8 @@ sends the focus to the trigger. A click outside also closes it. A select panel i
 options and a menu panel is a `menu` of menu items. With `search`, the panel is a `dialog`, because
 a listbox may own only options. The focus ring of a row is drawn inside the row, so the panel edge
 never cuts it. Inside a [`Field`](#fields), the label and then the value name the trigger. Outside
-a field, give `ariaLabel`. A placeholder is not a name.
+a field, give `ariaLabel`. A select trigger then has that name and its value, such as "Unit: Engine
+team". A placeholder is not a name.
 
 ### Command palette
 

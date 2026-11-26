@@ -324,7 +324,7 @@
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:537",
+    "ref": "src/styles/dropdown.css:534",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:427",
+    "ref": "src/styles/dropdown.css:424",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -606,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:432",
+    "ref": "src/styles/dropdown.css:429",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:433",
+    "ref": "src/styles/dropdown.css:430",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -1191,7 +1191,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:144",
+    "ref": "react/src/Dropdown.tsx:145",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1355,15 +1355,15 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:435",
+    "ref": "src/styles/dropdown.css:432",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:437",
+    "ref": "src/styles/dropdown.css:434",
     "pattern": "color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:858",
+    "ref": "react/src/Dropdown.tsx:874",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

@@ -406,9 +406,59 @@ it('Enter and Space pick the row focus is on', async () => {
   expect(picks).toEqual(['1.1.0', '1.2.0']);
 });
 
+// #899: a trigger shows only its value or its placeholder. The name moves out of the
+// trigger's text and into its accessible name. DOM text and names only.
+it('the trigger shows only its value, and its name and value name it', () => {
+  render(<>
+    <Dropdown label="version:" ariaLabel="Version" variant="select" items={SELECT} />
+    <Dropdown ariaLabel="Owner" variant="select" items={[{ label: 'One' }, { label: 'Two' }]} placeholder="Choose an owner" />
+    <Dropdown label="unit:" variant="select" items={SELECT} />
+  </>);
+  expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
+  const shown = (name: string) => screen.getByRole('button', { name }).querySelector(':scope > .ui-dropdown__line')!.textContent;
+  expect(shown('Version: v1.2.0')).toBe('v1.2.0');
+  expect(shown('Owner: Choose an owner')).toBe('Choose an owner');
+  // The deprecated prop still names the trigger, so an app that passes it keeps a name.
+  expect(shown('unit: v1.2.0')).toBe('v1.2.0');
+});
+
+// The review of #905: a menu trigger kept only "Select…" as its name. Both ways to name a
+// menu reach its accessible name, and a value that is the name is not said twice.
+it('a menu trigger keeps the name it is given, from ariaLabel or the deprecated label', () => {
+  render(<>
+    <Dropdown variant="menu" label="Actions:" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Row actions" items={MENU} />
+    <Dropdown variant="menu" ariaLabel="Invoice actions" value="Invoice actions" items={MENU} />
+  </>);
+  const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
+  expect(names).toEqual(['Actions: Select…', 'Row actions: Select…', 'Invoice actions']);
+});
+
+// The deprecated `label` warns once for the page, in development only. A fresh module,
+// because the flag is the module's own and an earlier test in this file sets it.
+it('the deprecated label warns once in development and not in production', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    vi.resetModules();
+    const { Dropdown: Fresh } = await import('./Dropdown');
+    render(<><Fresh label="version:" items={SELECT} /><Fresh label="unit:" items={SELECT} /></>);
+    expect(warn.mock.calls.filter(([text]) => /`label` is deprecated/.test(String(text)))).toHaveLength(1);
+    cleanup();
+    warn.mockClear();
+    vi.resetModules();
+    vi.stubEnv('NODE_ENV', 'production');
+    const { Dropdown: Shipped } = await import('./Dropdown');
+    render(<Shipped label="version:" items={SELECT} />);
+    expect(warn).not.toHaveBeenCalled();
+  } finally {
+    vi.unstubAllEnvs();
+    warn.mockRestore();
+  }
+});
+
 it('a pick writes itself into the trigger and moves the tick, the way selectOption() does', async () => {
   const user = userEvent.setup();
-  const { container } = render(<Dropdown label="version:" variant="select" items={SELECT} />);
+  const { container } = render(<Dropdown ariaLabel="Version" variant="select" items={SELECT} />);
   const dd = container.querySelector('.ui-dropdown')!;
   expect(dd.querySelector('.ui-dropdown__value')!.textContent).toBe('v1.2.0');
   await user.click(within(dd as HTMLElement).getByRole('button'));
@@ -1298,7 +1348,7 @@ function addRow({ rowWidth = 1200, left = 146, panelWidth = 320, observer = fals
     <fieldset className="ui-filter-bar" data-filter-bar="">
       <legend className="ui-filter-bar__legend">Filters</legend>
       <div data-filter-add="">
-        <Dropdown variant="menu" label="Filter" ariaLabel="Filter" items={SECTORS} />
+        <Dropdown variant="menu" ariaLabel="Filter" items={SECTORS} />
       </div>
     </fieldset>);
   const bar = container.querySelector('.ui-filter-bar')!;
@@ -1415,7 +1465,7 @@ describe('reduced motion: the panel the keyboard opens', () => {
     expect(off).not.toEqual([]);
     const user = userEvent.setup();
     const { container } = render(
-      <Dropdown label="country:" variant="select" search
+      <Dropdown ariaLabel="Country" variant="select" search
         items={[{ label: 'Germany', value: 'de', selected: true }, { label: 'France', value: 'fr' }]} />);
     const trigger = container.querySelector('.ui-dropdown__trigger') as HTMLElement;
     trigger.focus();
