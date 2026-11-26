@@ -1363,7 +1363,7 @@
     "pattern": "color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:873",
+    "ref": "react/src/Dropdown.tsx:876",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

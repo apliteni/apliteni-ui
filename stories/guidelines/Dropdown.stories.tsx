@@ -28,6 +28,7 @@ const UNITS = [{ label: 'Engine team', value: 'engine' }, { label: 'Support team
 
 // The do names the unit in a field label, and in a filter chip while no unit is chosen.
 // The don't writes the name into the trigger, the way the removed `label` prop drew it.
+// Its words name it, so a screen reader hears what the picture shows.
 const Named = () =>
   <div className="gl-stage gl-stage--triggers">
     <Field label="Unit">{control => <Dropdown {...control} variant="select" items={UNITS} value="Engine team" selectedValue="engine" onSelect={noop} />}</Field>
@@ -35,7 +36,7 @@ const Named = () =>
   </div>;
 const Prefixed = () =>
   <div className="gl-stage gl-stage--triggers">
-    <Dropdown variant="select" ariaLabel="Unit" items={UNITS} selectedValue="engine" onSelect={noop}
+    <Dropdown variant="select" items={UNITS} selectedValue="engine" onSelect={noop}
       triggerContent={<span className="ui-dropdown__line"><span>Unit</span><span className="ui-dropdown__value">Engine team</span></span>} />
   </div>;
 
