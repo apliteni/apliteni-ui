@@ -71,7 +71,7 @@ const phoneFaults = (css) => {
   if (/(^|[;\s])height:\s*auto/.test(rule)) faults.push('the height follows the content');
   if (/border-radius/.test(rule)) faults.push('the window drops the modal radius');
   const block = css.slice(css.indexOf('@media (max-width: 560px)'));
-  if (!/\[data-view="section"\] \.rx-account__rail,\s*\.rx-account\[data-view="sections"\] \.rx-account__pane \{ display: none; \}/.test(block)) {
+  if (!/\[data-view="section"\] \.rx-account__rail,\s*\.rx-account\[data-view="sections"\] \.rx-account__pane \{ display: none;[^}]*\}/.test(block)) {
     faults.push('the window does not show one screen');
   }
   return faults;

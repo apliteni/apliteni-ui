@@ -48,7 +48,7 @@
     height: calc(100vh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom)));
     height: calc(100dvh - max(var(--space-4), env(safe-area-inset-top)) - max(var(--space-4), env(safe-area-inset-bottom))); }
   .rx-account[data-view="section"] .rx-account__rail,
-  .rx-account[data-view="sections"] .rx-account__pane { display: none; }
+  .rx-account[data-view="sections"] .rx-account__pane { display: none; /* motion: still — the screen changes in place, as in the approved prototype, and the window keeps its box. */ }
   .rx-account__rail { flex: 1 1 auto; min-height: 0; padding: var(--space-4) var(--space-3); }
   .rx-account__av > .ui-avatar { --ui-avatar-size: var(--space-8); }
   .rx-account__who { padding: 0 0 0 var(--space-3); }
