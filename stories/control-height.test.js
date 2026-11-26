@@ -1,6 +1,7 @@
-/* Rule: a small search field, filter chip, dropdown trigger and wordless button stand one
- * height on one toolbar line: 32px with a mouse, 40px on a touch screen. Their size prop
- * gives the height, so a field in a wrapper or a filter bar outside the toolbar keeps it.
+/* Rule: a small search field, filter chip, Filter add button, dropdown trigger and wordless
+ * button stand one height on one toolbar line: 32px with a mouse, 40px on a touch screen.
+ * Their size prop gives the height, so a field in a wrapper or a filter bar outside the
+ * toolbar keeps it.
  * Below the phone step on a touch screen, each of those controls but the field reaches the
  * 44px tap floor.
  *
@@ -28,6 +29,7 @@ import { TAP_MIN, TAP_EXEMPT } from './guidelines/_accessibility-floor.js';
 const CONTROLS = {
   field: '.ui-input--sm',
   chip: '.ui-filter-bar__chip',
+  add: '[data-filter-add] .ui-dropdown__trigger',
   trigger: '.ui-toolbar > .ui-dropdown > .ui-dropdown__trigger',
   button: '.ui-btn--icon',
   clear: '[data-filter-clear] .ui-btn',
@@ -40,8 +42,9 @@ const html = (structure) => markup(({ h, kit }) => {
   const noop = () => {};
   const field = h(kit.SearchField, { ariaLabel: 'Search invoices', size: 'sm' });
   const bar = h(kit.FilterBar, {
-    size: 'sm', label: 'Invoice filters', onChange: noop, onRemove: noop, onClear: noop,
+    size: 'sm', label: 'Invoice filters', onChange: noop, onRemove: noop, onClear: noop, onAdd: noop,
     filters: [{ id: 'status', label: 'Status', value: 'Pending', items: [{ label: 'Any', value: '' }, { label: 'Pending', value: 'Pending' }] }],
+    add: [{ id: 'currency', label: 'Currency', items: [{ label: 'EUR', value: 'EUR' }] }],
   });
   const wrapped = structure === 'wrapped';
   // The kit's page column, which spaces a toolbar from the block under it, as a page does.
@@ -95,8 +98,8 @@ test('the small controls stand one height in a browser, with a mouse and on a to
     // the chip's remove mark, are left out.
     const exempt = TAP_EXEMPT.map((e) => e.selector.replace(/^\./, ''));
     const targets = flatten(rows).filter((t) => !t.cls.split(/\s+/).some((c) => c === 'ui-input' || exempt.includes(c)));
-    // Per structure: the chip's trigger, the dropdown trigger, the button and Clear all.
-    assert.equal(targets.length, 2 * 4, `measured ${targets.map(name).join(', ')}`);
+    // Per structure: the chip's trigger, Filter, the dropdown trigger, the button and Clear all.
+    assert.equal(targets.length, 2 * 5, `measured ${targets.map(name).join(', ')}`);
     for (const t of targets) {
       assert.ok(t.reach[0] >= TAP_MIN - 0.5 && t.reach[1] >= TAP_MIN - 0.5,
         `${t.story}: ${name(t)} reaches ${t.reach.join('x')}, not ${TAP_MIN}x${TAP_MIN}`);

@@ -133,7 +133,8 @@
 .ui-filter-bar, .ui-toolbar { --ui-filter-row-h: round(up, calc(2px + 2 * var(--space-1) + var(--leading-normal) * var(--text-lg)), 1px); }
 /* The small bar, `.ui-filter-bar--sm`: its chips, Filter and Clear all take the small
    control height, level with a small search field, button and dropdown, wherever the bar
-   stands. The chip gives up its block padding. The trigger fills the chip between its two
+   stands. The chip and Filter give up their block padding, because Filter's 16px glyph and
+   the trigger's padding made it 32.375px. The trigger fills the chip between its two
    edges, because a min-height on the chip alone leaves the text high: the chip is a
    fieldset. The page structure no longer sets it. #822, #903
    why: docs/components.md#filter-bar */
@@ -142,6 +143,7 @@
 .ui-filter-bar--sm .ui-filter-bar__chip .ui-dropdown__trigger { min-height: calc(var(--ui-filter-row-h) - 2px); }
 .ui-filter-bar--sm .ui-filter-bar__remove { line-height: var(--leading-tight); }
 .ui-filter-bar--sm [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
+.ui-filter-bar--sm [data-filter-add] .ui-dropdown__trigger { padding-block: 0; }
 
 /* A chip's neighbour takes the chip's corner, that height and edge, but not its painted fill:
    the trigger's own edge can differ from the row's, while its --surface made the
