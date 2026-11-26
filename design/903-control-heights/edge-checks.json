@@ -1,0 +1,290 @@
+[
+  {
+    "width": 320,
+    "touch": false,
+    "overflow": false,
+    "keyboardFocus": [
+      {
+        "name": "Revision",
+        "visible": true
+      },
+      {
+        "name": "Theme",
+        "visible": true
+      },
+      {
+        "name": "Search page documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      },
+      {
+        "name": "Close search",
+        "visible": true
+      },
+      {
+        "name": "Status: Open",
+        "visible": true
+      },
+      {
+        "name": "Clear all",
+        "visible": true
+      },
+      {
+        "name": "Search card documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      }
+    ],
+    "heights": [
+      "Search 32pxChip 32pxDropdown 32pxButton 32px",
+      "Search 32pxChip 32pxDropdown 32pxButton 32px"
+    ],
+    "font": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 320,
+    "touch": true,
+    "overflow": false,
+    "keyboardFocus": [
+      {
+        "name": "Revision",
+        "visible": true
+      },
+      {
+        "name": "Theme",
+        "visible": true
+      },
+      {
+        "name": "Search page documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      },
+      {
+        "name": "Close search",
+        "visible": true
+      },
+      {
+        "name": "Status: Open",
+        "visible": true
+      },
+      {
+        "name": "Clear all",
+        "visible": true
+      },
+      {
+        "name": "Search card documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      }
+    ],
+    "heights": [
+      "Search 40pxChip 40pxDropdown 40pxButton 40px",
+      "Search 40pxChip 40pxDropdown 40pxButton 40px"
+    ],
+    "font": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 390,
+    "touch": false,
+    "overflow": false,
+    "keyboardFocus": [
+      {
+        "name": "Revision",
+        "visible": true
+      },
+      {
+        "name": "Theme",
+        "visible": true
+      },
+      {
+        "name": "Search page documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      },
+      {
+        "name": "Close search",
+        "visible": true
+      },
+      {
+        "name": "Status: Open",
+        "visible": true
+      },
+      {
+        "name": "Clear all",
+        "visible": true
+      },
+      {
+        "name": "Search card documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      }
+    ],
+    "heights": [
+      "Search 32pxChip 32pxDropdown 32pxButton 32px",
+      "Search 32pxChip 32pxDropdown 32pxButton 32px"
+    ],
+    "font": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 390,
+    "touch": true,
+    "overflow": false,
+    "keyboardFocus": [
+      {
+        "name": "Revision",
+        "visible": true
+      },
+      {
+        "name": "Theme",
+        "visible": true
+      },
+      {
+        "name": "Search page documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      },
+      {
+        "name": "Close search",
+        "visible": true
+      },
+      {
+        "name": "Status: Open",
+        "visible": true
+      },
+      {
+        "name": "Clear all",
+        "visible": true
+      },
+      {
+        "name": "Search card documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      }
+    ],
+    "heights": [
+      "Search 40pxChip 40pxDropdown 40pxButton 40px",
+      "Search 40pxChip 40pxDropdown 40pxButton 40px"
+    ],
+    "font": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 640,
+    "touch": false,
+    "overflow": false,
+    "keyboardFocus": [
+      {
+        "name": "Revision",
+        "visible": true
+      },
+      {
+        "name": "Theme",
+        "visible": true
+      },
+      {
+        "name": "Search page documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      },
+      {
+        "name": "Close search",
+        "visible": true
+      },
+      {
+        "name": "Status: Open",
+        "visible": true
+      },
+      {
+        "name": "Clear all",
+        "visible": true
+      },
+      {
+        "name": "Search card documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      }
+    ],
+    "heights": [
+      "Search 32pxChip 32pxDropdown 32pxButton 32px",
+      "Search 32pxChip 32pxDropdown 32pxButton 32px"
+    ],
+    "font": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  },
+  {
+    "width": 640,
+    "touch": true,
+    "overflow": false,
+    "keyboardFocus": [
+      {
+        "name": "Revision",
+        "visible": true
+      },
+      {
+        "name": "Theme",
+        "visible": true
+      },
+      {
+        "name": "Search page documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      },
+      {
+        "name": "Close search",
+        "visible": true
+      },
+      {
+        "name": "Status: Open",
+        "visible": true
+      },
+      {
+        "name": "Clear all",
+        "visible": true
+      },
+      {
+        "name": "Search card documents",
+        "visible": true
+      },
+      {
+        "name": "Sort documents: Name",
+        "visible": true
+      }
+    ],
+    "heights": [
+      "Search 40pxChip 40pxDropdown 40pxButton 40px",
+      "Search 40pxChip 40pxDropdown 40pxButton 40px"
+    ],
+    "font": "\"IBM Plex Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
+  }
+]

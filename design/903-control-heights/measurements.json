@@ -1,0 +1,1499 @@
+{
+  "source": {
+    "main": "d495a9c6",
+    "pr897": "dc2ab5befb08cef8fe6269e6d405138c53512917"
+  },
+  "variant": "Explicit small size: 32px mouse, 40px touch",
+  "measurements": [
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "touch": true,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 844,
+      "height": 390,
+      "touch": true,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "touch": true,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "touch": true,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "touch": true,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 820,
+      "height": 1180,
+      "touch": true,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "touch": false,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "touch": false,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "touch": false,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "touch": false,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "touch": false,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "touch": false,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "touch": false,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "touch": false,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "touch": true,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "touch": true,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "touch": true,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "touch": true,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 466,
+      "height": 678,
+      "touch": true,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 466,
+      "height": 678,
+      "touch": true,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 466,
+      "height": 678,
+      "touch": true,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 466,
+      "height": 678,
+      "touch": true,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 984,
+      "height": 1016,
+      "touch": true,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 984,
+      "height": 1016,
+      "touch": true,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 984,
+      "height": 1016,
+      "touch": true,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 46
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 984,
+      "height": 1016,
+      "touch": true,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        },
+        {
+          "surface": "card",
+          "search": 40,
+          "chip": 40,
+          "dropdown": 40,
+          "button": 40
+        }
+      ]
+    },
+    {
+      "width": 1536,
+      "height": 864,
+      "touch": false,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1536,
+      "height": 864,
+      "touch": false,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 1536,
+      "height": 864,
+      "touch": false,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1536,
+      "height": 864,
+      "touch": false,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 2560,
+      "height": 1440,
+      "touch": false,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 2560,
+      "height": 1440,
+      "touch": false,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 2560,
+      "height": 1440,
+      "touch": false,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 2560,
+      "height": 1440,
+      "touch": false,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "theme": "light",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "theme": "light",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "theme": "dark",
+      "revision": "before",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 40,
+          "dropdown": 32,
+          "button": 36
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "touch": false,
+      "theme": "dark",
+      "revision": "after",
+      "overflow": false,
+      "heights": [
+        {
+          "surface": "page",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        },
+        {
+          "surface": "card",
+          "search": 32,
+          "chip": 32,
+          "dropdown": 32,
+          "button": 32
+        }
+      ]
+    }
+  ],
+  "a11y": [
+    {
+      "width": 390,
+      "theme": "light",
+      "revision": "before",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "revision": "after",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "revision": "before",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "revision": "after",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "revision": "before",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "revision": "after",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "state": "state-hover-light.png",
+      "violations": []
+    },
+    {
+      "state": "state-focus-light.png",
+      "violations": []
+    },
+    {
+      "state": "state-open-selected-light.png",
+      "violations": []
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "revision": "after",
+      "state": "open-selected",
+      "violations": []
+    },
+    {
+      "state": "state-empty-light.png",
+      "violations": []
+    },
+    {
+      "state": "state-cleared-light.png",
+      "violations": []
+    },
+    {
+      "state": "state-pressed-light.png",
+      "violations": []
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "revision": "before",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "revision": "after",
+      "state": "rest",
+      "violations": []
+    },
+    {
+      "state": "state-hover-dark.png",
+      "violations": []
+    },
+    {
+      "state": "state-focus-dark.png",
+      "violations": []
+    },
+    {
+      "state": "state-open-selected-dark.png",
+      "violations": []
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "revision": "after",
+      "state": "open-selected",
+      "violations": []
+    },
+    {
+      "state": "state-empty-dark.png",
+      "violations": []
+    },
+    {
+      "state": "state-cleared-dark.png",
+      "violations": []
+    },
+    {
+      "state": "state-pressed-dark.png",
+      "violations": []
+    }
+  ],
+  "targets": [
+    {
+      "width": 390,
+      "theme": "light",
+      "surface": "page",
+      "values": [
+        {
+          "name": "search",
+          "w": 358,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 16,
+          "y": 260.765625
+        },
+        {
+          "name": "chip",
+          "w": 86,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 21,
+          "y": 385.765625
+        },
+        {
+          "name": "dropdown",
+          "w": 76,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 16,
+          "y": 324.765625
+        },
+        {
+          "name": "button",
+          "w": 44,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 112,
+          "y": 324.765625
+        },
+        {
+          "name": "clear",
+          "w": 75,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 132,
+          "y": 384.765625
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "surface": "card",
+      "values": [
+        {
+          "name": "search",
+          "w": 356,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 17,
+          "y": 536.625
+        },
+        {
+          "name": "chip",
+          "w": 86,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 22,
+          "y": 661.625
+        },
+        {
+          "name": "dropdown",
+          "w": 76,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 17,
+          "y": 600.625
+        },
+        {
+          "name": "button",
+          "w": 44,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 113,
+          "y": 600.625
+        },
+        {
+          "name": "clear",
+          "w": 75,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 133,
+          "y": 660.625
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "surface": "page",
+      "values": [
+        {
+          "name": "search",
+          "w": 358,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 16,
+          "y": 260.765625
+        },
+        {
+          "name": "chip",
+          "w": 86,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 21,
+          "y": 385.765625
+        },
+        {
+          "name": "dropdown",
+          "w": 76,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 16,
+          "y": 324.765625
+        },
+        {
+          "name": "button",
+          "w": 44,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 112,
+          "y": 324.765625
+        },
+        {
+          "name": "clear",
+          "w": 75,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 132,
+          "y": 384.765625
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "surface": "card",
+      "values": [
+        {
+          "name": "search",
+          "w": 308,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 41,
+          "y": 536.625
+        },
+        {
+          "name": "chip",
+          "w": 86,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 46,
+          "y": 661.625
+        },
+        {
+          "name": "dropdown",
+          "w": 76,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 41,
+          "y": 600.625
+        },
+        {
+          "name": "button",
+          "w": 44,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 137,
+          "y": 600.625
+        },
+        {
+          "name": "clear",
+          "w": 75,
+          "h": 44,
+          "hits": [
+            true,
+            true,
+            true,
+            true
+          ],
+          "x": 157,
+          "y": 660.625
+        }
+      ]
+    }
+  ],
+  "interactions": [
+    {
+      "theme": "light",
+      "width": 1280,
+      "stableChipWidth": true,
+      "emptySearch": true,
+      "clearFilter": true,
+      "closeAndRestoreSearch": true
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "stableChipWidth": true,
+      "emptySearch": true,
+      "clearFilter": true,
+      "closeAndRestoreSearch": true
+    }
+  ],
+  "sandbox": {
+    "allowScriptsOnly": true,
+    "switchesWork": true,
+    "nestedFrames": 0
+  },
+  "errors": []
+}

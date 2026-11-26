@@ -1,0 +1,103 @@
+{
+  "mode": "Self-review",
+  "verdict": "warn",
+  "design_reference": "design skill: references/app-screens.md",
+  "recommendation": "One variant: explicit small size. Use 32px with a mouse and 40px with touch.",
+  "phone_target_proposal": "The search field keeps 40px paint. Its native label adds 2px above and below for a 44px target.",
+  "pr897": "dc2ab5befb08cef8fe6269e6d405138c53512917",
+  "pr897_height_effect": "None. The default chip stays 40px. The existing small-search ancestry rule still gives 32px with a mouse.",
+  "source_checks": [
+    "src/styles/filter-bar.css:133 names the default height from 2 + 8 + 1.62 * 18, rounded up to 40px.",
+    "src/styles/filter-bar.css:143 selects 32px through the direct small-search ancestry condition.",
+    "src/styles/input.css:363 gives small fields 40px with a coarse pointer.",
+    "src/styles/layout.css:621 gives the direct-search toolbar icon its full-field height with touch.",
+    "react/src/FilterBar.tsx has no size prop on main or the inspected PR head."
+  ],
+  "kit_rules": {
+    "docs/components.md": [
+      "Filter bar",
+      "Toolbar",
+      "Search field",
+      "Button",
+      "Dropdown"
+    ],
+    "docs/foundations.md": [
+      "Control corners",
+      "Typefaces",
+      "Spacing and rhythm",
+      "The focus ring",
+      "A field is 16px on a touch screen",
+      "A tap reaches the floor below the phone step"
+    ],
+    "guidelines/button-labels.md": [
+      "Earn a wordless button",
+      "Give every control one shape"
+    ],
+    "guidelines/accessibility-floor.md": [
+      "Minimum target size",
+      "Tap target on a phone",
+      "Space between small targets",
+      "Touch field text",
+      "Focus ring contrast",
+      "Keyboard first",
+      "Body contrast"
+    ],
+    "guidelines/spacing.md": [
+      "Use two gaps",
+      "Widen inner gaps on a touch phone",
+      "Keep a title on its block"
+    ],
+    "guidelines/iconography.md": [
+      "Icon-only controls",
+      "Preserve glyph paths"
+    ],
+    "guidelines/layout-and-density.md": [
+      "Use the container token",
+      "Use the spacing scale",
+      "Use the three breakpoints"
+    ]
+  },
+  "checks": {
+    "height_equality": "checked at eleven widths in both themes",
+    "phone_targets": "checked on both surfaces in both themes at 390px",
+    "sandbox": "checked with allow-scripts alone",
+    "keyboard": "checked at 320px, 390px and 640px with mouse and touch",
+    "accessibility": "checked at rest, hover, focus, selected, pressed, empty and cleared states",
+    "dropdown_accessible_name": "fixed to include its visible value",
+    "phone_search_wrapping": "fixed in the comparison layout",
+    "stories/story-css.test.js": "not run; no story or kit file changed",
+    "react/src/story-css.test.ts": "not run; no story or kit file changed",
+    "ship_check": "not run; the brief exempts this design branch"
+  },
+  "limits": [
+    "The target check samples each centre-axis edge. It does not prove every target corner.",
+    "Axe scans used the default accent. Other accents and browser engines were not measured.",
+    "The before controls retain current main defects, including the 40px native search target.",
+    "Disabled and busy states are not offered in this prototype.",
+    "The 320px and 640px checks cover narrow reflow. OS text enlargement was not measured.",
+    "Full-page capture changed touch emulation in this browser. Phone evidence uses viewport captures with separate card views.",
+    "The search label target is a design proposal. It requires component documentation during implementation."
+  ],
+  "assets": {
+    "icons": "Kit Lucide paths",
+    "fonts": [
+      "IBM Plex Sans",
+      "Poppins"
+    ],
+    "licenses": "LICENSES.txt"
+  },
+  "slop": {
+    "visible_findings": 0,
+    "warnings": [
+      {
+        "selector": ".ui-hero__title .grad",
+        "reason": "Unused kit CSS. No matching element is rendered."
+      },
+      {
+        "selector": ".ui-drop--page",
+        "reason": "Unused kit CSS. No matching element is rendered."
+      }
+    ]
+  },
+  "prototype_sha256": "8dd7624c01a619bd7ced958449f516c848cef3cc171e536ffb6d0e553a065e74"
+}
