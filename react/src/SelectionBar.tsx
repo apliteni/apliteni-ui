@@ -54,6 +54,7 @@ export function fitActions(widths: number[], room: number, more: number, gap: nu
 }
 
 const px = (value: string) => parseFloat(value) || 0;
+const buttonIn = (cell?: Element | null) => (cell?.matches('button') ? cell : cell?.querySelector('button')) as HTMLElement | null | undefined;
 
 export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows', label, clearLabel = 'Clear', moreLabel = 'More', place = 'centre' }: SelectionBarProps) {
   const room = useRef<HTMLDivElement>(null);
@@ -62,6 +63,10 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
   const slot = useRef<HTMLDivElement>(null);
   const measure = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(actions.length);
+  const shownNow = useRef(shown);
+  shownNow.current = shown;
+  // The control that held the focus when a fit moved actions: an action's index, or More.
+  const moving = useRef<{ held: number | 'more'; from: number } | null>(null);
   // The announcement says when the selection goes back to none, but not before the first.
   const seen = useRef(false);
   if (count > 0) seen.current = true;
@@ -84,7 +89,13 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
       const barGap = px(box.columnGap);
       const free = host.clientWidth - chrome - tally.current.getBoundingClientRect().width - barGap;
       // A room that is not laid out, as in jsdom, has no width to judge, so every action stands.
-      setShown(host.clientWidth ? fitActions(widths, free, more + barGap, px(getComputedStyle(slot.current).columnGap)) : widths.length);
+      const next = host.clientWidth ? fitActions(widths, free, more + barGap, px(getComputedStyle(slot.current).columnGap)) : widths.length;
+      if (next === shownNow.current) return;
+      const now = document.activeElement;
+      const index = now ? Array.from(slot.current.children).findIndex(cell => cell.contains(now)) : -1;
+      const held = index >= 0 ? index : now && frame.querySelector(':scope > .ui-dropdown')?.contains(now) ? 'more' : null;
+      moving.current = held == null ? null : { held, from: shownNow.current };
+      setShown(next);
     };
     fit();
     if (typeof ResizeObserver === 'undefined' || !room.current) return;
@@ -94,23 +105,38 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
     return () => watch.disconnect();
   }, [count, key]);
 
+  // An action that moves into More, or More that goes, takes the focus with it. The focus
+  // goes to More, or to the first action that came out of More.
+  useIsoLayoutEffect(() => {
+    const move = moving.current;
+    moving.current = null;
+    const frame = bar.current;
+    if (!move || !frame || frame.contains(document.activeElement)) return;
+    const more = frame.querySelector(':scope > .ui-dropdown');
+    const cells = slot.current?.children;
+    const cell = typeof move.held === 'number' ? (move.held < shown ? cells?.[move.held] : more) : more ?? cells?.[move.from];
+    buttonIn(cell)?.focus();
+  }, [shown]);
+
   const visible = actions.slice(0, shown);
   const extra = actions.slice(shown);
-  // More holds the buttons in one group and each list as a group under its name. The rows
-  // are copies, so a pick knows its action even when two actions share an item.
-  const source = new Map<DropdownEntry, { id: string; value?: string }>();
+  // More holds the buttons in one group and each list as a group under its name. Each row is
+  // a copy whose value names its action, so two actions that share a value stay two rows.
+  const source = new Map<string, { id: string; value?: string }>();
   const sections: DropdownSection[] = [];
   for (const action of extra) {
     if (action.items) {
       sections.push({ label: action.label, items: action.items.map(item => {
         if (!isRow(item)) return item;
-        const copy = { ...item, disabled: item.disabled || action.disabled };
-        source.set(copy, { id: action.id, value: String(item.value ?? item.label) });
-        return copy;
+        const original = String(item.value ?? item.label);
+        const value = JSON.stringify([action.id, original]);
+        source.set(value, { id: action.id, value: original });
+        return { ...item, value, disabled: item.disabled || action.disabled };
       }) });
     } else {
-      const copy: DropdownItem = { label: action.label, disabled: action.disabled };
-      source.set(copy, { id: action.id });
+      const value = JSON.stringify([action.id]);
+      const copy: DropdownItem = { label: action.label, value, disabled: action.disabled };
+      source.set(value, { id: action.id });
       const last = sections[sections.length - 1];
       if (last && !last.label) last.items!.push(copy);
       else sections.push({ items: [copy] });
@@ -141,8 +167,8 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
         {extra.length > 0 && <Dropdown variant="menu" direction="up" align="end" chevron={false} triggerClass="ui-selection-bar__control"
           triggerContent={moreLabel} ariaLabel={moreLabel} sections={sections}
           search={moreRows >= SEARCH_AT && { label: `Search ${moreLabel.toLowerCase()}` }}
-          onSelect={(value, item) => {
-            const picked = source.get(item);
+          onSelect={value => {
+            const picked = source.get(String(value));
             if (!picked) return;
             if (picked.value === undefined) onAction(picked.id);
             else onAction(picked.id, picked.value);

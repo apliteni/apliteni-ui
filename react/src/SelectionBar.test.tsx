@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -10,6 +10,26 @@ const STATUS: SelectionBarAction = { id: 'status', label: 'Status', items: [{ la
 const actions: SelectionBarAction[] = [STATUS, { id: 'archive', label: 'Archive' }, { id: 'owner', label: 'Owner', items: [{ label: 'Avery' }, { label: 'Blair' }] }];
 const read = (rel: string): string => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 const handlers = () => ({ onAction: vi.fn(), onClear: vi.fn() });
+
+// jsdom lays nothing out, so the widths are given: the count 100, each action 60, More 50,
+// and the room `width()`. Stand-in ResizeObservers let a test call every fit again.
+const laidOut = (width: () => number) => {
+  const notify = new Set<() => void>();
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: () => void) { notify.add(callback); }
+    observe() {}
+    disconnect() {}
+  });
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    const size = this.classList.contains('ui-selection-bar__count') ? 100 : this.parentElement?.classList.contains('ui-selection-bar__measure') ? (this.textContent === 'More' ? 50 : 60) : 0;
+    return { width: size, height: 32, top: 0, left: 0, right: size, bottom: 32, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+  });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-selection-room') ? width() : 0;
+  });
+  return () => act(() => notify.forEach(callback => callback()));
+};
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 // The arithmetic only. A browser decides the widths it is given.
 it('stands every action that fits, and leaves room for More when they do not', () => {
@@ -91,33 +111,50 @@ it('gives a list under ten rows no search field', async () => {
   expect(screen.queryByRole('combobox')).toBeNull();
 });
 
-// jsdom lays nothing out, so the widths are given: the count 100, each action 60, More 50,
-// and the room 250. Status and More fit beside the count, and Archive and Owner do not.
+// A room of 250 holds Status and More beside the count, and not Archive and Owner.
 it('moves the actions that do not fit into More, each list as a group under its name', async () => {
   const props = handlers();
-  const box = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-    const width = this.classList.contains('ui-selection-bar__count') ? 100 : this.parentElement?.classList.contains('ui-selection-bar__measure') ? (this.textContent === 'More' ? 50 : 60) : 0;
-    return { width, height: 32, top: 0, left: 0, right: width, bottom: 32, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
-  });
-  const room = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
-    return this.classList.contains('ui-selection-room') ? 250 : 0;
-  });
-  try {
-    render(<SelectionBar count={2} actions={actions} {...props} />);
-    const bar = screen.getByRole('region');
-    expect(within(bar).getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'More']);
-    await userEvent.click(screen.getByRole('button', { name: 'More' }));
-    const menu = screen.getByRole('menu', { name: 'More' });
-    expect(within(menu).getByText('Owner')).toBeInTheDocument();
-    await userEvent.click(within(menu).getByRole('menuitem', { name: 'Avery' }));
-    expect(props.onAction).toHaveBeenCalledWith('owner', 'Avery');
-    await userEvent.click(screen.getByRole('button', { name: 'More' }));
-    await userEvent.click(screen.getByRole('menuitem', { name: 'Archive' }));
-    expect(props.onAction).toHaveBeenLastCalledWith('archive');
-  } finally {
-    box.mockRestore();
-    room.mockRestore();
-  }
+  laidOut(() => 250);
+  render(<SelectionBar count={2} actions={actions} {...props} />);
+  const bar = screen.getByRole('region');
+  expect(within(bar).getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'More']);
+  await userEvent.click(screen.getByRole('button', { name: 'More' }));
+  const menu = screen.getByRole('menu', { name: 'More' });
+  expect(within(menu).getByText('Owner')).toBeInTheDocument();
+  await userEvent.click(within(menu).getByRole('menuitem', { name: 'Avery' }));
+  expect(props.onAction).toHaveBeenCalledWith('owner', 'Avery');
+  await userEvent.click(screen.getByRole('button', { name: 'More' }));
+  await userEvent.click(screen.getByRole('menuitem', { name: 'Archive' }));
+  expect(props.onAction).toHaveBeenLastCalledWith('archive');
+});
+
+// Two lists with the same five values make ten rows in More, so More has a search field and
+// the arrows walk the rows. The sixth row is the second list's first row.
+it('keeps two lists that share their values apart in More', async () => {
+  const props = handlers();
+  laidOut(() => 200);
+  const levels = ['1', '2', '3', '4', '5'].map(value => ({ label: `Level ${value}`, value }));
+  render(<SelectionBar count={2} actions={[{ id: 'priority', label: 'Priority', items: levels }, { id: 'risk', label: 'Risk', items: levels }]} {...props} />);
+  await userEvent.click(screen.getByRole('button', { name: 'More' }));
+  expect(screen.getByRole('combobox', { name: 'Search more' })).toHaveFocus();
+  await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{Enter}');
+  expect(props.onAction).toHaveBeenCalledExactlyOnceWith('risk', '1');
+});
+
+// A room of 400 holds every action, and a room of 250 sends Archive into More.
+it('keeps the focus on the bar when an action moves into More and out again', async () => {
+  let width = 400;
+  const fit = laidOut(() => width);
+  render(<SelectionBar count={2} actions={actions} {...handlers()} />);
+  screen.getByRole('button', { name: 'Archive' }).focus();
+  width = 250;
+  fit();
+  expect(screen.queryByRole('button', { name: 'Archive' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+  width = 400;
+  fit();
+  expect(screen.queryByRole('button', { name: 'More' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Archive' })).toHaveFocus();
 });
 
 // The sheet, read as text: the bar's inks sit on its parts, never on the bar or the room,
