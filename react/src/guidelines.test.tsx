@@ -14,10 +14,11 @@
 //    the ground's sheet paints the surface.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { ReactElement } from 'react';
+import { act, type ReactElement } from 'react';
+import { createRoot } from 'react-dom/client';
 import { fireEvent, render } from '@testing-library/react';
 import { storyNameFromExport, toId } from 'storybook/internal/csf';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 // @ts-expect-error -- plain JS module
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 // @ts-expect-error -- plain JS story module
@@ -41,6 +42,22 @@ const pages = files.map(file => {
 // Every element a page uses as a stage for its specimens.
 const STAGE = '.gl-stage, .gp-stage, .gs-stage, .gda-stage, .gc-stage, .gd-frame, .gf-panel, .gf-frame';
 const mount = (page: typeof pages[number]) => render(page.story.render({}, {})).container;
+// Mounting the pages is this file's slowest part, and four checks only read every page.
+// They share one mount of each page, outside the document, so a check that clicks or
+// focuses still mounts its own.
+const unmounts: (() => void)[] = [];
+const mounted = new Map<string, Element>();
+const view = (page: typeof pages[number]) => {
+  if (!mounted.has(page.file)) {
+    const host = document.createElement('div');
+    const root = createRoot(host);
+    act(() => root.render(page.story.render({}, {})));
+    unmounts.push(() => act(() => root.unmount()));
+    mounted.set(page.file, host);
+  }
+  return mounted.get(page.file)!;
+};
+afterAll(() => unmounts.forEach(unmount => unmount()));
 
 // The words a page shows, without its sheets.
 const prose = (root: Element) => {
@@ -62,20 +79,21 @@ describe('guideline pages in React: the collection', () => {
     expect([...ids].sort()).toEqual([...linked].sort());
   });
 
-  // Stands in for refs.test.js "Storybook renders each Markdown page title".
-  it('renders the title of its Markdown document as the one h1', () => {
-    const titles = new Set(Object.values(import.meta.glob<string>('../../guidelines/*.md', { eager: true, query: '?raw', import: 'default' }))
-      .map(text => /^# (.+)$/m.exec(text)![1]));
-    for (const page of pages) {
-      const root = mount(page);
-      // A specimen may draw a screen's own h1, as the hero success does; the page's is outside every stage.
-      const h1s = [...root.querySelectorAll('h1')].filter(h1 => !h1.parentElement?.closest(STAGE));
-      expect(h1s.length, `${page.file}: one h1`).toBe(1);
-      expect(titles.has(h1s[0].textContent!), `${page.file}: no Markdown has the title "${h1s[0].textContent}"`).toBe(true);
-      // A screen reader goes to the page's content by its main landmark.
-      expect(root.querySelectorAll('main').length, `${page.file}: one main`).toBe(1);
-      expect(h1s[0].closest('main'), `${page.file}: the h1 is outside main`).toBeTruthy();
-    }
+});
+
+// Stands in for refs.test.js "Storybook renders each Markdown page title".
+describe('guideline pages in React: the title of its Markdown document is the one h1', () => {
+  const titles = new Set(Object.values(import.meta.glob<string>('../../guidelines/*.md', { eager: true, query: '?raw', import: 'default' }))
+    .map(text => /^# (.+)$/m.exec(text)![1]));
+  it.each(pages.map(page => [page.file, page] as const))('%s', (_, page) => {
+    const root = view(page);
+    // A specimen may draw a screen's own h1, as the hero success does; the page's is outside every stage.
+    const h1s = [...root.querySelectorAll('h1')].filter(h1 => !h1.parentElement?.closest(STAGE));
+    expect(h1s.length, 'one h1').toBe(1);
+    expect(titles.has(h1s[0].textContent!), `no Markdown has the title "${h1s[0].textContent}"`).toBe(true);
+    // A screen reader goes to the page's content by its main landmark.
+    expect(root.querySelectorAll('main').length, 'one main').toBe(1);
+    expect(h1s[0].closest('main'), 'the h1 is outside main').toBeTruthy();
   });
 });
 
@@ -83,7 +101,7 @@ describe('guideline pages in React: the collection', () => {
 const SOURCE_REFERENCE = /(?:\b(?:src|stories|react|docs)\/|\b[\w-]+\.(?:css|[cm]?js|tsx?|md)(?::\d+)?\b)/;
 describe('guideline pages in React: no source references in what a page shows', () => {
   it.each(pages.map(page => [page.file, page] as const))('%s', (_, page) => {
-    expect(prose(mount(page))).not.toMatch(SOURCE_REFERENCE);
+    expect(prose(view(page))).not.toMatch(SOURCE_REFERENCE);
   });
   it('the check reports a path written into the prose', () => {
     const { container } = render(<p>Read src/styles/confirm.css first.</p>);
@@ -115,7 +133,7 @@ const reachingIn = (root: Element) => {
 describe('guideline pages in React: page layout stays out of the specimens', () => {
   // The Overview is an index with no rule layout, so it has no .gc rules to hold.
   it.each(pages.filter(page => !page.file.endsWith('/Overview.stories.tsx')).map(page => [page.file, page] as const))('%s', (_, page) => {
-    const { pageRules, problems } = reachingIn(mount(page));
+    const { pageRules, problems } = reachingIn(view(page));
     expect(pageRules.length, 'no .gc rules found: has the page namespace been renamed?').toBeGreaterThan(0);
     expect(problems).toEqual([]);
   });
@@ -417,7 +435,7 @@ describe('guideline pages in React: the prose stands on the reading surface', ()
     expect(GROUND_CSS).toMatch(/\.gl-page\s*\{[^}]*background:\s*var\(--surface\)/);
   });
   it.each(pages.map(page => [page.file, page] as const))('%s', (_, page) => {
-    const root = mount(page);
+    const root = view(page);
     expect(root.querySelectorAll(PROSE).length, 'the page writes no prose this gate knows').toBeGreaterThan(0);
     expect(offGround(root)).toEqual([]);
     expect([...root.querySelectorAll('style')].some(el => el.textContent === GROUND_CSS.trim() || el.textContent!.includes('.gl-page {')),

@@ -14,11 +14,12 @@ import type { ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
+import { Dropdown } from './Dropdown';
 // @ts-expect-error -- shared, independently tested JS modules.
 import { THEMES, CELLS, targetRun, ringCell, disabledCell } from '../../stories/lib/accessibility-walks.js';
 import { pxCalc } from '../../stories/lib/target-geometry.js';
 // @ts-expect-error -- plain JS story module.
-import { TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, DISABLED_OPTION_FLOOR, DISABLED_OPTION, TARGET_EXEMPT } from '../../stories/guidelines/_accessibility-floor.js';
+import { TARGET_MIN, RING_MIN, RING_FLOOR, DISABLED_MIN, DISABLED_FLOOR, DISABLED_OPTION_FLOOR, isDisabledOption, TARGET_EXEMPT } from '../../stories/guidelines/_accessibility-floor.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Any = any;
@@ -75,6 +76,19 @@ for (const { theme, accent } of CELLS as { theme: string; accent: string }[]) ri
 const disabled: Record<string, Any> = {};
 for (const theme of THEMES as string[]) disabled[theme] = await disabledCell(theme, { subjects, extraCss: EXTRA });
 
+/* The selected option became unavailable, so the row is `is-selected is-disabled`: no
+ * story draws it, and the classes split the part the option floor covers. */
+const unavailable = document.body.appendChild(document.createElement('div'));
+const unavailableRoot = createRoot(unavailable);
+act(() => unavailableRoot.render(<Dropdown variant="select" ariaLabel="Category" open onOpenChange={() => {}} selectedValue="training"
+  items={[{ label: 'Staff training', value: 'training', disabled: true }, { label: 'Job adverts', value: 'adverts' }]} />));
+const selectedDisabled = [{ where: 'selected disabled option', html: document.body.innerHTML }];
+act(() => unavailableRoot.unmount());
+unavailable.remove();
+const selectedFound: Any[] = [];
+for (const theme of THEMES as string[]) selectedFound.push(...(await disabledCell(theme, { subjects: selectedDisabled, extraCss: EXTRA }))
+  .found.filter((f: Any) => f.labelled && /\.is-selected\b/.test(f.path)).map((f: Any) => ({ ...f, theme })));
+
 describe('target size: React stories', () => {
   it('every control the stories render is measured, none skipped', () => {
     expect(problems, 'a story that will not render is a hole in the measurement').toEqual([]);
@@ -106,24 +120,30 @@ describe('ring: React stories', () => {
 
 /** The labelled disabled text under its floor: a dropdown option's own, or DISABLED_FLOOR. */
 const underFloor = (all: Any[]) => all.filter((f: Any) => f.labelled
-  && Math.round(f.ratio * 100) / 100 < (f.path.includes(DISABLED_OPTION) ? DISABLED_OPTION_FLOOR : DISABLED_FLOOR))
+  && Math.round(f.ratio * 100) / 100 < (isDisabledOption(f.path) ? DISABLED_OPTION_FLOOR : DISABLED_FLOOR))
   .map((f: Any) => `${f.theme} ${f.path} — ${f.ratio.toFixed(2)}:1`);
 
 describe('disabled: React stories', () => {
   it(`every label a disabled control shows clears ${DISABLED_MIN}:1, and nothing is below the ${DISABLED_FLOOR}:1 ratchet, or ${DISABLED_OPTION_FLOOR}:1 for a dropdown option`, () => {
     for (const theme of THEMES as string[]) expect(disabled[theme].found.length, `${theme}: no disabled text measured`).toBeGreaterThan(0);
     const all = (THEMES as string[]).flatMap((theme) => disabled[theme].found.map((f: Any) => ({ ...f, theme })));
-    for (const theme of THEMES as string[]) expect(all.some((f: Any) => f.theme === theme && f.labelled && f.path.includes(DISABLED_OPTION)),
+    for (const theme of THEMES as string[]) expect(all.some((f: Any) => f.theme === theme && f.labelled && isDisabledOption(f.path)),
       `${theme}: no disabled dropdown option measured`).toBe(true);
     expect(all.filter((f: Any) => f.labelled && f.ratio < DISABLED_MIN).map((f: Any) => `${f.theme} ${f.path} — ${f.ratio.toFixed(2)}:1`)).toEqual([]);
     expect(underFloor(all)).toEqual([]);
   });
 
-  it('the floors reject a dropdown option at 3.4:1 and any other control at 3.88:1', () => {
-    const option = { labelled: true, theme: 'light', path: `div.ui-dropdown > ${DISABLED_OPTION} > span` };
+  it('the floors reject a dropdown option at 3.4:1, a selected one too, and any other control at 3.88:1', () => {
+    const option = { labelled: true, theme: 'light', path: 'div.ui-dropdown > div.ui-dropdown__item.is-disabled > span' };
     const button = { labelled: true, theme: 'light', path: 'button.ui-btn' };
     expect(underFloor([{ ...option, ratio: 3.4 }, { ...option, ratio: 3.88 }])).toEqual([`light ${option.path} — 3.40:1`]);
     expect(underFloor([{ ...button, ratio: 3.88 }])).toEqual(['light button.ui-btn — 3.88:1']);
+    // The selected option, as the walk measured it: is-selected splits its classes.
+    for (const theme of THEMES as string[]) expect(selectedFound.some((f: Any) => f.theme === theme), `${theme}: the selected disabled option was not measured`).toBe(true);
+    expect(underFloor(selectedFound)).toEqual([]);
+    const selected = selectedFound.find((f: Any) => f.theme === 'light');
+    expect(selected.path).toMatch(/\.is-selected\.is-disabled\b/);
+    expect(underFloor([{ ...selected, ratio: 3.88 }, { ...selected, ratio: 3.4 }])).toEqual([`light ${selected.path} — 3.40:1`]);
   });
 
   it('the state repaints, and a rule that fades with opacity has no label under it', () => {
