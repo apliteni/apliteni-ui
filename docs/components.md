@@ -302,7 +302,8 @@ put it in an `AppShell` page, because a page has one band.
 ```
 
 Each slot is optional. A bar with no account is the signed-out bar. On a phone the bar has two rows.
-The current view in `ViewSwitch` has the accent fill. The version button shows only the chosen
+The current view in `ViewSwitch` has the neutral selected fill: the strong ink on the surface,
+never the accent. The version button shows only the chosen
 name, and its menu shows each name with its badge and a tick on the chosen one. They follow
 `value` until you change it. `AccountMenu` marks the page named by `current` in accent ink.
 
@@ -733,13 +734,20 @@ fit on one row. Use [`Tabs`](#tabs) when each choice shows a different panel. Se
   options={[{ value: 'm', label: 'Month' }, { value: 'q', label: 'Quarter' }, { value: 'y', label: 'Year' }]} />
 ```
 
-`appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller, and in
-the underline appearance it changes only the type size. `block` fills the row. An option's `icon`
+`appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller. The
+underline keeps one 13px type size in both sizes, so `size` does not change it. `block` fills the
+row. Every control draws the neutral form by default: the chosen option is the strong ink on the
+surface. `accent` asks for the accent fill when a product needs it; in vanilla CSS the class is `.ui-seg--accent`. `neutral` is a deprecated
+no-op kept for compatibility, and goes away at the next major. An option's `icon`
 draws a glyph before its label. With `iconOnly`, the glyph is the whole button and the label is
-its name and its hover title.
+its name and its hover title; the wordless choice draws a 32px pill around the 20px view icon — larger
+than a labelled option's 16px lead — and below the phone step keeps a 44px tap zone outside the
+pill, the way the back link and theme switch do.
 
-**What the user sees.** The chosen pill has the accent fill of a primary button. The chosen
-underline tab is its label with a 2px accent bar under it, and no box. Hover changes only the
+**What the user sees.** The chosen pill has the strong ink on the surface, with no accent. With
+`accent`, the chosen pill has the accent fill of a primary button. The chosen
+underline tab is its label with a 2px strong bar under it, and no box; with `accent` the bar is
+the accent. Hover changes only the
 ink. When the options do not fit, they wrap onto more rows, so the strip never makes the column
 wider. A long label wraps inside its own option.
 
@@ -1411,7 +1419,7 @@ chart has the title. `format` prints exact values in the readout, the live regio
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | none: columns per period with a line across them, fitted to the card | |
+| `months` | `periods`, `series` | none: columns per period with a line across them | |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
 | `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
@@ -1434,10 +1442,17 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** In `months`, every period shares the card's width, so the plot never
-scrolls. A bar is one flat fill of its tone. It takes two thirds of its column, and at most 48px.
-Where the period labels do not fit, the chart prints every second, third or later label, counted
-from the first period that is not final, or from the latest period. Set `values` to print each
+**What the user sees.** In `months`, when the card is too narrow for every bar's name, the plot
+scrolls sideways so every bar keeps its name. A bar is one flat tone — the full tone of its series
+— with a small corner at its measured end: --radius-xs or a quarter of the bar's width, whichever is
+smaller. Its foot stays square on the zero line. It takes two thirds of its column, and at most 48px.
+In `months` and `bridge`, the
+chart prints every bar's `short` name under its bar, and a short name that does not fit its column
+wraps at a word break. Give each bar a distinct `short` name, never one cut to a fixed length. Where
+one word alone is wider than the column, the plot scrolls so that word still fits, and every bar
+keeps its name. In the other variants, where the period labels do not fit, the chart prints every
+second, third or later label, counted from the first period that is not final, or from the latest
+period. The readout and the table keep the full name. Set `values` to print each
 bar's value past its end, in `formatAxis`: over a bar that grows up from zero, and under a bar
 that grows down. A value takes at most half the space to the next value,
 at the 12px text size, and stays inside the plot. A value that does not fit there is left out.
@@ -1453,7 +1468,7 @@ the period before it. Set `compare: false` on a period to show its value with no
 A switch at the top right
 shows the same numbers as a chart or as a table. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
-and `onSelect` lets the user pick a column, which gets a band behind it. In the other variants, at
+and `onSelect` lets the user pick a column, which gets a band behind it. At
 phone widths the plot scrolls and the value axis stays. A chart of periods that is wider than its
 card opens at its latest period. A bridge opens at its opening total.
 

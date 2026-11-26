@@ -526,6 +526,51 @@ test('this gate rejects a sheet that drops the pointer clause', () => {
   );
 });
 
+test('this gate rejects a toolbar margin that closes one theme', () => {
+  // The mutation: a single --space-10 figure both themes used to take. In dark
+  // the stack's own gap is --space-5, so that figure closed the 20px gap to
+  // zero and laid the card over the bar's last row. The margin must read the
+  // themed --ui-block-gap, never one figure.
+  const collapsed = css.replace(
+    /margin-bottom:\s*calc\(var\(--tap-gap\)\s*-\s*var\(--ui-block-gap,\s*0px\)\)/,
+    'margin-bottom: calc(var(--tap-gap) - var(--space-10))',
+  );
+  assert.notEqual(collapsed, css, 'The mutation did not apply, so it proves nothing.');
+  assert.ok(
+    !/margin-bottom:\s*calc\(var\(--tap-gap\)\s*-\s*var\(--ui-block-gap,\s*0px\)\)/.test(collapsed),
+    'A single --space-10 figure still reads as the themed rule, so the check above would '
+    + 'pass over a sheet that closes the dark gap to zero.',
+  );
+});
+
+test('this gate rejects a sheet that drops the date-picker drawer growth', () => {
+  // The mutation: the opened grid outgrows the md drawer (45vh), whose body
+  // scrolls and clips the last week's tap layers at the scroll edge.
+  const cut = css.replace(/\s*\.ui-drawer:has\(\.ui-datepicker__body\.is-sheet\)\s*\{\s*--drawer-h:\s*72vh;\s*\}/, '');
+  assert.notEqual(cut, css, 'The mutation did not apply, so it proves nothing.');
+  const rule = /\.ui-drawer:has\(\.ui-datepicker__body\.is-sheet\)\s*\{\s*--drawer-h:\s*72vh;/;
+  assert.ok(
+    !rule.test(cut),
+    'Removing the 72vh sheet drawer left the rule the gate would still read, so the check above '
+    + 'would pass over a sheet that clips the last week.',
+  );
+});
+
+test('this gate rejects a cap read from the viewport instead of the content', () => {
+  // The mutation: `full` is the viewport height, clamped to VIEW_CAP, so it
+  // never exceeds the cap and `cut: full > VIEW_CAP` is always false. A story
+  // taller than the cap is then measured only to the cap, and everything below
+  // it is silently unmeasured instead of rejected below.
+  const rig = read('stories/lib/tap-zone.js');
+  const clamped = rig.replace(/\bcut:\s*content\s*>\s*VIEW_CAP\b/, 'cut: full > VIEW_CAP');
+  assert.notEqual(clamped, rig, 'The mutation did not apply, so it proves nothing.');
+  assert.ok(
+    !/\bcut:\s*content\s*>\s*VIEW_CAP\b/.test(clamped),
+    'The cap still reads the content height, so the oversized-story assertion below would pass '
+    + 'over a story taller than the rig lays out.',
+  );
+});
+
 test('the shrink check reads an edge-stopped side as a lower bound', async () => {
   // The mutation half of the edge rule: the same 1px loss fails on a side another
   // control stops, and passes only where the viewport edge stops the pass with the sheet.
@@ -640,14 +685,57 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       'A story is taller than the rig lays out. Raise VIEW_CAP in stories/lib/tap-zone.js.',
     );
 
-    await t.test('no control is drawn at a different size', () => {
+    await t.test('no control is drawn at a different size', async () => {
       const moved = B.filter((b, i) => b.drawn[0] !== A[i].drawn[0] || b.drawn[1] !== A[i].drawn[1]);
+      // A scroll region capped at 70vh reads its cap from the viewport, so a story
+      // whose height the sheet changed settles its two passes to different
+      // viewports and the region's drawn height follows the cap, not a rule the
+      // sheet wrote for it. Re-measure each differing story at one shared viewport
+      // — the taller of the two settles — so the cap is the same for both sheets.
+      const real = [];
+      for (const id of [...new Set(moved.map((b) => b.story))]) {
+        const subj = subjects.filter((s) => s.id === id);
+        const fixed = Math.max(
+          ...before.rows.filter((r) => r.story === id).map((r) => r.height),
+          ...after.rows.filter((r) => r.story === id).map((r) => r.height),
+        );
+        const shot = (sheet) => pass(browser, {
+          subjects: subj, css: sheet, width: 390, coarse: true, size: TAP_MIN,
+          families: [...carriers, ...exempt], within: [...opened, ...specimens], viewportHeight: fixed,
+        });
+        const A1 = flatten((await shot(without)).rows);
+        const B1 = flatten((await shot(withCss)).rows);
+        real.push(...B1.filter((b, i) => b.drawn[0] !== A1[i].drawn[0] || b.drawn[1] !== A1[i].drawn[1])
+          .map((b) => `${b.story} ${name(b)}`));
+      }
       assert.deepEqual(
-        moved.map((b) => `${b.story} ${name(b)} ${A[B.indexOf(b)]}`), [],
+        real, [],
         'A control changed size with the sheet loaded. The whole premise of #488’s answer is '
         + 'that the drawn control does not move; a layer that changes layout is a visible change '
         + 'the issue rejected.',
       );
+    });
+
+    await t.test('a vh-capped region measured once is rejected', async () => {
+      // The mutation: one viewport read, the way the pass measured before it
+      // settled the pair. A max-height:70vh scroll region reads its cap, not
+      // its rows, on a short box, so the finance table draws a different size
+      // in the two passes.
+      const finance = subjects.filter((s) => s.id === 'components-finance-composition--comparison');
+      assert.equal(finance.length, 1, 'The finance story is not in the sweep.');
+      const oneShot = (sheet) => pass(browser, {
+        subjects: finance, css: sheet, width: 390, coarse: true, size: TAP_MIN, rounds: 1,
+      });
+      const A1 = flatten((await oneShot(without)).rows);
+      const B1 = flatten((await oneShot(withCss)).rows);
+      const moved = B1.filter((b, i) => b.drawn[0] !== A1[i].drawn[0] || b.drawn[1] !== A1[i].drawn[1]);
+      assert.ok(
+        moved.length > 0,
+        'One viewport read drew the vh-capped region the same size in both passes, so the '
+        + 'settling loop in stories/lib/tap-zone.js would be removable and the finance defect '
+        + 'would return.',
+      );
+      t.diagnostic(`${moved.length} control(s) drawn differently on one read — the check rejects it`);
     });
 
     await t.test('no control has a drawn pixel that runs another control', () => {
@@ -747,6 +835,49 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       assert.notEqual(sheet, withCss, 'The mutation did not apply, so it proves nothing.');
       const short = new Set(shortChanges(flatten((await at(390, true, sheet, own)).rows)).map((p) => p.split(':')[0]));
       assert.equal(short.size, 2 + statCases.length, `A change at its line height passed in some fixtures: ${[...short]}`);
+    });
+
+    await t.test('each wordless option owns a 44px target without crossing the shared middle', () => {
+      // The chart/table switch in a card's tools: two 24px glyph pills in a 32px
+      // track. The symmetric clamp left each at 28 across, so a tap at the pill's
+      // edge ran the neighbour; the fix opens the LEFT option left and the RIGHT
+      // option right, past the pill's outer edge, never into the shared middle.
+      const wordless = B.filter((b) => b.story === 'fixture:wordless-switch' && b.cls.split(/\s+/).includes('ui-seg--icon'));
+      assert.equal(wordless.length, 2, `expected 2 wordless options, found ${wordless.length}`);
+      const [left, right] = wordless;
+      for (const b of wordless) {
+        assert.ok(b.reach[0] >= 44 - 0.5 && b.reach[1] >= 44 - 0.5, `${name(b)} reaches ${b.reach.join('x')}, not 44x44`);
+      }
+      // The outer side opens past the pill's edge, not by centring into the gap.
+      assert.ok(left.sides[0] >= 13, `the left option opens ${left.sides[0]}px left, not past the pill's edge`);
+      assert.ok(right.sides[1] >= 13, `the right option opens ${right.sides[1]}px right, not past the pill's edge`);
+      // The shared middle is respected: neither option crosses the gap's midpoint.
+      assert.ok(left.sides[1] <= 4, `the left option reaches ${left.sides[1]}px into the gap, crossing the shared middle`);
+      assert.ok(right.sides[0] <= 4, `the right option reaches ${right.sides[0]}px into the gap, crossing the shared middle`);
+      // No drawn pixel runs the neighbour.
+      assert.deepEqual(left.lost, [], `the left option has a drawn pixel the neighbour owns`);
+      assert.deepEqual(right.lost, [], `the right option has a drawn pixel the neighbour owns`);
+    });
+
+    await t.test('a wordless option that reads the strip clearance instead of the outer one is rejected', async () => {
+      // The mutation: put the 4px shadow back on every strip, so the wordless
+      // options read 4px instead of the tools' 20px and fall short of 44px —
+      // the 32px target the review measured. The check above has to fail on it.
+      const broken = withCss.replace(
+        /\.ui-seg:not\(:has\(button\.ui-seg--icon\)\) \{ --tap-clear-x: var\(--space-1, 4px\); \}/,
+        '.ui-seg { --tap-clear-x: var(--space-1, 4px); }',
+      );
+      assert.notEqual(broken, withCss, 'The mutation did not apply, so it proves nothing.');
+      const own = fixtures.filter((f) => f.id === 'fixture:wordless-switch');
+      const mutated = flatten((await at(390, true, broken, own)).rows)
+        .filter((b) => b.cls.split(/\s+/).includes('ui-seg--icon'));
+      assert.equal(mutated.length, 2, `expected 2 wordless options, found ${mutated.length}`);
+      assert.ok(
+        mutated.some((b) => b.reach[0] < 44),
+        'A wordless option kept a 44px target after the outer clearance was shadowed again, so '
+        + 'the check above would pass over the defect it was written for.',
+      );
+      t.diagnostic(`shadowed clearance: ${mutated.map((b) => `${name(b)} ${b.reach.join('x')}`).join(' / ')}`);
     });
 
     await t.test('every density of a selectable table is measured, header and rows', () => {

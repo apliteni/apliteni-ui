@@ -143,6 +143,25 @@ describe('guideline pages in React: a readout that wraps', () => {
   });
 });
 
+/* The clipped readout (Prefer above the mark) clamps to its clip's own width,
+ * not to 100vw, which counts a vertical scrollbar the clip's box does not. The
+ * clip is a size container, so 100cqw is the width behind its inset. Limit: this
+ * reads the declarations, not layout; the clip itself was measured in a browser
+ * at 360x800 with a classic 15px scrollbar. */
+describe('guideline pages in React: the clipped readout clamps to its box', () => {
+  const hover = read('../../stories/guidelines/_hover-readouts.js');
+  it('makes the clip a size container and clamps the readout to its content width', () => {
+    expect(hover).toMatch(/\.gh-clip\s*\{[^}]*container-type:\s*inline-size/);
+    expect(hover).toMatch(/\.gh-clip\s+\.gh-host\s+\.ui-tip\s*\{[^}]*max-width:\s*100cqw/);
+    expect(hover).toMatch(/calc\(100cqw\s*-\s*var\(--ui-tip-x\)\s*-\s*100%\)/);
+  });
+  it('rejects a clamp read from the viewport instead of the box', () => {
+    const clamped = hover.replace(/\bmax-width:\s*100cqw\b/, 'max-width: calc(100vw - var(--space-10) * 2 - var(--space-3) * 2)');
+    expect(clamped).not.toBe(hover);
+    expect(clamped).not.toMatch(/max-width:\s*100cqw/);
+  });
+});
+
 /* Stands in for destructive-actions.test.js "the specimen measure is the confirm
  * component's own declared width", which pins the vanilla confirm. The React page
  * draws the React Confirm, which is a Modal, so what is held here is that the
@@ -319,6 +338,71 @@ describe('guideline pages in React: Dashboards and reports', () => {
     const [chart, table] = card.querySelectorAll<HTMLElement>('[role="tab"]');
     fireEvent.keyDown(chart, { key: 'ArrowRight' });
     expect([table.getAttribute('aria-selected'), document.activeElement === table, table.tabIndex, chart.tabIndex]).toEqual(['true', true, 0, -1]);
+  });
+
+  // #867: the block's Chart and Table switch keeps the neutral form, the way the
+  // Chart component's own switch draws — the neutral form is the default, so a view
+  // switch stays off the page's accent.
+  it('the block switch keeps the neutral form, not the accent', () => {
+    const strip = block().querySelector('[role="tablist"]');
+    expect(strip).not.toHaveClass('ui-seg--accent');
+  });
+
+  // #863: the switch rule's cards sit inside the rule's own h2 section, so their
+  // titles are h3, one level under it (Labels and titles, heading levels).
+  it('the chart-table-switch card titles are headings one level under the rule', () => {
+    const section = mount(page).querySelector('[data-rule="chart-table-switch"]');
+    expect(section, 'no rule "chart-table-switch" on the page: the gate is checking nothing').toBeTruthy();
+    const titles = [...section!.querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.map(t => t.tagName.toLowerCase()), 'one card title per specimen block')
+      .toEqual(['h3', 'h3', 'h3']);
+  });
+
+  // #863: the two new bar-label cards sit inside the rule's own h2 section, so
+  // their titles are h3, one level under it (Labels and titles, heading levels).
+  it('the bar-labels cards are headings one level under the rule', () => {
+    const section = mount(page).querySelector('[data-rule="bar-labels-distinct"]');
+    expect(section, 'no rule "bar-labels-distinct" on the page: the gate is checking nothing').toBeTruthy();
+    const titles = [...section!.querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.map(t => t.tagName.toLowerCase()), 'one card title per specimen half').toEqual(['h3', 'h3']);
+  });
+
+  // #863: the four wide ledgers scroll sideways, so each gets the kit's keyboard
+  // stop: a named, focusable region (Accessibility minimums, keyboard first).
+  // #863 P3: each region also carries a distinct name, so a reader listing the
+  // landmarks can tell one Sales ledger from the next (landmark-unique).
+  it('gives every wide ledger a distinct named keyboard stop', () => {
+    const frames = [...mount(page).querySelectorAll('.ui-table-scroll')]
+      .filter(frame => frame.querySelector('table thead th')?.textContent?.trim() === 'Reference');
+    expect(frames.length, 'four ledger scroll regions on the page').toBe(4);
+    for (const frame of frames) {
+      expect(frame.getAttribute('role')).toBe('region');
+      expect(frame.getAttribute('tabindex')).toBe('0');
+    }
+    expect(frames.map(frame => frame.getAttribute('aria-label')).sort(), 'each ledger names itself distinctly')
+      .toEqual(['Sales ledger', 'Sales report rows', 'Sales with filters', 'Sales, 2026'].sort());
+  });
+
+  // #863 P3: the repeated bar-label, line and months charts name themselves
+  // distinctly, so a reader listing the landmarks can tell one specimen from the next.
+  it('names every repeated specimen chart distinctly', () => {
+    const names = [...mount(page).querySelectorAll('[role="group"][aria-label]')]
+      .map(group => group.getAttribute('aria-label')!);
+    const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six bars|Net settled by month, first (?:half of the year|four months of the year)), /.test(name));
+    expect(repeats.length, 'the repeated charts the page draws').toBe(13);
+    expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(13);
+  });
+});
+
+/* The Hover readouts specimens stand inside each rule's own h2 section, so their
+ * six card titles are h3, one level under it (Labels and titles, heading levels). */
+describe('guideline pages in React: Hover readouts', () => {
+  const page = pages.find(p => p.file.endsWith('/HoverReadouts.stories.tsx'))!;
+  it('the specimen cards are headings one level under the rule', () => {
+    const titles = [...mount(page).querySelectorAll('[data-specimen] .ui-card__title')];
+    expect(titles.length, 'six specimen cards on the page').toBe(6);
+    expect(titles.map(t => t.tagName.toLowerCase()), 'each card title is an h3')
+      .toEqual(Array(6).fill('h3'));
   });
 });
 

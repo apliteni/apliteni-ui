@@ -175,7 +175,7 @@ export const GLUE_CEILING = 22;
  * label in `_gallery.js`, a specimen mode for an overlay, and a chart the kit owns
  * instead of `_chart.js`. */
 const RECORDED = {
-  'stories/_chart.js': { shadow: 15 },
+  'stories/_chart.js': { shadow: 14 },
   'stories/_gallery.js': { shadow: 2 },
 };
 

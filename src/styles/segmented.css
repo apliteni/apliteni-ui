@@ -40,19 +40,31 @@
 .ui-seg button:hover { color: var(--strong); }
 /* aria-pressed is what segmented() emits now; aria-selected is kept so markup
    copied from an older release keeps painting its active pill. */
-/* Selection uses the accent fill. The outline marks keyboard focus only.
+/* Selection uses the strong ink on the surface — the neutral form is the default.
+   The outline marks keyboard focus only.
    why: docs/foundations.md#the-focus-ring */
 .ui-seg button.is-active,
 .ui-seg button[aria-pressed="true"],
 .ui-seg button[aria-selected="true"] {
-  /* The primary button's pair, so a selection and the main action share one fill. The
-     edge carries the 3:1 mark where that fill is faint on the track, as under the default accent in dark. #832 */
+  color: var(--surface);
+  background: var(--strong);
+  box-shadow: none;
+}
+
+/* The accent form, only when a product asks for it: the primary button's pair, so a
+   selection and the main action share one fill. The edge carries the 3:1 mark where
+   that fill is faint on the track, as under the default accent in dark. #832 */
+.ui-seg--accent button.is-active,
+.ui-seg--accent button[aria-pressed="true"],
+.ui-seg--accent button[aria-selected="true"] {
   color: var(--accent-contrast);
   background: var(--accent-strong);
   box-shadow: inset 0 0 0 1px var(--accent);
 }
+/* The accent underline bar. */
+.ui-seg--accent.ui-seg--underline button::before { background: var(--accent); }
 
-/* A disabled selection stays readable without the active accent fill. */
+/* A disabled selection stays readable without the selected fill. */
 .ui-seg button.is-active:where(:disabled),
 .ui-seg button[aria-pressed="true"]:where(:disabled),
 .ui-seg button[aria-selected="true"]:where(:disabled) {
@@ -60,15 +72,26 @@
   box-shadow: none; /* No edge: on a control that takes no focus it reads as a ring. #832 */
 }
 
-/* Standard pills tighten on phones so six short month names fit one row. */
+/* Standard pills tighten on phones so six short month names fit one row. The
+   wordless option is excluded: it has no label to fit, and its 32px pill is the
+   owner's decision (d54). */
 @media (max-width: 560px) {
-  .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button { padding: var(--space-2) var(--space-3); }
+  .ui-seg:not(.ui-seg--sm):not(.ui-seg--underline) button:not(.ui-seg--icon) { padding: var(--space-2) var(--space-3); }
 }
 
 /* A segment with a glyph centres it on the word, or stands alone when the glyph is
    the whole label. The glyph keeps the button glyph's size and line. */
 .ui-seg button:has(> span > svg) { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); }
 .ui-seg button svg { display: block; width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+/* A wordless option is all glyph: the 20px view icon the owner chose (d54),
+   larger than a labelled option's 16px lead.
+   The button is a 24px square — 20px icon plus 2px inside — so the track's 4px
+   padding makes a 32px pill, and below the phone step
+   its 44px tap zone reaches past the pill, the way the 32px back link and the
+   34px theme switch do. The 1.8 stroke keeps the 1.5 CSS px line at 20px in
+   the 24-unit box. */
+.ui-seg button.ui-seg--icon { padding: 2px; }
+.ui-seg button.ui-seg--icon svg { width: 20px; height: 20px; stroke-width: 1.8; }
 
 .ui-seg--sm button { min-height: var(--space-6); padding: var(--space-1) var(--space-3); font-size: var(--text-sm); line-height: var(--leading-tight); }
 .ui-seg--block { display: flex; align-self: stretch; justify-self: stretch; }
@@ -153,7 +176,7 @@
   left: var(--space-3); right: var(--space-3); bottom: 3px;
   height: 2px;
   border-radius: 2px;
-  background: var(--accent);
+  background: var(--strong);
   opacity: 0;
   transform: scaleX(0.4);
   transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
@@ -176,7 +199,7 @@
     color: HighlightText;
     --ring: var(--ring-width) solid CanvasText;
   }
-  /* The fill is the one mark, so the underline bar, which would paint the accent inside it, is gone. */
+  /* The fill is the one mark, so the underline bar, which would paint a second mark inside it, is gone. */
   .ui-seg--underline button.is-active::before,
   .ui-seg--underline button[aria-pressed="true"]::before,
   .ui-seg--underline button[aria-selected="true"]::before { display: none; /* motion: still — the bar is not drawn while the fill marks the choice */ }

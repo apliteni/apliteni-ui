@@ -13,6 +13,16 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.199.0', date: '2026-11-25',
+    changes: [
+      ['changed', 'A `months` or `bridge` `Chart` now prints every bar\'s `short` name under its bar, and a short name that does not fit its column wraps at a word break. Where the card is too narrow for every bar\'s name, the plot scrolls sideways so every bar keeps its name. Give each bar a distinct short name; the readout and the table keep the full name. Resolves #863.', ['Chart']],
+      ['added', 'The dashboards and reports guideline has a new rule, Keep every bar labelled: give each bar a distinct short name, never one cut to a fixed length. Resolves #863.', ['Guidelines']],
+      ['changed', 'Every `Segmented` control now draws the neutral form by default — the selected pill or underline bar in the strong ink — so a filter and a setting stay off the page\'s accent, the way a view switch already did. Products that used the accent as the default now turn neutral; ask for the accent with the new `accent` prop, or the `.ui-seg--accent` class. The old `neutral` prop is a deprecated no-op, removed at the next major. Resolves #867.', ['Segmented', 'Chart']],
+      ['changed', 'The icon-only `Segmented` switch draws a 32px pill around its 20px icon, and below the phone step keeps a 44px tap zone outside the pill, the way the back link and theme switch do. Resolves #867.', ['Segmented']],
+      ['fixed', 'In the light theme, a hover table or its scroll frame held directly in a card no longer hangs past the card at phone widths; it stays on the column, matching the plain table. Resolves #863.', ['Table']],
+    ],
+  },
+  {
     v: '0.198.0', date: '2026-11-25',
     changes: [
       ['changed', 'A drawer body now takes only the height of its content, so in a short drawer the footer with Save stands directly under the last group. A long body still scrolls, and the footer stays at the panel\'s end. The app shell\'s menu keeps its account at the foot. Part of #887.', ['Drawer']],

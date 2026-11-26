@@ -38,7 +38,7 @@
 
 **Don't:** Use `--accent` as ground.
 
-**Except:** Only Nebula gives the two tokens different values. A dark selected Segmented pill adds an `--accent` edge to its `--accent-strong` ground (#832).
+**Except:** Only Nebula gives the two tokens different values. A dark accent-form Segmented pill adds an `--accent` edge to its `--accent-strong` ground (#832).
 
 <!-- rule: accent-strong -->
 
@@ -46,15 +46,27 @@
 
 <!-- rule: selection-accent -->
 
-**Rule:** Limit selected navigation to one accent signal: a Segmented pill's fill or an underline tab's bar.
+**Rule:** Limit selected navigation to one accent signal: a Segmented pill's fill in the accent form, or an underline tab's bar.
 
 **Why:** Two accent marks on one item imply two states.
 
-**Do:** Use contrasting ink on Segmented pills and strong ink above underline bars. See Keep text off grey fills for SidebarNav.
+**Do:** Use contrasting ink on Segmented pills and strong ink above underline bars. See Keep text off grey fills.
 
 **Don't:** Add a second accent mark, such as an accent counter, to a selected tab.
 
 **Except:** NavTabs pills keep accent ink on soft fill, as fill alone is too faint (#429). A Segmented pill's edge belongs to its fill.
+
+## Draw Segmented controls in the neutral form
+
+<!-- rule: neutral-selection -->
+
+**Rule:** Draw every Segmented control in the neutral form; ask for the accent form only when needed.
+
+**Why:** An accent fill competes with the page's main button wherever it sits.
+
+**Do:** Switch between chart and table, and filter a ledger, with the neutral form.
+
+**Don't:** Give a view switch, a filter or a setting the accent fill.
 
 ## Theme checks
 

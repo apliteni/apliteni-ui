@@ -1,6 +1,7 @@
 // Contrast gate for the chart's series colours. Each tone is a fixed pair of
-// tokens: the strong data end, which every mark ends in, and the fade at a bar's
-// base. The strong end holds the 3:1 floor; the fade does not and is not meant to.
+// tokens: the strong tone, which every bar, line, legend key and dot is painted
+// in, and the fade that fills an area. The strong tone holds the 3:1 floor; the
+// fade does not and is not meant to.
 // Tones are discovered from the stylesheet and their names from the component's
 // own union, so a tone added to one and not the other fails before it can ship a
 // colour nobody measured.
@@ -124,11 +125,11 @@ describe('the chart\'s tones', () => {
 
   /* Rejection, twice: once for a colour under the bar, and once for a value the
    * gate cannot read. A gate that passes whatever it is handed measures nothing.
-   * The fades are the colours under the bar: on the card, where the kit draws a
+   * The fades are the colours under the floor: on the card, where the kit draws a
    * chart, each fails 3:1 by design, and the same measurement that passes the
-   * strong ends rejects every one of them. On the page the dark neutral fade
+   * strong tones rejects every one of them. On the page the dark neutral fade
    * measures 3.39:1, which harms nothing, so the page is not asserted here. */
-  it('rejects every fade end on the card, where a bar\'s base carries no value', () => {
+  it('rejects every fade end on the card, where an area\'s base carries no value', () => {
     const rows = THEMES.flatMap((theme) => [...TONES].map(([name, { fade }]) => {
       const { tone, behind } = measure(theme, 'default', 'card', fade);
       expect(tone, `${name} fade, ${theme}: the fade does not resolve to a colour`).not.toBeNull();

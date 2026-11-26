@@ -57,16 +57,19 @@ const CHOSEN = '.ui-filter-bar .ui-dropdown__item.is-selected';
 const ROW_FLOOR = 24;
 const STORY_FLOOR = 7;
 
-/** Every story that renders a chosen row in a filter menu, as live DOM.
- *  One window per matching story, because each story's rows are measured after
- *  the sweep has moved on and a shared body would have replaced them.
+/** Every story that renders a chosen row in a filter menu, swept and kept as its
+ *  story HTML, not as live DOM. The sweep mounts each story once and counts the
+ *  chosen rows straight off that host — the `is-selected` class is written by React
+ *  before the menu is opened, and `desugar`/`substitute` rewrite state and `var()`
+ *  text, never a class name. A test re-parses a subject into a reusable window, so
+ *  the sweep keeps no JSDOM window alive.
  *
- *  Each chip's menu is opened first. A shut panel is `visibility: hidden`, which
- *  inherits, so every mark inside one reads as not drawn whatever it declares —
- *  and a mark nobody can see is not what this gate is about. Opening it is the
- *  one state in which the question has an answer. */
+ *  Each chip's menu is opened on re-parse. A shut panel is `visibility: hidden`,
+ *  which inherits, so every mark inside one reads as not drawn whatever it declares —
+ *  and a mark nobody can see is not what this gate is about. Opening it is the one
+ *  state in which the question has an answer. */
 async function sweepSubjects(theme: string) {
-  const { vars, css } = kitCssFor(theme);
+  const { vars } = themeCss.get(theme)!;
   const found: Any[] = [];
   for (const file of Object.keys(modules).sort()) {
     const mod = modules[file];
@@ -81,18 +84,13 @@ async function sweepSubjects(theme: string) {
       const reactRoot = createRoot(host);
       act(() => reactRoot.render(<StoryRender />));
       const raw = document.body.innerHTML;
+      const chosen = host.querySelectorAll(CHOSEN).length;
       act(() => reactRoot.unmount());
       host.remove();
-      if (!raw.includes('ui-filter-bar')) continue;
-      const dom = new JSDOM(
-        `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head>`
-        + `<body>${desugar(substitute(raw, vars))}</body></html>`,
-        { pretendToBeVisual: true },
-      );
-      for (const dd of dom.window.document.querySelectorAll('.ui-filter-bar .ui-dropdown')) dd.classList.add('open');
-      for (const row of dom.window.document.querySelectorAll(CHOSEN)) {
-        found.push({ id: `${file}:${name}`, row, win: dom.window, vars });
-      }
+      if (chosen === 0) continue;
+      const id = `${file}:${name}`;
+      const body = desugar(substitute(raw, vars));
+      for (let index = 0; index < chosen; index += 1) found.push({ id, body, index, theme, vars });
     }
   }
   return { found };
@@ -100,9 +98,41 @@ async function sweepSubjects(theme: string) {
 
 // One sweep per theme. Tests that mutate a row restore it before they end, and tests run in turn.
 // They run at load, in turn, because each sweep installs DOM globals. The file pays for them and no test does.
+const themeCss = new Map<string, Any>();
+for (const theme of THEMES) themeCss.set(theme, kitCssFor(theme));
 const sweeps = new Map();
 for (const theme of THEMES) sweeps.set(theme, await sweepSubjects(theme));
 const subjects = async (theme) => sweeps.get(theme);
+
+// One window per theme, built on demand and reused. A JSDOM window keeps its parsed
+// kit sheet alive for the life of the process, so one window per re-parse would leak
+// a full stylesheet per subject; one per theme parses it once. The body is swapped
+// per story before each reading, which is why a subject stores its story HTML.
+const themeDom = new Map<string, Any>();
+function windowFor(theme: string) {
+  let win = themeDom.get(theme);
+  if (!win) {
+    const { css } = themeCss.get(theme)!;
+    win = new JSDOM(
+      `<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}</style></head><body></body></html>`,
+      { pretendToBeVisual: true },
+    ).window;
+    themeDom.set(theme, win);
+  }
+  return win;
+}
+
+/** The live subject a measurement reads: the story re-parsed into its theme's
+ *  window with its menus opened, its row found by the sweep's recorded index. */
+function materialize(subject: Any) {
+  const win = windowFor(subject.theme);
+  win.document.body.innerHTML = subject.body;
+  for (const dd of win.document.querySelectorAll('.ui-filter-bar .ui-dropdown')) dd.classList.add('open');
+  const rows = win.document.querySelectorAll(CHOSEN);
+  const row = rows[subject.index];
+  assert.ok(row, `${subject.id}: re-parsed ${rows.length} chosen rows, but the sweep recorded index ${subject.index}`);
+  return { id: subject.id, row, win, vars: subject.vars };
+}
 
 /** What one chosen row paints, read off the resolved cascade. */
 function readRow({ row, win, vars }) {
@@ -308,7 +338,7 @@ for (const theme of THEMES) {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR,
       `swept ${found.length} chosen filter-menu rows, floor ${ROW_FLOOR}: a story stopped drawing one`);
-    for (const subject of found) measureSlot(subject);
+    for (const meta of found) measureSlot(materialize(meta));
   }, 30_000); // It mounts a filter menu per theme: 3s alone, past the 5s default on a loaded host.
 }
 
@@ -332,7 +362,7 @@ for (const theme of THEMES) {
   test(`the ${theme} gate rejects a check that gives way where it is painted`, async () => {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR, 'the slot mutation pass needs the same subjects');
-    const subject = found[0];
+    const subject = materialize(found[0]);
     for (const [what, mutate, rejects] of SLOT_MUTATIONS) {
       const tick = subject.row.querySelector('.ui-dropdown__tick');
       const before = tick.getAttribute('style');
@@ -350,7 +380,8 @@ for (const theme of THEMES) {
     assert.ok(found.length >= ROW_FLOOR,
       `swept ${found.length} chosen filter-menu rows, floor ${ROW_FLOOR}: a story stopped drawing one`);
     const seen = new Set();
-    for (const subject of found) {
+    for (const meta of found) {
+      const subject = materialize(meta);
       measureMark(subject);
       measureStates(subject);
       seen.add(subject.id);
@@ -418,7 +449,7 @@ for (const theme of THEMES) {
   test(`the ${theme} gate rejects a hover or a band the reader cannot find on the chosen row`, async () => {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR, 'the hover mutation pass needs the same subjects');
-    const subject = found[0];
+    const subject = materialize(found[0]);
     const panel = effectiveBackground(subject.row.closest('.ui-dropdown__panel'), subject.win);
     for (const [match, mutations] of [['[data-ui-state~="hover"]', HOVER_MUTATIONS], ['[data-ui-state~="focus-visible"]', FOCUS_MUTATIONS]]) {
       for (const [what, declare, rejects] of mutations) {
@@ -438,8 +469,8 @@ for (const theme of THEMES) {
   test(`the ${theme} gate rejects every mark it is written for`, async () => {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR, 'the mutation pass needs the same subjects');
+    const subject = materialize(found[0]);
     for (const [what, mutate, rejects] of MUTATIONS) {
-      const subject = found[0];
       const before = subject.row.getAttribute('style');
       const tick = subject.row.querySelector('.ui-dropdown__tick').getAttribute('style');
       const label = subject.row.querySelector('.ui-dropdown__label').getAttribute('style');
@@ -449,7 +480,6 @@ for (const theme of THEMES) {
       measureMark(subject);
     }
     for (const [what, mutate, rejects] of STATE_MUTATIONS) {
-      const subject = found[0];
       const before = subject.row.getAttribute('style');
       mutate(subject.row, { theme, ground: washGround(subject) });
       assert.throws(() => measureStates(subject), rejects, `${what} must be rejected`);
