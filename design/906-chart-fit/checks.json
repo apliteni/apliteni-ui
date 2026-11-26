@@ -1,0 +1,1284 @@
+{
+  "prototypeSha256": "763fc573b8b6853adec6840462d873f7f402b60d29496b5afad0d2b4967a5153",
+  "baseline": "a02e4fa0492cbdf1e5f4e311f1f36cc2375f3c0a",
+  "playwright": "1.65.0",
+  "browser": "Chromium headless shell",
+  "layout": [
+    {
+      "theme": "light",
+      "width": 390,
+      "height": 844,
+      "page": 390,
+      "viewport": 390,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 65.5,
+          "right": 84.5
+        },
+        {
+          "label": "Mar",
+          "left": 105,
+          "right": 125
+        },
+        {
+          "label": "May",
+          "left": 144,
+          "right": 166
+        },
+        {
+          "label": "Jul",
+          "left": 187,
+          "right": 203
+        },
+        {
+          "label": "Sep",
+          "left": 224.5,
+          "right": 245.5
+        },
+        {
+          "label": "Nov",
+          "left": 264.5,
+          "right": 285.5
+        },
+        {
+          "label": "Jan",
+          "left": 305.5,
+          "right": 324.5
+        },
+        {
+          "label": "Mar",
+          "left": 345,
+          "right": 365
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "width": 820,
+      "height": 1180,
+      "page": 820,
+      "viewport": 820,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 129.5,
+          "right": 148.5
+        },
+        {
+          "label": "Mar",
+          "left": 169,
+          "right": 189
+        },
+        {
+          "label": "May",
+          "left": 208,
+          "right": 230
+        },
+        {
+          "label": "Jul",
+          "left": 251,
+          "right": 267
+        },
+        {
+          "label": "Sep",
+          "left": 288.5,
+          "right": 309.5
+        },
+        {
+          "label": "Nov",
+          "left": 328.5,
+          "right": 349.5
+        },
+        {
+          "label": "Jan",
+          "left": 369.5,
+          "right": 388.5
+        },
+        {
+          "label": "Mar",
+          "left": 409,
+          "right": 429
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "height": 800,
+      "page": 1280,
+      "viewport": 1280,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 765.5,
+          "right": 784.5
+        },
+        {
+          "label": "Mar",
+          "left": 805,
+          "right": 825
+        },
+        {
+          "label": "May",
+          "left": 844,
+          "right": 866
+        },
+        {
+          "label": "Jul",
+          "left": 887,
+          "right": 903
+        },
+        {
+          "label": "Sep",
+          "left": 924.5,
+          "right": 945.5
+        },
+        {
+          "label": "Nov",
+          "left": 964.5,
+          "right": 985.5
+        },
+        {
+          "label": "Jan",
+          "left": 1005.5,
+          "right": 1024.5
+        },
+        {
+          "label": "Mar",
+          "left": 1045,
+          "right": 1065
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "width": 1920,
+      "height": 1080,
+      "page": 1920,
+      "viewport": 1920,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 1085.5,
+          "right": 1104.5
+        },
+        {
+          "label": "Mar",
+          "left": 1125,
+          "right": 1145
+        },
+        {
+          "label": "May",
+          "left": 1164,
+          "right": 1186
+        },
+        {
+          "label": "Jul",
+          "left": 1207,
+          "right": 1223
+        },
+        {
+          "label": "Sep",
+          "left": 1244.5,
+          "right": 1265.5
+        },
+        {
+          "label": "Nov",
+          "left": 1284.5,
+          "right": 1305.5
+        },
+        {
+          "label": "Jan",
+          "left": 1325.5,
+          "right": 1344.5
+        },
+        {
+          "label": "Mar",
+          "left": 1365,
+          "right": 1385
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "height": 800,
+      "page": 320,
+      "viewport": 320,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 242,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 242,
+          "scroll": 242
+        },
+        {
+          "id": "categories-before",
+          "client": 235,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 270,
+          "scroll": 270
+        },
+        {
+          "id": "categories-side",
+          "client": 270,
+          "scroll": 270
+        },
+        {
+          "id": "bridge-before",
+          "client": 235,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 235,
+          "scroll": 235
+        },
+        {
+          "id": "bridge-side",
+          "client": 270,
+          "scroll": 270
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 53,
+          "right": 72
+        },
+        {
+          "label": "Mar",
+          "left": 83.328125,
+          "right": 103.328125
+        },
+        {
+          "label": "May",
+          "left": 114.59375,
+          "right": 136.59375
+        },
+        {
+          "label": "Jul",
+          "left": 149.859375,
+          "right": 165.859375
+        },
+        {
+          "label": "Sep",
+          "left": 179.625,
+          "right": 200.625
+        },
+        {
+          "label": "Nov",
+          "left": 211.890625,
+          "right": 232.890625
+        },
+        {
+          "label": "Jan",
+          "left": 245.15625,
+          "right": 264.15625
+        },
+        {
+          "label": "Mar",
+          "left": 274.984375,
+          "right": 294.984375
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "width": 1440,
+      "height": 900,
+      "page": 1440,
+      "viewport": 1440,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 845.5,
+          "right": 864.5
+        },
+        {
+          "label": "Mar",
+          "left": 885,
+          "right": 905
+        },
+        {
+          "label": "May",
+          "left": 924,
+          "right": 946
+        },
+        {
+          "label": "Jul",
+          "left": 967,
+          "right": 983
+        },
+        {
+          "label": "Sep",
+          "left": 1004.5,
+          "right": 1025.5
+        },
+        {
+          "label": "Nov",
+          "left": 1044.5,
+          "right": 1065.5
+        },
+        {
+          "label": "Jan",
+          "left": 1085.5,
+          "right": 1104.5
+        },
+        {
+          "label": "Mar",
+          "left": 1125,
+          "right": 1145
+        }
+      ]
+    },
+    {
+      "theme": "light",
+      "width": 2560,
+      "height": 1440,
+      "page": 2560,
+      "viewport": 2560,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 1405.5,
+          "right": 1424.5
+        },
+        {
+          "label": "Mar",
+          "left": 1445,
+          "right": 1465
+        },
+        {
+          "label": "May",
+          "left": 1484,
+          "right": 1506
+        },
+        {
+          "label": "Jul",
+          "left": 1527,
+          "right": 1543
+        },
+        {
+          "label": "Sep",
+          "left": 1564.5,
+          "right": 1585.5
+        },
+        {
+          "label": "Nov",
+          "left": 1604.5,
+          "right": 1625.5
+        },
+        {
+          "label": "Jan",
+          "left": 1645.5,
+          "right": 1664.5
+        },
+        {
+          "label": "Mar",
+          "left": 1685,
+          "right": 1705
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 390,
+      "height": 844,
+      "page": 390,
+      "viewport": 390,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 264,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 264,
+          "scroll": 264
+        },
+        {
+          "id": "categories-before",
+          "client": 257,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 292,
+          "scroll": 292
+        },
+        {
+          "id": "categories-side",
+          "client": 292,
+          "scroll": 292
+        },
+        {
+          "id": "bridge-before",
+          "client": 257,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 257,
+          "scroll": 257
+        },
+        {
+          "id": "bridge-side",
+          "client": 292,
+          "scroll": 292
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 77,
+          "right": 96
+        },
+        {
+          "label": "Mar",
+          "left": 111,
+          "right": 131
+        },
+        {
+          "label": "May",
+          "left": 145.203125,
+          "right": 167.203125
+        },
+        {
+          "label": "Jul",
+          "left": 183.390625,
+          "right": 199.390625
+        },
+        {
+          "label": "Sep",
+          "left": 216.09375,
+          "right": 237.09375
+        },
+        {
+          "label": "Nov",
+          "left": 251.296875,
+          "right": 272.296875
+        },
+        {
+          "label": "Jan",
+          "left": 287.5,
+          "right": 306.5
+        },
+        {
+          "label": "Mar",
+          "left": 321,
+          "right": 341
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 820,
+      "height": 1180,
+      "page": 820,
+      "viewport": 820,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 105.5,
+          "right": 124.5
+        },
+        {
+          "label": "Mar",
+          "left": 145,
+          "right": 165
+        },
+        {
+          "label": "May",
+          "left": 184,
+          "right": 206
+        },
+        {
+          "label": "Jul",
+          "left": 227,
+          "right": 243
+        },
+        {
+          "label": "Sep",
+          "left": 264.5,
+          "right": 285.5
+        },
+        {
+          "label": "Nov",
+          "left": 304.5,
+          "right": 325.5
+        },
+        {
+          "label": "Jan",
+          "left": 345.5,
+          "right": 364.5
+        },
+        {
+          "label": "Mar",
+          "left": 385,
+          "right": 405
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "height": 800,
+      "page": 1280,
+      "viewport": 1280,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 267,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 267,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 267,
+          "scroll": 267
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 741.5,
+          "right": 760.5
+        },
+        {
+          "label": "Mar",
+          "left": 781,
+          "right": 801
+        },
+        {
+          "label": "May",
+          "left": 820,
+          "right": 842
+        },
+        {
+          "label": "Jul",
+          "left": 863,
+          "right": 879
+        },
+        {
+          "label": "Sep",
+          "left": 900.5,
+          "right": 921.5
+        },
+        {
+          "label": "Nov",
+          "left": 940.5,
+          "right": 961.5
+        },
+        {
+          "label": "Jan",
+          "left": 981.5,
+          "right": 1000.5
+        },
+        {
+          "label": "Mar",
+          "left": 1021,
+          "right": 1041
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 1920,
+      "height": 1080,
+      "page": 1920,
+      "viewport": 1920,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 1061.5,
+          "right": 1080.5
+        },
+        {
+          "label": "Mar",
+          "left": 1101,
+          "right": 1121
+        },
+        {
+          "label": "May",
+          "left": 1140,
+          "right": 1162
+        },
+        {
+          "label": "Jul",
+          "left": 1183,
+          "right": 1199
+        },
+        {
+          "label": "Sep",
+          "left": 1220.5,
+          "right": 1241.5
+        },
+        {
+          "label": "Nov",
+          "left": 1260.5,
+          "right": 1281.5
+        },
+        {
+          "label": "Jan",
+          "left": 1301.5,
+          "right": 1320.5
+        },
+        {
+          "label": "Mar",
+          "left": 1341,
+          "right": 1361
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 320,
+      "height": 800,
+      "page": 320,
+      "viewport": 320,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 194,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 194,
+          "scroll": 194
+        },
+        {
+          "id": "categories-before",
+          "client": 187,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 222,
+          "scroll": 222
+        },
+        {
+          "id": "categories-side",
+          "client": 222,
+          "scroll": 222
+        },
+        {
+          "id": "bridge-before",
+          "client": 187,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 187,
+          "scroll": 220
+        },
+        {
+          "id": "bridge-side",
+          "client": 222,
+          "scroll": 222
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 77,
+          "right": 96
+        },
+        {
+          "label": "Apr",
+          "left": 112.765625,
+          "right": 131.765625
+        },
+        {
+          "label": "Jul",
+          "left": 153.0625,
+          "right": 169.0625
+        },
+        {
+          "label": "Oct",
+          "left": 190.359375,
+          "right": 209.359375
+        },
+        {
+          "label": "Jan",
+          "left": 229.15625,
+          "right": 248.15625
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 1440,
+      "height": 900,
+      "page": 1440,
+      "viewport": 1440,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 821.5,
+          "right": 840.5
+        },
+        {
+          "label": "Mar",
+          "left": 861,
+          "right": 881
+        },
+        {
+          "label": "May",
+          "left": 900,
+          "right": 922
+        },
+        {
+          "label": "Jul",
+          "left": 943,
+          "right": 959
+        },
+        {
+          "label": "Sep",
+          "left": 980.5,
+          "right": 1001.5
+        },
+        {
+          "label": "Nov",
+          "left": 1020.5,
+          "right": 1041.5
+        },
+        {
+          "label": "Jan",
+          "left": 1061.5,
+          "right": 1080.5
+        },
+        {
+          "label": "Mar",
+          "left": 1101,
+          "right": 1121
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "width": 2560,
+      "height": 1440,
+      "page": 2560,
+      "viewport": 2560,
+      "charts": [
+        {
+          "id": "months-before",
+          "client": 300,
+          "scroll": 450
+        },
+        {
+          "id": "months-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-before",
+          "client": 300,
+          "scroll": 498
+        },
+        {
+          "id": "categories-above",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "categories-side",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-before",
+          "client": 300,
+          "scroll": 352
+        },
+        {
+          "id": "bridge-after",
+          "client": 300,
+          "scroll": 300
+        },
+        {
+          "id": "bridge-side",
+          "client": 300,
+          "scroll": 300
+        }
+      ],
+      "labels": [
+        {
+          "label": "Jan",
+          "left": 1381.5,
+          "right": 1400.5
+        },
+        {
+          "label": "Mar",
+          "left": 1421,
+          "right": 1441
+        },
+        {
+          "label": "May",
+          "left": 1460,
+          "right": 1482
+        },
+        {
+          "label": "Jul",
+          "left": 1503,
+          "right": 1519
+        },
+        {
+          "label": "Sep",
+          "left": 1540.5,
+          "right": 1561.5
+        },
+        {
+          "label": "Nov",
+          "left": 1580.5,
+          "right": 1601.5
+        },
+        {
+          "label": "Jan",
+          "left": 1621.5,
+          "right": 1640.5
+        },
+        {
+          "label": "Mar",
+          "left": 1661,
+          "right": 1681
+        }
+      ]
+    }
+  ],
+  "monthCounts": [
+    12,
+    14,
+    15
+  ],
+  "monthHitAndLabelCells": 18,
+  "chartInteractionCells": 16,
+  "touchProposals": 5,
+  "sandbox": "allow-scripts",
+  "axeLight": [],
+  "axeDark": [],
+  "storyCssTests": 26,
+  "reactStoryCssTests": 36,
+  "limits": [
+    "At 320 px in dark, compact bridge content is 220 px inside a 187 px viewport.",
+    "Dense month targets use the table for equivalent access to values."
+  ]
+}
