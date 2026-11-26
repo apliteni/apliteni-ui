@@ -1025,9 +1025,9 @@ const zeroX = (container: HTMLElement) => Number(container.querySelector('.ui-ch
 
 it('draws a rows look as signed bars across the full plot, each full name above its bar', () => {
   const { container } = rowsChart(300);
-  expect(container.querySelector('.ui-chart'), 'the look names itself').toHaveClass('ui-chart--months-rows');
+  expect(container.querySelector('.ui-chart'), 'the look names itself').toHaveClass('ui-chart--bars-rows');
   expect(readRepo('../../src/styles/chart.css'), 'the rows look keeps no column floor')
-    .toMatch(/\.ui-chart--months-rows \.ui-chart__plot,[\s\S]*?\{ min-width: 0; \}/);
+    .toMatch(/\.ui-chart--bars-rows \.ui-chart__plot,[\s\S]*?\{ min-width: 0; \}/);
   const svg = container.querySelector('.ui-chart__svg')!;
   expect(svg.getAttribute('width'), 'the plot is the card\'s width').toBe('300');
   expect(container.querySelector('.ui-chart__periods'), 'no period row under the plot').toBeNull();
@@ -2595,5 +2595,127 @@ it('names the lines of a two-line story in a key while no readout is open', () =
     expect(key).toHaveTextContent('Income');
     expect(key).toHaveTextContent('Spend');
     cleanup();
+  }
+});
+
+/* -- #863: the bars name, the head, the active bar, the line fill and the table --- */
+
+it('draws `bars` by default, and `months` as the same chart with the same class', () => {
+  const markup = (variant?: 'bars' | 'months') => {
+    const { container } = render(<Chart variant={variant} title="Income and spend by month"
+      periods={periods} series={series} format={eur} />);
+    const html = container.innerHTML.replace(/_r_\w+_|«r\w+»|:r\w+:/g, 'ID');
+    cleanup();
+    return html;
+  };
+  const bars = markup('bars');
+  expect(bars, 'the bars chart carries its own class').toContain('ui-chart--bars');
+  expect(bars, 'no class keeps the old name').not.toContain('ui-chart--months');
+  expect(markup('months'), 'the deprecated name draws the same chart').toBe(bars);
+  expect(markup(), 'no variant draws the bars chart').toBe(bars);
+});
+
+it('heads the table\'s first column with the grouping, or with Period', () => {
+  months({ grouping: 'month' } as object);
+  showTable();
+  expect(screen.getAllByRole('columnheader')[0], 'the grouping, with its first letter raised').toHaveTextContent(/^Month$/);
+  cleanup();
+  lookChart('line');
+  showTable();
+  expect(screen.getAllByRole('columnheader')[0], 'no grouping keeps the old head').toHaveTextContent(/^Period$/);
+});
+
+it('draws the figure, the range menu and the trend in the head, and no trend on the plot', async () => {
+  const user = userEvent.setup();
+  const onRangeChange = vi.fn();
+  const { container } = months({
+    figure: '€5,000', trend: { value: '+€1k', basis: 'Compared with €4,000 in the previous 4 months' },
+    ranges: [{ value: '3', label: 'Last 3 months' }, { value: '4', label: 'Last 4 months' }],
+    range: '4', onRangeChange,
+  } as object);
+  const summary = container.querySelector('.ui-chart__summary') as HTMLElement;
+  expect(summary, 'the head stands first, over the plot').toBe(container.querySelector('.ui-chart')!.firstElementChild);
+  expect(summary.querySelector('.ui-stat__value')).toHaveTextContent('€5,000');
+  const trend = within(summary).getByText('+€1k');
+  expect(plot().contains(trend), 'the trend is not drawn on the plot').toBe(false);
+  expect(trend.closest('.ui-focusable'), 'the basis is reachable by a Tab stop')
+    .toHaveAccessibleDescription('Compared with €4,000 in the previous 4 months');
+  const pick = within(summary).getByRole('button', { name: 'Income and spend by month, range: Last 4 months' });
+  expect(classOf(pick), 'a text trigger, not a pill').toContain('ui-dropdown__trigger--text');
+  await user.click(pick);
+  const list = screen.getByRole('listbox', { name: 'Income and spend by month, range' });
+  expect(within(list).getByRole('option', { name: 'Last 4 months' }), 'the shown range is checked')
+    .toHaveAttribute('aria-selected', 'true');
+  await user.click(within(list).getByRole('option', { name: 'Last 3 months' }));
+  expect(onRangeChange).toHaveBeenCalledWith('3');
+});
+
+it('draws no head when the caller gives no figure, trend or range', () => {
+  const { container } = months();
+  expect(container.querySelector('.ui-chart__summary')).toBeNull();
+});
+
+it('makes the hovered or tapped bar the one active bar, and none when the pointer leaves', () => {
+  months();
+  /** A bar's path: the one whose box holds its mark's anchor box. */
+  const bar = (id: string) => {
+    const rect = plot().querySelector(`[data-anchor="${id}"]`)!;
+    const [x, y, height] = ['x', 'y', 'height'].map((name) => Number(rect.getAttribute(name)));
+    const mid = y + height / 2;
+    return [...plot().querySelectorAll('path.ui-chart__bar')].find((el) => {
+      const b = boxOf(el);
+      return Math.abs(b.x - x) < 0.11 && b.y <= mid && mid <= b.y + b.height;
+    });
+  };
+  const active = () => [...plot().querySelectorAll('path.ui-chart__bar.is-active')];
+  expect(active(), 'no bar is active at rest').toHaveLength(0);
+  hover('income-1');
+  expect(active(), 'the hovered bar alone').toEqual([bar('income-1')]);
+  fireEvent.mouseLeave(plot());
+  expect(active(), 'none once the pointer leaves').toHaveLength(0);
+  tap('spend-2');
+  expect(active(), 'a tap makes its bar active too').toEqual([bar('spend-2')]);
+});
+
+it('keeps the active bar at full strength with no transition, and the rest at the sheet\'s one rest rule', () => {
+  const css = readRepo('../../src/styles/chart.css');
+  const barRules = [...css.matchAll(/([^{}]*\.ui-chart__bar[^{}]*)\{([^}]*)\}/g)];
+  const rest = barRules.filter(([, , body]) => /opacity/.test(body));
+  expect(rest, 'one rule sets a bar\'s rest strength').toHaveLength(1);
+  expect(rest[0][1], 'the active bar is left out of it').toContain(':not(.is-active)');
+  expect(rest[0][2]).toMatch(/opacity:\s*0\.85/);
+  expect(barRules.filter(([, , body]) => /transition|animation/.test(body)),
+    'a hover changes the bar at once').toEqual([]);
+});
+
+it('fills under each line, from its tone at 20% to nothing at the floor', () => {
+  const { container } = lookChart('line', 'thin');
+  const fills = [...container.querySelectorAll('path.ui-chart__line-fill')];
+  expect(fills.map(toneOf), 'one fill under each line, in its tone').toEqual(['accent', 'info']);
+  for (const fill of fills) {
+    const ramp = /url\(#([^)]+)\)/.exec(fill.getAttribute('style') ?? '')![1];
+    const stops = [...container.querySelector(`[id="${ramp}"]`)!.querySelectorAll('stop')].map(classOf);
+    expect(stops).toEqual(['ui-chart__fill-floor', 'ui-chart__fill-top']);
+  }
+  const css = readRepo('../../src/styles/chart.css');
+  expect(css).toMatch(/\.ui-chart__fill-top \{[^}]*stop-opacity: 0\.2;/);
+  expect(css).toMatch(/\.ui-chart__fill-floor \{[^}]*stop-opacity: 0;/);
+  cleanup();
+  const area = lookChart('area', 'flat');
+  expect(area.container.querySelector('.ui-chart__line-fill'), 'an area keeps its own fill').toBeNull();
+});
+
+it('sizes each table column to its longest cell', () => {
+  const style = document.createElement('style');
+  style.textContent = readRepo('../../src/styles/table.css') + readRepo('../../src/styles/chart.css');
+  document.head.append(style);
+  try {
+    months();
+    showTable();
+    expect(getComputedStyle(screen.getByRole('table')).width, 'the table takes its content\'s width').toBe('auto');
+    // The scroll frame is a grid, which stretches an item across its track.
+    expect(getComputedStyle(screen.getByRole('table')).justifySelf, 'and starts its track').toBe('start');
+  } finally {
+    style.remove();
   }
 });

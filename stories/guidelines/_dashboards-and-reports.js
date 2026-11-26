@@ -22,6 +22,10 @@ export const SPEC_CSS = `
     .gd-block-head { display: flex; align-items: baseline; column-gap: var(--space-4);
       margin-bottom: var(--space-2); }
     .gd-block-head > :first-child { flex: 1 1 0; min-width: 0; }
+    /* The Don't of "Put the trend in the chart's head" sets the trend in the
+       plot's top corner, where a chart without a head would carry it. */
+    .gd-on-plot { position: relative; }
+    .gd-on-plot > .gd-plot-trend { position: absolute; top: var(--space-2); right: var(--space-4); }
     /* The Don't removes the tiles' soft edge, so three figures run together. */
     :root[data-theme="light"] .gd-no-lines .ui-stats--tiles .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) { border-color: transparent; }
   </style>`;

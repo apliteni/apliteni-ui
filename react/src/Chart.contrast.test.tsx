@@ -9,7 +9,9 @@
 //
 // Limits: the ratios are the stylesheet's values, not painted pixels, so
 // antialiasing, the ramp between the two ends, host overrides and a consumer's
-// own --ui-chart-ground are out; the browser captures on the PR carry the paint. The zero
+// own --ui-chart-ground are out; the browser captures on the PR carry the paint.
+// A bar's rest strength is blended onto its ground as a flat colour, so the measured ratio is the bar's
+// top, not its fade. The zero
 // rule, the isolated point's rim and the line's casing are not series and are not measured
 // here. Nor is one series against another — two series are told apart by the side
 // of zero they stand on and by the legend, never by hue alone.
@@ -140,6 +142,40 @@ describe('the chart\'s tones', () => {
     expect(rows.filter((row) => row.value >= AA_LARGE),
       'a fade clears 3:1 on the card, so it is a second strong colour and no longer a base')
       .toEqual([]);
+  });
+
+  /* A bar at rest draws at less than full strength, and the active bar at full
+   * strength. The sheet sets the rest strength in one rule, which names the tones
+   * that take it. Each named tone, blended onto its ground at that strength, must
+   * still clear 3:1. The rejection is the same measurement for every tone: at the
+   * same strength some tones fall under 3:1, which is why the rule names only
+   * some of them. */
+  const REST = /:is\(([^)]*)\)\.ui-chart__bar:not\(\.is-active\)\s*\{\s*opacity:\s*([\d.]+);\s*\}/.exec(CHART_CSS);
+  const restRows = (names: string[], strength: number) => THEMES.flatMap((theme) =>
+    (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]).flatMap((ground) => names.map((name) => {
+      const { tone, behind } = measure(theme, 'default', ground, TONES.get(name)!.strong);
+      const seen = tone!.slice(0, 3).map((c, i) => c * strength + behind![i] * (1 - strength));
+      return { where: `${name} at rest on the ${ground}, ${theme}`, value: ratio([...seen, 1], behind) as number };
+    })));
+
+  it('clears 3:1 for every tone the rest rule names, at the rule\'s strength', () => {
+    expect(REST, 'the one rest rule was not found in src/styles/chart.css').not.toBeNull();
+    const names = [...REST![1].matchAll(/\.ui-chart__tone--([\w-]+)/g)].map(([, name]) => name);
+    const strength = Number(REST![2]);
+    expect(names.length, 'the rule names at least one tone').toBeGreaterThan(0);
+    for (const name of names) expect(TONES.has(name), `${name} is a tone the sheet paints`).toBe(true);
+    expect(strength).toBeLessThan(1);
+    const rows = restRows(names, strength);
+    expect(rows).toHaveLength(names.length * 2 * THEMES.length);
+    for (const row of rows) {
+      expect(row.value, `${row.where} measures ${row.value.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA_LARGE);
+    }
+  });
+
+  it('rejects the rest strength for a tone the rule leaves out', () => {
+    const strength = Number(REST![2]);
+    expect(restRows([...TONES.keys()], strength).filter((row) => row.value < AA_LARGE).length,
+      'every tone clears 3:1 at the rest strength, so this check rejects nothing').toBeGreaterThan(0);
   });
 
   it('rejects a tone whose value stops resolving instead of scoring it', () => {

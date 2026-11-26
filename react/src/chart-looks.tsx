@@ -334,20 +334,23 @@ export function lookDrawing(g: LookGeometry, open: number | null, pick: number |
 }
 
 function linesDrawing(g: LookGeometry, open: number | null) {
-  const { look, labels, y, centre, pad, plotHeight, format } = g;
+  const { look, labels, y, centre, pad, plotHeight, format, scale } = g;
   const n = labels.length;
   const area = look.variant === 'area';
   const finite = (layer: Layer, i: number) => Number.isFinite(look.stacked ? layer.to[i] : layer.values[i]);
   const at = (layer: Layer, i: number) => (look.stacked ? layer.to[i] : layer.values[i]);
   const curves = area && look.look === 'curves';
+  /* A line fills the plot under it with its tone, which fades from 20% at the
+     line's highest value to nothing at the plot's floor. why: #863 */
+  const lineFill = look.variant === 'line';
   /* An area ramps from its fade at the layer's lowest top to its tone at the
      highest, in the plot's own units, so the strong colour sits where the values
      are high. A layer with one top value has no range and stays flat. A share
      look reaches the whole at every column, so it has no range either. A curves
      area is a wash instead: clear at zero, its tone at the layer's highest top. */
-  const ramps = area && !look.share ? look.layers.map((layer) => {
+  const ramps = (area && !look.share) || lineFill ? look.layers.map((layer) => {
     const tops = layer.values.map((_, i) => at(layer, i)).filter(Number.isFinite);
-    const lo = curves ? 0 : Math.min(...tops);
+    const lo = lineFill ? scale.min : curves ? 0 : Math.min(...tops);
     const hi = Math.max(...tops);
     return tops.length && y(lo) - y(hi) >= 1 ? { id: `${g.uid}-ramp-${layer.id}`, layer, lo, hi } : null;
   }) : [];
@@ -373,7 +376,18 @@ function linesDrawing(g: LookGeometry, open: number | null) {
       + ` ${px(centre(i + 1) - h)} ${px(y(at(layer, i + 1)) - h * tangents[k][i + 1])}`
       + ` ${px(centre(i + 1))} ${px(y(at(layer, i + 1)))}`;
   };
-  const fills = area && look.layers.map((layer, k) => {
+  const fills = lineFill ? look.layers.map((layer, k) => {
+    const ramp = ramps[k];
+    const d = ramp && runs(layer).filter((run) => run.length > 1).map((run) => {
+      const [a, b] = [run[0], run[run.length - 1]];
+      return `M${px(centre(a))} ${px(y(scale.min))}${run.map((i) => `L${px(centre(i))} ${px(y(at(layer, i)))}`).join('')}`
+        + `L${px(centre(b))} ${px(y(scale.min))}Z`;
+    }).join('');
+    return d ? (
+      <path key={`fill-${layer.id}`} className={cx('ui-chart__line-fill', tone(layer.tone))}
+        style={{ '--ui-chart-paint': `url(#${ramp.id})` } as CSSProperties} d={d} />
+    ) : null;
+  }) : area && look.layers.map((layer, k) => {
     const up = layer.to.map((v, i) => `${i ? 'L' : 'M'}${px(centre(i))} ${px(y(Number.isFinite(v) ? v : layer.from[i]))}`);
     const down = layer.from.map((v, i) => `L${px(centre(i))} ${px(y(v))}`).reverse();
     const ramp = ramps[k];
@@ -459,8 +473,8 @@ function linesDrawing(g: LookGeometry, open: number | null) {
           {ramps.map((ramp) => ramp && (
             <linearGradient key={ramp.id} id={ramp.id} className={tone(ramp.layer.tone)}
               gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={px(y(ramp.lo))} y2={px(y(ramp.hi))}>
-              <stop className={curves ? 'ui-chart__wash-floor' : 'ui-chart__fade-base'} offset="0" />
-              <stop className={curves ? 'ui-chart__wash-top' : 'ui-chart__fade-end'} offset="1" />
+              <stop className={lineFill ? 'ui-chart__fill-floor' : curves ? 'ui-chart__wash-floor' : 'ui-chart__fade-base'} offset="0" />
+              <stop className={lineFill ? 'ui-chart__fill-top' : curves ? 'ui-chart__wash-top' : 'ui-chart__fade-end'} offset="1" />
             </linearGradient>
           ))}
         </defs>

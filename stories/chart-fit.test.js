@@ -11,7 +11,7 @@
  *     node --test stories/chart-fit.test.js
  *
  * The subjects are found, not listed: every React chart story in the Storybook build, and in
- * each story every `.ui-chart--months`, `.ui-chart--months-rows` and bridge of at most four
+ * each story every `.ui-chart--bars`, `.ui-chart--bars-rows` and bridge of at most four
  * columns. Each story opens at ten window sizes and on six devices, in light and dark: the
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
  * phone of 466×678 and 890×626 at scale 3 with touch. The walk opens react-chart--fit-the-card
@@ -44,7 +44,7 @@ const WALK = 'react-chart--fit-the-card';
 /** The rows look that runs past a landscape view, walked as its story's first chart. */
 const TALL = 'react-chart--long-category-names';
 /** The charts that must fit: a months chart, its rows look, and a bridge of up to four steps. */
-const SUBJECT = '.ui-chart--months, .ui-chart--months-rows, .ui-chart--bridge';
+const SUBJECT = '.ui-chart--bars, .ui-chart--bars-rows, .ui-chart--bridge';
 
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
 
@@ -110,7 +110,7 @@ async function walk(page, label, index, touch) {
   await frame.scrollIntoViewIfNeeded();
   // Only the rows look steps on Down. On a column chart the browser scrolls the page with it,
   // and a page scroll closes the readout on purpose.
-  const rows = await page.locator('.ui-chart').nth(index).evaluate((el) => el.matches('.ui-chart--months-rows'));
+  const rows = await page.locator('.ui-chart').nth(index).evaluate((el) => el.matches('.ui-chart--bars-rows'));
   const steps = [
     ['key: focus', () => frame.focus()],
     ['key: ArrowRight', () => page.keyboard.press('ArrowRight')],
@@ -234,7 +234,7 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
       await ctx.close();
     };
     // The months floor of 0.199.0: a column as wide as a word, so 14 months scroll.
-    await mutateFit('.ui-chart--months .ui-chart__plot { min-width: 600px !important; }', 'plot');
+    await mutateFit('.ui-chart--bars .ui-chart__plot { min-width: 600px !important; }', 'plot');
     await mutateFit('#storybook-root { min-width: 200vw; }', 'page');
     const mutateWalk = async (setup, says, story = WALK, context = phone) => {
       const { ctx, page } = await open(browser, server.port, vitals, context, story, 'light');
