@@ -27,7 +27,7 @@ const PairedActions = ({ cancel }: { cancel: 'ghost' | 'primary' }) => <Stage>
 const FILTERS = ['Any', 'Verified', 'Pending'];
 // Both halves render open, so the stage keeps room below the trigger for the panel it drops.
 const Currency = (props: Partial<DropdownProps>) => <Stage><div style={{ minHeight: 400 }}>
-  <Dropdown label="currency:" ariaLabel="Currency" items={currencyItems('EUR')} selectedValue="EUR" open onOpenChange={noop} {...props} />
+  <Dropdown ariaLabel="Currency" items={currencyItems('EUR')} selectedValue="EUR" open onOpenChange={noop} {...props} />
 </div></Stage>;
 
 // A phone band with its menu button at the right, and the menu drawer open in a

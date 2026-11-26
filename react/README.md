@@ -239,7 +239,7 @@ Pass `selectedValue` when the caller owns the selected row. Its tick stays on th
 Component choice makes it a rule at ten options or any list fed by data:
 
 ```tsx
-<Dropdown variant="select" label="currency:" ariaLabel="Currency" scroll={220}
+<Dropdown variant="select" ariaLabel="Currency" scroll={220}
   search={{ placeholder: 'Search currencies' }} items={currencies} onSelect={setCurrency} />
 ```
 

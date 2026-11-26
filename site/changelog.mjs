@@ -16,6 +16,13 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.206.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `Dropdown` trigger now shows only its value or its placeholder. If your app passes `label`, the trigger no longer draws it: put the name in a `Field` label, or pass `ariaLabel`. `label` warns once in development and goes in the next release. Outside a `Field`, a select or menu trigger with `ariaLabel` is named by that name and its value, such as "Unit: Engine team". Part of #899.', ['Dropdown']],
+      ['added', 'The Dropdown guideline page has a new rule, Show only the value. Part of #899.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.205.0', date: '2026-11-26',
     changes: [
       ['added', 'A `Drawer` takes a `status`, such as one `Badge`, that stands directly after the title on the same line. Part of #868.', ['Drawer']],

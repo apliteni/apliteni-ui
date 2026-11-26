@@ -24,7 +24,6 @@ function Example({ initialEntity = 'studio', defaultOpen = false }) {
       account={{ name: 'Demo User', email: 'demo@example.com' }}
       onSignOut={() => {}}
       actions={<div style={{ marginLeft: 'auto' }}><Dropdown
-        label="Entity:"
         ariaLabel="Entity"
         variant="select"
         align="end"

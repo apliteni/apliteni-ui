@@ -13,4 +13,5 @@ export const SPEC_CSS = `
     .gl-stage--menu .ui-dropdown { display: flex; flex-direction: column; align-items: flex-start; }
     .gl-stage--menu .ui-dropdown__panel { position: static; transform: none; margin-top: var(--space-2); }
     .gl-flat-group .ui-dropdown__group { font-weight: var(--weight-normal); color: var(--text); }
+    .gl-stage--triggers { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-4); }
   </style>`;

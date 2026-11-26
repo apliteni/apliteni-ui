@@ -11,3 +11,15 @@
 **Do:** Show HR in bold grey above Staff training and Job adverts.
 
 **Don't:** Show HR in the ink and weight of its options.
+
+## Show only the value
+
+<!-- rule: trigger-value -->
+
+**Rule:** Show only the chosen value or the placeholder in a dropdown trigger.
+
+**Why:** A name before the value reads as part of it, as in Unit Engine team.
+
+**Do:** Put Unit in the field label above Engine team, or show Unit in a filter chip only until a unit is chosen.
+
+**Don't:** Show Unit before Engine team inside the trigger.
