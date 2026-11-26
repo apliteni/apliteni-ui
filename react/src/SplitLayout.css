@@ -12,6 +12,7 @@
 /* Each scroll box holds its own absolute parts, such as a hidden table caption, so they scroll
    with it and never lengthen the window. */
 .ui-split, .ui-split__primary, .ui-split__stage { position: relative; }
+.ui-split:focus-visible,
 .ui-split__primary:focus-visible,
 .ui-split__stage:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 /* The content and the action row share one measure, so the buttons start on the title's edge. */
