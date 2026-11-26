@@ -456,7 +456,7 @@
   ],
   "quiet": [
    {
-    "ref": "src/styles/back.css:35",
+    "ref": "src/styles/back.css:39",
     "pattern": ".ui-back[href] { color: var(--text); }"
    }
   ]
@@ -1275,7 +1275,7 @@
     "pattern": "const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:24",
+    "ref": "react/src/ThreeColumnPage.css:26",
     "pattern": ".ui-columns__col--2:last-child { grid-column: 2 / -1; }"
    }
   ],
@@ -1285,17 +1285,17 @@
     "pattern": "grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:22",
+    "ref": "react/src/ThreeColumnPage.css:24",
     "pattern": ".ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:79",
+    "ref": "react/src/ThreeColumnPage.css:81",
     "pattern": "@container ui-columns (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:88",
+    "ref": "react/src/ThreeColumnPage.css:90",
     "pattern": "@media (max-width: 560px) {"
    },
    {
@@ -1305,7 +1305,7 @@
   ],
   "column-header": [
    {
-    "ref": "react/src/ThreeColumnPage.css:37",
+    "ref": "react/src/ThreeColumnPage.css:39",
     "pattern": "min-height: calc(var(--space-12) + var(--space-2));"
    },
    {
