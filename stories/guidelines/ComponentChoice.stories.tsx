@@ -82,5 +82,7 @@ export const ComponentChoice: StoryObj = {
       + 'border-bottom:1px solid var(--border);}'
       + '.gl-component-choice__under{position:relative;flex:1;}'
       + '.gl-component-choice__under .ui-drawer{position:absolute;}'
-      + '.gl-component-choice__under .ui-drawer__panel{width:calc(100% - var(--space-12));}</style>'} />,
+      + '.gl-component-choice__under .ui-drawer__panel{width:calc(100% - var(--space-12));}'
+      // The menu column fills the panel, as the shell's own menu drawer has it, so a phone draws no sideways scroll.
+      + '.gl-component-choice__under .ui-nav--side,.gl-component-choice__under .ui-nav--side>*{width:100%;}</style>'} />,
 };

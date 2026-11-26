@@ -17,6 +17,9 @@
 /* The rail layout's drawer is portalled to the page, outside .ui-app, so it carries the
    shell's measures and the account trigger's rail look itself. why: docs/components.md#page-shell */
 .ui-app__drawer { --ui-nav-col: 216px; --ui-nav-strip: 41px; --ui-app-av: 30px; }
+/* The menu is no form: the account stays at the panel's foot, as on the rail, so the
+   body fills the space a form drawer leaves under its footer. why: docs/components.md#page-shell */
+.ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__body { flex-grow: 1; }
 .ui-app__drawer .ui-app__user-trigger {
   width: 100%;
   gap: var(--space-2);

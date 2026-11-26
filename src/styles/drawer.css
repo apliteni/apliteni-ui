@@ -171,8 +171,12 @@
 .ui-drawer__close:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-drawer__close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
+/* The body takes only its content height, so a short form's footer stands directly
+   under the last group, next to the fields its Save saves. A long body shrinks to the
+   space left and scrolls, and the footer stays outside it at the panel's end.
+   why: docs/components.md#drawer */
 .ui-drawer__body {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: 20px;
