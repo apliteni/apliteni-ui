@@ -6,10 +6,10 @@ const meta: Meta<typeof NavTabs> = {
   parameters: { layout: 'fullscreen' },
   render: args => <div style={{ padding: 40, minHeight: '100vh' }}><NavTabs {...args} /></div>,
   args: {
-    'aria-label': 'Finance views', active: 'payouts',
+    'aria-label': 'Finance views', active: 'orders',
     items: [
       { id: 'summary', label: 'Summary' },
-      { id: 'payouts', label: 'Payouts', badge: 3 },
+      { id: 'orders', label: 'Orders', badge: 3 },
       { id: 'transactions', label: 'Transactions' },
       { id: 'disputes', label: 'Disputes', badge: { text: 2, tone: 'danger' } },
       { id: 'exports', label: 'Exports', disabled: true },

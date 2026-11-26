@@ -52,18 +52,18 @@ const COMMANDS = [{
 const SUBJECTS = {
   'table-card': {
     html: () => '<div class="fx-col"><div class="ui-card">'
-      + '<h2 class="ui-card__title">Payouts</h2>'
+      + '<h2 class="ui-card__title">Orders</h2>'
       + `<table class="ui-table ui-table--dense ui-table--zebra"><thead><tr>`
-      + '<th>ID</th><th>Payout ID</th><th>Arrival</th><th class="ui-table__num">Gross</th>'
+      + '<th>ID</th><th>Order ID</th><th>Arrival</th><th class="ui-table__num">Gross</th>'
       + '<th class="ui-table__num">Fees</th><th class="ui-table__num">Net (EUR)</th><th>Status</th>'
       + `</tr></thead><tbody>${ROWS}</tbody></table></div></div>`,
   },
   'table-scroll': {
     html: () => '<div class="fx-col"><div class="ui-card">'
-      + '<h2 class="ui-card__title">Payouts</h2>'
-      + '<div class="ui-table-scroll" role="region" aria-label="Payouts, scroll for more rows and columns" tabindex="0">'
+      + '<h2 class="ui-card__title">Orders</h2>'
+      + '<div class="ui-table-scroll" role="region" aria-label="Orders, scroll for more rows and columns" tabindex="0">'
       + '<table class="ui-table ui-table--dense ui-table--zebra"><thead><tr>'
-      + '<th>ID</th><th>Payout ID</th><th>Arrival</th><th class="ui-table__num">Gross</th>'
+      + '<th>ID</th><th>Order ID</th><th>Arrival</th><th class="ui-table__num">Gross</th>'
       + '<th class="ui-table__num">Fees</th><th class="ui-table__num">Net (EUR)</th><th>Status</th>'
       + `</tr></thead><tbody>${ROWS}</tbody></table></div></div></div>`,
   },
@@ -75,7 +75,7 @@ const SUBJECTS = {
   },
   'drawer-body': {
     html: () => kit.drawer({
-      id: 'fx-drawer', title: 'Payout PO-4100', body: PROSE,
+      id: 'fx-drawer', title: 'Order PO-4100', body: PROSE,
       footer: `${kit.button({ label: 'Close', variant: 'secondary' })}${kit.button({ label: 'Approve', variant: 'primary' })}`,
     }),
     open: () => { wireDrawer(document); openDrawer(document.getElementById('fx-drawer')); },
@@ -105,7 +105,7 @@ const SUBJECTS = {
       active: 'n2',
       navLabel: 'Finance',
       account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
-      title: 'Payouts',
+      title: 'Orders',
       body: '<p>Fabricated demo screen.</p>',
     }),
   },

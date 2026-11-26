@@ -30,7 +30,7 @@ const NAV = [
   { id: 'artifacts', icon: 'doc', label: 'Artifacts' },
   {
     icon: 'card',
-    label: 'Payouts',
+    label: 'Orders',
     items: [
       { id: 'pending', icon: 'clock', label: 'Pending', badge: 3 },
       { id: 'history', icon: 'doc', label: 'History' },
@@ -46,14 +46,14 @@ const row = (lab, hint, value) =>
 /* Three cards side by side, as the reference's artifact grid is, plus one that
  * holds fields — the level that keeps its edge whatever the theme does. */
 const GRID = '<div class="lv-grid">'
-  + card({ title: 'Waiting for approval', sub: 'Three payouts need a second signature.',
+  + card({ title: 'Waiting for approval', sub: 'Three orders need a second signature.',
     body: row('Northwind Traders', 'Requested by Ada Lovelace', '&euro;4,200.00')
       + row('Globex', 'Requested by Ada Lovelace', '&euro;860.00')
       + row('Initech', 'Requested by Ada Lovelace', '&euro;1,975.50') })
   + card({ title: 'This month', sub: 'Across every workspace.',
     body: '<div class="lv-fig">&euro;31,480</div>'
-      + `<div class="lv-meta">${badge('Settled', 'success')} 48 payouts</div>` })
-  + card({ title: 'Payout account', sub: 'Where settled money lands.',
+      + `<div class="lv-meta">${badge('Settled', 'success')} 48 orders</div>` })
+  + card({ title: 'Order account', sub: 'Where settled money lands.',
     body: field({ label: 'Account name', control: input({ value: 'Apliteni OU' }) })
       + field({ label: 'Currency', control: select({ options: ['EUR', 'USD'], value: 'EUR' }) })
       + field({ label: 'Reference', hint: 'Shown on the statement.',
@@ -66,14 +66,14 @@ const GRID = '<div class="lv-grid">'
  * separation is read against the card it covers — the case the light theme has
  * no surface step for. */
 const MENU = dd.dropdown({
-  value: 'Filter payouts',
+  value: 'Filter orders',
   variant: 'menu',
-  ariaLabel: 'Filter payouts',
+  ariaLabel: 'Filter orders',
   open: true,
   items: [
-    { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
-    { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
-    { label: 'Paid this month', description: '48 payouts', icon: 'check' },
+    { label: 'Unpaid', description: '12 orders', icon: 'clock' },
+    { label: 'Awaiting approval', description: '3 orders', icon: 'shield' },
+    { label: 'Paid this month', description: '48 orders', icon: 'check' },
   ],
 });
 
@@ -93,7 +93,7 @@ if (params.get('subject') === 'elevated') {
       + button({ label: 'Continue', variant: 'primary' })
       + '<div class="ui-auth__foot">Only work accounts can sign in.</div>'
     + '</div></div>'
-    + sx.success({ layout: 'compact', backdrop: 'flat', title: 'Payout approved',
+    + sx.success({ layout: 'compact', backdrop: 'flat', title: 'Order approved',
         body: 'Northwind Traders will be paid on the next run.' })
     + '</div>'
     + fb.feedbackWidget({ label: 'Give feedback' });
@@ -116,7 +116,7 @@ document.body.innerHTML = appShell({
   active: 'pending',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
   signOutHref: '#logout',
-  title: 'Pending payouts',
+  title: 'Pending orders',
   sub: 'Three of the nine that arrived this week are waiting for a second approval.',
   body: `<div class="lv-bar">${MENU}${button({ label: 'Approve all', variant: 'primary' })}`
     + `${button({ label: 'Export', variant: 'ghost', disabled: true })}</div>${GRID}`,

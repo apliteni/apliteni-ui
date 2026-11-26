@@ -17,7 +17,7 @@ const content = await loadGuideline('notifications.md', new URL('../../guideline
 
 // Fabricated events. Each row's glyph, title and time share its first line.
 const NOTES = [
-  { value: 'payout', glyph: 'circleX', label: 'Payout run PR-204 failed', sub: 'The bank refused 2 transfers.', time: '4 min' },
+  { value: 'run', glyph: 'circleX', label: 'Report run PR-204 failed', sub: 'The export timed out on 2 files.', time: '4 min' },
   { value: 'assign', glyph: 'user', label: 'CMP-88 assigned to you', sub: 'By Mira Kade', time: '1 h' },
   { value: 'comment', glyph: 'chat', label: 'Jon Avery commented', sub: 'On CMP-88', time: '3 h' },
 ];
@@ -44,7 +44,7 @@ const Notice = (props: Parameters<typeof NoticePicture>[0]) => <div className="g
 const specimens = [
   { id: 'bell-toast-callout',
     do: () => <Bell />,
-    dont: () => <Notice tone="danger" title="Payout run PR-204 failed" text="The bank refused 2 transfers." /> },
+    dont: () => <Notice tone="danger" title="Report run PR-204 failed" text="The export timed out on 2 files." /> },
   { id: 'read-state',
     do: () => <Notice tone="success" title="3 notifications marked read" action="Undo" />,
     dont: () => <div className="gl-stage gl-stage--confirm"><ConfirmPicture title="Mark all notifications read?"

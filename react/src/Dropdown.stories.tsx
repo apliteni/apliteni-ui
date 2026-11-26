@@ -155,7 +155,7 @@ export const SearchWithLinkRows: StoryObj<typeof Dropdown> = {
         search={{ placeholder: 'Search pages' }}
         items={[
           { label: 'Invoices', href: '/invoices', icon: 'doc' },
-          { label: 'Payouts', href: '/payouts', icon: 'wallet' },
+          { label: 'Orders', href: '/orders', icon: 'wallet' },
           { label: 'Customers', href: '/customers', icon: 'user' },
           { label: 'Reconciliation reports', href: '/reports', icon: 'chart' },
         ]}

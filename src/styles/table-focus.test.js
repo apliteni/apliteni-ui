@@ -234,7 +234,7 @@ test("every link in a table cell takes the kit ring", () => {
   // 5 -> 6: #513 makes the Report reference a filled cell link.
   // 6 -> 7: #513 renders the unmarked direct-link shape in the stacked pinned story.
   // 7 -> 8: #429 draws the Dashboards and reports page in React too, so its exceptions
-  // specimen links a payout reference from the TSX page as well as from the vanilla one.
+  // specimen links a order reference from the TSX page as well as from the vanilla one.
   // 8 -> 10: #429 draws the Dashboard and report in React too, so each of their
   // cell links has a TSX twin until the vanilla files are removed.
   // 10 -> 4: #429 PR 5b removes the vanilla stories, leaving the four React and

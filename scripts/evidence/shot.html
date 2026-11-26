@@ -24,7 +24,7 @@ const NAV = [
   { id: 'overview', icon: 'chart', label: 'Overview' },
   {
     icon: 'card',
-    label: 'Payouts',
+    label: 'Orders',
     items: [
       { id: 'pending', icon: 'clock', label: 'Pending', badge: 3 },
       { id: 'history', icon: 'doc', label: 'History' },
@@ -41,8 +41,8 @@ const screen = (collapsed) => appShell({
   active: 'pending',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
   signOutHref: '#logout',
-  title: 'Pending payouts',
-  sub: 'Three payouts are waiting for a second approval.',
+  title: 'Pending orders',
+  sub: 'Three orders are waiting for a second approval.',
   collapsed,
   body: card({
     title: 'Waiting for approval',
@@ -65,7 +65,7 @@ const laid = ({ layout, width, collapsed }) => appShell({
   active: 'pending',
   account: { name: 'Ada Lovelace', email: 'ada@apliteni.com' },
   signOutHref: '#logout',
-  title: 'Pending payouts',
+  title: 'Pending orders',
   sub: 'Three of the nine that arrived this week are waiting for a second approval.',
   collapsed,
   body: card({
@@ -79,7 +79,7 @@ const laid = ({ layout, width, collapsed }) => appShell({
       label: 'Go to',
       items: [
         { id: 'overview', label: 'Overview', description: 'Traffic and revenue', icon: 'chart', href: '#overview' },
-        { id: 'pending', label: 'Pending payouts', description: 'Three waiting', icon: 'clock', href: '#pending' },
+        { id: 'pending', label: 'Pending orders', description: 'Three waiting', icon: 'clock', href: '#pending' },
       ],
     }],
   }) : ''),
@@ -96,19 +96,19 @@ const collapsed = params.get('collapsed') === '1'
 // head alone and the shot shows what a page could not have without writing the
 // kit's padding out by hand.
 const FILTERS = [
-  { label: 'Unpaid', description: '12 payouts', icon: 'clock' },
-  { label: 'Awaiting approval', description: '3 payouts', icon: 'shield' },
-  { label: 'Paid this month', description: '48 payouts', icon: 'check' },
+  { label: 'Unpaid', description: '12 orders', icon: 'clock' },
+  { label: 'Awaiting approval', description: '3 orders', icon: 'shield' },
+  { label: 'Paid this month', description: '48 orders', icon: 'check' },
 ];
-const HEAD = '<div class="ui-dropdown__head"><b>Filter payouts</b></div>';
+const HEAD = '<div class="ui-dropdown__head"><b>Filter orders</b></div>';
 const PANELS = {
   'head-foot': {
-    value: 'Filter', variant: 'menu', ariaLabel: 'Filter payouts', open: true, items: FILTERS,
+    value: 'Filter', variant: 'menu', ariaLabel: 'Filter orders', open: true, items: FILTERS,
     header: HEAD,
     foot: '<span class="ui-dropdown__desc">Counts refresh every 5 minutes.</span>',
   },
   'foot-controls': {
-    value: 'Filter', ariaLabel: 'Filter payouts', open: true, items: FILTERS,
+    value: 'Filter', ariaLabel: 'Filter orders', open: true, items: FILTERS,
     search: { placeholder: 'Search filters' },
     header: HEAD,
     foot: '<div style="display:flex;justify-content:flex-end;gap:8px">'

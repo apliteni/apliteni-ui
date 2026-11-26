@@ -16,21 +16,21 @@ const page = (children: ReactNode, width: number | string = 720) => <div style={
 const filtered = (bar: ReactNode, table: ReactNode) => <div className="ui-card-stack">{bar}{table}</div>;
 const titled = (name: string, text: string) => <><span className="ui-card__icon"><Icon name={name} /></span> {text}</>;
 
-type Payout = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
-const PAYOUTS: Payout[] = [
-  ['1162', 'po_1TnpIsGmSZjqJIroiJNJ2tRz', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
-  ['1163', 'po_1TnSuaGmSZjqJIroOzd7Mc6L', '2026-06-29', '14,490.70', '574.19', '27,834.31', 'success', 'Paid'],
-  ['1164', 'po_1TmNmjGmSZjqJIro7lHBO3ix', '2026-06-26', '14,566.66', '483.97', '15,201.57', 'pending', 'In transit'],
-  ['41', 'po_1Tm1FeGmSZjqJIroa1D9MjbO', '2026-06-25', '39,054.98', '1,369.76', '32,156.22', 'success', 'Paid'],
-  ['42', 'po_1TleVSGmSZjqJIrobtld2b8X', '2026-06-24', '14,969.33', '472.71', '18,774.34', 'danger', 'Failed'],
-  ['43', 'po_1TlISNGmSZjqJIrodu8TdOXP', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
+type Order = { name: string; id: string; arrival: string; gross: string; fees: string; net: string; tone: string; status: string };
+const ORDERS: Order[] = [
+  ['1162', 'OR-1042', '2026-06-30', '14,942.27', '489.44', '11,871.49', 'success', 'Paid'],
+  ['1163', 'OR-1041', '2026-06-29', '14,490.70', '574.19', '27,834.31', 'success', 'Paid'],
+  ['1164', 'OR-1040', '2026-06-26', '14,566.66', '483.97', '15,201.57', 'pending', 'In transit'],
+  ['41', 'OR-1039', '2026-06-25', '39,054.98', '1,369.76', '32,156.22', 'success', 'Paid'],
+  ['42', 'OR-1038', '2026-06-24', '14,969.33', '472.71', '18,774.34', 'danger', 'Failed'],
+  ['43', 'OR-1037', '2026-06-23', '18,554.27', '626.34', '13,705.55', 'success', 'Paid'],
 ].map(([name, id, arrival, gross, fees, net, tone, status]) => ({ name, id, arrival, gross, fees, net, tone, status }));
 
 // The net head carries the currency once. On a phone the table scrolls in its frame,
-// with the payout ID pinned.
-const payoutColumns: Column<Payout>[] = [
-  { key: 'name', label: 'ID', linked: true, render: (r) => <a href="#payout">{r.name}</a> },
-  { key: 'id', label: 'Payout ID', cell: 'code' },
+// with the order ID pinned.
+const orderColumns: Column<Order>[] = [
+  { key: 'name', label: 'ID', linked: true, render: (r) => <a href="#order">{r.name}</a> },
+  { key: 'id', label: 'Order ID', cell: 'code' },
   { key: 'arrival', label: 'Arrival' },
   { key: 'gross', label: 'Gross', num: true, render: (r) => <NumericValue value={r.gross} /> },
   { key: 'fees', label: 'Fees', num: true, render: (r) => <NumericValue value={r.fees} /> },
@@ -40,14 +40,14 @@ const payoutColumns: Column<Payout>[] = [
 
 export const FinanceData = {
   render: function Render() {
-    const { bar, shown } = useTableFilters(PAYOUTS, {
-      search: 'Search payouts', placeholder: 'ID or payout ID', label: 'Payout filters', text: (r) => `${r.name} ${r.id}`,
+    const { bar, shown } = useTableFilters(ORDERS, {
+      search: 'Search orders', placeholder: 'ID or order ID', label: 'Order filters', text: (r) => `${r.name} ${r.id}`,
       facets: [{ id: 'status', label: 'Status', any: 'Any status', of: (r) => r.status }],
     });
     return page(filtered(bar,
-      <Card title={titled('key', 'Payouts')}>
-        <DataTable columns={payoutColumns} rows={shown} selectable={false} pager={false} empty="No payouts match"
-          density="dense" zebra pinnedIdentity scrollLabel="Payouts, scroll for more columns" rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
+      <Card title={titled('key', 'Orders')}>
+        <DataTable columns={orderColumns} rows={shown} selectable={false} pager={false} empty="No orders match"
+          density="dense" zebra pinnedIdentity scrollLabel="Orders, scroll for more columns" rowState={(r) => (r.name === '1164' ? 'target' : undefined)} />
       </Card>), 1040,
     );
   },

@@ -20,9 +20,9 @@
 
 **Why:** The preview helps the reader decide whether to act or open the full record.
 
-**Do:** Keep the payout table compact. Show the selected payout with grouped facts and Open payout. [Linear Peek](https://linear.app) uses this list-and-preview pattern.
+**Do:** Keep the order table compact. Show the selected order with grouped facts and Open order. [Linear Peek](https://linear.app) uses this list-and-preview pattern.
 
-**Don't:** Repeat the payout reference, status and amount, then show its history before Open payout.
+**Don't:** Repeat the order reference, status and amount, then show its history before Open order.
 
 ## Give accents a job
 
@@ -32,7 +32,7 @@
 
 **Why:** One accented action is easier to find than several competing actions.
 
-**Do:** Make Open payout the primary action and Copy reference the secondary action. Keep the amount and date neutral.
+**Do:** Make Open order the primary action and Copy reference the secondary action. Keep the amount and date neutral.
 
 **Don't:** Make both actions primary or colour every label and value with the accent.
 

@@ -26,7 +26,7 @@ const CLIPPED_RIGHT_EDGE = `.ui-nav__tab[aria-current="page"] {
 
 const items = [
   { id: 'summary', label: LONG },
-  { id: 'payouts', label: 'Payouts', badge: 3 },
+  { id: 'orders', label: 'Orders', badge: 3 },
   { id: 'transactions', label: 'Transactions' },
   { id: 'disputes', label: 'Disputes', badge: { text: 2, tone: 'danger' } },
   { id: 'exports', label: 'Exports', disabled: true },
@@ -34,7 +34,7 @@ const items = [
 
 const disabledItems = [
   { id: 'summary', label: LONG, disabled: true },
-  { id: 'payouts', label: 'Payouts', badge: 3, disabled: true },
+  { id: 'orders', label: 'Orders', badge: 3, disabled: true },
   { id: 'transactions', label: 'Transactions', disabled: true },
   { id: 'disputes', label: 'Disputes', badge: { text: 2, tone: 'danger' }, disabled: true },
 ];

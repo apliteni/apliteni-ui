@@ -329,7 +329,7 @@ export const CHECKS = {
         + 'reader takes before the content; past that it is a paragraph nobody reads twice.');
     }
     // The fault is the title said twice, wherever in the opening sentence it
-    // lands: "Payouts — this is the payouts page" is the rule's own example and
+    // lands: "Orders — this is the orders page" is the rule's own example and
     // opens with a dash, not with the title.
     const opening = lede.split(/[.!?]/)[0].toLowerCase();
     if (title && opening.includes(title.toLowerCase())) {

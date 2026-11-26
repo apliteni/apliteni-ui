@@ -8,12 +8,12 @@ import { NavTabs } from './NavTabs';
 const items = [
   { id: 'summary', label: 'Summary', href: '#overview', target: '_blank' },
   { id: 'exports', label: 'Exports', disabled: true },
-  { id: 'payouts', label: 'Payouts', badge: 0 },
+  { id: 'orders', label: 'Orders', badge: 0 },
 ];
 it('uses a labelled navigation landmark and native links, with no panel roles', () => {
-  render(<NavTabs items={items} active="payouts" />);
+  render(<NavTabs items={items} active="orders" />);
   expect(screen.getByRole('navigation', { name: 'Tabs' })).toBeInTheDocument();
-  expect(screen.getByRole('link', { name: /Payouts\s*0/ })).toHaveAttribute('aria-current', 'page');
+  expect(screen.getByRole('link', { name: /Orders\s*0/ })).toHaveAttribute('aria-current', 'page');
   expect(screen.getByRole('link', { name: 'Summary' })).toHaveAttribute('href', '#overview');
   expect(screen.getByRole('link', { name: 'Summary' })).toHaveAttribute('target', '_blank');
   expect(screen.queryByRole('tablist')).toBeNull();
@@ -27,9 +27,9 @@ it('keeps disabled items out of keyboard navigation and updates current state fr
   await user.tab();
   expect(screen.getByRole('link', { name: 'Summary' })).toHaveFocus();
   await user.tab();
-  const link = screen.getByRole('link', { name: /Payouts\s*0/ });
+  const link = screen.getByRole('link', { name: /Orders\s*0/ });
   expect(link).toHaveFocus();
-  expect(link).toHaveAttribute('href', '#payouts');
+  expect(link).toHaveAttribute('href', '#orders');
   await user.keyboard('{ArrowLeft}');
   expect(link).toHaveFocus();
   rerender(<NavTabs items={items} active="summary" variant="pill" />);
@@ -49,7 +49,7 @@ it('forwards the ref, native attributes and added class; renders badge text safe
   expect(ref.current?.querySelector('b, i')).toBeNull();
 });
 it.each(['underline', 'pill'] as const)('has no axe violations in %s navigation', async variant => {
-  const { container } = render(<NavTabs items={items} active="payouts" variant={variant} />);
+  const { container } = render(<NavTabs items={items} active="orders" variant={variant} />);
   expect((await axe.run(container, { rules: { 'color-contrast': { enabled: false } } })).violations).toEqual([]);
 });
 it.each(['javascript:alert(1)', 'java\nscript:alert(1)', 'data:text/html,test', 'vbscript:test'])('rejects an executable destination: %s', href => {
@@ -59,7 +59,7 @@ it.each(['javascript:alert(1)', 'java\nscript:alert(1)', 'data:text/html,test', 
 it('reveals a newly current link within the row without moving keyboard focus', () => {
   const { rerender } = render(<NavTabs items={items} active="summary" />);
   const nav = screen.getByRole('navigation');
-  const current = screen.getByRole('link', { name: /Payouts\s*0/ });
+  const current = screen.getByRole('link', { name: /Orders\s*0/ });
   Object.defineProperties(nav, { clientWidth: { value: 310 }, scrollWidth: { value: 600 } });
   nav.getBoundingClientRect = () => ({ left: 40, right: 350 }) as DOMRect;
   current.getBoundingClientRect = () => ({ left: 360, right: 450 }) as DOMRect;
@@ -68,7 +68,7 @@ it('reveals a newly current link within the row without moving keyboard focus', 
   // link hanging off the row's left edge, which would move the row before the read.
   first.getBoundingClientRect = () => ({ left: 40, right: 120 }) as DOMRect;
   first.focus();
-  rerender(<NavTabs items={items} active="payouts" />);
+  rerender(<NavTabs items={items} active="orders" />);
   expect(nav.scrollLeft).toBe(100);
   expect(first).toHaveFocus();
 });
@@ -84,7 +84,7 @@ it('reveals a link Tab lands on, so the ring it draws clears the row', async () 
   render(<NavTabs items={items} active="summary" style={{ padding: '4px' }} />);
   const nav = screen.getByRole('navigation');
   const first = screen.getByRole('link', { name: 'Summary' });
-  const last = screen.getByRole('link', { name: /Payouts\s*0/ });
+  const last = screen.getByRole('link', { name: /Orders\s*0/ });
   Object.defineProperties(nav, { clientWidth: { value: 318 }, scrollWidth: { value: 456 } });
   nav.getBoundingClientRect = () => ({ left: 36, right: 354 }) as DOMRect;
   // Both links are measured: a rect JSDOM left at zero is a link at the row's left
@@ -112,9 +112,9 @@ it('marks a row with room for its links, and keeps the mark through a re-render'
   const { rerender } = render(<NavTabs items={items} active="summary" />);
   const nav = screen.getByRole('navigation');
   Object.defineProperties(nav, { clientWidth: { value: 1208 }, scrollWidth: { value: 513 } });
-  rerender(<NavTabs items={items} active="payouts" />);
+  rerender(<NavTabs items={items} active="orders" />);
   expect(nav.hasAttribute('data-nav-fit')).toBe(true);
-  rerender(<NavTabs items={items} active="payouts" className="page-tabs" />);
+  rerender(<NavTabs items={items} active="orders" className="page-tabs" />);
   expect(nav.className).toContain('page-tabs');
   expect(nav.hasAttribute('data-nav-fit')).toBe(true);
 });
@@ -123,7 +123,7 @@ it('leaves an overflowing row the scroll box that holds the page', () => {
   const nav = screen.getByRole('navigation');
   Object.defineProperties(nav, { clientWidth: { value: 318 }, scrollWidth: { value: 521 } });
   nav.getBoundingClientRect = () => ({ left: 36, right: 354 }) as DOMRect;
-  rerender(<NavTabs items={items} active="payouts" />);
+  rerender(<NavTabs items={items} active="orders" />);
   expect(nav.hasAttribute('data-nav-fit')).toBe(false);
 });
 it('measures the row again when the appearance changes', async () => {
@@ -157,13 +157,13 @@ it('drops a null badge the way the vanilla factory does', () => {
 });
 it('lets a router render the link, with the kit classes and current state intact', () => {
   const seen: string[] = [];
-  render(<NavTabs items={items} active="payouts" renderLink={(item, props) => {
+  render(<NavTabs items={items} active="orders" renderLink={(item, props) => {
     seen.push(item.id);
     return <a {...props} data-router="on" href={`/app${props.href}`} />;
   }} />);
-  expect(seen).toEqual(['summary', 'payouts']);
-  const current = screen.getByRole('link', { name: /Payouts\s*0/ });
-  expect(current).toHaveAttribute('href', '/app#payouts');
+  expect(seen).toEqual(['summary', 'orders']);
+  const current = screen.getByRole('link', { name: /Orders\s*0/ });
+  expect(current).toHaveAttribute('href', '/app#orders');
   expect(current).toHaveAttribute('data-router', 'on');
   expect(current).toHaveClass('ui-nav__tab', 'is-active');
   expect(current).toHaveAttribute('aria-current', 'page');
@@ -172,16 +172,16 @@ it('lets a router render the link, with the kit classes and current state intact
 it('keeps the reader\'s scroll position when a parent re-renders with the same tabs', () => {
   // An inline `items={[…]}` is a new array every render. Depending on that
   // array made every unrelated parent render snap the row back.
-  const { rerender } = render(<NavTabs items={[...items]} active="payouts" />);
+  const { rerender } = render(<NavTabs items={[...items]} active="orders" />);
   const nav = screen.getByRole('navigation');
-  const current = screen.getByRole('link', { name: /Payouts\s*0/ });
+  const current = screen.getByRole('link', { name: /Orders\s*0/ });
   Object.defineProperties(nav, { clientWidth: { value: 310 }, scrollWidth: { value: 600 } });
   nav.getBoundingClientRect = () => ({ left: 40, right: 350 }) as DOMRect;
   current.getBoundingClientRect = () => ({ left: 360, right: 450 }) as DOMRect;
   nav.scrollLeft = 40;
-  rerender(<NavTabs items={[...items]} active="payouts" />);
+  rerender(<NavTabs items={[...items]} active="orders" />);
   expect(nav.scrollLeft).toBe(40);
-  rerender(<NavTabs items={[...items, { id: 'ledger', label: 'Ledger' }]} active="payouts" />);
+  rerender(<NavTabs items={[...items, { id: 'ledger', label: 'Ledger' }]} active="orders" />);
   expect(nav.scrollLeft).toBe(140);
 });
 
@@ -218,11 +218,11 @@ it('observes container size and disconnects after unmount', async () => {
     disconnect = disconnect;
   });
   try {
-    const { unmount } = render(<NavTabs items={items} active="payouts" />);
+    const { unmount } = render(<NavTabs items={items} active="orders" />);
     const nav = screen.getByRole('navigation');
     // Supplied geometry tests scroll arithmetic, not browser layout.
     nav.getBoundingClientRect = () => ({ left: 40, right: 340 }) as DOMRect;
-    screen.getByRole('link', { name: /Payouts\s*0/ }).getBoundingClientRect =
+    screen.getByRole('link', { name: /Orders\s*0/ }).getBoundingClientRect =
       () => ({ left: 360, right: 440 }) as DOMRect;
     let width = 800;
     Object.defineProperties(nav, { clientWidth: { get: () => width }, scrollWidth: { value: 500 } });

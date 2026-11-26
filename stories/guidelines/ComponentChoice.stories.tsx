@@ -33,13 +33,13 @@ const Currency = (props: Partial<DropdownProps>) => <Stage><div style={{ minHeig
 // A phone band with its menu button at the right, and the menu drawer open in a
 // frame of its own below the band: a drawer is position: fixed. The pair differs
 // only in the side the drawer comes from.
-const SECTIONS = ['Overview', 'Payouts', 'Reports'].map(label => ({ id: label, label, href: '#' }));
+const SECTIONS = ['Overview', 'Orders', 'Reports'].map(label => ({ id: label, label, href: '#' }));
 const MenuOrigin = ({ side }: { side: 'left' | 'right' }) => <Stage>
   <div className="gl-component-choice__frame">
     <div className="gl-component-choice__band"><Button variant="ghost" icon="menu" iconOnly aria-label="Menu" /></div>
     <div className="gl-component-choice__under">
       <DrawerPicture title="Northwind" side={side} size="sm">
-        <SidebarNav aria-label={`Menu sections, ${side}`} items={SECTIONS} active="Payouts" />
+        <SidebarNav aria-label={`Menu sections, ${side}`} items={SECTIONS} active="Orders" />
       </DrawerPicture>
     </div>
   </div>

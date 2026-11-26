@@ -90,7 +90,7 @@ const CASES: [string, PaginationProps][] = [
   ['sizes and the whole strip', { page: 2, pageSize: 25, total: 4812, pageSizes: PAGE_SIZES, variant: 'jump' }],
   ['the defaults', {}],
   ['the default page size', { page: 1, total: DEFAULT_PAGE_SIZE * 3 }],
-  ['a label of its own', { page: 2, pageSize: 10, total: 400, label: 'Payout pages' }],
+  ['a label of its own', { page: 2, pageSize: 10, total: 400, label: 'Order pages' }],
   // What a URL or an untyped JSON body hands a caller: the vanilla factory's int()
   // refuses each of these rather than reading it as 0, so this component has to.
   // Cast, because PaginationProps would reject them — a caller typed `any` would not.
@@ -131,12 +131,12 @@ it('carries exactly the classes the ghost small Button carries on every control'
 
 it('seeds both label/control pairs from the id it is given, as the factory did', () => {
   const opts = {
-    page: 2, pageSize: 10, total: 400, variant: 'jump' as const, pageSizes: PAGE_SIZES, id: 'payouts',
+    page: 2, pageSize: 10, total: 400, variant: 'jump' as const, pageSizes: PAGE_SIZES, id: 'orders',
   };
   const { container } = render(<Pagination {...opts} />);
   // The seeds the vanilla pagination() wrote for this id.
-  for (const [sel, attr, value] of [['.ui-pager__size-label', 'for', 'payouts-size'],
-    ['.ui-pager__size-select', 'id', 'payouts-size'], ['.ui-pager__jump-input', 'id', 'payouts-jump']]) {
+  for (const [sel, attr, value] of [['.ui-pager__size-label', 'for', 'orders-size'],
+    ['.ui-pager__size-select', 'id', 'orders-size'], ['.ui-pager__jump-input', 'id', 'orders-jump']]) {
     expect(container.querySelector(sel)!.getAttribute(attr)).toBe(value);
   }
   // The pairs work, which is what the ids are for.

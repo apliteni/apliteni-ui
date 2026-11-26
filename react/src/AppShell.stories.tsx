@@ -5,73 +5,46 @@ import { Card } from './primitives/Card';
 import { Badge } from './primitives/Badge';
 import { Icon } from './primitives/Icon';
 import { bellCount, bellName } from './showcases/Notifications';
-import { DataTable } from './DataTable';
 import { Button } from './primitives/Button';
 import { DatePicker } from './DatePicker';
 import { Dropdown } from './Dropdown';
-import { FilterBar } from './FilterBar';
-import { SearchField } from './SearchField';
 import { icon } from '@apliteni/apliteni-ui';
 import { expect, userEvent, within } from 'storybook/test';
 
 const sections = [
   { href: '/overview', label: 'Overview', icon: 'chart' },
-  { href: '/campaigns', label: 'Campaigns', icon: 'card' },
   { href: '/reports', label: 'Reports', icon: 'table' },
-  { href: '/agents', label: 'Access & agents', icon: 'user' },
-  { href: '/prefs', label: 'Preferences', icon: 'gear' },
+  { href: '/settings', label: 'Settings', icon: 'gear' },
 ];
 
 // The sidebar's two forms (#843): sub-items under no group label, or group labels over
 // sections with no sub-items. Never both.
 const nested: AppShellSection[] = [
   { href: '/overview', label: 'Overview', icon: 'chart' },
-  { href: '/payouts', label: 'Payouts', icon: 'card', items: [
-    { href: '/payouts/pending', label: 'Pending', count: 3 },
-    { href: '/payouts/history', label: 'History' },
-    { href: '/payouts/methods', label: 'Methods' },
+  { href: '/orders', label: 'Orders', icon: 'card', items: [
+    { href: '/orders/open', label: 'Open', count: 3 },
+    { href: '/orders/drafts', label: 'Drafts' },
+    { href: '/orders/archive', label: 'Archive' },
   ] },
   { href: '/reports', label: 'Reports', icon: 'table' },
-  { href: '/prefs', label: 'Preferences', icon: 'gear' },
+  { href: '/settings', label: 'Settings', icon: 'gear' },
 ];
 const groups: AppShellGroup[] = [
-  { label: 'Money', sections: [
+  { label: 'Workspace', sections: [
     { href: '/overview', label: 'Overview', icon: 'chart' },
-    { href: '/payouts', label: 'Payouts', icon: 'card', count: 3 },
+    { href: '/orders', label: 'Orders', icon: 'card', count: 3 },
     { href: '/reports', label: 'Reports', icon: 'table' },
   ] },
-  { label: 'Workspace', sections: [
-    { href: '/agents', label: 'Access & agents', icon: 'user' },
-    { href: '/prefs', label: 'Preferences', icon: 'gear' },
+  { label: 'Account', sections: [
+    { href: '/settings', label: 'Settings', icon: 'gear' },
   ] },
 ];
-
-const rows = [
-  { name: 'Northwind Traders', day: '2026-09-11', net: '4,200.00', status: 'Paid' },
-  { name: 'Globex', day: '2026-09-10', net: '860.00', status: 'Pending' },
-  { name: 'Initech', day: '2026-09-09', net: '1,975.50', status: 'Pending' },
-  { name: 'Umbrella', day: '2026-09-08', net: '312.40', status: 'Paid' },
-];
-const columns = [
-  { key: 'name', label: 'Client' },
-  { key: 'day', label: 'Arrival' },
-  { key: 'net', label: 'Net (EUR)', num: true },
-  { key: 'status', label: 'Status', render: (row: typeof rows[number]) =>
-    <Badge variant={row.status === 'Paid' ? 'success' : 'warning'}>{row.status}</Badge> },
-] satisfies import('./DataTable').Column<typeof rows[number]>[];
-// The status chip starts unset, so the table opens on every payout.
-const status = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
 
 function Example({ sections: own, groups: grouped, ...args }: Partial<AppShellProps>) {
   const [pathname, setPathname] = useState(args.pathname ?? '/reports');
   const nav = grouped ? { groups: grouped } : { sections: own ?? sections };
-  const width = args.width === 'wide' ? 'wide' : 'centered';
-  const [query, setQuery] = useState('');
-  const [state, setState] = useState('');
-  const term = query.trim().toLowerCase();
-  const shown = rows.filter(row => (!state || row.status === state) && row.name.toLowerCase().includes(term));
-  return <AppShell {...nav} title="Payouts" word="Finance"
-    lede="Two of the four that arrived this week are waiting for a second approval."
+  return <AppShell {...nav} title="Reports" word="Finance"
+    lede="Everything the team needs, in one place."
     account={{ name: 'Ada Lovelace', email: 'ada@apliteni.com' }} onSignOut={() => {}}
     renderLink={(section, props) => <a {...props} onClick={(event) => {
       props.onClick?.(event);
@@ -79,19 +52,7 @@ function Example({ sections: own, groups: grouped, ...args }: Partial<AppShellPr
       event.preventDefault(); setPathname(section.href);
     }} />}
     {...args} pathname={pathname}>
-      {/* Each long table has its filter bar directly above it, on the page with no card
-          of its own. why: docs/components.md#fields */}
-      <div className="ui-toolbar">
-        <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        <FilterBar filters={[{ ...status, value: state }]} label="Payout filters"
-          onChange={(_, value) => setState(value ?? '')} onRemove={() => setState('')} onClear={() => setState('')} />
-      </div>
-      <Card title="Payouts this week">
-        <DataTable columns={columns} rows={shown} selectable={false} pager={false} dense zebra hover={false} />
-      </Card>
-      <Card title="What the width does">
-        <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centered one is capped and sits in the middle of it.</p>
-      </Card>
+    <Card title="Reports"><p>Choose a report to see its details.</p></Card>
   </AppShell>;
 }
 const render = (args: AppShellProps) => <Example {...args} />;
@@ -182,15 +143,15 @@ const openMenu: Story['play'] = async ({ canvasElement }) => {
   await userEvent.click(within(canvasElement).getByRole('button', { name: 'Menu' }));
   await expect(within(document.body).getByRole('dialog')).toBeVisible();
 };
-export const SubItems: Story = { render, args: { sections: nested, pathname: '/payouts/pending' } };
+export const SubItems: Story = { render, args: { sections: nested, pathname: '/orders/open' } };
 export const SubItemsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
-  args: { sections: nested, pathname: '/payouts/pending' }, play: openMenu };
-export const Groups: Story = { render, args: { groups, pathname: '/payouts' } };
+  args: { sections: nested, pathname: '/orders/open' }, play: openMenu };
+export const Groups: Story = { render, args: { groups, pathname: '/orders' } };
 export const GroupsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
-  args: { groups, pathname: '/payouts' }, play: openMenu };
-export const RailGroups: Story = { render, args: { layout: 'rail', groups, pathname: '/payouts' } };
+  args: { groups, pathname: '/orders' }, play: openMenu };
+export const RailGroups: Story = { render, args: { layout: 'rail', groups, pathname: '/orders' } };
 export const RailGroupsPhone: Story = { render, globals: { viewport: { value: 'phone', isRotated: false } },
-  args: { layout: 'rail', groups, pathname: '/payouts' }, play: openMenu };
+  args: { layout: 'rail', groups, pathname: '/orders' }, play: openMenu };
 
 // A notifications bell at the band's right end, at 1280px and 390px, dark and light, in
 // each sidebar structure and with no sidebar (#847). The count stands above the bell's
@@ -200,7 +161,7 @@ const endBell = (unread: number) => <Dropdown variant="menu" align="end" chevron
   ariaLabel={bellName(unread)}
   triggerContent={<><Icon name="bell" />{unread > 0 && <span aria-hidden="true"><Badge>{bellCount(unread)}</Badge></span>}</>}
   header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
-  items={[{ label: 'Payout run PR-204 failed', value: 'payout', href: '#payout' },
+  items={[{ label: 'Report run PR-204 failed', value: 'report', href: '#report' },
     { label: 'CMP-88 assigned to you', value: 'assign', href: '#assign' },
     { label: 'Jon Avery commented', value: 'comment', href: '#comment' }]} />;
 const bandBell = endBell(3);
@@ -214,8 +175,8 @@ export const BandActions: Story = { render, globals: desktop, args: { bandAction
 export const BandActionsLight: Story = { render, globals: { ...desktop, theme: 'light' }, args: { bandActions: bandBell } };
 export const BandActionsPhone: Story = { render, globals: phone, args: { bandActions: bandBell } };
 export const BandActionsPhoneLight: Story = { render, globals: { ...phone, theme: 'light' }, args: { bandActions: bandBell } };
-export const BandActionsGroups: Story = { render, globals: desktop, args: { groups, pathname: '/payouts', bandActions: bandBell } };
-export const BandActionsSubItems: Story = { render, globals: desktop, args: { sections: nested, pathname: '/payouts/pending', bandActions: bandBell } };
+export const BandActionsGroups: Story = { render, globals: desktop, args: { groups, pathname: '/orders', bandActions: bandBell } };
+export const BandActionsSubItems: Story = { render, globals: desktop, args: { sections: nested, pathname: '/orders/open', bandActions: bandBell } };
 export const BandActionsAlone: Story = { render, globals: desktop, args: { ...alone, bandActions: bandBell } };
 export const BandActionsAlonePhone: Story = { render, globals: phone, args: { ...alone, bandActions: bandBell } };
 export const BandActionsPair: Story = { render, globals: desktop, args: { bandActions: bandPair } };

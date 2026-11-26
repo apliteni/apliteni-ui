@@ -107,16 +107,16 @@ const ITEMS = {
     items: [
       { id: 'revenue', icon: 'chart', label: 'Revenue' },
       {
-        id: 'payouts', icon: 'card', label: 'Payouts', defaultOpen: true,
+        id: 'orders', icon: 'card', label: 'Orders', defaultOpen: true,
         items: [
-          { id: 'payouts-pending', label: 'Pending', badge: 3 },
-          { id: 'payouts-history', label: 'History' },
+          { id: 'orders-open', label: 'Open', badge: 3 },
+          { id: 'orders-drafts', label: 'Drafts' },
         ],
       },
       { id: 'settings', icon: 'gear', label: 'Settings', disabled: true },
     ],
   }],
-  active: 'payouts-pending',
+  active: 'orders-open',
   footer: true,
 };
 const MARKUP = await sidebarNav(ITEMS);
@@ -564,12 +564,12 @@ test('the resolver reaches the real cascade', () => {
 
 const TAB_ITEMS = [
   { id: 'summary', label: 'Summary' },
-  { id: 'payouts', label: 'Payouts', badge: 3 },
+  { id: 'orders', label: 'Orders', badge: 3 },
   { id: 'exports', label: 'Exports', disabled: true },
 ];
 
 const TAB_MARKUP = Object.fromEntries(await Promise.all(['underline', 'pill']
-  .map(async (variant) => [variant, await navTabs({ items: TAB_ITEMS, active: 'payouts', variant })])));
+  .map(async (variant) => [variant, await navTabs({ items: TAB_ITEMS, active: 'orders', variant })])));
 
 /** Mount one tab row under a theme/accent and hand back a resolver. */
 function tabRow(variant, theme = 'dark', accent = 'default', sheet = read('src/styles/nav.css')) {

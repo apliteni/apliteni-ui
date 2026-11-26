@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.205.1', date: '2026-11-26',
+    changes: [
+      ['removed', 'The demo Payouts page and its sample data are cut. Showcases, component stories and guideline specimens now show a generic Orders page, and the code and data that only served the Payouts demo are deleted. No component, token or style behaviour changes. Part of #869.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.205.0', date: '2026-11-26',
     changes: [
       ['added', 'A `Drawer` takes a `status`, such as one `Badge`, that stands directly after the title on the same line. Part of #868.', ['Drawer']],

@@ -44,7 +44,7 @@ const DROPDOWN = await markup(({ h, kit }) => h(kit.Dropdown, {
 const DRAWER = await liveMarkup(({ h, kit }) => h(kit.Drawer, { open: true, title: 'Record', onClose() {} }, h('p', null, 'A line of prose.')));
 const TABS = await markup(({ h, kit }) => h(kit.NavTabs, {
   'aria-label': 'Finance views',
-  items: [{ id: 'summary', label: 'Summary', disabled: true }, { id: 'payouts', label: 'Payouts', disabled: true }],
+  items: [{ id: 'summary', label: 'Summary', disabled: true }, { id: 'orders', label: 'Orders', disabled: true }],
 }));
 const PALETTE = await liveMarkup(({ h, kit }) => h(kit.CommandPalette, {
   open: true, onClose() {}, groups: [{ label: 'Go', items: [{ id: 'a', label: 'Overview' }] }],
@@ -87,7 +87,7 @@ const SUBJECTS = [
     why: 'a scroll region inside a card, like the rest, so it stops spending a halo '
       + 'across the card around it',
     markup: () => '<div class="ui-card"><div class="ui-table-scroll" role="region" '
-      + `aria-label="Payouts" tabindex="0">${tableMarkup()}</div></div>`,
+      + `aria-label="Orders" tabindex="0">${tableMarkup()}</div></div>`,
   },
   {
     name: "a dropdown's search list",

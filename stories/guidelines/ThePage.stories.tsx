@@ -31,12 +31,12 @@ const Out = ({ rank, text, bad = false }: { rank: number; text: string; bad?: bo
 
 // The sidebar's one way of grouping: sub-items with no labels, or labels with no
 // sub-items. The mix is cast past the type that refuses it.
-const payouts = { id: 'payouts', icon: 'card', label: 'Payouts',
-  items: [{ id: 'pending', label: 'Pending' }, { id: 'history', label: 'History' }] };
-const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side"><SidebarNav aria-label={mixed ? 'Sections, mixed' : 'Sections'} active="pending"
-  sections={(mixed ? [{ label: 'Money', items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts] },
+const orders = { id: 'orders', icon: 'card', label: 'Orders',
+  items: [{ id: 'open', label: 'Open' }, { id: 'drafts', label: 'Drafts' }] };
+const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side"><SidebarNav aria-label={mixed ? 'Sections, mixed' : 'Sections'} active="open"
+  sections={(mixed ? [{ label: 'Workspace', items: [{ id: 'home', icon: 'chart', label: 'Overview' }, orders] },
     { label: 'Workspace', items: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }] }]
-    : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
+    : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, orders, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
 
 // The one primary action.
 const Agents = ({ all = false }: { all?: boolean }) => <Stage>
@@ -49,8 +49,8 @@ const Agents = ({ all = false }: { all?: boolean }) => <Stage>
 
 // Cards stack at one level, never one inside another.
 const Stack = ({ nested }: { nested: boolean }) => <Stage>{nested
-  ? <Card title="Payouts" level={3}><Card title="Last 7 days" level={3} sub="14 payouts" /><Card title="Failed" level={3} sub="2 payouts" /></Card>
-  : <div className="ui-card-stack"><Card title="Payouts" level={3} sub="14 payouts" /><Card title="Last 7 days" level={3} sub="14 payouts" /><Card title="Failed" level={3} sub="2 payouts" /></div>}
+  ? <Card title="Orders" level={3}><Card title="Last 7 days" level={3} sub="14 orders" /><Card title="Failed" level={3} sub="2 orders" /></Card>
+  : <div className="ui-card-stack"><Card title="Orders" level={3} sub="14 orders" /><Card title="Last 7 days" level={3} sub="14 orders" /><Card title="Failed" level={3} sub="2 orders" /></div>}
 </Stage>;
 
 // One density per page. Each long table keeps its filter bar directly above it.
@@ -61,8 +61,8 @@ const MiniTable = ({ dense, brief = false, failed = false }: { dense: boolean; b
   <tbody><tr><td>1162</td>{!brief && <td>2026-06-30</td>}<td className="ui-table__num">14,942.27</td><td>{failed ? <Badge variant="danger">Failed</Badge> : <Badge variant="success">Paid</Badge>}</td></tr></tbody>
 </table>;
 const Densities = ({ second }: { second: boolean }) => <Stage><div className="tp-rows">
-  <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" chips={STATUS} />
-  <Card title="Payouts"><MiniTable dense /></Card></div>
+  <div className="ui-card-stack"><RestingFilters search="Search orders" placeholder="ID" label="Order filters" chips={STATUS} />
+  <Card title="Orders"><MiniTable dense /></Card></div>
   <div className="ui-card-stack"><RestingFilters search="Search invoices" placeholder="ID" label="Invoice filters" chips={STATUS} />
   <Card title="Invoices"><MiniTable dense={second} /></Card></div>
 </div></Stage>;
@@ -90,7 +90,7 @@ const Bar = ({ moved }: { moved: boolean }) => {
   </div>;
 };
 const Shells = ({ moved }: { moved: boolean }) => <div className="tp-rows">
-  {['Payouts', 'Invoices'].map((title, i) => <div key={title} className="gl-stage tp-screen">
+  {['Orders', 'Invoices'].map((title, i) => <div key={title} className="gl-stage tp-screen">
     <Bar moved={moved && i === 1} />
     <div className="ui-app__main tp-head"><h1>{title}</h1></div>
   </div>)}
@@ -107,27 +107,27 @@ const BarEnd = ({ page }: { page: boolean }) => <div className="gl-stage tp-scre
   {page ? <Button variant="primary" icon="plus">New report</Button>
     : <div className="ui-react-app__band-actions"><Dropdown variant="menu" align="end" chevron={false} title="Notifications"
       ariaLabel="Notifications, 3 unread" triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>3</Badge></span></>}
-      items={[{ label: 'Payout run PR-204 failed', value: 'payout' }]} /></div>}
+      items={[{ label: 'Order run PR-204 failed', value: 'order' }]} /></div>}
 </div></div>;
 
 // A page head with the shell's own classes, in the order given.
 const Head = ({ parts }: { parts: ('back' | 'title' | 'sub' | 'filters')[] }) => <Stage><div className="ui-app__main tp-head">
-  {parts.map(part => part === 'back' ? <BackLink key={part} href="#" label="Payouts" />
-    : part === 'title' ? <h1 key={part}>Payout 1162</h1>
-    : part === 'sub' ? <p key={part} className="ui-app__sub">Transactions settled in this payout.</p>
+  {parts.map(part => part === 'back' ? <BackLink key={part} href="#" label="Orders" />
+    : part === 'title' ? <h1 key={part}>Order 1162</h1>
+    : part === 'sub' ? <p key={part} className="ui-app__sub">Transactions settled in this order.</p>
     : <RestingFilters key={part} search="Search transactions" placeholder="ID" label="Transaction filters" chips={STATUS} />)}
 </div></Stage>;
 
 // One h1 with cards under it, or a second h1 that splits the page in two.
-const Titles = ({ twice }: { twice: boolean }) => <Stage><div className="ui-app__main tp-head"><h1>Payouts</h1>
-  {twice ? <div className="tp-rows"><MiniTable dense={false} brief /><h1>Failed payouts</h1><MiniTable dense={false} brief failed /></div>
+const Titles = ({ twice }: { twice: boolean }) => <Stage><div className="ui-app__main tp-head"><h1>Orders</h1>
+  {twice ? <div className="tp-rows"><MiniTable dense={false} brief /><h1>Failed orders</h1><MiniTable dense={false} brief failed /></div>
     : <div className="tp-rows">
       <Card title="Last 7 days"><MiniTable dense={false} brief /></Card>
       <Card title="Failed this week"><MiniTable dense={false} brief failed /></Card>
     </div>}
 </div></Stage>;
 
-const Lede = ({ sub }: { sub: string }) => <Stage><div className="ui-app__main tp-head"><h1>Payouts</h1>
+const Lede = ({ sub }: { sub: string }) => <Stage><div className="ui-app__main tp-head"><h1>Orders</h1>
   <p className="ui-app__sub">{sub}</p><Card title="Last 7 days"><MiniTable dense={false} brief /></Card>
 </div></Stage>;
 
@@ -155,11 +155,11 @@ const SignNote = ({ named }: { named: boolean }) => <Stage><div className="ui-au
 // The page as it first paints, with or without a drawer already over it.
 const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="gl-stage tp-rest">
   <div className="ui-app__main tp-head">
-    <div className="ui-app__title-row"><h1>Payouts</h1>
-      <div className="ui-app__tools"><Button variant="primary" icon="plus">New payout</Button></div></div>
+    <div className="ui-app__title-row"><h1>Orders</h1>
+      <div className="ui-app__tools"><Button variant="primary" icon="plus">New order</Button></div></div>
     <MiniTable dense={false} brief />
   </div>
-  {open && <DrawerPicture title="Payout 1162">
+  {open && <DrawerPicture title="Order 1162">
     <KeyValueList rows={[{ label: 'Net', value: '14,942.27' }, { label: 'Status', value: 'Paid' }]} />
   </DrawerPicture>}
 </div></>;
@@ -175,18 +175,18 @@ const specimens = [
     dont: () => <Head parts={['back', 'filters', 'title', 'sub']} /> },
   { id: 'one-h1', do: () => <Titles twice={false} />, dont: () => <Titles twice /> },
   { id: 'outline',
-    do: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={2} text="Last 7 days" />
-      <Out rank={2} text="Payouts" /><Out rank={3} text="Failed this week" /></div></Stage>,
-    dont: () => <Stage><div className="tp-out"><Out rank={1} text="Payouts" /><Out rank={1} text="Last 7 days" bad />
-      <Out rank={3} text="Payouts" bad /><Out rank={4} text="Failed this week" bad /></div></Stage> },
+    do: () => <Stage><div className="tp-out"><Out rank={1} text="Orders" /><Out rank={2} text="Last 7 days" />
+      <Out rank={2} text="Orders" /><Out rank={3} text="Failed this week" /></div></Stage>,
+    dont: () => <Stage><div className="tp-out"><Out rank={1} text="Orders" /><Out rank={1} text="Last 7 days" bad />
+      <Out rank={3} text="Orders" bad /><Out rank={4} text="Failed this week" bad /></div></Stage> },
   { id: 'one-primary', do: () => <Agents />, dont: () => <Agents all /> },
   { id: 'stacking', do: () => <Stack nested={false} />, dont: () => <Stack nested /> },
   { id: 'at-rest', do: () => <AtLoad open={false} />, dont: () => <AtLoad open /> },
   { id: 'density', do: () => <Densities second />, dont: () => <Densities second={false} /> },
   { id: 'branded-background', do: () => <Branded control={false} />, dont: () => <Branded control /> },
   { id: 'sign-in-note', do: () => <SignNote />, dont: () => <SignNote named /> },
-  { id: 'lede', do: () => <Lede sub="Payouts arrive within three business days." />,
-    dont: () => <Lede sub="This is the payouts page." /> },
+  { id: 'lede', do: () => <Lede sub="Orders arrive within three business days." />,
+    dont: () => <Lede sub="This is the orders page." /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/The page', parameters: { layout: 'fullscreen' } };

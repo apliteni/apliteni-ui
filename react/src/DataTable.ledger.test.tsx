@@ -18,10 +18,10 @@ describe('the ledger stories', () => {
     expect(dead).toHaveTextContent('Revoked');
   });
 
-  it('keeps the payouts a pinned table in its scroll frame, with no stacked rows', () => {
+  it('keeps the orders a pinned table in its scroll frame, with no stacked rows', () => {
     const { container } = show(all.FinanceData);
     const frame = container.querySelector('.ui-table-scroll')!;
-    expect(frame).toHaveAttribute('aria-label', 'Payouts, scroll for more columns');
+    expect(frame).toHaveAttribute('aria-label', 'Orders, scroll for more columns');
     const table = frame.querySelector('table')!;
     expect(table).toHaveClass('ui-table--pinned');
     expect(table).not.toHaveClass('ui-table--stack');

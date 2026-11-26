@@ -24,7 +24,7 @@ const Import = ({ sub }: { sub: string }) => <Stage><Card title="Import invoices
 const Delete = ({ text }: { text: string }) => <Stage>
   <Callout variant="warn">{text}</Callout>
 </Stage>;
-const Export = ({ sub }: { sub: string }) => <Stage><Card title="Export payouts" sub={sub}>
+const Export = ({ sub }: { sub: string }) => <Stage><Card title="Export orders" sub={sub}>
   <div className="ui-toolbar"><Button icon="download">Export CSV</Button></div>
 </Card></Stage>;
 const Code = ({ width }: { width?: string }) => <Stage><Card title="Bank details">

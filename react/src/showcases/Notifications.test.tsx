@@ -29,12 +29,12 @@ describe('notifications showcase', () => {
     expect(bell()).toHaveAttribute('aria-expanded', 'true');
     const rows = within(panel()).getAllByRole('menuitem').filter(row => row.tagName === 'A');
     expect(rows).toHaveLength(5);
-    expect(rows[0]).toHaveAccessibleName(/Payout run PR-204 failed, unread/);
+    expect(rows[0]).toHaveAccessibleName(/Report run PR-204 failed, unread/);
     await user.click(rows[0]);
-    expect(screen.getByRole('heading', { level: 1, name: 'Payout run PR-204' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: 'Report run PR-204' })).toBeInTheDocument();
     expect(bell()).toHaveAccessibleName('Notifications, 2 unread');
-    await user.click(screen.getByRole('link', { name: 'Back to Payouts' }));
-    expect(screen.getByRole('heading', { level: 1, name: 'Payouts' })).toBeInTheDocument();
+    await user.click(screen.getByRole('link', { name: 'Back to Reports' }));
+    expect(screen.getByRole('heading', { level: 1, name: 'Reports' })).toBeInTheDocument();
   });
   it('opens a record from a row of the page', async () => {
     const user = userEvent.setup();
@@ -48,7 +48,7 @@ describe('notifications showcase', () => {
   it('says Mark all read in a toast, and its Undo restores the unread set', async () => {
     const user = userEvent.setup();
     render(<Notifications initialPage="record" />);
-    await user.click(screen.getByRole('link', { name: 'Back to Payouts' }));
+    await user.click(screen.getByRole('link', { name: 'Back to Reports' }));
     await user.click(screen.getByRole('link', { name: 'Campaigns' }));
     await user.click(bell());
     await user.click(within(panel()).getByRole('menuitem', { name: 'Mark all read' }));
@@ -80,7 +80,7 @@ describe('notifications showcase', () => {
     await act('Mark all read');
     expect(bell()).toHaveAttribute('aria-expanded', 'true');
     expect(firstRow()).toHaveFocus();
-    expect(firstRow()).toHaveAccessibleName(/^Payout run PR-204 failed/);
+    expect(firstRow()).toHaveAccessibleName(/^Report run PR-204 failed/);
     await user.keyboard('{ArrowDown}');
     expect(within(panel()).getByRole('menuitem', { name: /Mira Kade/ })).toHaveFocus();
     unmount();
@@ -96,7 +96,7 @@ describe('notifications showcase', () => {
       if (how === 'click') await user.click(button);
       else { button.focus(); await user.keyboard('{Enter}'); }
     };
-    const firstRow = () => within(screen.getByRole('main')).getByRole('link', { name: /^Payout run PR-204 failed/ });
+    const firstRow = () => within(screen.getByRole('main')).getByRole('link', { name: /^Report run PR-204 failed/ });
     const { unmount } = render(<Notifications initialPage="notifications" />);
     // The action sits in the page's title row, beside the h1 and above the list.
     const row = screen.getByRole('heading', { level: 1, name: 'Notifications' }).closest('.ui-app__title-row') as HTMLElement;

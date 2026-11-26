@@ -27,7 +27,7 @@ const LIST = '/invoices?status=overdue&sort=due&page=2';
 const RAIL = [
   { id: 'dashboard', icon: 'chart', label: 'Dashboard', href: '#' },
   { id: 'invoices', icon: 'doc', label: 'Invoices', href: '#' },
-  { id: 'payouts', icon: 'card', label: 'Payouts', href: '#' },
+  { id: 'orders', icon: 'card', label: 'Orders', href: '#' },
 ];
 const WithRail = ({ id, active, above }: { id: string; active?: string; above: ReactNode }) =>
   <div className="gl-stage"><div className="gb-page">

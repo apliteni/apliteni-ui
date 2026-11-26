@@ -19,11 +19,11 @@ const content = await loadGuideline('drawer.md', new URL('../../guidelines/drawe
 
 // One fabricated record, so a pair differs only in what its rule is about.
 const PAYMENT = [['Amount', '€ 12,480.50'], ['Date', '31 Aug 2026'], ['Counterparty', 'Northwind Payments']];
-const DETAIL = [...PAYMENT, ['Description', 'Card payout'], ['Batch', '2291'], ['Source', 'Bank feed']];
+const DETAIL = [...PAYMENT, ['Description', 'Card order'], ['Batch', '2291'], ['Source', 'Bank feed']];
 const GROUPS = [
   { rows: PAYMENT },
   { title: 'How it is classified', rows: [['Category', '—'], ['Unit', 'Ledger']] },
-  { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'po_example_1047']] },
+  { title: 'Where it came from', rows: [['Statement', '#4102'], ['Reference', 'OR-1047']] },
 ];
 const rows = (pairs: string[][]): KeyValueRow[] => pairs.map(([label, value]) => ({ label, value }));
 
@@ -43,7 +43,7 @@ const Ruled = ({ pairs }: { pairs: string[][] }) => <>{pairs.map(([k, v]) =>
 // One member's access, the work the drawer-or-page rule is about: the same roles and the
 // same switch per unit, once on a page and once in a drawer.
 const ROLES: [string, boolean][] = [['Viewer', true], ['Operator', true], ['Billing admin', false]];
-const UNITS: [string, boolean][] = [['Ledger', true], ['Payouts', true], ['Agents', false], ['Keys', false], ['Reports', false]];
+const UNITS: [string, boolean][] = [['Ledger', true], ['Orders', true], ['Agents', false], ['Keys', false], ['Reports', false]];
 const Roles = () => <div className="gd-stack">{ROLES.map(([label, checked]) =>
   <Checkbox key={label} label={label} defaultChecked={checked} name="gd-role" />)}</div>;
 const UnitSwitch = ({ label, on }: { label: string; on: boolean }) => <Switch defaultChecked={on} label={`${label} access`} />;
@@ -73,8 +73,8 @@ const PageDont = () => <Frame title="Member access" footer={<Button variant="pri
 const QuickEdit = () => <Frame footer={<Button variant="primary">Save</Button>}>
   <Group rows={PAYMENT} />
   <DrawerSection title="Classify">
-    <SelectField label="Category" defaultValue="payout">
-      <option value="">Choose a category</option><option value="payout">Card payout</option><option value="fee">Fee</option>
+    <SelectField label="Category" defaultValue="order">
+      <option value="">Choose a category</option><option value="order">Card order</option><option value="fee">Fee</option>
     </SelectField>
   </DrawerSection>
 </Frame>;
@@ -87,8 +87,8 @@ const LongForm = () => <Frame title="New supplier" footer={<Button variant="prim
 // The same record and form twice: the form last, so Save stands under its fields, and the
 // form first, so the read-only group stands between the fields and Save.
 const Classify = () => <DrawerSection title="Classify">
-  <SelectField label="Category" defaultValue="payout">
-    <option value="payout">Card payout</option><option value="fee">Fee</option>
+  <SelectField label="Category" defaultValue="order">
+    <option value="order">Card order</option><option value="fee">Fee</option>
   </SelectField>
 </DrawerSection>;
 const Saves = ({ formFirst = false }: { formFirst?: boolean }) => <Frame footer={<><Button variant="ghost">Cancel</Button><Button variant="primary">Save</Button></>}>

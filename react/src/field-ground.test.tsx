@@ -63,7 +63,7 @@ const THEMES = ['dark', 'light'] as const;
 // (#758). Then four from the showcases (#429 PR 4): the four Preferences switches. The
 // sign-in fields moved to the showcases with their stories.
 // Then two from the KeyValueList control-values story (#631): its select and text field.
-// Then 20 search fields, one above each payouts or agents table (#736): fifteen AppShell
+// Then 20 search fields, one above each orders or agents table (#736): fifteen AppShell
 // stories and five Shell layouts. The three Access search fields went with the list rework
 // (#850). Then 21 more search fields, one
 // above each remaining table (#736): five DataTable ledger stories (the two stacked ledgers
@@ -90,9 +90,9 @@ const THEMES = ['dark', 'light'] as const;
 // Then the small search field in the SearchField Toolbar at the small size story (#822).
 // Then the shell search field in the AppShell Period Tools and Period Tools Phone stories (#832).
 // Then the text input in the Form Row Invalid story (#835).
-// Then the payouts search field in the six AppShell sidebar form stories, Sub Items, Groups
+// Then the orders search field in the six AppShell sidebar form stories, Sub Items, Groups
 // and Rail Groups, each at 1280px and on a phone (#843).
-// Then the payouts search field in the thirteen AppShell Band Actions stories (#847).
+// Then the orders search field in the thirteen AppShell Band Actions stories (#847).
 // Less the four Preferences switches, which left that page with its rework (#845).
 // Then the native unit select of the Dropdown's Muted Item story (#852).
 // Then the two form fields of the split Sign in story (#850).
@@ -101,8 +101,9 @@ const THEMES = ['dark', 'light'] as const;
 // expiry (#850).
 // Then the rows search field in the four Three-column page stories (#871).
 // Then the twenty text fields of the Drawer Long Form story (#887).
+// Less the forty-two AppShell and Shell layout search fields, which left with the cut demo page (#869).
 // Move this count with the specimens.
-const FIELD_COUNT = 208;
+const FIELD_COUNT = 166;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -481,9 +482,9 @@ describe('field ground: React discovery, held to its claim', () => {
   // stranded. rev_136bd26bc559/d24
   // One test per case: four cases in one test overran the 5000ms timeout.
   it.each<[string, () => ReactElement, boolean]>([
-    ['InBar', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" /></div>, false],
-    ['InBarDisabled', () => <div className="ui-toolbar"><SearchField ariaLabel="Search payouts" disabled /></div>, true],
-    ['Alone', () => <SearchField ariaLabel="Search payouts" />, true],
+    ['InBar', () => <div className="ui-toolbar"><SearchField ariaLabel="Search orders" /></div>, false],
+    ['InBarDisabled', () => <div className="ui-toolbar"><SearchField ariaLabel="Search orders" disabled /></div>, true],
+    ['Alone', () => <SearchField ariaLabel="Search orders" />, true],
     ['TextInBar', () => <div className="ui-toolbar"><input className="ui-input" aria-label="Reference" /></div>, true],
   ])('lets only a live search field in a filter bar stand on the page: %s', (name, render, rejected) => {
     const story = one({ default: {}, [name]: render });

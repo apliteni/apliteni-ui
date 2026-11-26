@@ -72,7 +72,7 @@ const ACTIONS: Row[] = [
   { id: 'export', label: 'Export rows as CSV', description: 'The current filter, all pages', icon: 'download' },
 ];
 const PLACES: Row[] = [
-  { id: 'reports', label: 'Reports', description: 'Revenue, payouts and fees', icon: 'chart', href: '#r' },
+  { id: 'reports', label: 'Reports', description: 'Revenue, orders and fees', icon: 'chart', href: '#r' },
   { id: 'transactions', label: 'Transactions', description: '4,812 rows this month', icon: 'table', href: '#t' },
   { id: 'settings', label: 'Settings', description: 'Billing, members, API keys', icon: 'gear', href: '#s' },
 ];

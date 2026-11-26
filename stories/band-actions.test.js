@@ -26,7 +26,7 @@
  * the bell's top edge: the band leaves 6px over the bell, and the corner rule of fix round
  * 1 left the count's top under 1px over it. Two actions are one size when their boxes
  * differ by half a pixel or less. The next control is the next action, or else the band's next child. The title
- * check reads one title, "Overview" or "Payouts". A glyph is off centre when its box's centre is
+ * check reads one title, "Overview" or "Orders". A glyph is off centre when its box's centre is
  * more than half a pixel from its square's centre. The paint is read from computed styles at
  * 1280 and 390 in each theme, under the default accent only, and it does not prove which
  * layer is drawn on top: the focus ring under the count is seen in the PR's pictures. Search's words are read only in a band

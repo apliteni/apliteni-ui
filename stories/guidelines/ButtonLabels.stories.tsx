@@ -13,7 +13,7 @@ import { SPEC_CSS } from './_button-labels.js';
 const content = await loadGuideline('button-labels.md', new URL('../../guidelines/button-labels.md', import.meta.url));
 
 // A made-up contract clause for the selection rule.
-const CLAUSE_HEAD = 'Payouts settle within ';
+const CLAUSE_HEAD = 'Orders settle within ';
 const CLAUSE_PICK = 'five business days';
 const CLAUSE_TAIL = ' of the request, unless the bank holds the transfer for review.';
 
@@ -25,7 +25,7 @@ const Row = ({ children }: { children: ReactNode }) => <div className="gl-stage 
 const STATUS = [{ label: 'Any status', value: 'any' }, { label: 'Paid', value: 'paid' }, { label: 'Failed', value: 'failed' }];
 const noop = () => {};
 const Toolbar = ({ square = false }: { square?: boolean }) => <div className={`gl-stage ui-toolbar${square ? ' bl-square' : ''}`}>
-  <SearchField ariaLabel="Search payouts" placeholder="Reference" />
+  <SearchField ariaLabel="Search orders" placeholder="Reference" />
   <Dropdown ariaLabel="Status" value="Paid" selectedValue="paid" items={STATUS} onOpenChange={noop} />
   <Button icon="download">Export CSV</Button>
   <Button icon="moreHorizontal" iconOnly>More actions</Button>

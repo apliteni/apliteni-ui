@@ -16,7 +16,7 @@ const content = await loadGuideline('motion.md', new URL('../../guidelines/motio
 // drawer is hidden, so the first frame is the page alone. The half frame draws the
 // panel and the scrim where --ease has them at that time.
 type Step = 'closed' | 'half' | 'open';
-const Page = () => <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" /><table className="ui-table">
+const Page = () => <div className="ui-card-stack"><RestingFilters search="Search orders" placeholder="ID" label="Order filters" /><table className="ui-table">
   <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
   <tbody>
     <tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr>
@@ -28,7 +28,7 @@ const Film = ({ frames }: { frames: [string, Step][] }) => <div className="gm-fi
     <p key={`${time}-t`}>{time}</p>,
     <div key={time} className={`gl-stage gm-frame${step === 'half' ? ' gm-frame--half' : ''}`}>
       <Page />
-      {step !== 'closed' && <DrawerPicture title="Payout 1162">
+      {step !== 'closed' && <DrawerPicture title="Order 1162">
         <KeyValueList rows={[{ label: 'Net', value: '14,942.27' }, { label: 'Status', value: 'Paid' }]} />
       </DrawerPicture>}
     </div>,

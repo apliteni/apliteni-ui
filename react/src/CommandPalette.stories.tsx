@@ -20,7 +20,7 @@ const GROUPS: CommandGroup[] = [
   {
     label: 'Go to',
     items: [
-      { id: 'reports', label: 'Reports', description: 'Revenue, payouts and fees', icon: 'chart', href: '#reports' },
+      { id: 'reports', label: 'Reports', description: 'Revenue, orders and fees', icon: 'chart', href: '#reports' },
       { id: 'transactions', label: 'Transactions', description: '4,812 rows this month', icon: 'table', href: '#transactions' },
       { id: 'settings', label: 'Settings', description: 'Billing, members, API keys', icon: 'gear', keywords: ['preferences'], href: '#settings' },
     ],

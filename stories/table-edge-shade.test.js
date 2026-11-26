@@ -98,10 +98,10 @@ const THEMES = ['light', 'dark'];
 
 /* A phone table never widens the page (#736): at 390x844, in both themes, every
  * DataTable story with a scroll frame keeps the page inside the screen and scrolls
- * the table inside its frame, with no range past the table's end. Only the payouts and
+ * the table inside its frame, with no range past the table's end. Only the orders and
  * members stories must have a range: a narrower table may fit its frame. It reads the built Storybook, so run
  * `npm run build-storybook` first. Limits: only stories whose ids start with
- * `react-datatable`, and only those the walk finds a frame in. The payouts story
+ * `react-datatable`, and only those the walk finds a frame in. The orders story
  * must be one of them. The members story must be one too. Before #770 its "Actions" label
  * widened the page under a header that does not stick, and its closed tooltips made the
  * frame scroll past the table. Each defect is put back there to prove the check sees it.
@@ -113,7 +113,7 @@ const THEMES = ['light', 'dark'];
  * nothing scrolls. At rest its side bands show no line, and the table reaches its
  * bottom. Limits: only the first frame in a card on that one story. */
 const PHONE = { width: 390, height: 844 };
-const PAYOUTS_STORY = 'react-datatable-ledgers--finance-data';
+const ORDERS_STORY = 'react-datatable-ledgers--finance-data';
 const MEMBERS_STORY = 'react-datatable-members--default';
 const DESKTOP = { width: 1440, height: 900 };
 
@@ -162,7 +162,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
 
   try {
     const stories = indexed(build).filter((s) => s.id.startsWith('react-datatable'));
-    for (const id of [PAYOUTS_STORY, MEMBERS_STORY]) assert.ok(stories.some((s) => s.id === id), `${id} is not in the build`);
+    for (const id of [ORDERS_STORY, MEMBERS_STORY]) assert.ok(stories.some((s) => s.id === id), `${id} is not in the build`);
     for (const theme of THEMES) {
       const ctx = await browser.newContext({ viewport: PHONE });
       const page = await ctx.newPage();
@@ -172,12 +172,12 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
         assert.equal(got.phase, STORY_DONE, `${story.label} ${theme}: ${got.phase}`);
         await page.evaluate(() => document.fonts.ready);
         const fit = await page.evaluate(PHONE_FIT);
-        const mustScroll = [PAYOUTS_STORY, MEMBERS_STORY].includes(story.id);
+        const mustScroll = [ORDERS_STORY, MEMBERS_STORY].includes(story.id);
         if (!fit.frames.length && !mustScroll) continue;
         measured.push(story.id);
         t.diagnostic(`${theme} ${story.id}: ${JSON.stringify(fit)}`);
         assert.deepEqual(phoneFitFindings(fit, mustScroll), [], `${story.label} ${theme}`);
-        if (story.id === PAYOUTS_STORY) {
+        if (story.id === ORDERS_STORY) {
           for (const [what, mutation] of [['an unclipped frame', FRAME_UNCLIPPED], ['a frame without a zero floor', FRAME_FLOORLESS]]) {
             const style = await page.addStyleTag({ content: mutation });
             assert.notDeepEqual(phoneFitFindings(await page.evaluate(PHONE_FIT), true), [], `${theme}: ${what} still passed`);
@@ -195,7 +195,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
           await checkCardFrame(page, `${theme} ${PHONE.width}`, true);
         }
       }
-      // The payouts, the pinned payments, the pinned sortable table and the members.
+      // The orders, the pinned payments, the pinned sortable table and the members.
       assert.ok(measured.length >= 4, `${theme}: only ${measured.length} stories measured: ${measured.join(', ')}`);
       await ctx.close();
       const wide = await browser.newContext({ viewport: DESKTOP });

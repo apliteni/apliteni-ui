@@ -25,19 +25,19 @@ const BlankPage = () => <Stage><div className="se-page se-page--dialog-tall">
   <div className="se-page__dialog"><DialogPicture /></div>
 </div></Stage>;
 
-const Page = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
+const Page = ({ loading = false, search = 'OR-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
   loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean; tall?: boolean;
 }) => <Stage><div className={tall ? 'se-page se-page--dialog-tall' : 'se-page'}>
   <div className="se-page__body">
-    <h3 className="se-page__title">Payouts</h3>
+    <h3 className="se-page__title">Orders</h3>
     {loading && <Skeleton lines={1} width="12rem" />}
     {signedOut && <Callout variant="warn" actions={<Button variant="secondary" size="sm" onClick={noop}>Sign in</Button>}>
       You are signed out. Sign in to keep working.</Callout>}
-    <div className="ui-toolbar">{loading ? <Skeleton className="ui-input-group" lines={1} width="100%" /> : <SearchField ariaLabel="Search payouts" defaultValue={search} />}
+    <div className="ui-toolbar">{loading ? <Skeleton className="ui-input-group" lines={1} width="100%" /> : <SearchField ariaLabel="Search orders" defaultValue={search} />}
       {filter && !loading && <Button variant="secondary" size="sm">Pending</Button>}</div>
-    <Card title="Pending payouts">{loading ? <SkeletonTable rows={3} cols={4} /> : <table className="ui-table ui-table--dense"><tbody>
-      <tr><td>PO-1170</td><td>860.00 EUR</td><td>Pending</td></tr>
-      <tr><td>PO-1168</td><td>1,975.50 EUR</td><td>Pending</td></tr>
+    <Card title="Pending orders">{loading ? <SkeletonTable rows={3} cols={4} /> : <table className="ui-table ui-table--dense"><tbody>
+      <tr><td>OR-1170</td><td>860.00 EUR</td><td>Pending</td></tr>
+      <tr><td>OR-1168</td><td>1,975.50 EUR</td><td>Pending</td></tr>
     </tbody></table>}</Card>
   </div>
   {dialog && <><div className="se-page__scrim" />
@@ -49,20 +49,20 @@ const SignInPage = () => <Stage><div className="se-page"><div className="se-page
   <Card title="Continue"><Button variant="primary">Continue with Google</Button></Card>
 </div></div></Stage>;
 
-const Payouts = ({ loading = false, search = 'PO-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
+const Orders = ({ loading = false, search = 'OR-1170', filter = true, signedOut = false, dialog = false, tall = false }: {
   loading?: boolean; search?: string; filter?: boolean; signedOut?: boolean; dialog?: boolean; tall?: boolean;
 }) => <Page loading={loading} search={search} filter={filter} signedOut={signedOut} dialog={dialog} tall={tall} />;
 
 const specimens = [
-  { id: 'sign-in-same-page', do: () => <Payouts loading dialog tall />,
+  { id: 'sign-in-same-page', do: () => <Orders loading dialog tall />,
     dont: () => <SignInPage /> },
-  { id: 'keep-work', do: () => <Payouts search="PO-1170" />,
-    dont: () => <Payouts search="" filter={false} /> },
+  { id: 'keep-work', do: () => <Orders search="OR-1170" />,
+    dont: () => <Orders search="" filter={false} /> },
   { id: 'say-session-ended', do: () => <SignIn />,
     dont: () => <SignIn text="Sign in required." /> },
-  { id: 'skeleton-behind-dialog', do: () => <Payouts loading dialog tall />,
+  { id: 'skeleton-behind-dialog', do: () => <Orders loading dialog tall />,
     dont: () => <BlankPage /> },
-  { id: 'lasting-sign-in', do: () => <Payouts loading signedOut />,
+  { id: 'lasting-sign-in', do: () => <Orders loading signedOut />,
     dont: () => <Stage><NoticePicture tone="warn" title="You are signed out" /></Stage> },
 ];
 

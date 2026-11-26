@@ -45,7 +45,7 @@ const foot = (h, ...children) => h('div', { className: 'ui-dropdown__foot' }, ..
 const CONTROLS = (h) => foot(h, h('button', { className: 'ui-btn ui-btn--sm' }, 'Cancel'),
   h('button', { className: 'ui-btn ui-btn--sm ui-btn--primary' }, 'Save'));
 const TEXT = (h) => foot(h, h('span', { className: 'ui-dropdown__desc' }, 'Counts refresh every 5 minutes.'));
-const HEAD = (h) => h('div', { className: 'ui-dropdown__head' }, h('b', null, 'Filter payouts'));
+const HEAD = (h) => h('div', { className: 'ui-dropdown__head' }, h('b', null, 'Filter orders'));
 
 /** The three panels the React Dropdown can draw, each named by the role it writes. Slots
  *  are built with the renderer's own createElement. */

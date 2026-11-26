@@ -81,7 +81,7 @@ export const HoldDanger: StoryObj = {
 const PERIODS = [{ label: 'This month', value: 'month' }, { label: 'This quarter', value: 'quarter' }];
 export const BesideTrigger: StoryObj = {
   name: 'Small, beside a dropdown trigger',
-  render: () => canvas(<Card title="Export payouts"><form className="ui-toolbar" onSubmit={(e) => e.preventDefault()}>
+  render: () => canvas(<Card title="Export orders"><form className="ui-toolbar" onSubmit={(e) => e.preventDefault()}>
     <Dropdown ariaLabel="Period" items={PERIODS} value="This month" selectedValue="month" />
     <Button size="sm" variant="primary" type="submit">Export</Button>
   </form></Card>),

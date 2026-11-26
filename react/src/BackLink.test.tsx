@@ -88,7 +88,7 @@ for (const href of SCRIPTS) {
 }
 
 it('the accessible name contains the visible text, as WCAG 2.5.3 asks', () => {
-  for (const label of ['Invoices', 'Payouts', 'Access & agents']) {
+  for (const label of ['Invoices', 'Orders', 'Access & agents']) {
     cleanup();
     const { container } = render(<BackLink href="/x" label={label} />);
     const a = container.querySelector('a')!;

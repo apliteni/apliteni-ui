@@ -92,7 +92,7 @@ exports[`the shape the vanilla factory agreed on > keeps the roomy density and a
       "classes": [
         "ui-cmdk__item",
       ],
-      "desc": "Revenue, payouts and fees",
+      "desc": "Revenue, orders and fees",
       "disabled": null,
       "haspopup": null,
       "keys": [],
@@ -175,7 +175,7 @@ exports[`the shape the vanilla factory agreed on > renders the palette, group fo
       "classes": [
         "ui-cmdk__item",
       ],
-      "desc": "Revenue, payouts and fees",
+      "desc": "Revenue, orders and fees",
       "disabled": null,
       "haspopup": null,
       "keys": [],

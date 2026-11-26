@@ -27,7 +27,7 @@ const sections: AccountSection[] = [
   </> },
   { id: 'notifications', label: 'Notifications', icon: 'bell', content: <>
     <Checkbox label="Weekly report" hint="A summary of the week, each Monday." defaultChecked />
-    <Checkbox label="Payout sent" hint="An email when a payout leaves the account." defaultChecked />
+    <Checkbox label="Order sent" hint="An email when a order leaves the account." defaultChecked />
     <Checkbox label="Product news" hint="New features, once a month." />
   </> },
   { id: 'billing', label: 'Billing', icon: 'card', content: <>

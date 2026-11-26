@@ -85,9 +85,9 @@ const SECTIONS = [
     label: 'Finance',
     items: [
       {
-        id: 'payouts',
+        id: 'orders',
         icon: 'card',
-        label: 'Payouts',
+        label: 'Orders',
         items: [{ id: 'pending', label: 'Pending', badge: 3 }, { id: 'history', label: 'History' }],
       },
     ],

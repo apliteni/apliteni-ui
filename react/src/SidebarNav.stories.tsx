@@ -19,7 +19,7 @@ const groups: SidebarNavGroup[] = [
     label: 'Finance',
     items: [
       { id: 'revenue', icon: 'chart', label: 'Revenue' },
-      { id: 'payouts', icon: 'card', label: 'Payouts' },
+      { id: 'orders', icon: 'card', label: 'Orders' },
       { id: 'invoices', icon: 'doc', label: 'Invoices', badge: { text: 'due', tone: 'danger' } },
     ],
   },
@@ -37,11 +37,11 @@ const nested: SidebarNavBlock[] = [{
     { id: 'home', icon: 'chart', label: 'Dashboard' },
     { id: 'inbox', icon: 'mail', label: 'Inbox', badge: { text: 12, tone: 'accent' } },
     {
-      id: 'payouts', icon: 'card', label: 'Payouts',
+      id: 'orders', icon: 'card', label: 'Orders',
       items: [
-        { id: 'payouts-pending', label: 'Pending', badge: 3 },
-        { id: 'payouts-history', label: 'History' },
-        { id: 'payouts-methods', label: 'Methods' },
+        { id: 'orders-open', label: 'Open', badge: 3 },
+        { id: 'orders-drafts', label: 'Drafts' },
+        { id: 'orders-archive', label: 'Archive' },
       ],
     },
     { id: 'invoices', icon: 'doc', label: 'Invoices', badge: { text: 'due', tone: 'danger' } },
@@ -54,11 +54,11 @@ const footer = <a className="ui-nav__item is-danger" href="#logout" aria-label="
 </a>;
 // Sub-items under no group label. The current sub-item shows, and its parent is current.
 export const Sidebar: StoryObj<typeof SidebarNav> = {
-  args: { sections: nested, active: 'payouts-pending', 'aria-label': 'Primary', footer },
+  args: { sections: nested, active: 'orders-open', 'aria-label': 'Primary', footer },
 };
 // Group labels over rows with no sub-items.
 export const Groups: StoryObj<typeof SidebarNav> = {
-  args: { sections: groups, active: 'payouts', 'aria-label': 'Primary', footer },
+  args: { sections: groups, active: 'orders', 'aria-label': 'Primary', footer },
 };
 // The folded rail holds its caps, labels and counts at opacity 0, so the rail alone
 // renders no text a contrast walk can judge. The vanilla gallery's specimen caption

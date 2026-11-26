@@ -95,7 +95,7 @@ const formPanel = () => `
 const drawerPanel = () => drawer({
   side: 'right', size: 'md', open: true, title: 'Partner detail',
   body: drawerSection({
-    title: 'Payout',
+    title: 'Order',
     rows: [['Partner', 'Example Co.'], ['Period', 'Last 30 days'], ['Clicks', '1,240'], ['Status', 'Approved']],
   }),
   footer: `${button({ label: 'Close', variant: 'ghost', size: 'sm' })}${button({ label: 'Approve', variant: 'primary', size: 'sm' })}`,
@@ -105,8 +105,8 @@ const drawerPanel = () => drawer({
 // each re-points the inner line at it — the soft at 11%, the outline at 20%, the
 // solid to `transparent`, the status at full fill strength being its own edge.
 const toasts = () => `<div class="fl-toasts">
-  ${toast({ variant: 'success', style: 'soft', title: 'Payout approved', body: 'Example Co. will be paid on the 1st.', dismissible: false })}
-  ${toast({ variant: 'danger', style: 'solid', title: 'Payout failed', body: 'The partner has no payment method on file.', dismissible: false })}
+  ${toast({ variant: 'success', style: 'soft', title: 'Order approved', body: 'Example Co. will be paid on the 1st.', dismissible: false })}
+  ${toast({ variant: 'danger', style: 'solid', title: 'Order failed', body: 'The partner has no payment method on file.', dismissible: false })}
   ${toast({ variant: 'info', style: 'outline', title: 'Report queued', body: 'It will appear under Reports when it is ready.', dismissible: false })}
 </div>`;
 
@@ -114,7 +114,7 @@ const PANEL = { list: listPanel, form: formPanel };
 
 document.getElementById('root').innerHTML = frame === 'drawer'
   ? `<div class="fl-page"><div class="fl-cell">${card({
-    title: 'Partner payouts',
+    title: 'Partner orders',
     sub: 'A placeholder report, so the drawer has something to be over.',
     body: '<div class="fl-card-body">'
       + ['Example Co.', 'Placeholder Ltd.', 'Sample Partners', 'Demo Media', 'Placeholder Two', 'Example North']
@@ -122,7 +122,7 @@ document.getElementById('root').innerHTML = frame === 'drawer'
       + '</div>',
   })}</div></div>${drawerPanel()}`
   : `<div class="fl-page"><div class="fl-cell">${card({
-  title: 'Partner payouts',
+  title: 'Partner orders',
   sub: 'A placeholder report, so the panel has something to be above.',
   body: `${frame === 'toast' ? '' : `<div class="fl-trigger-row">${PANEL[frame]()}</div>`}
     ${frame === 'toast' ? toasts() : ''}

@@ -20,24 +20,24 @@ const Table = ({ rows = ROWS }: { rows?: string[][] }) => (
   <table className="ui-table ui-table--dense ui-table--hover">
     <thead><tr><th>ID</th><th>Arrival</th><th className="ui-table__num">Net (EUR)</th></tr></thead>
     <tbody>{rows.map(([id, arr, net]) => (
-      <tr key={id}><td className="ui-table__linked"><a href="#payout">{id}</a></td><td>{arr}</td><td className="ui-table__num">{net}</td></tr>
+      <tr key={id}><td className="ui-table__linked"><a href="#order">{id}</a></td><td>{arr}</td><td className="ui-table__num">{net}</td></tr>
     ))}</tbody>
   </table>
 );
 // Each long table has its filter bar directly above it, the loading one included.
 // why: guidelines/dense-tables.md
-const usePayoutFilters = () => useTableFilters(ROWS, {
-  search: 'Search payouts', placeholder: 'ID', label: 'Payout filters', text: ([id]) => id, facets: [],
+const useOrderFilters = () => useTableFilters(ROWS, {
+  search: 'Search orders', placeholder: 'ID', label: 'Order filters', text: ([id]) => id, facets: [],
 });
 
 export const Busy: StoryObj = {
   render: function Render() {
-    const { bar } = usePayoutFilters();
+    const { bar } = useOrderFilters();
     return (
       <div style={{ maxWidth: 560 }}><div className="ui-card-stack">
         {bar}
-        <Card title="Payouts">
-          <BusyRegion busy label="Loading 3 payouts…" placeholder={<SkeletonTable rows={3} cols={3} />} />
+        <Card title="Orders">
+          <BusyRegion busy label="Loading 3 orders…" placeholder={<SkeletonTable rows={3} cols={3} />} />
         </Card>
       </div></div>
     );
@@ -79,7 +79,7 @@ export const PermissionDenied: StoryObj = {
 export const Transition: StoryObj = {
   render: () => {
     const [state, setState] = useState<'busy' | 'done' | 'denied'>('busy');
-    const { bar, shown } = usePayoutFilters();
+    const { bar, shown } = useOrderFilters();
     return (
       <div style={{ maxWidth: 560 }}>
         <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
@@ -87,19 +87,19 @@ export const Transition: StoryObj = {
           <Button size="sm" variant="primary" onClick={() => setState('done')}>Loaded</Button>
           <Button size="sm" variant="danger" onClick={() => setState('denied')}>Denied</Button>
         </div>
-        {/* A reader who cannot see payouts has no table to filter. */}
+        {/* A reader who cannot see orders has no table to filter. */}
         <div className="ui-card-stack">
         {state !== 'denied' && bar}
-        <Card title="Payouts">
+        <Card title="Orders">
           <BusyRegion
             busy={state === 'busy'}
-            label="Loading 3 payouts…"
-            message={state === 'denied' ? 'You don’t have access to payouts.' : '3 payouts'}
+            label="Loading 3 orders…"
+            message={state === 'denied' ? 'You don’t have access to orders.' : '3 orders'}
             placeholder={<SkeletonTable rows={3} cols={3} />}
           >
             {state === 'denied'
-              ? <Denied title="You don’t have access to payouts" sub="Your token reads the account only." need="reports.read" />
-              : shown.length ? <Table rows={shown} /> : <p>No payouts match.</p>}
+              ? <Denied title="You don’t have access to orders" sub="Your token reads the account only." need="reports.read" />
+              : shown.length ? <Table rows={shown} /> : <p>No orders match.</p>}
           </BusyRegion>
         </Card>
         </div>

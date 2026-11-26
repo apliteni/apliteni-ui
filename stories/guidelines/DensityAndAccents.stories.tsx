@@ -22,15 +22,15 @@ const Section = ({ title, pairs }: { title?: string; pairs: [string, string][] }
 const FACTS: [string, string][] = [['Amount', '€ 1,240.00'], ['Arrival', '30 Sep 2026'], ['Source', 'Bank feed']];
 const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?: boolean }) =>
   <div className={`ui-card ui-card--pad-sm ${colourful ? 'gda-coloured' : ''}`}>
-    <h3 className="ui-card__title">Payout 1162</h3>
+    <h3 className="ui-card__title">Order 1162</h3>
     <Badge variant="pending">In transit</Badge>
     <Section pairs={FACTS} />
     {bad && <>
-      <Section title="Payout details" pairs={[['Payout reference', 'Payout 1162'], ['Payout status', 'In transit'], ['Payout amount', '€ 1,240.00']]} />
+      <Section title="Order details" pairs={[['Order reference', 'Order 1162'], ['Order status', 'In transit'], ['Order amount', '€ 1,240.00']]} />
       <Section title="History" pairs={[['28 Sep, 09:00', 'Created'], ['28 Sep, 09:02', 'Approved'], ['29 Sep, 08:00', 'Sent to bank']]} />
     </>}
     <div className="gda-actions">
-      <Button variant="primary" size="sm">Open payout</Button>
+      <Button variant="primary" size="sm">Open order</Button>
       <Button variant={colourful ? 'primary' : 'secondary'} size="sm">Copy reference</Button>
     </div>
   </div>;
@@ -38,22 +38,22 @@ const Preview = ({ bad = false, colourful = false }: { bad?: boolean; colourful?
 // The ledger sits in a card, as the preview under it does, and the card ends where
 // the table does (--fit), so the two halves are compared on their content. Its filter
 // bar sits directly above it, because every long table has one.
-const PAYOUTS: [string, string, ReactNode][] = [
+const ORDERS: [string, string, ReactNode][] = [
   ['1162', '1,240.00', <Badge variant="pending">In transit</Badge>],
   ['1161', '860.00', <Badge variant="success">Paid</Badge>],
   ['1160', '2,100.00', <Badge variant="success">Paid</Badge>],
 ];
 const STATUS = [{ id: 'status', label: 'Status', any: 'Any status', values: ['In transit', 'Paid'] }];
-const Payouts = () => <div className="ui-card-stack"><RestingFilters search="Search payouts" placeholder="Reference" label="Payout filters" chips={STATUS} />
+const Orders = () => <div className="ui-card-stack"><RestingFilters search="Search orders" placeholder="Reference" label="Order filters" chips={STATUS} />
 <div className="gda-table"><div className="ui-card ui-card--pad-sm ui-card--fit">
   <table className="ui-table ui-table--dense ui-table--zebra">
-    <caption>Payouts · EUR</caption>
+    <caption>Orders · EUR</caption>
     <thead><tr><th>Reference</th><th className="ui-table__num">Amount</th><th>Status</th></tr></thead>
-    <tbody>{PAYOUTS.map(([reference, amount, status]) =>
+    <tbody>{ORDERS.map(([reference, amount, status]) =>
       <tr key={reference}><td>{reference}</td><td className="ui-table__num">{amount}</td><td>{status}</td></tr>)}</tbody>
   </table>
 </div></div></div>;
-const Figures = () => <StatBand variant="tiles" basis="September payouts"
+const Figures = () => <StatBand variant="tiles" basis="September orders"
   stats={[{ label: 'Paid', value: '€ 8,640' }, { label: 'In transit', value: '€ 1,240' }]} />;
 
 // A document preview beside the fields a parser read from it. Both panels print the
@@ -78,7 +78,7 @@ const Consequence = ({ savedLeads }: { savedLeads: boolean }) => <Stage>
 
 const specimens = [
   { id: 'check-density', do: () => <Stage mod="gda-band"><Figures /></Stage>, dont: () => <Stage mod="gda-band gda-forced"><Figures /></Stage> },
-  { id: 'reduce-density', do: () => <Stage><Payouts /><Preview /></Stage>, dont: () => <Stage><Payouts /><Preview bad /></Stage> },
+  { id: 'reduce-density', do: () => <Stage><Orders /><Preview /></Stage>, dont: () => <Stage><Orders /><Preview bad /></Stage> },
   { id: 'purposeful-accent', do: () => <Stage><Preview /></Stage>, dont: () => <Stage><Preview colourful /></Stage> },
   { id: 'follow-the-consequence', do: () => <Consequence savedLeads />, dont: () => <Consequence savedLeads={false} /> },
 ];

@@ -45,7 +45,7 @@ const WALK = `(() => {
  * black outline. Rendered over the story's own row so the sheet under it is real. */
 const ALL_DISABLED = `(() => {
   const nav = document.querySelector('.ui-nav--tabs');
-  nav.innerHTML = ['Summary', 'Payouts', 'Transactions', 'Disputes', 'Exports']
+  nav.innerHTML = ['Summary', 'Orders', 'Transactions', 'Disputes', 'Exports']
     .map((label) => '<span class="ui-nav__tab is-disabled" aria-disabled="true">'
       + '<span class="ui-nav__tab-label">' + label + '</span></span>').join('');
   return { stops: nav.querySelectorAll('a[href],[tabindex]').length };

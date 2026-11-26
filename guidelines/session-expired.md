@@ -8,7 +8,7 @@
 
 **Why:** The reader can see where work will continue.
 
-**Do:** Open “Sign in again” over Payouts.
+**Do:** Open “Sign in again” over Orders.
 
 **Don't:** Send the reader to a sign-in page.
 
@@ -44,7 +44,7 @@
 
 **Why:** The reader keeps their place without seeing protected data.
 
-**Do:** Keep Payouts and show a table-shaped skeleton.
+**Do:** Keep Orders and show a table-shaped skeleton.
 
 **Don't:** Blank the whole page behind the dialog.
 

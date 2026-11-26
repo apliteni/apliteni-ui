@@ -20,9 +20,9 @@
 
 **Why:** Both together make a long sidebar that scrolls, so the reader cannot see all the sections at once.
 
-**Do:** Put Pending and History under Payouts, with no group labels.
+**Do:** Put Pending and History under Orders, with no group labels.
 
-**Don't:** Put Payouts and its sub-items under a Money label.
+**Don't:** Put Orders and its sub-items under a Money label.
 
 ## Keep the bar’s end for product alerts
 
@@ -172,6 +172,6 @@
 
 **Why:** Repeating the title wastes the reader’s time.
 
-**Do:** Below “Payouts”, say “Payouts arrive within three business days.”
+**Do:** Below “Orders”, say “Orders arrive within three business days.”
 
-**Don't:** Write “This is the payouts page” below “Payouts,” or keep a line there because the page looks bare without one.
+**Don't:** Write “This is the orders page” below “Orders,” or keep a line there because the page looks bare without one.

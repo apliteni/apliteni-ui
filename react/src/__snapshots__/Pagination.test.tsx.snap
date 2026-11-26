@@ -118,7 +118,7 @@ exports[`keeps the shape the vanilla pager agreed on: a label of its own 1`] = `
   ],
   "jump": null,
   "jumpOf": null,
-  "label": "Payout pages",
+  "label": "Order pages",
   "live": 1,
   "sizeDisabled": null,
   "sizes": [],

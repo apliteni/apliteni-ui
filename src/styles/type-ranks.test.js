@@ -190,11 +190,11 @@ test('each rank is under the one above it', () => {
 
 test('a card title is a heading one level under the page title', async () => {
   const card = (props) => markup(({ h, kit }) => h(kit.Card, props));
-  assert.match(await card({ title: 'Payouts' }), /^<div class="ui-card"><h2 class="ui-card__title">Payouts<\/h2>/);
-  assert.match(await card({ title: 'Payouts', level: 3 }), /<h3 class="ui-card__title">Payouts<\/h3>/);
-  assert.match(await card({ title: 'Payouts', level: 6 }), /<h6 class="ui-card__title">Payouts<\/h6>/);
-  assert.match(await card({ title: 'Payouts', level: 7 }), /<h2 class="ui-card__title">/);
-  assert.match(await card({ title: 'Payouts', level: 1 }), /<h2 class="ui-card__title">/,
+  assert.match(await card({ title: 'Orders' }), /^<div class="ui-card"><h2 class="ui-card__title">Orders<\/h2>/);
+  assert.match(await card({ title: 'Orders', level: 3 }), /<h3 class="ui-card__title">Orders<\/h3>/);
+  assert.match(await card({ title: 'Orders', level: 6 }), /<h6 class="ui-card__title">Orders<\/h6>/);
+  assert.match(await card({ title: 'Orders', level: 7 }), /<h2 class="ui-card__title">/);
+  assert.match(await card({ title: 'Orders', level: 1 }), /<h2 class="ui-card__title">/,
     'level 1 is the page title’s, so a card falls back to h2 rather than competing with it');
   assert.doesNotMatch(await card({ children: '<p>x</p>' }), /<h\d/);
 });

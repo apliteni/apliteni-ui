@@ -20,9 +20,9 @@ export type NotificationsPage = 'campaigns' | 'notifications' | 'record';
    A circled glyph is a state, so a failed run and a finished export take one. Each opens its record's own page,
    where the title names the record and the text says what happened, so no fact shows twice. */
 const NOTES: Note[] = [
-  { id: 'payout', glyph: 'circleX', title: 'Payout run PR-204 failed', sub: 'The bank refused 2 transfers.', time: '4 min', unread: true,
-    path: '/payouts/pr-204', record: 'Payout run PR-204', section: '/payouts',
-    text: 'The bank refused 2 of 18 transfers.' },
+  { id: 'run', glyph: 'circleX', title: 'Report run PR-204 failed', sub: 'The export timed out on 2 files.', time: '4 min', unread: true,
+    path: '/reports/pr-204', record: 'Report run PR-204', section: '/reports',
+    text: 'The export timed out on 2 of 18 files.' },
   { id: 'assign', glyph: 'user', title: 'Mira Kade assigned you CMP-88', sub: 'Spring offer landing page', time: '1 h', unread: true,
     path: '/campaigns/cmp-88', record: 'CMP-88 landing page', section: '/campaigns',
     text: 'Mira Kade assigned this campaign to you.' },
@@ -44,7 +44,6 @@ const CAMPAIGNS = [
 const SECTIONS = [
   { href: '/campaigns', label: 'Campaigns', icon: 'home' },
   { href: '/reports', label: 'Reports', icon: 'download' },
-  { href: '/payouts', label: 'Payouts', icon: 'calendar' },
   { href: '/settings', label: 'Settings', icon: 'gear' },
 ];
 const FAILED = 'Notifications did not load. Check the connection, then try again.';

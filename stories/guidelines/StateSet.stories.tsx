@@ -38,8 +38,8 @@ const Url = ({ error }: { error?: string }) =>
 // on the right the button is the only thing that knows. The table's filter bar
 // stays above it while its rows load.
 const Pending = ({ children }: { children: ReactNode }) => <Stage><div className="ui-card-stack">
-  <RestingFilters search="Search payouts" placeholder="ID" label="Payout filters" />
-  <Card title="Payouts">
+  <RestingFilters search="Search orders" placeholder="ID" label="Order filters" />
+  <Card title="Orders">
     {children}
     <div className="gl-row" style={{ marginTop: 'var(--space-3)' }}><Button busy>Refresh</Button></div>
   </Card>
@@ -52,7 +52,7 @@ const specimens = [
   { id: 'error-in-markup', do: () => <Stage><Url error={WHY_INVALID} /></Stage>,
     dont: () => <div className="gl-stage gl-stack"><Url /><Callout variant="danger">{WHY_INVALID}</Callout></div> },
   { id: 'loading',
-    do: () => <Pending><BusyRegion busy label="Loading 3 payouts…" placeholder={<SkeletonTable rows={3} cols={3} />} /></Pending>,
+    do: () => <Pending><BusyRegion busy label="Loading 3 orders…" placeholder={<SkeletonTable rows={3} cols={3} />} /></Pending>,
     dont: () => <Pending><p style={{ color: 'var(--text)', margin: 0 }}>Nothing here.</p></Pending> },
 ];
 

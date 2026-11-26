@@ -1034,9 +1034,9 @@ unique item IDs and set `active` to the current route’s ID. The current link h
 badges accept text, numbers (including zero), or `{ text, tone }`.
 
 ```tsx
-<NavTabs aria-label="Finance views" active="payouts" items={[
+<NavTabs aria-label="Finance views" active="orders" items={[
   { id: 'summary', label: 'Summary', href: '/finance' },
-  { id: 'payouts', label: 'Payouts', href: '/payouts', badge: 3 },
+  { id: 'orders', label: 'Orders', href: '/orders', badge: 3 },
   { id: 'exports', label: 'Exports', disabled: true },
 ]} />
 ```
@@ -1050,7 +1050,7 @@ yet costs nothing to pass.
 handles the navigation instead of the browser reloading the document:
 
 ```tsx
-<NavTabs active="payouts" items={items}
+<NavTabs active="orders" items={items}
   renderLink={(item, { href, children, ...props }) => (
     <Link {...props} to={href!}>{children}</Link>
   )} />

@@ -9,10 +9,10 @@ import assert from 'node:assert/strict';
 import { markup } from './lib/react-markup.js';
 
 const TABS = {
-  'aria-label': 'Finance views', active: 'payouts',
+  'aria-label': 'Finance views', active: 'orders',
   items: [
     { id: 'summary', label: 'Summary' },
-    { id: 'payouts', label: 'Payouts', badge: 3 },
+    { id: 'orders', label: 'Orders', badge: 3 },
     { id: 'transactions', label: 'Transactions' },
     { id: 'disputes', label: 'Disputes', badge: { text: 2, tone: 'danger' } },
     { id: 'exports', label: 'Exports', disabled: true },

@@ -11,10 +11,10 @@ it('renders title, sub and body', () => {
 
 // why: docs/foundations.md#labels-and-titles
 it('titles a card with a heading one level under the page title', () => {
-  const { getByRole, rerender } = render(<Card title="Payouts" />);
-  expect(getByRole('heading', { level: 2, name: 'Payouts' })).toHaveClass('ui-card__title');
-  rerender(<Card title="Payouts" level={3} />);
-  expect(getByRole('heading', { level: 3, name: 'Payouts' })).toHaveClass('ui-card__title');
+  const { getByRole, rerender } = render(<Card title="Orders" />);
+  expect(getByRole('heading', { level: 2, name: 'Orders' })).toHaveClass('ui-card__title');
+  rerender(<Card title="Orders" level={3} />);
+  expect(getByRole('heading', { level: 3, name: 'Orders' })).toHaveClass('ui-card__title');
 });
 
 it('renders no heading for a card without a title', () => {
@@ -27,8 +27,8 @@ it('renders no heading for a card without a title', () => {
 });
 
 it('falls back to h2 for a level that is not 2 to 6', () => {
-  const { getByRole } = render(<Card title="Payouts" level={7 as 2} />);
-  expect(getByRole('heading', { level: 2, name: 'Payouts' })).toBeTruthy();
+  const { getByRole } = render(<Card title="Orders" level={7 as 2} />);
+  expect(getByRole('heading', { level: 2, name: 'Orders' })).toBeTruthy();
 });
 
 // Main gave Button a merged className in 0.64.0; the card takes one the same way, so a
@@ -83,15 +83,15 @@ it.each(['/deck', 'https://example.com/deck'])(
 // #736: tools sit at the end of the title row, as a page's tools sit beside its title.
 it('puts tools at the end of the title row, and draws no row for a card without them', () => {
   const { container, getByRole, rerender } = render(
-    <Card title="Payouts" tools={<button type="button">Export</button>} />,
+    <Card title="Orders" tools={<button type="button">Export</button>} />,
   );
   const head = container.querySelector('.ui-card > .ui-card__head')!;
   expect([...head.children].map((el) => el.className)).toEqual(['ui-card__title', 'ui-card__tools']);
   expect(head.querySelector('.ui-card__tools')).toContainElement(getByRole('button', { name: 'Export' }));
-  expect(getByRole('heading', { name: 'Payouts' })).not.toContainElement(getByRole('button'));
-  rerender(<Card title="Payouts" />);
+  expect(getByRole('heading', { name: 'Orders' })).not.toContainElement(getByRole('button'));
+  rerender(<Card title="Orders" />);
   expect(container.querySelector('.ui-card__head')).toBeNull();
   // A link holds no button, so a link card draws no tools.
-  rerender(<Card title="Payouts" href="/payouts" tools={<button type="button">Export</button>} />);
+  rerender(<Card title="Orders" href="/orders" tools={<button type="button">Export</button>} />);
   expect(container.querySelector('.ui-card__head, button')).toBeNull();
 });

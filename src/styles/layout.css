@@ -297,7 +297,7 @@
    was hugging the rail, 519px of dead background on the right at 1728px wide.
    The width is what keeps the auto margins honest: an auto inline margin takes
    a grid item out of stretch, and Chrome then lays it out at its max-content
-   width, which is how the payout ledger pushed the page 529px sideways at 375.
+   width, which is how the order ledger pushed the page 529px sideways at 375.
    --measure is the ONE source for this width now. shell.js used to carry its
    own copy of the number and a test held the two in step; it now omits the
    property rather than writing a default, so an absent or unparseable maxWidth

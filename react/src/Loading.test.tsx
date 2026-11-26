@@ -3,12 +3,12 @@ import { Skeleton, SkeletonTable, BusyRegion, Denied } from './Loading';
 import { Button } from './primitives/Button';
 
 it('the busy region is the same polite live region the vanilla kit ships', () => {
-  const { container } = render(<BusyRegion busy label="Loading payouts…">rows</BusyRegion>);
+  const { container } = render(<BusyRegion busy label="Loading orders…">rows</BusyRegion>);
   const region = container.querySelector('.ui-busy')!;
   expect(region).toHaveAttribute('role', 'status');
   expect(region).toHaveAttribute('aria-live', 'polite');
   expect(region).toHaveAttribute('aria-busy', 'true');
-  expect(region.querySelector('.ui-sr')).toHaveTextContent('Loading payouts…');
+  expect(region.querySelector('.ui-sr')).toHaveTextContent('Loading orders…');
 });
 
 // The whole mechanism. React announces by keeping the region mounted and
@@ -16,16 +16,16 @@ it('the busy region is the same polite live region the vanilla kit ships', () =>
 // loaded view announces nothing, which is the silent bug #128 was filed for.
 it('the region element survives the busy → ready transition', () => {
   const { container, rerender } = render(
-    <BusyRegion busy label="Loading payouts…" message="3 payouts"><p>rows</p></BusyRegion>,
+    <BusyRegion busy label="Loading orders…" message="3 orders"><p>rows</p></BusyRegion>,
   );
   const before = container.querySelector('.ui-busy');
   expect(container.querySelector('.ui-skel')).toBeInTheDocument();
 
-  rerender(<BusyRegion busy={false} label="Loading payouts…" message="3 payouts"><p>rows</p></BusyRegion>);
+  rerender(<BusyRegion busy={false} label="Loading orders…" message="3 orders"><p>rows</p></BusyRegion>);
 
   expect(container.querySelector('.ui-busy')).toBe(before);
   expect(before).toHaveAttribute('aria-busy', 'false');
-  expect(before!.querySelector('.ui-sr')).toHaveTextContent('3 payouts');
+  expect(before!.querySelector('.ui-sr')).toHaveTextContent('3 orders');
   expect(container.querySelector('.ui-skel')).toBeNull();
   expect(screen.getByText('rows')).toBeInTheDocument();
 });

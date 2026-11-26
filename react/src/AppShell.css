@@ -132,7 +132,7 @@
 }
 @media (min-width: 561px) and (max-width: 720px) {
   /* The title keeps its words up to half the band, and search shrinks first, so a short title
-     such as Payouts stays whole beside two band actions at 561px (#847). */
+     such as Orders stays whole beside two band actions at 561px (#847). */
   .ui-react-app .ui-app__bar:has(> .ui-react-app__title) > .ui-react-app__title { flex-shrink: 0; max-width: 50%; }
 }
 @media (max-width: 560px) {

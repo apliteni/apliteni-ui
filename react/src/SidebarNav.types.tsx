@@ -7,15 +7,15 @@ import { SidebarNav } from './SidebarNav';
 import { AppShell } from './AppShell';
 
 const leaf = { id: 'inv', label: 'Invoices' };
-const group = { id: 'pay', label: 'Payouts', items: [{ id: 'pending', label: 'Pending' }] };
-const shell = { pathname: '/', title: 'Payouts', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut() {} };
+const group = { id: 'orders', label: 'Orders', items: [{ id: 'open', label: 'Open' }] };
+const shell = { pathname: '/', title: 'Orders', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut() {} };
 
 export const allowed = <>
   <SidebarNav sections={[{ label: 'Billing', items: [leaf] }, { label: 'Workspace', items: [leaf] }]} />
   <SidebarNav sections={[{ items: [leaf, group] }]} />
   <SidebarNav items={[leaf, group]} />
-  <AppShell {...shell} sections={[{ href: '/pay', label: 'Payouts', icon: 'card', items: [{ href: '/pay/pending', label: 'Pending' }] }]} />
-  <AppShell {...shell} groups={[{ label: 'Money', sections: [{ href: '/pay', label: 'Payouts', icon: 'card' }] }]} />
+  <AppShell {...shell} sections={[{ href: '/orders', label: 'Orders', icon: 'card', items: [{ href: '/orders/open', label: 'Open' }] }]} />
+  <AppShell {...shell} groups={[{ label: 'Workspace', sections: [{ href: '/orders', label: 'Orders', icon: 'card' }] }]} />
 </>;
 
 export const refused = <>
@@ -24,7 +24,7 @@ export const refused = <>
   {/* @ts-expect-error -- labels in one section and sub-items in another */}
   <SidebarNav sections={[{ label: 'Billing', items: [leaf] }, { items: [group] }]} />
   {/* @ts-expect-error -- a grouped section takes no sub-items */}
-  <AppShell {...shell} groups={[{ label: 'Money', sections: [{ href: '/pay', label: 'Payouts', icon: 'card', items: [{ href: '/pay/pending', label: 'Pending' }] }] }]} />
+  <AppShell {...shell} groups={[{ label: 'Workspace', sections: [{ href: '/orders', label: 'Orders', icon: 'card', items: [{ href: '/orders/open', label: 'Open' }] }] }]} />
   {/* @ts-expect-error -- sections and groups in one shell */}
   <AppShell {...shell} sections={[]} groups={[]} />
 </>;

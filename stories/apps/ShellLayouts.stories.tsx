@@ -2,15 +2,10 @@
 // vanilla page's title and id. One composition: what differs between any two
 // screens is the layout or the width and nothing else.
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
 import { DemoShell, type DemoNavItem } from './_demo-shell';
-import { FilterBar } from '../../react/src/FilterBar';
-import { SearchField } from '../../react/src/SearchField';
-import { EmptyState } from '../../react/src/EmptyState';
-import { Button } from '../../react/src/primitives/Button';
+import { Dropdown } from '../../react/src/Dropdown';
 import { Badge } from '../../react/src/primitives/Badge';
 import { Icon } from '../../react/src/primitives/Icon';
-import { Dropdown } from '../../react/src/Dropdown';
 import { Card } from '../../react/src/primitives/Card';
 
 const meta: Meta = {
@@ -25,66 +20,31 @@ export default meta;
 
 const NAV: DemoNavItem[] = [
   { id: 'overview', icon: 'chart', label: 'Overview' },
-  { id: 'campaigns', icon: 'card', label: 'Campaigns' },
-  // The rail layout draws no counts (#717); the top bar layout shows this one.
-  { id: 'reports', icon: 'table', label: 'Reports', count: 4 },
-  { id: 'agents', icon: 'user', label: 'Access & agents' },
-  { id: 'prefs', icon: 'gear', label: 'Preferences' },
+  { id: 'reports', icon: 'table', label: 'Reports' },
+  { id: 'settings', icon: 'gear', label: 'Settings' },
 ];
 
 // The topbar layout's search field is the way into this palette.
 const PALETTE = { groups: [{ label: 'Go to', items: [
   { id: 'overview', label: 'Overview', description: 'Traffic and revenue', icon: 'chart', href: '#overview' },
-  { id: 'reports', label: 'Reports', description: 'Four waiting for approval', icon: 'table', href: '#reports' },
-  { id: 'prefs', label: 'Preferences', description: 'Locale, currency, notifications', icon: 'gear', href: '#prefs' },
+  { id: 'reports', label: 'Reports', description: 'All reports', icon: 'table', href: '#reports' },
+  { id: 'settings', label: 'Settings', description: 'Preferences', icon: 'gear', href: '#settings' },
 ] }] };
-
-const ROWS = [
-  ['Northwind Traders', '2026-09-11', '4,200.00', 'Paid'],
-  ['Globex', '2026-09-10', '860.00', 'Pending'],
-  ['Initech', '2026-09-09', '1,975.50', 'Pending'],
-  ['Umbrella', '2026-09-08', '312.40', 'Paid'],
-];
-
-// The status chip starts unset, so the table opens on every payout.
-const STATUS = { id: 'status', label: 'Status', items: [{ label: 'Any status', value: '' }, { label: 'Paid', value: 'Paid' }, { label: 'Pending', value: 'Pending' }] };
 
 // The topbar layout's bell at the band's right end (#847). The count is its name too.
 const BELL = <Dropdown variant="menu" align="end" chevron={false} title="Notifications" ariaLabel="Notifications, 2 unread"
   triggerContent={<><Icon name="bell" /><span aria-hidden="true"><Badge>2</Badge></span></>}
   header={<div className="ui-dropdown__head"><b>Notifications</b></div>}
-  items={[{ label: 'Globex payout needs a second approval', value: 'globex', href: '#globex' },
-    { label: 'Initech payout needs a second approval', value: 'initech', href: '#initech' }]} />;
+  items={[{ label: 'Report run PR-204 failed', value: 'report', href: '#report' },
+    { label: 'Jon Avery commented', value: 'comment', href: '#comment' }]} />;
 
-const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) => {
-  const [query, setQuery] = useState('');
-  const [status, setStatus] = useState('');
-  const term = query.trim().toLowerCase();
-  const rows = ROWS.filter(([client, , , state]) => (!status || state === status) && client.toLowerCase().includes(term));
-  const clear = () => { setQuery(''); setStatus(''); };
-  return <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Payouts"
-    lede="Two of the four that arrived this week are waiting for a second approval."
+const Screen = ({ layout, width }: { layout: 'topbar' | 'rail'; width: 'wide' | 'centered' }) => (
+  <DemoShell word="Finance" layout={layout} width={width} nav={NAV} active="reports" title="Reports"
+    lede="Everything the team needs, in one place."
     palette={layout === 'topbar' ? PALETTE : undefined} bandActions={layout === 'topbar' ? BELL : undefined}>
-    {/* Each long table has its filter bar directly above it, on the page with no card
-        of its own. why: docs/components.md#fields */}
-    <div className="ui-toolbar">
-      <SearchField ariaLabel="Search payouts" placeholder="Client" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-      <FilterBar filters={[{ ...STATUS, value: status }]} label="Payout filters"
-        onChange={(_, value) => setStatus(value ?? '')} onRemove={() => setStatus('')} onClear={() => setStatus('')} />
-    </div>
-    {/* The table stays a direct child of the card, as the finance screens' does. */}
-    <Card title="Payouts this week">
-      {rows.length ? <table className="ui-table ui-table--dense ui-table--zebra">
-        <thead><tr><th>Client</th><th>Arrival</th><th className="ui-table__num">Net (EUR)</th><th>Status</th></tr></thead>
-        <tbody>{rows.map(([client, day, net, state]) => <tr key={client}><td>{client}</td><td>{day}</td>
-          <td className="ui-table__num">{net}</td><td><Badge variant={state === 'Paid' ? 'success' : 'warning'}>{state}</Badge></td></tr>)}</tbody>
-      </table> : <EmptyState title="No payouts match" sub="" icon="" actions={<Button size="sm" onClick={clear}>Clear all</Button>} />}
-    </Card>
-    <Card title="What the width does">
-      <p>This screen is the <b>{width}</b> column. The wide column fills the well; the centered one is capped and sits in the middle of it.</p>
-    </Card>
-  </DemoShell>;
-};
+    <Card title="Reports"><p>Choose a report to see its details.</p></Card>
+  </DemoShell>
+);
 
 export const TopbarWide: StoryObj = { render: () => <Screen layout="topbar" width="wide" /> };
 export const TopbarCentered: StoryObj = { render: () => <Screen layout="topbar" width="centered" /> };

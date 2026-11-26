@@ -29,7 +29,7 @@ const ILLO = {
     <path class="ui-illo__stroke" d="M102 86l11 11"/>
     ${spark(112, 18)}`),
 
-  // A statement with an exchange glyph — Transactions, payouts, ledgers.
+  // A statement with an exchange glyph — Transactions, orders, ledgers.
   transactions: svg(`
     <rect class="ui-illo__fill" x="24" y="32" width="72" height="56" rx="9"/>
     <rect class="ui-illo__stroke" x="34" y="22" width="72" height="56" rx="9"/>

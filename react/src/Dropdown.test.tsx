@@ -823,7 +823,7 @@ it('a search dropdown whose rows the caller draws is still filtered and still pi
   );
   const items: DropdownEntry[] = [
     { label: 'Invoices', value: 'inv', href: '/invoices' },
-    { label: 'Payouts', value: 'pay', href: '/payouts' },
+    { label: 'Orders', value: 'ord', href: '/orders' },
     { label: 'Customers', value: 'cus', href: '/customers' },
   ];
   const { container } = render(
@@ -834,12 +834,12 @@ it('a search dropdown whose rows the caller draws is still filtered and still pi
   await user.click(dd.querySelector('.ui-dropdown__trigger')!);
   const field = dd.querySelector('.ui-dropdown__search-input') as HTMLInputElement;
   expect([...dd.querySelectorAll('[data-dd-item]')].map((el) => el.tagName)).toEqual(['A', 'A', 'A']);
-  await user.type(field, 'pay');
-  expect(searchShape(dd).showing).toEqual(['Payouts']);
-  expect(searchShape(dd).active).toBe('Payouts');
+  await user.type(field, 'ord');
+  expect(searchShape(dd).showing).toEqual(['Orders']);
+  expect(searchShape(dd).active).toBe('Orders');
   // Enter clicks the row itself, which is what makes a router link navigate.
   await user.keyboard('{Enter}');
-  expect(picks).toEqual(['Payouts']);
+  expect(picks).toEqual(['Orders']);
 });
 
 test('state badge ink and generic metadata match the factory classification', () => {
