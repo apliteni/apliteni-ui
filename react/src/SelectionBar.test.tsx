@@ -1,0 +1,131 @@
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { vi } from 'vitest';
+import { SelectionBar, fitActions, type SelectionBarAction } from './SelectionBar';
+import { splitSelectorList } from '../../scripts/lib/selector-list.js';
+
+const STATUS: SelectionBarAction = { id: 'status', label: 'Status', items: [{ label: 'Draft', value: 'draft' }, { label: 'Ready', value: 'ready' }] };
+const actions: SelectionBarAction[] = [STATUS, { id: 'archive', label: 'Archive' }, { id: 'owner', label: 'Owner', items: [{ label: 'Avery' }, { label: 'Blair' }] }];
+const read = (rel: string): string => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
+const handlers = () => ({ onAction: vi.fn(), onClear: vi.fn() });
+
+// The arithmetic only. A browser decides the widths it is given.
+it('stands every action that fits, and leaves room for More when they do not', () => {
+  expect(fitActions([60, 60, 60], 188, 20, 4)).toBe(3);
+  expect(fitActions([60, 60, 60], 150, 20, 4)).toBe(2);
+  expect(fitActions([60, 60, 60], 143, 20, 4)).toBe(1);
+  expect(fitActions([60, 60], 50, 70, 4)).toBe(0);
+  expect(fitActions([], 0, 70, 4)).toBe(0);
+});
+
+// DOM only: what is drawn and what it is called. A browser measures the paint.
+it('draws nothing at 0, and a named region with the count and Clear once rows are selected', () => {
+  const props = handlers();
+  const { rerender } = render(<SelectionBar count={0} actions={actions} {...props} />);
+  expect(screen.queryByRole('region')).toBeNull();
+  rerender(<SelectionBar count={2} actions={actions} noun="documents" {...props} />);
+  const bar = screen.getByRole('region', { name: 'Selected documents' });
+  expect(within(bar).getByText('2 selected')).toBeInTheDocument();
+  // Clear stands beside the count, before the actions, in the Tab order.
+  expect(within(bar).getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'Archive', 'Owner']);
+});
+
+it('says each count politely, and says when the selection goes back to none', () => {
+  const props = handlers();
+  const { rerender } = render(<SelectionBar count={0} actions={actions} {...props} />);
+  const status = screen.getByRole('status');
+  expect(status).toHaveAttribute('aria-live', 'polite');
+  expect(status).toHaveAttribute('aria-atomic', 'true');
+  expect(status).toHaveTextContent(/^$/);
+  rerender(<SelectionBar count={3} actions={actions} {...props} />);
+  expect(screen.getByRole('status')).toHaveTextContent('3 rows selected');
+  rerender(<SelectionBar count={0} actions={actions} {...props} />);
+  expect(screen.getByRole('status')).toHaveTextContent('No rows selected');
+});
+
+it('applies a pick at once, keeps the field name on the trigger, and runs a button', async () => {
+  const props = handlers();
+  render(<SelectionBar count={2} actions={actions} {...props} />);
+  const status = screen.getByRole('button', { name: 'Status' });
+  await userEvent.click(status);
+  await userEvent.click(screen.getByRole('menuitem', { name: 'Ready' }));
+  expect(props.onAction).toHaveBeenCalledWith('status', 'ready');
+  expect(status).toHaveTextContent(/^Status$/);
+  await userEvent.click(screen.getByRole('button', { name: 'Owner' }));
+  await userEvent.click(screen.getByRole('menuitem', { name: 'Blair' }));
+  expect(props.onAction).toHaveBeenCalledWith('owner', 'Blair');
+  await userEvent.click(screen.getByRole('button', { name: 'Archive' }));
+  expect(props.onAction).toHaveBeenLastCalledWith('archive');
+  expect(props.onClear).not.toHaveBeenCalled();
+});
+
+it('closes an open list on the first Escape and clears on the second', async () => {
+  const props = handlers();
+  render(<SelectionBar count={2} actions={actions} {...props} />);
+  const status = screen.getByRole('button', { name: 'Status' });
+  await userEvent.click(status);
+  expect(status).toHaveAttribute('aria-expanded', 'true');
+  await userEvent.keyboard('{Escape}');
+  expect(status).toHaveAttribute('aria-expanded', 'false');
+  expect(status).toHaveFocus();
+  expect(props.onClear).not.toHaveBeenCalled();
+  await userEvent.keyboard('{Escape}');
+  expect(props.onClear).toHaveBeenCalledTimes(1);
+  await userEvent.click(screen.getByRole('button', { name: 'Clear' }));
+  expect(props.onClear).toHaveBeenCalledTimes(2);
+});
+
+it('adds a search field to a list of ten', async () => {
+  const many = Array.from({ length: 10 }, (_, index) => ({ label: `Person ${index + 1}` }));
+  render(<SelectionBar count={1} actions={[{ id: 'owner', label: 'Owner', items: many }, STATUS]} {...handlers()} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Owner' }));
+  expect(screen.getByRole('combobox', { name: 'Search owner' })).toBeInTheDocument();
+});
+
+it('gives a list under ten rows no search field', async () => {
+  render(<SelectionBar count={1} actions={[STATUS]} {...handlers()} />);
+  await userEvent.click(screen.getByRole('button', { name: 'Status' }));
+  expect(screen.getByRole('menu', { name: 'Status' })).toBeInTheDocument();
+  expect(screen.queryByRole('combobox')).toBeNull();
+});
+
+// jsdom lays nothing out, so the widths are given: the count 100, each action 60, More 50,
+// and the room 250. Status and More fit beside the count, and Archive and Owner do not.
+it('moves the actions that do not fit into More, each list as a group under its name', async () => {
+  const props = handlers();
+  const box = vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    const width = this.classList.contains('ui-selection-bar__count') ? 100 : this.parentElement?.classList.contains('ui-selection-bar__measure') ? (this.textContent === 'More' ? 50 : 60) : 0;
+    return { width, height: 32, top: 0, left: 0, right: width, bottom: 32, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
+  });
+  const room = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-selection-room') ? 250 : 0;
+  });
+  try {
+    render(<SelectionBar count={2} actions={actions} {...props} />);
+    const bar = screen.getByRole('region');
+    expect(within(bar).getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'More']);
+    await userEvent.click(screen.getByRole('button', { name: 'More' }));
+    const menu = screen.getByRole('menu', { name: 'More' });
+    expect(within(menu).getByText('Owner')).toBeInTheDocument();
+    await userEvent.click(within(menu).getByRole('menuitem', { name: 'Avery' }));
+    expect(props.onAction).toHaveBeenCalledWith('owner', 'Avery');
+    await userEvent.click(screen.getByRole('button', { name: 'More' }));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Archive' }));
+    expect(props.onAction).toHaveBeenLastCalledWith('archive');
+  } finally {
+    box.mockRestore();
+    room.mockRestore();
+  }
+});
+
+// The sheet, read as text: the bar's inks sit on its parts, never on the bar or the room,
+// so a list opened from it keeps the page ink. A browser measures the paint itself.
+it('keeps the inverse ink off the bar box, so its lists keep the page theme', () => {
+  const css = read('./SelectionBar.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+  const boxes = rules.filter(([, selector]) => splitSelectorList(selector).some((part: string) => /^\s*\.ui-selection-(bar|room)\s*$/.test(part)));
+  expect(boxes.length).toBeGreaterThan(2);
+  for (const [, , body] of boxes) expect(body).not.toMatch(/(^|;|\s)color\s*:/);
+});

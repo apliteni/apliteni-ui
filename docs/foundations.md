@@ -275,6 +275,34 @@ These fill ratios describe separation, not text contrast.
   `--disabled-ink`, and `cursor: not-allowed`. Hover does not take the accent from an
   off trigger. A native disabled trigger also leaves the tab order and does not open.
 
+## The inverse surface
+
+**One bar can take the other theme.** The `--inverse-*` tokens are the other theme's ground and
+inks: a near-black bar on a light page, and a white bar on a dark page. The selection bar uses
+them. Use them only for one bar that must stand out from the page.
+
+| Token | Light page | Dark page | The other theme's |
+|-------|------------|-----------|-------------------|
+| `--inverse-bg` | `#0e0d14` | `#ffffff` | `--bg` |
+| `--inverse-text` | `#e9e7f0` | `#1a1e27` | `--text` |
+| `--inverse-strong` | `#ffffff` | `#0c0e13` | `--strong` |
+| `--inverse-muted` | `#a29db6` | `#5c6270` | `--muted` |
+| `--inverse-edge` | `#a29db6` | `#5c6270` | `--muted`, as an edge |
+| `--inverse-hover` | `#2d293c` | `#eef0f5` | `--surface-3` |
+| `--inverse-frame` | none | `--inverse-edge` | The bar's outer line |
+| `--inverse-accent` | The accent's dark value | The accent's light value | `--accent` |
+
+**The accent stays the page's family.** Each accent sets `--inverse-accent` to its own value in
+the other theme, so a bar on an Ocean page shows the Ocean focus ring.
+
+**A list opened from the bar keeps the page theme.** Set an inverse ink on the part that shows
+it, never on the bar itself, so a panel inside the bar does not inherit it.
+
+**Each pair keeps its floor in all eight theme and accent cells.** Text, strong and muted ink
+measure at least 4.5:1 on `--inverse-bg` and on `--inverse-hover`. The edge and the accent measure
+at least 3:1 on `--inverse-bg`. A light page bar casts the floating drop and draws no frame. A dark
+page bar draws the frame, and the drop does not show on the dark page.
+
 ## Elevation
 
 **A surface casts a shadow only to show that it is higher.** A level keeps its step on a

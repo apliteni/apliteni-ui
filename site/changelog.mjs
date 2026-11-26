@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.210.0', date: '2026-11-26',
+    changes: [
+      ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],
+      ['added', 'New `--inverse-*` tokens give one bar the other theme: dark on a light page and light on a dark page, in the page\'s accent family. Part of #902.', ['Tokens']],
+    ],
+  },
+  {
     v: '0.209.0', date: '2026-11-26',
     changes: [
       ['changed', 'A Dropdown in a Modal or a Drawer now opens over the body and its footer, and the body does not scroll. The trigger stays under the pointer. Part of #885.', ['Dropdown', 'Modal', 'Drawer']],

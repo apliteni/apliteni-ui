@@ -1,0 +1,98 @@
+/* The selection bar: the other theme's bar over the rows a reader selected. Its room stands
+ * in the page flow after the table, so at the end of the list the bar sits under the last
+ * row and never covers it. Every ink on the bar is set on the part that shows it, never on
+ * the bar: a list opened from the bar inherits the page theme. #902
+ * why: docs/components.md#selection-bar */
+.ui-selection-room {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  justify-content: center;
+  padding-block: var(--space-4);
+  pointer-events: none;
+}
+.ui-selection-room--start { justify-content: flex-start; }
+
+.ui-selection-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--inverse-frame);
+  border-radius: var(--radius-md);
+  background: var(--inverse-bg); /* code-bg: none — the bar holds controls and a count, never a code chip. */
+  box-shadow: var(--elev-drop);
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ui-selection-bar { animation: ui-selection-in var(--dur-med) var(--ease) both; }
+}
+@keyframes ui-selection-in {
+  from { opacity: 0; transform: translateY(var(--space-2)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* The count and Clear share one pill, so Clear reads as part of the count. */
+.ui-selection-bar__count {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-left: var(--space-2);
+  border: 1px solid var(--inverse-edge);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+.ui-selection-bar__tally { color: var(--inverse-text); font-size: var(--text-sm); }
+.ui-selection-bar__actions { flex: none; display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+
+/* Every control on the bar draws as a ghost button: the name, at its natural width, with
+   no edge and no chevron. A pick never changes a list's trigger. The token sheet gives each
+   control the inverse ring. */
+.ui-selection-bar .ui-selection-bar__control {
+  flex: none;
+  min-height: var(--btn-height-sm);
+  padding: 6px 12px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--inverse-text);
+}
+.ui-selection-bar .ui-selection-bar__control:enabled:hover,
+.ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control {
+  border-color: transparent;
+  background: var(--inverse-hover);
+  color: var(--inverse-strong);
+}
+.ui-selection-bar .ui-selection-bar__control:disabled { background: transparent; /* muted-ink: state — unavailable action on the bar */ color: var(--inverse-muted); }
+
+/* A box of no size that clips: its buttons keep their own widths for the fit to read, and
+   the page never scrolls to reach them. */
+.ui-selection-bar__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+.ui-selection-bar__measure > * { flex: none; }
+
+/* On a phone the bar takes the row, with the count at the start and More at the end. */
+@media (max-width: 560px) {
+  .ui-selection-bar { width: 100%; justify-content: space-between; gap: var(--space-1); }
+}
+/* A finger gets the floor from transparent zones; the controls keep their size. */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-selection-bar,
+  .ui-selection-bar__actions { gap: var(--tap-gap); --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--space-4); }
+}
+@media (forced-colors: active) {
+  .ui-selection-bar,
+  .ui-selection-bar__count { border-color: CanvasText; }
+}

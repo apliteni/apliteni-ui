@@ -198,6 +198,10 @@ const LEDGER = {
     noFocus: 'a busy button hides its own label and keeps the focus it already had; there is nothing '
       + 'inside the label to focus',
   },
+  '.ui-selection-bar__measure': {
+    noFocus: 'the selection bar measures its action names in this box and never shows it; it is '
+      + 'hidden from assistive technology and holds no control',
+  },
   '.ui-btn__hold-hint': {
     noFocus: 'the hold hint is text the button names by aria-describedby. The button keeps the focus it '
       + 'already had, and the hint holds no control',
