@@ -63,7 +63,7 @@ export const WORDS_PER_RULE = 60;
 export const RECORDED = {
   'accessibility-floor.md': 788,
   'account-and-settings.md': 351,
-  'command-palette.md': 430,
+  'command-palette.md': 429,
   'component-choice.md': 471,
   'density-and-accents.md': 408,
   'empty-states.md': 91,

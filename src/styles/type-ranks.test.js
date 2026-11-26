@@ -164,9 +164,10 @@ const RULES = notedRules(SHEETS);
  * puts the account window's pane title on card-title. 17 at #850, which puts
  * the auth dialog's title on page-title. 18 at #871, which puts the three-column
  * page's title menu on card-title. 17 at #886, which takes the dropdown's group
- * label off label: it is bold in muted ink. Move it in the commit that adds or
+ * label off label: it is bold in muted ink. 16 at #886, which takes the sidebar's
+ * section caption off label for the same look. Move it in the commit that adds or
  * drops a note, and say which. */
-const EXPECTED_NOTES = 17;
+const EXPECTED_NOTES = 16;
 
 test('the table has its six ranks and every one is taken', () => {
   assert.deepEqual(RANKS.map((r) => r.name),

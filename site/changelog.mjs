@@ -6,6 +6,14 @@
 
 export const RELEASES = [
   {
+    v: '0.204.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A sidebar section caption and a command palette group heading are now bold and in muted ink, as a dropdown group label is. Their size and spacing stay. Part of #886.', ['AppShell', 'CommandPalette']],
+      ['changed', 'The Labels and titles and Command palette guideline pages now name the two headings with the dropdown group label. Part of #886.', ['Guidelines']],
+      ['fixed', 'The text of a sidebar row with a count now has a space between the label and the count, so it matches the row\u2019s accessible name. Speech input finds the row by what it shows. Part of #886.', ['SidebarNav']],
+    ],
+  },
+  {
     v: '0.201.0', date: '2026-11-26',
     changes: [
       ['added', 'An action notice can now take `timer`. It then closes when the time runs out, and its action starts with a 16px ring that empties as the time runs out, over a soft full-circle track. Without `timer` an action notice stays, as before. Part of #888.', ['Toast']],

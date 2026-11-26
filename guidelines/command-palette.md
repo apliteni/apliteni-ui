@@ -22,7 +22,7 @@
 
 **Why:** Groups tell readers whether a result opens a record, changes location or runs a command.
 
-**Do:** Use sentence-case headings at the 13px label rank, such as Actions, Destinations and Recent items.
+**Do:** Use sentence-case headings in bold muted type, such as Actions, Destinations and Recent items.
 
 **Don't:** Show nine ungrouped rows that hide whether Enter runs a command, opens an invoice or goes to a page.
 

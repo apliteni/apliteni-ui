@@ -22,6 +22,11 @@ it('labels sections, and exposes the current page and counts at either width', (
   cleanup();
   const { rerender } = render(<SidebarNav items={items} active="pending" />);
   expect(screen.getByRole('link', { name: 'Pending 0' })).toHaveAttribute('aria-current', 'page');
+  // The visible text is in the name, so speech input finds the row by what it shows (WCAG
+  // 2.5.3). jsdom has no layout, so this reads the text nodes, as axe's
+  // label-content-name-mismatch does, but not whether the browser draws each one.
+  const counted = screen.getByRole('link', { name: 'Pending 0' });
+  expect(counted.getAttribute('aria-label')).toContain(counted.textContent);
   // The parent of the current sub-item is current too (#843).
   expect(screen.getByRole('button', { name: 'Payouts' })).toHaveClass('is-current');
   rerender(<SidebarNav items={items} active="pending" collapsed />);

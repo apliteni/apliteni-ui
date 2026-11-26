@@ -288,7 +288,9 @@ Use `SidebarNav` for a section list in a layout of your own. In a product page, 
 It takes flat `items` or captioned `sections`, rows with sub-items, badges and `renderLink`.
 Nesting stops at one level. A sidebar takes captions or sub-items, never both: the type refuses
 the mix, and in development the component warns. When the current page comes into a group, the
-group opens, and its row shows as current. A collapsed row keeps its name and its count.
+group opens, and its row shows as current. A collapsed row keeps its name and its count. A caption
+is 13px, bold and in muted ink, as a dropdown's group label is. It keeps 6.24:1 on the sidebar in
+dark and 6.11:1 in light, and 5.60:1 in the phone drawer in dark, under every accent.
 
 ### Top bar
 
@@ -557,6 +559,8 @@ page.
 
 `groups` holds your items. An item has `id` and `label`, and can have `description`, `icon`,
 `keywords`, `shortcut`, `badge` and `href`. Your product names the groups and the kinds of result.
+A group heading is 13px, bold and in muted ink, as a dropdown's group label is. It keeps 5.60:1 on
+the panel in dark and 6.11:1 in light, under every accent.
 Every pick calls `onSelect` with the item first. Then the palette closes, and a row with `href`
 goes to the address: `onNavigate` sends a same-tab pick to your router, and a Cmd- or Ctrl-held
 pick opens a new tab.
