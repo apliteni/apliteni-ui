@@ -7,7 +7,9 @@
  * not run it, and the result is reported by hand in the pull request.
  *
  *   npm run build-storybook
- *   UI_PLAYWRIGHT=… BACK_ALIGN=1 node --test stories/back-align.test.js
+ *   UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js BACK_ALIGN=1 node --test stories/back-align.test.js
+ *
+ * The second test, the walk, has its own note below.
  *
  * The subjects are found, not listed: each story of a source file that draws a back
  * link, as `BackLink`, the `back` prop of AppShell or a ThreeColumnPage, opened at 390
@@ -148,6 +150,96 @@ test('a back link starts its arrow on the title edge, and its ground and ring st
     const padded = await open(wide, 'light', [390, 844],
       '.ui-back { padding-left: var(--space-2); margin-inline-start: calc(-1 * var(--space-2) - 16px * 7.8 / 24); }');
     assert.ok(padded.some((l) => l.cuts.length), 'an 8px padding passes the ring check at 390px');
+  } finally {
+    server.proc.kill();
+    await browser.close();
+  }
+});
+
+/* The walk: in the page shell, Tab to the back link, put the pointer on it, and press
+   Escape. After each step the focus stays on the link, which shows, no fixed or sticky
+   element moves by more than 1px, web-vitals' layout shift stays under 0.1 and the page
+   does not scroll sideways. At the 10 sizes, on the Galaxy Z Fold 7 and Flip 7 and their
+   cover screens, and on a two-screen phone of 466x678 and 890x626 at scale 3 with touch.
+   Its limits: one story (React/AppShell > Wide), light only, and no click, because the
+   link leaves the story. onCLS does not count a shift within 500ms of an input. */
+const DEVICES = ['Galaxy Z Fold 7', 'Galaxy Z Fold 7 Cover', 'Galaxy Z Flip 7', 'Galaxy Z Flip 7 Cover'];
+const DUO = [[466, 678], [890, 626]];
+const STATE = `() => {
+  const el = document.activeElement;
+  const doc = document.scrollingElement;
+  return { focus: Boolean(el?.matches('.ui-back') && el.checkVisibility()), cls: window.__cls, over: doc.scrollWidth - doc.clientWidth,
+    chrome: [...document.querySelectorAll('body *')].filter((e) => ['fixed', 'sticky'].includes(getComputedStyle(e).position))
+      .map((e) => { const r = e.getBoundingClientRect(); return [e.tagName.toLowerCase() + '.' + [...e.classList].join('.'), r.left, r.top]; }) };
+}`;
+
+test('in the shell, a key, a pointer and Escape on the back link move nothing', {
+  skip: process.env.BACK_ALIGN !== '1' && 'set BACK_ALIGN=1',
+}, async (t) => {
+  const { serve, openStory, playwright, STORY_DONE } = await import('./lib/dropdown-contain.js');
+  const pw = await playwright();
+  assert.ok(pw, 'BACK_ALIGN=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  assert.ok(process.env.UI_WEB_VITALS && existsSync(process.env.UI_WEB_VITALS), 'point UI_WEB_VITALS at web-vitals/dist/web-vitals.iife.js');
+  const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
+  const build = path.join(root, 'storybook-static');
+  assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const subjects = [
+    ...SIZES.map(([width, height]) => [`${width}x${height}`, { viewport: { width, height } }]),
+    ...DEVICES.map((name) => { assert.ok(pw.devices[name], `Playwright has no device "${name}"`); return [name, pw.devices[name]]; }),
+    ...DUO.map(([width, height]) => [`two-screen ${width}x${height}`, { viewport: { width, height }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }]),
+  ];
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  const story = { id: 'react-appshell--wide', label: 'React/AppShell > Wide' };
+  try {
+    const misses = [];
+    let steps = 0;
+    for (const [label, context] of subjects) {
+      const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
+      await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
+      const page = await ctx.newPage();
+      const done = await openStory(page, story, { port: server.port, theme: 'light' });
+      assert.equal(done.phase, STORY_DONE, `${story.label} did not render on ${label}: ${done.phase}`);
+      await page.evaluate(() => document.fonts.ready);
+      const read = () => page.evaluate(`new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => ok((${STATE})()))))`);
+      const start = await read();
+      const link = page.locator('.ui-app__main > .ui-back');
+      const walk = [
+        ['Tab', async () => {
+          for (let i = 0; i < 60 && !await link.evaluate((a) => a === document.activeElement); i += 1) await page.keyboard.press('Tab');
+        }],
+        ['pointer', () => link.hover()],
+        ['Escape', () => page.keyboard.press('Escape')],
+      ];
+      for (const [name, act] of walk) {
+        await act();
+        const now = await read();
+        steps += 1;
+        const at = `${label}, after ${name}`;
+        if (!now.focus) misses.push(`${at}: the focus left the back link`);
+        if (now.cls >= 0.1) misses.push(`${at}: layout shift ${now.cls}`);
+        if (now.over > 0) misses.push(`${at}: the page scrolls ${now.over}px sideways`);
+        const was = new Map(start.chrome.map(([n, x, y]) => [n, [x, y]]));
+        for (const [n, x, y] of now.chrome) {
+          const [x0, y0] = was.get(n) ?? [x, y];
+          if (Math.abs(x - x0) > 1 || Math.abs(y - y0) > 1) misses.push(`${at}: ${n} moved ${(x - x0).toFixed(1)}, ${(y - y0).toFixed(1)}`);
+        }
+      }
+      await ctx.close();
+    }
+    t.diagnostic(`${subjects.length} sizes and devices, ${steps} steps`);
+    assert.equal(steps, subjects.length * 3, 'a size or a device was not walked');
+    assert.deepEqual(misses, []);
+
+    // The walk catches what it guards: a focused link that runs past the screen.
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    assert.equal((await openStory(page, story, { port: server.port, theme: 'light' })).phase, STORY_DONE);
+    await page.addStyleTag({ content: '.ui-back:focus-visible { min-width: 150vw; }' });
+    const link = page.locator('.ui-app__main > .ui-back');
+    for (let i = 0; i < 60 && !await link.evaluate((a) => a === document.activeElement); i += 1) await page.keyboard.press('Tab');
+    const wide = await page.evaluate(`new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => ok((${STATE})()))))`);
+    assert.ok(wide.over > 0, 'a focused link 150vw wide passes the sideways scroll check');
+    await page.close();
   } finally {
     server.proc.kill();
     await browser.close();

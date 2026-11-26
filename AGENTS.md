@@ -332,9 +332,10 @@ Report the result in the PR. CI runs only the source half, in `react/src/Toast.t
 
 Before opening a PR that changes `src/styles/back.css`, React `<BackLink>` or the place of a back
 link above a title, measure the links in a real browser. Run `npm run build-storybook` first, then:
-`UI_PLAYWRIGHT=… BACK_ALIGN=1 node --test stories/back-align.test.js`
-It measures each story that shows a back link at the 10 sizes, in light and dark. Report the result
-in the PR. CI runs only the source half, in `src/styles/back.test.js`.
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js BACK_ALIGN=1 node --test stories/back-align.test.js`
+It measures each story that shows a back link at the 10 sizes, in light and dark. It also walks the
+keys and the pointer of the shell's back link at 10 sizes and on 6 devices. Report the result in the
+PR. CI runs only the source half, in `src/styles/back.test.js`.
 
 ## Changes
 
