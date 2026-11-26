@@ -516,6 +516,9 @@ or a dense table's action cell opens across. Some families get no layer. The Acc
 minimums page names all of them. Rows that share an edge have no space outside a row for a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
+A wordless button that is a direct child of a toolbar draws 36 or 40 wide. Its layer reaches
+into half of the toolbar's 10px gap on each side to make 44, and the gap does not open.
+To give a lone button the floor, put it in a toolbar.
 A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.
 The title clips its own text, so the layer measures against the readout trigger around it.
 A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target
