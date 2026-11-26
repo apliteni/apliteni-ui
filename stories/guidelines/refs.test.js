@@ -318,7 +318,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 173: Three-column page gained column-header (#871).
   // 174: Drawers gained save-under-form (#887).
   // 177: Dropdown added group-labels (#886).
-  assert.equal(count, 177, 'update the rule count when adding or removing a rule');
+  // 178: Motion gained hover-at-once (#865).
+  assert.equal(count, 178, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

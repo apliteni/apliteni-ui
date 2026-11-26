@@ -29,7 +29,6 @@
   border: 1px solid var(--field-edge);
   padding: 12px 15px;
   width: 100%;
-  transition: border-color var(--dur-med) var(--ease), box-shadow var(--dur-med) var(--ease);
 }
 /* A one-line field has the large field corner. A text area has the larger message corner.
    The select is a control the reader presses, so it keeps the pill below. #836
@@ -75,6 +74,8 @@
   border-color: transparent;
   outline: var(--ring);
   outline-offset: var(--ring-offset);
+  /* Only focus fades the edge. A hover edge changes at once. why: docs/foundations.md#motion */
+  transition: border-color var(--dur-med) var(--ease);
 }
 
 /* A search field with a value gets the browser's own clear button, and the
@@ -157,7 +158,6 @@
   border-radius: var(--radius-xs);
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   cursor: pointer;
-  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
   position: relative;
 }
 /* In a cell there is no label line to sit beside, so the box centres on the cell's first
@@ -204,7 +204,7 @@
   width: 5px; height: 10px;
   border: solid var(--accent);
   border-width: 0 2px 2px 0;
-  transform: rotate(45deg); /* motion: still — the turn is the tick's shape, not travel; it lands with the box's fill, which transitions */
+  transform: rotate(45deg); /* motion: still — the turn is the tick's shape, not travel; it lands at once with the box's fill */
 }
 .ui-check input[type="radio"]:checked::after {
   content: "";

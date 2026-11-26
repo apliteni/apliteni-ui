@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:249",
+    "ref": "src/styles/table.css:247",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -30,7 +30,7 @@
  "_accessibility-floor.js": {
   "target-size": [
    {
-    "ref": "src/styles/button.css:128",
+    "ref": "src/styles/button.css:125",
     "pattern": ".ui-btn--sm"
    },
    {
@@ -70,7 +70,7 @@
   ],
   "disabled-legibility": [
    {
-    "ref": "src/styles/button.css:145",
+    "ref": "src/styles/button.css:142",
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
@@ -82,7 +82,7 @@
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
-    "ref": "src/styles/input.css:64",
+    "ref": "src/styles/input.css:63",
     "pattern": "opacity: 1;"
    }
   ],
@@ -132,7 +132,7 @@
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
-    "ref": "src/styles/button.css:64",
+    "ref": "src/styles/button.css:61",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -142,23 +142,23 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:60",
+    "ref": "src/styles/segmented.css:59",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:61",
+    "ref": "src/styles/segmented.css:60",
     "pattern": "background: var(--accent-strong);"
    },
    {
-    "ref": "src/styles/nav.css:370",
+    "ref": "src/styles/nav.css:365",
     "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
    },
    {
-    "ref": "src/styles/nav.css:378",
+    "ref": "src/styles/nav.css:373",
     "pattern": "background: var(--glow-purple);"
    },
    {
-    "ref": "src/styles/nav.css:377",
+    "ref": "src/styles/nav.css:372",
     "pattern": "color: var(--accent);"
    },
    {
@@ -173,7 +173,7 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme \u00d7 accent cells"
+    "pattern": "theme × accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
@@ -186,11 +186,11 @@
     "pattern": "accent?: boolean"
    },
    {
-    "ref": "src/styles/segmented.css:50",
+    "ref": "src/styles/segmented.css:49",
     "pattern": "background: var(--strong)"
    },
    {
-    "ref": "src/styles/topbar.css:74",
+    "ref": "src/styles/topbar.css:73",
     "pattern": ".dtsw a.cur { color: var(--surface); background: var(--strong); }"
    }
   ]
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:480",
+    "ref": "src/styles/dropdown.css:479",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:542",
+    "ref": "src/styles/dropdown.css:541",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -332,15 +332,15 @@
  "_destructive-actions.js": {
   "colour": [
    {
-    "ref": "src/styles/button.css:116",
+    "ref": "src/styles/button.css:113",
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:432",
+    "ref": "src/styles/dropdown.css:431",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
-    "ref": "src/styles/nav.css:117",
+    "ref": "src/styles/nav.css:116",
     "pattern": ".ui-nav__item.is-danger:hover"
    }
   ],
@@ -384,7 +384,7 @@
   ],
   "save-under-form": [
    {
-    "ref": "src/styles/drawer.css:179",
+    "ref": "src/styles/drawer.css:175",
     "pattern": "flex: 0 1 auto;"
    }
   ],
@@ -394,7 +394,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:211",
+    "ref": "src/styles/drawer.css:207",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -404,7 +404,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:214",
+    "ref": "src/styles/drawer.css:210",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -414,7 +414,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:282",
+    "ref": "src/styles/drawer.css:278",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -570,7 +570,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:416",
+    "ref": "src/styles/layout.css:415",
     "pattern": "rank: page-title"
    },
    {
@@ -596,11 +596,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:437",
+    "ref": "src/styles/dropdown.css:436",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:438",
+    "ref": "src/styles/dropdown.css:437",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -636,7 +636,7 @@
     "pattern": "--space-3: 12px"
    },
    {
-    "ref": "src/styles/table.css:101",
+    "ref": "src/styles/table.css:99",
     "pattern": "padding: var(--space-2) var(--space-3)"
    },
    {
@@ -656,7 +656,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:555",
+    "ref": "src/styles/layout.css:554",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -680,11 +680,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:468",
+    "ref": "src/styles/layout.css:467",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:469",
+    "ref": "src/styles/layout.css:468",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -712,11 +712,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:143",
+    "ref": "src/styles/segmented.css:142",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:152",
+    "ref": "src/styles/segmented.css:151",
     "pattern": "padding: var(--space-3)"
    }
   ]
@@ -780,6 +780,16 @@
     "pattern": "--dur-slow: var(--duration-slow, 0.4s);"
    }
   ],
+  "hover-at-once": [
+   {
+    "ref": "src/styles/button.css:43",
+    "pattern": "transition: transform var(--dur-fast) var(--ease);"
+   },
+   {
+    "ref": "src/styles/dropdown.css:62",
+    "pattern": "transition: border-color var(--dur-fast) var(--ease);"
+   }
+  ],
   "easing": [
    {
     "ref": "src/tokens/tokens.css:90",
@@ -804,7 +814,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:295",
+    "ref": "src/styles/drawer.css:291",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ]
@@ -898,7 +908,7 @@
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
-    "ref": "src/styles/button.css:182",
+    "ref": "src/styles/button.css:179",
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
@@ -953,7 +963,7 @@
  "_density-and-accents.js": {
   "purposeful-accent": [
    {
-    "ref": "src/styles/button.css:64",
+    "ref": "src/styles/button.css:61",
     "pattern": "background: var(--accent-strong)"
    }
   ],
@@ -1087,7 +1097,7 @@
     "pattern": "export const Button = forwardRef"
    },
    {
-    "ref": "src/styles/button.css:63",
+    "ref": "src/styles/button.css:60",
     "pattern": ".ui-btn--primary {"
    }
   ]
@@ -1129,7 +1139,7 @@
     "pattern": "border-radius: var(--radius-pill);"
    },
    {
-    "ref": "src/styles/input.css:38",
+    "ref": "src/styles/input.css:37",
     "pattern": ".ui-textarea { border-radius: var(--radius-2xl); }"
    },
    {
@@ -1153,11 +1163,11 @@
   ],
   "link-to-the-report": [
    {
-    "ref": "src/styles/table.css:126",
+    "ref": "src/styles/table.css:124",
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:280",
+    "ref": "src/styles/table.css:278",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
@@ -1167,7 +1177,7 @@
   ],
   "report-depth": [
    {
-    "ref": "src/styles/table.css:100",
+    "ref": "src/styles/table.css:98",
     "pattern": ".ui-table--dense td"
    }
   ],
@@ -1239,7 +1249,7 @@
     "pattern": "className={`ui-nav__item ui-wizard__step${shown === step.id ? ' is-active' : ''}`}"
    },
    {
-    "ref": "src/styles/nav.css:79",
+    "ref": "src/styles/nav.css:78",
     "pattern": ".ui-nav__item.is-active {"
    },
    {
@@ -1345,11 +1355,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:440",
+    "ref": "src/styles/dropdown.css:439",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:442",
+    "ref": "src/styles/dropdown.css:441",
     "pattern": "color: var(--muted);"
    },
    {

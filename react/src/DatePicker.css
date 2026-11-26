@@ -78,13 +78,6 @@
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
   cursor: pointer;
-  /* Not `outline-color`: the ring is an outline, so a transition on that property
-     would fade the band in from the hover edge's ink.
-     why: docs/foundations.md#the-focus-ring */
-  transition:
-    background var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease);
 }
 .ui-datepicker__grid.is-days .ui-datepicker__opt { min-width: 30px; }
 

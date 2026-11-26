@@ -6,6 +6,13 @@
 
 export const RELEASES = [
   {
+    v: '0.205.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
+      ['added', 'The Motion guideline has a new rule, Change a hover at once. Part of #865.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.200.0', date: '2026-11-26',
     changes: [
       ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes the new ink `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],

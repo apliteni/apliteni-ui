@@ -98,7 +98,6 @@
   min-height: 24px;
   min-width: 24px;
   justify-content: center;
-  transition: color var(--dur-fast) var(--ease);
 }
 .ui-snippet__copy:hover { color: var(--accent); }
 .ui-snippet--reveal .ui-snippet__copy:hover { color: var(--strong); }

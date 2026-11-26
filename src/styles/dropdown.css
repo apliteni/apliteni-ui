@@ -43,7 +43,6 @@
   /* The button's tight 13px line, so the two texts share a baseline. #822 This block padding,
      between two steps, and the edge hold the pill at 32px, level with an sm button. #814 */
   line-height: var(--leading-tight); padding: 7.2px 11px 7.2px 13px;
-  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 /* The hover edge steps aside under the band: an accent edge one pixel inside an
    accent band is the second band #578 round r34 took off the focus rules, and a
@@ -59,7 +58,8 @@
 /* As a select: under the ring the edge keeps its width and goes transparent, so focus has
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
-.ui-dropdown__trigger:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
+/* Only focus fades the edge. A hover edge changes at once. why: docs/foundations.md#motion */
+.ui-dropdown__trigger:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); transition: border-color var(--dur-fast) var(--ease); }
 /* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
@@ -340,7 +340,6 @@
      standing. The same answer .ui-toast__action gives. */
   font: inherit;
   color: var(--text);
-  transition: background var(--dur-fast) var(--ease);
 }
 /* Hover is a fill and an outline means focus, so a hovered row draws no edge. A row that is
    hovered AND focused draws the ring over the fill.
@@ -369,7 +368,7 @@
 /* Trailing selected tick (listbox variant) */
 .ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
 .ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
-.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight already transitions; picking it closes the panel, which fades out over --dur-med */
+.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight changes at once; picking it closes the panel, which fades out over --dur-med */
 .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--text); }
 
 /* A row that opens a submenu (#736): the current value at the trailing edge in body ink,
@@ -507,7 +506,6 @@
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
   min-height: 38px;
-  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 /* The light-only `background: var(--bg)` override this field used to carry is gone:
    --field-bg says the same thing for every field. Gated by
@@ -515,7 +513,8 @@
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
 .ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
-.ui-dropdown__search-input:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
+/* Only focus fades the edge, as on .ui-input. why: docs/foundations.md#motion */
+.ui-dropdown__search-input:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); transition: border-color var(--dur-fast) var(--ease); }
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */

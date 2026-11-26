@@ -1409,8 +1409,8 @@ describe('the hover edge', () => {
   it('never transitions the outline, so focus is the band at once', () => {
     const rest = ruleFor('.ui-datepicker__opt');
     expect(rest, 'the cell rule').not.toBeNull();
+    // A hover changes the cell at once since #865, so the cell may transition nothing.
     const transition = /transition:([^;]*);/.exec(rest!)?.[1] ?? '';
-    expect(transition, 'the cell transitions something').not.toBe('');
     // The band is an outline since #578; animating its colour would fade it in from
     // the hover edge's own ink instead of drawing it where focus lands.
     expect(transition).not.toMatch(/outline/);
