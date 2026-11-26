@@ -9,8 +9,10 @@
  *   the hover part puts in `:not()`, or `:disabled` against `:enabled`, keeps them apart. So two
  *   modifiers that never meet on one element can still give a report.
  * - A `transition-duration` alone is read as `all`, the initial `transition-property`.
- * - A fade of a custom property is not a paint fade. A field's focus edge fades this way,
- *   and its hover rule sets `border-color` itself, so the hover changes at once.
+ * - A fade of a custom property that `@property` registers is a paint fade when a hover sets
+ *   that property, because the paint that reads it fades too. A field's veil fades for focus,
+ *   and no hover sets the veil. A custom property with no `@property` changes at once.
+ * - Any registered custom property that a hover sets counts as paint, also one that feeds no paint.
  * - Paint that a script writes, and paint a custom property carries into a rule
  *   without `:hover`, are not read.
  * - A later `transition: none` does not clear an earlier fade; remove the fade instead.
@@ -27,6 +29,9 @@ import {
 // Fill, ink and border, and the edge and ring a hover can paint.
 const PAINT = /^(background(-color|-image)?|color|-webkit-text-fill-color|fill|stroke|filter|box-shadow|text-decoration-color|outline-color|border(-(top|right|bottom|left|block|inline)(-(start|end))?)?(-color)?)$/;
 const TIME = /^-?\d*\.?\d+m?s$|^var\(--dur-/;
+
+/** The custom properties that `@property` registers in `texts`. Only these can fade. */
+const registered = (texts) => new Set(texts.flatMap((t) => [...t.matchAll(/@property\s+(--[\w-]+)/g)].map((m) => m[1])));
 
 /** Does a transition of `t` move property `p`? `border` moves `border-color`, and the reverse. */
 const covers = (t, p) => t === 'all' || t === p || p.startsWith(`${t}-`) || t.startsWith(`${p}-`)
@@ -106,17 +111,19 @@ const rulesOf = (sheets) => sheets.flatMap((s) => leafRules(s.text).filter((r) =
  */
 export const hoverFades = (sheets, context = sheets) => {
   const rules = rulesOf(sheets);
+  const custom = registered(context.map((s) => s.text));
+  const paints = (prop) => PAINT.test(prop) || custom.has(prop);
   const candidates = rulesOf(context).flatMap((r) => (moved(r).length === 0 ? [] : partsOf(r.selector)
     .flatMap(alternatives).map((part) => ({ part, rule: r, moves: moved(r) }))));
   const subjects = [];
   const fades = [];
   // A fade on an element with no type, class or attribute, such as `.x > *`, cannot be matched.
   const unmeasured = candidates
-    .filter((c) => c.moves.some((t) => t === 'all' || PAINT.test(t))
+    .filter((c) => c.moves.some((t) => t === 'all' || paints(t))
       && identity(compounds(widen(c.part)).at(-1)).toks.size === 0)
     .map((c) => `${c.rule.where}:${c.rule.line}  ${c.part} — this fade's element has no type or class to match`);
   for (const r of rules) {
-    const paint = r.decls.filter((d) => PAINT.test(d.prop));
+    const paint = r.decls.filter((d) => paints(d.prop));
     if (paint.length === 0) continue;
     for (const part of partsOf(r.selector).flatMap(alternatives).filter(isHover)) {
       subjects.push({ where: r.where, line: r.line, part });
@@ -141,9 +148,10 @@ export const hoverFades = (sheets, context = sheets) => {
 /**
  * The coverage count, read without the gate's parser: for each line where a leaf rule that
  * paints starts, the number of selectors in its list that name `:hover` outside `:not()`.
- * It skips the reduced-motion net and keyframes, as the gate does.
+ * It skips the reduced-motion net and keyframes, as the gate does. `custom` holds the
+ * registered custom properties, which the gate also reads as paint.
  */
-export const hoverCensus = (text) => {
+export const hoverCensus = (text, custom = new Set()) => {
   const src = text.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
   const census = new Map();
   const open = [];
@@ -159,7 +167,7 @@ export const hoverCensus = (text) => {
       const body = src.slice(block.body, i);
       if (head.startsWith('@') || body.includes('{')) continue;
       if (open.some((b) => /prefers-reduced-motion\s*:\s*reduce|@keyframes/.test(b.head))) continue;
-      if (!body.split(';').some((d) => PAINT.test(d.split(':')[0].trim().toLowerCase()))) continue;
+      if (!body.split(';').some((d) => { const prop = d.split(':')[0].trim(); return PAINT.test(prop.toLowerCase()) || custom.has(prop); })) continue;
       const count = splitSelectorList(head).filter((sel) => /:hover(?![\w-])/.test(sel.replace(/:not\([^()]*\)/g, ''))).length;
       if (count === 0) continue;
       const start = block.at + (block.head.length - block.head.trimStart().length);
@@ -172,7 +180,7 @@ export const hoverCensus = (text) => {
 };
 
 /** Each census line where the gate found fewer hover parts than the census counts. */
-export const lostSubjects = (sheets, subjects) => sheets.flatMap((sheet) => [...hoverCensus(sheet.text)]
+export const lostSubjects = (sheets, subjects, custom = new Set()) => sheets.flatMap((sheet) => [...hoverCensus(sheet.text, custom)]
   .filter(([line, count]) => subjects.filter((s) => s.where === sheet.where && s.line === line).length < count)
   .map(([line, count]) => `${sheet.where}:${line} has ${count} hover selectors, the gate read fewer`));
 
@@ -183,7 +191,8 @@ for (const dir of ['src', 'react/src']) {
   test(`${dir}: every hover changes its fill, ink and border at once (${subjects.length} hover parts)`, () => {
     assert.ok(subjects.length > 0, `no painting hover rule found in ${sheets.length} sheets under ${dir}: the sweep has stopped matching`);
     // Coverage: every hover selector that the census counts gave the gate a subject.
-    assert.deepStrictEqual(lostSubjects(sheets, subjects), [], 'hover selectors that the gate did not read');
+    assert.deepStrictEqual(lostSubjects(sheets, subjects, registered(allSheets().map((s) => s.text))), [],
+      'hover selectors that the gate did not read');
     assert.equal(unmeasured.length, 0, `hover parts the gate cannot measure:\n${unmeasured.join('\n')}`);
     assert.equal(fades.length, 0, 'a hover must not fade. Move the transition to the state that keeps motion '
       + `(press, focus, a caret):\n${fades.join('\n')}`);
@@ -221,12 +230,28 @@ test('the gate rejects a hover fade and accepts a fade kept for focus', () => {
   assert.equal(attribute.fades.length, 1, 'a fade on an attribute state of the hovered element was not reported');
   const anyChild = read('.x > * { transition: color 1s; }\n.x .y:hover { color: red; }');
   assert.equal(anyChild.unmeasured.length, 1, 'a fade with no element to match was not reported as unmeasured');
+  // A registered custom property carries paint, so its fade is a hover fade. A plain one changes at once.
+  const carried = read('@property --e { syntax: "<color>"; inherits: false; initial-value: red; }\n'
+    + '.x { transition: --e 1s; border-color: var(--e); }\n.x:hover { --e: blue; }\n'
+    + '.y { transition: --f 1s; border-color: var(--f); }\n.y:hover { --f: blue; }');
+  assert.equal(carried.fades.length, 1, 'a fade of a registered custom property that a hover sets was not reported');
+  // The #865 review mutation: the field fades its edge beside its veil. Chromium and WebKit faded the hover border.
+  const kit = allSheets();
+  const sheet = kit.find((s) => s.where === 'src/styles/input.css');
+  const from = 'transition: --ui-field-veil var(--dur-med) var(--ease);';
+  assert.ok(sheet.text.includes(from), 'input.css: the field transition the mutation needs has moved');
+  const edged = { ...sheet, text: sheet.text.replace(from, 'transition: --ui-field-veil var(--dur-med) var(--ease), --ui-field-edge var(--dur-med) var(--ease);') };
+  const mutated = hoverFades([edged], kit.map((s) => (s === sheet ? edged : s))).fades;
+  assert.ok(mutated.some((f) => /\{ --ui-field-edge \} fades through .*transition: --ui-field-edge/.test(f)),
+    `an edge fade beside the veil fade was not reported:\n${mutated.join('\n')}`);
 });
 
 test('the census counts each hover selector, so a lost subject fails coverage', () => {
   const text = '.a:hover, .b:hover { color: red; }\n.c:not(:hover) { color: red; }\n.d:hover { transform: none; }\n'
-    + '@media (prefers-reduced-motion: reduce) { .e:hover { color: red; } }\n.f:hover > :is(td, th) { color: red; }';
+    + '@media (prefers-reduced-motion: reduce) { .e:hover { color: red; } }\n.f:hover > :is(td, th) { color: red; }\n'
+    + '.g:hover { --e: red; }';
   assert.deepStrictEqual([...hoverCensus(text)], [[1, 2], [5, 1]]);
+  assert.deepStrictEqual([...hoverCensus(text, new Set(['--e']))], [[1, 2], [5, 1], [6, 1]], 'a hover that sets a registered property was not counted');
   const sheet = { where: 'fixture.css', text };
   const { subjects } = hoverFades([sheet]);
   assert.deepStrictEqual(lostSubjects([sheet], subjects), []);

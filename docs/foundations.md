@@ -172,7 +172,8 @@ Every easing is also a token. `--ease` is the default. The other options are `--
 - **Any transition of `visibility` uses `linear`.**
 - **Hover is the one state change that does not fade.** A hover changes its fill, ink and
   border at once. No `transition` gives a hover's `background`, `color`, `border-color`,
-  `box-shadow` or `filter` a duration. A response within about 0.1s feels instant: Robert B.
+  `box-shadow` or `filter` a duration. No `transition` gives a duration to a custom property
+  that `@property` registers and that a hover sets, because the paint that reads it fades too. A response within about 0.1s feels instant: Robert B.
   Miller, "Response time in man-computer conversational transactions", AFIPS Fall Joint
   Computer Conference, 1968, and Jakob Nielsen, *Usability Engineering*, 1993, chapter 5,
   "Response times: the 3 important limits". A 150ms fade ends after that limit, so the fill
