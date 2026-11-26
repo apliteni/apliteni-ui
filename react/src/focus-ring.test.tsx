@@ -197,6 +197,10 @@ const RX_SCROLL_RINGED: Record<string, string> = {
     + 'the four sides show. Each of the three-column page\'s columns scrolls alone. A column whose '
     + 'content holds no control, such as the facts and the text of an open file, is a stop in '
     + 'Chrome, and the band lands in its own inline padding (#871).',
+  '.ui-toast-stack.rx-toast-stack.rx-toast-stack--scroll': 'the inward band, on the toast stack '
+    + 'while it is taller than the view and scrolls. A stack of notices with no action and no close '
+    + 'button holds no control, so Chrome makes the stack a stop, and the band lands on the edge '
+    + 'of the notices (#907).',
 };
 
 describe('focus ring: scroll containers', () => {
