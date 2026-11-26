@@ -148,6 +148,10 @@ export const CARD_FRAME = (focus) => {
     corners: Object.fromEntries(['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map((k) => [k, parseFloat(s[`border${k}Radius`]) || 0])),
     focused: f.matches(':focus-visible'),
     ring: rgb(s.outlineColor),
+    // The ring band's size and its inner edge from the border edge, read from the outline
+    // the ring tokens draw. The scroll ring is inward, so its offset is negative and the
+    // band sits inset-width..inset in from each border edge. why: docs/foundations.md#the-focus-ring
+    band: f.matches(':focus-visible') ? { inset: Math.abs(parseFloat(s.outlineOffset) || 0), width: parseFloat(s.outlineWidth) || 0 } : null,
     ground: painted(f.parentElement),
     below: b.bottom - f.querySelector('.ui-table').getBoundingClientRect().bottom,
     range: f.scrollWidth - f.clientWidth,
@@ -157,12 +161,11 @@ export const CARD_FRAME = (focus) => {
 /** What is wrong with a card frame in a full-page screenshot, as lines. Focused, each
  *  side's ring band must show the ring colour. At rest, the side bands must show the
  *  card's ground, so no edge line shows. The table must reach the frame's bottom.
- *  Limits: it samples one line 2px in from each edge, every 2px, and skips each corner's
+ *  Limits: it samples one line in from each edge, every 2px, and skips each corner's
  *  radius plus 4px, where the curve leaves the line. Focused, it also samples each
- *  rounded corner's arc 2px inside the frame's edge, the ring's middle, every 5 degrees,
- *  so a cell painted square over a corner shows (#782). A corner under 4px is not
- *  sampled. A tolerance of 40 per channel takes the ring's anti-aliasing and no other
- *  colour. */
+ *  rounded corner's arc at the ring band's middle, every 5 degrees, so a cell painted
+ *  square over a corner shows (#782). A corner under 4px is not sampled. A tolerance of
+ *  40 per channel takes the ring's anti-aliasing and no other colour. */
 export function cardFrameFindings(img, frame) {
   const out = [];
   if (frame.below > 0.5) out.push(`the frame has ${frame.below}px below its table`);
@@ -170,12 +173,29 @@ export function cardFrameFindings(img, frame) {
   const near = (p) => p.every((v, i) => Math.abs(v - want[i]) <= (frame.focused ? 40 : 2));
   const skip = Math.max(...Object.values(frame.corners)) + 4;
   const along = (from, to) => { const at = []; for (let v = from + skip; v < to - skip; v += 2) at.push(v); return at; };
-  const sides = {
-    left: along(frame.y, frame.y + frame.h).map((y) => [frame.x + 2, y]),
-    right: along(frame.y, frame.y + frame.h).map((y) => [frame.x + frame.w - 2.5, y]),
+  // The ring the frame draws is an inward outline, so its band runs inset-width..inset in
+  // from each border edge. It is read from the frame's computed outline — the ring tokens
+  // — not a constant, because #885 moved the band from 2px at a 1px gap to 1px at a 2px
+  // gap and a constant kept sampling the old place. A 1px band can straddle a pixel
+  // boundary, so each sample is the whole band: a side misses only when no pixel across
+  // the band is the ring. why: docs/foundations.md#the-focus-ring
+  const band = frame.focused ? frame.band : null;
+  const across = (edge, sign) => {
+    if (!band) return [sign > 0 ? edge + 2 : edge - 2.5];
+    const inner = band.inset;              // the band's inner edge, in from the border edge
+    const outer = band.inset - band.width; // its outer edge
+    const lo = sign > 0 ? edge + outer : edge - inner;
+    const hi = sign > 0 ? edge + inner : edge - outer;
+    const idx = [];
+    for (let i = Math.round(lo); i < Math.round(hi); i += 1) idx.push(i);
+    return idx.length ? idx : [Math.round(lo)];
+  };
+  const strips = {
+    left: along(frame.y, frame.y + frame.h).map((y) => across(frame.x, 1).map((x) => [x, y])),
+    right: along(frame.y, frame.y + frame.h).map((y) => across(frame.x + frame.w, -1).map((x) => [x, y])),
     ...(frame.focused ? {
-      top: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + 2]),
-      bottom: along(frame.x, frame.x + frame.w).map((x) => [x, frame.y + frame.h - 2.5]),
+      top: along(frame.x, frame.x + frame.w).map((x) => across(frame.y, 1).map((y) => [x, y])),
+      bottom: along(frame.x, frame.x + frame.w).map((x) => across(frame.y + frame.h, -1).map((y) => [x, y])),
     } : {}),
   };
   if (frame.focused) {
@@ -184,18 +204,27 @@ export function cardFrameFindings(img, frame) {
     for (const [corner, r] of Object.entries(frame.corners)) {
       if (r < 4) continue;
       const [cx, cy, dx, dy] = at[corner];
-      const points = [];
-      // The arc's centre is r in from both edges. A pixel's centre is half a pixel past its index.
+      const mid = band ? band.inset - band.width / 2 : 2;
+      const groups = [];
+      // The band is 1px and curves here, so its solid pixels step along the diagonal
+      // rather than one pixel per angle. Each sample is a 5x5 box at the band's middle;
+      // the corner misses only when none of the twenty-five pixels is the ring.
       for (let a = 5; a <= 85; a += 5) {
         const t = (a * Math.PI) / 180;
-        points.push([cx - dx * r + dx * (r - 2) * Math.cos(t) - 0.5, cy - dy * r + dy * (r - 2) * Math.sin(t) - 0.5]);
+        const px = cx - dx * r + dx * (r - mid) * Math.cos(t);
+        const py = cy - dy * r + dy * (r - mid) * Math.sin(t);
+        const cands = [];
+        for (let oy = -2; oy <= 2; oy += 1) {
+          for (let ox = -2; ox <= 2; ox += 1) cands.push([px + ox, py + oy]);
+        }
+        groups.push(cands);
       }
-      sides[`the ${corner.replace(/([a-z])([A-Z])/, '$1 $2').toLowerCase()} corner`] = points;
+      strips[`the ${corner.replace(/([a-z])([A-Z])/, '$1 $2').toLowerCase()} corner`] = groups;
     }
   }
-  for (const [side, points] of Object.entries(sides)) {
-    const miss = points.filter(([x, y]) => !near(pixelAt(img, x, y))).length;
-    if (miss) out.push(`${frame.focused ? 'focused' : 'at rest'}, ${side}: ${miss} of ${points.length} samples are not ${frame.focused ? 'the ring' : "the card's ground"}`);
+  for (const [side, groups] of Object.entries(strips)) {
+    const miss = groups.filter((pts) => !pts.some(([x, y]) => near(pixelAt(img, x, y)))).length;
+    if (miss) out.push(`${frame.focused ? 'focused' : 'at rest'}, ${side}: ${miss} of ${groups.length} samples are not ${frame.focused ? 'the ring' : "the card's ground"}`);
   }
   return out;
 }
