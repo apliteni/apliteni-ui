@@ -306,7 +306,8 @@ React `<Toast>`, walk an undo stack's keys and clicks in a real browser. Run
 `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js TOAST_STACK=1 node --test stories/toast-stack.test.js`
 If the Playwright package has no browser of its own version, set `UI_CHROME` to a Chrome
-headless shell: stories/toast-stack.test.js:166 passes it as `executablePath`.
+headless shell. The gate passes it to the launch:
+stories/toast-stack.test.js:166 `executablePath: process.env.UI_CHROME`
 Report the result in the PR. CI runs only the source half, in `react/src/Toast.test.tsx`.
 
 ## Changes
