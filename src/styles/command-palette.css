@@ -161,13 +161,14 @@
 .ui-cmdk__list:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-cmdk__group + .ui-cmdk__group { margin-top: var(--space-2); }
 
-/* Sentence case at 13px medium — the kit's label role, not a heading and not a
-   shout. A group name is the one word the reader scans for. */
+/* Sentence case at 13px, bold in muted ink, as a dropdown's group label, so it
+   stands apart from the rows. A group name is the one word the reader scans for. (#886) */
 .ui-cmdk__group-head {
   padding: var(--space-2) var(--space-3) var(--space-1);
   font-size: var(--text-sm);
-  font-weight: var(--weight-medium);
-  color: var(--text);
+  font-weight: var(--weight-bold);
+  /* muted-ink: chrome — names the rows under it; the group's aria-labelledby keeps the name */
+  color: var(--muted);
 }
 
 /* Row — [icon] [label + description] [badge] [keys]. A <div role="option">, so

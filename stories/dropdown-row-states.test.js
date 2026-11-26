@@ -3,7 +3,8 @@
 // Every menu row in the shipped sheets keeps both, and a bleeding menu head keeps a gap above the
 // first row (#824). A group label is bold in muted ink, so it stands apart from the options, and it
 // keeps 4.5:1 on the panel in each theme and accent. A disabled option is paler than the label and
-// keeps 3.5:1, so it does not read as a label (#886).
+// keeps 3.5:1, so it does not read as a label (#886). A sidebar's section caption and a command
+// palette's group heading take the group label's size, weight and ink, at 4.5:1 on their grounds (#886).
 //
 // Coverage limits:
 // - Source only. It reads the sheet and the token values, and paints nothing. The hover
@@ -11,7 +12,8 @@
 // - The step is judged as colour distance between two token values, not as a contrast
 //   ratio, because the fill is a non-text mark.
 // - The group label and the disabled option are measured on the panel's own ground. A consumer
-//   who paints the panel another colour is outside it.
+//   who paints the panel another colour is outside it. The sidebar caption is measured on the
+//   rail. In the phone drawer it sits on the drawer's ground, which this test does not read.
 // - The disabled option's weight is not read: the option rule sets none, so it keeps the row's.
 //
 // why: docs/foundations.md#elevation
@@ -244,4 +246,62 @@ test('the group-label gate fails when a disabled option takes the label ink, or 
   const faded = css.replace('color: var(--disabled-ink-option)', 'color: var(--border-strong)');
   assert.ok(groupFaults(faded).some((f) => /^the disabled option has [\d.]+:1 on the panel in dark default$/.test(f)),
     groupFaults(faded).join('\n'));
+});
+
+// A sidebar's section caption and a command palette's group heading take the group label's look:
+// its size, weight and ink, from the same tokens. Each keeps 4.5:1 on its own ground (#886).
+const HEADINGS = [
+  { file: 'src/styles/nav.css', head: '.ui-nav__cap', groundFile: 'src/styles/layout.css', ground: '.ui-app__rail' },
+  { file: 'src/styles/command-palette.css', head: '.ui-cmdk__group-head', groundFile: 'src/styles/command-palette.css', ground: '.ui-cmdk__panel' },
+];
+const declared = (text, head, prop) => {
+  const body = flat(text).filter(([h]) => h.trim() === head).map(([, b]) => b).join(';');
+  return new RegExp(`(?:^|;)\\s*${prop}:\\s*([^;]+)`).exec(body)?.[1].trim();
+};
+
+/** How each heading in `sheets` differs from the dropdown's group label, as sentences. */
+const headingFaults = (sheets) => {
+  const faults = [];
+  for (const { file, head, groundFile, ground } of HEADINGS) {
+    const text = sheets[file];
+    for (const prop of ['font-size', 'font-weight', 'color']) {
+      const want = declared(css, '.ui-dropdown__group', prop);
+      const got = declared(text, head, prop);
+      if (got !== want) faults.push(`${head} has ${prop} ${got}, not the group label's ${want}`);
+    }
+    const paint = declared(sheets[groundFile], ground, 'background');
+    if (!paint) { faults.push(`${ground} paints no ground to measure on`); continue; }
+    for (const { theme, accent } of CELLS) {
+      const vars = new Map(tokensFor(theme, accent));
+      // The palette names its ground through a local property on its root.
+      const local = declared(sheets[groundFile], '.ui-cmdk', '--cmdk-surface');
+      if (local) vars.set('--cmdk-surface', local);
+      const r = ratio(colourOf(declared(text, head, 'color') ?? 'var(--text)', vars), colourOf(paint, vars));
+      if (r < AA_TEXT) faults.push(`${head} has ${r.toFixed(2)}:1 on ${ground} in ${theme} ${accent}`);
+    }
+  }
+  return faults;
+};
+const HEADING_SHEETS = Object.fromEntries([...new Set(HEADINGS.flatMap((h) => [h.file, h.groundFile]))].map((f) => [f, sheet(f)]));
+
+test('a sidebar caption and a palette group heading take the group label\'s size, weight and ink, at 4.5:1 (#886)', () => {
+  assert.equal(CELLS.length, 8, `the headings were measured in ${CELLS.length} theme and accent cells, not 8`);
+  assert.deepEqual(headingFaults(HEADING_SHEETS), []);
+});
+
+test('the heading gate fails when a heading goes back to body weight and ink, or fades too far', () => {
+  const back = { ...HEADING_SHEETS };
+  for (const { file, head } of HEADINGS) {
+    back[file] = back[file].replace(new RegExp(`(${head.replace('.', '\\.')} \\{[^}]*)font-weight: var\\(--weight-bold\\);([^}]*)color: var\\(--muted\\)`),
+      '$1font-weight: var(--weight-medium);$2color: var(--text)');
+    assert.notEqual(back[file], HEADING_SHEETS[file], `the mutation found nothing to change in ${file}`);
+  }
+  assert.deepEqual(headingFaults(back), [
+    '.ui-nav__cap has font-weight var(--weight-medium), not the group label\'s var(--weight-bold)',
+    '.ui-nav__cap has color var(--text), not the group label\'s var(--muted)',
+    '.ui-cmdk__group-head has font-weight var(--weight-medium), not the group label\'s var(--weight-bold)',
+    '.ui-cmdk__group-head has color var(--text), not the group label\'s var(--muted)',
+  ]);
+  const faded = { ...HEADING_SHEETS, 'src/styles/nav.css': HEADING_SHEETS['src/styles/nav.css'].replace(/(\.ui-nav__cap \{[^}]*color: )var\(--muted\)/, '$1var(--border)') };
+  assert.ok(headingFaults(faded).some((f) => /^\.ui-nav__cap has [\d.]+:1 on \.ui-app__rail in dark default$/.test(f)), headingFaults(faded).join('\n'));
 });
