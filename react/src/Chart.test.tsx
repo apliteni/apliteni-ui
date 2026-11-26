@@ -1049,8 +1049,9 @@ const printedSpans = (row: Element, plotWidth: number) => {
   });
 };
 
-// The sweep: each pick, and no pick, at plot widths of 390px to 1440px in 105px
-// steps, 11 widths, to stay inside the 5s budget of a test. Where
+// The sweep: each pick, and no pick, at 11 plot widths. They hold the 390px,
+// 820px and 1440px widths of #882 and the 650.390625px plot of the design
+// review's pick case. 11 widths stay inside the 5s budget of a test. Where
 // main's step prints the picked name, the head must print it too: a pick never
 // hides its own name (owner, rev_e24bde907983/d14). Main's step is the widest
 // name's room over the column, counted from the last period. Limits: the
@@ -1058,7 +1059,7 @@ const printedSpans = (row: Element, plotWidth: number) => {
 it('prints no two category names on top of each other, and keeps the picked name, at every pick', () => {
   const room = Math.max(...LONG_UNITS.map(labelWidth)) + 8;
   const count = LONG_UNITS.length;
-  for (let width = 390; width <= 1440; width += 105) {
+  for (const width of [390, 495, 600, 650.390625, 705, 820, 915, 1020, 1125, 1280, 1440]) {
     const mainStep = Math.max(1, Math.ceil(room / (width / count)));
     for (const pick of [undefined, ...LONG_UNITS.keys()]) {
       vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
