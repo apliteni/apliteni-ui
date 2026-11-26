@@ -18,19 +18,66 @@ import {
   type Layer, type Look, type LookGeometry,
 } from './chart-looks';
 
-function placeChartTip(mark: Element, tip: HTMLElement) {
-  const rect = mark.getBoundingClientRect();
+/** The anchor's box on the screen. The anchor is a zero-height rect at the
+ *  mark's top, and WebKit collapses a zero-area SVG rect's bounding box to
+ *  nothing at the svg's origin, which would pin the readout to the plot's top
+ *  left. Its screen place is read from its own `x`/`y`/`width` through the
+ *  svg's screen box instead, which every engine reports. why: #863 */
+function anchorScreenBox(mark: Element): { left: number; top: number; width: number } {
+  const x = Number(mark.getAttribute('x')) || 0;
+  const y = Number(mark.getAttribute('y')) || 0;
+  const w = Number(mark.getAttribute('width')) || 0;
+  const svg = mark.closest('svg');
+  const [vbX = 0, vbY = 0, vbW = 0, vbH = 0] = (svg?.getAttribute('viewBox')?.split(/\s+/) ?? []).map(Number);
+  const rect = svg?.getBoundingClientRect();
+  if (rect && vbW > 0 && vbH > 0 && rect.width > 0 && rect.height > 0) {
+    return {
+      left: rect.left + (x - vbX) * (rect.width / vbW),
+      top: rect.top + (y - vbY) * (rect.height / vbH),
+      width: w * (rect.width / vbW),
+    };
+  }
+  const fallback = mark.getBoundingClientRect();
+  return { left: fallback.left, top: fallback.top, width: fallback.width };
+}
+
+export function placeChartTip(mark: Element, tip: HTMLElement) {
+  const rect = anchorScreenBox(mark);
   const view = tip.ownerDocument.documentElement;
   const gap = parseFloat(getComputedStyle(tip).getPropertyValue('--ui-tip-gap')) || 8;
   const above = rect.top;
-  const below = view.clientHeight - rect.bottom;
+  const below = view.clientHeight - rect.top;
+  // The readout floats over the page, so the view is its outer bound and the
+  // card it opens in its inner one. It is bound by both at once: the view keeps
+  // it on-screen when the card is scrolled out, and the card keeps it inside
+  // the card's content box, inset by the card's padding. The box is their
+  // intersection, and it is also the readout's width, so long text wraps to fit
+  // a narrow card. A chart outside a card keeps only the view.
+  // why: guidelines/hover-readouts.md#prefer-above-the-mark
+  const card = mark.closest('.ui-card');
+  const box = card ? cardContentBox(card, view) : { left: 0, right: view.clientWidth };
+  tip.style.maxWidth = `min(var(--prose-caption), ${box.right - box.left}px)`;
+  // The cap wraps long text before either dimension is measured: a wrapped
+  // readout is taller than its unwrapped self, and placing it with the pre-wrap
+  // height would clip it above the view.
   const isBelow = above < tip.offsetHeight + gap && below > above;
   tip.classList.toggle('is-below', isBelow);
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
-  const left = Math.max(0, Math.min(ideal, view.clientWidth - tip.offsetWidth));
+  const left = Math.max(box.left, Math.min(ideal, box.right - tip.offsetWidth));
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
-  tip.style.setProperty('--ui-tip-y', `${isBelow ? rect.bottom : rect.top}px`);
+  tip.style.setProperty('--ui-tip-y', `${rect.top}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
+}
+
+/** A card's content box in view coordinates — its border box inset by its own
+ *  border and padding — intersected with the viewport, so a card scrolled out
+ *  of the view cannot push the readout off-screen. */
+function cardContentBox(card: Element, view: HTMLElement) {
+  const rect = card.getBoundingClientRect();
+  const style = getComputedStyle(card);
+  const left = rect.left + (parseFloat(style.borderLeftWidth) || 0) + (parseFloat(style.paddingLeft) || 0);
+  const right = rect.right - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingRight) || 0);
+  return { left: Math.max(0, left), right: Math.min(view.clientWidth, right) };
 }
 
 // The paint is src/styles/chart.css, and this module does NOT import it: a kit
@@ -52,7 +99,8 @@ export type ChartPeriod = {
   /**
    * The period is not final. `incomplete` is the period still running,
    * `projected` a future one, and `true` any other estimate. The readout and
-   * the table name the state; the chart at rest prints none.
+   * the table name the state; the chart at rest prints only the group's
+   * `Not final` label above the unfinished group, not a word per period.
    */
   estimated?: ChartEstimate;
   /** Why it is not final. Printed in the readout and in the table. */
@@ -255,11 +303,14 @@ const BAR_MAX = 12;
  * and the carry joining two steps would be longer than the steps it joins.
  */
 const BAR_MAX_BRIDGE = 22;
+/** A bridge's own column width, `--ui-chart-col` in the sheet (--space-16 + --space-6). */
+const BRIDGE_COL = 88;
 /**
- * The months chart's columns (#841, look A): the plot takes the card's width and
- * every period shares it, so nothing scrolls. A bar takes two thirds of its
+ * The months chart's columns (#841, look A): a bar takes two thirds of its
  * column up to --space-12, and its corner is --radius-xs or a quarter of the
- * bar, whichever is smaller, so a narrow bar keeps the same shape.
+ * bar, whichever is smaller, so a narrow bar keeps the same shape. The plot
+ * keeps a column wide enough for a bar's name; where the card is narrower, it
+ * scrolls instead of dropping one.
  */
 const FIT_SHARE = 2 / 3;
 const FIT_MAX = 48;
@@ -284,18 +335,6 @@ const LANE_GAP = 2;
  *  value formatter does. */
 const MISSING = '—';
 
-/**
- * The ramp a bar is painted with, or none. A bar fades from its base on the zero
- * line to its data end, so a bar under zero runs the other way. A bridge bar
- * fades from the previous running total to the new one, so a fall runs down.
- * Off a bridge, a hairline has no base on zero and keeps the flat tone.
- */
-function fadeOf(uid: string, m: { tone: ChartTone; foot: 'top' | 'bottom' | null; value: number }, bridge: boolean) {
-  if (!bridge && !m.foot) return null;
-  const up = bridge ? m.value >= 0 : m.foot === 'bottom';
-  return { id: `${uid}-fade-${m.tone}-${up ? 'up' : 'down'}`, tone: m.tone, up };
-}
-
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const px = (n: number) => Math.round(n * 10) / 10;
 const STATE_WORD = { incomplete: 'Incomplete', projected: 'Projected' } as const;
@@ -314,18 +353,19 @@ function onPrevious(value: number, previous: number | undefined, when: string) {
 
 /**
  * A bar, drawn as a path so the end that stands on the zero line can be left
- * square while the end the reader measures from is fully round: its radius is
- * half the bar's width. A rounded foot would lift the bar off the one rule the
- * chart draws, and the top of a bar has to measure its length. SVG gives a `rect`
- * one radius for all four corners, and a foot on the zero line needs none.
- * `foot` names the edge that stands on zero; a bridge step floats between two
- * running totals and stands on nothing, so it is rounded at both ends.
+ * square while the end the reader measures from carries a small corner: its
+ * radius is --radius-xs or a quarter of the bar, whichever is smaller. A rounded
+ * foot would lift the bar off the one rule the chart draws, and the top of a bar
+ * has to measure its length. SVG gives a `rect` one radius for all four corners,
+ * and a foot on the zero line needs none. `foot` names the edge that stands on
+ * zero; a bridge step floats between two running totals and stands on nothing,
+ * so both of its ends carry the corner.
  */
 function barPath(
   m: { x: number; y: number; w: number; h: number; foot: 'top' | 'bottom' | null },
-  corner = m.w / 2,
+  corner = Math.min(FIT_CORNER, m.w / 4),
 ): string {
-  const r = Math.min(corner, m.w / 2, m.h / (m.foot ? 1 : 4));
+  const r = px(Math.min(corner, m.w / 2, m.h / (m.foot ? 1 : 4)));
   const { x, y: top, w, h } = m;
   const bottom = top + h;
   const arc = (dx: number, dy: number, sweep: 0 | 1) =>
@@ -632,7 +672,8 @@ export function Chart(props: ChartProps) {
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
-  /** The months chart fits its card: look A's columns, and no scroll. */
+  /** The months chart's look A columns: bars share the card, and the plot
+   *  scrolls only where a bar's name would not fit. */
   const fit = variant === 'months';
   const showValues = fit && 'values' in props && props.values === true;
   const plotHeight = height ?? HEIGHT[variant];
@@ -669,6 +710,8 @@ export function Chart(props: ChartProps) {
    *  the plot has its width: a chart that opens at its end follows it there. */
   const [boxWidth, setBoxWidth] = useState(0);
   const [overflows, setOverflows] = useState(false);
+  /** The scroller's own position, so a label cut at its edge can hide. */
+  const [scrolled, setScrolled] = useState(0);
   const [openId, setOpenId] = useState<string | null>(null);
   const [rawCursor, setCursor] = useState(0);
   const [said, setSaid] = useState('');
@@ -833,11 +876,6 @@ export function Chart(props: ChartProps) {
   }, [geometry, frame, lines, keys, columns, centre, barX, barWidth, groupWidth, y, floor, colWidth, plotWidth, boxTop, boxHeight]);
 
   const byId = useMemo(() => new Map(marks.map((m) => [m.id, m])), [marks]);
-  // Look A's columns are one flat fill of the series' tone.
-  const fadeFor = useCallback((m: Mark) => (fit ? null : fadeOf(uid, m, variant === 'bridge')), [fit, uid, variant]);
-  const fades = useMemo(() => new Map(marks.filter((m) => m.kind === 'bar')
-    .map(fadeFor)
-    .filter((f) => f !== null).map((f) => [f.id, f])), [marks, fadeFor]);
   /** The mark a keystroke opens for a column: its first, in drawing order. */
   const lead = useCallback((column: number) => marks.find((m) => m.column === column), [marks]);
   const open = openId ? byId.get(openId) : undefined;
@@ -866,7 +904,10 @@ export function Chart(props: ChartProps) {
   const opensAtEnd = Boolean(periods);
   useLayoutEffect(() => {
     const el = scroller.current;
-    if (opensAtEnd && el) el.scrollLeft = el.scrollWidth - el.clientWidth;
+    if (opensAtEnd && el) {
+      el.scrollLeft = el.scrollWidth - el.clientWidth;
+      setScrolled(el.scrollLeft);
+    }
   }, [opensAtEnd, plotWidth, boxWidth, count]);
 
   /* -- the readout --------------------------------------------------------- */
@@ -884,8 +925,8 @@ export function Chart(props: ChartProps) {
     // is the caller's string and may carry a quote.
     const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
       .find((el) => el.getAttribute('data-anchor') === openId);
-    // The readout floats over the page, so only the view and a box that really
-    // clips bound it: it opens above its mark, over the legend if it must.
+    // The readout floats over the page, so the view and its card bound it: it
+    // opens above its mark, over the legend if it must.
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
     if (!anchor) return;
     if (layered && !tip.matches(':popover-open')) tip.showPopover();
@@ -898,7 +939,13 @@ export function Chart(props: ChartProps) {
     const doc = frameEl.current?.ownerDocument;
     const view = doc?.defaultView;
     if (!doc || !view) return;
-    const hide = () => setOpenId(null);
+    const hide = (event?: globalThis.Event) => {
+      // The chart's own plot scroll re-places the readout beside its mark, so a
+      // keyboard reader who scrolls the plot keeps it open. A page scroll with
+      // the pointer still closes it. why: guidelines/hover-readouts.md#keep-readouts-over-the-page
+      if (event?.target === scroller.current) return;
+      setOpenId(null);
+    };
     const escape = (event: globalThis.KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       dismissed.current = openId;
@@ -1015,11 +1062,25 @@ export function Chart(props: ChartProps) {
   );
   const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
 
-  /* The period row. Where the widest label does not fit its column, every n-th
-     label is printed, counted from the first period that is not final, or from
-     the latest one, so the period a reader came for keeps its label. */
+  /* The period row. The months and bridge charts print every bar's short name,
+     wrapped at a word break inside its column, so no bar goes unnamed. Where one
+     word alone is wider than the column, wrapping cannot help, so those charts
+     keep a column as wide as that word and scroll sideways, so every bar keeps
+     its name. The other variants step by the whole label, counted from the
+     first period that is not final, or from the latest one, so the period a
+     reader came for keeps its label. */
+  const wrapAtWords = variant === 'months' || variant === 'bridge';
   const labelRoom = Math.max(0, ...columns.map((c) => textWidth(c.short))) + LABEL_GAP;
-  const every = labelRoom > colWidth ? Math.ceil(labelRoom / colWidth) : 1;
+  const widestWord = wrapAtWords
+    ? Math.max(0, ...columns.flatMap((c) => c.short.split(/\s+/).map((word) => textWidth(word)))) + LABEL_GAP
+    : labelRoom;
+  const every = widestWord <= colWidth ? 1 : Math.ceil(labelRoom / colWidth);
+  /** The column the plot keeps, `--ui-chart-col` in the sheet: a months column
+   *  is the widest word, a bridge keeps its own column and grows past it for a
+   *  word too wide to wrap. */
+  const floorCol = fit
+    ? Math.ceil(widestWord)
+    : variant === 'bridge' ? Math.max(BRIDGE_COL, Math.ceil(widestWord)) : null;
   const anchor = groupFrom >= 0 ? groupFrom : count - 1;
   const labelled = (i: number) => ((anchor - i) % every + every) % every === 0;
   /** A stepped label wider than its column stands centred on it, or on the
@@ -1027,6 +1088,15 @@ export function Chart(props: ChartProps) {
   const edgeOf = (i: number) => {
     const half = textWidth(columns[i].short) / 2;
     return centre(i) - half < 0 ? 'is-start' : centre(i) + half > plotWidth ? 'is-end' : null;
+  };
+  /** A wrap label sits in a scrolled column. Where the scroll cuts a column at
+   *  its edge, the name hides, so a name is whole or gone, never half.
+   *  why: docs/components.md#chart */
+  const whole = (i: number) => {
+    if (!overflows) return true;
+    const left = i * colWidth;
+    const right = left + colWidth;
+    return left >= scrolled - 0.5 && right <= scrolled + boxWidth + 0.5;
   };
   const groupX = groupFrom >= 0 ? Math.min(Math.max(groupFrom * colWidth, 1), plotWidth - 1) : 0;
 
@@ -1038,6 +1108,7 @@ export function Chart(props: ChartProps) {
         '--ui-chart-h': `${plotHeight}px`,
         '--ui-chart-box': `${px(boxHeight)}px`,
         '--ui-chart-cols': count,
+        '--ui-chart-col': floorCol === null ? undefined : `${floorCol}px`,
         '--ui-chart-pad': `${PAD}px`,
         '--ui-chart-top': `${PAD + roomTop}px`,
         '--ui-chart-bottom': `${PAD + roomBottom}px`,
@@ -1097,12 +1168,14 @@ export function Chart(props: ChartProps) {
           role={overflows ? 'region' : undefined}
           aria-label={overflows ? `${title}. Scroll for more ${noun}.` : undefined}
           onScroll={() => {
+            setScrolled(scroller.current?.scrollLeft ?? 0);
             const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
               .find((el) => el.getAttribute('data-anchor') === openId);
             if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
-            const mark = anchor.getBoundingClientRect();
+            const mark = anchorScreenBox(anchor);
             const view = scroller.current.getBoundingClientRect();
-            if (mark.right <= view.left || mark.left >= view.right) setOpenId(null);
+            if (mark.left + mark.width <= view.left || mark.left >= view.right) setOpenId(null);
+            else if (topLayer) placeChartTip(anchor, tipEl.current);
             else placeTip(frameEl.current, anchor, tipEl.current);
           }}
         >
@@ -1216,32 +1289,14 @@ export function Chart(props: ChartProps) {
                 </>
               )}
 
-              {/* One ramp per tone and direction that a bar uses. The id carries the
-                  chart's own prefix, so two charts on one page never share a ramp. */}
-              {fades.size > 0 && (
-                <defs>
-                  {[...fades.values()].map((fade) => (
-                    <linearGradient key={fade.id} id={fade.id}
-                      className={`ui-chart__tone--${fade.tone}`}
-                      x1="0" x2="0" y1={fade.up ? '1' : '0'} y2={fade.up ? '0' : '1'}>
-                      <stop className="ui-chart__fade-base" offset="0" />
-                      <stop className="ui-chart__fade-end" offset="1" />
-                    </linearGradient>
-                  ))}
-                </defs>
-              )}
-              {marks.filter((m) => m.kind === 'bar').map((mark) => {
-                const fade = fadeFor(mark);
-                return (
-                  <path
-                    key={`bar-${mark.id}`}
-                    className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
-                      mark.estimated && 'is-estimated')}
-                    style={fade ? { '--ui-chart-paint': `url(#${fade.id})` } as CSSProperties : undefined}
-                    d={fit ? barPath(mark, px(Math.min(FIT_CORNER, mark.w / 4))) : barPath(mark)}
-                  />
-                );
-              })}
+              {marks.filter((m) => m.kind === 'bar').map((mark) => (
+                <path
+                  key={`bar-${mark.id}`}
+                  className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
+                    mark.estimated && 'is-estimated')}
+                  d={barPath(mark)}
+                />
+              ))}
 
               {/* A bar's value over its end, or under a bar that grows down from zero. */}
               {marks.filter((m) => m.kind === 'bar' && printed.has(m.id)).map((mark) => {
@@ -1327,7 +1382,7 @@ export function Chart(props: ChartProps) {
                 {columns.map((column, i) => (
                   <span key={`${column.label}-${i}`}
                     className={cx('ui-chart__period', pick === i && 'is-selected', every > 1 && edgeOf(i))}
-                  >{labelled(i) ? column.short : null}</span>
+                  >{labelled(i) && (wrapAtWords ? whole(i) : true) ? column.short : null}</span>
                 ))}
               </div>
             )}
@@ -1338,7 +1393,7 @@ export function Chart(props: ChartProps) {
           {open && (
             <>
               <span className="ui-tip__label">
-                {spark || look ? columns[open.column]?.label : `${open.name}, ${columns[open.column]?.label}`}
+                {spark || look || variant === 'bridge' ? columns[open.column]?.label : `${open.name}, ${columns[open.column]?.label}`}
               </span>
               {open.rows ? (
                 <>

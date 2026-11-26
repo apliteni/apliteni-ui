@@ -53,7 +53,7 @@ export const checkHang = (segCss, cardCss) => {
   if (!trackPad) return { problems: ['segmented.css: no padding on the .ui-seg track'], pills: 0 };
 
   // Every pill padding a stacked row can show: the phone rules, and the sizes that keep theirs.
-  const pills = seg.filter((r) => /\bbutton$/.test(r.selector) && !/underline\b(?![^(]*\))/.test(r.selector.replace(/:not\([^)]*\)/g, ''))
+  const pills = seg.filter((r) => /\bbutton$/.test(r.selector.replace(/(?::not\([^)]*\)\s*)+$/, '')) && !/underline\b(?![^(]*\))/.test(r.selector.replace(/:not\([^)]*\)/g, ''))
     && inline(r.body) && (r.phone || /--sm\b/.test(r.selector)));
   const hangRule = card.find((r) => r.phone && /^\.ui-card__row > \.ui-seg\b/.test(r.selector));
   const hang = hangRule && prop(hangRule.body, 'margin-inline-start');

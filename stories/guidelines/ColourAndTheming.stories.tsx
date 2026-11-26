@@ -52,6 +52,11 @@ const specimens = [
   { id: 'signals', do: () => <Stage><BouncedEmail /></Stage>, dont: () => <Stage mod="gl-drift"><BouncedEmail /></Stage> },
   { id: 'accent-strong', do: () => <Stage><Button variant="primary">Publish</Button></Stage>, dont: () => <Code code={GROUND_DONT} /> },
   { id: 'selection-accent', do: () => <SelectionTabs />, dont: () => <SelectionTabs badge={{ text: '3', tone: 'accent' }} /> },
+  // The Don't renders the accent form as the anti-pattern a page must avoid, not
+  // as an example of use — AGENTS.md asks for a rendered do-and-don't pair.
+  { id: 'neutral-selection',
+    do: () => <Stage><Segmented label="View" value="deck" onChange={() => {}} options={[{ value: 'deck', label: 'Deck' }, { value: 'text', label: 'Text' }]} /></Stage>,
+    dont: () => <Stage><Segmented accent label="View" value="deck" onChange={() => {}} options={[{ value: 'deck', label: 'Deck' }, { value: 'text', label: 'Text' }]} /></Stage> },
   { id: 'both-themes', do: () => <Checks checked={4} />, dont: () => <Checks checked={1} /> },
   { id: 'text-surface', do: () => <Stage><SearchField /></Stage>, dont: () => <Stage mod="gl-grey"><SearchField /></Stage> },
   { id: 'selected-forced-colours', do: () => <ForcedSeg mod="gl-forced--fill" />, dont: () => <ForcedSeg mod="gl-forced--outline" /> },

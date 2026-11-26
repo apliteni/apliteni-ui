@@ -170,6 +170,11 @@ const SUBJECTS = [
     rule: `.ui-seg button${state}:where(:disabled)`, ground: '--surface',
     paintedBy: '.ui-seg, which paints --surface',
   })),
+  ...['.is-active', '[aria-pressed="true"]', '[aria-selected="true"]'].map((state) => ({
+    name: `the chosen segmented pill (${state})`,
+    rule: `.ui-seg button${state}`, ground: '--surface',
+    paintedBy: '.ui-seg, which paints --surface',
+  })),
   {
     name: 'the disabled current page of a busy pager',
     rule: '.ui-pager__page.is-current[disabled]', ground: '--surface',
@@ -368,7 +373,7 @@ const edgesOf = (selector, css = rules) => css
 
 // Without the edge, the dark theme's strong fill alone is under 3:1 on its track. #832
 test('a selected pill without its inset edge falls under 3:1 in the dark theme', () => {
-  const selector = '.ui-seg button[aria-pressed="true"]';
+  const selector = '.ui-seg--accent button[aria-pressed="true"]';
   assert.ok(edgesOf(selector).length > 0, 'the selected pill has no inset edge to remove');
   const bare = rules.map((rule) => ({ ...rule, body: rule.body.replace(/box-shadow\s*:\s*inset 0 0 0 1px [^;]+;?/, '') }));
   assert.deepEqual(edgesOf(selector, bare), []);
@@ -409,7 +414,7 @@ test('segmented pills use an accent mark with at least 3:1 against their track',
   const states = ['[aria-pressed="true"]', '[aria-selected="true"]', '.is-active'];
   let count = 0;
   for (const state of states) {
-    const selector = `.ui-seg button${state}`;
+    const selector = `.ui-seg--accent button${state}`;
     const marks = discovered.filter((found) => found.selector === selector);
     assert.ok(marks.length > 0, `${selector}: no selected fill found`);
     assert.ok(!measured.has(selector), `${selector}: an accent mark is still a grey-fill subject`);
@@ -512,7 +517,7 @@ const forcedSubjects = [...new Set(readRules(dropForcedColours(forcedSource))
   .map((selector) => selector.replace(/::(?:before|after)$/, '')))];
 const row = '<a href="#" class="ui-nav__item is-active">Selected</a>';
 const forcedFixtures = [
-  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline'].map((kind) => [
+  ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].flatMap((state) => ['', 'ui-seg--underline', 'ui-seg--accent'].map((kind) => [
     `segmented ${kind} ${state}`, `<div class="ui-seg ${kind}"><button ${state === 'is-active' ? 'class="is-active"' : state}>Selected</button></div>`,
   ])),
   ...['is-active', 'aria-pressed="true"', 'aria-selected="true"'].map((state) => [
@@ -646,6 +651,8 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
         for (const [name, fixtureHtml] of forcedFixtures) {
           // The shell draws no rail at a phone width: its row is the drawer's, an open row.
           if (width <= 720 && name === 'folded shell row') continue;
+          // The drawer is not drawn above the phone step: its row is the rail's, hidden.
+          if (width > 720 && name === 'drawer row') continue;
           const html = width <= 720 && name === 'shell row'
             ? `<div class="ui-app"><div class="ui-app__drawer"><div class="ui-drawer is-open"><aside class="ui-drawer__panel"><div class="ui-drawer__body"><nav class="ui-nav">${row}</nav></div></aside></div></div></div>`
             : fixtureHtml;
@@ -695,10 +702,22 @@ test('selected marks survive forced colours in Chromium', { skip: process.env.SE
           if (name.startsWith('segmented ui-seg--underline')) assert.equal(result.barBefore, 'none', `${label}: the underline bar shows inside the fill`);
           measured += 1;
         }
+        // Mutation: the drawer is hidden above the phone step, so measuring its
+        // row at this width reads an empty mark. The skip above is what keeps the
+        // pass — taking it away must fail the `empty mark` assertion.
+        if (width === 1280) {
+          const hidden = await page.evaluate((markup) => {
+            document.body.innerHTML = markup;
+            const rect = document.querySelector('.is-active').getBoundingClientRect();
+            return { width: rect.width, height: rect.height };
+          }, `<div class="ui-app__drawer"><nav class="ui-nav">${row}</nav></div>`);
+          assert.ok(hidden.width <= 4 && hidden.height <= 4,
+            'the drawer row is drawn at 1280px, so the skip above would skip a visible row and hide a real defect');
+        }
       }
       await page.close();
     }
-    assert.equal(measured, forcedFixtures.length * 6 - 4);
+    assert.equal(measured, forcedFixtures.length * 6 - 6);
   } finally {
     await browser.close();
   }

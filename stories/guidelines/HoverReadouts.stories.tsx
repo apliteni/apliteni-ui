@@ -18,13 +18,13 @@ const content = await loadGuideline('hover-readouts.md', new URL('../../guidelin
 // readout placed in pixels has to sit on a chart drawn in pixels.
 const HOT = 10;
 type Text = { label: string; value: string; detail: string };
-const Host = ({ children }: { children: ReactNode }) => <div className="ui-tip-host" style={{ width: 'max-content' }}>{children}</div>;
+const Host = ({ children }: { children: ReactNode }) => <div className="ui-tip-host gh-host" style={{ width: 'max-content' }}>{children}</div>;
 
 // The KPI card from the finance portal's overview, and the card under it: the
 // one that moves when a readout is written into the first.
 const Kpis = ({ chart }: { chart: ReactNode }) => <div className="gh-stack">
-  <Card title="Revenue"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>{chart}</Card>
-  <Card title="Expenses"><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p></Card>
+  <Card title="Revenue" level={3}><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>{chart}</Card>
+  <Card title="Expenses" level={3}><p className="gh-figure">{eur(EXPENSES[EXPENSES.length - 1])}</p></Card>
 </div>;
 
 const OverlayDo = () => {
@@ -73,7 +73,7 @@ const low = REVENUE.indexOf(Math.min(...REVENUE));
 const Reachable = () => {
   const b = bars({ values: REVENUE, hot: HOT });
   const p = b.at(HOT);
-  return <Card title="Revenue"><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>
+  return <Card title="Revenue" level={3}><p className="gh-figure">{eur(REVENUE[REVENUE.length - 1])}</p>
     <div className="gh-room"><Host><Raw html={b.svg} /><TipPicture {...pointOf(REVENUE, HOT)} x={p.x} y={p.top} /></Host></div>
     <KeyValueList rows={[
       { label: 'Highest', value: `${eur(REVENUE[top])} in ${MONTHS[top]}` },
@@ -81,7 +81,7 @@ const Reachable = () => {
     ]} />
     <div className="gl-cursor">Finger tapped October</div></Card>;
 };
-const HoverOnly = () => <Card title="Revenue"><Raw html={dailyLine()} />
+const HoverOnly = () => <Card title="Revenue" level={3}><Raw html={dailyLine()} />
   <div className="gl-cursor">Each day’s value only under the pointer</div></Card>;
 
 const specimens = [

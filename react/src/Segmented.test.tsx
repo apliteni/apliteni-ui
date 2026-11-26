@@ -12,14 +12,22 @@ const options = [
 ];
 const props: SegmentedProps = { label: 'Language', options, value: 'en', onChange: () => {} };
 // DOM semantics and interaction only; browser captures measure shared CSS sizing and colour.
-it('preserves the default presentation and exposes both size and width modifiers', () => {
+it('draws the neutral form by default and exposes size, width and the accent form', () => {
   const { rerender } = render(<Segmented {...props} />);
   const toolbar = screen.getByRole('toolbar', { name: 'Language' });
   expect(toolbar).toHaveAttribute('class', 'ui-seg');
-  rerender(<Segmented {...props} size="sm" block appearance="underline" />);
-  expect(toolbar).toHaveClass('ui-seg--sm', 'ui-seg--block', 'ui-seg--underline');
+  expect(toolbar).not.toHaveClass('ui-seg--accent');
+  rerender(<Segmented {...props} size="sm" block appearance="underline" accent />);
+  expect(toolbar).toHaveClass('ui-seg--sm', 'ui-seg--block', 'ui-seg--underline', 'ui-seg--accent');
   rerender(<Segmented {...props} />);
   expect(toolbar).toHaveAttribute('class', 'ui-seg');
+});
+
+it('ignores the deprecated neutral prop — the neutral form is the default', () => {
+  const { rerender } = render(<Segmented {...props} neutral />);
+  expect(screen.getByRole('toolbar', { name: 'Language' })).toHaveAttribute('class', 'ui-seg');
+  rerender(<Segmented {...props} neutral={false} />);
+  expect(screen.getByRole('toolbar', { name: 'Language' })).toHaveAttribute('class', 'ui-seg');
 });
 
 it.each([
@@ -105,4 +113,13 @@ it('gives a glyph-only option its name as a hover title, and a worded option non
   expect(table).toHaveAttribute('title', 'Table');
   expect(table).not.toHaveTextContent('Table');
   expect(screen.getByRole('button', { name: 'Board' })).not.toHaveAttribute('title');
+});
+
+it('marks only a glyph-only option with the larger-icon class', () => {
+  render(<Segmented label="View" value="table" onChange={() => {}} options={[
+    { label: 'Table', value: 'table', icon: 'table', iconOnly: true },
+    { label: 'Board', value: 'board', icon: 'grid' },
+  ]} />);
+  expect(screen.getByRole('button', { name: 'Table' })).toHaveClass('ui-seg--icon');
+  expect(screen.getByRole('button', { name: 'Board' })).not.toHaveClass('ui-seg--icon');
 });

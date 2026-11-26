@@ -111,7 +111,9 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // review restored the dark card's cast, so the rung count below moves 2 -> 1 -> 2.
 // 26 -> 27: the dark card's cast is back, and the light card's `none` sits beside it.
 // 27 -> 28: #850's .ui-float-bar paints the floating treatment (line and drop).
-  assert.equal(sweep.length, 28,
+// 28 -> 29: a neutral Segmented pill's chosen fill drops the accent edge, #867. The accent
+// edge now lives on the opt-in accent form, so the count is unchanged.
+  assert.equal(sweep.length, 29,
     `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 25. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');

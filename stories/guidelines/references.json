@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:210",
+    "ref": "src/styles/tap-zone.css:233",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -142,11 +142,11 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:50",
+    "ref": "src/styles/segmented.css:60",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:51",
+    "ref": "src/styles/segmented.css:61",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -173,11 +173,25 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme × accent cells"
+    "pattern": "theme \u00d7 accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
     "pattern": "'color-contrast': { enabled: false }"
+   }
+  ],
+  "neutral-selection": [
+   {
+    "ref": "react/src/Segmented.tsx:5",
+    "pattern": "accent?: boolean"
+   },
+   {
+    "ref": "src/styles/segmented.css:50",
+    "pattern": "background: var(--strong)"
+   },
+   {
+    "ref": "src/styles/topbar.css:74",
+    "pattern": ".dtsw a.cur { color: var(--surface); background: var(--strong); }"
    }
   ]
  },
@@ -274,7 +288,7 @@
   ],
   "panels": [
    {
-    "ref": "react/src/Segmented.tsx:9",
+    "ref": "react/src/Segmented.tsx:10",
     "pattern": "role=\"toolbar\" aria-label={label}"
    },
    {
@@ -680,29 +694,29 @@
     "pattern": "--tap-gap: var(--space-5"
    },
    {
-    "ref": "src/styles/tap-zone.css:144",
+    "ref": "src/styles/tap-zone.css:166",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:152",
+    "ref": "src/styles/tap-zone.css:174",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:153",
+    "ref": "src/styles/tap-zone.css:175",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
-    "ref": "src/styles/tap-zone.css:128",
+    "ref": "src/styles/tap-zone.css:150",
     "pattern": ".ui-seg--underline { row-gap: var(--space-1"
    }
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:120",
+    "ref": "src/styles/segmented.css:143",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:129",
+    "ref": "src/styles/segmented.css:152",
     "pattern": "padding: var(--space-3)"
    }
   ]
