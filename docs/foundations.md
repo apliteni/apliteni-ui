@@ -71,8 +71,8 @@ first label on the page title's edge.
 ## Control corners
 
 **Every control that a reader presses is a pill.** This covers each button size, each dropdown
-trigger, also in a form, a filter chip and the filter bar's add control, a select and the back
-link. The corner is `--radius-pill`. A wordless button is square, so the pill makes it a circle.
+trigger, also in a form, a filter chip and the filter bar's add control, a select, the back
+link, and a notice's action and dismiss control. The corner is `--radius-pill`. A wordless button is square, so the pill makes it a circle.
 The account button in the band is a 40px circle. In a toolbar beside a full field or a filter
 bar, a wordless button takes the row's height and stays a circle. The kit's padding keeps text,
 glyphs, units and the focus ring inside the rounded edge. Give a control of your own the same
@@ -140,14 +140,15 @@ sentence case and renders as written. A word that is capitalised in itself stays
 | `page-title` | `--text-2xl`  | `--weight-bold`     | `1.1`              | the page's `h1` inside `AppShell` |
 | `card-title` | `--text-lg`   | `--weight-semibold` | `--leading-snug`   | a card's title |
 | `body`       | `--text-base` | `--weight-normal`   | `--leading-normal` | running text |
-| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a nav caption, a footer column title |
+| `label`      | `--text-sm`   | `--weight-medium`   | inherited          | an eyebrow, a table head, a footer column title |
 | `caption`    | `--text-sm`   | `--weight-normal`   | inherited          | a sentence under a specimen, figure or screenshot; a code block's title |
 | `chip`       | `--text-xs`   | `--weight-semibold` | inherited          | a badge, a pill, a menu row's badge, a version badge |
 
 On the kit's scale, these are 30, 18, 14.5, 13, 13 and 12px. When two ranks share a size,
 their weight separates them. `label` and `caption` are both 13px. Words use body ink, including
-labels and captions. See [Text ink](#text-ink). A dropdown's group label is outside the ranks: it
-is 13px, bold and in muted ink, so it stands apart from the options under it.
+labels and captions. See [Text ink](#text-ink). A group label is outside the ranks: a dropdown's
+group label, a sidebar's section caption and a command palette's group heading. Each is 13px, bold
+and in muted ink, so it stands apart from the rows under it.
 
 **A card title is a heading, one level under the page's.** `<Card>` draws an `h2`. `level`
 moves it to `h3`–`h6`. An eyebrow above a card title is a label, not a heading.
@@ -211,8 +212,9 @@ Muted and dim ink have exactly four uses:
   on request. A field's label, a caption and a timestamp keep body ink. Another use
   is the title of a supporting card, such as a document beside the data read from it:
   add `ui-card__title--muted` so it ranks below its neighbour. Its size and weight stay
-  the card title's. A dropdown's group label is chrome too. It names the options under it,
-  and its group keeps the name as the group's accessible name.
+  the card title's. A group label is chrome too: a dropdown's group label, a sidebar's
+  section caption and a command palette's group heading. Each names the rows under it, and
+  its group keeps the name as the group's accessible name.
 
 An empty-state explanation is not an empty slot. A keyboard shortcut is language. A count is
 not a status. Generic badges use body ink. Archive and disabled variants keep their state
@@ -512,6 +514,8 @@ or a dense table's action cell opens across. Some families get no layer. The Acc
 minimums page names all of them. Rows that share an edge have no space outside a row for a
 layer. `input`, `select` and `textarea` generate no pseudo-element and use their own height.
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
+A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.
+The title clips its own text, so the layer measures against the readout trigger around it.
 A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target
 in the layout, so its figure is taller there.
 

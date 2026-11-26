@@ -24,7 +24,7 @@
 
 **Don't:** Fade timestamps, counts or enabled actions.
 
-**Except:** Only: (1) non-word glyphs — arrows, chevrons, dismiss marks; (2) colour reporting off, unset, disabled or archived; (3) a valueless slot, such as an empty field or cell; (4) a drawing’s furniture — a chart’s axis, period row and legend — whose values remain reachable in full, and a dropdown’s group label. Unselected options, counts, timestamps, shortcuts, enabled actions and empty-state text are information, not exceptions.
+**Except:** (1) non-word glyphs — arrows, chevrons, dismiss marks; (2) colour reporting off, unset, disabled or archived; (3) a valueless slot, such as an empty field or cell; (4) a drawing’s furniture — a chart’s axis, period row and legend — whose values remain reachable in full, and a dropdown, sidebar or palette group label. Unselected options, counts, timestamps, shortcuts, enabled actions and empty-state text are information, not exceptions.
 
 ## Use sentence case
 

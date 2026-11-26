@@ -96,7 +96,8 @@ const subjects: string[] = [...new Set([
 // three filter-bar inset declarations left with its bar's move onto a card (#736). The
 // Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet. The
 // finance comparison's ten inset declarations left when the kit took its insets back (#875).
-const FOUND = { subjects: 75, declarations: 531, carriers: 52, sheets: 6 };
+// The command palette story's two muted notes became kit callouts (#886).
+const FOUND = { subjects: 75, declarations: 531, carriers: 51, sheets: 6 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -169,7 +170,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/Landing.stories.tsx': { glue: 23 },
   'react/src/AccentPicker.stories.tsx': { shadow: 2 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
-  'react/src/CommandPalette.stories.tsx': { shadow: 2 },
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
   'react/src/DocumentReview.css': { shadow: 1 },
   'react/src/DocumentReview.stories.tsx': { shadow: 11, glue: 31 },

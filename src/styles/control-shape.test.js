@@ -32,10 +32,11 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const SHEETS = ['src/styles', 'react/src'].flatMap((dir) => readdirSync(path.join(root, dir))
   .filter((f) => f.endsWith('.css')).map((f) => `${dir}/${f}`));
 
-// The classes a reader presses: a button, a dropdown trigger, a filter chip, a select and the
-// back link.
+// The classes a reader presses: a button, a dropdown trigger, a filter chip, a select, the
+// back link, and a notice's action and dismiss control. #888
 const CONTROLS = ['ui-btn', 'ui-fbbtn', 'toggle', 'ui-dropdown__trigger', 'ui-filter-bar__chip',
-  'ui-select', 'ui-pager__size-select', 'ui-app__search', 'ui-app__menu', 'ui-back'];
+  'ui-select', 'ui-pager__size-select', 'ui-app__search', 'ui-app__menu', 'ui-back',
+  'ui-toast__action', 'ui-toast__close'];
 // The fields a reader types into. They take the field corner. #836
 const FIELDS = ['ui-input', 'ui-textarea', 'ui-dropdown__search-input', 'ui-pager__jump-input'];
 // Cards and floating panels: dialogs, dropdown panels, menus, callouts, toasts, success
@@ -165,8 +166,9 @@ test('every control is a pill, every field and surface has its corner, and every
   assert.deepEqual(faults(allCorners, squircles), []);
   // What the tree holds today. A lower count means a class lost its declaration.
   // 18 since #847: a band action's Button and dropdown trigger take the band's 40px pill on a phone.
-  // 17 since #885: a filter chip has no remove mark. rev_8f3cc2e115a3
-  assert.equal(allCorners.filter((c) => c.value === PILL).length, 17, 'pill corners read');
+  // 19 since #885 and #888: a filter chip has no remove mark (one less), and a notice's action
+  // and its dismiss control (two more).
+  assert.equal(allCorners.filter((c) => c.value === PILL).length, 19, 'pill corners read');
   assert.equal(allCorners.filter((c) => c.value === FIELD).length, 4, 'one-line field corners read');
   assert.equal(allCorners.filter((c) => c.value === MESSAGE).length, 1, 'message box corners read');
   assert.equal(allCorners.filter((c) => c.value === SURFACE).length, 15, 'card and panel corners read');
@@ -187,6 +189,8 @@ const MUTATIONS = [
   ['the dropdown search field back on the pill', 'src/styles/dropdown.css', /(border-radius: )var\(--radius-lg\)(; \/\* The one-line field corner)/, '$1var(--radius-pill)$2'],
   ['the select on the field corner', 'src/styles/input.css', /(\.ui-select \{\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-md)'],
   ['the account button in the band on --radius-sm', 'src/styles/layout.css', /(justify-content: center;\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-sm)'],
+  ['the notice action back on --radius-xs', 'src/styles/callout.css', /(padding: 4px 9px; border-radius: )var\(--radius-pill\)/, '$1var(--radius-xs)'],
+  ['the notice dismiss focus back on --radius-xs', 'src/styles/callout.css', /(\.ui-toast__close:focus-visible \{[^}]*border-radius: )var\(--radius-pill\)/, '$1var(--radius-xs)'],
   ['the back link on --radius-sm', 'src/styles/back.css', /(\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-sm)'],
   ['the card back on the field corner', 'src/styles/card.css', /(\.ui-card \{\n[\s\S]*?  border-radius: )var\(--radius-md\)/, '$1var(--radius-lg)'],
   ['the dropdown panel back on the field corner', 'src/styles/dropdown.css', /(\.ui-dropdown__panel \{\n[\s\S]*?  border-radius: )var\(--radius-md\)/, '$1var(--radius-lg)'],

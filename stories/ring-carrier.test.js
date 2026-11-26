@@ -104,7 +104,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // both rows now take the dropdown row's inward band.
   // 45 -> 46: #845 adds the ThemeChoice picture, which shows its radio's focus.
   // 46 -> 47: #871 adds the three-column page's column title, the focus target after a move.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 48: #868 adds a drawer title cut by its ellipsis, a Tab stop with a readout.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -272,7 +273,8 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 47 -> 45: #824 removes the account row's and the version row's own outset rings.
   // 45 -> 46: #845 adds the ThemeChoice picture.
   // 46 -> 47: #871 adds the three-column page's column title.
-  assert.equal(consumers.length, 47, 'ring consumer discovery changed');
+  // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
+  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
   assert.equal(scrollRules.length, 19, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
