@@ -71,7 +71,9 @@ export const LongForm: StoryObj<typeof Drawer> = {
             </>
           )}>
           <DrawerSection title="Supplier">
-            {SUPPLIER.map((label) => <TextField key={label} label={label} />)}
+            <div className="ui-stack">
+              {SUPPLIER.map((label) => <TextField key={label} label={label} />)}
+            </div>
           </DrawerSection>
         </Drawer>
       </>

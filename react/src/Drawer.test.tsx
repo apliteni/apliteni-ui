@@ -7,9 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { act, cleanup, createEvent, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axe from 'axe-core';
-import { useState } from 'react';
+import { useState, type ReactElement } from 'react';
 import { afterEach, vi } from 'vitest';
 import { Drawer, type DrawerProps } from './Drawer';
+import { LongForm } from './Drawer.stories';
 import { Modal } from './Modal';
 import { Tooltip } from './Tooltip';
 import { classesOfEl } from './test/classlist';
@@ -136,6 +137,19 @@ describe('the footer follows the body', () => {
       });
     }
   }
+
+  // The Long Form story spaces its fields by the kit's stack, so a label reads with its own field.
+  // jsdom does not resolve var() to a computed margin, so this reads which kit rule matches.
+  it('the long form puts the kit gap between its fields', () => {
+    kit(sheet('../../src/styles/base.css'));
+    const Story = (LongForm as { render: () => ReactElement }).render;
+    render(<Story />);
+    const gaps = [...document.styleSheets].flatMap((s) => [...s.cssRules])
+      .filter((r): r is CSSStyleRule => r instanceof CSSStyleRule && r.style.marginTop === 'var(--space-4)');
+    const fields = [...document.querySelectorAll('.ui-drawer__body .ui-field')];
+    expect(fields).toHaveLength(20);
+    expect(fields.slice(1).filter((f) => !gaps.some((r) => f.matches(r.selectorText)))).toEqual([]);
+  });
 
   it('the shell menu keeps its account at the foot', () => {
     kit(CSS);
