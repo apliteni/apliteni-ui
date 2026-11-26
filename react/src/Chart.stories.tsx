@@ -224,9 +224,8 @@ export const Bridge: StoryObj = {
 
 /* The narrow-card fixtures from #863: a four-step bridge and a six-bar months
    chart, each with a 20-character full name per bar and a distinct short name
-   under it, so every bar keeps its label at a phone width. A short name wraps
-   at a word break where it does not fit its column. All names and figures are
-   fabricated. */
+   under it. A bridge name wraps at a word break where it does not fit its
+   column. All names and figures are fabricated. */
 const NARROW_REGIONS: ChartPeriod[] = [
   { label: 'North region revenue', short: 'N rev', compare: false },
   { label: 'South region revenue', short: 'S rev', compare: false },
@@ -281,11 +280,12 @@ const LONG_UNITS = [
 ];
 
 /** Twelve periods with long names, the axis a finance report's "margin by unit"
- *  prints, in two charts. The bar chart wraps each name inside its own column and
- *  scrolls, so every bar keeps its name (#863). The stacked chart steps whole
- *  names, and no two printed names overlap (#882). Its last name opens picked,
- *  at weight 600. A pick keeps its own name printed. The 680px column gives the
- *  stacked plot about 600px, where the step of 0.199.0 printed names over each other. */
+ *  prints, in two charts. The rows look prints each full name above its bar, so
+ *  every bar keeps its name and nothing scrolls (#906). The stacked chart steps
+ *  whole names, and no two printed names overlap (#882). Its last name opens
+ *  picked, at weight 600. A pick keeps its own name printed. The 680px column
+ *  gives the stacked plot about 600px, where the step of 0.199.0 printed names
+ *  over each other. */
 export const LongCategoryNames: StoryObj = {
   render: function LongCategoryNamesStory() {
     const [unit, setUnit] = useState<number | null>(11);
@@ -295,7 +295,7 @@ export const LongCategoryNames: StoryObj = {
     return (
       <div style={{ maxWidth: '680px' }}><div className="ui-card-stack">
         <Card title="Margin by unit">
-          <Chart title="Margin by unit, last 12 months" format={eur} formatAxis={eurAxis}
+          <Chart title="Margin by unit, last 12 months" look="rows" format={eur} formatAxis={eurAxis}
             periods={units} series={margin} />
         </Card>
         <Card title="Margin by unit, stacked">
@@ -306,6 +306,47 @@ export const LongCategoryNames: StoryObj = {
       </div></div>
     );
   },
+};
+
+/* The three charts of #906, with fabricated figures: fourteen months with two
+   projected, six units with a signed margin, and a four-step bridge. */
+const FOURTEEN = Array.from({ length: 14 }, (_, i) => ({
+  label: `${MONTH_NAMES[i % 12]} ${2026 + Math.floor(i / 12)}`,
+  ...(i >= 12 ? { estimated: 'projected' as const } : {}),
+}));
+const FOURTEEN_CASH = [32000, 41000, 36000, 46000, 39000, 44000, 52000, 48000, 58000, 51000, 63000, 57000,
+  61000, 65000];
+const UNITS = ['Infrastructure Operations', 'Customer Support', 'Product Development', 'Sales Operations',
+  'Quality Assurance', 'Shared Services'].map((label) => ({ label, compare: false }));
+const UNIT_MARGIN = [42000, -18000, 30000, 9000, -12000, 24000];
+
+/** Each chart fits its card at any width, with no sideways scroll (#906). The
+ *  months chart keeps every bar and prints fewer month names where they do not
+ *  fit. The rows look prints each unit's full name above its signed bar. The
+ *  bridge column is as wide as its widest word, and a step name wraps at its
+ *  spaces. */
+export const FitTheCard: StoryObj = {
+  render: () => (
+    <div className="ui-card-stack">
+      <Card title="Cash by month">
+        <Chart title="Cash by month, with two projected months" format={eur} formatAxis={eurAxis}
+          periods={FOURTEEN} series={[{ id: 'cash', name: 'Cash', values: FOURTEEN_CASH, tone: 'accent' }]} />
+      </Card>
+      <Card title="Margin by unit">
+        <Chart title="Margin by unit" look="rows" format={eur} formatAxis={eurAxis}
+          periods={UNITS} series={[{ id: 'margin', name: 'Margin', values: UNIT_MARGIN, tone: 'accent' }]} />
+      </Card>
+      <Card title="Cash bridge">
+        <Chart variant="bridge" title="Cash bridge, opening to closing" format={eur} formatAxis={eurAxis}
+          steps={[
+            { label: 'Opening total', value: 90000 },
+            { label: 'Sales received', value: 60000 },
+            { label: 'Costs paid', value: -45000 },
+            { label: 'Closing total', kind: 'total' },
+          ]} />
+      </Card>
+    </div>
+  ),
 };
 
 /** The picked month is drawn — a band behind its column and its label at weight
