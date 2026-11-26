@@ -46,7 +46,7 @@
 
 **Rule:** Keep a focus indicator at least 3:1 against every ground it reaches.
 
-**Do:** One solid accent band, drawn 1px off the control it marks.
+**Do:** One solid 1px accent band, 2px off the control it marks.
 
 **Don't:** A glow on its own, with no solid band inside it to measure.
 

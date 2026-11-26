@@ -304,14 +304,14 @@
   --shadow-card: 0 0 #0000;
   /* ONE band, drawn as a real OUTLINE, and no halo. Artur took the halo off on #578
      after #557 drew a scroll region's band without one. An outline leaves its offset
-     UNPAINTED, so the 1px between the control and the band is whatever surface the
+     UNPAINTED, so the 2px between the control and the band is whatever surface the
      control is already standing on — which is what retired --ring-gap and the
      per-surface recomposition behind it, and what leaves forced colors a real outline
-     to repaint instead of a transparent stand-in.
+     to repaint instead of a transparent stand-in. 1px band, 2px gap: Artur, #885.
      why: docs/foundations.md#the-focus-ring */
-  --ring-width: 2px;
+  --ring-width: 1px;
   --ring-color: var(--accent);
-  --ring-gap-width: 1px;
+  --ring-gap-width: 2px;
   --ring: var(--ring-width) solid var(--ring-color);
   --ring-offset: var(--ring-gap-width);
   /* What a scroll region inside a surface takes: the same band, drawn inward rather

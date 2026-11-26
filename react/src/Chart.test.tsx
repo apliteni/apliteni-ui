@@ -479,15 +479,15 @@ describe.each(['dark', 'light'])('the kit ring resolves [%s]', (theme) => {
     const resolved = substitute(rule, vars);
     expect(tokens, 'the ramp the resolver reads').toContain('--ring:');
     expect(resolved, 'every token resolved').not.toContain('var(');
-    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*2px solid #[0-9a-f]{3,8}/i);
-    expect(resolved).toContain('outline-offset: 1px');
+    expect(resolved, 'the kit outline survives forced colours').toMatch(/outline:\s*1px solid #[0-9a-f]{3,8}/i);
+    expect(resolved).toContain('outline-offset: 2px');
     expect(resolved).not.toContain('box-shadow');
     expect(readRepo('../../src/styles/chart.css'),
       'the chart declares no outline of its own, so nothing reverts to the browser\'s')
       .not.toMatch(/outline\s*:/);
     expect(readRepo('../../src/styles/chart.css'),
       'the chart keeps the same unpainted offset as the kit ring')
-      .toMatch(/\.ui-chart__frame:focus-visible\s*\{[^}]*outline-offset:\s*var\(--ring-offset,\s*1px\)/);
+      .toMatch(new RegExp(`\\.ui-chart__frame:focus-visible\\s*\\{[^}]*outline-offset:\\s*var\\(--ring-offset,\\s*${vars.get('--ring-gap-width')}\\)`));
     expect(readRepo('../../src/styles/chart.css'),
       'the chart must not offset focus by the tick row')
       .not.toMatch(/outline-offset:\s*calc\([^)]*ui-chart-tick/);
