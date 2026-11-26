@@ -82,7 +82,7 @@ export function AccountWindow({
           <div className="rx-account__pane">
             <div className="rx-modal__head rx-account__head">
               <Button className="rx-account__back" variant="ghost" size="sm" iconOnly icon="chevronLeft"
-                aria-label="Sections" ref={back} onClick={() => show('sections')} />
+                aria-label="Sections" title="Sections" ref={back} onClick={() => show('sections')} />
               <h2 className="rx-account__title" id={titleId}>{current?.label}</h2>
               {close}
             </div>

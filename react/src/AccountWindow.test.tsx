@@ -41,6 +41,7 @@ it('the back button opens the sections, a section press opens it, and each scree
   const { rerender } = render(<AccountWindow open onClose={onClose} reader={reader} sections={sections}
     onSectionChange={onSectionChange} />);
   const back = within(dialog()).getByRole('button', { name: 'Sections' });
+  expect(back.title).toBe('Sections');
   expect(view()).toBe('section');
   await userEvent.click(back);
   expect(view()).toBe('sections');
