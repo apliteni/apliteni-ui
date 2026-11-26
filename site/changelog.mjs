@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.211.0', date: '2026-11-26',
+    v: '0.212.0', date: '2026-11-26',
     changes: [
       ['changed', 'A `StatBand` with `variant="band"` and up to three figures now keeps them in one row on a phone. Below 42rem of band width the value steps down to 22px, 18px and then 15.5px, and the gap between figures closes to 16px, 8px and then 4px. Three values of `−€9,999,999` fit in one row above 19rem, and the figures stack only at 19rem or below. Tiles, an open band and a band of four figures keep their folds. Part of #865.', ['Stat band']],
       ['changed', 'A toolbar directly after a stat band in the page body now keeps one group gap, 32px, in both themes, in place of the group gap plus the body gap. Part of #865.', ['Stat band', 'Toolbar']],
