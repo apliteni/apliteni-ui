@@ -8,7 +8,7 @@ export const RELEASES = [
   {
     v: '0.200.0', date: '2026-11-26',
     changes: [
-      ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes a new token, `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],
+      ['changed', 'A dropdown group label is now bold and in muted ink, so in both themes it stands apart from the options under it. Its size stays, and the options are not indented. A disabled option now takes the new ink `--disabled-ink-option`, which is paler than the label. Other disabled controls keep `--disabled-ink`. Part of #886.', ['Dropdown']],
       ['added', 'A new Dropdown guideline page has one rule, Set group labels apart. Part of #886.', ['Guidelines']],
     ],
   },
