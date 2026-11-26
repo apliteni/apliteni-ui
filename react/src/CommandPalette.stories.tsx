@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CommandPalette, type CommandGroup } from './CommandPalette';
 import { Confirm } from './Confirm';
 import { Toast, useToast } from './Toast';
@@ -34,23 +34,36 @@ const GROUPS: CommandGroup[] = [
   },
 ];
 
+// Shows one toast for each new `done`. A story's render sits above its Toast
+// provider, so it reports through this child, not through useToast itself.
+function Done({ done }: { done: { title: string } | null }) {
+  const push = useToast();
+  const shown = useRef(done);
+  useEffect(() => {
+    if (!done || shown.current === done) return;
+    shown.current = done;
+    push({ title: done.title, compact: true });
+  }, [done, push]);
+  return null;
+}
+
 // A command that ran is something that happened, so it reports in a toast.
 // guidelines/component-choice.md: Show lasting conditions.
 export const Playground: StoryObj<typeof CommandPalette> = {
-  decorators: [(Story) => <Toast><Story /></Toast>],
   render: () => {
     const [open, setOpen] = useState(true);
-    const push = useToast();
+    const [ran, setRan] = useState<{ title: string } | null>(null);
     return (
-      <>
+      <Toast>
         <Button variant="secondary" onClick={() => setOpen(true)}>Search or run a command</Button>
+        <Done done={ran} />
         <CommandPalette
           open={open}
           groups={GROUPS}
           onClose={() => setOpen(false)}
-          onSelect={(item) => push({ title: `Ran ${item.label}`, compact: true })}
+          onSelect={(item) => setRan({ title: `Ran ${item.label}` })}
         />
-      </>
+      </Toast>
     );
   },
 };
@@ -71,14 +84,14 @@ export const Roomy: StoryObj<typeof CommandPalette> = {
 // second is rendered disabled: the component refuses to run a delete the reader
 // was never asked about. The first opens a confirm over the palette.
 export const Destructive: StoryObj<typeof CommandPalette> = {
-  decorators: [(Story) => <Toast><Story /></Toast>],
   render: () => {
     const [open, setOpen] = useState(true);
     const [asked, setAsked] = useState(false);
-    const push = useToast();
+    const [deleted, setDeleted] = useState<{ title: string } | null>(null);
     return (
-      <>
+      <Toast>
         <Button variant="secondary" onClick={() => setOpen(true)}>Open</Button>
+        <Done done={deleted} />
         <CommandPalette
           open={open}
           hint={false}
@@ -99,9 +112,9 @@ export const Destructive: StoryObj<typeof CommandPalette> = {
           confirmLabel="Delete workspace"
           cancelLabel="Keep the workspace"
           onCancel={() => setAsked(false)}
-          onConfirm={() => { setAsked(false); setOpen(false); push({ title: 'Workspace deleted', compact: true }); }}
+          onConfirm={() => { setAsked(false); setOpen(false); setDeleted({ title: 'Workspace deleted' }); }}
         />
-      </>
+      </Toast>
     );
   },
 };
