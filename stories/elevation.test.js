@@ -113,7 +113,9 @@ test('the sweep sees every box-shadow the kit ships', () => {
 // 27 -> 28: #850's .ui-float-bar paints the floating treatment (line and drop).
 // 28 -> 29: a neutral Segmented pill's chosen fill drops the accent edge, #867. The accent
 // edge now lives on the opt-in accent form, so the count is unchanged.
-  assert.equal(sweep.length, 29,
+// 29 -> 31: #866's movable card rests on --elev-rest in both themes, and its held form,
+// the empty source slot, drops it to `none`.
+  assert.equal(sweep.length, 31,
     `the kit's stylesheets declare ${sweep.length} box-shadow rules, not the pinned 25. `
     + 'Adding or removing one is fine — move the number, and check the new declaration '
     + 'against docs/foundations.md#elevation.');
@@ -169,7 +171,7 @@ test('the only cast shadow under src/ is a rung of the ladder', () => {
   // such a rule from the surfaces around them.
   const got = Object.fromEntries([...rungs].map(([layer, n]) => [layer, n / THEMES.length]));
   assert.deepStrictEqual(got, {
-    'var(--elev-rest)': 2,   // .ui-card (dark) and .ui-card__page
+    'var(--elev-rest)': 3,   // .ui-card (dark), .ui-card__page and .ui-card--movable (#866)
     'var(--elev-rail)': 1,   // .ui-app__rail
     'var(--elev-drop)': 13,  // the floating surfaces, each saying it once
   }, 'the ladder\'s declarations moved. If a surface dropped its rung, put it back; if one '

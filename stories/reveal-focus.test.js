@@ -184,6 +184,10 @@ const LEDGER = {
     open: () => mount(REACT.palette).querySelector('.ui-cmdk'),
     focuses: 'the text box',
   },
+  '.ui-card--movable.is-held > *': {
+    noFocus: 'a held card hides its own content while its copy follows the pointer (#866). The drop '
+      + 'ends the hold and nothing is focused into the card; the focus stays where the person left it',
+  },
   '.ui-tip': {
     noFocus: 'a tooltip is named by aria-describedby and never focused; it holds text and no control',
   },

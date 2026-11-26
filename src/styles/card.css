@@ -116,6 +116,72 @@
   background: color-mix(in srgb, var(--green) var(--card-tint), var(--surface));
 }
 
+/* A movable card: one record that a person drags to another column, such as a task on a
+   board. It keeps its fill, edge and shadow in both themes, because a card that moves
+   must show its own box. The edge answers the pointer, and the card never lifts, because
+   a transform would move the fixed menu that it opens. The selector repeats the light
+   page's exclusions, so this box outranks the light card's open grouping of space.
+   #866, rev_c072f0f9bb83/d6. why: docs/components.md#movable-card */
+:root[data-theme] .ui-card.ui-card--movable:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
+  --ui-card-ground: var(--surface);
+  /* A code chip on the card takes the card's chip surface, as on a plain card. */
+  --code-bg: var(--code-chip-surface);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  border-color: var(--card-edge);
+  box-shadow: var(--elev-rest);
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  /* A long press on a touch screen starts the drag, not the system's callout. */
+  -webkit-touch-callout: none;
+}
+:root[data-theme] .ui-card.ui-card--movable:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live):hover { border-color: var(--border-strong); }
+:root[data-theme] .ui-card.ui-card--movable:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live):active { border-color: var(--accent); cursor: grabbing; }
+.ui-card--movable:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-card--movable .ui-card__body { flex: 1 1 auto; min-width: 0; }
+/* The card's action stands in a box one title line high, so its button sits on the centre
+   of the first title line however many lines the title takes. */
+.ui-card__action { display: inline-flex; flex: none; align-items: center; height: calc(var(--text-lg) * var(--leading-snug)); }
+/* The source slot: while a person moves the card, its own place stays as an empty, quiet
+   slot of the card's size. The sunken surface marks the track, with no edge and no text. */
+:root[data-theme] .ui-card.ui-card--movable.is-held:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
+  background: var(--surface-2); /* code-bg: inherit — the source slot hides its text, so no chip shows on it. */
+  border-color: transparent;
+  box-shadow: none;
+}
+.ui-card--movable.is-held > * { visibility: hidden; }
+/* The target slot: an empty place of the card's height where the card lands, with a dashed
+   accent edge. It holds no text, no glyph and no alert, so the board says the target in a
+   live region. */
+.ui-card-slot {
+  box-sizing: border-box;
+  flex: none;
+  pointer-events: none;
+  background: var(--surface-2); /* code-bg: inherit — the target slot holds no text. */
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius-md);
+}
+/* A board: columns of movable cards in one region that scrolls sideways, so the columns
+   never wrap. The region is a keyboard stop, and it takes the inward scroll band in its own
+   padding. The caller lays out the columns inside it. #866
+   why: docs/foundations.md#the-focus-ring */
+.ui-card-board { overflow-x: auto; overscroll-behavior-x: contain; padding: var(--space-1); }
+.ui-card-board:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+/* On a phone the columns move under a finger, so the board shows no scrollbar, as a table's
+   card does. The next column's edge still shows that more columns follow. #866 */
+@media (max-width: 560px) {
+  .ui-card-board { scrollbar-width: none; }
+  .ui-card-board::-webkit-scrollbar { display: none; }
+}
+/* The copy that follows the pointer: the card itself, fixed above the page at the point
+   the person took it. It takes no pointer, so the column under it stays the target. */
+.ui-card--lifted { position: fixed; z-index: var(--z-toast); pointer-events: none; }
+
 /* A viewer: a document shown inside a card, set apart from the controls that act on it.
    The card's .ui-toolbar becomes a slim row between two hairlines, and its scroll box
    becomes a recessed stage that runs to the card's sides and bottom. The document

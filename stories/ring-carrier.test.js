@@ -105,7 +105,10 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 45 -> 46: #845 adds the ThemeChoice picture, which shows its radio's focus.
   // 46 -> 47: #871 adds the three-column page's column title, the focus target after a move.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis, a Tab stop with a readout.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 49: #866 adds a movable card, one Tab stop that the keyboard moves by its menu.
+  // 49 -> 50: #866 adds the query chip's remove mark, which kept its ring when #885 took
+  // the filter chip's mark away.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -148,7 +151,8 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // 16 -> 18: #789 rings the nav row inward, at rest and current, because the rows stand
   // 2px apart and an outward band crossed into the next row.
   // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
-  assert.equal(scrollRules.length, 19,
+  // 19 -> 20: #866 rings the card board inward, because its columns scroll sideways in it.
+  assert.equal(scrollRules.length, 20,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 4,
     'React\'s modal body, the picker\'s shortcut row, the account rail and the three-column page\'s columns '
@@ -274,9 +278,12 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 45 -> 46: #845 adds the ThemeChoice picture.
   // 46 -> 47: #871 adds the three-column page's column title.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 49: #866 adds a movable card.
+  // 49 -> 50: #866 adds the query chip's remove mark.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
-  assert.equal(scrollRules.length, 19, 'scroll-ring consumer discovery changed');
+  // 19 -> 20: #866 adds the card board.
+  assert.equal(scrollRules.length, 20, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 

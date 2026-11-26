@@ -427,6 +427,16 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+/* A pinned title is one line, cut at a ceiling between a small and a large panel, so the pin
+   never covers the columns that scroll past it. The link carries the cut, so its own ring is
+   not clipped. Below 720px the cell's own cap is smaller and cuts first. #866
+   why: docs/components.md#data-table */
+.ui-table--pinned .ui-table__title.ui-table__linked > a:not([class]):only-child {
+  display: block;
+  max-width: clamp(min(var(--panel-sm), 40vw), calc(100vw - var(--container)), var(--panel-lg));
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 @media (max-width: 720px) {
   /* One line wide: nothing wraps, and --ui-table-identity-max is the ceiling a consumer
      retunes. The cut takes NO margin — the cell is sticky and the next column scrolls

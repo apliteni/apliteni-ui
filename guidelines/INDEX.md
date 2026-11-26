@@ -35,4 +35,6 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Three-column page](three-column-page.md) | Three columns chained from parent to child: the selected parent, its children and the open child, with the widths, the collapse order and the column header. | Read it before you put a list, its children and the open item side by side. |
 | [Wizard](wizard.md) | Ordered steps, their states, the open step and the final action. | Read it before you build ordered steps. |
 | [Dropdown](dropdown.md) | Group labels in a dropdown panel, and what a trigger shows. | Read it before you group the options of a dropdown or name its trigger. |
+| [Task list](task-list.md) | A task page: its title row, its toolbar, and a board with columns, drag and keyboard moves. | Read it before you build a page of tasks with a table and a board. |
+| [Notification email](notification-email.md) | A notification mail: its subject, its task links, its plain text and its settings link. | Read it before you write a mail that tells a person about a task. |
 | [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |

@@ -882,3 +882,23 @@
 @supports (corner-shape: squircle) {
   .ui-auth__card { corner-shape: squircle; }
 }
+
+/* -- A task page's compact head (#866) ------------------------------------- */
+/* The page's one create action stands at the end of the title row, and the toolbar under
+   it is one inner gap down, so the tasks start close to the title.
+   rev_f2d9bddb40b6/d9. why: docs/components.md#page-shell */
+.ui-app__title-row--compact,
+.ui-app__title-row--compact:not(:has(+ .ui-app__sub)) { margin-bottom: var(--space-2); }
+
+/* -- A query search on a toolbar (#866) ------------------------------------ */
+/* The query search takes the row's free width up to a large panel, so its chips and its
+   suggestion panel have room. Its chips grow it downwards, so the row keeps one line and
+   the other controls stay level with its field. The view switch stands at the row's end.
+   rev_f2d9bddb40b6/d9. why: docs/components.md#query-search */
+.ui-toolbar:has(> .ui-query) { flex-wrap: nowrap; align-items: flex-start; }
+.ui-toolbar > .ui-query { flex: 1 1 0; min-width: 0; max-width: var(--panel-lg); }
+.ui-toolbar:has(> .ui-query) > .ui-seg:last-child { align-self: flex-start; margin-inline-start: auto; }
+@media (max-width: 560px) {
+  .ui-toolbar:has(> .ui-query) { flex-wrap: wrap; }
+  .ui-toolbar > .ui-query { flex-basis: 100%; max-width: none; }
+}

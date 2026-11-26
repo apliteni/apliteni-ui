@@ -163,7 +163,10 @@ layout with a sidebar it puts `title` in the band as the page's `h1`, with `tool
 **The title row.** `title` is the page's one `h1`. `lede` is one line under it. `tools` puts small
 tools for the whole page at the end of the title row, such as a version badge, a period picker or
 a `size="sm"` button. Tools that do not fit go under the title. `actions` puts the page's buttons
-in their own row under the title. `back` puts a [back link](#back-link) above the title.
+in their own row under the title. `back` puts a [back link](#back-link) above the title. `head="compact"`
+puts `actions` at the end of the title row, after `tools`, and stands the next block 8px under
+the row. Use it for a list page with one create action, such as New task above a
+[toolbar](#toolbar). A band title ignores it.
 
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top
 of every account menu. A row takes `href` to go to a page, or `onSelect` to open something in
@@ -649,6 +652,37 @@ included, for a field that should fit its expected input instead of growing acro
 give it a CSS width such as `24ch`. The field has no clear button of its
 own, because the browser draws one. See [Toolbar](#toolbar).
 
+### Query search
+
+Use `QuerySearch` for a list search that reads typed filters, such as `state:open` and `@name`
+for a person. Use [`SearchField`](#search-field) when a search reads only words.
+
+```tsx
+<QuerySearch keys={TASK_KEYS} value={query} onChange={setQuery} ariaLabel="Search tasks" size="sm"
+  placeholder="Search tasks, state: or @name" />
+```
+
+`keys` gives each key, its other names, its values and a hint. A key with `kind: 'person'` also
+reads `@name`, and its `self` value, such as Me, comes first after `assignee:`. `value` holds the
+chips and the text in the field. Keep it in the URL, so a reload and a view change keep the query.
+`parseQuery`, `readQuery` and `matchQuery` read the same query for the list.
+
+**What the user sees.** The field offers the keys, then the values or the people. A menu row
+shows its name and hint on one left edge, and the key's badge at the right edge. A chosen
+condition becomes a chip under the field. A click on a chip's label puts it back in the field,
+and its mark removes it. A query with AND, OR or a parenthesis stays one chip. A query that does
+not read shows its error under the field, with words that say what to change.
+`peopleStatus` shows Searching people, or People did not load with Retry.
+
+**Keyboard and screen reader.** The field keeps the focus. Up and Down move the active row and
+wrap. Enter or Tab takes it. Enter with no active row commits the text. Escape closes the menu,
+and a click in the field opens it again. Backspace in an empty field removes the last chip. On a
+focused chip, Backspace or Delete removes it, and Escape goes back to the field. The field is a
+combobox with a listbox, and the chips are a group with a hidden legend.
+
+**Room on the screen.** The panel opens under the chips, as wide as the field, and stops above
+the bottom of the visible viewport. Its rows scroll.
+
 ### Checkbox and switch
 
 Use `Checkbox` for an option that the user turns on or off and then submits. Use
@@ -842,7 +876,9 @@ its own. Keep its search field live, because a disabled field is too faint on th
 ### Toolbar
 
 Use `.ui-toolbar` for the row of controls above a list: a search field, then the filters, then the
-view switch. Put a create action on its own row above the toolbar, at the left.
+view switch. Put a create action on its own row above the toolbar, at the left. On a page with a
+compact head (`head="compact"` on the [page shell](#page-shell)), put the create action at the end
+of the title row instead, as on the task page.
 
 ```tsx
 <div className="ui-toolbar">
@@ -858,6 +894,10 @@ toolbar that starts with a small search field is a small row: with a mouse, the 
 Clear all, a dropdown trigger, a small Segmented and a small button are 32px. Give the Segmented
 and the button `size="sm"` yourself. The small search field stops at 320px. On a touch screen the
 row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, also on a phone.
+
+A toolbar that starts with a small [query search](#query-search) is a small row too. The query
+search takes the free width up to 560px, and its chips grow it downwards. So Group by and the
+view switch stay level with its field, and the view switch stands at the end of the row.
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
@@ -930,6 +970,35 @@ figures and the filter row under it. The line is `--border` in light and none in
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a
 white sheet with dark text in both themes, with A4 proportions at the least. For a document on a
 bare full-bleed backdrop instead of a card, use `.ui-document-ground`.
+
+### Movable card
+
+Use `MovableCard` for one record that a person moves to another column, such as a task on a
+board. Use a [table](#data-table) for records that a person compares.
+
+```tsx
+<MovableCard title={<a href="/tasks/T-118">Match the October bank statement</a>}
+  label="Match the October bank statement" action={<TaskMenu … />} held={held === id}>
+  <TaskFacts … />
+</MovableCard>
+```
+
+**What the user sees.** The card keeps its fill, edge and shadow in both themes, also on the light
+page. The edge darkens under the pointer and turns accent while pressed. `action` stands on the
+centre of the first title line. Draw its menu as a ghost button, with `ui-btn--ghost` on the
+trigger. While a person moves the card, `held` leaves its place as an empty sunken slot.
+`CardSlot` is a dashed accent slot that marks where the card lands. Give the copy that follows the
+pointer `ui-card--lifted`, so it stays fixed above the page and takes no pointer.
+
+**Keyboard and screen reader.** The card is one Tab stop, named by `label`, and the browser can
+drag it. The page owns the move: mouse drag, a long press and drag on touch, and the same moves
+in the card's menu for the keyboard. Say the target in a live region, because the slot has no
+text.
+
+**Room on the screen.** Put the columns side by side in one sideways scroll region. A column
+never wraps under another. The region is `.ui-card-board`, with `role="region"`, a name and
+`tabIndex={0}`. It takes the inward scroll band on keyboard focus. At 560px and below it shows
+no scrollbar, as a table's card does.
 
 ### Badge, pill and status dot
 
@@ -1355,7 +1424,9 @@ least 4.5:1 on a plain or a selected row.
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
 region can scroll. When the region is scrolled, the next column's text stops one cell padding
 short of the divider. Below 720px a pinned cell keeps one line and is cut at
-`--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
+`--ui-table-identity-max`. Lower that cap for a table with a selection column. Above 720px a
+pinned title whose cell holds only its link keeps one line too. It is cut between `--panel-sm`
+and `--panel-lg`, so the pin does not cover the other columns. Below 560px the
 frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
 

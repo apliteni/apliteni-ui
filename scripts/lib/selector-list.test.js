@@ -145,6 +145,7 @@ const SOURCE = /\.(js|mjs|cjs|ts|tsx)$/;
  * stale entry fails rather than widening the allowance silently.
  */
 const VALUE_SPLITS = [
+  ['react/src/query.ts', ')', 'the values of one search key, such as state:open,done'],
   ['scripts/evidence/guideline.mjs', 'widths', 'a command-line width list'],
   ['scripts/font-loading.test.js', 'stack', 'a font-family stack'],
   ['src/motion.js', ')', 'a transition duration list'],

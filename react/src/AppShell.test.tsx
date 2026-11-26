@@ -627,3 +627,21 @@ describe('band actions', () => {
     expect(css).toMatch(/@media \(min-width: 561px\) and \(max-width: 720px\) \{[^@]*\.ui-react-app__title \{ flex-shrink: 0; max-width: 50%; \}/);
   });
 });
+
+// A compact head stands New task at the end of the title row, so the toolbar is the next
+// row (#866). The rule is the vanilla sheet's, so /css consumers get it too.
+it('puts the actions at the end of the title row in a compact head', () => {
+  render(<AppShell {...props} head="compact" tools={<button type="button">Customize</button>} actions={<button type="button">New task</button>} />);
+  const row = screen.getByRole('main').querySelector('.ui-app__title-row')!;
+  expect(row).toHaveClass('ui-app__title-row--compact');
+  expect([...row.querySelectorAll('button')].map(b => b.textContent)).toEqual(['Customize', 'New task']);
+  expect(document.querySelector('.ui-react-app__actions')).toBeNull();
+  expect(read('../../src/styles/layout.css')).toMatch(/\.ui-app__title-row--compact,\s*\.ui-app__title-row--compact:not\(:has\(\+ \.ui-app__sub\)\) \{ margin-bottom: var\(--space-2\); \}/);
+});
+
+it('keeps the actions row without a compact head', () => {
+  const { unmount } = render(<AppShell {...props} actions={<button type="button">New task</button>} />);
+  expect(document.querySelector('.ui-react-app__actions')).toHaveTextContent('New task');
+  expect(document.querySelector('.ui-app__title-row--compact')).toBeNull();
+  unmount();
+});

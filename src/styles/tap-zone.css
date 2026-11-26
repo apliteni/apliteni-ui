@@ -166,6 +166,10 @@
      one control and reads this clearance: 30 drawn, 44 reached, 2px past the
      chip's edge. #885 */
   .ui-filter-bar { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  /* A query chip keeps its remove mark. Across, there is nothing to open: parting the label
+     from its mark would draw two controls where the reader sees one. Up and down, the label
+     reads the bar's clearance, as a filter chip's trigger does. #866 */
+  .ui-query__chip { --tap-clear-x: 0px; }
   /* In a split toolbar the rail row beside the report sits on the same line as
      Clear all. One step plus 1px keeps the button's layer off that row. */
   .ui-toolbar--split .ui-filter-bar { column-gap: calc(var(--tap-gap) + var(--space-1) + 1px) !important; }

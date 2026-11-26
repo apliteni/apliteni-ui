@@ -97,7 +97,8 @@ const subjects: string[] = [...new Set([
 // Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet. The
 // finance comparison's ten inset declarations left when the kit took its insets back (#875).
 // The command palette story's two muted notes became kit callouts (#886).
-const FOUND = { subjects: 75, declarations: 531, carriers: 51, sheets: 6 };
+// The task page and the task mail showcases add two sheets (#866).
+const FOUND = { subjects: 75, declarations: 531, carriers: 51, sheets: 8 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -199,6 +200,7 @@ describe('story CSS', () => {
       'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
       'react/src/showcases/Notifications.css', 'react/src/showcases/SplitLayout.css',
+      'react/src/showcases/TaskMail.css', 'react/src/showcases/Tasks.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.

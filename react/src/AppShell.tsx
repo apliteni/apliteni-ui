@@ -50,6 +50,9 @@ export type AppShellProps = AppShellNav & {
   /** Small tools for the whole page, at the end of the title row: a version badge, a
    *  small button. The lede stands under the whole row (#736). */
   tools?: ReactNode;
+  /** `compact` puts `actions` at the end of the title row, after `tools`, and stands the
+   *  body 8px under the row: the head of a task page, with one create action (#866). */
+  head?: 'compact';
   bandControl?: ReactNode;
   /** One glyph control in the sidebar head, before the fold button, drawn as the fold is.
    *  On a phone it stands in the menu panel's head. Topbar layout only (#732). */
@@ -79,7 +82,7 @@ export type AppShellProps = AppShellNav & {
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
 export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
-  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
+  brandHref = '/', width = 'centered', back, lede, actions, tools, head, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
   const uid = useId();
@@ -182,13 +185,17 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span>
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
+  // A compact head carries the page's actions in its title row (#866). A full-width page
+  // draws its title in the band, so its actions keep their own row.
+  const compact = head === 'compact' && !bandTitle;
+  const rowTools = compact && actions ? <>{tools}{actions}</> : tools;
   const page = <main className={`ui-app__main${width === 'centered' ? '' : ` ui-app__main--${width}`}`}>
     {back && <BackLink {...back} />}
-    {title != null && !bandTitle && (tools
-      ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div>
+    {title != null && !bandTitle && (rowTools
+      ? <div className={`ui-app__title-row${compact ? ' ui-app__title-row--compact' : ''}`}><h1>{title}</h1><div className="ui-app__tools">{rowTools}</div></div>
       : <h1>{title}</h1>)}
     {lede && <p className="ui-app__sub">{lede}</p>}
-    {actions && <div className="ui-react-app__actions">{actions}</div>}
+    {actions && !compact && <div className="ui-react-app__actions">{actions}</div>}
     <div className="ui-app__body">{children}</div>
   </main>;
 

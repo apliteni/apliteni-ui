@@ -60,6 +60,10 @@
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
+/* A trigger drawn as a ghost button, such as the menu on a movable card, keeps the ghost
+   button's open look at rest: no fill and no edge. The pointer still gets the edge above.
+   #866, rev_c072f0f9bb83/d6. why: docs/components.md#movable-card */
+.ui-dropdown__trigger.ui-btn--ghost { background: transparent; border-color: transparent; }
 /* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The

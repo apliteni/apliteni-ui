@@ -26,9 +26,11 @@ export const FIELD = '.ui-input, .ui-select, .ui-textarea, .ui-check input, .ui-
  * which stands on the page directly above its table card with no card of its own.
  * Owner decision rev_136bd26bc559/d24. Only a live field: a disabled one on the page
  * measures 1.12:1 in light, which is the failure #551 named. The bar's pill triggers
- * are not in FIELD, so this gate does not read them.
+ * are not in FIELD, so this gate does not read them. A query search (#866) is the same
+ * field in the same place: the toolbar holds it through the search's own anchor.
  */
-export const FILTER_BAR_FIELD = '.ui-toolbar > .ui-input-group > input.ui-input[type="search"]';
+export const FILTER_BAR_FIELD = '.ui-toolbar > .ui-input-group > input.ui-input[type="search"], '
+  + '.ui-toolbar > .ui-query > .ui-query__anchor > .ui-input-group > input.ui-input[type="search"]';
 
 /**
  * The containers a field may stand in. #850 makes the card a grouping of space

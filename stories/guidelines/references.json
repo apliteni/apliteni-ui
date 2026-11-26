@@ -58,7 +58,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:230",
+    "ref": "src/styles/tap-zone.css:234",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:474",
+    "ref": "src/styles/dropdown.css:476",
     "pattern": ".ui-dropdown__panel--search"
    },
    {
-    "ref": "src/styles/dropdown.css:534",
+    "ref": "src/styles/dropdown.css:538",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +336,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:424",
+    "ref": "src/styles/dropdown.css:428",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -444,7 +444,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:186",
+    "ref": "react/src/AppShell.tsx:193",
     "pattern": "back && <BackLink"
    }
   ],
@@ -584,7 +584,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:189",
+    "ref": "src/styles/card.css:255",
     "pattern": "rank: card-title"
    }
   ],
@@ -606,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:429",
+    "ref": "src/styles/dropdown.css:433",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:430",
+    "ref": "src/styles/dropdown.css:434",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -708,11 +708,11 @@
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:176",
+    "ref": "src/styles/tap-zone.css:180",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:177",
+    "ref": "src/styles/tap-zone.css:181",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
@@ -1053,7 +1053,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:67",
+    "ref": "react/src/AppShell.tsx:70",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
@@ -1087,7 +1087,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:221",
+    "ref": "src/styles/card.css:287",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1355,16 +1355,62 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:432",
+    "ref": "src/styles/dropdown.css:436",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:434",
+    "ref": "src/styles/dropdown.css:438",
     "pattern": "color: var(--muted);"
    },
    {
     "ref": "react/src/Dropdown.tsx:874",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
+   }
+  ]
+ },
+ "_task-list.js": {
+  "task-board": [
+   {
+    "ref": "src/styles/card.css:161",
+    "pattern": ".ui-card-slot {"
+   },
+   {
+    "ref": "react/src/MovableCard.tsx:26",
+    "pattern": "return <div ref={ref} draggable tabIndex={0} role=\"group\" aria-label={label} {...props}"
+   },
+   {
+    "ref": "react/src/showcases/Tasks.tsx:74",
+    "pattern": "{ label: 'Move to', items: moves }"
+   },
+   {
+    "ref": "src/styles/card.css:173",
+    "pattern": ".ui-card-board { overflow-x: auto;"
+   }
+  ],
+  "task-head": [
+   {
+    "ref": "react/src/AppShell.tsx:191",
+    "pattern": "const rowTools = compact && actions ? <>{tools}{actions}</> : tools;"
+   },
+   {
+    "ref": "src/styles/layout.css:898",
+    "pattern": ".ui-toolbar:has(> .ui-query) { flex-wrap: nowrap; align-items: flex-start; }"
+   },
+   {
+    "ref": "react/src/showcases/Tasks.tsx:327",
+    "pattern": "useEffect(() => writeHash(view, group, query), [view, group, query]);"
+   }
+  ]
+ },
+ "_notification-email.js": {
+  "task-mail": [
+   {
+    "ref": "react/src/showcases/task-mail.ts:39",
+    "pattern": "const textFoot = (why: string) => `-- \\n${why}\\nEmail settings: ${SETTINGS_URL}\\n`;"
+   },
+   {
+    "ref": "react/src/showcases/task-mail.ts:46",
+    "pattern": "<a href=\"${esc(SETTINGS_URL)}\" style=\"color:${T.accent};text-decoration:underline;\">Email settings</a>"
    }
   ]
  }
