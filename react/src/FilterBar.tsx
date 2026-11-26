@@ -9,6 +9,9 @@ export type Filter = { id: string; label: string; /** empty or absent while noth
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; clearVariant?: 'ghost' | 'secondary' | 'link'; disabled?: boolean; busy?: boolean;
   add?: AddFilter[]; addLabel?: string;
+  /** `sm` gives the chips, Filter and Clear all the small control height: 32px with a mouse,
+   *  40px on a touch screen, level with a small SearchField, Dropdown and Button. */
+  size?: 'sm';
   onRemove: (id: string) => void; onClear: () => void; onChange: (id: string, value: string | undefined) => void;
   onAdd?: (id: string, value: string | undefined) => void };
 
@@ -16,7 +19,7 @@ export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: s
 const SEARCH_AT = 10;
 const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' && !(entry as { separator?: boolean }).separator;
 
-export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
+export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all', clearVariant = 'ghost', add, addLabel = 'Filter', size, disabled = false, busy = false, onRemove, onClear, onChange, onAdd }: FilterBarProps) {
   const bar = useRef<HTMLFieldSetElement>(null);
   const focused = useRef<{ id: string | null; index: number; remove?: boolean } | null>(null);
   // The filter the add menu just asked for. Consumed by the first layout pass after the
@@ -74,7 +77,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
     if (target) target.focus();
     else focusNextStop(bar.current);
   });
-  return <div><fieldset ref={bar} className="ui-filter-bar" data-filter-bar="" disabled={blocked} aria-busy={busy || undefined} tabIndex={-1}
+  return <div><fieldset ref={bar} className={size === 'sm' ? 'ui-filter-bar ui-filter-bar--sm' : 'ui-filter-bar'} data-filter-bar="" disabled={blocked} aria-busy={busy || undefined} tabIndex={-1}
     onBlur={event => {
       if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) focused.current = null;
     }}>

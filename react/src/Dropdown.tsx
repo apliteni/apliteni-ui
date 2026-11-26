@@ -133,6 +133,9 @@ export type DropdownProps = {
   /** The trigger is off: no stop, no panel, the kit's unavailable paint. #580 */
   disabled?: boolean;
   chevron?: boolean;
+  /** `sm` gives the trigger the small control height: 32px with a mouse, 40px on a touch
+   *  screen, level with a small SearchField, FilterBar and Button. */
+  size?: 'sm';
   /** The edge the panel hugs. */
   align?: 'start' | 'end';
   /** `'up'` opens into the space above the trigger. */
@@ -224,7 +227,7 @@ const SEARCH_DEFAULTS = {
 export function Dropdown({
   label, value, selectedValue, placeholder = 'Select…', variant, items, sections,
   header, footer, triggerContent, triggerClass = '', disabled = false, chevron = true,
-  align = 'start', direction = 'down', scroll = false, search = false,
+  size, align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, title, id, panelClass = '',
   'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
@@ -879,7 +882,7 @@ export function Dropdown({
   ) : null;
 
   return (
-    <div className={cx('ui-dropdown', open && 'open')} id={id} ref={root} onKeyDown={onKeyDown}>
+    <div className={cx('ui-dropdown', size === 'sm' && 'ui-dropdown--sm', open && 'open')} id={id} ref={root} onKeyDown={onKeyDown}>
       <button
         type="button"
         className={cx('ui-dropdown__trigger', triggerClass)}

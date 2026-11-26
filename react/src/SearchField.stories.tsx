@@ -100,10 +100,10 @@ export const Toolbar: StoryObj = {
   },
 };
 
-// The small size: a toolbar above a dense table. With a mouse the field, the trigger,
-// the chips, Clear all, the small switch and the small button all stand at 32px, and the
-// filter bar takes that height from the field. On a touch screen the field is the full
-// field and every other control is a chip's height. #822
+// The small size: a toolbar above a dense table. Each control takes size="sm", so with a
+// mouse the field, the trigger, the chips, Clear all, the small switch and the small button
+// all stand at 32px, and on a touch screen at 40px. No control takes its height from the
+// row. #822, #903
 const CURRENCIES = [{ label: 'Any currency', value: '' }, { label: 'EUR', value: 'EUR' }, { label: 'USD', value: 'USD' }];
 export const SmallToolbar: StoryObj = {
   name: 'Toolbar at the small size',
@@ -128,9 +128,9 @@ export const SmallToolbar: StoryObj = {
       <div className="ui-toolbar">
         <SearchField size="sm" ariaLabel="Search invoices" placeholder="Vendor or number"
           value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
-        <Dropdown variant="select" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
+        <Dropdown variant="select" size="sm" ariaLabel="Currency" onSelect={(value) => setCurrency(String(value))}
           items={CURRENCIES.map((item) => ({ ...item, selected: item.value === currency }))} />
-        <FilterBar label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
+        <FilterBar size="sm" label="Invoice filters" onChange={set} onRemove={(id) => set(id)} onClear={() => setChosen({})}
           filters={[STATUS, PERIOD].map((filter) => ({ ...filter, value: chosen[filter.id] ?? '' }))} />
         <Segmented label="View" size="sm" value={view} onChange={setView}
           options={[{ label: 'Table', value: 'table', icon: 'table', iconOnly: true }, { label: 'Board', value: 'board', icon: 'grid', iconOnly: true }]} />

@@ -6,6 +6,9 @@ import userEvent from '@testing-library/user-event';
 import { afterEach } from 'vitest';
 import axe from 'axe-core';
 import { SearchField } from './SearchField';
+import { FilterBar } from './FilterBar';
+import { Dropdown } from './Dropdown';
+import { Button } from './primitives/Button';
 
 // Vite rewrites a literal new URL(..., import.meta.url) into an asset URL, so the
 // path goes through a variable, the way Field.test.tsx reads the kit.
@@ -159,11 +162,11 @@ it('takes the small class only from size="sm"', () => {
   expect(field().className).toBe('ui-input');
 });
 
-it('is 32px with the dense rows\' text to a mouse, and 40px with 16px text on a touch screen', () => {
+it('is the small control height with 13px text to a mouse, and with 16px text on a touch screen', () => {
   const read = declared('input.css', smallRow('sm').querySelector('input')!);
-  // A chip's height on touch, with the base 16px text that iOS does not zoom. #832
-  expect(read('min-height')).toEqual([`${FINE} var(--btn-height-sm)`, `${COARSE} var(--ui-filter-row-h, 40px)`]);
-  expect(read('height')).toEqual([`${COARSE} var(--ui-filter-row-h, 40px)`]);
+  // The field names no other control's height, so a row cannot change it. #832, #903
+  expect(read('min-height')).toEqual([`${FINE} var(--control-height-sm)`, `${COARSE} var(--control-height-sm)`]);
+  expect(read('height')).toEqual([`${COARSE} var(--control-height-sm)`]);
   expect(read('font-size')).toEqual(['all var(--text-base)', `${FINE} var(--text-sm)`]);
   expect(read('line-height')).toEqual([`${FINE} var(--leading-tight)`]);
   // The one-line field corner, also on the small field. #874
@@ -176,37 +179,70 @@ it('is 32px with the dense rows\' text to a mouse, and 40px with 16px text on a 
   expect(full('font-size')).toEqual(['all var(--text-base)']);
 });
 
-it('stands a small row\'s button at the chip height on a touch screen, and no full row', () => {
-  const button = (size?: 'sm') => { cleanup(); return declared('filter-bar.css', smallRow(size).querySelector('.ui-btn')!)('min-height'); };
-  expect(button('sm')).toEqual([`${COARSE} var(--ui-filter-row-h)`]);
-  expect(button()).toEqual([]);
-});
-
-// A create row directly above that bar stands at its height too, and only there. #832
-it('stands a create row\'s button above a small row at the chip height on a touch screen', () => {
-  const rows = (size?: 'sm', apart = false) => { cleanup(); return render(<>
-    <div className="ui-toolbar"><button className="ui-btn ui-btn--sm">New invoice</button></div>
-    {apart && <p>Between</p>}
-    <div className="ui-toolbar"><SearchField ariaLabel="Search invoices" size={size} /></div>
-  </>).container.querySelector('.ui-btn')!; };
-  expect(declared('filter-bar.css', rows('sm'))('min-height')).toEqual([`${COARSE} var(--ui-filter-row-h)`]);
-  expect(declared('filter-bar.css', rows())('min-height')).toEqual([]);
-  expect(declared('filter-bar.css', rows('sm', true))('min-height')).toEqual([]);
-});
-
-it('stands its toolbar and filter bar at the small row to a mouse', () => {
-  const row = smallRow('sm');
-  for (const el of [row.firstElementChild!, row.querySelector('.ui-filter-bar')!]) {
-    expect(declared('filter-bar.css', el)('--ui-filter-row-h')).toContain(`${FINE} var(--btn-height-sm)`);
+// ---- one small height, #903 -------------------------------------------------
+// The field, a chip, a dropdown trigger and a wordless button of the small size, in one
+// toolbar, each read through the whole kit cascade once with a mouse and once on a touch
+// screen. The second row is the page the issue measured: the field in a wrapper and the
+// filter bar outside the toolbar, so no page structure can give the height.
+// Limits: JSDOM lays out nothing, so this reads each control's resolved height floor,
+// `height` or `min-height`, not its pixels. A control whose content is taller than the
+// floor is not seen. It reads at JSDOM's 1024px width, and it rewrites the pointer query
+// to pick a mode. stories/control-height.test.js measures the pixels in a browser.
+const KIT = readRepo('../../src/index.css').split('\n').map(line => /@import\s+"\.\/(.+?)"/.exec(line)?.[1])
+  .filter(Boolean).map(rel => readRepo(`../../src/${rel}`)).join('\n');
+const forPointer = (coarse: boolean) => coarse
+  ? KIT.replace(/@media not \(pointer: coarse\)/g, '@media not all').replace(/\(pointer: coarse\)/g, 'all')
+  : KIT;
+const noop = () => {};
+const STATUS_CHIP = { id: 'status', label: 'Status', value: 'Pending', items: [{ label: 'Any', value: '' }, { label: 'Pending', value: 'Pending' }] };
+const smallControls = (wrapped: boolean) => {
+  const field = <SearchField ariaLabel="Search invoices" size="sm" />;
+  const bar = <FilterBar size="sm" label="Invoice filters" filters={[STATUS_CHIP]} onChange={noop} onRemove={noop} onClear={noop} />;
+  return render(<>
+    <div className="ui-toolbar">
+      {wrapped ? <div>{field}</div> : field}
+      <Dropdown variant="select" size="sm" ariaLabel="Currency" items={[{ label: 'EUR', value: 'EUR' }]} />
+      {!wrapped && <div>{bar}</div>}
+      <Button size="sm" iconOnly icon="x">Close search</Button>
+    </div>
+    {wrapped && bar}
+  </>).container;
+};
+/** Each control's height floor in px, read through the cascade the mode applies. */
+function floors(coarse: boolean, wrapped: boolean) {
+  const style = document.createElement('style');
+  style.textContent = forPointer(coarse);
+  document.head.append(style);
+  try {
+    const row = smallControls(wrapped);
+    const px = (el: Element, prop: string) => parseFloat(getComputedStyle(el).getPropertyValue(prop)) || 0;
+    const at = (selector: string) => {
+      const el = row.querySelector(selector);
+      expect(el, selector).toBeTruthy();
+      return el!;
+    };
+    const floor = (selector: string) => Math.max(px(at(selector), 'height'), px(at(selector), 'min-height'));
+    return {
+      field: floor('.ui-input--sm'),
+      chip: floor('.ui-filter-bar__chip'),
+      trigger: floor('.ui-toolbar > .ui-dropdown > .ui-dropdown__trigger'),
+      button: floor('.ui-btn--icon'),
+      // A wordless button is a circle. With a mouse its 7px padding and 16px glyph make it
+      // one, so only the touch height needs a width to match.
+      ...coarse && { buttonWidth: px(at('.ui-btn--icon'), 'min-width') },
+    };
+  } finally {
+    style.remove();
+    cleanup();
   }
-  expect(declared('filter-bar.css', row.querySelector('.ui-filter-bar__chip .ui-dropdown__trigger')!)('min-height'))
-    .toContain(`${FINE} calc(var(--btn-height-sm) - 2px)`);
-  cleanup();
-  const full = smallRow();
-  for (const el of [full.firstElementChild!, full.querySelector('.ui-filter-bar')!]) {
-    expect(declared('filter-bar.css', el)('--ui-filter-row-h').filter(d => d.startsWith(FINE))).toEqual([]);
-  }
-});
+}
+
+for (const [mode, coarse, height] of [['a mouse', false, 32], ['a touch screen', true, 40]] as const) {
+  it(`stands the small field, chip, trigger and wordless button at ${height}px with ${mode}, in any structure`, () => {
+    const small = { field: height, chip: height, trigger: height, button: height, ...coarse && { buttonWidth: height } };
+    expect({ oneToolbar: floors(coarse, false), wrapped: floors(coarse, true) }).toEqual({ oneToolbar: small, wrapped: small });
+  });
+}
 
 it('stops a small field at a small panel\'s width, and gives the line back at one column', () => {
   const read = declared('layout.css', smallRow('sm').querySelector('.ui-input-group')!);

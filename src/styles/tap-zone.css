@@ -178,6 +178,14 @@
      mark would draw two controls where the reader sees one. Named on the
      Accessibility minimums page. */
   .ui-filter-bar__chip { --tap-clear-x: 0px; --tap-clear-y: 0px; }
+  /* A small chip is as tall as the 40px field, so its trigger opens up and down only:
+     the bar's row gap is the room, and the remove mark stands beside it, not above or
+     below. The trigger then reaches the floor. #903 */
+  .ui-filter-bar--sm .ui-filter-bar__chip { --tap-clear-y: var(--tap-gap); }
+  /* A small wordless button on a toolbar is 40px wide, so it also opens across, into the
+     toolbar's own 10px gap: it takes half, and a neighbour keeps the other half. The
+     gap does not open, so no labelled button gets narrower. #488, #903 */
+  .ui-toolbar > .ui-btn--icon.ui-btn--sm { --tap-clear-x: 10px; }
 
   /* Row actions open across — the pair #488 names — and cannot open down:
      a dense table's rows share an edge, and parting them is the row height the

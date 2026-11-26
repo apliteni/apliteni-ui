@@ -490,8 +490,10 @@ A bare `input { font-size: 20px !important; }` has the same specificity as the n
 only while your stylesheet loads after the kit's.
 
 **A small field is the full field on a touch screen.** With a mouse, `SearchField size="sm"` is
-32px high with `--text-sm`. On a touch screen it is 40px high with 16px text, and its toolbar
-and a create row above it stand the same height. So the small size never takes a field under 16px.
+32px high with `--text-sm`. On a touch screen it is 40px high with 16px text. The small filter
+bar, dropdown and toolbar button stand the same height, because each reads
+`--control-height-sm`: 32px with a mouse and 40px on a touch screen. So the small size never
+takes a field under 16px.
 
 ## A tap reaches the floor below the phone step
 
