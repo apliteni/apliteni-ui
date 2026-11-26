@@ -1000,18 +1000,28 @@ ninth notice makes the pile no taller than a third. A device without hover alway
 column. Under reduced motion the timer line is not drawn, and the ring moves one step each second.
 In forced colours the ring stays, in the button colour, and its track takes the grey text colour.
 
-**Colour of the ring.** The ring mixes the notice tone into the notice ground: 45% in dark and
-95% in light (`--toast-timer-mix`). A danger ring and a neutral ring take 60% in dark and 85% in
-light (`--toast-timer-mix-strong`). Every ring keeps 3:1 on the notice ground and on the hover fill
-of its action, in both themes, under every accent. The track mixes 35% of the ring colour into the
-notice ground. It shows on both grounds, and the ring keeps 2:1 against it. In light the hover
-fill of the action is `--surface-3`, because a mix of `--bg` does not show on the white notice.
+**Colour of the ring.** The ring takes the ink of its action. The track mixes 35% of the ring
+colour into the notice ground. The ring keeps 3:1 on the notice ground, on the hover fill of its
+action and on its track, in each tone, in both themes, under every accent. The lowest is the danger
+ring on its track in light, at 3.35:1. The track shows on both grounds. In light the hover fill of
+the action is `--surface-3`, because a mix of `--bg` does not show on the white notice.
 
 **Keyboard and screen reader.** An ordinary notice is polite and a danger notice is assertive. A
 new notice does not move the focus.
 
-**Room on the screen.** The provider sets `--rx-toast-stack` on the document root to the height of
-the stack, or `0px` when it is empty. A fixed page action can use it to stay clear of the notices.
+**Room on the screen.** The stack stands 16 px above the bottom of the view. A page with a bar at
+the bottom sets `bottomOffset` on the provider to the whole inset: a number in pixels or a CSS
+length. Set it to the height of the bar, the gap under the bar and 16 px, so that the notices stand
+16 px above the bar. Do not set the position of the stack with a selector on its class.
+
+```tsx
+<Toast bottomOffset={selected ? 88 : undefined}><App /></Toast>
+```
+
+The provider sets `--rx-toast-stack` on the document root to how far the stack reaches up from
+the bottom of the view, or `0px` when it is empty. The reach includes `bottomOffset`, and the
+provider sets it again when `bottomOffset` changes. A fixed page action can use it to stay clear of
+the notices.
 
 ### Success confirmations
 

@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Toast, useToast } from './Toast';
 import { Button } from './primitives/Button';
+import { DataTable } from './DataTable';
 
 const meta: Meta = { title: 'React/Toast', id: 'react-toast' };
 export default meta;
@@ -136,4 +137,56 @@ export const UndoOne: StoryObj = {
 export const UndoStack: StoryObj = {
   parameters: { docs: { description: { story: 'Three undo notices, newest at the bottom. Each Undo acts on its own notice. A fourth notice closes the oldest one.' } } },
   render: () => <Toast limit={3}><Undos count={3} /></Toast>,
+};
+
+// A page with a bar at the bottom (#907). The page measures the top of its bar and sets
+// `bottomOffset`, so the notices stand 16px above the bar and not on it.
+const files = [
+  { name: 'Field notes', kind: 'Text' }, { name: 'Garden plan', kind: 'Drawing' },
+  { name: 'Path sketch', kind: 'Drawing' }, { name: 'Seed list', kind: 'Text' },
+];
+const page = { display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', minHeight: '100vh', padding: 'var(--space-4) var(--space-4) 0' } as const;
+const dock = { marginTop: 'auto' } as const;
+function SelectionPage({ onBar }: { onBar: (offset: number | undefined) => void }) {
+  const push = useToast();
+  const bar = useRef<HTMLDivElement>(null);
+  const [selected, setSelected] = useState(new Set(['Field notes', 'Garden plan']));
+  const toggle = (name: string) => setSelected(current => {
+    const next = new Set(current);
+    if (!next.delete(name)) next.add(name);
+    return next;
+  });
+  const archive = () => {
+    push({ tone: 'success', title: `${selected.size} files archived`, timer: 8, action: { label: 'Undo', onClick() {} } });
+    setSelected(new Set());
+  };
+  useEffect(() => { push({ tone: 'success', title: 'Seed list archived', timer: 8, action: { label: 'Undo', onClick() {} } }); }, [push]);
+  useLayoutEffect(() => {
+    const element = bar.current;
+    if (!element) { onBar(undefined); return; }
+    const measure = () => onBar(Math.round(innerHeight - element.getBoundingClientRect().top) + 16);
+    measure();
+    addEventListener('resize', measure);
+    return () => removeEventListener('resize', measure);
+  }, [onBar, selected.size > 0]);
+  return <div style={page}>
+    <DataTable columns={[{ key: 'name', label: 'Name', cell: 'title' }, { key: 'kind', label: 'Type' }]} rows={files}
+      selected={selected} onToggle={toggle}
+      onTogglePage={names => setSelected(current => names.every(name => current.has(name)) ? new Set() : new Set(names))} />
+    {selected.size > 0 && <div style={dock}>
+      <div className="ui-float-bar" ref={bar}>
+        <span>{selected.size} selected</span>
+        <Button size="sm" onClick={() => setSelected(new Set())}>Clear</Button>
+        <Button size="sm" variant="primary" onClick={archive}>Archive</Button>
+      </div>
+    </div>}
+  </div>;
+}
+function BottomBarPage() {
+  const [offset, setOffset] = useState<number>();
+  return <Toast limit={3} bottomOffset={offset}><SelectionPage onBar={setOffset} /></Toast>;
+}
+export const BottomBar: StoryObj = {
+  parameters: { layout: 'fullscreen', docs: { description: { story: 'A page with a selection bar at the bottom sets bottomOffset, so the notices stand 16px above the bar. Clear the selection: the bar leaves and the notices go back to 16px above the bottom.' } } },
+  render: () => <BottomBarPage />,
 };

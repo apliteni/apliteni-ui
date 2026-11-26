@@ -13,7 +13,9 @@ export type ToastNotice = {
   text?: string;
   action?: { label: string; onClick: () => void };
 };
-export type ToastProps = { children: ReactNode; collapse?: boolean; limit?: number };
+/* `bottomOffset` is the stack's whole inset from the bottom of the view: a number in pixels or a CSS
+ * length. A page with a bar at the bottom sets it to clear the bar. The default is 16px. */
+export type ToastProps = { children: ReactNode; collapse?: boolean; limit?: number; bottomOffset?: number | string };
 const Context = createContext<((notice: ToastNotice) => void) | null>(null);
 const StackHoldContext = createContext(false);
 const glyphs = { success: 'circleCheck', danger: 'circleX', warn: 'circleAlert', info: 'info', neutral: 'bolt' };
@@ -132,7 +134,7 @@ type Entry = { id: number; notice: ToastNotice; remove: () => void; leave: () =>
  * why: docs/components.md#toast */
 const REACH = '--rx-toast-stack';
 
-function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number) {
+function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number, offset?: string) {
   useLayoutEffect(() => {
     const element = stack.current;
     const view = element?.ownerDocument.defaultView;
@@ -147,8 +149,13 @@ function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: numbe
     // added, so the height is watched rather than read once.
     const observer = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(publish) : undefined;
     observer?.observe(element);
-    return () => { observer?.disconnect(); root.style.removeProperty(REACH); };
-  }, [stack, count]);
+    // Under reduced motion the kit's net gives every change a 0.01ms transition, so a new
+    // offset moves the stack after this read. The reach is read again when the move ends.
+    const moved = (event: TransitionEvent) => { if (event.target === element) publish(); };
+    element.addEventListener('transitionend', moved);
+    return () => { observer?.disconnect(); element.removeEventListener('transitionend', moved); root.style.removeProperty(REACH); };
+    // A new offset moves the stack without a resize, so it publishes the reach again.
+  }, [stack, count, offset]);
 }
 
 /* The pile keeps its own measurements: where every notice rests behind the front
@@ -165,7 +172,7 @@ function usePile(stack: RefObject<HTMLDivElement | null>, piled: boolean, count:
   }, [stack, piled, count]);
 }
 
-export function Toast({ children, collapse = false, limit }: ToastProps) {
+export function Toast({ children, collapse = false, limit, bottomOffset }: ToastProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [stackHovered, setStackHovered] = useState(false);
   const [stackFocused, setStackFocused] = useState(false);
@@ -192,7 +199,10 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
   const piled = collapse && entries.length >= TOAST_PILE_MIN;
   // The pointer or the focus anywhere in the stack holds every timer, so no notice moves under it.
   const stackHeld = stackHovered || stackFocused;
-  usePublishedReach(stack, entries.length);
+  const inset = typeof bottomOffset === 'number' ? `${bottomOffset}px` : bottomOffset;
+  // A length the browser cannot read keeps the kit's 16px, not the last offset that it could read.
+  const placed = inset !== undefined && (typeof CSS === 'undefined' || CSS.supports('bottom', inset)) ? inset : undefined;
+  usePublishedReach(stack, entries.length, placed);
   usePile(stack, piled, entries.length);
   /* A focused notice that leaves takes the focus with it and sends no blur. A notice that leaves
    * from under a still pointer sends no mouseleave. So each hold is read again here when a notice
@@ -215,6 +225,7 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
     {children}
     {typeof document !== 'undefined' && createPortal(
       <div className={`ui-toast-stack rx-toast-stack${piled ? ' ui-toast-stack--collapsed' : ''}`} ref={stack}
+        style={placed === undefined ? undefined : { bottom: placed }}
         tabIndex={piled ? 0 : undefined} role={piled ? 'region' : undefined} aria-label={piled ? 'Notifications' : undefined}
         onMouseEnter={event => { trackPointer(event); setStackHovered(true); }} onMouseMove={trackPointer}
         onMouseLeave={() => setStackHovered(false)}

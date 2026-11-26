@@ -145,6 +145,48 @@ it('publishes how far the stack reaches so a fixed page action can clear it', ()
     HTMLElement.prototype.getBoundingClientRect = real;
   }
 });
+// A page with a bar at the bottom moves the stack with `bottomOffset`, not with a selector on the
+// kit's node (#907). The stub reads the inset from the stack's own style, as a browser would place it.
+it('moves the stack by bottomOffset and publishes the new reach', () => {
+  const reach = () => document.documentElement.style.getPropertyValue('--rx-toast-stack');
+  const stack = () => document.querySelector('.rx-toast-stack') as HTMLElement;
+  const real = HTMLElement.prototype.getBoundingClientRect;
+  let lag = false;
+  HTMLElement.prototype.getBoundingClientRect = function () {
+    if (!this.classList.contains('rx-toast-stack')) return real.call(this);
+    const inset = this.style.bottom && !lag ? parseFloat(this.style.bottom) : 16;
+    return { height: 85, top: window.innerHeight - inset - 85 } as DOMRect;
+  };
+  const page = (bottomOffset?: number | string) => <Toast bottomOffset={bottomOffset}><Trigger notice={{ title: 'Saved' }} /></Toast>;
+  try {
+    const { rerender } = render(page());
+    expect(stack().style.bottom).toBe('');
+    fireEvent.click(screen.getByText('Notify'));
+    expect(reach()).toBe('101px');
+    rerender(page(80));
+    expect(stack().style.bottom).toBe('80px');
+    expect(reach()).toBe('165px');
+    rerender(page('120px'));
+    expect(stack().style.bottom).toBe('120px');
+    expect(reach()).toBe('205px');
+    // A length the browser cannot read leaves the kit's 16px.
+    rerender(page('one bar'));
+    expect(stack().style.bottom).toBe('');
+    expect(reach()).toBe('101px');
+    // Under reduced motion the move is a 0.01ms transition, so the stack is still at 16px when
+    // the offset is set. The reach follows when the move ends.
+    lag = true;
+    rerender(page(80));
+    expect(reach()).toBe('101px');
+    lag = false;
+    fireEvent.transitionEnd(stack().firstElementChild!);
+    expect(reach()).toBe('101px');
+    fireEvent.transitionEnd(stack());
+    expect(reach()).toBe('165px');
+  } finally {
+    HTMLElement.prototype.getBoundingClientRect = real;
+  }
+});
 
 it('omits compact body text from both the screen and announcement', () => {
   setup({ title: 'Copied to clipboard', text: 'Hidden details', compact: true });
