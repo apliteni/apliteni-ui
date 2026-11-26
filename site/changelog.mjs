@@ -6,7 +6,7 @@
 
 export const RELEASES = [
   {
-    v: '0.210.0', date: '2026-11-26',
+    v: '0.211.0', date: '2026-11-26',
     changes: [
       ['added', '`FilterBar` and `Dropdown` take `size="sm"`, or the classes `.ui-filter-bar--sm` and `.ui-dropdown--sm`. Beside a small `SearchField` and a small `Button`, the chips, Filter, Clear all and the trigger are then 32px high with a mouse and 40px on a touch screen. Part of #903.', ['FilterBar', 'Dropdown']],
       ['changed', 'A toolbar that starts with a small search field no longer makes its chips 32px. An app with a small filter row passes `size="sm"` to its `FilterBar` and `Dropdown`, or the chips stay 40px. The height now holds when the field is in a wrapper or the bar is outside the toolbar. Part of #903.', ['FilterBar', 'SearchField']],
