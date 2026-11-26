@@ -130,14 +130,19 @@ export function tokensFor(theme, accent = 'default') {
 }
 
 /**
- * Put a rule's own custom properties in place: `--x: transparent; border-color: var(--x)`
- * reads as `border-color: transparent`. A field states its edge ink this way, so focus
- * can fade it in both directions. Limit: only a property the same body declares.
+ * Put a rule's own custom properties in place: `--x: red; border-color: var(--x)` reads as
+ * `border-color: red`. A field writes its edge as an ink and a focus veil,
+ * `color-mix(in srgb, transparent var(--…-veil), <ink>)`, so only the veil fades. That mix
+ * reads as the ink, or as `transparent` where the body sets the veil to 100%.
+ * Limits: only a property the same body declares. A veil that the body does not set reads
+ * as 0%, at rest, so the reading is the settled edge and never a frame of the fade.
  */
 export function inlineLocals(body) {
   const locals = new Map([...body.matchAll(/(?:^|[;{\s])(--[\w-]+)\s*:\s*([^;]+)/g)]
     .map((m) => [m[1], m[2].trim()]));
-  return body.replace(/var\(\s*(--[\w-]+)\s*\)/g, (whole, name) => locals.get(name) ?? whole);
+  return body.replace(/var\(\s*(--[\w-]+)\s*\)/g, (whole, name) => locals.get(name) ?? whole)
+    .replace(/color-mix\(in srgb, transparent (?:var\(--[\w-]+-veil\)|(\d+)%), ((?:[^()]|\([^()]*\))+)\)/g,
+      (whole, share, ink) => (share === '100' ? 'transparent' : !share || share === '0' ? ink.trim() : whole));
 }
 
 /** Substitute var() until a pass changes nothing (tokens reference tokens). */

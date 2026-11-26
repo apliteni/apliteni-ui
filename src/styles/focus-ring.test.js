@@ -72,9 +72,10 @@ test('the check rejects a shell control dropped from the ring', () => {
 // A focused field keeps one accent ring. The five classes that draw their own border hide
 // its ink while the ring shows, the Dropdown and DatePicker trigger since #837. The browser captures check the painted line; this check holds
 // the declarations and rejects a border brought back under the ring. why: #661
-// The edge also fades when focus arrives and when it leaves. A transition that the focus
-// rule declares runs only on the way in, so the field's own rule fades a property of its
-// own, and a hover's plain border-color changes at once. why: docs/foundations.md#motion
+// The edge also fades when focus arrives and when it leaves, also under a pointer that does
+// not move. A transition that the focus rule declares runs only on the way in, and a hover
+// that sets border-color to a plain ink hides the fade. So a state sets an ink at once, focus
+// sets a veil, and the field's own rule fades only the veil. why: docs/foundations.md#motion
 // Limit: it reads the declarations; the fade itself is measured in the PR's Chromium run.
 const FIELD_FOCUS = [
   ['input.css', '.ui-input:focus-visible'],
@@ -83,6 +84,8 @@ const FIELD_FOCUS = [
   ['dropdown.css', '.ui-dropdown__search-input:focus-visible'],
   ['dropdown.css', '.ui-dropdown__trigger:focus-visible'],
 ];
+// Sheets with a live hover rule on a field: the add-filter trigger restates the trigger's.
+const FIELD_SHEETS = ['input.css', 'dropdown.css', 'filter-bar.css'];
 const rulesOf = (sheet) => [...sheet.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
   .map(([, head, body]) => ({ selectors: splitSelectorList(head), body }));
 const fieldFocusBody = (sheet, selector) => {
@@ -90,6 +93,7 @@ const fieldFocusBody = (sheet, selector) => {
   assert.equal(matches.length, 1, `${selector} needs one field focus rule`);
   return matches[0].body;
 };
+const VEIL = /var\((--[\w-]+-veil)\)/;
 const checkFieldFocus = (sheets) => {
   assert.equal(FIELD_FOCUS.length, 5, 'text, textarea, select, Dropdown search and the trigger are measured');
   for (const [file, selector] of FIELD_FOCUS) {
@@ -98,33 +102,46 @@ const checkFieldFocus = (sheets) => {
     assert.match(body, /border-color:\s*transparent\s*;/, `${selector} hides its own border ink`);
     assert.match(body, /outline:\s*var\(--ring\)/, `${selector} keeps the kit ring`);
     assert.match(body, /outline-offset:\s*var\(--ring-offset\)/, `${selector} keeps the gap`);
-    const edge = /border-color:\s*var\((--[\w-]+)\)/.exec(raw)?.[1];
-    assert.ok(edge, `${selector} names no edge property, so its edge cannot fade when focus leaves`);
+    const veil = VEIL.exec(/border-color:([^;]*)/.exec(raw)?.[1] ?? '')?.[1];
+    assert.ok(veil, `${selector} names no veil, so its edge cannot fade when focus leaves`);
     assert.doesNotMatch(raw, /(^|;)\s*transition/, `${selector} declares a transition, which runs only when focus arrives`);
     const field = selector.replace(':focus-visible', '');
     const own = rulesOf(sheets[file]).filter(({ selectors }) => selectors.includes(field)).map(({ body: b }) => b).join(';');
-    assert.match(own, new RegExp(`transition:[^;]*${edge}\\s`), `${field} does not fade ${edge}, so the edge jumps when focus leaves`);
+    assert.match(own, new RegExp(`transition:[^;]*${veil}\\s`), `${field} does not fade ${veil}, so the edge jumps when focus leaves`);
+    // A live hover edge goes through the veil, or focus leaving under the pointer jumps.
+    const hovers = FIELD_SHEETS.flatMap((f) => rulesOf(sheets[f]).flatMap(({ selectors, body: b }) => selectors
+      .filter((sel) => { const last = sel.split(/\s+/).at(-1); return last.startsWith(field) && /:hover/.test(last) && !/disabled/.test(last); })
+      .map((sel) => ({ sel, edge: /border(?:-color)?:([^;]*)/.exec(b)?.[1] }))))
+      .filter(({ edge }) => edge !== undefined);
+    assert.ok(hovers.length > 0, `no live hover edge found for ${field}: the check reads nothing`);
+    for (const { sel, edge } of hovers) {
+      assert.ok(edge.includes(`var(${veil})`), `${sel} paints its hover edge without ${veil}, so focus leaving under the pointer jumps`);
+    }
   }
 };
 
 test('focused fields keep one ring with a transparent border, and the edge fades in and out', () => {
-  const sheets = Object.fromEntries([...new Set(FIELD_FOCUS.map(([file]) => file))]
-    .map((file) => [file, readFileSync(path.join(here, file), 'utf8')]));
+  const sheets = Object.fromEntries(FIELD_SHEETS.map((file) => [file, readFileSync(path.join(here, file), 'utf8')]));
   checkFieldFocus(sheets);
   const mutations = [
-    [/(--ui-[\w-]+-edge): transparent;/, '$1: var(--field-edge);', /hides its own border ink/],
+    [/(--ui-[\w-]+-veil): 100%;/, '$1: 0%;', /hides its own border ink/],
     // The shape that faded the edge only on the way in.
-    [/(--ui-[\w-]+-edge): transparent;\s*border-color: var\(\1\);/, 'border-color: transparent; transition: border-color 1s;', /names no edge property/],
-    [/(--ui-[\w-]+-edge): transparent;/, '$1: transparent; transition: border-color 1s;', /runs only when focus arrives/],
-    [/transition: (--ui-[\w-]+-edge) [^;]+;/g, '', /jumps when focus leaves/],
+    [/(--ui-[\w-]+-veil): 100%;\s*border-color: [^;]+;/, 'border-color: transparent; transition: border-color 1s;', /names no veil/],
+    [/(--ui-[\w-]+-veil): 100%;/, '$1: 100%; transition: border-color 1s;', /runs only when focus arrives/],
+    [/transition: (--ui-[\w-]+-veil) [^;]+;/g, '', /jumps when focus leaves/],
+    // The hover edge as a plain ink, which hid the fade under a pointer that stays. #865 review
+    [/(:hover(?::not\(:focus-visible\))? \{ --ui-[\w-]+-edge: ([^;]+);) border-color: [^;]+;/, '$1 border-color: $2;', /focus leaving under the pointer jumps/],
   ];
-  for (const file of Object.keys(sheets)) {
+  for (const file of ['input.css', 'dropdown.css']) {
     for (const [from, to, refusal] of mutations) {
       const changed = { ...sheets, [file]: sheets[file].replace(from, to) };
       assert.notEqual(changed[file], sheets[file], `${file}: the mutation ${from} did not apply`);
       assert.throws(() => checkFieldFocus(changed), refusal);
     }
   }
+  const bar = sheets['filter-bar.css'].replace(/(:hover:not\(:focus-visible\) \{ --ui-[\w-]+-edge: ([^;]+);) border-color: [^;]+;/, '$1 border-color: $2;');
+  assert.notEqual(bar, sheets['filter-bar.css'], 'filter-bar.css: the hover mutation did not apply');
+  assert.throws(() => checkFieldFocus({ ...sheets, 'filter-bar.css': bar }), /focus leaving under the pointer jumps/);
 });
 
 // Words that take the ring, a text link and the words that open a readout, get a corner and

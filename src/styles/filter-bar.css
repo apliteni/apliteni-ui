@@ -168,10 +168,11 @@
 /* Clear all keeps a chip's height when it wraps to a line of its own, so a wider gap
    that moves it to the next line does not change its size. */
 .ui-toolbar .ui-filter-bar [data-filter-clear] button { min-height: var(--ui-filter-row-h); }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { min-height: var(--ui-filter-row-h); border-color: var(--control-edge); background: transparent; }
+/* The trigger's ink and focus veil, so its focus edge fades as the trigger's does. why: docs/foundations.md#motion */
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger { min-height: var(--ui-filter-row-h); --ui-dropdown-field-edge: var(--control-edge); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
-.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { border-color: transparent; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"],
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--disabled-border); }

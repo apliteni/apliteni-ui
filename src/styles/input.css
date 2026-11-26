@@ -18,6 +18,7 @@
 .ui-field__error svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
 
 @property --ui-field-edge { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --ui-field-veil { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
 .ui-input,
 .ui-textarea,
 .ui-select {
@@ -27,13 +28,14 @@
   /* Fields use the card surface and an edge in both themes.
      why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  /* The edge ink is a registered colour, so focus fades it in and out. A hover sets
-     border-color itself, so a hover edge changes at once. why: docs/foundations.md#motion */
+  /* Two parts make the edge. A state sets the ink at once. Focus sets the veil, and only
+     the veil fades, so the edge fades in and out also under a pointer that does not move.
+     why: docs/foundations.md#motion */
   --ui-field-edge: var(--field-edge);
-  border: 1px solid var(--ui-field-edge);
+  border: 1px solid color-mix(in srgb, transparent var(--ui-field-veil), var(--ui-field-edge));
   padding: 12px 15px;
   width: 100%;
-  transition: --ui-field-edge var(--dur-med) var(--ease);
+  transition: --ui-field-veil var(--dur-med) var(--ease);
 }
 /* A one-line field has the large field corner. A text area has the larger message corner.
    The select is a control the reader presses, so it keeps the pill below. #836
@@ -44,7 +46,7 @@
 
 .ui-input:hover,
 .ui-textarea:hover,
-.ui-select:hover { border-color: var(--field-edge-hover); }
+.ui-select:hover { --ui-field-edge: var(--field-edge-hover); border-color: color-mix(in srgb, transparent var(--ui-field-veil), var(--ui-field-edge)); }
 
 .ui-input::placeholder,
 .ui-textarea::placeholder { /* muted-ink: placeholder — empty form field */ color: var(--muted); opacity: 0.9; }
@@ -70,14 +72,14 @@
 }
 
 .ui-input.is-invalid, .ui-select.is-invalid,
-.ui-textarea.is-invalid { --ui-field-edge: var(--pink); border-color: var(--ui-field-edge); }
+.ui-textarea.is-invalid { --ui-field-edge: var(--pink); border-color: color-mix(in srgb, transparent var(--ui-field-veil), var(--ui-field-edge)); }
 /* Keep the border's width, but make its ink transparent while the ring shows.
    This also outranks the invalid and hover edges, so focus has one line. */
 .ui-input:focus-visible,
 .ui-textarea:focus-visible,
 .ui-select:focus-visible {
-  --ui-field-edge: transparent;
-  border-color: var(--ui-field-edge);
+  --ui-field-veil: 100%;
+  border-color: color-mix(in srgb, transparent var(--ui-field-veil), var(--ui-field-edge));
   outline: var(--ring);
   outline-offset: var(--ring-offset);
 }
