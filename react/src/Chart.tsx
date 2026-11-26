@@ -14,8 +14,8 @@ import { CardTools } from './primitives/Card';
 import { placeTip } from './tip';
 import {
   LOOK_DEFAULT, Shares, TONE_CYCLE, keyShape, lookBox, lookDrawing, lookMarks, overlaps, pct,
-  type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartSlice, type ChartStackedLook,
-  type Layer, type Look, type LookGeometry,
+  type ChartAreaLook, type ChartDonutLook, type ChartLineLook, type ChartMonthsLook, type ChartSlice,
+  type ChartStackedLook, type Layer, type Look, type LookGeometry,
 } from './chart-looks';
 
 /** The anchor's box on the screen. The anchor is a zero-height rect at the
@@ -177,9 +177,14 @@ export type ChartLookSeries = Omit<ChartSeries, 'shape'>;
 export type ChartProps = ChartCommon & (
   | {
     variant?: 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[];
+    /** `columns`, a column per period, or `rows`, a bar across for each period
+     *  with its full `label` above it, for names that must all print. `rows`
+     *  takes one `bars` or `bars-below` series. */
+    look?: ChartMonthsLook;
     /** Print each bar's value past its end, in `formatAxis`: over a bar that grows
      *  up from zero, under one that grows down. A value that does not
-     *  fit its bar's room is left out; the readout and the table keep it. */
+     *  fit its bar's room is left out; the readout and the table keep it.
+     *  The `rows` look prints no value. */
     values?: boolean;
   }
   | { variant: 'spark'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[] }
@@ -303,14 +308,12 @@ const BAR_MAX = 12;
  * and the carry joining two steps would be longer than the steps it joins.
  */
 const BAR_MAX_BRIDGE = 22;
-/** A bridge's own column width, `--ui-chart-col` in the sheet (--space-16 + --space-6). */
-const BRIDGE_COL = 88;
 /**
  * The months chart's columns (#841, look A): a bar takes two thirds of its
  * column up to --space-12, and its corner is --radius-xs or a quarter of the
  * bar, whichever is smaller, so a narrow bar keeps the same shape. The plot
- * keeps a column wide enough for a bar's name; where the card is narrower, it
- * scrolls instead of dropping one.
+ * keeps no column floor and fits its card: where the month names do not fit,
+ * it prints fewer of them (#906).
  */
 const FIT_SHARE = 2 / 3;
 const FIT_MAX = 48;
@@ -464,8 +467,15 @@ function stateOf(column: Column | undefined) {
  *  drawing read against itself instead of against zero. */
 function seriesFrame(
   periods: readonly ChartPeriod[], series: readonly ChartSeries[],
-  spark: boolean, format: (n: number) => string,
+  spark: boolean, format: (n: number) => string, rows = false,
 ): Frame {
+  if (rows) {
+    const odd = series.length > 1 ? series[1] : series.find((s) => s.shape === 'line');
+    if (odd) {
+      throw new RangeError(`Chart: a rows look draws one series of bars; ${odd.name} is ${
+        odd.shape === 'line' ? 'a line' : 'a second series'}`);
+    }
+  }
   const columns = periods.map((p) => columnOf(p, p.label.split(' ')[0]));
   const shapeOf = (s: ChartSeries) => s.shape ?? 'bars';
   const split = series.some((s) => shapeOf(s) === 'bars-below');
@@ -520,6 +530,22 @@ function seriesFrame(
       column,
       cells: series.map((s) => (Number.isFinite(s.values[i]) ? format(s.values[i]) : MISSING)),
     })),
+    look: rows ? namedLook(columns, series, bars) : undefined,
+  };
+}
+
+/** The months rows look: the one series' bars, laid across with each full name over its bar. */
+function namedLook(columns: Column[], series: readonly ChartSeries[], bars: Frame['bars']): Look {
+  const to = columns.map((_, i) => bars.find((b) => b.column === i)?.to ?? Number.NaN);
+  const layers: Layer[] = series.slice(0, 1).map((s) => ({
+    id: s.id, name: s.name, tone: s.tone ?? 'accent',
+    values: columns.map((_, i) => (Number.isFinite(s.values[i]) ? s.values[i] : Number.NaN)),
+    from: columns.map(() => 0), to,
+  }));
+  return {
+    variant: 'months', look: 'rows', layout: 'named', stacked: false, share: false,
+    layers, totals: to, totalLabel: 'Total',
+    details: columns.map((_, i) => bars.find((b) => b.column === i)?.detail ?? ''),
   };
 }
 
@@ -680,9 +706,10 @@ export function Chart(props: ChartProps) {
   } = props;
   const variant = props.variant ?? 'months';
   const spark = variant === 'spark';
-  /** The months chart's look A columns: bars share the card, and the plot
-   *  scrolls only where a bar's name would not fit. */
-  const fit = variant === 'months';
+  /** The months chart's rows look draws a bar across for each period. */
+  const named = props.variant === undefined || props.variant === 'months' ? props.look === 'rows' : false;
+  /** The months chart's look A columns: bars share the card and the plot fits it. */
+  const fit = variant === 'months' && !named;
   const showValues = fit && 'values' in props && props.values === true;
   const plotHeight = height ?? HEIGHT[variant];
   const showTable = table ?? !spark;
@@ -744,8 +771,8 @@ export function Chart(props: ChartProps) {
     if (steps) return bridgeFrame(steps, bridgeTones, format);
     if (slices) return donutFrame(lookName as ChartDonutLook, slices, totalLabel, format);
     if (lookName) return lookFrame(variant as 'line' | 'area' | 'stacked', lookName, periods ?? [], series ?? [], format);
-    return seriesFrame(periods ?? [], (series ?? []) as readonly ChartSeries[], spark, format);
-  }, [steps, bridgeTones, slices, totalLabel, lookName, variant, periods, series, spark, format]);
+    return seriesFrame(periods ?? [], (series ?? []) as readonly ChartSeries[], spark, format, named);
+  }, [steps, bridgeTones, slices, totalLabel, lookName, variant, periods, series, spark, format, named]);
   const { columns, scale, lines, keys, tableHead, tableRows, look } = frame;
   /** The look draws its own box: rows as tall as the target floor, or a ring. */
   const columnsLayout = !look || look.layout === 'columns';
@@ -820,8 +847,9 @@ export function Chart(props: ChartProps) {
   const axisFormat = look?.share ? pct : formatAxis;
   const geometry = useMemo<LookGeometry | null>(() => (look ? {
     look, uid, labels: columns, plotWidth, plotHeight, colWidth, pad: PAD, target: TARGET, floor,
-    y, centre, scale, format, formatAxis: axisFormat,
-  } : null), [look, uid, columns, plotWidth, plotHeight, colWidth, floor, y, centre, scale, format, axisFormat]);
+    y, centre, scale, format, formatAxis: axisFormat, textWidth,
+  } : null), [look, uid, columns, plotWidth, plotHeight, colWidth, floor, y, centre, scale, format, axisFormat,
+    textWidth]);
   const box = geometry ? lookBox(geometry) : null;
 
   const marks = useMemo<Mark[]>(() => {
@@ -1031,6 +1059,8 @@ export function Chart(props: ChartProps) {
     if (event.target !== event.currentTarget) return;
     const steps: Record<string, number> = {
       ArrowLeft: cursor - 1, ArrowRight: cursor + 1, Home: 0, End: count - 1,
+      // Rows are read down, so Up and Down step them too.
+      ...look?.layout === 'rows' || look?.layout === 'named' ? { ArrowUp: cursor - 1, ArrowDown: cursor + 1 } : {},
     };
     if (event.key in steps) {
       event.preventDefault();
@@ -1072,16 +1102,17 @@ export function Chart(props: ChartProps) {
         { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
       ]} />
   );
-  const noun = look?.layout === 'ring' ? 'slices' : look?.layout === 'rows' ? 'rows' : 'columns';
+  const noun = look?.layout === 'ring' ? 'slices'
+    : look?.layout === 'rows' || look?.layout === 'named' ? 'rows' : 'columns';
 
-  /* The period row. The months and bridge charts print every bar's short name,
-     wrapped at a word break inside its column, so no bar goes unnamed. Where one
-     word alone is wider than the column, wrapping cannot help, so those charts
-     keep a column as wide as that word and scroll sideways, so every bar keeps
-     its name. The other variants step by the whole label, counted from the
-     first period that is not final, or from the latest one, so the period a
-     reader came for keeps its label. */
-  const wrapAtWords = variant === 'months' || variant === 'bridge';
+  /* The period row. A bridge prints every step's short name, wrapped at a word
+     break inside its column, so no step goes unnamed. Where one word alone is
+     wider than the column, wrapping cannot help, so the bridge keeps a column as
+     wide as that word and scrolls sideways. The other variants, months among
+     them, step by the whole label, counted from the first period that is not
+     final, or from the latest one, so the period a reader came for keeps its
+     label. A months chart then prints fewer names and keeps every bar (#906). */
+  const wrapAtWords = variant === 'bridge';
   /** A period label's drawn width: the picked column's label carries the
    *  semibold weight, the rest the body weight, so placement measures each
    *  label in the weight it is drawn in. */
@@ -1093,12 +1124,9 @@ export function Chart(props: ChartProps) {
   const widestWord = wrapAtWords
     ? Math.max(0, ...columns.flatMap((c) => c.short.split(/\s+/).map((word) => textWidth(word)))) + LABEL_GAP
     : labelRoom;
-  /** The column the plot keeps, `--ui-chart-col` in the sheet: a months column
-   *  is the widest word, a bridge keeps its own column and grows past it for a
-   *  word too wide to wrap. */
-  const floorCol = fit
-    ? Math.ceil(widestWord)
-    : variant === 'bridge' ? Math.max(BRIDGE_COL, Math.ceil(widestWord)) : null;
+  /** The column the plot keeps, `--ui-chart-col` in the sheet: a months chart
+   *  keeps none and fits its card, and a bridge column is its widest word. */
+  const floorCol = fit ? 0 : variant === 'bridge' ? Math.ceil(widestWord) : null;
   const anchor = groupFrom >= 0 ? groupFrom : count - 1;
   /** A stepped label wider than its column stands centred on it, or on the
    *  plot's edge where centring would carry it past that edge. */
@@ -1491,7 +1519,9 @@ export function Chart(props: ChartProps) {
             className="ui-table-scroll" role="region" tabIndex={0}
             aria-label={`${title}, as a table. Scroll for more columns.`}
           >
-            <table className="ui-table" aria-label={title}>
+            {/* Dense rows, so the table of a chart takes about the chart's own
+                height. Owner, rev_c9a30e92961c/d45. */}
+            <table className="ui-table ui-table--dense" aria-label={title}>
               <thead>
                 <tr>
                   {tableHead.map((head, i) => (

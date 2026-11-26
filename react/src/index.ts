@@ -125,7 +125,7 @@ export type {
   ChartProps, ChartTone, ChartPeriod, ChartEstimate, ChartSeries, ChartBridgeStep, ChartBridgeTones, ChartLookSeries,
 } from './Chart';
 export type {
-  ChartLineLook, ChartAreaLook, ChartStackedLook, ChartDonutLook, ChartSlice,
+  ChartLineLook, ChartAreaLook, ChartStackedLook, ChartDonutLook, ChartMonthsLook, ChartSlice,
 } from './chart-looks';
 
 export { SidebarNav } from './SidebarNav';
