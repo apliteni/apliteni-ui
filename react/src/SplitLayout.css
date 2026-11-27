@@ -1,0 +1,99 @@
+/* A page split under the top bar: the content takes 60% and the preview 40%, from the band to
+   the foot. Neither pane is a card. The preview pane is the document ground from edge to edge.
+   Put it in AppShell with width="full". why: docs/components.md#split-layout */
+.ui-split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  /* Each pane scrolls alone, so the layout takes the window under the band. */
+  height: calc(100dvh - var(--ui-app-band, 0px));
+}
+.ui-split__primary { grid-area: 1 / 1; min-width: 0; overflow-y: auto; padding: var(--space-8); }
+/* Each scroll box holds its own absolute parts, such as a hidden table caption, so they scroll
+   with it and never lengthen the window. */
+.ui-split, .ui-split__primary, .ui-split__stage { position: relative; }
+.ui-split:focus-visible,
+.ui-split__primary:focus-visible,
+.ui-split__stage:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+/* The content and the action row share one measure, so the buttons start on the title's edge. */
+.ui-split__content,
+.ui-split__row { max-width: var(--measure); margin-inline: auto; }
+.ui-split__content { --tap-clear-x: var(--space-5); --tap-clear-y: var(--space-5); display: flex; flex-direction: column; gap: var(--space-6); }
+/* The gap is the only space between blocks, so the shell's own title margins step aside. */
+.ui-split .ui-split__content > * { margin-block: 0; }
+/* The first pane holds the values that will be saved, so each value outweighs its label, and
+   the pane's own name takes the accent. why: guidelines/density-and-accents.md#follow-the-consequence */
+.ui-split__content .ui-kv dd,
+.ui-split__content .ui-table td:not(.ui-table__num--strong) { font-weight: var(--weight-medium); }
+.ui-split__content .ui-table tbody th:not(.ui-table__num--strong) { font-weight: var(--weight-normal); }
+.ui-split__name { color: var(--accent); }
+
+.ui-split__preview { grid-area: 1 / 2 / 3 / 3; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-inline-start: 1px solid var(--border); }
+/* The tools keep the reading surface on the ground, so their words keep body contrast. */
+.ui-split__controls { flex: none; margin: var(--space-6) var(--space-6) 0; background: var(--bg); /* code-bg: inherit — the page ground, so a chip takes the page's hand-off. */ }
+.ui-split__controls > h2 { margin: 0; padding: var(--space-4) var(--space-4) var(--space-2); }
+.ui-split__tools {
+  --tap-clear-x: var(--space-3);
+  --tap-clear-y: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+/* Fit is a toggle. While it is on it takes the selected row's fill, ink and weight, and keeps
+   them under the pointer. why: docs/foundations.md#the-focus-ring */
+.ui-split__tools > .ui-btn[aria-pressed="true"]:enabled,
+.ui-split__tools > .ui-btn[aria-pressed="true"]:enabled:hover {
+  background: var(--surface-3); /* code-bg: inherit — the selected control's own fill. */
+  color: var(--strong);
+  font-weight: var(--weight-semibold);
+}
+@media (forced-colors: active) {
+  .ui-split__tools > .ui-btn[aria-pressed="true"]:enabled {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+    --ring: var(--ring-width) solid CanvasText;
+  }
+}
+.ui-split__scale { min-width: 4ch; text-align: center; font-variant-numeric: tabular-nums; }
+.ui-split__stage { flex: 1 1 auto; min-height: 0; overflow: auto; padding: var(--space-6); }
+.ui-split__sheet { width: var(--panel-md); margin-inline: auto; }
+.ui-split__sheet .ui-skel + .ui-skel { margin-top: var(--space-5); }
+.ui-split__empty { background: var(--bg); /* code-bg: inherit — the page ground, so a chip takes the page's hand-off. */ }
+
+.ui-split__actions {
+  --tap-clear-x: var(--space-3);
+  --tap-clear-y: var(--space-4);
+  grid-area: 2 / 1;
+  padding: var(--space-4) var(--space-8);
+  background: var(--bg); /* code-bg: inherit — the page ground, so a chip takes the page's hand-off. */
+  border-top: 1px solid var(--border);
+}
+.ui-split__row { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+
+/* 860px and below: the panes stack in source order in one scroll. The preview tools stay at
+   the top while the preview passes, and the action row stays at the foot of the screen. */
+@media (max-width: 860px) {
+  /* A control that scrolls into view stops above the action row and its focus ring. */
+  .ui-split { display: block; overflow-y: auto; scroll-padding-bottom: calc(var(--ui-split-foot, 0px) + var(--ring-gap-width) + var(--ring-width)); }
+  .ui-split__primary { overflow: visible; padding: var(--space-6); }
+  .ui-split__preview { border-inline-start: 0; }
+  /* The stuck title keeps its whole focus ring inside the scroll. The tools hold the ring's
+     room above the title, and the title gives the same room back, so nothing moves. */
+  .ui-split__controls { position: sticky; top: 0; z-index: var(--z-sticky); padding-top: calc(var(--ring-offset) + var(--ring-width)); }
+  .ui-split__controls > h2 { padding-top: calc(var(--space-4) - var(--ring-offset) - var(--ring-width)); }
+  /* The stage leaves three space-16 steps of the screen for the band, the tools and the
+     action row, so the sheet and the action show together. */
+  .ui-split__stage { flex: none; height: clamp(var(--space-16), calc(100dvh - var(--ui-app-band, 0px) - 3 * var(--space-16)), 65dvh); }
+  .ui-split__actions { position: sticky; bottom: 0; z-index: var(--z-sticky); padding: var(--space-3) var(--space-6) calc(var(--space-3) + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 560px) {
+  .ui-split__primary { padding: var(--space-6) var(--space-4); }
+  .ui-split__content { gap: var(--space-5); }
+  .ui-split__controls { margin-inline: var(--space-4); }
+  .ui-split__stage { padding: var(--space-4); }
+  .ui-split__actions { padding-inline: var(--space-4); }
+  .ui-split__row > .ui-btn { flex: 1 1 100%; }
+}
