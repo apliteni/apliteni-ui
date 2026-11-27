@@ -444,6 +444,9 @@ test('the task page keeps the focus in each open part and holds through each key
     // View options that are narrower than the track, as the touch switch was before #866.
     await mutate(async (page) => {
       await page.addStyleTag({ content: '.ui-toolbar > .ui-seg button.ui-seg--icon { min-width: 0 !important; width: 20px; }' });
+      // The width eases to its new value, so the walk waits until each option has its injected width.
+      await page.waitForFunction(() => [...document.querySelectorAll('.ui-toolbar > .ui-seg button.ui-seg--icon')]
+        .every((b) => b.getBoundingClientRect().width === 20), null, { timeout: 5000 });
     }, 'view options', (page, found) => walkView(page, 'mutated', BOARD, found, new Set()));
     assert.deepEqual(caught.filter(([, ok]) => !ok).map(([says]) => says), [], 'a check did not see its own failure');
   } finally {

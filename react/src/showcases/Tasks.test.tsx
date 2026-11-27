@@ -1,6 +1,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ReactElement } from 'react';
 import axe from 'axe-core';
 import { Tasks } from './Tasks';
 import { SEARCH_STATES, type SearchState } from './tasks-data';
@@ -42,6 +43,19 @@ describe('the Tasks page', () => {
     expect(search()).toHaveValue('report');
     expect(screen.getByRole('button', { name: 'Group by: Assignee' })).toBeInTheDocument();
   });
+  it('keeps the URL state of a story on a reload, and clears it when the frame changes to another story', async () => {
+    window.history.replaceState(null, '', '/iframe.html?id=showcases-tasks--table#view=board&group=status&q=state%3Aopen');
+    vi.resetModules();
+    const { default: meta, Table } = await import('./Tasks.stories');
+    const story = (id: string) => render(meta.render!(Table.args as never, { id } as never) as ReactElement);
+    const reload = story('showcases-tasks--table');
+    expect(screen.getByRole('button', { name: 'Open: edit state:open' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Group by: Status' })).toBeInTheDocument();
+    reload.unmount();
+    story('showcases-tasks--board');
+    expect(screen.queryByRole('button', { name: 'Open: edit state:open' })).toBeNull();
+    expect(window.location.hash).toBe('#view=table&group=status');
+  });
   it('groups the board by Status, Assignee and Due date, with a count in each column', async () => {
     const user = userEvent.setup();
     render(<Tasks view="board" />);
@@ -67,19 +81,28 @@ describe('the Tasks page', () => {
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(column(/^To do, 4 tasks$/)).toContainElement(screen.getByRole('group', { name: 'Match the October bank statement' }));
   });
-  it('keeps the focus on the moved card after a move by keys, so the next key acts on that task', async () => {
+  it('keeps the focus on the moved card after a move by keys, or on Search tasks when the search hides the card', async () => {
     const user = userEvent.setup();
-    render(<Tasks view="board" />);
     const name = 'Actions for Match the October bank statement';
-    screen.getByRole('button', { name }).focus();
-    await user.keyboard('{Enter}');
-    const card = screen.getByRole('group', { name: 'Match the October bank statement' });
-    const items = within(within(card).getByRole('menu')).getAllByRole('menuitem');
-    while (document.activeElement !== items.find((i) => i.textContent === 'In progress')) await user.keyboard('{ArrowDown}');
-    await user.keyboard('{Enter}');
+    const moveByKeys = async () => {
+      screen.getByRole('button', { name }).focus();
+      await user.keyboard('{Enter}');
+      const card = screen.getByRole('group', { name: 'Match the October bank statement' });
+      const items = within(within(card).getByRole('menu')).getAllByRole('menuitem');
+      while (document.activeElement !== items.find((i) => i.textContent === 'In progress')) await user.keyboard('{ArrowDown}');
+      await user.keyboard('{Enter}');
+    };
+    const { unmount } = render(<Tasks view="board" />);
+    await moveByKeys();
     const moved = screen.getByRole('group', { name: 'Match the October bank statement' });
     expect(column(/^In progress, /)).toContainElement(moved);
     expect(within(moved).getByRole('button', { name })).toHaveFocus();
+    unmount();
+    window.history.replaceState(null, '', '#view=board&group=status&q=state%3Atodo');
+    render(<Tasks />);
+    await moveByKeys();
+    expect(screen.queryByRole('group', { name: 'Match the October bank statement' })).toBeNull();
+    expect(search()).toHaveFocus();
   });
   it('gives a table row the menu Open, Reassign and Copy link', async () => {
     const user = userEvent.setup();

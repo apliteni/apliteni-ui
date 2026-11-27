@@ -332,10 +332,13 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
   const [newDate, setNewDate] = useState('');
   const closeRef = useRef<HTMLButtonElement>(null);
   // A move from a card's menu unmounts the card in its old column. Its new menu button takes the focus.
+  // When the search hides the moved card, Search tasks takes the focus, because its filter hid the card.
   const [refocus, setRefocus] = useState<string | null>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!refocus) return;
-    document.querySelector<HTMLElement>(`[data-task="${refocus}"] .ui-card__action .ui-dropdown__trigger`)?.focus();
+    (document.querySelector<HTMLElement>(`[data-task="${refocus}"] .ui-card__action .ui-dropdown__trigger`)
+      ?? toolbarRef.current?.querySelector<HTMLElement>('[role="combobox"]'))?.focus();
     setRefocus(null);
   }, [refocus]);
 
@@ -373,7 +376,7 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
     actions={<Button variant="primary" icon="plus">New task</Button>} />;
 
   return <>
-    <div className="ui-toolbar">
+    <div className="ui-toolbar" ref={toolbarRef}>
       <QuerySearch keys={TASK_KEYS} value={query} onChange={(next) => { setQuery(next); if (request === 'people-loading' || request === 'people-error') return; setRequest('ready'); }}
         ariaLabel="Search tasks" size="sm" placeholder="Search tasks, state: or @name" chipsLabel="Active task filters"
         peopleStatus={request === 'people-loading' ? 'loading' : request === 'people-error' ? 'error' : undefined}
