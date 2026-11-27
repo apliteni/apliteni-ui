@@ -1821,6 +1821,27 @@ it('a panel in a scrolling body opens above its trigger when the view has less t
   expect(body.scrollTop).toBe(0);
 });
 
+// A panel in the page flow takes the rule a lifted panel takes: its own side, unless that
+// side cannot hold the 120px floor and the other side has more room.
+it('a panel in a page opens on the other side when its own side cannot hold it', async () => {
+  const opened = async (bottom: number, direction: 'up' | 'down') => {
+    phone(bottom);
+    const { container, unmount } = render(<Dropdown items={MENU} ariaLabel="Row actions" direction={direction} />);
+    const panel = container.querySelector('.ui-dropdown__panel') as HTMLElement;
+    Object.defineProperty(panel, 'offsetHeight', { value: 200 });
+    await userEvent.setup().click(within(container).getByRole('button'));
+    const side = { up: panel.classList.contains('is-up'), avail: availOf(container) };
+    unmount();
+    return side;
+  };
+  // A bar near the top of the view: no room above, so the panel opens below.
+  expect(await opened(42, 'up')).toEqual({ up: false, avail: `${844 - 42 - 9 - 8}px` });
+  // A trigger near the bottom: no room below, so the panel opens above.
+  expect(await opened(844 - 5, 'down')).toEqual({ up: true, avail: `${844 - 5 - 31 - 9 - 8}px` });
+  // Room on its own side: the panel keeps it.
+  expect((await opened(600, 'up')).up).toBe(true);
+});
+
 it('a trigger in a page reserves the 8px edge under the open panel, so closing moves nothing and opening adds no scroll', () => {
   phone(600);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);

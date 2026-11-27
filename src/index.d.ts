@@ -89,6 +89,14 @@ export declare function dropdownSnap(
   dd: Element | null | undefined,
   panel: Element | null | undefined,
 ): void;
+/** The side an open panel opens on: `configured`, true for above the trigger, unless
+ *  that side cannot hold the panel's floor and the other side has more room.
+ *  why: docs/components.md#dropdown */
+export declare function dropdownSide(
+  dd: Element | null | undefined,
+  panel: Element | null | undefined,
+  configured: boolean,
+): boolean;
 /** Lift an open panel out of the Modal or Drawer body, or any other scrolling box, that
  *  it sits in, so it opens over the body the way a portalled panel does and the body does
  *  not scroll, or put a lifted one back. Returns whether the panel is lifted.
