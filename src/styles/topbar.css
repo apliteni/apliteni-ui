@@ -141,8 +141,9 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-md);
-  padding: 6px;
+  /* The dropdown panel's corner and inset. rev_32e9894c9f71/d76 */
+  border-radius: var(--radius-xl);
+  padding: 5px;
   /* The same cap `.ui-dropdown__panel` writes itself, in bespoke clothes: this
      menu is `wireDropdown()` too, so wireDropdown() measures it the same way and
      writes the same two properties. #489
@@ -192,7 +193,8 @@
   gap: 11px;
   align-items: flex-start;
   padding: 10px 13px;
-  border-radius: 10px;
+  /* The dropdown row's corner, so the curve follows the panel's. */
+  border-radius: calc(var(--radius-xl) - var(--radius-xs));
   cursor: pointer;
   /* What a browser paints on a <button> before any author rule runs. A consumer
      reaches for <button> whenever the row has to work from the keyboard, so the
@@ -206,9 +208,10 @@
   text-align: left;
   font: inherit;
 }
-/* Hover fills the row. Only keyboard focus draws its outline. */
-.vopt:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-:where(:root[data-theme="light"]) .vopt:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* The hovered row and the chosen version share the dropdown row's quiet ground. Only
+   keyboard focus draws its outline. rev_32e9894c9f71/d76 */
+.vopt[aria-selected="true"],
+.vopt:hover:not(:focus-visible) { background: var(--float-row-fill); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 @media (forced-colors: active) {
   .vopt:hover { border: 1px solid Highlight; padding: 9px 12px; }
 }
@@ -216,7 +219,7 @@
    ring on its own 10px radius. #482, #824 */
 /* The selected version carries the kit's menu tick, as `.ui-dropdown__tick` does for
    every other menu; the badge keeps its own place beside it. */
-.vopt .vtick { margin-left: 8px; flex: none; display: none; color: var(--accent); margin-top: 1px; }
+.vopt .vtick { margin-left: 8px; flex: none; display: none; color: var(--text); margin-top: 1px; }
 .vopt .vtick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 .vopt[aria-selected="true"] .vtick { display: inline-flex; }
 .vopt .vname { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
@@ -324,14 +327,16 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-md);
+  /* The dropdown panel's corner, as `.vsw__menu` above. rev_32e9894c9f71/d76 */
+  border-radius: var(--radius-xl);
   /* #519 chose no clip over padding: `overflow: hidden` with no room cut the ring down to
      the one pixel of border this panel had, so the rule took the clip away instead and let
      the ring cross the edge. #489's cap takes that choice away — `overflow-y: auto` clips
      again, because a menu that scrolls has to stop its content at its own edge — so this
      reserves the room instead, the same 6px `.vsw__menu` and `.ui-dropdown__panel` already
-     keep rather than a new figure. why: docs/components.md#dropdown */
-  padding: 6px;
+     keep rather than a new figure: the --radius-xs inset less the 1px border.
+     why: docs/components.md#dropdown */
+  padding: 5px;
   /* The same cap `.ui-dropdown__panel` writes itself — see .vsw__menu above. #489 */
   max-height: min(var(--ui-dropdown-cap, 100dvh), var(--ui-dropdown-avail, calc(100dvh - 16px)));
   overflow-y: auto;
@@ -367,7 +372,7 @@
   transform: translateY(0);
   transition-property: opacity, transform;
 }
-/* `margin` bleeds the head back through the 6px panel padding above, the way
+/* `margin` bleeds the head back through the 5px panel padding above, the way
    `.ui-dropdown__panel > .ui-dropdown__head` already does for its own panel:
    the border-bottom hairline reaches the panel's edge instead of stopping a
    notch short of it. #641's warning. The 5px below is the kit head's own gap, so the first
@@ -375,15 +380,12 @@
    why: docs/components.md#dropdown */
 .amenu .ahead {
   padding: 13px 15px;
-  margin: -6px -6px 5px;
+  margin: -5px -5px 5px;
   border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   display: flex; align-items: center; gap: 11px;
 }
 .amenu .ui-dropdown__sep { margin: 5px 0; }
-@supports (corner-shape: squircle) {
-  .vsw__menu, .amenu, .amenu .ahead { corner-shape: squircle; }
-}
 .amenu .ahead .avatar { cursor: default; }
 .amenu .ahead .aw { min-width: 0; display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
 .amenu .ahead .anm { color: var(--strong); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
