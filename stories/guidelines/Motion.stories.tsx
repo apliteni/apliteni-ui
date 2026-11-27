@@ -38,17 +38,31 @@ const SLIDE: [string, Step][] = [['0 ms', 'closed'], ['125 ms, 78% of the way', 
 const JUMP: [string, Step][] = [['0 ms', 'closed'], ['16 ms, the next frame', 'open']];
 
 // A count that changes in place: cross-faded over 150ms, or snapped in one frame.
+// The middle frame shows both values at the opacity --ease gives them at half of 150ms:
+// the incoming value has reached 78% and the outgoing one 22%.
 const CountFilm = ({ fade }: { fade: boolean }) => {
-  const frames: [string, string, number][] = fade
-    ? [['0 ms', '14,941.27', 1], ['75 ms, both show', '14,942.27', 0.55], ['150 ms', '14,942.27', 1]]
-    : [['0 ms', '14,941.27', 1], ['16 ms, the next frame', '14,942.27', 1]];
+  const frames = fade
+    ? [
+        { time: '0 ms', out: '14,941.27', outOpacity: 1, inn: '14,942.27', inOpacity: 0 },
+        { time: '75 ms, both show', out: '14,941.27', outOpacity: 0.22, inn: '14,942.27', inOpacity: 0.78 },
+        { time: '150 ms', out: '14,941.27', outOpacity: 0, inn: '14,942.27', inOpacity: 1 },
+      ]
+    : [
+        { time: '0 ms', out: '14,941.27', outOpacity: 1, inn: '14,942.27', inOpacity: 0 },
+        { time: '16 ms, the next frame', out: '14,941.27', outOpacity: 0, inn: '14,942.27', inOpacity: 1 },
+      ];
   return <div className="gm-film">
-    {frames.map(([time, value, opacity]) => [
+    {frames.map(({ time, out, outOpacity, inn, inOpacity }) => [
       <p key={`${time}-t`}>{time}</p>,
       <div key={time} className="gl-stage gm-frame">
         <div className="ui-stats ui-stats--open"><dl className="ui-stats__list"><div className="ui-stat">
           <dt className="ui-stat__label">Paid this month</dt>
-          <dd className="ui-stat__value" style={{ opacity }}>{value}</dd>
+          <dd className="ui-stat__value">
+            <span className="gm-crossfade">
+              <span style={{ opacity: inOpacity }}>{inn}</span>
+              <span className="gm-crossfade__out" style={{ opacity: outOpacity }} aria-hidden="true">{out}</span>
+            </span>
+          </dd>
         </div></dl></div>
       </div>,
     ])}

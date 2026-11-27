@@ -26,3 +26,14 @@ it('does not cross-fade when the value is unchanged', () => {
   rerender(<Crossfade value="14,941.27" />);
   expect(container.querySelector('.ui-crossfade__out')).toBeNull();
 });
+
+it('keeps an interactive value and its focus when a re-render passes a new node with the same text', () => {
+  const { container, rerender } = render(<Crossfade value={<a href="#income">€ 6,459,401</a>} />);
+  const link = container.querySelector('a');
+  link?.focus();
+  expect(document.activeElement).toBe(link);
+  rerender(<Crossfade value={<a href="#income">€ 6,459,401</a>} />);
+  expect(container.querySelector('.ui-crossfade__out')).toBeNull();
+  expect(document.activeElement).toBe(link);
+  expect(link?.textContent).toBe('€ 6,459,401');
+});

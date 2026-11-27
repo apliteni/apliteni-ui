@@ -173,7 +173,7 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme × accent cells"
+    "pattern": "theme \u00d7 accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
@@ -570,7 +570,7 @@
     "pattern": "in sentence case like every"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:60",
+    "ref": "react/src/ThemeToggle.tsx:65",
     "pattern": "const name = `Theme:"
    },
    {
@@ -584,7 +584,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:178",
+    "ref": "src/styles/card.css:170",
     "pattern": "rank: card-title"
    }
   ],
@@ -666,7 +666,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:573",
+    "ref": "src/styles/layout.css:571",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -690,11 +690,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:486",
+    "ref": "src/styles/layout.css:484",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:487",
+    "ref": "src/styles/layout.css:485",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -734,11 +734,11 @@
  "_microcopy.js": {
   "state-not-destination": [
    {
-    "ref": "react/src/ThemeToggle.tsx:60",
+    "ref": "react/src/ThemeToggle.tsx:65",
     "pattern": "const name = `Theme:"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:98",
+    "ref": "react/src/ThemeToggle.tsx:112",
     "pattern": "aria-label={name}"
    },
    {
@@ -778,7 +778,7 @@
     "pattern": "animation-duration: var(--dur-med);"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:87",
+    "ref": "react/src/ThemeToggle.tsx:101",
     "pattern": "doc.startViewTransition(crossfade);"
    },
    {
@@ -1119,7 +1119,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:223",
+    "ref": "src/styles/card.css:202",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1392,7 +1392,7 @@
    },
    {
     "ref": "src/styles/dropdown.css:481",
-    "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
+    "pattern": "/* muted-ink: chrome \u2014 names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
     "ref": "react/src/Dropdown.tsx:880",

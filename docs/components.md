@@ -1027,11 +1027,10 @@ gives less vertical space, and `pad="lg"` makes a centred landing card. `icon` a
 centred on the title line. On a touch phone the tools stand `--tap-gap` apart. A `Chart` in a
 titled card puts its Chart and Table switch there.
 
-**A card on the light page.** A card draws no box, and its text and its table text start on the
-page title's edge. To do this, the card hangs outside its container by its side inset: 24px, and
-16px at 720px and below. The page shell pads enough for this at every width. If you put a light
-card in another container, pad each side of the container by at least the hang, or the page
-scrolls sideways. A tinted card, a landing card and a stat tile keep their box and do not hang.
+**A card on the light page.** A light card draws no fill, edge or shadow, and it keeps the dark
+card's spacing: a 24px side inset and no hang outside its container. Its text and its table text
+start 24px in from the page title's edge, in both themes, so nothing moves when the theme
+changes. A tinted card, a landing card and a stat tile keep their box.
 
 **A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
 while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,

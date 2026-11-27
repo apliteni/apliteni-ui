@@ -1,6 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import './Crossfade.css';
 
+// The visible text of a ReactNode, read without rendering it: a value can be a
+// string, a number or an element such as a drill-down link, and the fade must
+// follow the shown text, not the identity of a node a parent rebuilds each render.
+function textOf(node: ReactNode): string {
+  if (node == null || typeof node === 'boolean') return '';
+  if (typeof node === 'string' || typeof node === 'number') return String(node);
+  if (Array.isArray(node)) return node.map(textOf).join('');
+  if (typeof node === 'object' && 'props' in node) {
+    return textOf((node as { props?: { children?: ReactNode } }).props?.children);
+  }
+  return '';
+}
+
 // A count or a status line that changes in place cross-fades: the outgoing text
 // stays until the incoming text has faded in, each over 150ms (--dur-fast).
 // The first render does not animate, so a value present at load stays still.
@@ -19,7 +32,10 @@ export function Crossfade({ value }: { value: ReactNode }) {
 
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    if (Object.is(valueRef.current, value)) return;
+    // Fade only when the shown text changes. A parent that rebuilds a node with
+    // the same text — a StatBand value link, for instance — must not start a fade,
+    // or the incoming layer replaces the interactive node and drops its focus. #900
+    if (textOf(valueRef.current) === textOf(value)) return;
     valueRef.current = value;
     setLeaving({ key: shown.key, value: shown.value });
     setShown((prev) => ({ key: prev.key + 1, value }));
