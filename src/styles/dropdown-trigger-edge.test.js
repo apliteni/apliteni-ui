@@ -353,10 +353,11 @@ test('an unavailable trigger keeps its off edge or borderless box in every scope
   // Six scopes since #812: the trigger in a form field is a scope of its own. Seven
   // since #822: the small row's chip. Nine since #847: the band actions' borderless trigger,
   // and its 40px phone glyph. Eleven since #903: the small dropdown and the small bar's
-  // Filter, and the small bar's chip replaces the small row's. Twelve since #866: the ghost
-  // trigger of a movable card's menu.
-  assert.equal(BY_SCOPE.size, 12, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 96);
+  // Filter, and the small bar's chip replaces the small row's. Twelve since #863: the
+  // text trigger of a chart's range. Fifteen since #888: the ghost trigger, open and in a
+  // form field. Sixteen since #866: the ghost trigger of a movable card's menu.
+  assert.equal(BY_SCOPE.size, 16, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 128);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');

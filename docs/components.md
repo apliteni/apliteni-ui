@@ -95,6 +95,7 @@ what the user sees.
 | Choose one value from a list, or open a menu of actions | `Dropdown` | [Dropdown](#dropdown) |
 | Find and run anything with ⌘K | `CommandPalette` | [Command palette](#command-palette) |
 | A labelled form control | `TextField`, `TextArea`, `SelectField`, `FileField`, `Field` | [Fields](#fields) |
+| A value that the app proposes and the user applies or dismisses | `ProposedValue` | [Proposed value](#proposed-value) |
 | Search a list from its toolbar | `SearchField` | [Search field](#search-field) |
 | A yes or no, or a set of options | `Checkbox`, `CheckList`, `Switch` | [Checkbox and switch](#checkbox-and-switch) |
 | A month, a date or a range | `DatePicker` | [Date picker](#date-picker) |
@@ -222,6 +223,12 @@ holds each line of text that the button shows, and the menu takes the same name.
   button.
 - Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
   glyph, and keeps the same accessible name.
+- The open sidebar and the phone menu have two columns. The logo, each section icon, a group label
+  and the avatar start 8px inside the row fill. The product name, each label and the
+  account name start 46px inside it, after a 30px symbol box. A sub-item keeps the indent of its
+  list. A custom `brand` keeps its own width, so the product name moves with it. The phone menu's
+  head shows the logo before the product name. A folded sidebar puts each section icon and the
+  avatar on one centre line.
 - The current section is one quiet fill behind its row. A row under the pointer has a lighter
   fill. In the topbar layout, a shell with one destination and no back link draws no sidebar, no fold
   control and no menu button. The section stays in the command palette. The rail layout always
@@ -545,6 +552,14 @@ trigger off: no keyboard stop, no panel and the disabled paint. `size="sm"` give
 small control height: 32px with a mouse and 40px on a touch screen. Use it on a
 [toolbar](#toolbar) beside a small search field.
 
+**Ghost trigger.** `ghost` draws the trigger with no edge and no ground at rest. It keeps the
+chevron, the focus ring and the invalid edge. The pointer and an open panel give it the fill of a
+hovered table row. Off, it draws no box and shows the off ink. In a field and as the first part of a
+table cell, its value starts on the column edge, and the pill hangs into the room before it. In a
+row it stands on the centre of the first text line, so the row keeps its height. In a field the
+panel fits its widest row, at least the trigger and at most the room in the view, so a row keeps
+its words on one line. Without `ghost` the trigger keeps its edge.
+
 **What the user sees.**
 
 - The trigger shows only the chosen value or the placeholder. Put the name of the control in a
@@ -597,6 +612,11 @@ with no matches says so.
 **Submenus.** The account menu of `AppShell` has a Theme row that opens a submenu. Right and Enter
 open it, Left and Escape close it, and the focus goes back to the row. On a phone the submenu
 replaces the rows, under a back row.
+
+**Text trigger.** `triggerClass="ui-dropdown__trigger--text"` draws the trigger as its words and
+the arrow, in body ink and weight, with no fill and no edge at rest. Its words start on the text
+edge of the surface. Use it for a choice that reads as part of a line, such as a chart's range.
+The hover edge, the focus ring and the disabled paint are the same as on every trigger.
 
 **Your own rows.** `row` lets you draw each row. It gets the row and the props that the row must
 spread: the class, the role, `tabIndex`, `data-dd-item`, the selected and disabled state and the
@@ -690,6 +710,47 @@ not move.
 **Room on the screen.** Put a form on a card, not on the page ground. A field is drawn by its edge,
 and on the page ground that edge is too faint. See
 [Colour and contrast](foundations.md#colour-and-contrast). A filter bar is the one exception.
+
+### Proposed value
+
+Use `ProposedValue` when the app proposes a value for a select and the user decides: for example,
+a category that a rule found for a payment. Use [`Dropdown`](#dropdown) when there is no proposal.
+
+```tsx
+<Field label="Category">{control => (
+  <ProposedValue {...control} items={categories} value={category} proposed={suggested}
+    onChange={setCategory} onDismiss={dropSuggestion} />
+)}</Field>
+```
+
+**What the user sees.** The part has three states:
+
+- **Set.** `value` holds an option. A [ghost select](#dropdown) shows its label.
+- **Proposed.** `value` is empty, and an enabled option has the `proposed` value. The label shows in a
+  still two-ink gradient, from the accent to the info ink. A check button and a dismiss mark follow
+  it. Every point of the gradient has at least 4.5:1 on the page, card and table grounds, in both
+  themes under each accent. In forced colours the value shows in the system ink with a dashed edge.
+- **Empty.** A ghost select shows "None". `none` changes the word.
+
+The check calls `onChange` with the proposed value and opens no menu. The dismiss mark calls
+`onDismiss` and shows "None" until `proposed` changes. A dismissed proposal that comes back after
+another one shows again. After either act the focus goes to the select. The menu has a None row
+first, which calls `onChange(undefined)`. The None row uses the value `''`, so give each option
+another value. `applyVariant="ghost"` draws the check with no outline, as the dismiss mark is
+drawn. The default `secondary` keeps its outline. A proposal that no enabled option has shows the empty state, so the check never
+sets a disabled option. A long value ends in an ellipsis, and its pointer title shows it in full.
+
+**Size.** In a `Field` the part has the height of a text input. Elsewhere it has the 32px size of a
+row control, and as the first part of a table cell its value starts on the column edge. Below
+560px on a touch screen, the check and the dismiss mark keep a 44px tap zone. The part stays on one
+line. In a table, set the column's `width` to its widest state, the value with its check and
+dismiss mark, so an act moves no column and no row.
+
+**Keyboard and screen reader.** The proposed state is a group. In a field the label and the word
+"suggested" name it. Outside a field it takes `ariaLabel` and then "suggested", and the select
+reads `ariaLabel` and then its value. An invalid field keeps `aria-invalid` in each state. The
+check is named "Apply" and the value. The dismiss mark is named "Dismiss" and the value. Both names
+are also the pointer titles.
 
 ### Search field
 
@@ -1023,7 +1084,8 @@ scrolls sideways. A tinted card, a landing card and a stat tile keep their box a
 **A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
 while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,
 as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
-scroll frame does.
+scroll frame does. A control in the card that takes the focus by keyboard or by script scrolls
+fully into view with its focus ring.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
@@ -1371,7 +1433,8 @@ when the task needs more than one record. When a flow needs a drawer or a page:
 
 `side` is `right`, `left`, `top` or `bottom`. `size` is `sm`, `md` or `lg`. `status` puts the
 state of the record, such as one `Badge`, directly after the title. `headerActions` puts controls
-at the end of the header, before the close button.
+at the end of the header, before the close button. `mark` puts a mark, such as a product logo,
+before the title. Screen readers skip it, and the title stays the drawer's name.
 
 **A long title.** The title stays on one line. A long title ends in an ellipsis before the status,
 and the status, the actions and the close button stay whole. A cut title is a Tab stop. On hover,
@@ -1634,13 +1697,14 @@ for one figure, and a [table](#data-table) when the user must read exact values 
 
 `title` names the plot, the table and the switch, and is not drawn, because the card around the
 chart has the title. `format` prints exact values in the readout, the live region and the table.
-`formatAxis` prints the axis ticks, which are whole units.
+`formatAxis` prints the axis ticks, which are whole units. `grouping` says what one period is,
+such as `month` or `week`. It heads the first column of the table, and is `Period` by default.
 
 **Variants.**
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | `columns`, a column per period with a line across them; `rows`, a bar across for each period with its full name above it | `columns` |
+| `bars` | `periods`, `series` | `columns`, a column per period with a line across them; `rows`, a bar across for each period with its full name above it | `columns` |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
 | `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
@@ -1653,9 +1717,22 @@ A stacked look reads a missing value as zero. The readout of a stacked or a shar
 series of the column and the total, and the table adds a `Total` column. A share look shows the
 parts as percentages, and its table keeps your values. Use `curves` for two or three series that
 the user compares by shape, not by total. A donut slice says its value and its share of the whole.
+A point on a line or an area is a ring of its series colour around the card's ground. The active
+value of the `points` look has a larger ring.
 `totalLabel` names the whole, `Total` by default. A donut has no `selectable`.
 
-**Series.** A series is `{ id, name, values }`, with an optional `tone`. In `months`, its `shape`
+`bars` is the default variant. `months` is its old name. It is deprecated and draws the same
+chart, so change `variant="months"` to `variant="bars"` or remove it.
+
+**The head.** `figure` puts the main figure over the plot, at the size of a stat band's value.
+`ranges`, `range` and `onRangeChange` add a range picker under it: the words and an arrow, with
+no pill. Open, it is the kit menu, and the picked range has the check. On a phone, a tap reaches
+the picker 44px high, and its target stays off the figure and the plot. Give the figure and the
+plot for the range you pick. `trend` is `{ value, basis }`. The value stands at the end of the
+picker's row. The basis, such as "Compared with the 6 months before", is its tooltip, reachable
+by Tab. The trend is never drawn on the plot. With none of the three, the chart has no head.
+
+**Series.** A series is `{ id, name, values }`, with an optional `tone`. In `bars`, its `shape`
 is `bars`, `bars-below` or `line`. `bars` stand on the zero line. `bars-below` takes positive
 values and hangs them under the line.
 
@@ -1663,15 +1740,21 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** A `months` chart fits its card and does not scroll. It draws every bar.
+**What the user sees.** A `bars` chart fits its card and does not scroll. It draws every bar.
 A bar is one flat tone — the full tone of its series
 — with a small corner at its measured end: --radius-xs or a quarter of the bar's width, whichever is
 smaller. Its foot stays square on the zero line. It takes two thirds of its column, and at most 48px.
+A bar in `accent`, `bad` or `neutral` draws at 85% at rest, and still clears 3:1 on the card and
+the page. The bar that a hover, a tap or the arrow keys make active draws at full strength, at
+once, with no transition. The other tones stay at full strength, because at 85% they fall under 3:1.
+A `line` chart fills under each line with its tone, at 20% at the line's highest value and fading
+to nothing at the plot's floor. A 1px band of the chart's ground runs along each side of each
+line, so the line keeps 3:1 where it crosses a fill. An `area` keeps its own fill.
 In `bridge`, the chart prints every step's `short` name under its step, and a name that does not fit
 its column wraps at a word break. A bridge column is as wide as its widest word, so a four-step
 bridge fits a 300px plot. Where one word alone is wider than the column, the bridge scrolls so that
 word still fits. Give each bar a distinct `short` name, never one cut to a fixed length. In the
-other variants, `months` among them, where the period labels do not fit, the chart prints every
+other variants, `bars` among them, where the period labels do not fit, the chart prints every
 second, third or later label, counted from the first period that is not final, or from the latest
 period. Use this for months, because a reader can infer a skipped month. For categories, such as
 units with a signed margin, set `look="rows"`: each row prints its full `label` above a bar that
@@ -1690,26 +1773,32 @@ The readout and the table always show it. A chart that prints no value gives tha
 bars. `legend`
 shows the legend. A period with `estimated` keeps its solid mark in the series
 ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
-future period, or to `true` for any other estimate. In `months`, one solid line stands before the
+future period, or to `true` for any other estimate. In `bars`, one solid line stands before the
 first period that is not final, and the words "Not final" stand over that group. Put the periods
 that are not final last. The hover and keyboard readout and each table row say "Incomplete",
 "Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
 the period before it. Set `compare: false` on a period to show its value with no comparison text.
 A switch at the top right
-shows the same numbers as a chart or as a table. The table has dense rows. In a titled `Card`, the switch stands in the
+shows the same numbers as a chart or as a table. The table has dense rows, and each column is as wide as its
+longest cell, so a value stands next to its period. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
 and `onSelect` lets the user pick a column, which gets a band behind it. A
 `line`, `area` or `stacked` chart or a bridge that is wider than its card scrolls, and the value
 axis stays. A chart of periods that is wider than its card opens at its latest period. A bridge
 opens at its opening total.
 
-**Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
+**Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. A head
+adds the range picker and the trend between them in a titled `Card`, and before the switch
+without one. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when
 `selectable` is set. A plot that scrolls adds one more Tab stop for the scroll box. On a touch
 screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
 new tap on the same mark opens its readout again. Every value is
 reachable at full strength by pointer or keyboard. A readout in a scrolling region stays fully
-visible over the region and opens above its mark when that space is available.
+visible over the region and opens above its mark when that space is available. Where it opens
+below, it clears the bar it describes. When a tap or Tab moves the page to show the chart, the
+readout stays open and its row comes into view, for at most one second. A wheel, a touch move or a
+scroll key by the reader stops that move, and the reader's scroll closes the readout.
 
 ### Table values
 

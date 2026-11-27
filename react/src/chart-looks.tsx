@@ -68,6 +68,16 @@ export const pct = (share: number) => `${Math.round(share * 100)}%`;
 const px = (n: number) => Math.round(n * 10) / 10;
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const tone = (t: ChartTone) => `ui-chart__tone--${t}`;
+
+/** A point marker of radius `r`: a ring of its tone around the ground, on a
+ *  casing of the ground as wide as the old filled point, so the ring touches
+ *  only the ground and not the line or the fills under it. why: #863 */
+const point = (key: string, t: ChartTone, x: number, y: number, r: number) => (
+  <g key={key}>
+    <circle className="ui-chart__dot-casing" cx={px(x)} cy={px(y)} r={px(r)} />
+    <circle className={cx('ui-chart__dot', tone(t))} cx={px(x)} cy={px(y)} r={px(r - 1)} />
+  </g>
+);
 const MISSING = '—';
 
 /* The rows look. A row is as tall as the pointer's floor, so a phone gets 44px
@@ -329,25 +339,28 @@ export function lookDrawing(g: LookGeometry, open: number | null, pick: number |
   const { look } = g;
   if (look.layout === 'ring') return ringDrawing(g);
   if (look.layout === 'rows') return rowsDrawing(g, pick);
-  if (look.layout === 'named') return namedDrawing(g, pick);
+  if (look.layout === 'named') return namedDrawing(g, open, pick);
   return look.variant === 'stacked' ? columnsDrawing(g) : linesDrawing(g, open);
 }
 
 function linesDrawing(g: LookGeometry, open: number | null) {
-  const { look, labels, y, centre, pad, plotHeight, format } = g;
+  const { look, labels, y, centre, pad, plotHeight, format, scale } = g;
   const n = labels.length;
   const area = look.variant === 'area';
   const finite = (layer: Layer, i: number) => Number.isFinite(look.stacked ? layer.to[i] : layer.values[i]);
   const at = (layer: Layer, i: number) => (look.stacked ? layer.to[i] : layer.values[i]);
   const curves = area && look.look === 'curves';
+  /* A line fills the plot under it with its tone, which fades from 20% at the
+     line's highest value to nothing at the plot's floor. why: #863 */
+  const lineFill = look.variant === 'line';
   /* An area ramps from its fade at the layer's lowest top to its tone at the
      highest, in the plot's own units, so the strong colour sits where the values
      are high. A layer with one top value has no range and stays flat. A share
      look reaches the whole at every column, so it has no range either. A curves
      area is a wash instead: clear at zero, its tone at the layer's highest top. */
-  const ramps = area && !look.share ? look.layers.map((layer) => {
+  const ramps = (area && !look.share) || lineFill ? look.layers.map((layer) => {
     const tops = layer.values.map((_, i) => at(layer, i)).filter(Number.isFinite);
-    const lo = curves ? 0 : Math.min(...tops);
+    const lo = lineFill ? scale.min : curves ? 0 : Math.min(...tops);
     const hi = Math.max(...tops);
     return tops.length && y(lo) - y(hi) >= 1 ? { id: `${g.uid}-ramp-${layer.id}`, layer, lo, hi } : null;
   }) : [];
@@ -373,7 +386,18 @@ function linesDrawing(g: LookGeometry, open: number | null) {
       + ` ${px(centre(i + 1) - h)} ${px(y(at(layer, i + 1)) - h * tangents[k][i + 1])}`
       + ` ${px(centre(i + 1))} ${px(y(at(layer, i + 1)))}`;
   };
-  const fills = area && look.layers.map((layer, k) => {
+  const fills = lineFill ? look.layers.map((layer, k) => {
+    const ramp = ramps[k];
+    const d = ramp && runs(layer).filter((run) => run.length > 1).map((run) => {
+      const [a, b] = [run[0], run[run.length - 1]];
+      return `M${px(centre(a))} ${px(y(scale.min))}${run.map((i) => `L${px(centre(i))} ${px(y(at(layer, i)))}`).join('')}`
+        + `L${px(centre(b))} ${px(y(scale.min))}Z`;
+    }).join('');
+    return d ? (
+      <path key={`fill-${layer.id}`} className={cx('ui-chart__line-fill', tone(layer.tone))}
+        style={{ '--ui-chart-paint': `url(#${ramp.id})` } as CSSProperties} d={d} />
+    ) : null;
+  }) : area && look.layers.map((layer, k) => {
     const up = layer.to.map((v, i) => `${i ? 'L' : 'M'}${px(centre(i))} ${px(y(Number.isFinite(v) ? v : layer.from[i]))}`);
     const down = layer.from.map((v, i) => `L${px(centre(i))} ${px(y(v))}`).reverse();
     const ramp = ramps[k];
@@ -402,13 +426,17 @@ function linesDrawing(g: LookGeometry, open: number | null) {
           (labels[i]?.estimated || labels[i + 1]?.estimated) && 'is-estimated')}
         d={`M${px(centre(i))} ${px(y(at(layer, i)))}${bend(k, i)}`} />
     ) : null)))
-    : !look.share && look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
+    /* Over a fill, every casing before any stroke, as a line over bars has: the
+       fills of two lines meet where the lines cross, and the casing gives each
+       line the 3:1 of the ground and not of the fills under it. why: #863 */
+    : !look.share && (['casing', 'stroke'] as const).filter((part) => part === 'stroke' || lineFill)
+      .flatMap((part) => look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
     finite(layer, k) && finite(layer, k + 1) ? (
-      <line key={`edge-${layer.id}-${k}`}
-        className={cx('ui-chart__line', tone(layer.tone),
+      <line key={`${part}-${layer.id}-${k}`}
+        className={part === 'casing' ? 'ui-chart__line-casing' : cx('ui-chart__line', tone(layer.tone),
           (labels[k]?.estimated || labels[k + 1]?.estimated) && 'is-estimated')}
         x1={px(centre(k))} y1={px(y(at(layer, k)))} x2={px(centre(k + 1))} y2={px(y(at(layer, k + 1)))} />
-    ) : null)));
+    ) : null))));
   const points = (look.variant === 'line' && look.look === 'points') || curves;
   const dots = look.layers.flatMap((layer) => layer.to.map((_, i) => {
     if (!finite(layer, i)) return null;
@@ -417,10 +445,7 @@ function linesDrawing(g: LookGeometry, open: number | null) {
     if (!shown || (look.share && i !== open)) return null;
     // The share look's dot marks only the top of the whole.
     if (look.share && layer !== look.layers[look.layers.length - 1]) return null;
-    return (
-      <circle key={`dot-${layer.id}-${i}`} className={cx('ui-chart__dot', tone(layer.tone))}
-        cx={px(centre(i))} cy={px(y(at(layer, i)))} r={points && i === open ? 5.5 : 4} />
-    );
+    return point(`dot-${layer.id}-${i}`, layer.tone, centre(i), y(at(layer, i)), points && i === open ? 5.5 : 4);
   }));
   const ends = look.variant === 'line' && look.look === 'labels' && look.layers.map((layer) => {
     const last = [...Array(n).keys()].reverse().find((i) => finite(layer, i));
@@ -445,8 +470,7 @@ function linesDrawing(g: LookGeometry, open: number | null) {
     }
     return (
       <g key={`end-${layer.id}`}>
-        <circle className={cx('ui-chart__dot', tone(layer.tone))}
-          cx={px(centre(last))} cy={px(at)} r="4" />
+        {point('dot', layer.tone, centre(last), at, 4)}
         <text className="ui-chart__text ui-chart__text--strong" textAnchor="end"
           x={px(x)} y={px(base)}>{format(layer.values[last])}</text>
       </g>
@@ -459,8 +483,8 @@ function linesDrawing(g: LookGeometry, open: number | null) {
           {ramps.map((ramp) => ramp && (
             <linearGradient key={ramp.id} id={ramp.id} className={tone(ramp.layer.tone)}
               gradientUnits="userSpaceOnUse" x1="0" x2="0" y1={px(y(ramp.lo))} y2={px(y(ramp.hi))}>
-              <stop className={curves ? 'ui-chart__wash-floor' : 'ui-chart__fade-base'} offset="0" />
-              <stop className={curves ? 'ui-chart__wash-top' : 'ui-chart__fade-end'} offset="1" />
+              <stop className={lineFill ? 'ui-chart__fill-floor' : curves ? 'ui-chart__wash-floor' : 'ui-chart__fade-base'} offset="0" />
+              <stop className={lineFill ? 'ui-chart__fill-top' : curves ? 'ui-chart__wash-top' : 'ui-chart__fade-end'} offset="1" />
             </linearGradient>
           ))}
         </defs>
@@ -580,7 +604,7 @@ function scaleCaptions(g: LookGeometry, x: (v: number) => number,
   return ticks.filter((t) => printed.has(t));
 }
 
-function namedDrawing(g: LookGeometry, pick: number | null) {
+function namedDrawing(g: LookGeometry, open: number | null, pick: number | null) {
   const { look, scale, formatAxis } = g;
   const named = namedOf(g);
   const layer = look.layers[0];
@@ -612,7 +636,8 @@ function namedDrawing(g: LookGeometry, pick: number | null) {
             const from = end >= zero ? zero + room : zero - room;
             return (
               <path d={acrossBar(from, end, row.bar, NAMED.bar, barCorner(NAMED.bar))}
-                className={cx('ui-chart__bar', tone(layer.tone), g.labels[i].estimated && 'is-estimated')} />
+                className={cx('ui-chart__bar', tone(layer.tone), g.labels[i].estimated && 'is-estimated',
+                  open === i && 'is-active')} />
             );
           })()}
         </g>
