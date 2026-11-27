@@ -1,0 +1,562 @@
+[
+  {
+    "variant": "a-compact",
+    "theme": "light",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(106, 45, 204)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.96549 0.970196 0.981176)",
+      "ink": "rgb(26, 30, 39)",
+      "visible": true,
+      "rowContrast": 6.8746,
+      "panelContrast": 7.3424
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "a-compact",
+    "theme": "dark",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(180, 121, 255)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.154118 0.139608 0.209412)",
+      "ink": "rgb(233, 231, 240)",
+      "visible": true,
+      "rowContrast": 5.1326,
+      "panelContrast": 4.9622
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "b1-balanced",
+    "theme": "light",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(106, 45, 204)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.96549 0.970196 0.981176)",
+      "ink": "rgb(26, 30, 39)",
+      "visible": true,
+      "rowContrast": 6.8746,
+      "panelContrast": 7.3424
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "b1-balanced",
+    "theme": "dark",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(180, 121, 255)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.154118 0.139608 0.209412)",
+      "ink": "rgb(233, 231, 240)",
+      "visible": true,
+      "rowContrast": 5.1326,
+      "panelContrast": 4.9622
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "b2-balanced",
+    "theme": "light",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(106, 45, 204)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.948235 0.955294 0.971765)",
+      "ink": "rgb(26, 30, 39)",
+      "visible": true,
+      "rowContrast": 6.6478,
+      "panelContrast": 7.3424
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "b2-balanced",
+    "theme": "dark",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(180, 121, 255)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.143529 0.130196 0.195294)",
+      "ink": "rgb(233, 231, 240)",
+      "visible": true,
+      "rowContrast": 5.3026,
+      "panelContrast": 4.9622
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "c-soft",
+    "theme": "light",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(106, 45, 204)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.96549 0.970196 0.981176)",
+      "ink": "rgb(26, 30, 39)",
+      "visible": true,
+      "rowContrast": 6.8746,
+      "panelContrast": 7.3424
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  },
+  {
+    "variant": "c-soft",
+    "theme": "dark",
+    "focus": {
+      "width": "1px",
+      "color": "rgb(180, 121, 255)",
+      "offset": "-3px",
+      "ground": "color(srgb 0.154118 0.139608 0.209412)",
+      "ink": "rgb(233, 231, 240)",
+      "visible": true,
+      "rowContrast": 5.1326,
+      "panelContrast": 4.9622
+    },
+    "axe": "pass",
+    "sandbox": "allow-scripts",
+    "outsideRequests": 0,
+    "viewports": [
+      [
+        390,
+        844
+      ],
+      [
+        844,
+        390
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        1280,
+        800
+      ],
+      [
+        1920,
+        1080
+      ],
+      [
+        360,
+        800
+      ],
+      [
+        466,
+        678
+      ],
+      [
+        984,
+        1016
+      ],
+      [
+        1536,
+        864
+      ],
+      [
+        2560,
+        1440
+      ],
+      [
+        320,
+        800
+      ],
+      [
+        1440,
+        900
+      ]
+    ],
+    "keyboard": "Home, End, arrows, Enter, Escape",
+    "pointer": "select and action menu",
+    "scroll": "End reaches Turkish"
+  }
+]
