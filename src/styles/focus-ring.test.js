@@ -108,9 +108,10 @@ const checkFieldFocus = (sheets) => {
     const field = selector.replace(':focus-visible', '');
     const own = rulesOf(sheets[file]).filter(({ selectors }) => selectors.includes(field)).map(({ body: b }) => b).join(';');
     assert.match(own, new RegExp(`transition:[^;]*${veil}\\s`), `${field} does not fade ${veil}, so the edge jumps when focus leaves`);
-    // A live hover edge goes through the veil, or focus leaving under the pointer jumps.
+    // A live hover edge goes through the veil, or focus leaving under the pointer jumps. The
+    // subject is split outside parentheses, so a chip that answers its trigger in :has() is the chip.
     const hovers = FIELD_SHEETS.flatMap((f) => rulesOf(sheets[f]).flatMap(({ selectors, body: b }) => selectors
-      .filter((sel) => { const last = sel.split(/\s+/).at(-1); return last.startsWith(field) && /:hover/.test(last) && !/disabled/.test(last); })
+      .filter((sel) => { const last = sel.trim().split(/\s+(?![^(]*\))/).at(-1); return last.startsWith(field) && /:hover/.test(last) && !/disabled/.test(last); })
       .map((sel) => ({ sel, edge: /border(?:-color)?:([^;]*)/.exec(b)?.[1] }))))
       .filter(({ edge }) => edge !== undefined);
     assert.ok(hovers.length > 0, `no live hover edge found for ${field}: the check reads nothing`);

@@ -590,6 +590,10 @@ its words on one line. Without `ghost` the trigger keeps its edge.
   [`Field`](#fields) label. In a filter row, [`FilterBar`](#filter-bar) shows the name only while
   no value is set. `label` is deprecated: it draws nothing, warns once in development and goes in
   the next release.
+- The trigger has the accent edge under the pointer, while pressed and while its panel is open.
+  A ghost trigger, and a trigger that a product draws with no edge or no ground, such as a band
+  control or the account block, keeps its hover fill in those states. Under the focus ring the
+  edge keeps its width and goes transparent, so focus shows one line.
 - The panel opens below the trigger. `direction="up"` opens it above. `align` chooses the edge of
   the trigger that the panel hangs from. The panel keeps that edge where it fits, and moves along
   the row where it does not.
@@ -967,9 +971,19 @@ the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and t
 Without `size`, a chip is 40px high.
 
 **What the user sees.** A chip shows only the chosen value. Without a value, it shows the filter
-name. Each chip takes the width of its longest value, up to 224px. A value change does not change
-that width, and a reload that turns the bar off and on does not change it. Only a value longer
-than 224px ends with an ellipsis. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
+name. Each chip takes the width of its longest value, up to its cap. The cap is 128px, with the
+chip's edge, padding and chevron. A value change does not change that width, and a reload that
+turns the bar off and on does not change it. A value longer than the cap ends with an ellipsis.
+The hover title, the name that a screen reader reads and the open menu keep the full value.
+Under the pointer, while pressed and while its menu is open, a chip has the accent edge.
+
+**Set the cap.** Give a filter `maxWidth`, in CSS pixels, to change the cap of its chip, for
+example `{ id: 'category', label: 'Category', maxWidth: 160, items }`. Keep enough room for the
+filter name. A `maxWidth` that is not a positive number keeps the default. To change the cap of
+every chip, set `--ui-filter-chip-max` in your stylesheet on the bar or on a box around it, such
+as the toolbar. With the default cap, five chips with long values, Clear all, a 320px search
+field and a 192px control fit one line at 1440px with a 32px gap between the three groups.
+The open menu is at least 240px wide, or the width of the row when the row is narrower. It
 stays inside the row and never makes the page wider. The menu marks the chip's value with a soft
 accent wash and a check. The chevron is at the right edge of the chip. Clear all shows only when
 there is a value to clear. It keeps its room while it does not show, so the content under the bar
