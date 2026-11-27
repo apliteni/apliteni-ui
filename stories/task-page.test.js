@@ -308,7 +308,7 @@ async function walkReload(page, label, found, seen) {
   await page.keyboard.type('state:');
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
-  await page.getByRole('button', { name: 'Board' }).click({ timeout: 5000 });
+  await page.getByRole('button', { name: 'Board', exact: true }).click({ timeout: 5000 });
   const hash = await page.evaluate(() => location.hash);
   await page.reload();
   await page.waitForFunction(() => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished');
