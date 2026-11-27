@@ -104,6 +104,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then the search field of the SearchField small filters on their own line story (#903).
 // Then the files search field in the Toast Bottom Bar story (#907).
 // Then the search field of the Transactions showcase (#865).
+// Then the description search field of the FilterBar Long options story (#915).
 // Move this count with the specimens.
 const FIELD_COUNT = 212;
 

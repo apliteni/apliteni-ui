@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { GuidelinePage } from '../_guideline';
 import { RestingFilters } from '../_table-filters';
+import { FilterBar } from '../../react/src/FilterBar';
 import { DataTable } from '../../react/src/DataTable';
 import { Badge } from '../../react/src/primitives/Badge';
 import { SkeletonTable } from '../../react/src/Loading';
@@ -203,7 +204,23 @@ const specimens = [
   // The same bar at both sizes above the same dense rows. With a mouse the small bar
   // stands at the rows' rank. A touch screen shows both at full size.
   { id: 'control-size', do: () => <Framed><Payouts /></Framed>, dont: () => <Framed size="md"><Payouts /></Framed> },
+  { id: 'filter-chip-width', do: () => <LongChips />, dont: () => <LongChips capped={false} /> },
 ];
+
+// One bar with long values, twice: each chip holds the room of its longest value. The do keeps
+// the kit's cap, so the long Category pick ends with an ellipsis and the bar keeps one line. The
+// don't takes the cap off, the way a chip kept every long name before #915, and the bar wraps.
+// The values are fabricated.
+const LEDGER = [
+  { id: 'unit', label: 'Unit', value: 'Research', values: ['Studio', 'Research', 'International operations'] },
+  { id: 'category', label: 'Category', value: 'Professional advisory services', values: ['Software', 'Office supplies',
+    'Building maintenance', 'Translation services', 'Conference registration', 'Professional advisory services'] },
+];
+const LongChips = ({ capped = true }: { capped?: boolean }) => <div className={`gdt-stage${capped ? '' : ' gdt-uncapped'}`}>
+  <FilterBar size="sm" label="Transaction filters" onChange={() => {}} onClear={() => {}}
+    filters={LEDGER.map((f) => ({ id: f.id, label: f.label, value: f.value,
+      items: [{ label: `Any ${f.label.toLowerCase()}`, value: '' }, ...f.values.map((value) => ({ label: value, value }))] }))} />
+</div>;
 
 const meta: Meta = { title: 'Guidelines/Dense tables', parameters: { layout: 'fullscreen' } };
 export default meta;

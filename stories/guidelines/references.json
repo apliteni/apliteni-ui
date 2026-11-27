@@ -18,12 +18,18 @@
   ],
   "filter-bar": [
    {
-    "ref": "react/src/FilterBar.tsx:77",
+    "ref": "react/src/FilterBar.tsx:84",
     "pattern": "<fieldset ref={bar} className={size === 'sm' ? 'ui-filter-bar ui-filter-bar--sm' : 'ui-filter-bar'}"
    },
    {
     "ref": "src/styles/filter-bar.css:1",
     "pattern": ".ui-filter-bar { border: 0;"
+   }
+  ],
+  "filter-chip-width": [
+   {
+    "ref": "src/styles/filter-bar.css:26",
+    "pattern": ".ui-filter-bar__chip { max-inline-size: var(--ui-filter-chip-max, 128px); }"
    }
   ]
  },
@@ -320,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:518",
+    "ref": "src/styles/dropdown.css:534",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:581",
+    "ref": "src/styles/dropdown.css:597",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:471",
+    "ref": "src/styles/dropdown.css:487",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -580,7 +586,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:431",
+    "ref": "src/styles/layout.css:433",
     "pattern": "rank: page-title"
    },
    {
@@ -606,11 +612,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:476",
+    "ref": "src/styles/dropdown.css:492",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:477",
+    "ref": "src/styles/dropdown.css:493",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -632,7 +638,7 @@
   ],
   "measure": [
    {
-    "ref": "src/styles/layout.css:324",
+    "ref": "src/styles/layout.css:326",
     "pattern": "var(--ui-app-main, var(--measure))"
    },
    {
@@ -666,7 +672,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:571",
+    "ref": "src/styles/layout.css:573",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -690,11 +696,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:484",
+    "ref": "src/styles/layout.css:486",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:485",
+    "ref": "src/styles/layout.css:487",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -1215,7 +1221,7 @@
   ],
   "report-offers": [
    {
-    "ref": "react/src/FilterBar.tsx:27",
+    "ref": "react/src/FilterBar.tsx:34",
     "pattern": "export function FilterBar("
    }
   ]
@@ -1323,11 +1329,11 @@
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:81",
+    "ref": "react/src/ThreeColumnPage.css:82",
     "pattern": "@container ui-columns (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:92",
+    "ref": "react/src/ThreeColumnPage.css:93",
     "pattern": "@media (max-width: 560px) {"
    },
    {
@@ -1387,12 +1393,12 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:479",
+    "ref": "src/styles/dropdown.css:495",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:481",
-    "pattern": "/* muted-ink: chrome \u2014 names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
+    "ref": "src/styles/dropdown.css:497",
+    "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
     "ref": "react/src/Dropdown.tsx:880",

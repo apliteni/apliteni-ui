@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { Card } from './primitives/Card';
 import { FilterBar, type AddFilter, type Filter } from './FilterBar';
 import { Dropdown, type DropdownEntry, type DropdownProps } from './Dropdown';
+import { SearchField } from './SearchField';
+import { Button } from './primitives/Button';
 
 const filters: Filter[] = [
   { id: 'region', label: 'Region', value: 'All', items: [{ label: 'All', value: 'All' }, { label: 'Europe', value: 'Europe' }] },
@@ -66,6 +68,36 @@ export const Reloading: Story = { render: function Example() {
           items: [{ label: f.any, value: '' }, ...f.values.map(v => typeof v === 'string' ? { label: v, value: v } : v)] }))} />
     </div>
     <Card title="Members">{shown ? `${shown} of 3 filters in use` : 'All members'}</Card>
+  </div>;
+} };
+// A row of five chips whose longest values have 14 to 30 characters, beside a 320px search
+// and a 192px control. Each chip keeps the room of its longest value up to its cap, so a pick
+// does not move the row. Month and Category set a cap of their own with `maxWidth`, and the
+// other three keep the 128px default. A longer value ends with an ellipsis, and the hover title,
+// the name and the menu keep it whole. stories/filter-chip-width.test.js measures it. The
+// values are fabricated. rev_99e68cf9f521/d64, #915
+// why: docs/components.md#filter-bar
+const LEDGER = [
+  { id: 'month', label: 'Month', maxWidth: 144, values: ['May 2026', 'June 2026', 'September 2026'] },
+  { id: 'unit', label: 'Unit', values: ['Studio', 'Research', 'International operations'] },
+  { id: 'category', label: 'Category', maxWidth: 160, values: ['Software', 'Travel', 'Office supplies', 'Equipment repairs', 'Staff training',
+    'Customer research', 'Building maintenance', 'Shipping services', 'Insurance', 'Translation services',
+    'Conference registration', 'Professional advisory services'] },
+  { id: 'amount', label: 'Amount', values: ['Under EUR 100', 'EUR 100 to 999', 'EUR 10,000 and above'] },
+  { id: 'source', label: 'Source', values: ['Manual entry', 'Card payment', 'Imported bank statement'] },
+];
+export const LongOptions: Story = { render: function Example() {
+  const [chosen, setChosen] = useState<Record<string, string>>({});
+  const [missing, setMissing] = useState(false);
+  return <div className="ui-toolbar">
+    <SearchField size="sm" ariaLabel="Search transactions" placeholder="Description" width="320px" />
+    <FilterBar size="sm" label="Transaction filters" onClear={() => setChosen({})}
+      onChange={(id, value) => setChosen({ ...chosen, [id]: value ?? '' })}
+      filters={LEDGER.map(f => ({ id: f.id, label: f.label, maxWidth: f.maxWidth, value: chosen[f.id] ?? '',
+        items: [{ label: `Any ${f.label.toLowerCase()}`, value: '' }, ...f.values.map(value => ({ label: value, value }))] }))} />
+    <div style={{ display: 'grid', width: 192, flex: 'none' }}>
+      <Button size="sm" variant="secondary" aria-pressed={missing} onClick={() => setMissing(!missing)}>Missing unit or category</Button>
+    </div>
   </div>;
 } };
 export const Disabled: Story = { args: { disabled: true } };

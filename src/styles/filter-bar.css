@@ -20,9 +20,10 @@
 /* A chip is as wide as the longest line it can print, up to --ui-filter-chip-max, so a pick
    does not move the row or the content under it. The hidden lines and the shown one share one
    grid cell. Only a line longer than the cap ends in an ellipsis. #885
+   The 128px default is a fallback, not a declaration on the bar, so a cap set on the toolbar
+   or on one chip, as `maxWidth` writes it, reaches the chip. rev_99e68cf9f521/d64, #915
    why: docs/components.md#filter-bar */
-.ui-filter-bar { --ui-filter-chip-max: 224px; /* the owner's cap for a chip, #885 */ }
-.ui-filter-bar__chip { max-inline-size: var(--ui-filter-chip-max); }
+.ui-filter-bar__chip { max-inline-size: var(--ui-filter-chip-max, 128px); }
 .ui-filter-bar__chip .ui-dropdown { flex: 1 1 auto; min-width: 0; }
 .ui-filter-bar__chip .ui-dropdown__trigger { inline-size: 100%; min-width: 0; justify-content: space-between; }
 .ui-filter-bar__chip .ui-dropdown__chevron { flex: none; }
@@ -38,6 +39,16 @@
    why: guidelines/accessibility-floor.md#disabled-control-legibility */
 .ui-filter-bar__chip:disabled,
 .ui-filter-bar:disabled .ui-filter-bar__chip { border-color: var(--disabled-border); }
+/* The chip answers its trigger's pointer on its own edge, because it takes the trigger's edge
+   away: --accent under the pointer, while pressed and while its menu is open, as the select
+   answers hover, and at once, as every hover does. It steps aside under the focus ring, as the
+   trigger's own edge does: the later rule gives it back its resting edge. An off trigger is not
+   :enabled, so an off chip keeps the off edge. #915
+   why: docs/components.md#filter-bar */
+.ui-filter-bar__chip:has(> .ui-dropdown > .ui-dropdown__trigger:enabled:hover),
+.ui-filter-bar__chip:has(> .ui-dropdown > .ui-dropdown__trigger:enabled:active),
+.ui-filter-bar__chip:has(> .ui-dropdown.open > .ui-dropdown__trigger:enabled) { border-color: var(--accent); }
+.ui-filter-bar__chip:has(> .ui-dropdown > .ui-dropdown__trigger:enabled:focus-visible) { border-color: var(--control-edge); }
 .ui-filter-bar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-filter-bar button:disabled { /* muted-ink: state — disabled filters */ color: var(--disabled-ink); cursor: not-allowed; }
 
@@ -180,8 +191,11 @@
 /* The trigger's ink and focus veil, so its focus edge fades as the trigger's does. why: docs/foundations.md#motion */
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { min-height: var(--ui-filter-row-h); --ui-dropdown-field-edge: var(--control-edge); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); background: transparent; }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger svg { width: 16px; height: 16px; flex: none; stroke-width: 2.4; }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:active:not(:focus-visible),
+.ui-filter-bar [data-filter-add] .ui-dropdown.open > .ui-dropdown__trigger:enabled:not(:focus-visible),
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger:disabled { border-color: var(--disabled-border); }
+.ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"]:active:not(:focus-visible),
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"],
 .ui-filter-bar [data-filter-add] .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible) { border-color: var(--disabled-border); }
