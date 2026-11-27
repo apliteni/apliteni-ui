@@ -199,6 +199,9 @@ export const iconOnlyAllowed = {
   // A list's Table and Board switch, decided by Artur on #832 (rev_4f729c7b8624/d16).
   // The kit has no board glyph; the grid of four squares is the nearest one.
   grid: 'show the items as a board',
+  // A proposed value's apply, decided by Artur on #888 (rev_e1c16afad190/d25): "Get back
+  // the checkmark instead of Apply text". The bare check confirms, beside the value it applies.
+  check: 'apply a proposed value',
 };
 
 // The word a wordless control's name may open with. The list above says which
@@ -227,6 +230,7 @@ export const iconOnlyNames = {
   chart: ['chart'],
   table: ['table'],
   grid: ['board'],
+  check: ['apply'],
 };
 
 // What a glyph means when a component picks it for the reader rather than a

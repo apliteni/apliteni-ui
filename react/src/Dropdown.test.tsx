@@ -20,6 +20,10 @@ import {
   // shared for its CSS reading exactly as stories/lib/contrast.js is.
   // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 } from '../../stories/lib/motion-css.js';
+import {
+  kitCssFor, parseColour, substitute,
+  // @ts-expect-error -- untyped JS module, the same borrow the line above makes.
+} from '../../stories/lib/contrast.js';
 
 afterEach(cleanup);
 /* The ResizeObserver chipRow({ observer: true }) installs is global, so a later test
@@ -248,6 +252,49 @@ for (const [name, opts] of CASES) {
     held(opts);
   });
 }
+
+/* #888: the ghost trigger. JSDOM ranks the kit's own rules, with each state stamped as the
+ * attribute desugar() writes for it. Light theme, default accent. Limits: the winning
+ * declarations, not pixels, and no media query. */
+describe('a ghost trigger', () => {
+  const { css, vars } = kitCssFor('light');
+  const sheet = document.createElement('style');
+  beforeAll(() => { sheet.textContent = css; document.head.appendChild(sheet); });
+  afterAll(() => sheet.remove());
+  const paint = (props: Partial<DropdownProps>, state = '') => {
+    render(<Dropdown variant="select" ariaLabel="Category" items={[{ label: 'Groceries', value: 'g' }]} {...props} />);
+    const el = document.querySelector<HTMLElement>('.ui-dropdown__trigger')!;
+    if (state) el.setAttribute('data-ui-state', state);
+    const style = getComputedStyle(el);
+    return { el, background: style.backgroundColor, edge: style.borderTopColor };
+  };
+  const clear = ['transparent', 'rgba(0, 0, 0, 0)'];
+
+  it('is off by default, so a trigger keeps its edge and its ground', () => {
+    const { el, edge } = paint({});
+    expect(el).not.toHaveClass('ui-dropdown__trigger--ghost');
+    expect(clear).not.toContain(edge);
+  });
+  it('draws no edge and no ground at rest', () => {
+    const { el, background, edge } = paint({ ghost: true });
+    expect(el).toHaveClass('ui-dropdown__trigger--ghost');
+    expect(el.querySelector('.ui-dropdown__chevron')).not.toBeNull();
+    expect(clear).toContain(background);
+    expect(clear).toContain(edge);
+  });
+  it('takes the hovered row fill under the pointer, with no accent edge', () => {
+    const { background, edge } = paint({ ghost: true }, 'hover');
+    expect(parseColour(background)).toEqual(parseColour(substitute('var(--surface-3)', vars)));
+    expect(clear).toContain(edge);
+  });
+  it('keeps the invalid edge and draws none when it is off', () => {
+    expect(clear).not.toContain(paint({ ghost: true, 'aria-invalid': true }).edge);
+    cleanup();
+    const off = paint({ ghost: true, disabled: true });
+    expect(clear).toContain(off.edge);
+    expect(clear).toContain(off.background);
+  });
+});
 
 // #580: off is the button's own state. React Testing Library's pointer and
 // keyboard model refuses a disabled control the way a browser does, so both

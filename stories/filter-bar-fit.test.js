@@ -846,13 +846,14 @@ test('every table a story draws has a search field above it, or the stated excep
   assert.deepStrictEqual(missing, [], 'a table with no filter bar or no search field');
   // The exception is for the document review's two tables,
   // a chart's Table view, the two invoice lines in the wide drawer story, the three short tables
-  // of #832 that show column edges and a pinned name, and the three-row tables of the two
-  // selection bar pictures (#902), and no other.
+  // of #832 that show column edges and a pinned name, the six rows of the proposed value's cell
+  // story (#888), the three-row tables of the two selection bar pictures (#902), and no other.
   assert.deepStrictEqual(excepted.map((at) => at.replace(/:\d+/, '')),
     ['react/src/DataTable.ledger.stories.tsx DataTable',
       'react/src/DataTable.stories.tsx DataTable', 'react/src/DataTable.stories.tsx DataTable',
       'react/src/DocumentReview.stories.tsx table', 'react/src/DocumentReview.stories.tsx table',
       'react/src/KeyValueList.stories.tsx DataTable',
+      'react/src/ProposedValue.stories.tsx DataTable',
       'stories/guidelines/ComponentChoice.stories.tsx DataTable',
       'stories/guidelines/DashboardsAndReports.stories.tsx table',
       'stories/guidelines/SelectionBar.stories.tsx DataTable']);

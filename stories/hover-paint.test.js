@@ -199,6 +199,21 @@ for (const dir of ['src', 'react/src']) {
   });
 }
 
+// A proposed value's check (`.ui-btn`, secondary or ghost), its dismiss mark (`.ui-btn--ghost`)
+// and its ghost select trigger. The owner felt a lag on these three in the #912 prototype.
+// The test fails if one of their hover rules leaves the gate or fades. #888
+const PROPOSED_VALUE_HOVERS = [
+  '.ui-btn:hover', '.ui-btn:hover:not(:focus-visible)', '.ui-btn--ghost:hover',
+  '.ui-dropdown__trigger:enabled:hover:not(:focus-visible)', '.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible)',
+];
+test('a proposed value\'s check, dismiss mark and ghost select trigger paint their hover at once', () => {
+  const { subjects, fades } = hoverFades(sheetsUnder('src'), allSheets());
+  for (const part of PROPOSED_VALUE_HOVERS) {
+    assert.ok(subjects.some((s) => s.part === part), `${part} is not a subject of the gate`);
+    assert.deepStrictEqual(fades.filter((f) => f.includes(`  ${part} {`)), [], `${part} fades its hover`);
+  }
+});
+
 test('the gate rejects a hover fade and accepts a fade kept for focus', () => {
   const read = (text) => hoverFades([{ where: 'fixture.css', text }]);
   const fade = read('.x { transition: background var(--dur-fast) var(--ease); }\n.x:hover { background: red; }');
