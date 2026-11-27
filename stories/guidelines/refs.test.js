@@ -271,7 +271,7 @@ const plain = (text) => JSDOM.fragment(mono(text)).textContent;
 test('every guideline has packaged Markdown and renders its rule text from it', async () => {
   const docs = readdirSync(markdownDir).filter(file => file.endsWith('.md') && file !== 'INDEX.md').sort();
   const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
-  assert.equal(content.length, 31, 'update the collection count when adding a page');
+  assert.equal(content.length, 32, 'update the collection count when adding a page');
   assert.deepEqual(docs, [...content.map(file => `${file.slice(1, -3)}.md`), 'overview.md'].sort());
   assert.ok(JSON.parse(readFileSync(path.join(root, 'package.json'))).files.includes('guidelines'));
   let count = 0;
@@ -320,7 +320,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 177: Dropdown added group-labels (#886).
   // 178: Drawers gained status-after-title (#868).
   // 179: Dropdown added trigger-value (#899).
-  assert.equal(count, 179, 'update the rule count when adding or removing a rule');
+  // 183: Selection bar added three rules and Component choice selection-bar (#902).
+  assert.equal(count, 183, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

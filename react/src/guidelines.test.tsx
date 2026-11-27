@@ -68,7 +68,7 @@ const prose = (root: Element) => {
 
 describe('guideline pages in React: the collection', () => {
   it('finds every guideline page, the Overview included', () => {
-    expect(files.length, 'update the count when a guideline page is added').toBe(32); // 32: Dropdown added (#886).
+    expect(files.length, 'update the count when a guideline page is added').toBe(33); // 33: Selection bar added (#902).
   });
 
   // Stands in for stories/guidelines/overview.test.js: every page keeps the id its

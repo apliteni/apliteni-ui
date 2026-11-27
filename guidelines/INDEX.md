@@ -10,7 +10,7 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Colour and theming](colour-and-theming.md) | Colour tokens, accents, signal colours, theme checks and forced colours. | Read it before you pick colours, accents or check contrast. |
 | [The full state set](state-set.md) | Focus rings, busy controls, errors and screen loading. | Read it before you build focus, busy, error or loading states. |
 | [Empty states](empty-states.md) | An empty page or list and a no-matches message. | Read it when a screen can show no content. |
-| [Component choice](component-choice.md) | Buttons, dialogs, toasts, tabs, segmented controls, dropdown search and where a panel opens. | Read it before you choose a control, a dialog or a notice. |
+| [Component choice](component-choice.md) | Buttons, dialogs, toasts, tabs, segmented controls, dropdown search, where a panel opens and the selection bar. | Read it before you choose a control, a dialog or a notice. |
 | [Microcopy and tone](microcopy.md) | Names for controls and their current state. | Read it before you name controls or states. |
 | [Text length](text-length.md) | Labels, buttons, captions, callouts and introductions. | Read it when you write labels, captions or callouts. |
 | [Labels and titles](labels-and-titles.md) | Text ink, sentence case, card titles and eyebrows. | Read it when you write labels, titles or eyebrows. |
@@ -35,4 +35,5 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Three-column page](three-column-page.md) | Three columns chained from parent to child: the selected parent, its children and the open child, with the widths, the collapse order and the column header. | Read it before you put a list, its children and the open item side by side. |
 | [Wizard](wizard.md) | Ordered steps, their states, the open step and the final action. | Read it before you build ordered steps. |
 | [Dropdown](dropdown.md) | Group labels in a dropdown panel, and what a trigger shows. | Read it before you group the options of a dropdown or name its trigger. |
+| [Selection bar](selection-bar.md) | The bar for selected rows: its theme, a pick that applies at once, and More. | Read it before you act on selected rows. |
 | [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |
