@@ -6,6 +6,15 @@
 
 export const RELEASES = [
   {
+    v: '0.221.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
+      ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
+      ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
+      ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view, with its focus ring, when the keyboard or a script focuses it. Part of #888.', ['DataTable']],
+    ],
+  },
+  {
     v: '0.220.0', date: '2026-11-27',
     changes: [
       ['added', 'A `Chart` takes a head over its plot: `figure` for the main figure, `ranges`, `range` and `onRangeChange` for a range picker, and `trend` for the change, which stands at the end of the picker\'s row with its basis in a tooltip. On a phone, the range picker reaches the 44px tap floor. A chart with none of the three draws no head. Part of #863.', ['Chart']],
