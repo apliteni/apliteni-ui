@@ -271,7 +271,7 @@ const plain = (text) => JSDOM.fragment(mono(text)).textContent;
 test('every guideline has packaged Markdown and renders its rule text from it', async () => {
   const docs = readdirSync(markdownDir).filter(file => file.endsWith('.md') && file !== 'INDEX.md').sort();
   const content = pages.filter(file => file.startsWith('_') && !['_layout.js', '_markdown.js', '_overview.js'].includes(file));
-  assert.equal(content.length, 33, 'update the collection count when adding a page');
+  assert.equal(content.length, 34, 'update the collection count when adding a page');
   assert.deepEqual(docs, [...content.map(file => `${file.slice(1, -3)}.md`), 'overview.md'].sort());
   assert.ok(JSON.parse(readFileSync(path.join(root, 'package.json'))).files.includes('guidelines'));
   let count = 0;
@@ -325,8 +325,9 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 182: The page gained sidebar-column (#869).
   // 183: Dashboards and reports gained trend-in-head (#863).
   // 184: Dense tables added filter-chip-width (#915).
-  // 187: Task list added task-board and task-head, and Notification email added task-mail (#866).
-  assert.equal(count, 187, 'update the rule count when adding or removing a rule');
+  // 188: Selection bar added three rules and Component choice selection-bar (#902).
+  // 191: Task list added task-board and task-head, and Notification email added task-mail (#866).
+  assert.equal(count, 191, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

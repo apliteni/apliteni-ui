@@ -200,6 +200,20 @@
      why: docs/foundations.md#elevation */
   --muted: #a29db6;
 
+  /* THE INVERSE SURFACE: the other theme's ground and inks, for one bar that must stand out
+     from the page, such as the selection bar. A dark page gets a white bar with a hairline
+     frame. Each value is the light theme's own, and --inverse-accent in every
+     accent cell is that accent's light value. Held by stories/accent-contrast.test.js. #902
+     why: docs/foundations.md#the-inverse-surface */
+  --inverse-bg: #ffffff;
+  --inverse-text: #1a1e27;
+  --inverse-strong: #0c0e13;
+  --inverse-muted: #5c6270;
+  --inverse-edge: #5c6270;   /* an edge on the bar, such as the count's pill */
+  --inverse-hover: #eef0f5;  /* a control's hover and open fill on the bar */
+  --inverse-frame: var(--inverse-edge);
+  --inverse-accent: #6a2dcc;
+
   /* The paint of a control that is off. NOT an opacity: `opacity` is a group property,
      so it fades label and box toward the ground TOGETHER — a disabled primary button
      measured 1.48:1 that way. These three are aliases that composite predictably, the
@@ -457,6 +471,16 @@
   --dim: #3a404b;
   --muted: #5c6270;
 
+  /* The inverse surface in light: the dark theme's ground and inks, with no frame. #902 why: docs/foundations.md#the-inverse-surface */
+  --inverse-bg: #0e0d14;
+  --inverse-text: #e9e7f0;
+  --inverse-strong: #ffffff;
+  --inverse-muted: #a29db6;
+  --inverse-edge: #a29db6;
+  --inverse-hover: #2d293c;
+  --inverse-frame: transparent;
+  --inverse-accent: #b479ff;
+
   /* Disabled text stays on the card surface; its ink marks the unavailable state. */
   --disabled-ink: var(--muted);
   --disabled-surface: var(--surface);
@@ -585,6 +609,12 @@
   --ring-color: var(--accent);
   --ring: var(--ring-width) solid var(--ring-color);
   --ring-scroll: var(--ring);
+}
+/* A control on the selection bar stands on the other theme's ground, so it computes the ring
+   again in the inverse accent. A list it opens keeps the page's ring. #902 */
+.ui-selection-bar__control {
+  --ring-color: var(--inverse-accent);
+  --ring: var(--ring-width) solid var(--ring-color);
 }
 
 /* ============================================================================

@@ -69,7 +69,7 @@ function walk(sheets: Sheet[], theme: string) {
 
 describe('elevation', () => {
   it('sweeps every stylesheet this workspace ships', () => {
-    expect(SHEETS).toEqual(['./AccountWindow.css', './AppShell.css', './AuthShell.css', './ColumnResizer.css', './Crossfade.css', './DataTable.css', './DatePicker.css', './FeedbackShowcase.css', './Field.css', './FinanceComposition.css', './KeyValueList.css', './Modal.css', './ProposedValue.css', './QuerySearch.css', './SplitLayout.css', './ThemeChoice.css', './ThemeToggle.css', './ThreeColumnPage.css', './Timeline.css', './Toast.css', './Wizard.css', './showcases/Auth.css', './showcases/Notifications.css', './showcases/SplitLayout.css', './showcases/TaskMail.css', './showcases/Tasks.css']);
+    expect(SHEETS).toEqual(['./AccountWindow.css', './AppShell.css', './AuthShell.css', './ColumnResizer.css', './Crossfade.css', './DataTable.css', './DatePicker.css', './FeedbackShowcase.css', './Field.css', './FinanceComposition.css', './KeyValueList.css', './Modal.css', './ProposedValue.css', './QuerySearch.css', './SelectionBar.css', './SplitLayout.css', './ThemeChoice.css', './ThemeToggle.css', './ThreeColumnPage.css', './Timeline.css', './Toast.css', './Wizard.css', './showcases/Auth.css', './showcases/Notifications.css', './showcases/SplitLayout.css', './showcases/TaskMail.css', './showcases/Tasks.css']);
   });
 
   it('casts nothing but a rung of the ladder', () => {
@@ -86,8 +86,9 @@ describe('elevation', () => {
     // workspace ships no card and no rail of its own — it reads the kit's sheets
     // for both — so the floating rung is the only one it writes. #531 adds nothing
     // here: a focused body answers with an outline, which is not a layer of the
-    // shadow list, so the modal never has to re-state the rung it rests on.
-    expect(floating).toBe(2);
+    // shadow list, so the modal never has to re-state the rung it rests on. #902's
+    // selection bar floats over the rows on the same drop, which makes 4.
+    expect(floating).toBe(4);
   });
 
   /* #730 round 1, finding 1. Light draws every raised level with its line, and the

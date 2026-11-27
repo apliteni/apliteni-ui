@@ -82,6 +82,8 @@ export type { BackLinkProps, BackLinkOwnProps } from './BackLink';
 export * from './TableValues';
 export * from './Segmented';
 export * from './FilterBar';
+export { SelectionBar } from './SelectionBar';
+export type { SelectionBarProps, SelectionBarAction } from './SelectionBar';
 export { KeyValueList, DrawerSection } from './KeyValueList';
 export type { KeyValueRow, KeyValueListProps, DrawerSectionProps } from './KeyValueList';
 export { Snippet } from './Snippet';

@@ -69,6 +69,14 @@ const KNOWN_SAME: Record<string, string> = {
   '.ui-check-item:has(input:disabled) .ui-check__hint': 'a disabled checkbox hint paints what the enabled hint paints',
   '.ui-drop.is-disabled .ui-drop__row': 'a disabled file drop row paints what the enabled row paints',
 };
+// A ring the sheet keys that a React part never draws, listed by its selector and ground.
+// A landing listed here that the walk no longer finds fails until it is taken off.
+const NEVER_DRAWN: Record<string, string> = {
+  // The bar's lists are DOM children of its inverse ground. A React panel has no
+  // tabindex and holds focusable rows, so the panel itself never takes the focus. #902
+  '.ui-dropdown__panel:focus-visible|inverse': 'a React dropdown panel never takes the focus',
+};
+const neverDrawn = (l: Any) => `${l.selector}|inverse` in NEVER_DRAWN && /\bsection\.ui-selection-bar\b/.test(l.path);
 
 const target: Any = await targetRun({ subjects, extraCss: EXTRA });
 const rings: Any[] = [];
@@ -113,8 +121,11 @@ describe('ring: React stories', () => {
   it(`${RING_MIN}:1 against every ground it lands on, in every accent, and nothing below the ${RING_FLOOR}:1 ratchet`, () => {
     const all = rings.flatMap((run) => run.landings.map((l: Any) => ({ ...l, cell: `${run.theme}/${run.accent}` })));
     expect(all.length, 'no ring landed anywhere').toBeGreaterThan(0);
-    expect(all.filter((l: Any) => l.ratio != null && l.ratio < RING_MIN).map((l: Any) => `${l.cell}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`)).toEqual([]);
-    expect(all.filter((l: Any) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR).map((l: Any) => `${l.cell}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`)).toEqual([]);
+    expect(Object.keys(NEVER_DRAWN).filter((key) => !all.some((l: Any) => neverDrawn(l) && `${l.selector}|inverse` === key)),
+      'no story lands this ring now: take it off the list').toEqual([]);
+    const judged = all.filter((l: Any) => !neverDrawn(l));
+    expect(judged.filter((l: Any) => l.ratio != null && l.ratio < RING_MIN).map((l: Any) => `${l.cell}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`)).toEqual([]);
+    expect(judged.filter((l: Any) => l.ratio != null && Math.round(l.ratio * 100) / 100 < RING_FLOOR).map((l: Any) => `${l.cell}: ${l.selector} on ${l.ground} — ${l.ratio.toFixed(2)}:1`)).toEqual([]);
   });
 });
 

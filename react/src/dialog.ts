@@ -217,10 +217,13 @@ const EXIT_SLACK_MS = 50;
  *
  * While it is leaving the root is inert and aria-hidden: focus has already gone back, and
  * a dialog that fades out must not take a click, a Tab or a screen reader on the way.
+ *
+ * With `appear: false`, a part that is open on its first render shows at once: a part
+ * that came with the page did not appear after load.
  */
-export function usePresence(open: boolean, root: Ref, panel: Ref) {
+export function usePresence(open: boolean, root: Ref, panel: Ref, { appear = true } = {}) {
   const [present, setPresent] = useState(open);
-  const [entered, setEntered] = useState(false);
+  const [entered, setEntered] = useState(open && !appear);
   if (open && !present) setPresent(true);
   const shown = open && entered;
 

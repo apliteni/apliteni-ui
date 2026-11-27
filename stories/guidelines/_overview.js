@@ -33,6 +33,7 @@ import * as wizardContent from './_wizard.js';
 import * as dropdownContent from './_dropdown.js';
 import * as taskListContent from './_task-list.js';
 import * as notificationEmailContent from './_notification-email.js';
+import * as selectionBarContent from './_selection-bar.js';
 import * as kindContent from './_dashboards-and-reports.js';
 import * as densityAccentContent from './_density-and-accents.js';
 
@@ -79,6 +80,7 @@ const ENTRIES = [
   [dropdownContent, 'Guidelines/Dropdown', 'DropdownPage', 'Controls and states', 'Group labels that stand apart, and a trigger that shows only its value'],
   [taskListContent, 'Guidelines/Task list', 'TaskListPage', 'Pages', 'The title row, one toolbar and a board with keyboard moves'],
   [notificationEmailContent, 'Guidelines/Notification email', 'NotificationEmailPage', 'Words', 'The task event, task links, plain text and the settings link'],
+  [selectionBarContent, 'Guidelines/Selection bar', 'SelectionBarPage', 'Controls and states', 'The bar for selected rows, its theme, its picks and More'],
 ];
 
 // Storybook's two-step id rule, reproduced rather than imported so the page

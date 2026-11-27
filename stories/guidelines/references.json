@@ -80,11 +80,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:208",
+    "ref": "src/tokens/tokens.css:222",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:214",
+    "ref": "src/tokens/tokens.css:228",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -134,7 +134,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:229",
+    "ref": "src/tokens/tokens.css:243",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -928,7 +928,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:318",
+    "ref": "src/tokens/tokens.css:332",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1401,7 +1401,7 @@
     "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:880",
+    "ref": "react/src/Dropdown.tsx:896",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]
@@ -1449,6 +1449,20 @@
    {
     "ref": "react/src/showcases/task-mail.ts:46",
     "pattern": "<a href=\"${esc(SETTINGS_URL)}\" style=\"color:${T.accent};text-decoration:underline;\">Email settings</a>"
+   }
+  ]
+ },
+ "_selection-bar.js": {
+  "other-theme": [
+   {
+    "ref": "react/src/SelectionBar.css:34",
+    "pattern": "background: var(--inverse-bg);"
+   }
+  ],
+  "more-by-name": [
+   {
+    "ref": "react/src/SelectionBar.tsx:166",
+    "pattern": "items: extra.map((action): DropdownItem => ({ label: action.label, value: action.id"
    }
   ]
  }

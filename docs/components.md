@@ -103,6 +103,7 @@ what the user sees.
 | Narrow a list or flip a setting | `Segmented` | [Segmented](#segmented) |
 | Show one of several panels | `Tabs` | [Tabs](#tabs) |
 | Filter the rows of a table | `FilterBar` | [Filter bar](#filter-bar) |
+| Change the rows a reader selected | `SelectionBar` | [Selection bar](#selection-bar) |
 | A row of controls above a list | `.ui-toolbar` | [Toolbar](#toolbar) |
 | Group content on a surface | `Card` | [Card](#card) |
 | A status or a label on a record | `Badge`, `Pill`, `StatusDot` | [Badge, pill and status dot](#badge-pill-and-status-dot) |
@@ -1096,6 +1097,61 @@ stays visible while the content scrolls.
 the content it floats over. Put it last in a column and pin it with `margin-top: auto` so it docks
 at the column's foot. It never wraps, and it sits one spacing step above the edge it docks to.
 
+### Selection bar
+
+Use `SelectionBar` under a table with selectable rows. It shows the count of selected rows and the
+actions for those rows. Use [`FilterBar`](#filter-bar) to narrow the rows, not to change them.
+
+```tsx
+<DataTable … selected={selected} onToggle={toggle} onTogglePage={togglePage} />
+<SelectionBar count={selected.size} noun="documents" onClear={clearSelection}
+  actions={[{ id: 'status', label: 'Status', items: statuses }, { id: 'archive', label: 'Archive' }]}
+  onAction={(id, value) => change(id, value)} />
+```
+
+Put the bar directly after the table, in a block that has the table's width. The bar reads that
+width to decide which actions go into More. An action with `items` opens a list, and a pick calls
+`onAction` with the action's `id` and the value. An action without `items` is a button, and it
+calls `onAction` with the `id` only. `place="start"` puts the bar on the table's start edge. The
+bar is centred by default. Keep a destructive action, such as Delete, off the bar: the kit's danger
+ink does not reach its contrast on the bar's ground. Put it in the row or behind a `Confirm` on the
+page.
+
+**What the user sees.** At 0 rows the bar is not drawn. Otherwise it is the other theme's bar,
+dark on a light page and light on a dark page, in the page's accent family. See
+[The inverse surface](foundations.md#the-inverse-surface). The count and Clear share one pill at the
+start. Clear's fill on hover and press stands inside the pill, with an even gap and a corner that
+follows the pill's corner. Each action follows as a button at its natural width, with its name. A pick never changes
+the name or the width. A list opens above the bar in the page's own theme, with a search field from
+ten rows. When the view has no room above the bar, the list opens below it. The bar sticks 16px
+above the bottom of the view while rows scroll under it. At the end of the list it stands in its
+own room under the last row and never covers it.
+
+**Motion.** A bar that comes after the page has loaded rises 8px and fades in over 250ms. When the
+selection goes back to none, the bar goes the same way, with its last count. A bar that comes with
+the page is there at once. Under reduced motion the bar shows and goes at once.
+
+**Each pick applies at once, and the rows stay selected.** The bar has no Apply step. Say what
+changed in a [`Toast`](#toast), such as "Status: Ready" and "Updated 2 documents.", and set its
+`bottomOffset` so the notice stands over the bar. Ask before an action that removes rows, with
+[`Confirm`](#confirm).
+
+**Room on the screen.** The bar stays one line. When the actions do not fit, the first actions
+that fit stay on the bar, and More at the end holds the rest. More lists the actions by name. A
+button's row runs the action. A list's row opens that action's own list from More, under the
+action's name, and the focus goes into it. On a phone the bar takes the row, with the count at the
+start and More at the end. With large text the count and Clear can take two lines, so the bar
+stays in the view. A bar first drawn with large text is as tall as a bar whose text grows after
+it is drawn, with the same corners. The page never scrolls sideways.
+
+**Keyboard and screen reader.** The bar is a region named "Selected rows", from `noun`. The Tab
+order is Clear, the actions, then More. The count is not a stop. Escape closes an open list
+first. A second Escape calls `onClear`. Your `onClear` moves the focus, such as to the Select all
+box, because the bar leaves with the selection. When the focused action goes into More, the focus
+goes to More. When More goes, the focus goes to the first enabled action that came out of it,
+or to Clear when none of them is enabled. A polite status line says each count, such as
+"2 documents selected", and says "No documents selected" when the selection goes back to none.
+
 ## Content and status
 
 ### Card
@@ -1614,7 +1670,9 @@ least 4.5:1 on a plain or a selected row.
 `pinnedIdentity` pins the first column, or the column whose key you give. A table wider than its
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
 region can scroll. When the region is scrolled, the next column's text stops one cell padding
-short of the divider. Below 720px a pinned cell keeps one line and is cut at
+short of the divider. With a selection column, the boxes of a pinned table start on the same edge
+as the words of an unpinned one, and the next column's words keep half a cell gap from the
+boxes' divider. Below 720px a pinned cell keeps one line and is cut at
 `--ui-table-identity-max`. Lower that cap for a table with a selection column. Above 720px a
 pinned title whose cell holds only its link keeps one line too. It is cut between `--panel-sm`
 and `--panel-lg`, so the pin does not cover the other columns. Below 560px the

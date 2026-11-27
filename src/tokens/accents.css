@@ -41,6 +41,7 @@
      hue is untouched. See issue #157. */
   --glow-purple: rgba(255, 106, 61, 0.15);
   --grad-from: #ff7a45;
+  --inverse-accent: #a8370c; /* the light accent of this family. #902 */
   --grad-to: #ffcf6a;
 }
 :root[data-theme="light"][data-accent="phoenix"] {
@@ -54,6 +55,7 @@
   --accent-contrast: #ffffff;
   --glow-purple: rgba(214, 74, 18, 0.10);
   --grad-from: #d64a12;
+  --inverse-accent: #ff6a3d; /* the dark accent of this family. #902 */
   --grad-to: #e8992a;
 }
 
@@ -70,6 +72,7 @@
      Phoenix and from the same alpha. The hue is untouched. See issue #157. */
   --glow-purple: rgba(59, 157, 255, 0.15);
   --grad-from: #3b9dff;
+  --inverse-accent: #005ab4; /* the light accent of this family. #902 */
   --grad-to: #20dcf5;
 }
 :root[data-theme="light"][data-accent="ocean"] {
@@ -87,6 +90,7 @@
      accent — in light a glow tints --purple-light, which signal-contrast.test.js holds. */
   --glow-purple: rgba(21, 104, 214, 0.10);
   --grad-from: #1568d6;
+  --inverse-accent: #3b9dff; /* the dark accent of this family. #902 */
   --grad-to: #17a2c0;
 }
 
@@ -101,6 +105,7 @@
   --accent-contrast: #04180f;
   --glow-purple: rgba(22, 201, 138, 0.18);
   --grad-from: #16c98a;
+  --inverse-accent: #076c48; /* the light accent of this family. #902 */
   --grad-to: #20dcf5;
 }
 :root[data-theme="light"][data-accent="emerald"] {
@@ -117,5 +122,6 @@
      from the same alpha. See issue #157. */
   --glow-purple: rgba(11, 156, 104, 0.08);
   --grad-from: #0b9c68;
+  --inverse-accent: #16c98a; /* the dark accent of this family. #902 */
   --grad-to: #12b0a0;
 }

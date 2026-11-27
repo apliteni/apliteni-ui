@@ -32,7 +32,7 @@ import { DataTable, Modal, Button } from '@apliteni/apliteni-ui/react';
 Both stylesheets. The React one adds what React's own components need — it carries no tokens, no
 reset and none of the kit's control CSS, so it cannot stand in for the first import.
 
-Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Feedback`, `Drawer`, `CommandPalette`, `Dropdown`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
+Components: `Success`, `SuccessPanel`, `SuccessCheck`, `Checkbox`, `Switch`, `SearchField`, `EmptyState`, `DataTable`, `Pagination`, `StatBand`, `Chart`, `Modal`, `Confirm`, `Feedback`, `Drawer`, `CommandPalette`, `Dropdown`, `SelectionBar`, `BackLink`, `Tooltip`, `Snippet`, `Segmented`, `Tabs`, `Button`, `Badge`, `Pill`, `StatusDot`, `Card`, `Callout`, `Icon`.
 
 `Card` accepts `title`, `sub`, children, `level`, `variant`, `pad`, `icon`, `href`, and `className`. `variant` is `accent` or `live`; omit it for the default surface. `pad` is `sm` or `lg`. A title is a heading unless `href` makes the whole card a link. Compose setting rows with `ui-card__row` and kit controls.
 Three-option setting rows use `ui-card__row--tight-choice` to narrow pills below 360 px and stay on one line, while other rows keep full tap width.
@@ -264,6 +264,29 @@ owns — the same decision `Drawer` makes about `data-drawer`; the row and panel
 because they are the row contract `docs/components.md` publishes. And it has no `portal: true`: the
 panel is a child of the trigger's container, so a dropdown inside `.ui-app__rail`
 (`position: sticky` with `overflow-y: auto`) still wants the vanilla factory.
+
+## SelectionBar
+
+`SelectionBar` is the bar for the selected rows of a table. Render it after the table and pass
+`count`, `actions`, `onAction` and `onClear`. `noun` names the rows in the region name and the
+announcement. `clearLabel`, `moreLabel` and `label` change the words. `place` is `centre` or
+`start`. What the bar guarantees is in docs/components.md#selection-bar.
+
+An action is `{ id, label, items?, search?, disabled? }`. With `items`, the action opens a list and
+a pick calls `onAction(id, value)` at once. The value is the row's `value`, or its label. Without
+`items`, the action is a button and calls `onAction(id)`. The bar never changes your rows or your
+selection. `onClear` runs for Clear and for Escape, and your handler moves the focus.
+
+The bar measures its room in the browser and moves the actions that do not fit into More. A room
+with no layout, as in jsdom, shows every action.
+
+```tsx
+<SelectionBar count={selected.size} noun="documents" onClear={clearSelection}
+  actions={[{ id: 'owner', label: 'Owner', items: people }, { id: 'archive', label: 'Archive' }]}
+  onAction={(id, value) => (id === 'archive' ? archive() : setField(id, value))} />
+```
+
+The Selected rows showcase shows it on a table.
 
 ## FilterBar
 

@@ -94,14 +94,14 @@ test('the gate finds the account block and every pointer answer on a menu trigge
   for (const f of ['src/styles/dropdown.css', 'src/styles/filter-bar.css', 'src/styles/layout.css', 'react/src/AppShell.css']) {
     assert.ok(files.has(f), `no trigger answer read in ${f}`);
   }
-  // 16: the select live and invalid; the ghost trigger's edge and fill; the filter chip and
+  // 17: the select live and invalid; the ghost trigger's edge and fill; the filter chip and
   // the add control; the account block on the rail, in the drawer and on the phone band; the
   // head control; the band actions on a phone and wider; the band control; the topbar view
-  // switch and avatar; a column menu. A new trigger answer changes this count, so read it
+  // switch and avatar; a column menu; a selection bar control (#911). A new trigger answer changes this count, so read it
   // before you raise it. dropdown-trigger-edge.test.js counts 14 edge scopes: it reads the
   // ghost's edge as one scope and its fill not at all.
   assert.ok(TRIGGERS.includes('ui-dropdown__trigger--ghost'), `triggers: ${TRIGGERS}`);
-  assert.equal(found.length, 16, found.map(({ file, selector }) => `${file}: ${selector}`).join('\n'));
+  assert.equal(found.length, 17, found.map(({ file, selector }) => `${file}: ${selector}`).join('\n'));
 });
 
 test('every menu trigger keeps its hover answer while pressed and while its menu is open', () => {

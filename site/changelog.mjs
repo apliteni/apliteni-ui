@@ -1,6 +1,6 @@
 export const RELEASES = [
   {
-    v: '0.231.0', date: '2026-11-27',
+    v: '0.232.0', date: '2026-11-27',
     changes: [
       ['added', '`QuerySearch` is a list search that reads typed filters, such as `state:open`, and `@name` for a person. It suggests keys, values and people, and each condition becomes a chip that you can edit or remove. `parseQuery`, `readQuery` and `matchQuery` read the same query for your list. Apps with a plain `SearchField` see no change. Part of #866.', ['QuerySearch']],
       ['added', '`MovableCard` is a card that a person moves to another column, such as a task on a board. It keeps its box in both themes and is one named Tab stop. `CardSlot` marks where a card lands, `held` leaves an empty slot, and `ui-card--lifted` keeps the moving copy fixed above the page. `ui-card-board` is the sideways scroll region for the columns, with the scroll band on keyboard focus and no scrollbar at 560px and below. Part of #866.', ['Card']],
@@ -9,6 +9,16 @@ export const RELEASES = [
       ['changed', '`QuerySearch` takes `size="sm"` for a small field, and its chips are then a small filter bar. A toolbar that starts with a `QuerySearch` keeps the search, Group by and the view switch on one line above 560px. A dropdown trigger with `ui-btn--ghost` now has no fill and no edge at rest. On a touch screen a wordless view option on that toolbar is 32px wide, and on a touch phone it reaches 44px. On a touch phone a query chip opens 11px between its label and its remove mark, so each reaches 44px. Apps that adopt `QuerySearch` are affected. Part of #866.', ['Toolbar', 'Dropdown']],
       ['added', 'Two guideline pages: Task list, with the rules Move cards on a board and Put New task beside the title, and Notification email, with the rule Link the task and the settings. The Toolbar docs now allow the create action at the end of a compact title row. Part of #866.', ['Guidelines']],
       ['added', 'Two showcases: Tasks, with a Table and a Board of the same tasks and one shared search, and Task mail, with a new task mail and a daily digest in plain text and HTML. Part of #866.', ['Showcases']],
+    ],
+  },
+  {
+    v: '0.230.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],
+      ['added', 'New `--inverse-*` tokens give one bar the other theme: dark on a light page and light on a dark page, in the page\'s accent family. Part of #902.', ['Tokens']],
+      ['fixed', 'A `Dropdown` panel in the page now opens on the other side of its trigger when its own side has no room and the other side has more. A panel in a Modal or a Drawer already did this. A menu that opens upward near the top of the view no longer opens above the view. Part of #902.', ['Dropdown']],
+      ['fixed', 'In a pinned `DataTable` with a selection column, the boxes now start on the table\'s text edge, as in an unpinned table, and the next column\'s words keep half a cell gap from the boxes\' divider. Before, the boxes stood 6px in from the table\'s start and the words touched the divider. Part of #902.', ['DataTable']],
+      ['added', 'A new Selection bar guideline page sets the bar\'s theme, a pick that applies at once with a notice, and the rest of the actions in More. Component choice sends the actions for selected rows to the bar. Part of #902.', ['Guidelines']],
     ],
   },
   {

@@ -391,12 +391,20 @@ export async function ringCell(theme, accent, { subjects, extraCss = '' } = {}) 
         const el = wantsSibling ? hit.parentElement?.querySelector('.ui-switch__track') : hit;
         const ground = el && el.parentElement && effectiveBackground(el.parentElement, win, styles.of);
         if (!ground) continue;
-        const key = `${sel}|${ground === 'IMAGE' ? 'IMAGE' : ground.join(',')}`;
+        // A control on the other theme's ground computes the ring again with its
+        // own --ring-color (the selection bar, #902). The sheet arrives with the
+        // root's values substituted, so a recomputed --ring still reads the root
+        // accent; stories/ring-carrier.test.js holds every --ring to that band
+        // of --ring-color, so the element's own --ring-color is the ring it draws.
+        const own = parseColour(substitute(win.getComputedStyle(el).getPropertyValue('--ring-color'), vars).trim());
+        const drawn = own || ring;
+        const key = `${sel}|${drawn.join(',')}|${ground === 'IMAGE' ? 'IMAGE' : ground.join(',')}`;
         if (landings.has(key)) continue;
         landings.set(key, {
           selector: sel,
+          path: selectorPath(el),
           ground: ground === 'IMAGE' ? 'IMAGE' : `rgb(${ground.slice(0, 3).map(Math.round).join(', ')})`,
-          ratio: ground === 'IMAGE' ? null : ratio(composite(ring, ground), ground),
+          ratio: ground === 'IMAGE' ? null : ratio(composite(drawn, ground), ground),
         });
       }
     }
