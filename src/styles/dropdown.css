@@ -62,6 +62,17 @@
 .ui-dropdown__trigger:enabled:active:not(:focus-visible),
 .ui-dropdown.open > .ui-dropdown__trigger:enabled:not(:focus-visible),
 .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
+/* A ghost trigger draws no edge and no ground at rest, as a ghost button does. The chevron
+   marks the control. The pointer and an open panel give it the fill of a hovered table row:
+   the ghost button's --surface is a card's own ground and shows no change there. The invalid,
+   focus and off rules below come later, so they keep their edges. #888
+   why: docs/components.md#dropdown */
+/* --ui-dropdown-hang is the trigger's start padding: a form or a table pulls the trigger back by it. */
+.ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: 13px; }
+.ui-dropdown__trigger--ghost { background: transparent; border-color: transparent; padding-inline-start: var(--ui-dropdown-hang); }
+.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: transparent; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
+.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible),
+.ui-dropdown.open > .ui-dropdown__trigger--ghost { background: var(--surface-3); /* code-bg: inherit — control paint under the pointer; a chip never stands in a trigger. */ }
 /* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
    under the pointer. The hover selector ties live hover at (0,4,0) and comes later, and the
    off rules below tie it and come later still, so an off trigger keeps the off edge. #835
@@ -95,6 +106,17 @@
 /* The value carries an ink of its own, so it takes the state's. */
 .ui-dropdown__trigger:disabled .ui-dropdown__value,
 .ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
+/* An off ghost trigger draws no box, as an off ghost button does, and takes the same ink for a
+   ground it cannot know. Each selector ties an off rule above and comes later. #888 */
+.ui-dropdown__trigger--ghost:disabled,
+.ui-dropdown__trigger--ghost:disabled:hover:not(:focus-visible),
+.ui-dropdown__trigger--ghost[aria-disabled="true"],
+.ui-dropdown__trigger--ghost[aria-disabled="true"]:hover:not(:focus-visible),
+.ui-dropdown__trigger--ghost[aria-disabled="true"]:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  /* muted-ink: state — unavailable control */ color: var(--disabled-ink-bare);
+}
 .ui-dropdown__value { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 /* A text trigger: its words and the caret stand on the surface, with no pill, so it
    reads inline with the text around it. The edge stays transparent at rest, and the
@@ -650,3 +672,34 @@
 @media (pointer: coarse) {
   .ui-field > .ui-dropdown > .ui-dropdown__trigger { font-size: 16px; }
 }
+
+/* A ghost trigger has no edge to show where it starts, so its value starts on the column
+   edge: the label's in a form, the header's in a table. The pill hangs into the room before
+   it by its own start padding. On a phone a form keeps 12px, so the pill and its ring stay
+   inside the 16px page margin. In a row the trigger stands on the centre of the first text
+   line and the row keeps its height, as a row's icon button does. #888
+   why: docs/components.md#dropdown */
+.ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) {
+  --ui-dropdown-hang: var(--space-4);
+  margin-inline-start: calc(var(--ui-dropdown-hang) * -1);
+  max-width: calc(100% + var(--ui-dropdown-hang));
+}
+.ui-field > .ui-dropdown > .ui-dropdown__trigger--ghost { padding-inline-start: var(--ui-dropdown-hang); }
+/* A ghost trigger is as narrow as its value, and a row adds its padding and selection mark.
+   So the panel fits its widest row, at least the trigger and at most the view's room. The
+   trigger hangs past the column, so its width can pass the view's room: the floor stops at
+   the panel's ceiling, because a floor wins over a ceiling. #888 */
+.ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) > .ui-dropdown__panel {
+  inline-size: max-content;
+  min-inline-size: min(100%, var(--ui-dropdown-ceiling, calc(100vw - 2 * var(--ui-dropdown-edge))));
+}
+@media (max-width: 560px) {
+  .ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: var(--space-3); }
+}
+.ui-table td > .ui-dropdown:first-child:has(> .ui-dropdown__trigger--ghost) {
+  vertical-align: top;
+  margin-inline-start: calc(var(--ui-dropdown-hang) * -1);
+  margin-block: calc((var(--ui-cell-line) - var(--btn-height-sm)) / 2);
+}
+/* The value takes the weight of the text around it. The chevron marks the control. */
+.ui-dropdown__trigger--ghost .ui-dropdown__value { font-weight: var(--weight-normal); letter-spacing: normal; }

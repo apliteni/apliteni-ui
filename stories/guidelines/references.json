@@ -64,7 +64,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:241",
+    "ref": "src/styles/tap-zone.css:248",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -326,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:499",
+    "ref": "src/styles/dropdown.css:521",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:562",
+    "ref": "src/styles/dropdown.css:584",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -342,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:452",
+    "ref": "src/styles/dropdown.css:474",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -518,7 +518,7 @@
     "pattern": "export const iconOnlyAllowed"
    },
    {
-    "ref": "stories/guidelines/iconography.test.js:256",
+    "ref": "stories/guidelines/iconography.test.js:259",
     "pattern": "every icon-only control is one the closed list allows"
    },
    {
@@ -528,7 +528,7 @@
   ],
   "meaning": [
    {
-    "ref": "src/assets/icons.js:244",
+    "ref": "src/assets/icons.js:248",
     "pattern": "export const iconMeanings"
    },
    {
@@ -590,7 +590,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:189",
+    "ref": "src/styles/card.css:191",
     "pattern": "rank: card-title"
    }
   ],
@@ -612,11 +612,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:457",
+    "ref": "src/styles/dropdown.css:479",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:458",
+    "ref": "src/styles/dropdown.css:480",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -1111,7 +1111,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:221",
+    "ref": "src/styles/card.css:223",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1153,7 +1153,7 @@
     "pattern": "const named = iconOnly"
    },
    {
-    "ref": "stories/guidelines/iconography.test.js:256",
+    "ref": "stories/guidelines/iconography.test.js:259",
     "pattern": "every icon-only control is one the closed list allows"
    }
   ],
@@ -1215,7 +1215,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:148",
+    "ref": "react/src/Dropdown.tsx:151",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1379,15 +1379,15 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:460",
+    "ref": "src/styles/dropdown.css:482",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:462",
+    "ref": "src/styles/dropdown.css:484",
     "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:877",
+    "ref": "react/src/Dropdown.tsx:880",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

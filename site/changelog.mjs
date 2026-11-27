@@ -6,13 +6,22 @@
 
 export const RELEASES = [
   {
-    v: '0.221.0', date: '2026-11-27',
+    v: '0.222.0', date: '2026-11-27',
     changes: [
       ['changed', 'A filter chip now keeps the width of its longest value up to 128px, in place of 224px, so five chips with long values fit one line beside a search field at 1440px. A pick still does not move the row. A longer value ends with an ellipsis, and the hover title, the trigger name and the menu keep the full value. Part of #915.', ['FilterBar']],
       ['added', 'A filter takes `maxWidth`, in CSS pixels, to give its chip a different cap. `--ui-filter-chip-max` set on the toolbar or another box around the bar now reaches every chip. Before, the bar replaced it with its own value. Part of #915.', ['FilterBar']],
       ['changed', 'A filter chip now has the accent edge under the pointer, while pressed and while its menu is open. Before, it showed no hover. Part of #915.', ['FilterBar']],
       ['changed', 'A dropdown trigger now keeps its hover answer while pressed and while its menu is open: the accent edge on a select, and the hover fill on a trigger with no edge, such as the account block, a band control, a band action, the head control and a column menu. Before, a menu opened by a tap or left by the pointer showed nothing on its trigger. Part of #915.', ['Dropdown', 'AppShell', 'AccountMenu', 'TopBar', 'ThreeColumnPage', 'DatePicker']],
       ['changed', 'The Dense tables guideline has a new rule, Cap long filter chips. Part of #915.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.221.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
+      ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
+      ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
+      ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view, with its focus ring, when the keyboard or a script focuses it. Part of #888.', ['DataTable']],
     ],
   },
   {
