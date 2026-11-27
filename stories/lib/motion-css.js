@@ -178,3 +178,89 @@ export const keyframes = (text) => {
 
 /** True when a rule sits inside a `prefers-reduced-motion: reduce` block. */
 export const inNet = (rule) => rule.at.some((p) => REDUCE.test(p));
+
+/* -- Selectors: which element a rule part paints ------------------------------ */
+
+// The state hooks a selector names: a class or attribute that a script or the
+// platform switches. A compound is the same element with or without one.
+export const HOOKS = [
+  '[hidden]', '[open]', ':checked', '.is-open', '.open', '.show', '.is-visible', '.is-leaving', '.is-revealed',
+  '.is-collapsed', '.is-selected', '.is-active', '.is-up', '[data-view',
+];
+
+export const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Rebuilt at each use, for the lastIndex reason motion-tokens.test.js gives.
+export const hooks = () => new RegExp(HOOKS.map((h) => `${escRe(h)}(?![\\w-])`).join('|'), 'g');
+
+/** Split on a character outside (), [] and strings. */
+export const splitTop = (s, isSep) => {
+  const out = [];
+  let buf = '';
+  let depth = 0;
+  for (const ch of s) {
+    if (ch === '(' || ch === '[') depth += 1;
+    else if (ch === ')' || ch === ']') depth -= 1;
+    if (depth === 0 && isSep(ch)) { if (buf.trim()) out.push(buf.trim()); buf = ''; continue; }
+    buf += ch;
+  }
+  if (buf.trim()) out.push(buf.trim());
+  return out;
+};
+export const partsOf = (selector) => splitTop(selector, (c) => c === ',');
+export const compounds = (part) => splitTop(part, (c) => /[\s>+~]/.test(c));
+
+/** Drop every `:name( … )` group — a hook inside `:not()` is the state's absence. */
+export const dropFunctional = (s) => {
+  let out = '';
+  for (let i = 0; i < s.length; i += 1) {
+    const m = /^:[\w-]+\(/.exec(s.slice(i));
+    if (!m) { out += s[i]; continue; }
+    let depth = 1;
+    i += m[0].length;
+    while (i < s.length && depth > 0) {
+      if (s[i] === '(') depth += 1;
+      else if (s[i] === ')') depth -= 1;
+      i += 1;
+    }
+    i -= 1;
+  }
+  return out;
+};
+
+/** What a compound says the element IS: its classes, attributes and type, and its pseudo-element. */
+export const identity = (compound) => {
+  const c = dropFunctional(compound);
+  const pseudo = (/::[\w-]+/.exec(c) || [''])[0];
+  const bare = c.replace(/::?[\w-]+/g, '').replace(hooks(), '');
+  const type = /^[a-z][\w-]*/i.exec(bare);
+  const toks = new Set([...(type ? [type[0]] : []), ...(bare.match(/\.[\w-]+|\[[^\]]+\]/g) || [])]);
+  return { pseudo, toks };
+};
+
+/** A BEM modifier is always written beside its base: `x--portal` is also `x`. */
+export const expand = (toks) => new Set([...toks].flatMap((t) => (t.includes('--') ? [t, t.slice(0, t.indexOf('--'))] : [t])));
+
+/**
+ * Does candidate part `c` select the element subject part `s` selects? Compared
+ * right to left until a compound with a class or attribute has matched. `extras`
+ * are classes `c` adds on its rightmost compound — the entrance class a script puts
+ * on — and are allowed only where the caller allows them.
+ */
+export const sameElement = (s, c, allowExtras) => {
+  const S = compounds(s).reverse();
+  const C = compounds(c).reverse();
+  const extras = [];
+  for (let i = 0; i < C.length && i < S.length; i += 1) {
+    const si = identity(S[i]);
+    const ci = identity(C[i]);
+    if (i === 0 && si.pseudo !== ci.pseudo) return null;
+    const known = expand(si.toks);
+    const shared = [...ci.toks].filter((t) => known.has(t));
+    const extra = [...ci.toks].filter((t) => !known.has(t));
+    if (extra.length > 0 && !(i === 0 && allowExtras && extra.every((t) => t.startsWith('.')))) return null;
+    extras.push(...(i === 0 ? extra : []));
+    if (shared.some((t) => /^[.[]/.test(t))) return { extras };
+    if (shared.length === 0) return null;
+  }
+  return null;
+};

@@ -36,10 +36,10 @@ it('falls back to h2 for a level that is not 2 to 6', () => {
 it('merges a caller className with the kit class instead of replacing it', () => {
   const { container, rerender } = render(<Card title="Plan" />);
   expect(container.querySelector('div')?.className).toBe('ui-card');
-  rerender(<Card title="Plan" className="doc-flow__saved-pane" />);
+  rerender(<Card title="Plan" className="plan-card" />);
   const card = container.querySelector('div')!;
   expect(card).toHaveClass('ui-card');
-  expect(card).toHaveClass('doc-flow__saved-pane');
+  expect(card).toHaveClass('plan-card');
 });
 
 it('adds the variant and padding classes and leaves a plain card with only ui-card', () => {
