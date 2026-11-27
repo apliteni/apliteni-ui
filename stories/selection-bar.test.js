@@ -11,7 +11,7 @@
  *   UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals/dist/web-vitals.iife.js SELECTION_BAR=1 \
  *     node --test stories/selection-bar.test.js
  *
- * It opens apps-selected-rows--default (twelve documents, two selected) in a new context at
+ * It opens apps-selected-rows--default (ten documents, two selected) in a new context at
  * each of ten window sizes and on six devices: the Galaxy Z Fold 7 and Flip 7 and their cover
  * screens from Playwright's list, and a two-screen phone of 466×678 and 890×626 at scale 3 with
  * touch. The script puts the focus on Clear, then the walk presses Tab to the first list,

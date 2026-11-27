@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -112,7 +112,7 @@ it('gives a list under ten rows no search field', async () => {
 });
 
 // A room of 250 holds Status and More beside the count, and not Archive and Owner.
-it('moves the actions that do not fit into More, each list as a group under its name', async () => {
+it('moves the actions that do not fit into More, and opens a list action from there as its own picker', async () => {
   const props = handlers();
   laidOut(() => 250);
   render(<SelectionBar count={2} actions={actions} {...props} />);
@@ -120,25 +120,47 @@ it('moves the actions that do not fit into More, each list as a group under its 
   expect(within(bar).getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'More']);
   await userEvent.click(screen.getByRole('button', { name: 'More' }));
   const menu = screen.getByRole('menu', { name: 'More' });
-  expect(within(menu).getByText('Owner')).toBeInTheDocument();
-  await userEvent.click(within(menu).getByRole('menuitem', { name: 'Avery' }));
-  expect(props.onAction).toHaveBeenCalledWith('owner', 'Avery');
+  // More holds the actions by name, not their values.
+  expect(within(menu).getAllByRole('menuitem').map(row => row.textContent)).toEqual(['Archive', 'Owner']);
+  await userEvent.click(within(menu).getByRole('menuitem', { name: 'Owner' }));
+  expect(props.onAction).not.toHaveBeenCalled();
+  const picker = screen.getByRole('menu', { name: 'More' });
+  expect(within(picker).getByText('Owner')).toHaveClass('ui-dropdown__group');
+  await userEvent.click(within(picker).getByRole('menuitem', { name: 'Avery' }));
+  expect(props.onAction).toHaveBeenCalledExactlyOnceWith('owner', 'Avery');
   await userEvent.click(screen.getByRole('button', { name: 'More' }));
   await userEvent.click(screen.getByRole('menuitem', { name: 'Archive' }));
   expect(props.onAction).toHaveBeenLastCalledWith('archive');
 });
 
-// Two lists with the same five values make ten rows in More, so More has a search field and
-// the arrows walk the rows. The sixth row is the second list's first row.
+// Two lists in More with the same five values: a pick from the second list's picker calls
+// the second action. The keys walk More's list, then the picker.
 it('keeps two lists that share their values apart in More', async () => {
   const props = handlers();
   laidOut(() => 200);
   const levels = ['1', '2', '3', '4', '5'].map(value => ({ label: `Level ${value}`, value }));
   render(<SelectionBar count={2} actions={[{ id: 'priority', label: 'Priority', items: levels }, { id: 'risk', label: 'Risk', items: levels }]} {...props} />);
-  await userEvent.click(screen.getByRole('button', { name: 'More' }));
-  expect(screen.getByRole('combobox', { name: 'Search more' })).toHaveFocus();
-  await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{Enter}');
+  screen.getByRole('button', { name: 'More' }).focus();
+  await userEvent.keyboard('{ArrowDown}');
+  expect(screen.getByRole('menuitem', { name: 'Priority' })).toHaveFocus();
+  await userEvent.keyboard('{ArrowDown}{Enter}');
+  expect(screen.getByRole('menuitem', { name: 'Level 1' })).toHaveFocus();
+  await userEvent.keyboard('{Enter}');
   expect(props.onAction).toHaveBeenCalledExactlyOnceWith('risk', '1');
+  expect(screen.getByRole('button', { name: 'More' })).toHaveFocus();
+});
+
+// jsdom runs no transition, so the exit is the kit's timer. A browser measures the motion.
+it('shows a bar that comes with the page at once, and keeps the last count while it goes', async () => {
+  const props = handlers();
+  const { rerender } = render(<SelectionBar count={2} actions={actions} {...props} />);
+  const bar = screen.getByRole('region');
+  expect(bar).toHaveClass('is-shown');
+  rerender(<SelectionBar count={0} actions={actions} {...props} />);
+  expect(bar).not.toHaveClass('is-shown');
+  expect(bar).toHaveTextContent('2 selected');
+  expect(bar.parentElement).toHaveAttribute('inert');
+  await waitFor(() => expect(bar).not.toBeInTheDocument());
 });
 
 // A room of 400 holds every action, and a room of 250 sends Archive into More.

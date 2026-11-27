@@ -919,21 +919,31 @@ dark on a light page and light on a dark page, in the page's accent family. See
 [The inverse surface](foundations.md#the-inverse-surface). The count and Clear share one pill at the
 start. Each action follows as a button at its natural width, with its name. A pick never changes
 the name or the width. A list opens above the bar in the page's own theme, with a search field from
-ten rows. The bar sticks 16px above the bottom of the view while rows scroll under it. At the end
-of the list it stands in its own room under the last row and never covers it.
+ten rows. When the view has no room above the bar, the list opens below it. The bar sticks 16px
+above the bottom of the view while rows scroll under it. At the end of the list it stands in its
+own room under the last row and never covers it.
 
-**Each pick applies at once, and the rows stay selected.** The bar has no Apply step. Ask before
-an action that removes rows, with [`Confirm`](#confirm).
+**Motion.** A bar that comes after the page has loaded rises 8px and fades in over 250ms. When the
+selection goes back to none, the bar goes the same way, with its last count. A bar that comes with
+the page is there at once. Under reduced motion the bar shows and goes at once.
+
+**Each pick applies at once, and the rows stay selected.** The bar has no Apply step. Say what
+changed in a [`Toast`](#toast), such as "Status: Ready" and "Updated 2 documents.", and set its
+`bottomOffset` so the notice stands over the bar. Ask before an action that removes rows, with
+[`Confirm`](#confirm).
 
 **Room on the screen.** The bar stays one line. When the actions do not fit, the first actions
-that fit stay on the bar, and More at the end holds the rest. In More a button is a row, and a
-list is a group of its values under the action's name. On a phone the bar takes the row, with the
-count at the start and More at the end. The page never scrolls sideways.
+that fit stay on the bar, and More at the end holds the rest. More lists the actions by name. A
+button's row runs the action. A list's row opens that action's own list from More, under the
+action's name, and the focus goes into it. On a phone the bar takes the row, with the count at the
+start and More at the end. With large text the count and Clear can take two lines, so the bar
+stays in the view. The page never scrolls sideways.
 
 **Keyboard and screen reader.** The bar is a region named "Selected rows", from `noun`. The Tab
 order is Clear, the actions, then More. The count is not a stop. Escape closes an open list
 first. A second Escape calls `onClear`. Your `onClear` moves the focus, such as to the Select all
-box, because the bar leaves with the selection. A polite status line says each count, such as
+box, because the bar leaves with the selection. When the focused action goes into More, the focus
+goes to More. When More goes, the focus goes to the first action that came out of it. A polite status line says each count, such as
 "2 documents selected", and says "No documents selected" when the selection goes back to none.
 
 ## Content and status

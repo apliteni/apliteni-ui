@@ -1,10 +1,12 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
 import { DataTable, type Column } from '../DataTable';
 import { SelectionBar, type SelectionBarAction } from '../SelectionBar';
+import { Toast, useToast } from '../Toast';
 
 // Selected rows: a table of documents, and the selection bar under it. Each pick changes the
-// selected rows at once, and the rows stay selected. All data is sample data. #902
+// selected rows at once, the rows stay selected, and a notice says what changed. Ten rows,
+// so the table needs no filter bar. All data is sample data. #902
 type Doc = { name: string; status: string; owner: string; tags: string; folder: string };
 const DOCS: Doc[] = [
   ['Field guide', 'Draft', 'Avery', 'Guide', 'Library'],
@@ -17,8 +19,6 @@ const DOCS: Doc[] = [
   ['Archive guide', 'Draft', 'Blair', 'Guide', 'Library'],
   ['Style sheet', 'Ready', 'Casey', 'Release', 'Projects'],
   ['Onboarding steps', 'Draft', 'Avery', 'Guide', 'Library'],
-  ['Meeting record', 'Ready', 'Blair', 'Review', 'Projects'],
-  ['Brand notes', 'Draft', 'Casey', 'Release', 'Library'],
 ].map(([name, status, owner, tags, folder]) => ({ name, status, owner, tags, folder }));
 
 const values = (...labels: string[]) => labels.map(label => ({ label }));
@@ -40,7 +40,14 @@ const columns: Column<Doc>[] = [
 
 export type SelectedRowsProps = { initialSelected?: string[] };
 
-export function SelectedRows({ initialSelected = ['Field guide', 'Release notes'] }: SelectedRowsProps) {
+// The notices stand 16px above the bar while it shows.
+export function SelectedRows(props: SelectedRowsProps) {
+  const [offset, setOffset] = useState<number>();
+  return <Toast bottomOffset={offset}><Documents {...props} onOffset={setOffset} /></Toast>;
+}
+
+function Documents({ initialSelected = ['Field guide', 'Release notes'], onOffset }: SelectedRowsProps & { onOffset: (px?: number) => void }) {
+  const toast = useToast();
   const [rows, setRows] = useState(DOCS);
   const [selected, setSelected] = useState(() => new Set(initialSelected));
   const page = useRef<HTMLDivElement>(null);
@@ -51,10 +58,27 @@ export function SelectedRows({ initialSelected = ['Field guide', 'Release notes'
     setSelected(new Set());
     page.current?.querySelector<HTMLInputElement>('thead input[type="checkbox"]')?.focus();
   };
+  const updated = `${selected.size} ${selected.size === 1 ? 'document' : 'documents'}`;
   const act = (id: string, value?: string) => {
-    if (id === 'archive') change('status', 'Archived');
-    else if (value !== undefined) change(id as keyof Doc, value);
+    if (id === 'archive') {
+      change('status', 'Archived');
+      toast({ title: `Archived ${updated}.` });
+    } else if (value !== undefined) {
+      change(id as keyof Doc, value);
+      toast({ title: `${ACTIONS.find(action => action.id === id)?.label}: ${value}`, text: `Updated ${updated}.` });
+    }
   };
+  // The bar's room is the bar with 16px over and under it: the inset the notices stand on.
+  const showing = selected.size > 0;
+  useLayoutEffect(() => {
+    const room = page.current?.querySelector<HTMLElement>('.ui-selection-room');
+    if (!showing || !room) { onOffset(undefined); return; }
+    const measure = () => onOffset(room.getBoundingClientRect().height);
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(room);
+    return () => watch.disconnect();
+  }, [showing]);
   const toggle = (name: string) => setSelected(current => {
     const next = new Set(current);
     if (next.has(name)) next.delete(name); else next.add(name);

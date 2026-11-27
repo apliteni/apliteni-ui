@@ -26,27 +26,31 @@
   background: var(--inverse-bg); /* code-bg: none — the bar holds controls and a count, never a code chip. */
   box-shadow: var(--elev-drop);
   pointer-events: auto;
+  opacity: 0;
+  transform: translateY(var(--space-2));
 }
+.ui-selection-bar.is-shown { opacity: 1; transform: none; }
+/* A bar that comes after the page has loaded rises in, and Clear takes it down the same
+   way. A bar that comes with the page is shown at once. */
 @media (prefers-reduced-motion: no-preference) {
-  .ui-selection-bar { animation: ui-selection-in var(--dur-med) var(--ease) both; }
-}
-@keyframes ui-selection-in {
-  from { opacity: 0; transform: translateY(var(--space-2)); }
-  to { opacity: 1; transform: translateY(0); }
+  .ui-selection-bar { transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease); }
 }
 
-/* The count and Clear share one pill, so Clear reads as part of the count. */
+/* The count and Clear share one pill, so Clear reads as part of the count. Large text can
+   make the pair wider than the bar's room, so the pair can shrink, and then Clear goes
+   under the count and a long count breaks. */
 .ui-selection-bar__count {
-  flex: none;
+  flex: 0 1 auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1);
+  gap: 0 var(--space-1);
+  min-width: 0;
   padding-left: var(--space-2);
   border: 1px solid var(--inverse-edge);
   border-radius: var(--radius-pill);
-  white-space: nowrap;
 }
-.ui-selection-bar__tally { color: var(--inverse-text); font-size: var(--text-sm); }
+.ui-selection-bar__tally { min-width: 0; overflow-wrap: anywhere; color: var(--inverse-text); font-size: var(--text-sm); }
 .ui-selection-bar__actions { flex: none; display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
 
 /* Every control on the bar draws as a ghost button: the name, at its natural width, with
@@ -55,7 +59,9 @@
 .ui-selection-bar .ui-selection-bar__control {
   flex: none;
   min-height: var(--btn-height-sm);
-  padding: 6px 12px;
+  /* 6px between --space-1 and --space-2: the small button's own block padding, so a list's
+     trigger is as tall as a small Button beside it. */
+  padding: 6px var(--space-3);
   border-color: transparent;
   background: transparent;
   color: var(--inverse-text);

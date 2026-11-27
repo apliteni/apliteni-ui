@@ -4,8 +4,9 @@ import { SelectedRows } from './SelectedRows';
 
 const row = (name: string) => screen.getByRole('checkbox', { name: `Select ${name}` }).closest('tr') as HTMLElement;
 
-// DOM only: what the table holds after each action. A browser measures the layout.
-it('applies a pick to the selected rows at once and keeps them selected', async () => {
+// DOM only: what the table holds after each action, and the notice that says so. A browser
+// measures the layout.
+it('applies a pick to the selected rows at once, keeps them selected and says what changed', async () => {
   render(<SelectedRows />);
   await userEvent.click(screen.getByRole('button', { name: 'Status' }));
   await userEvent.click(screen.getByRole('menuitem', { name: 'Archived' }));
@@ -14,6 +15,9 @@ it('applies a pick to the selected rows at once and keeps them selected', async 
   expect(within(row('Access checklist')).queryByText('Archived')).toBeNull();
   expect(screen.getByRole('checkbox', { name: 'Select Field guide' })).toBeChecked();
   expect(screen.getByRole('region', { name: 'Selected documents' })).toHaveTextContent('2 selected');
+  const notice = screen.getByText('Status: Archived').closest('[role="status"]');
+  expect(notice).toHaveAttribute('aria-live', 'polite');
+  expect(notice).toHaveTextContent('Updated 2 documents.');
 });
 
 it('archives only the selected rows with one button', async () => {
@@ -22,6 +26,7 @@ it('archives only the selected rows with one button', async () => {
   expect(within(row('Release notes')).getByText('Archived')).toBeInTheDocument();
   expect(within(row('Access checklist')).queryByText('Archived')).toBeNull();
   expect(screen.getByRole('checkbox', { name: 'Select Release notes' })).toBeChecked();
+  expect(screen.getByText('Archived 2 documents.').closest('[role="status"]')).toHaveAttribute('aria-live', 'polite');
 });
 
 it('clears with Escape and sends the focus to Select all', async () => {
