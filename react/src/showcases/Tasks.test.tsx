@@ -81,7 +81,7 @@ describe('the Tasks page', () => {
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(column(/^To do, 4 tasks$/)).toContainElement(screen.getByRole('group', { name: 'Match the October bank statement' }));
   });
-  it('keeps the focus on the moved card after a move by keys, or on Search tasks when the search hides the card', async () => {
+  it('keeps the focus on the moved card after a move by keys, or on the board or Clear when the search hides the card', async () => {
     const user = userEvent.setup();
     const name = 'Actions for Match the October bank statement';
     const moveByKeys = async () => {
@@ -99,10 +99,16 @@ describe('the Tasks page', () => {
     expect(within(moved).getByRole('button', { name })).toHaveFocus();
     unmount();
     window.history.replaceState(null, '', '#view=board&group=status&q=state%3Atodo');
-    render(<Tasks />);
+    const filtered = render(<Tasks />);
     await moveByKeys();
     expect(screen.queryByRole('group', { name: 'Match the October bank statement' })).toBeNull();
-    expect(search()).toHaveFocus();
+    expect(screen.getByRole('region', { name: /^Task board/ })).toHaveFocus();
+    filtered.unmount();
+    // The search shows only this card, so no card is left after the move.
+    window.history.replaceState(null, '', '#view=board&group=status&q=state%3Atodo&draft=October');
+    render(<Tasks />);
+    await moveByKeys();
+    expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
   });
   it('gives a table row the menu Open, Reassign and Copy link', async () => {
     const user = userEvent.setup();

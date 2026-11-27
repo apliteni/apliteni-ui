@@ -21,7 +21,7 @@
  * each part by key, then by click or tap, and presses Escape after each. On the Board it then
  * drags the first To do card to In progress, by mouse on a size and by a long press on a
  * touch device. With the search set to To do, it moves a card to In progress by keys, and the
- * focus goes to Search tasks. On the Table it adds a chip, changes to Board and reloads, and
+ * focus goes to the board region. On the Table it adds a chip, changes to Board and reloads, and
  * the chip and the view stay.
  *
  * Its limits: the default accent. Chromium touch is sent through the DevTools protocol, and
@@ -278,7 +278,7 @@ async function walkKeyMove(page, label, found, seen) {
 }
 
 // The search shows only To do. A move by keys to In progress hides the card, so the focus goes
-// to Search tasks, whose filter hid it. #866
+// to the board region, which opens no panel. #866
 const TODO = '#view=board&group=status&q=state%3Atodo';
 async function walkFilteredMove(page, label, found, seen) {
   const at = `${label} filtered move by keys`;
@@ -294,9 +294,9 @@ async function walkFilteredMove(page, label, found, seen) {
   await page.keyboard.press('Enter');
   before = await check(page, at, before, found);
   const after = await page.evaluate((task) => ({ gone: !document.querySelector(`[data-task="${task}"]`),
-    search: document.activeElement?.getAttribute('aria-label') === 'Search tasks', on: document.activeElement?.tagName ?? '' }), name);
+    board: document.activeElement?.classList.contains('ui-card-board'), on: document.activeElement?.tagName ?? '' }), name);
   if (!after.gone) found.push(`${at}: the search still shows the moved card`);
-  if (!after.search) found.push(`${at}: the focus went to ${after.on}, not to Search tasks`);
+  if (!after.board) found.push(`${at}: the focus went to ${after.on}, not to the board region`);
   seen.add(at);
   return 1;
 }
@@ -511,7 +511,7 @@ test('the task page keeps the focus in each open part and holds through each key
     // A filtered move that drops the focus, as the board did before the second #866 review.
     await mutate((page) => page.evaluate(() => document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && document.activeElement?.getAttribute('role') === 'menuitem') setTimeout(() => setTimeout(() => document.activeElement.blur()));
-    }, true)), 'not to Search tasks', (page, found) => walkFilteredMove(page, 'mutated', found, new Set()), BOARD, TODO);
+    }, true)), 'not to the board region', (page, found) => walkFilteredMove(page, 'mutated', found, new Set()), BOARD, TODO);
     // A story that clears the URL hash on a reload, as the story wrapper did before the second #866 review.
     await mutate((page) => page.context().addInitScript(() => history.replaceState(null, '', location.pathname + location.search)),
       'the reload lost the URL state', (page, found) => walkReload(page, 'mutated', found, new Set()), TABLE);

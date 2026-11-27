@@ -332,13 +332,16 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
   const [newDate, setNewDate] = useState('');
   const closeRef = useRef<HTMLButtonElement>(null);
   // A move from a card's menu unmounts the card in its old column. Its new menu button takes the focus.
-  // When the search hides the moved card, Search tasks takes the focus, because its filter hid the card.
+  // When the search hides the moved card, the board region takes the focus. With no card left,
+  // Clear of the empty state takes it. Neither opens a panel, and the toast says where the card went.
   const [refocus, setRefocus] = useState<string | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!refocus) return;
-    (document.querySelector<HTMLElement>(`[data-task="${refocus}"] .ui-card__action .ui-dropdown__trigger`)
-      ?? toolbarRef.current?.querySelector<HTMLElement>('[role="combobox"]'))?.focus();
+    const page = toolbarRef.current?.parentElement;
+    (page?.querySelector<HTMLElement>(`[data-task="${refocus}"] .ui-card__action .ui-dropdown__trigger`)
+      ?? page?.querySelector<HTMLElement>('.ui-card-board')
+      ?? page?.querySelector<HTMLElement>('.ui-empty button'))?.focus();
     setRefocus(null);
   }, [refocus]);
 
