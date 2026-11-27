@@ -1,10 +1,13 @@
-// Write for people who use the kit. Start with what changed and who is affected.
-// Use one to three short sentences per change; add detail only for migration
-// steps or behavior limits. Use plain words, without praise, filler or a test diary.
-// Keep versions, dates, change types, component links and issue references.
-// The first sentence is the page summary; full text also appears in release notes.
-
 export const RELEASES = [
+  {
+    v: '0.224.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],
+      ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
+      ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
+      ['added', 'The page guideline has a new rule, Align the sidebar on one column: the logo, the section icons and the avatar start on one edge. Part of #869.', ['Guidelines']],
+    ],
+  },
   {
     v: '0.221.0', date: '2026-11-27',
     changes: [

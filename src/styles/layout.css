@@ -90,6 +90,16 @@
 .ui-app__brand:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .ui-app__brand svg { display: block; flex: none; }
 
+/* The open rail has two columns (#869). Each symbol starts one --space-2 inside the row
+   fill: the logo box, the row glyphs and the avatar. Each name starts one
+   --space-2 after a symbol box as wide as the avatar: the product name, the labels and
+   the account name. A sub-item keeps the indent of its list. A folded rail keeps
+   nav.css's rows, which centre each glyph on the strip. why: docs/components.md#page-shell */
+.ui-app__rail .ui-app__brand { padding-inline: var(--space-2); }
+.ui-app:not(.is-collapsed) > .ui-app__rail .ui-nav--side .ui-nav__item:not(.ui-nav__item--sub) { padding-inline: var(--space-2); gap: var(--space-2); }
+.ui-app:not(.is-collapsed) > .ui-app__rail .ui-nav--side .ui-nav__item:not(.ui-nav__item--sub) > .ui-nav__ic { width: var(--ui-app-av); }
+.ui-app:not(.is-collapsed) > .ui-app__rail .ui-nav__cap { padding-inline: var(--space-2); }
+
 /* The head band: the product's mark, and the rail's own control at the far end of
    the same line. `min-width: 0` so a long word shrinks the lockup rather than pushing
    the control off the band. why: docs/components.md#page-shell */
@@ -151,6 +161,12 @@
 }
 /* The mark is the Avatar part in the reader's hue, filling this box like the top bar's. */
 .ui-app__av > .ui-avatar { --ui-avatar-size: 100%; }
+/* The open rail puts the avatar on the symbol column, as it does the row glyphs (#869). */
+.ui-app:not(.is-collapsed) > .ui-app__rail .ui-app__av { margin-inline-start: var(--space-2); }
+/* The trigger here has no inline padding, so the pull a dropdown trigger gives its avatar
+   would move the mark off its column. why: docs/components.md#avatar */
+.ui-app__rail .ui-app__user-trigger .ui-avatar,
+.ui-app__drawer .ui-app__user-trigger .ui-avatar { margin: 0; }
 .ui-app__who { font-size: var(--text-sm); line-height: 1.3; min-width: 0; }
 .ui-app__who b { display: block; color: var(--strong); font-weight: var(--weight-semibold); }
 /* nowrap is what makes the ellipsis fire — without it the address wraps, and
