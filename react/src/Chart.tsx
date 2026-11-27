@@ -9,7 +9,9 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { CHART_FLOOR, bridgeWalk, chartScale, pointTarget } from '@apliteni/apliteni-ui';
+import { Dropdown } from './Dropdown';
 import { Segmented } from './Segmented';
+import { Tooltip } from './Tooltip';
 import { CardTools } from './primitives/Card';
 import { placeTip } from './tip';
 import {
@@ -18,15 +20,17 @@ import {
   type ChartStackedLook, type Layer, type Look, type LookGeometry,
 } from './chart-looks';
 
-/** The anchor's box on the screen. The anchor is a zero-height rect at the
- *  mark's top, and WebKit collapses a zero-area SVG rect's bounding box to
- *  nothing at the svg's origin, which would pin the readout to the plot's top
- *  left. Its screen place is read from its own `x`/`y`/`width` through the
- *  svg's screen box instead, which every engine reports. why: #863 */
-function anchorScreenBox(mark: Element): { left: number; top: number; width: number } {
+/** The anchor's box on the screen. The anchor is a rect over the mark: from the
+ *  mark's top, as tall as a bar, and zero tall for a point. WebKit collapses a
+ *  zero-area SVG rect's bounding box to nothing at the svg's origin, which would
+ *  pin the readout to the plot's top left. Its screen place is read from its own
+ *  `x`/`y`/`width`/`height` through the svg's screen box instead, which every
+ *  engine reports. why: #863 */
+function anchorScreenBox(mark: Element): { left: number; top: number; width: number; height: number } {
   const x = Number(mark.getAttribute('x')) || 0;
   const y = Number(mark.getAttribute('y')) || 0;
   const w = Number(mark.getAttribute('width')) || 0;
+  const h = Number(mark.getAttribute('height')) || 0;
   const svg = mark.closest('svg');
   const [vbX = 0, vbY = 0, vbW = 0, vbH = 0] = (svg?.getAttribute('viewBox')?.split(/\s+/) ?? []).map(Number);
   const rect = svg?.getBoundingClientRect();
@@ -35,10 +39,11 @@ function anchorScreenBox(mark: Element): { left: number; top: number; width: num
       left: rect.left + (x - vbX) * (rect.width / vbW),
       top: rect.top + (y - vbY) * (rect.height / vbH),
       width: w * (rect.width / vbW),
+      height: h * (rect.height / vbH),
     };
   }
   const fallback = mark.getBoundingClientRect();
-  return { left: fallback.left, top: fallback.top, width: fallback.width };
+  return { left: fallback.left, top: fallback.top, width: fallback.width, height: fallback.height };
 }
 
 export function placeChartTip(mark: Element, tip: HTMLElement) {
@@ -64,8 +69,14 @@ export function placeChartTip(mark: Element, tip: HTMLElement) {
   tip.classList.toggle('is-below', isBelow);
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
   const left = Math.max(box.left, Math.min(ideal, box.right - tip.offsetWidth));
+  // A readout below its mark opens under the mark's bottom, clear of the bar it
+  // describes. Where the view is too short for that, it moves up no further
+  // than it must to stay in the view, and never above the mark's top.
+  const y = isBelow
+    ? Math.max(rect.top, Math.min(rect.top + rect.height, view.clientHeight - gap - tip.offsetHeight))
+    : rect.top;
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
-  tip.style.setProperty('--ui-tip-y', `${rect.top}px`);
+  tip.style.setProperty('--ui-tip-y', `${y}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
 }
 
@@ -163,6 +174,16 @@ type ChartCommon = {
   /** Draw a key that names each series. Off by default: the readout and the
    *  table name every series. */
   legend?: boolean;
+  /** The main figure, drawn large in the chart's head over the plot. */
+  figure?: string;
+  /** The change of the main figure, drawn in the head beside it and never on the
+   *  plot. `basis` is what the change is measured against, in its tooltip. */
+  trend?: ChartTrend;
+  /** The ranges the reader can show, as a text menu in the head. `range` is the
+   *  shown one, and `onRangeChange` gets the picked value. */
+  ranges?: readonly ChartRange[];
+  range?: string;
+  onRangeChange?: (value: string) => void;
   /** Let Enter and a click pick a column. */
   selectable?: boolean;
   /** The picked column, when the caller keeps that state. */
@@ -171,12 +192,20 @@ type ChartCommon = {
   className?: string;
 };
 
+export type ChartTrend = { value: string; basis: string };
+export type ChartRange = { value: string; label: string };
+
 /** A series of a line, an area or a stacked chart. Its `shape` is the variant's. */
 export type ChartLookSeries = Omit<ChartSeries, 'shape'>;
 
+/** What one period is, such as `Month`, `Quarter` or `Region`. The table heads
+ *  its first column with it. Defaults to `Period`. It does not group the data. */
+type Grouping = { grouping?: string };
+
 export type ChartProps = ChartCommon & (
   | {
-    variant?: 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[];
+    /** `months` is the deprecated name of `bars` and draws the same chart. */
+    variant?: 'bars' | 'months'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[];
     /** `columns`, a column per period, or `rows`, a bar across for each period
      *  with its full `label` above it, for names that must all print. `rows`
      *  takes one `bars` or `bars-below` series. */
@@ -186,12 +215,12 @@ export type ChartProps = ChartCommon & (
      *  fit its bar's room is left out; the readout and the table keep it.
      *  The `rows` look prints no value. */
     values?: boolean;
-  }
+  } & Grouping
   | { variant: 'spark'; periods: readonly ChartPeriod[]; series: readonly ChartSeries[] }
   | { variant: 'bridge'; steps: readonly ChartBridgeStep[]; tones?: ChartBridgeTones }
-  | { variant: 'line'; look?: ChartLineLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
-  | { variant: 'area'; look?: ChartAreaLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
-  | { variant: 'stacked'; look?: ChartStackedLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] }
+  | { variant: 'line'; look?: ChartLineLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] } & Grouping
+  | { variant: 'area'; look?: ChartAreaLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] } & Grouping
+  | { variant: 'stacked'; look?: ChartStackedLook; periods: readonly ChartPeriod[]; series: readonly ChartLookSeries[] } & Grouping
   | {
     variant: 'donut'; look?: ChartDonutLook; slices: readonly ChartSlice[];
     /** What the whole is called in the centre and in the side list. Defaults to `Total`. */
@@ -262,7 +291,7 @@ type Frame = {
 };
 
 /** The plot's height when the caller names none. */
-const HEIGHT = { months: 216, bridge: 216, spark: 32, line: 216, area: 216, stacked: 216, donut: 216 };
+const HEIGHT = { bars: 216, bridge: 216, spark: 32, line: 216, area: 216, stacked: 216, donut: 216 };
 /** Room for a stroke at the band's edges, so a full-height bar is not shaved. */
 const PAD = 2;
 /**
@@ -285,6 +314,12 @@ const TARGET = 24;
  */
 const TAP_FLOOR = 44;
 const PHONE_MAX = 560;
+/** The longest the readout holds through the chart's own page scroll. A smooth
+ *  scroll into view ends well inside it. A scroll that never stops cannot keep
+ *  the hold on. */
+const HOLD_LIMIT = 1000;
+/** The keys a browser scrolls the page with when nothing takes them. */
+const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
 /**
  * The column width used before the plot has been measured: server-rendered, or
  * in a test environment with no layout. `src/styles/chart.css` carries the real
@@ -309,7 +344,7 @@ const BAR_MAX = 12;
  */
 const BAR_MAX_BRIDGE = 22;
 /**
- * The months chart's columns (#841, look A): a bar takes two thirds of its
+ * The bars chart's columns (#841, look A): a bar takes two thirds of its
  * column up to --space-12, and its corner is --radius-xs or a quarter of the
  * bar, whichever is smaller, so a narrow bar keeps the same shape. The plot
  * keeps no column floor and fits its card: where the month names do not fit,
@@ -471,7 +506,7 @@ function stateOf(column: Column | undefined) {
  *  drawing read against itself instead of against zero. */
 function seriesFrame(
   periods: readonly ChartPeriod[], series: readonly ChartSeries[],
-  spark: boolean, format: (n: number) => string, rows = false,
+  spark: boolean, format: (n: number) => string, rows = false, grouping = 'Period',
 ): Frame {
   if (rows) {
     const odd = series.length > 1 ? series[1] : series.find((s) => s.shape === 'line');
@@ -529,7 +564,7 @@ function seriesFrame(
       id: s.id, name: s.name, shape: shapeOf(s),
       tone: s.tone ?? (shapeOf(s) === 'line' ? 'neutral' : 'accent'),
     })),
-    tableHead: ['Period', ...series.map((s) => s.name)],
+    tableHead: [grouping, ...series.map((s) => s.name)],
     tableRows: columns.map((column, i) => ({
       column,
       cells: series.map((s) => (Number.isFinite(s.values[i]) ? format(s.values[i]) : MISSING)),
@@ -600,6 +635,7 @@ function noNegative(variant: string, values: readonly { name: string; value: num
 function lookFrame(
   variant: 'line' | 'area' | 'stacked', look: string,
   periods: readonly ChartPeriod[], series: readonly ChartLookSeries[], format: (n: number) => string,
+  grouping = 'Period',
 ): Frame {
   if (variant !== 'line') noNegative(variant, series.flatMap((s) => s.values.map((value) => ({ name: s.name, value }))));
   const columns = periods.map((p) => columnOf(p, p.label.split(' ')[0]));
@@ -633,7 +669,7 @@ function lookFrame(
     lines: [],
     links: false,
     keys: layers.map((l) => ({ id: l.id, name: l.name, tone: l.tone, shape })),
-    tableHead: ['Period', ...series.map((s) => s.name), ...(stacked ? ['Total'] : [])],
+    tableHead: [grouping, ...series.map((s) => s.name), ...(stacked ? ['Total'] : [])],
     tableRows: columns.map((column, i) => ({
       column,
       cells: [
@@ -706,14 +742,15 @@ function KeyMark({ shape }: { shape: Key['shape'] }) {
 export function Chart(props: ChartProps) {
   const {
     title, format, formatAxis = format, height, table, legend: keyed = false, selectable, selected,
-    onSelect, className,
+    onSelect, className, figure, trend, ranges, range, onRangeChange,
   } = props;
-  const variant = props.variant ?? 'months';
+  // `months` is the deprecated name of `bars`: it draws the same chart, with the same class.
+  const variant = !props.variant || props.variant === 'months' ? 'bars' : props.variant;
   const spark = variant === 'spark';
-  /** The months chart's rows look draws a bar across for each period. */
-  const named = props.variant === undefined || props.variant === 'months' ? props.look === 'rows' : false;
-  /** The months chart's look A columns: bars share the card and the plot fits it. */
-  const fit = variant === 'months' && !named;
+  /** The bars chart's rows look draws a bar across for each period. */
+  const named = props.variant === undefined || props.variant === 'bars' || props.variant === 'months' ? props.look === 'rows' : false;
+  /** The bars chart's look A columns: bars share the card and the plot fits it. */
+  const fit = variant === 'bars' && !named;
   const showValues = fit && 'values' in props && props.values === true;
   const plotHeight = height ?? HEIGHT[variant];
   const showTable = table ?? !spark;
@@ -742,9 +779,15 @@ export function Chart(props: ChartProps) {
    *  the readout and the announcement to the gesture that asked for them. */
   const pointerFocus = useRef(false);
   /** The row a key stepped to, which the readout's placement scrolls into view
-   *  first, and the page scroll that move makes, which keeps the readout open. */
+   *  first, and the page scroll the chart itself makes, which keeps the readout open. */
   const reveal = useRef<string | null>(null);
   const revealing = useRef(false);
+  /** What runs when that scroll ends. */
+  const afterHold = useRef<(() => void)[]>([]);
+  /** Ends a hold that is still on, with its listeners, frame and timer. */
+  const endHold = useRef<(() => void) | null>(null);
+  /** The mark whose readout is open, for a hold that ends after it changed. */
+  const shown = useRef<string | null>(null);
 
   const floor = useTapFloor();
   const textWidth = useTextWidth(frameEl);
@@ -772,15 +815,18 @@ export function Chart(props: ChartProps) {
   const series = props.variant === 'bridge' || props.variant === 'donut' ? undefined : props.series;
   const slices = props.variant === 'donut' ? props.slices : undefined;
   const totalLabel = props.variant === 'donut' ? props.totalLabel ?? 'Total' : 'Total';
+  /** The table's first head, with its first letter raised: `month` heads it `Month`. */
+  const grouping = 'grouping' in props && props.grouping
+    ? props.grouping.charAt(0).toUpperCase() + props.grouping.slice(1) : undefined;
   const lookName: string | undefined = props.variant === 'line' || props.variant === 'area'
     || props.variant === 'stacked' || props.variant === 'donut'
     ? props.look ?? LOOK_DEFAULT[props.variant] : undefined;
   const frame = useMemo<Frame>(() => {
     if (steps) return bridgeFrame(steps, bridgeTones, format);
     if (slices) return donutFrame(lookName as ChartDonutLook, slices, totalLabel, format);
-    if (lookName) return lookFrame(variant as 'line' | 'area' | 'stacked', lookName, periods ?? [], series ?? [], format);
-    return seriesFrame(periods ?? [], (series ?? []) as readonly ChartSeries[], spark, format, named);
-  }, [steps, bridgeTones, slices, totalLabel, lookName, variant, periods, series, spark, format, named]);
+    if (lookName) return lookFrame(variant as 'line' | 'area' | 'stacked', lookName, periods ?? [], series ?? [], format, grouping);
+    return seriesFrame(periods ?? [], (series ?? []) as readonly ChartSeries[], spark, format, named, grouping);
+  }, [steps, bridgeTones, slices, totalLabel, lookName, variant, periods, series, spark, format, named, grouping]);
   const { columns, scale, lines, keys, tableHead, tableRows, look } = frame;
   /** The look draws its own box: rows as tall as the target floor, or a ring. */
   const columnsLayout = !look || look.layout === 'columns';
@@ -805,7 +851,7 @@ export function Chart(props: ChartProps) {
   const boxHeight = Math.max(plotHeight, floor);
   const boxTop = -(boxHeight - plotHeight) / 2;
   const span = scale.max - scale.min || 1;
-  /* The first period that is not final, where the months chart draws its
+  /* The first period that is not final, where the bars chart draws its
      boundary and the "Not final" group label over the plot. */
   const groupFrom = fit ? columns.findIndex((c) => c.estimated) : -1;
   /* The group a column draws, and one bar's slot inside it. The cap is the
@@ -964,15 +1010,13 @@ export function Chart(props: ChartProps) {
     const tip = tipEl.current;
     if (!tip) return;
     const layered = topLayer;
+    shown.current = openId;
     if (!openId) {
       if (layered && tip.matches(':popover-open')) tip.hidePopover();
       return;
     }
     if (!frameEl.current || !svgEl.current) return;
-    // Matched by attribute rather than by an interpolated selector: a series id
-    // is the caller's string and may carry a quote.
-    const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
-      .find((el) => el.getAttribute('data-anchor') === openId);
+    const anchor = markOf(openId);
     // The readout floats over the page, so the view and its card bound it: it
     // opens above its mark, over the legend if it must.
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
@@ -981,15 +1025,8 @@ export function Chart(props: ChartProps) {
     // The row comes into view before the readout is placed: the readout then
     // opens above it, or under it where the view has no room above.
     // why: guidelines/hover-readouts.md#provide-another-access-method
-    const hit = reveal.current === openId ? anchor.parentElement?.querySelector('.ui-chart__hit') : null;
+    if (reveal.current === openId) bring(anchor);
     reveal.current = null;
-    if (hit?.scrollIntoView) {
-      revealing.current = true;
-      hit.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
-      // The scroll events of that move arrive before the next frame's callbacks.
-      const view = frameEl.current.ownerDocument.defaultView;
-      view?.requestAnimationFrame(() => view.requestAnimationFrame(() => { revealing.current = false; }));
-    }
     if (layered && !tip.matches(':popover-open')) tip.showPopover();
     if (layered) placeChartTip(anchor, tip);
     else placeTip(frameEl.current, anchor, tip);
@@ -1005,8 +1042,9 @@ export function Chart(props: ChartProps) {
       // keyboard reader who scrolls the plot keeps it open. A page scroll with
       // the pointer still closes it. why: guidelines/hover-readouts.md#keep-readouts-over-the-page
       if (event?.target === scroller.current) return;
-      // A key's own move of a row into view is not the reader's scroll.
-      if (event?.type === 'scroll' && revealing.current) return;
+      // The chart's own move of the page is not the reader's scroll. The
+      // readout follows its mark through it.
+      if (event?.type === 'scroll' && revealing.current && movesChart(event)) { place(openId); return; }
       setOpenId(null);
     };
     const escape = (event: globalThis.KeyboardEvent) => {
@@ -1023,6 +1061,87 @@ export function Chart(props: ChartProps) {
       view.removeEventListener('resize', hide);
     };
   }, [openId]);
+
+  /** True for a scroll that moves the chart: the page's, or a box that holds it. */
+  const movesChart = (event: globalThis.Event) => {
+    const target = event.target;
+    return target === frameEl.current?.ownerDocument
+      || (target instanceof Node && Boolean(frameEl.current && target.contains(frameEl.current)));
+  };
+
+  /** Holds the readout open through a page scroll the chart causes: a key's
+   *  move of a row into view, or the browser's move of the frame into view when
+   *  a key focuses it. The hold ends after two frames in which nothing that holds
+   *  the chart scrolls. A smooth scroll moves the page in each frame, so the hold
+   *  lasts to its end. The reader's wheel, touch move or scroll key ends the hold
+   *  at once, and so does HOLD_LIMIT: then the queued row reveal does not run, so
+   *  it cannot move the page back, and the reader's scroll closes the readout. */
+  const hold = (then?: () => void) => {
+    const view = frameEl.current?.ownerDocument.defaultView;
+    if (!view) return;
+    if (then) afterHold.current.push(then);
+    if (revealing.current) return;
+    revealing.current = true;
+    const doc = view.document;
+    // The scroll events of a frame arrive before that frame's callbacks.
+    let still = 0;
+    let frame = 0;
+    const moved = (event: globalThis.Event) => { if (movesChart(event)) still = 0; };
+    // A key the chart takes is the chart's own: it prevents the default scroll.
+    const input = (event: globalThis.Event) => {
+      if (event instanceof view.KeyboardEvent && (event.defaultPrevented || !SCROLL_KEYS.has(event.key))) return;
+      end(false);
+    };
+    const end = (reveal: boolean) => {
+      view.cancelAnimationFrame(frame);
+      view.clearTimeout(limit);
+      for (const [type, listener, options] of listeners) doc.removeEventListener(type, listener, options);
+      revealing.current = false;
+      endHold.current = null;
+      const queued = afterHold.current.splice(0);
+      if (reveal) queued.forEach((run) => run());
+    };
+    // One list adds and removes each listener, so both use the same capture.
+    // The key listener is on the bubble side, after the chart's own handler.
+    const listeners: [string, (event: globalThis.Event) => void, AddEventListenerOptions][] = [
+      ['scroll', moved, { capture: true }],
+      ['wheel', input, { capture: true, passive: true }],
+      ['touchmove', input, { capture: true, passive: true }],
+      ['keydown', input, {}],
+    ];
+    for (const [type, listener, options] of listeners) doc.addEventListener(type, listener, options);
+    const tick = () => {
+      still += 1;
+      if (still < 2) { frame = view.requestAnimationFrame(tick); return; }
+      end(true);
+    };
+    const limit = view.setTimeout(() => end(false), HOLD_LIMIT);
+    endHold.current = () => end(false);
+    frame = view.requestAnimationFrame(tick);
+  };
+  useEffect(() => () => endHold.current?.(), []);
+
+  // Matched by attribute rather than by an interpolated selector: a series id
+  // is the caller's string and may carry a quote.
+  const markOf = (id: string | null) => [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
+    .find((el) => el.getAttribute('data-anchor') === id);
+
+  /** Scrolls a mark's row into view, as the chart's own scroll. */
+  const bring = (anchor: Element) => {
+    const hit = anchor.parentElement?.querySelector('.ui-chart__hit');
+    if (!hit?.scrollIntoView) return;
+    hold();
+    hit.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+  };
+
+  /** Places the open readout beside its mark, and returns that mark. */
+  const place = (id: string | null) => {
+    const anchor = markOf(id);
+    if (!anchor || !frameEl.current || !tipEl.current) return null;
+    if (topLayer) placeChartTip(anchor, tipEl.current);
+    else placeTip(frameEl.current, anchor, tipEl.current);
+    return anchor;
+  };
 
   // Escape dismisses the mark it was pressed on; the readout comes back on the
   // next one, not on that one. why: docs/components.md#tooltip
@@ -1127,16 +1246,40 @@ export function Chart(props: ChartProps) {
         { value: 'table', label: 'Table', icon: 'table', iconOnly: true },
       ]} />
   );
+  /* The head over the plot: the main figure, then the range menu with the trend
+     at the row's end. The trend stands beside the figure it changes, never on
+     the plot, and its tooltip says what it is measured against.
+     why: guidelines/dashboards-and-reports.md#put-the-trend-in-the-charts-head */
+  const shownRange = ranges?.find((r) => r.value === range);
+  const pickRange = ranges && ranges.length > 0 && (
+    <Dropdown variant="select" triggerClass="ui-dropdown__trigger--text" ariaLabel={`${title}, range`}
+      align="start" value={shownRange?.label} selectedValue={range}
+      items={ranges.map((r) => ({ value: r.value, label: r.label }))}
+      onSelect={(value) => onRangeChange?.(String(value))} />
+  );
+  const summary = (figure || trend || pickRange) && (
+    <div className="ui-chart__summary">
+      {figure && <p className="ui-stat__value">{figure}</p>}
+      {(pickRange || trend) && (
+        <div className="ui-chart__range">
+          {pickRange}
+          {trend && (
+            <Tooltip text={trend.basis}><span className="ui-chart__trend">{trend.value}</span></Tooltip>
+          )}
+        </div>
+      )}
+    </div>
+  );
   const noun = look?.layout === 'ring' ? 'slices'
     : look?.layout === 'rows' || look?.layout === 'named' ? 'rows' : 'columns';
 
   /* The period row. A bridge prints every step's short name, wrapped at a word
      break inside its column, so no step goes unnamed. Where one word alone is
      wider than the column, wrapping cannot help, so the bridge keeps a column as
-     wide as that word and scrolls sideways. The other variants, months among
+     wide as that word and scrolls sideways. The other variants, bars among
      them, step by the whole label, counted from the first period that is not
      final, or from the latest one, so the period a reader came for keeps its
-     label. A months chart then prints fewer names and keeps every bar (#906). */
+     label. A bars chart then prints fewer names and keeps every bar (#906). */
   const wrapAtWords = variant === 'bridge';
   /** A period label's drawn width: the picked column's label carries the
    *  semibold weight, the rest the body weight, so placement measures each
@@ -1149,7 +1292,7 @@ export function Chart(props: ChartProps) {
   const widestWord = wrapAtWords
     ? Math.max(0, ...columns.flatMap((c) => c.short.split(/\s+/).map((word) => textWidth(word)))) + LABEL_GAP
     : labelRoom;
-  /** The column the plot keeps, `--ui-chart-col` in the sheet: a months chart
+  /** The column the plot keeps, `--ui-chart-col` in the sheet: a bars chart
    *  keeps none and fits its card, and a bridge column is its widest word. */
   const floorCol = fit ? 0 : variant === 'bridge' ? Math.ceil(widestWord) : null;
   const anchor = groupFrom >= 0 ? groupFrom : count - 1;
@@ -1220,6 +1363,7 @@ export function Chart(props: ChartProps) {
         '--ui-chart-bottom': `${PAD + roomBottom}px`,
       } as CSSProperties}
     >
+      {summary}
       {toCard && createPortal(viewSwitch, toCard)}
       {((showTable && !toCard) || (legendFirst && legend)) && (
         <div className="ui-chart__head">
@@ -1242,8 +1386,16 @@ export function Chart(props: ChartProps) {
           if (event.target !== event.currentTarget) return;
           if (pointerFocus.current) { pointerFocus.current = false; return; }
           const column = inView(cursor);
+          const id = lead(column)?.id;
+          // The browser moves the frame into view after this handler. On a rows
+          // look the open row can still be under the view, so it follows.
+          // why: guidelines/hover-readouts.md#provide-another-access-method
+          hold(look?.layout === 'rows' || look?.layout === 'named' ? () => {
+            const anchor = shown.current === id ? markOf(id) : undefined;
+            if (anchor) { bring(anchor); place(id ?? null); }
+          } : undefined);
           setCursor(column);
-          show(lead(column)?.id);
+          show(id);
           announce(column);
         }}
         onBlur={(event) => {
@@ -1275,14 +1427,11 @@ export function Chart(props: ChartProps) {
           aria-label={overflows ? `${title}. Scroll for more ${noun}.` : undefined}
           onScroll={() => {
             setScrolled(scroller.current?.scrollLeft ?? 0);
-            const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
-              .find((el) => el.getAttribute('data-anchor') === openId);
-            if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
+            const anchor = place(openId);
+            if (!anchor || !scroller.current) return;
             const mark = anchorScreenBox(anchor);
             const view = scroller.current.getBoundingClientRect();
             if (mark.left + mark.width <= view.left || mark.left >= view.right) setOpenId(null);
-            else if (topLayer) placeChartTip(anchor, tipEl.current);
-            else placeTip(frameEl.current, anchor, tipEl.current);
           }}
         >
           <div ref={plot} className="ui-chart__plot">
@@ -1329,8 +1478,9 @@ export function Chart(props: ChartProps) {
                 // The nearest focusable ancestor of a mark is the scroller, so a
                 // click parked focus on it and a pointer reader never heard that
                 // the arrows do anything. The named group takes focus however
-                // the chart is entered.
-                frameEl.current?.focus();
+                // the chart is entered. The pressed mark is in view, so the page
+                // stays where it is.
+                frameEl.current?.focus({ preventScroll: true });
                 pointerFocus.current = false;
                 const opened = opening.current;
                 opening.current = false;
@@ -1399,7 +1549,7 @@ export function Chart(props: ChartProps) {
                 <path
                   key={`bar-${mark.id}`}
                   className={cx('ui-chart__bar', `ui-chart__tone--${mark.tone}`,
-                    mark.estimated && 'is-estimated')}
+                    mark.estimated && 'is-estimated', mark.id === openId && 'is-active')}
                   d={barPath(mark)}
                 />
               ))}
@@ -1473,7 +1623,7 @@ export function Chart(props: ChartProps) {
                   )}
                   <rect
                     data-anchor={mark.id} className="ui-chart__anchor"
-                    x={px(mark.x)} y={px(mark.y)} width={px(mark.w)} height="0"
+                    x={px(mark.x)} y={px(mark.y)} width={px(mark.w)} height={px(mark.h)}
                   />
                 </g>
               ))}

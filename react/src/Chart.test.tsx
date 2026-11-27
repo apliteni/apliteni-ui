@@ -54,6 +54,10 @@ const months = (extra: Partial<React.ComponentProps<typeof Chart>> = {}) => rend
 const frame = () => screen.getByRole('group', { name: /Arrow keys/ });
 /** The view switch in the corner is the first stop, so the frame is the second. */
 const tabToFrame = async (user: ReturnType<typeof userEvent.setup>) => { await user.tab(); await user.tab(); };
+/** Waits for a number of animation frames. */
+const frames = async (count: number) => {
+  for (let i = 0; i < count; i += 1) await new Promise((done) => requestAnimationFrame(done));
+};
 const showTable = () => fireEvent.click(screen.getByRole('button', { name: 'Table' }));
 const plot = () => screen.getByRole('img');
 const markEl = (id: string) => plot().querySelector(`[data-mark="${id}"] .ui-chart__hit`) as Element;
@@ -1025,9 +1029,9 @@ const zeroX = (container: HTMLElement) => Number(container.querySelector('.ui-ch
 
 it('draws a rows look as signed bars across the full plot, each full name above its bar', () => {
   const { container } = rowsChart(300);
-  expect(container.querySelector('.ui-chart'), 'the look names itself').toHaveClass('ui-chart--months-rows');
+  expect(container.querySelector('.ui-chart'), 'the look names itself').toHaveClass('ui-chart--bars-rows');
   expect(readRepo('../../src/styles/chart.css'), 'the rows look keeps no column floor')
-    .toMatch(/\.ui-chart--months-rows \.ui-chart__plot,[\s\S]*?\{ min-width: 0; \}/);
+    .toMatch(/\.ui-chart--bars-rows \.ui-chart__plot,[\s\S]*?\{ min-width: 0; \}/);
   const svg = container.querySelector('.ui-chart__svg')!;
   expect(svg.getAttribute('width'), 'the plot is the card\'s width').toBe('300');
   expect(container.querySelector('.ui-chart__periods'), 'no period row under the plot').toBeNull();
@@ -1077,6 +1081,9 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   const user = userEvent.setup();
   rowsChart(300, { table: false });
   expect(frame()).toHaveAccessibleName('Margin by unit. Arrow keys step through the 6 rows.');
+  // The anchor is as tall as the row's bar, so a readout below the row clears it.
+  const bar = plot().querySelector('[data-anchor="margin-0"]')!;
+  expect(Number(bar.getAttribute('height')), 'the anchor spans its bar').toBeGreaterThan(0);
   await user.tab();
   expect(screen.getByRole('status')).toHaveTextContent(/^Infrastructure Operations\. Margin €42,000\.$/);
   fireEvent.keyDown(frame(), { key: 'ArrowDown' });
@@ -1101,6 +1108,112 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   expect(document.querySelector('.ui-tip')).not.toHaveClass('is-open');
   hover('margin-5');
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Shared Services$/);
+  // A design review of 9924a393: Tab back onto the chart opens the cursor row,
+  // and the browser's move of the frame into view can leave that row under the
+  // view. The row comes into view when the page is still.
+  fireEvent.mouseLeave(plot());
+  await user.tab({ shift: true });
+  Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this); };
+  scrolled.length = 0;
+  await user.tab();
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Quality Assurance$/);
+  await frames(3);
+  expect(scrolled, 'the open row comes into view after the entry')
+    .toEqual([plot().querySelector('[data-mark="margin-4"] .ui-chart__hit')]);
+  // A design review of f9e6f26f: a wheel during the entry is the reader's. It
+  // ends the hold, the queued row reveal does not move the page back, and the
+  // wheel's scroll closes the readout.
+  await user.tab({ shift: true });
+  scrolled.length = 0;
+  await user.tab();
+  fireEvent.wheel(document, { deltaY: 120 });
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'the reader\'s scroll closes the readout').toBeNull();
+  await frames(3);
+  expect(scrolled, 'the wheel cancels the queued row reveal').toEqual([]);
+  // A scroll key the chart does not take is the reader's too.
+  await user.tab({ shift: true });
+  await user.tab();
+  fireEvent.keyDown(document.body, { key: 'PageDown' });
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'a scroll key ends the hold').toBeNull();
+  await frames(3);
+  expect(scrolled, 'the scroll key cancels the queued row reveal').toEqual([]);
+  delete (Element.prototype as Partial<Element>).scrollIntoView;
+  vi.restoreAllMocks();
+});
+
+// A design review of f9e6f26f: a scroll that never stops kept the hold on, so
+// the queued reveal moved the page when it stopped. The hold ends at its time
+// limit and cancels the reveal, and a scroll of a box that does not hold the
+// chart does not keep it on. Limits: the limit's callback is called directly,
+// as JSDOM moves no page; stories/chart-fit.test.js walks a real wheel.
+it('bounds the hold of a Tab entry in time, and to the boxes that hold the chart', async () => {
+  const user = userEvent.setup();
+  const timers = vi.spyOn(window, 'setTimeout');
+  const scrolled: Element[] = [];
+  Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this); };
+  const { unmount } = rowsChart(300, { table: false });
+  await user.tab();
+  const limit = timers.mock.calls.find(([, ms]) => ms === 1000)?.[0] as (() => void) | undefined;
+  expect(limit, 'the hold sets its time limit').toBeTypeOf('function');
+  fireEvent.scroll(document);
+  limit!();
+  await frames(3);
+  expect(scrolled, 'the time limit cancels the queued row reveal').toEqual([]);
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'after the limit a page scroll closes the readout').toBeNull();
+
+  const other = document.body.appendChild(document.createElement('div'));
+  await user.tab({ shift: true });
+  await user.tab();
+  fireEvent.scroll(other);
+  expect(screen.queryByRole('tooltip'), 'a box that does not hold the chart is not the chart\'s scroll').toBeNull();
+  other.remove();
+
+  // A review of 6c72f6fb: the hold removed its key listener with another
+  // capture than it added it with, so each entry left one on the document. The
+  // ledger keys a listener by its target, type, capture and function, as the
+  // browser does. Limits: it sees only the document and the window.
+  await user.tab({ shift: true });
+  await frames(3);
+  const live = new Map<string, number>();
+  const ids = new Map<unknown, number>();
+  const key = (on: string, type: string, fn: unknown, options?: boolean | EventListenerOptions) => {
+    const capture = typeof options === 'boolean' ? options : Boolean(options?.capture);
+    if (!ids.has(fn)) ids.set(fn, ids.size + 1);
+    return `${on} ${type} ${capture ? 'capture' : 'bubble'} #${ids.get(fn)}`;
+  };
+  for (const [on, target] of [['document', document], ['window', window]] as const) {
+    const add = target.addEventListener.bind(target);
+    const remove = target.removeEventListener.bind(target);
+    vi.spyOn(target, 'addEventListener').mockImplementation((type, fn, options) => {
+      live.set(key(on, type, fn, options), 1);
+      add(type, fn, options);
+    });
+    vi.spyOn(target, 'removeEventListener').mockImplementation((type, fn, options) => {
+      live.delete(key(on, type, fn, options));
+      remove(type, fn, options);
+    });
+  }
+  const listening = () => [...live.keys()].map((id) => id.replace(/ #\d+$/, '')).sort();
+  for (let entry = 0; entry < 3; entry += 1) {
+    await user.tab();
+    expect(listening(), 'the hold listens for the reader\'s scroll and the chart\'s own').toEqual([
+      'document keydown bubble', 'document keydown bubble', 'document scroll capture',
+      'document scroll capture', 'document touchmove capture', 'document wheel capture', 'window resize bubble',
+    ]);
+    // The hold ends after two still frames, and the row reveal it queued holds again.
+    await frames(6);
+    expect(listening(), 'the end of the hold removes each of its listeners; the open readout keeps its own')
+      .toEqual(['document keydown bubble', 'document scroll capture', 'window resize bubble']);
+    await user.tab({ shift: true });
+    expect(listening(), 'a closed readout leaves no listener').toEqual([]);
+  }
+  await user.tab();
+  unmount();
+  expect(listening(), 'an unmount in the hold removes each listener').toEqual([]);
+  delete (Element.prototype as Partial<Element>).scrollIntoView;
   vi.restoreAllMocks();
 });
 
@@ -1623,8 +1736,13 @@ it('an ordinary mouse click is not a tap, and still picks', async () => {
 
 it('a tap after Escape opens the same mark again', () => {
   months();
+  const focus = vi.spyOn(HTMLElement.prototype, 'focus');
   tap('income-1');
   expect(frame(), 'the tap leaves focus on the chart').toHaveFocus();
+  // A design review of 9924a393: at 844×390 the focus scrolled the page, and that
+  // scroll closed the readout the tap opened. The tapped mark is in view already.
+  expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  focus.mockRestore();
   tap('income-2');
   expect(screen.getByRole('tooltip'), 'a tap with the chart focused moves the readout').toHaveTextContent('Mar 2026');
   tap('income-1');
@@ -1750,11 +1868,17 @@ it('opens the keyboard readout on a column in view when the plot opens at its en
 // #863 (a design review of 63cffc79 found Home and the arrows hid the readout).
 // A page scroll with the pointer still closes it. JSDOM fires no scroll when a
 // scrollLeft is written, so this fires the events and mocks the boxes the
-// re-place reads.
+// re-place reads. A design review of 9924a393: the browser's move of the frame
+// into view on Tab closed the readout that the focus opened. That move ends
+// after two frames with no scroll, and the reader's scroll after it closes the
+// readout. Limits: JSDOM moves no page, so stories/chart-fit.test.js reads the
+// boxes in a browser.
 it('keeps the keyboard readout open when the chart\'s own plot scrolls, and closes it on a page scroll', async () => {
   const user = userEvent.setup();
   const { container } = months();
   await tabToFrame(user);
+  fireEvent.scroll(document);
+  expect(screen.getByRole('tooltip'), 'the move of the frame into view keeps the readout').toHaveClass('is-open');
   fireEvent.keyDown(frame(), { key: 'ArrowRight' });
   expect(screen.getByRole('tooltip')).toHaveClass('is-open');
 
@@ -1768,6 +1892,7 @@ it('keeps the keyboard readout open when the chart\'s own plot scrolls, and clos
   fireEvent.scroll(scroller);
   expect(screen.getByRole('tooltip'), 'the chart\'s own plot scroll keeps the readout open').toHaveClass('is-open');
 
+  await frames(3);
   fireEvent.scroll(document);
   expect(screen.queryByRole('tooltip'), 'a page scroll still closes the readout').toBeNull();
   vi.restoreAllMocks();
@@ -2320,6 +2445,15 @@ it('places a wrapped readout by its wrapped height near the top of a scrolled ca
 
     hover('income-0');
     expect(tip.classList.contains('is-below'), 'the wrapped readout moves below the mark instead of clipping above').toBe(true);
+    // #863, the owner's choice: a readout below its mark opens under the mark's
+    // bottom, clear of the bar it describes, and not over it from its top.
+    expect(tip.style.getPropertyValue('--ui-tip-y'), 'below, the readout clears the bar').toBe('80px');
+    // A view too short for that moves it up only as far as the view's floor:
+    // 180 less the 8px gap less the readout's 96px.
+    Object.defineProperty(document.documentElement, 'clientHeight', { value: 180, configurable: true });
+    fireEvent.mouseLeave(plot());
+    hover('income-0');
+    expect(tip.style.getPropertyValue('--ui-tip-y'), 'the readout stays in the view').toBe('76px');
   } finally {
     layer.restore();
   }
@@ -2602,5 +2736,136 @@ it('names the lines of a two-line story in a key while no readout is open', () =
     expect(key).toHaveTextContent('Income');
     expect(key).toHaveTextContent('Spend');
     cleanup();
+  }
+});
+
+/* -- #863: the bars name, the head, the active bar, the line fill and the table --- */
+
+it('draws `bars` by default, and `months` as the same chart with the same class', () => {
+  const markup = (variant?: 'bars' | 'months') => {
+    const { container } = render(<Chart variant={variant} title="Income and spend by month"
+      periods={periods} series={series} format={eur} />);
+    const html = container.innerHTML.replace(/_r_\w+_|«r\w+»|:r\w+:/g, 'ID');
+    cleanup();
+    return html;
+  };
+  const bars = markup('bars');
+  expect(bars, 'the bars chart carries its own class').toContain('ui-chart--bars');
+  expect(bars, 'no class keeps the old name').not.toContain('ui-chart--months');
+  expect(markup('months'), 'the deprecated name draws the same chart').toBe(bars);
+  expect(markup(), 'no variant draws the bars chart').toBe(bars);
+});
+
+it('heads the table\'s first column with the grouping, or with Period', () => {
+  months({ grouping: 'month' } as object);
+  showTable();
+  expect(screen.getAllByRole('columnheader')[0], 'the grouping, with its first letter raised').toHaveTextContent(/^Month$/);
+  cleanup();
+  lookChart('line');
+  showTable();
+  expect(screen.getAllByRole('columnheader')[0], 'no grouping keeps the old head').toHaveTextContent(/^Period$/);
+});
+
+it('draws the figure, the range menu and the trend in the head, and no trend on the plot', async () => {
+  const user = userEvent.setup();
+  const onRangeChange = vi.fn();
+  const { container } = months({
+    figure: '€5,000', trend: { value: '+€1k', basis: 'Compared with €4,000 in the previous 4 months' },
+    ranges: [{ value: '3', label: 'Last 3 months' }, { value: '4', label: 'Last 4 months' }],
+    range: '4', onRangeChange,
+  } as object);
+  const summary = container.querySelector('.ui-chart__summary') as HTMLElement;
+  expect(summary, 'the head stands first, over the plot').toBe(container.querySelector('.ui-chart')!.firstElementChild);
+  expect(summary.querySelector('.ui-stat__value')).toHaveTextContent('€5,000');
+  const trend = within(summary).getByText('+€1k');
+  expect(plot().contains(trend), 'the trend is not drawn on the plot').toBe(false);
+  expect(trend.closest('.ui-focusable'), 'the basis is reachable by a Tab stop')
+    .toHaveAccessibleDescription('Compared with €4,000 in the previous 4 months');
+  const pick = within(summary).getByRole('button', { name: 'Income and spend by month, range: Last 4 months' });
+  expect(classOf(pick), 'a text trigger, not a pill').toContain('ui-dropdown__trigger--text');
+  await user.click(pick);
+  const list = screen.getByRole('listbox', { name: 'Income and spend by month, range' });
+  expect(within(list).getByRole('option', { name: 'Last 4 months' }), 'the shown range is checked')
+    .toHaveAttribute('aria-selected', 'true');
+  await user.click(within(list).getByRole('option', { name: 'Last 3 months' }));
+  expect(onRangeChange).toHaveBeenCalledWith('3');
+});
+
+it('draws no head when the caller gives no figure, trend or range', () => {
+  const { container } = months();
+  expect(container.querySelector('.ui-chart__summary')).toBeNull();
+});
+
+it('makes the hovered or tapped bar the one active bar, and none when the pointer leaves', () => {
+  months();
+  /** A bar's path: the one whose box holds its mark's anchor box. */
+  const bar = (id: string) => {
+    const rect = plot().querySelector(`[data-anchor="${id}"]`)!;
+    const [x, y, height] = ['x', 'y', 'height'].map((name) => Number(rect.getAttribute(name)));
+    const mid = y + height / 2;
+    return [...plot().querySelectorAll('path.ui-chart__bar')].find((el) => {
+      const b = boxOf(el);
+      return Math.abs(b.x - x) < 0.11 && b.y <= mid && mid <= b.y + b.height;
+    });
+  };
+  const active = () => [...plot().querySelectorAll('path.ui-chart__bar.is-active')];
+  expect(active(), 'no bar is active at rest').toHaveLength(0);
+  hover('income-1');
+  expect(active(), 'the hovered bar alone').toEqual([bar('income-1')]);
+  fireEvent.mouseLeave(plot());
+  expect(active(), 'none once the pointer leaves').toHaveLength(0);
+  tap('spend-2');
+  expect(active(), 'a tap makes its bar active too').toEqual([bar('spend-2')]);
+  cleanup();
+  // A rows look draws one bar in each row, in the order of its rows.
+  const { container } = rowsChart(300);
+  const rowBar = (i: number) => container.querySelectorAll('path.ui-chart__bar')[i];
+  hover('margin-2');
+  expect(active(), 'the hovered row bar alone').toEqual([rowBar(2)]);
+  fireEvent.mouseLeave(plot());
+  tap('margin-4');
+  expect(active(), 'a tapped row bar too').toEqual([rowBar(4)]);
+});
+
+it('keeps the active bar at full strength with no transition, and the rest at the sheet\'s one rest rule', () => {
+  const css = readRepo('../../src/styles/chart.css');
+  const barRules = [...css.matchAll(/([^{}]*\.ui-chart__bar[^{}]*)\{([^}]*)\}/g)];
+  const rest = barRules.filter(([, , body]) => /opacity/.test(body));
+  expect(rest, 'one rule sets a bar\'s rest strength').toHaveLength(1);
+  expect(rest[0][1], 'the active bar is left out of it').toContain(':not(.is-active)');
+  expect(rest[0][2]).toMatch(/opacity:\s*0\.85/);
+  expect(barRules.filter(([, , body]) => /transition|animation/.test(body)),
+    'a hover changes the bar at once').toEqual([]);
+});
+
+it('fills under each line, from its tone at 20% to nothing at the floor', () => {
+  const { container } = lookChart('line', 'thin');
+  const fills = [...container.querySelectorAll('path.ui-chart__line-fill')];
+  expect(fills.map(toneOf), 'one fill under each line, in its tone').toEqual(['accent', 'info']);
+  for (const fill of fills) {
+    const ramp = /url\(#([^)]+)\)/.exec(fill.getAttribute('style') ?? '')![1];
+    const stops = [...container.querySelector(`[id="${ramp}"]`)!.querySelectorAll('stop')].map(classOf);
+    expect(stops).toEqual(['ui-chart__fill-floor', 'ui-chart__fill-top']);
+  }
+  const css = readRepo('../../src/styles/chart.css');
+  expect(css).toMatch(/\.ui-chart__fill-top \{[^}]*stop-opacity: 0\.2;/);
+  expect(css).toMatch(/\.ui-chart__fill-floor \{[^}]*stop-opacity: 0;/);
+  cleanup();
+  const area = lookChart('area', 'flat');
+  expect(area.container.querySelector('.ui-chart__line-fill'), 'an area keeps its own fill').toBeNull();
+});
+
+it('sizes each table column to its longest cell', () => {
+  const style = document.createElement('style');
+  style.textContent = readRepo('../../src/styles/table.css') + readRepo('../../src/styles/chart.css');
+  document.head.append(style);
+  try {
+    months();
+    showTable();
+    expect(getComputedStyle(screen.getByRole('table')).width, 'the table takes its content\'s width').toBe('auto');
+    // The scroll frame is a grid, which stretches an item across its track.
+    expect(getComputedStyle(screen.getByRole('table')).justifySelf, 'and starts its track').toBe('start');
+  } finally {
+    style.remove();
   }
 });

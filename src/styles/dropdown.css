@@ -90,6 +90,20 @@
 .ui-dropdown__trigger:disabled .ui-dropdown__value,
 .ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
 .ui-dropdown__value { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
+/* A text trigger: its words and the caret stand on the surface, with no pill, so it
+   reads inline with the text around it. The edge stays transparent at rest, and the
+   hover edge, the ring and the off paint above are the trigger's own. The negative
+   start margin puts the words on the text edge of the surface.
+   why: docs/components.md#dropdown */
+.ui-dropdown__trigger--text {
+  background: transparent; /* code-bg: inherit — the containing surface is the ground of a text trigger. */
+  border-color: transparent;
+  font-size: var(--text-base);
+  font-weight: var(--weight-normal);
+  padding-inline: var(--space-3);
+  margin-inline-start: calc(var(--space-3) * -1);
+}
+.ui-dropdown__trigger--text .ui-dropdown__value { color: var(--text); font-weight: var(--weight-normal); letter-spacing: normal; }
 
 /* Chevron — border caret that flips when the container is .open. Its ink is an L
    on a rotated square, so centring the BOX leaves the mark off centre; --caret-off

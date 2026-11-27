@@ -321,8 +321,9 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 178: Drawers gained status-after-title (#868).
   // 179: Dropdown added trigger-value (#899).
   // 180: Motion gained hover-at-once (#865).
-  // 184: Selection bar added three rules and Component choice selection-bar (#902).
-  assert.equal(count, 184, 'update the rule count when adding or removing a rule');
+  // 181: Dashboards and reports gained trend-in-head (#863).
+  // 185: Selection bar added three rules and Component choice selection-bar (#902).
+  assert.equal(count, 185, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

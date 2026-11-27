@@ -959,7 +959,7 @@ drift.
 
 ## Chart
 
-`Chart` draws three shapes from the kit's tokens: `months`, a column per period with bars and
+`Chart` draws three shapes from the kit's tokens: `bars`, a column per period with bars and
 a line across them; `bridge`, one period walked from a starting total to a result; and `spark`,
 one series at text size with no axis, for a stat band's `trend` slot. The `line`, `area`,
 `stacked` and `donut` variants and their looks are in `docs/components.md`.
@@ -969,10 +969,10 @@ live region and the table; `formatAxis` prints the ticks, which are whole units,
 to `format`. A `bars-below` series takes positive magnitudes and is drawn under the zero line.
 A period marked `estimated` keeps its solid mark in the series ink. `estimated: 'incomplete'` marks
 the period that is still running, `'projected'` a future period, and `true` any other estimate.
-A months chart draws one solid line before the first period that is not final, with "Not final"
+A bars chart draws one solid line before the first period that is not final, with "Not final"
 over that group. The readout and the optional table say "Incomplete", "Projected" or
 "Estimated", followed by the `note`. A period with `compare: false` shows its value in the
-readout with no comparison. A months chart fits its card and does not scroll: it draws every bar,
+readout with no comparison. A bars chart fits its card and does not scroll: it draws every bar,
 prints fewer month names where they do not fit, and no two printed names overlap. `values` prints
 each bar's value where it fits. For categories whose names must all print, such as units with a
 signed margin, set `look="rows"`: each full `label` stands above a bar across, and the bars use
