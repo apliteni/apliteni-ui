@@ -49,6 +49,10 @@ const TALL = 'react-chart--long-category-names';
 const SUBJECT = '.ui-chart--bars, .ui-chart--bars-rows, .ui-chart--bridge';
 
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
+// The reduced-motion sheet gives each change a 0.01ms transition, so a bar's strength is read
+// after its transitions finish.
+const settled = () => Promise.all(document.getAnimations()
+  .filter((a) => a instanceof CSSTransition).map((a) => a.finished.catch(() => {})));
 
 // Each subject chart's sideways overflow, and the page's.
 const FIT = (selector) => {
@@ -130,6 +134,7 @@ async function walk(page, label, index, touch) {
   for (const [name, act] of steps) {
     await act();
     await page.evaluate(frames);
+    await page.evaluate(settled);
     const s = await page.evaluate(READ, index);
     const at = `${label} ${name}`;
     if (!s.focus) found.push(`${at}: the focus left the chart`);
