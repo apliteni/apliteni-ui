@@ -1,7 +1,8 @@
 // Gate: a link in running text is underlined at rest, and a link in a table cell is not.
 // why: docs/foundations.md#text-ink
 //
-// Every story in both workspaces is mounted once, under the light theme, with the kit's sheet
+// Every story that Storybook serves from both workspaces (`.stories.tsx` and `.stories.ts`) is
+// mounted once, under the light theme, with the kit's sheet
 // and this workspace's. Each `a[href]` is sorted by where it stands, not by its class:
 //
 //  - table: inside a `td` or `th` of a `.ui-table`. Docs/components.md "Links in cells" promises
@@ -20,11 +21,14 @@
 //  - A link whose words around it sit in a `display: inline-block` element counts as a
 //    control, because the gate cannot tell that box from a badge.
 //  - One theme only. No theme rule writes `text-decoration`.
+//  - The census pins the count of each kind for each story with links. A link that moves from one
+//    story to another in the same change keeps the sums, but changes two census rows.
 //  - A control drawn as `display: block` is not asserted, because a flex parent gives a plain
 //    link the same value.
 import { describe, it, expect, afterEach, beforeAll } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
+import CENSUS from './link-underline.census.json';
 import { fileURLToPath } from 'node:url';
 import type { ReactElement } from 'react';
 // @ts-expect-error -- untyped JS module, shared with the contrast walk.
@@ -44,7 +48,8 @@ const useSheet = (kit: string) => { styleEl.textContent = `${kit}\n${LOCAL}`; };
 
 type Story = { render?: (args: unknown, ctx: unknown) => ReactElement; args?: Record<string, unknown> };
 type StoryModule = { default?: Story } & Record<string, unknown>;
-const modules = import.meta.glob<StoryModule>(['./**/*.stories.tsx', '../../stories/**/*.stories.tsx'], { eager: true });
+// The extensions that .storybook/main.js serves: `*.stories.@(tsx|ts)`.
+const modules = import.meta.glob<StoryModule>(['./**/*.stories.{tsx,ts}', '../../stories/**/*.stories.{tsx,ts}'], { eager: true });
 const stories = Object.keys(modules).sort().flatMap((file) => {
   const def = modules[file].default || {};
   return Object.entries(modules[file])
@@ -102,7 +107,8 @@ function mount(story: (typeof stories)[number]) {
 
 afterEach(cleanup);
 
-const total: Record<Kind, number> = { text: 0, table: 0, control: 0 };
+// The count of each kind, as [text, table, control], for each story with at least one link.
+const measured: Record<string, number[]> = {};
 
 describe('link underline: every story', () => {
   beforeAll(() => useSheet(KIT));
@@ -110,18 +116,17 @@ describe('link underline: every story', () => {
     it(story.id, () => {
       mount(story);
       const { wrong, seen } = walk();
-      for (const kind of Object.keys(seen) as Kind[]) total[kind] += seen[kind];
+      if (seen.text + seen.table + seen.control > 0) measured[story.id] = [seen.text, seen.table, seen.control];
       expect(wrong, story.id).toEqual([]);
     }, 30_000);
   }
-  // A walk that found no links passes and proves nothing. These floors are under the counts the
-  // walk printed when it was written (0.222.0): 490 stories, text 8, table 92, control 1012.
-  it('found links of each kind', () => {
-    console.log(`link-underline: ${stories.length} stories; text ${total.text}, table ${total.table}, control ${total.control}`);
+  // A walk that found no links passes and proves nothing, and a sum hides one story that lost its
+  // links. So each story with links must measure the census row it had when it was written. When
+  // a story gains or loses a link on purpose, copy its measured row into link-underline.census.json.
+  it('measured the census of links in each story', () => {
     expect(stories.length).toBeGreaterThanOrEqual(450);
-    expect(total.text).toBeGreaterThanOrEqual(8);
-    expect(total.table).toBeGreaterThanOrEqual(80);
-    expect(total.control).toBeGreaterThanOrEqual(900);
+    expect(Object.keys(CENSUS).length).toBeGreaterThan(0);
+    expect(measured).toEqual(CENSUS);
   });
 });
 
@@ -130,11 +135,24 @@ const TEXT_STORY = '../../stories/guidelines/DensityAndAccents.stories.tsx:Densi
 const TABLE_STORY = './showcases/Notifications.stories.tsx:SideNavPage';
 const byId = (id: string) => stories.find((s) => s.id === id)!;
 
+// No story writes a link with a class that is not the kit's, so this paragraph stands in for an
+// app's. A kit class beside it shows that the kit's own anchors stay as they are.
+describe('link underline: a class that is not the kit\'s', () => {
+  beforeAll(() => useSheet(KIT));
+  it('underlines a text link with an empty class or an unrelated class', () => {
+    render(<p>Read <a href="#a" className="">the terms</a> and <a href="#b" className="analytics-link">the
+      report</a>, or <a href="#c" className="ui-btn ui-btn--ghost">open</a> it.</p>);
+    const [empty, unrelated, kit] = document.querySelectorAll('a');
+    expect([empty, unrelated].map(kindOf)).toEqual(['text', 'text']);
+    expect([underlined(empty), underlined(unrelated), underlined(kit)]).toEqual([true, true, false]);
+  });
+});
+
 describe('link underline: the gate rejects', () => {
   afterEach(() => useSheet(KIT));
 
   it('a text link with no underline at rest', () => {
-    const mutated = KIT.replace(/a:where\(:not\(\[class\]\)\)\s*\{\s*text-decoration:\s*underline;?\s*\}/, '');
+    const mutated = KIT.replace(/a:where\(:not\(\[class\^="ui-"\], \[class\*=" ui-"\], \.brand\)\) \{ text-decoration: underline; \}/, '');
     expect(mutated, 'the base rule for a link in text is not in the sheet').not.toBe(KIT);
     useSheet(mutated);
     mount(byId(TEXT_STORY));
