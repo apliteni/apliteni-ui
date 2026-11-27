@@ -764,9 +764,13 @@ export function Chart(props: ChartProps) {
    *  the readout and the announcement to the gesture that asked for them. */
   const pointerFocus = useRef(false);
   /** The row a key stepped to, which the readout's placement scrolls into view
-   *  first, and the page scroll that move makes, which keeps the readout open. */
+   *  first, and the page scroll the chart itself makes, which keeps the readout open. */
   const reveal = useRef<string | null>(null);
   const revealing = useRef(false);
+  /** What runs when that scroll ends. */
+  const afterHold = useRef<(() => void)[]>([]);
+  /** The mark whose readout is open, for a hold that ends after it changed. */
+  const shown = useRef<string | null>(null);
 
   const floor = useTapFloor();
   const textWidth = useTextWidth(frameEl);
@@ -989,15 +993,13 @@ export function Chart(props: ChartProps) {
     const tip = tipEl.current;
     if (!tip) return;
     const layered = topLayer;
+    shown.current = openId;
     if (!openId) {
       if (layered && tip.matches(':popover-open')) tip.hidePopover();
       return;
     }
     if (!frameEl.current || !svgEl.current) return;
-    // Matched by attribute rather than by an interpolated selector: a series id
-    // is the caller's string and may carry a quote.
-    const anchor = [...svgEl.current.querySelectorAll('[data-anchor]')]
-      .find((el) => el.getAttribute('data-anchor') === openId);
+    const anchor = markOf(openId);
     // The readout floats over the page, so the view and its card bound it: it
     // opens above its mark, over the legend if it must.
     // why: guidelines/hover-readouts.md#prefer-above-the-mark
@@ -1006,15 +1008,8 @@ export function Chart(props: ChartProps) {
     // The row comes into view before the readout is placed: the readout then
     // opens above it, or under it where the view has no room above.
     // why: guidelines/hover-readouts.md#provide-another-access-method
-    const hit = reveal.current === openId ? anchor.parentElement?.querySelector('.ui-chart__hit') : null;
+    if (reveal.current === openId) bring(anchor);
     reveal.current = null;
-    if (hit?.scrollIntoView) {
-      revealing.current = true;
-      hit.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
-      // The scroll events of that move arrive before the next frame's callbacks.
-      const view = frameEl.current.ownerDocument.defaultView;
-      view?.requestAnimationFrame(() => view.requestAnimationFrame(() => { revealing.current = false; }));
-    }
     if (layered && !tip.matches(':popover-open')) tip.showPopover();
     if (layered) placeChartTip(anchor, tip);
     else placeTip(frameEl.current, anchor, tip);
@@ -1030,8 +1025,9 @@ export function Chart(props: ChartProps) {
       // keyboard reader who scrolls the plot keeps it open. A page scroll with
       // the pointer still closes it. why: guidelines/hover-readouts.md#keep-readouts-over-the-page
       if (event?.target === scroller.current) return;
-      // A key's own move of a row into view is not the reader's scroll.
-      if (event?.type === 'scroll' && revealing.current) return;
+      // The chart's own move of the page is not the reader's scroll. The
+      // readout follows its mark through it.
+      if (event?.type === 'scroll' && revealing.current) { place(openId); return; }
       setOpenId(null);
     };
     const escape = (event: globalThis.KeyboardEvent) => {
@@ -1048,6 +1044,52 @@ export function Chart(props: ChartProps) {
       view.removeEventListener('resize', hide);
     };
   }, [openId]);
+
+  /** Holds the readout open through a page scroll the chart causes: a key's
+   *  move of a row into view, or the browser's move of the frame into view when
+   *  a key focuses it. The hold ends after two frames with no scroll. A smooth
+   *  scroll moves the page in each frame, so the hold lasts to its end. */
+  const hold = (then?: () => void) => {
+    const view = frameEl.current?.ownerDocument.defaultView;
+    if (!view) return;
+    if (then) afterHold.current.push(then);
+    if (revealing.current) return;
+    revealing.current = true;
+    // The scroll events of a frame arrive before that frame's callbacks.
+    let still = 0;
+    const moved = () => { still = 0; };
+    view.document.addEventListener('scroll', moved, true);
+    const tick = () => {
+      still += 1;
+      if (still < 2) { view.requestAnimationFrame(tick); return; }
+      view.document.removeEventListener('scroll', moved, true);
+      revealing.current = false;
+      afterHold.current.splice(0).forEach((run) => run());
+    };
+    view.requestAnimationFrame(tick);
+  };
+
+  // Matched by attribute rather than by an interpolated selector: a series id
+  // is the caller's string and may carry a quote.
+  const markOf = (id: string | null) => [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
+    .find((el) => el.getAttribute('data-anchor') === id);
+
+  /** Scrolls a mark's row into view, as the chart's own scroll. */
+  const bring = (anchor: Element) => {
+    const hit = anchor.parentElement?.querySelector('.ui-chart__hit');
+    if (!hit?.scrollIntoView) return;
+    hold();
+    hit.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+  };
+
+  /** Places the open readout beside its mark, and returns that mark. */
+  const place = (id: string | null) => {
+    const anchor = markOf(id);
+    if (!anchor || !frameEl.current || !tipEl.current) return null;
+    if (topLayer) placeChartTip(anchor, tipEl.current);
+    else placeTip(frameEl.current, anchor, tipEl.current);
+    return anchor;
+  };
 
   // Escape dismisses the mark it was pressed on; the readout comes back on the
   // next one, not on that one. why: docs/components.md#tooltip
@@ -1292,8 +1334,16 @@ export function Chart(props: ChartProps) {
           if (event.target !== event.currentTarget) return;
           if (pointerFocus.current) { pointerFocus.current = false; return; }
           const column = inView(cursor);
+          const id = lead(column)?.id;
+          // The browser moves the frame into view after this handler. On a rows
+          // look the open row can still be under the view, so it follows.
+          // why: guidelines/hover-readouts.md#provide-another-access-method
+          hold(look?.layout === 'rows' || look?.layout === 'named' ? () => {
+            const anchor = shown.current === id ? markOf(id) : undefined;
+            if (anchor) { bring(anchor); place(id ?? null); }
+          } : undefined);
           setCursor(column);
-          show(lead(column)?.id);
+          show(id);
           announce(column);
         }}
         onBlur={(event) => {
@@ -1325,14 +1375,11 @@ export function Chart(props: ChartProps) {
           aria-label={overflows ? `${title}. Scroll for more ${noun}.` : undefined}
           onScroll={() => {
             setScrolled(scroller.current?.scrollLeft ?? 0);
-            const anchor = [...(svgEl.current?.querySelectorAll('[data-anchor]') ?? [])]
-              .find((el) => el.getAttribute('data-anchor') === openId);
-            if (!anchor || !scroller.current || !frameEl.current || !tipEl.current) return;
+            const anchor = place(openId);
+            if (!anchor || !scroller.current) return;
             const mark = anchorScreenBox(anchor);
             const view = scroller.current.getBoundingClientRect();
             if (mark.left + mark.width <= view.left || mark.left >= view.right) setOpenId(null);
-            else if (topLayer) placeChartTip(anchor, tipEl.current);
-            else placeTip(frameEl.current, anchor, tipEl.current);
           }}
         >
           <div ref={plot} className="ui-chart__plot">
@@ -1379,8 +1426,9 @@ export function Chart(props: ChartProps) {
                 // The nearest focusable ancestor of a mark is the scroller, so a
                 // click parked focus on it and a pointer reader never heard that
                 // the arrows do anything. The named group takes focus however
-                // the chart is entered.
-                frameEl.current?.focus();
+                // the chart is entered. The pressed mark is in view, so the page
+                // stays where it is.
+                frameEl.current?.focus({ preventScroll: true });
                 pointerFocus.current = false;
                 const opened = opening.current;
                 opening.current = false;

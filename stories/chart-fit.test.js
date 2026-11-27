@@ -24,6 +24,13 @@
  * is active, and it draws at full strength. On a rows look the open row's bar is that bar.
  * After Escape no bar is active.
  *
+ * The second test enters the rows look of react-chart--long-category-names at 844×390, in
+ * light and dark, with the page's smooth scroll on. It taps the first row, taps the last row,
+ * tabs onto the chart, and tabs back onto it with the cursor on the last row. After the page
+ * is still for 30 frames, about 500ms, the chart has the focus, the readout is open, one bar
+ * draws at full strength, and its row lies inside the view. A page scroll after that closes
+ * the readout.
+ *
  * Its limits: one engine and the default accent. A wider bridge and the line, area, stacked
  * and donut charts may scroll, so they are not subjects. The fixed check reads every
  * element the page fixes, except the readout, which follows its mark. The Storybook canvas has
@@ -48,6 +55,16 @@ const TALL = 'react-chart--long-category-names';
 /** The charts that must fit: a months chart, its rows look, and a bridge of up to four steps. */
 const SUBJECT = '.ui-chart--bars, .ui-chart--bars-rows, .ui-chart--bridge';
 
+// Resolves when the page has not scrolled for 30 frames, about 500ms at 60Hz.
+const quiet = () => new Promise((ok) => {
+  let y = scrollY;
+  let still = 0;
+  const tick = () => {
+    if (scrollY !== y) { y = scrollY; still = 0; } else still += 1;
+    if (still >= 30) ok(); else requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+});
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
 // The reduced-motion sheet gives each change a 0.01ms transition, so a bar's strength is read
 // after its transitions finish.
@@ -90,6 +107,7 @@ const READ = (index) => {
     view: window.innerHeight,
     // The strength of each active bar, and whether the chart is a rows look.
     active: [...chart.querySelectorAll('path.ui-chart__bar.is-active')].map((el) => getComputedStyle(el).opacity),
+    bar: span(chart.querySelector('path.ui-chart__bar.is-active')),
     rows: chart.matches('.ui-chart--bars-rows'),
   };
   function span(el) {
@@ -99,8 +117,8 @@ const READ = (index) => {
   }
 };
 
-async function open(browser, port, vitals, context, story, theme) {
-  const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion: 'reduce' });
+async function open(browser, port, vitals, context, story, theme, motion = 'reduce') {
+  const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion: motion });
   await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
   const page = await ctx.newPage();
   await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}`);
@@ -287,6 +305,97 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
       if (target.classList?.contains('is-active') && target.matches('path')) target.classList.remove('is-active');
     })).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] })),
       'the open row has no active bar', TALL);
+    assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
+  } finally {
+    await browser.close();
+    server.proc.kill();
+  }
+});
+
+// One entry onto the rows look: a tap on the first or the last row, or Tab. The browser's move
+// of the page that the entry causes is not the reader's scroll, so the readout stays open.
+async function enter(page, label, how) {
+  const chart = page.locator('.ui-chart').first();
+  const hits = chart.locator('.ui-chart__hit');
+  const tabIn = async () => {
+    for (let i = 0; i < 6; i += 1) {
+      if (await chart.locator('.ui-chart__frame').evaluate((el) => el === document.activeElement)) return;
+      await page.keyboard.press('Tab');
+    }
+  };
+  if (how === 'tap: the first row') await hits.first().tap();
+  if (how === 'tap: the last row') { await hits.last().scrollIntoViewIfNeeded(); await page.evaluate(quiet); await hits.last().tap(); }
+  if (how === 'key: Tab') await tabIn();
+  if (how === 'key: Tab back on the last row') {
+    await tabIn();
+    await page.keyboard.press('End');
+    await page.keyboard.press('Shift+Tab');
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    await page.evaluate(quiet);
+    await page.keyboard.press('Tab');
+  }
+  await page.evaluate(quiet);
+  await page.evaluate(settled);
+  const s = await page.evaluate(READ, 0);
+  const at = `${label} ${how}`;
+  const found = [];
+  const outside = (box) => !box || box[0] < -0.5 || box[1] > s.view + 0.5;
+  if (!s.focus) found.push(`${at}: the focus left the chart`);
+  if (!s.open) found.push(`${at}: no readout after the entry`);
+  if (s.active.length !== 1 || s.active[0] !== '1') found.push(`${at}: the active bars draw at [${s.active.join(', ')}]`);
+  else if (outside(s.bar)) found.push(`${at}: the open row is out of view, ${s.bar.map(Math.round).join(' to ')} in a ${s.view}px view`);
+  await page.evaluate(() => scrollBy({ top: 40, behavior: 'instant' }));
+  await page.evaluate(quiet);
+  if (await page.evaluate(() => Boolean(document.querySelector('.ui-tip.is-open')))) found.push(`${at}: a page scroll after the entry left the readout open`);
+  return found;
+}
+
+const ENTRIES = ['tap: the first row', 'tap: the last row', 'key: Tab', 'key: Tab back on the last row'];
+
+test('a rows look keeps its readout and its active bar through the page move of a tap or a Tab entry', {
+  skip: process.env.CHART_FIT !== '1' && 'set CHART_FIT=1',
+}, async () => {
+  const { serve, playwright } = await import('./lib/dropdown-contain.js');
+  const pw = await playwright();
+  assert.ok(pw, 'CHART_FIT=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  assert.ok(process.env.UI_WEB_VITALS && existsSync(process.env.UI_WEB_VITALS), 'point UI_WEB_VITALS at web-vitals/dist/web-vitals.iife.js');
+  const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
+  const build = path.join(root, 'storybook-static');
+  assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const landscape = { viewport: { width: 844, height: 390 }, hasTouch: true };
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  try {
+    const run = async (how, theme, setup) => {
+      const { ctx, page } = await open(browser, server.port, vitals, landscape, TALL, theme, 'no-preference');
+      if (setup) await setup(page);
+      const found = await enter(page, `844×390 ${theme}`, how);
+      await ctx.close();
+      return found;
+    };
+    const findings = [];
+    let measured = 0;
+    for (const theme of THEMES) {
+      for (const how of ENTRIES) { findings.push(...await run(how, theme)); measured += 1; }
+    }
+    assert.equal(measured, THEMES.length * ENTRIES.length, 'an entry or a theme was not measured');
+    assert.deepEqual(findings, []);
+
+    // The mutations: each check must see its own failure.
+    const caught = [];
+    // A tap's focus that scrolls the page, as 9924a393 did.
+    caught.push(['tap scroll', (await run('tap: the first row', 'light', (page) => page.evaluate(() => {
+      const focus = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function scrolling() { focus.call(this); };
+    }))).some((f) => f.includes('no readout'))]);
+    // A page scroll that closes the readout, as the entry's move did in 9924a393.
+    caught.push(['entry scroll', (await run('key: Tab', 'light', (page) => page.evaluate(() => {
+      document.addEventListener('scroll', () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })), true);
+    }))).some((f) => f.includes('no readout'))]);
+    // A re-entry that leaves the open row under the view.
+    caught.push(['row out of view', (await run('key: Tab back on the last row', 'light', (page) => page.evaluate(() => {
+      Element.prototype.scrollIntoView = () => {};
+    }))).some((f) => f.includes('out of view'))]);
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
   } finally {
     await browser.close();

@@ -54,6 +54,10 @@ const months = (extra: Partial<React.ComponentProps<typeof Chart>> = {}) => rend
 const frame = () => screen.getByRole('group', { name: /Arrow keys/ });
 /** The view switch in the corner is the first stop, so the frame is the second. */
 const tabToFrame = async (user: ReturnType<typeof userEvent.setup>) => { await user.tab(); await user.tab(); };
+/** Waits for a number of animation frames. */
+const frames = async (count: number) => {
+  for (let i = 0; i < count; i += 1) await new Promise((done) => requestAnimationFrame(done));
+};
 const showTable = () => fireEvent.click(screen.getByRole('button', { name: 'Table' }));
 const plot = () => screen.getByRole('img');
 const markEl = (id: string) => plot().querySelector(`[data-mark="${id}"] .ui-chart__hit`) as Element;
@@ -1101,6 +1105,19 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   expect(document.querySelector('.ui-tip')).not.toHaveClass('is-open');
   hover('margin-5');
   expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Shared Services$/);
+  // A design review of 9924a393: Tab back onto the chart opens the cursor row,
+  // and the browser's move of the frame into view can leave that row under the
+  // view. The row comes into view when the page is still.
+  fireEvent.mouseLeave(plot());
+  await user.tab({ shift: true });
+  Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this); };
+  scrolled.length = 0;
+  await user.tab();
+  expect(screen.getByRole('tooltip').querySelector('.ui-tip__label')).toHaveTextContent(/^Quality Assurance$/);
+  await frames(3);
+  expect(scrolled, 'the open row comes into view after the entry')
+    .toEqual([plot().querySelector('[data-mark="margin-4"] .ui-chart__hit')]);
+  delete (Element.prototype as Partial<Element>).scrollIntoView;
   vi.restoreAllMocks();
 });
 
@@ -1616,8 +1633,13 @@ it('an ordinary mouse click is not a tap, and still picks', async () => {
 
 it('a tap after Escape opens the same mark again', () => {
   months();
+  const focus = vi.spyOn(HTMLElement.prototype, 'focus');
   tap('income-1');
   expect(frame(), 'the tap leaves focus on the chart').toHaveFocus();
+  // A design review of 9924a393: at 844×390 the focus scrolled the page, and that
+  // scroll closed the readout the tap opened. The tapped mark is in view already.
+  expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+  focus.mockRestore();
   tap('income-2');
   expect(screen.getByRole('tooltip'), 'a tap with the chart focused moves the readout').toHaveTextContent('Mar 2026');
   tap('income-1');
@@ -1743,11 +1765,17 @@ it('opens the keyboard readout on a column in view when the plot opens at its en
 // #863 (a design review of 63cffc79 found Home and the arrows hid the readout).
 // A page scroll with the pointer still closes it. JSDOM fires no scroll when a
 // scrollLeft is written, so this fires the events and mocks the boxes the
-// re-place reads.
+// re-place reads. A design review of 9924a393: the browser's move of the frame
+// into view on Tab closed the readout that the focus opened. That move ends
+// after two frames with no scroll, and the reader's scroll after it closes the
+// readout. Limits: JSDOM moves no page, so stories/chart-fit.test.js reads the
+// boxes in a browser.
 it('keeps the keyboard readout open when the chart\'s own plot scrolls, and closes it on a page scroll', async () => {
   const user = userEvent.setup();
   const { container } = months();
   await tabToFrame(user);
+  fireEvent.scroll(document);
+  expect(screen.getByRole('tooltip'), 'the move of the frame into view keeps the readout').toHaveClass('is-open');
   fireEvent.keyDown(frame(), { key: 'ArrowRight' });
   expect(screen.getByRole('tooltip')).toHaveClass('is-open');
 
@@ -1761,6 +1789,7 @@ it('keeps the keyboard readout open when the chart\'s own plot scrolls, and clos
   fireEvent.scroll(scroller);
   expect(screen.getByRole('tooltip'), 'the chart\'s own plot scroll keeps the readout open').toHaveClass('is-open');
 
+  await frames(3);
   fireEvent.scroll(document);
   expect(screen.queryByRole('tooltip'), 'a page scroll still closes the readout').toBeNull();
   vi.restoreAllMocks();

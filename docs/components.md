@@ -1602,7 +1602,9 @@ Right, Home and End move between columns and announce each one. Enter picks a co
 screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
 new tap on the same mark opens its readout again. Every value is
 reachable at full strength by pointer or keyboard. A readout in a scrolling region stays fully
-visible over the region and opens above its mark when that space is available.
+visible over the region and opens above its mark when that space is available. When a tap or Tab
+moves the page to show the chart, the readout stays open and its row comes into view. A scroll
+by the reader closes the readout.
 
 ### Table values
 
