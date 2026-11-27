@@ -34,7 +34,7 @@
 
 **Why:** One accented action is easier to find than several competing actions.
 
-**Do:** Make Open order the primary action and Copy reference the secondary action. Keep the amount and date neutral.
+**Do:** Make Open order primary and Copy reference secondary. Keep the amount and date neutral.
 
 **Don't:** Make both actions primary or colour every label and value with the accent.
 
