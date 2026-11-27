@@ -1,6 +1,5 @@
 // Rule: a dropdown row and a version row show a hover step in both themes with no outline
-// (#595). The quiet row ground keeps a smaller step in dark, the owner's exception in
-// rev_32e9894c9f71/d76 (#888), and it may not fall under that recorded step, and a dropdown row draws its focus ring inward so a scrolled row's ring is never clipped (#649).
+// (#595), and a dropdown row draws its focus ring inward so a scrolled row's ring is never clipped (#649).
 // Every menu row in the shipped sheets keeps both, and a bleeding menu head keeps a gap above the
 // first row (#824). A group label is bold in muted ink, so it stands apart from the options, and it
 // keeps 4.5:1 on the panel in each theme and accent. A disabled option is paler than the label and
@@ -54,9 +53,6 @@ const hoverFill = (text, theme, row = '.ui-dropdown__item') => {
 /** The largest channel difference between two colours, in levels of 255. */
 const distance = (a, b) => Math.max(...[0, 1, 2].map((i) => Math.abs(a[i] - b[i])));
 const HOVER_STEP = 8;
-/* The owner chose the quiet ground over the 8-level step in dark: the neutral check marks a
-   chosen row, and hover stays at a glance. Measured 3.6 levels. rev_32e9894c9f71/d76, #888 */
-const STEP_EXCEPTIONS = { '--float-row-fill': { dark: 3.5 } };
 
 for (const [row, text] of ROWS) for (const theme of ['light', 'dark']) {
   test(`a hovered ${row} row differs from the panel in ${theme}`, () => {
@@ -65,9 +61,8 @@ for (const [row, text] of ROWS) for (const theme of ['light', 'dark']) {
     assert.ok(fill, `${theme}: no hover fill found`);
     const panel = colourOf('var(--bg-elevated)', tokens);
     const step = distance(colourOf(`var(${fill})`, tokens), panel);
-    const floor = STEP_EXCEPTIONS[fill]?.[theme] ?? HOVER_STEP;
     assert.ok(step > 0, `${theme}: the hover fill ${fill} equals the panel ground, so hover changes nothing`);
-    assert.ok(step >= floor, `${theme}: the hover fill ${fill} is ${step.toFixed(1)} levels off the panel ground, under ${floor}`);
+    assert.ok(step >= HOVER_STEP, `${theme}: the hover fill ${fill} is ${step.toFixed(1)} levels off the panel ground, under ${HOVER_STEP}`);
   });
 }
 
@@ -79,12 +74,6 @@ test('the hover gate fails when the fill goes back to --surface', () => {
     const fill = colourOf(`var(${hoverFill(weakened, 'light', row)})`, tokens);
     assert.equal(distance(fill, colourOf('var(--bg-elevated)', tokens)), 0);
   }
-});
-
-test('the hover gate fails when the quiet ground fades under its recorded dark step', () => {
-  const tokens = tokensFor('dark');
-  const fainter = colourOf('color-mix(in srgb, var(--surface) 15%, var(--bg-elevated))', tokens);
-  assert.ok(distance(fainter, colourOf('var(--bg-elevated)', tokens)) < STEP_EXCEPTIONS['--float-row-fill'].dark);
 });
 
 const inward = (text) => rules(text).filter(([, head]) =>

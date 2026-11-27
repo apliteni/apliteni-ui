@@ -589,8 +589,12 @@ its words on one line. Without `ghost` the trigger keeps its edge.
 - A row names its item in the body weight, as a native list does. A group label is 13px, bold
   and in muted ink, at 5.60:1 on the panel in dark and 6.11:1 in light under every accent. The
   options under it are not indented.
-- Each row answers the pointer with a fill and draws no edge. A destructive row turns `--pink` on
-  hover and focus. In forced colours a separator stays a visible line.
+- The panel has an 18px corner, and each row has a 12px corner 6px inside its edge. The hovered
+  row and the chosen row share one quiet ground and draw no edge. A neutral check marks the chosen
+  row. A focused row has the focus ring and no ground of its own. A destructive row turns `--pink`
+  on hover and focus. In forced colours a separator stays a visible line.
+- A panel that scrolls shows a thin, rounded, neutral scroll bar. Browsers that cannot style the
+  bar parts get their own thin bar.
 
 **Muted or disabled.** Use `muted` for a row that the user can still pick but that is no
 longer current, such as an archived unit for a late invoice. Give it the state word:
@@ -692,8 +696,9 @@ word, in the hidden `ui-dropdown__fit` element. A long
 value stays on one line and ends with an ellipsis.
 
 **Corners.** A one-line field has the 16px field corner. A text area and message box have the
-24px message corner. Cards and floating panels have the 12px surface corner. Where supported,
-these corners use the squircle shape. Other browsers use round corners.
+24px message corner. Cards and floating panels have the 12px surface corner. A dropdown panel has
+the 18px popover corner. Where supported, the field, message and surface corners use the squircle
+shape. Other browsers use round corners. The popover corner is round in every browser.
 
 **A list of options in `SelectField`.** The browser draws the open list, so the kit does not
 style an `<option>`. For an option that the user can still pick but that is no longer current,
@@ -943,8 +948,8 @@ Without `size`, a chip is 40px high.
 name. Each chip takes the width of its longest value, up to 224px. A value change does not change
 that width, and a reload that turns the bar off and on does not change it. Only a value longer
 than 224px ends with an ellipsis. The open menu is at least 240px wide, or the width of the row when the row is narrower. It
-stays inside the row and never makes the page wider. The menu marks the chip's value with a soft
-accent wash and a check. The chevron is at the right edge of the chip. Clear all shows only when
+stays inside the row and never makes the page wider. The menu marks the chip's value as every
+dropdown does, with the quiet row ground and a neutral check. The chevron is at the right edge of the chip. Clear all shows only when
 there is a value to clear. It keeps its room while it does not show, so the content under the bar
 does not move. Clear all clears every filter.
 A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than

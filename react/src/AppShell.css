@@ -62,8 +62,7 @@
 .ui-react-app__menu > .ui-react-app__control { margin-bottom: var(--space-3); }
 /* A finger works the drawer, so its controls are 40px tap targets, as they were on the phone band. */
 .ui-react-app__menu > .ui-react-app__control .toggle { width: 40px; height: 40px; }
-/* A finger picks an account row in the drawer, so the row is the tap floor tall, as a phone row is. */
-.ui-app__drawer .ui-app__user-panel .ui-dropdown__item { min-height: var(--tap-min, 44px); }
+.ui-app__drawer .ui-app__user-panel .ui-dropdown__item { min-height: 40px; }
 /* The head control (#732): one glyph before the fold, drawn as the fold is. The fold is a
    nav row, 9px of padding over a 1lh glyph box at --text-base and line-height 1.2, on the
    --ui-nav-strip column: src/styles/nav.css:64 `padding: 9px 12px;` and

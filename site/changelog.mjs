@@ -1,5 +1,12 @@
 export const RELEASES = [
   {
+    v: '0.225.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
+      ['changed', 'In a dropdown panel, a hovered row and a chosen row now share one quiet ground, the new token `--float-row-fill`, and the check is the text ink, not the accent. A filter chip menu loses its accent wash. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
+    ],
+  },
+  {
     v: '0.224.0', date: '2026-11-27',
     changes: [
       ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],

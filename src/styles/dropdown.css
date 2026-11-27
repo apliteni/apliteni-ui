@@ -644,10 +644,6 @@
 @supports (corner-shape: squircle) {
   .ui-dropdown__search-input { corner-shape: squircle; }
 }
-/* A finger picks a row on a phone, so a row is at least the tap floor tall. */
-@media (max-width: 560px) {
-  .ui-dropdown__item { min-height: var(--tap-min, 44px); }
-}
 /* In a form the trigger takes the text input's block padding and type, so the two
    stand at one height. It keeps the pill, and the input has the field corner. #812, #836
    why: docs/components.md#fields */

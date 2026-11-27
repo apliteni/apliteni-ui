@@ -523,7 +523,9 @@ test('measured in a browser, four widths and both themes', {
  * trigger, the panel opens above it. After each key and click the trigger stays under the
  * pointer, the focus stays in the dropdown while it is open, Escape closes it and gives the
  * focus back to the trigger, no fixed element moves by more than 1px, no box scrolls, the
- * cumulative layout shift stays under 0.1 and the page does not scroll sideways.
+ * cumulative layout shift stays under 0.1 and the page does not scroll sideways. In the open
+ * panel, the hovered row and the chosen row paint the quiet row ground, and a focused row that
+ * is not chosen paints none (#888, rev_32e9894c9f71/d76, rev_92b7f8a56703/d79).
  *
  * Off unless DROPDOWN_EDGES=1, as the sweep above is, and it needs web-vitals too:
  *
@@ -534,7 +536,8 @@ test('measured in a browser, four widths and both themes', {
  * above the select and two below it, at each of ten window sizes and on six devices: the
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
  * phone of 466×678 and 890×626 at scale 3 with touch. One more run scrolls the body when a
- * panel opens, and the walk must report that the trigger moved.
+ * panel opens, and the walk must report that the trigger moved. A last run gives a focused row
+ * a ground, and the walk must report it.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input.
@@ -570,7 +573,25 @@ const FLOAT_READ = () => {
     cls: window.__cls,
     over: doc.scrollWidth - doc.clientWidth,
     view: [innerWidth, innerHeight],
+    rows: rowPaint(panel),
   };
+  // Each painted row against the ground the kit promises it. A probe in the panel resolves
+  // --float-row-fill to the same rgb() string that the cascade gives a row.
+  function rowPaint(box) {
+    if (!dd.classList.contains('open')) return [];
+    const probe = box.appendChild(document.createElement('i'));
+    probe.style.background = 'var(--float-row-fill)';
+    const fill = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return [...box.querySelectorAll('.ui-dropdown__item')].flatMap((row) => {
+      const chosen = row.classList.contains('is-selected');
+      const focus = row.matches(':focus-visible');
+      const want = chosen || (row.matches(':hover') && !focus) ? fill : 'rgba(0, 0, 0, 0)';
+      const got = getComputedStyle(row).backgroundColor;
+      const state = [chosen && 'chosen', focus && 'focused', row.matches(':hover') && 'hovered'].filter(Boolean).join(' ') || 'resting';
+      return got === want ? [] : [`a ${state} row "${row.textContent.trim()}" paints ${got}, not ${want}`];
+    });
+  }
 };
 // Waits for the dropdown to be open or shut and for every animation to end.
 const settle = (page, open) => page.waitForFunction((want) => document.querySelector('.ui-dropdown').classList.contains('open') === want
@@ -581,13 +602,21 @@ const hit = (name, locate, open) => [`${name}`, async (page, touch) => {
   await (touch ? at.tap() : at.click());
   await settle(page, open);
 }];
+// The pointer rests on a row with no click, so the hover paint is read while the panel is open.
+const rest = (name) => [`hover: ${name}`, async (page) => {
+  await page.getByRole('option', { name }).hover();
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'));
+}];
 const FLOAT_ACTIONS = [
   hit('click: trigger', (page) => page.locator('.ui-dropdown [data-dropdown-trigger]'), true),
   press('ArrowDown', true),
   press('End', true),
+  rest('Account 2'),
   press('Escape', false),
   press('ArrowDown', true),
   hit('click: Account 3', (page) => page.getByRole('option', { name: 'Account 3' }), false),
+  press('ArrowDown', true),
+  press('Escape', false),
 ];
 
 // Runs every action and returns the findings and the open panels' sides.
@@ -609,6 +638,7 @@ async function floatWalk(page, label, touch) {
     if (after.scrolled.join() !== before.scrolled.join()) found.push(`${at}: a box scrolled from ${before.scrolled} to ${after.scrolled}`);
     if (!(after.cls < 0.1)) found.push(`${at}: the layout shift is ${after.cls}`);
     if (after.over > 0) found.push(`${at}: the page scrolls ${after.over}px sideways`);
+    for (const row of after.rows) found.push(`${at}: ${row}`);
     if (after.open) {
       if (!after.focus) found.push(`${at}: the focus left the open dropdown`);
       // Below the trigger, unless the view has less than the 120px floor there.
@@ -633,6 +663,12 @@ const SCROLL_ON_OPEN = `new MutationObserver(() => {
   while (box && !['auto', 'scroll'].includes(getComputedStyle(box).overflowY)) box = box.parentElement;
   if (box) box.scrollTop += 80;
 }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });`;
+
+// Gives a focused row a ground of its own: the fill that #888 took off it.
+const FOCUS_GROUND = `document.addEventListener('DOMContentLoaded', () => {
+  const style = document.head.appendChild(document.createElement('style'));
+  style.textContent = '.ui-dropdown__item:focus-visible { background: var(--surface-3); }';
+});`;
 
 test('in a Modal or a Drawer, each key and click opens the panel over the body and moves nothing', {
   skip: !RUN && 'set DROPDOWN_EDGES=1',
@@ -693,6 +729,12 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
     const { found } = await floatWalk(page, 'mutated', false);
     await ctx.close();
     assert.ok(found.some((f) => f.includes('the trigger moved')), `a body scrolled on the open and the walk found: ${found.join('; ') || 'nothing'}`);
+
+    // The second mutation: a focused row that paints a ground must be caught.
+    const ground = await open({ viewport: { width: 1280, height: 800 } }, 'modal', FOCUS_GROUND);
+    const painted = await floatWalk(ground.page, 'focus ground', false);
+    await ground.ctx.close();
+    assert.ok(painted.found.some((f) => /a focused row .* paints/.test(f)), `a focused row painted a ground and the walk found: ${painted.found.join('; ') || 'nothing'}`);
   } finally {
     await browser.close();
     server.proc.kill();

@@ -304,3 +304,66 @@ test('the placement falls back to the number the sheet declares', () => {
   const js = parseFloat(/const DD_GAP = ([\d.]+)/.exec(PLACEMENT)?.[1]);
   assert.equal(js, css, 'DD_GAP in src/logic/dropdown-placement.js is the fallback for a document without the sheet');
 });
+
+// ---- The rounded popover (#888, rev_32e9894c9f71/d76) ----------------------
+// Read as declarations: the sheet states the corner, the inset, the row ground, the check
+// ink and the scroll bar, and a browser draws what it states. The row ground's contrast is
+// stories/selected-fill.test.js and stories/dropdown-row-states.test.js. Not reached here:
+// how an engine draws the -webkit- scroll bar parts, which only a browser shows.
+
+const rulesOf = (selector) => RULES.filter((r) => splitSelectorList(r.selector).includes(selector));
+const px = (value, theme = 'light') => parseFloat(substitute(value, tokensFor(theme)));
+
+test('the panel has the --radius-xl corner and a --radius-xs inset, and a row corner follows it', () => {
+  const panel = rulesOf('.ui-dropdown__panel').find((r) => decl(r, 'border-radius'));
+  assert.equal(decl(panel, 'border-radius'), 'var(--radius-xl)', 'the panel corner is the popover corner');
+  const pad = rulesOf('.ui-dropdown__panel').find((r) => decl(r, '--ui-dropdown-pad'));
+  const border = parseFloat(decl(panel, 'border'));
+  for (const theme of ['light', 'dark']) {
+    assert.equal(px(decl(pad, '--ui-dropdown-pad'), theme) + border, px('var(--radius-xs)', theme),
+      `${theme}: the padding and the border make the --radius-xs inset`);
+  }
+  const item = rulesOf('.ui-dropdown__item').find((r) => decl(r, 'border-radius'));
+  assert.equal(decl(item, 'border-radius'), 'calc(var(--radius-xl) - var(--radius-xs))', 'a row corner is the panel corner less the inset');
+  assert.equal(px('var(--radius-xl)') - px('var(--radius-xs)'), 12, 'a row has a 12px corner');
+  const squircle = RULES.filter((r) => /corner-shape/.test(r.body)).flatMap((r) => splitSelectorList(r.selector));
+  assert.ok(!squircle.some((s) => /^\.ui-dropdown__panel(\s*>|$)/.test(s)), 'the popover has round corners, not the squircle');
+});
+
+test('a hovered row and a chosen row share --float-row-fill, and a focused row paints no ground', () => {
+  for (const selector of ['.ui-dropdown__item.is-selected', '.ui-dropdown__item:hover:not(:focus-visible)']) {
+    const rule = rulesOf(selector).find((r) => decl(r, 'background'));
+    assert.equal(rule && decl(rule, 'background'), 'var(--float-row-fill)', `${selector} takes the quiet row ground`);
+  }
+  const focus = rulesOf('.ui-dropdown__item:focus-visible');
+  assert.ok(focus.length, 'the sheet has a focus rule for a row');
+  assert.ok(focus.every((r) => !decl(r, 'background')), 'a focused row paints no ground of its own');
+  assert.ok(focus.some((r) => decl(r, 'outline') === 'var(--ring-scroll)' && decl(r, 'outline-offset') === 'var(--ring-scroll-offset)'),
+    'a focused row keeps the inward ring');
+  for (const theme of ['light', 'dark']) assert.ok(tokensFor(theme).get('--float-row-fill'), `${theme} defines --float-row-fill`);
+});
+
+test('the check is neutral ink, never the accent', () => {
+  const tick = rulesOf('.ui-dropdown__tick').filter((r) => decl(r, 'color'));
+  assert.ok(tick.length, 'the sheet colours the check');
+  for (const rule of tick) assert.equal(decl(rule, 'color'), 'var(--text)', `${rule.selector} paints the check in --text`);
+  assert.ok(!RULES.some((r) => /__tick/.test(r.selector) && /--accent/.test(r.body)), 'no rule paints the check in the accent');
+});
+
+test('the panel and the search list have a thin, rounded, neutral scroll bar, with a fallback', () => {
+  const css = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const box of ['.ui-dropdown__panel', '.ui-dropdown__list']) {
+    const std = rulesOf(box).find((r) => decl(r, 'scrollbar-width'));
+    assert.equal(std && decl(std, 'scrollbar-width'), 'auto', `${box} leaves Chromium on the -webkit- parts`);
+    assert.equal(decl(rulesOf(`${box}::-webkit-scrollbar`)[0] ?? { body: '' }, 'width'), 'var(--space-2)', `${box}: the bar is --space-2 wide`);
+    const thumb = rulesOf(`${box}::-webkit-scrollbar-thumb`)[0] ?? { body: '' };
+    assert.equal(decl(thumb, 'background'), 'var(--muted)', `${box}: the thumb is neutral --muted`);
+    assert.equal(decl(thumb, 'border-radius'), 'var(--radius-pill)', `${box}: the thumb is rounded`);
+    const track = rulesOf(`${box}::-webkit-scrollbar-track`)[0] ?? { body: '' };
+    assert.equal(decl(track, 'background'), 'transparent', `${box}: the track paints nothing`);
+  }
+  const fallback = /@supports\s+not\s+selector\(::-webkit-scrollbar\)\s*\{([^]*?\})\s*\}/.exec(css)?.[1] ?? '';
+  for (const box of ['.ui-dropdown__panel', '.ui-dropdown__list']) assert.ok(fallback.includes(box), `the fallback reaches ${box}`);
+  assert.match(fallback, /scrollbar-width:\s*thin/, 'an engine without the parts takes the thin bar');
+  assert.match(fallback, /scrollbar-color:\s*var\(--muted\)\s+transparent/, 'and the neutral thumb on no track');
+});

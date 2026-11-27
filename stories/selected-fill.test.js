@@ -42,9 +42,7 @@
 //    somewhere else — the underline strip's bar, the folded rail's plate;
 //  - an ACCENT mark, whose contrast is the accent ledger's subject and
 //    stories/contrast.test.js's, not a step between two surfaces;
-//  - a named EXCLUSION, each with the issue that owns it and the owner's decision. It is
-//    measured against its own recorded floor instead of FILL_FLOOR, so it cannot fade
-//    further or go flat. One stands: the dropdown rows' quiet ground (#888, d76).
+//  - a named EXCLUSION, each with the issue that owns it; none stands today.
 //
 // A box painted WITHIN a selected row rather than being the row's own mark — a count
 // badge, an icon tile — is not discovered at all: its marker sits on an ancestor
@@ -209,6 +207,16 @@ const SUBJECTS = [
     paintedBy: '.ui-dropdown__panel, which dropdown.css paints --bg-elevated',
   },
   {
+    name: 'the chosen row of a dropdown panel',
+    rule: '.ui-dropdown__item.is-selected', ground: '--bg-elevated',
+    paintedBy: '.ui-dropdown__panel, which dropdown.css paints --bg-elevated',
+  },
+  {
+    name: 'the chosen row of the version switch',
+    rule: '.vopt[aria-selected="true"]', ground: '--bg-elevated',
+    paintedBy: '.vsw__menu, which topbar.css paints --bg-elevated',
+  },
+  {
     name: 'the row the command palette would run',
     rule: '.ui-cmdk__item.is-active', ground: '--bg-elevated',
     paintedBy: '.ui-cmdk__panel, through --cmdk-surface',
@@ -229,15 +237,7 @@ const SUBJECTS = [
  * A selected fill this gate does NOT measure, and the reason. Each one is asserted to
  * still resolve to a rule below, so an exclusion cannot outlive its selector.
  */
-const EXCLUSIONS = [
-  ...['.ui-dropdown__item.is-selected', '.vopt[aria-selected="true"]'].map((rule) => ({
-    rule, ground: '--bg-elevated',
-    // The quiet ground the owner chose over the 1.1:1 step: the neutral check marks the
-    // chosen row, and the ground is the hover ground. Measured 1.068 and 1.034.
-    why: '#888, the owner\'s exception rev_32e9894c9f71/d76',
-    floor: { light: 1.06, dark: 1.03 },
-  })),
-];
+const EXCLUSIONS = [];
 
 /** What a declared value paints in one theme. */
 const paint = (value, theme) => {
@@ -275,7 +275,6 @@ const discovered = rules.flatMap((rule) => {
 });
 
 const measured = new Set(SUBJECTS.map((s) => s.rule));
-const excluded = new Set(EXCLUSIONS.map((s) => s.rule));
 const noFill = ({ fill }) => /^(?:none|transparent)$/.test(fill);
 const accent = ({ fill }) => /var\(\s*--(?:accent|glow-|signal-)/.test(fill);
 test('every selected fill in the kit is measured here or answered here', () => {
@@ -283,7 +282,6 @@ test('every selected fill in the kit is measured here or answered here', () => {
   const buckets = { subject: [], 'no fill': [], accent: [] };
   for (const found of discovered) {
     if (measured.has(found.selector)) buckets.subject.push(found);
-    else if (excluded.has(found.selector)) continue;
     else if (noFill(found)) buckets['no fill'].push(found);
     else if (accent(found)) buckets.accent.push(found);
     else unanswered.push(found);
@@ -315,16 +313,6 @@ test('every subject and every exclusion still names a rule that exists', () => {
 });
 
 for (const theme of ['light', 'dark']) {
-  test(`an excluded highlight keeps its recorded floor: ${theme}`, () => {
-    for (const exclusion of EXCLUSIONS) {
-      for (const fill of fillsOf(exclusion.rule)) {
-        const contrast = against(fill, exclusion.ground, theme);
-        assert.ok(contrast >= exclusion.floor[theme],
-          `${exclusion.rule}: ${fill} measures ${contrast.toFixed(3)}:1 in ${theme}, under the `
-          + `${exclusion.floor[theme]}:1 recorded for ${exclusion.why}`);
-      }
-    }
-  });
   test(`a selected item's highlight is visible on its own ground: ${theme}`, () => {
     for (const subject of SUBJECTS) {
       if (subject.themes && !subject.themes.includes(theme)) continue;
@@ -377,14 +365,6 @@ test('a later rule that flattens a subject\'s fill fails this gate', () => {
       `${subject.name} still passes with a later rule repainting it var(${subject.ground}) — `
       + 'the reading is taking one declaration and ignoring the rest, which is the defect '
       + 'the #590 review found. Measure every background the selector is given');
-  }
-});
-
-test('a later rule that flattens an excluded fill fails its recorded floor', () => {
-  for (const exclusion of EXCLUSIONS) {
-    const flattened = [...rules, { selector: exclusion.rule, body: `background: var(${exclusion.ground});` }];
-    const worst = Math.min(...fillsOf(exclusion.rule, flattened).map((fill) => against(fill, exclusion.ground, 'light')));
-    assert.ok(worst < exclusion.floor.light, `${exclusion.rule} still passes with its ground repainted flat`);
   }
 });
 
