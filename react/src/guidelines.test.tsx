@@ -532,4 +532,24 @@ describe('guideline pages in React: Motion', () => {
       for (const s of shots) expect(Math.abs(s.left - (1 - at(curve, s.ms / dur)) * 100), `${s.ms} ms`).toBeLessThanOrEqual(1);
     }
   });
+  // The hover pair draws the row itself: full in the next frame, or part way along a fade over
+  // --dur-fast on --ease. Two tables of timings showed the same rows on both sides. #865 review
+  it('fills the hovered row in the next frame, and the faded row part way at each printed time', () => {
+    const section = mount(page).querySelector('[data-rule="hover-at-once"]');
+    expect(section, 'no rule "hover-at-once" on the page: the gate is checking nothing').toBeTruthy();
+    const fast = parseFloat(brandValue('--duration-fast'));
+    const [doSide, dontSide] = [...section!.querySelectorAll('[data-specimen]')].map(side => {
+      const times = [...side.querySelectorAll('.gm-film > p')].map(p => parseFloat(p.textContent!) || 0);
+      const fills = [...side.querySelectorAll('tr.gm-hover')].map(row => Number((row as HTMLElement).style.getPropertyValue('--gm-fill')));
+      expect(fills.length, 'a frame without its hovered row').toBe(times.length);
+      return times.map((ms, i) => ({ ms, fill: fills[i] }));
+    });
+    // A frame is still: the live hover would paint over its timed fill under the pointer. #865 review
+    const stages = [...section!.querySelectorAll('.gm-film > .gl-stage')];
+    expect(stages.length, 'no frame stage found').toBeGreaterThan(0);
+    for (const stage of stages) expect(getComputedStyle(stage).pointerEvents, 'a still frame answers the pointer').toBe('none');
+    expect(doSide).toEqual([{ ms: 0, fill: 0 }, { ms: 16, fill: 1 }]);
+    expect(dontSide.some(f => f.fill > 0 && f.fill < 1), 'the fade shows no frame part way').toBe(true);
+    for (const f of dontSide) expect(Math.abs(f.fill - at(curves['--ease'], Math.min(f.ms / fast, 1))), `${f.ms} ms`).toBeLessThanOrEqual(0.01);
+  });
 });

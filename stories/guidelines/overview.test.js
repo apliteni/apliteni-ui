@@ -113,8 +113,9 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 177: Dropdown added group-labels (#886).
   // 178: Drawers gained status-after-title (#868).
   // 179: Dropdown added trigger-value (#899).
-  // 180: Dashboards and reports gained trend-in-head (#863).
-  assert.equal(rules, 180);
+  // 180: Motion gained hover-at-once (#865).
+  // 181: Dashboards and reports gained trend-in-head (#863).
+  assert.equal(rules, 181);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

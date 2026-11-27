@@ -18,7 +18,6 @@
   padding: 11px 14px;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
 .ui-tabs__tab:hover { color: var(--strong); }
 .ui-tabs__tab.is-active { color: var(--strong); border-bottom-color: var(--accent); }

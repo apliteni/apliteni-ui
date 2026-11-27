@@ -129,6 +129,27 @@ export function tokensFor(theme, accent = 'default') {
   return vars;
 }
 
+/**
+ * Put a rule's own custom properties in place: `--x: red; border-color: var(--x)` reads as
+ * `border-color: red`. A field writes its edge as an ink and a focus veil,
+ * `color-mix(in srgb, transparent var(--…-veil), <ink>)`, so only the veil fades. That mix
+ * reads as the ink, or as `transparent` where the body sets the veil to 100%.
+ * Limits: only a property the same body declares. A veil that the body does not set reads
+ * as 0%, at rest, so the reading is the settled edge and never a frame of the fade.
+ */
+export function inlineLocals(body) {
+  const locals = new Map([...body.matchAll(/(?:^|[;{\s])(--[\w-]+)\s*:\s*([^;]+)/g)]
+    .map((m) => [m[1], m[2].trim()]));
+  return body.replace(/var\(\s*(--[\w-]+)\s*\)/g, (whole, name) => locals.get(name) ?? whole)
+    .replace(/color-mix\(in srgb, transparent (?:var\(--[\w-]+-veil\)|(\d+)%), ((?:[^()]|\([^()]*\))+)\)/g,
+      (whole, share, ink) => (share === '100' ? 'transparent' : !share || share === '0' ? ink.trim() : whole));
+}
+
+/** Settle each rule that names a field's focus veil, through `inlineLocals`, before the walk
+ *  reads the sheet. The ink and the veil are per-element states, not tokens, so a substitution
+ *  would give every field the last value written anywhere. Limit: as `inlineLocals`. */
+export const settleVeils = (css) => css.replace(/\{([^{}]*-veil\)[^{}]*)\}/g, (whole, body) => `{${inlineLocals(body)}}`);
+
 /** Substitute var() until a pass changes nothing (tokens reference tokens). */
 export function substitute(css, vars) {
   let out = css;
@@ -487,7 +508,7 @@ export function effectiveBackground(el, win, styleOf = (node) => win.getComputed
 export function kitCssFor(theme, accent = 'default') {
   const vars = tokensFor(theme, accent);
   const raw = decomment(STYLE_FILES.map(read).join('\n'));
-  return { vars, css: expandAnchors(desugar(substitute(specialiseContextual(raw), vars))) };
+  return { vars, css: expandAnchors(desugar(substitute(specialiseContextual(settleVeils(raw)), vars))) };
 }
 
 /** The element a state tag sits on, given the text in front of the tag.

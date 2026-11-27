@@ -106,6 +106,8 @@ export { AuthShell } from './AuthShell';
 export type { AuthShellProps } from './AuthShell';
 export { ThreeColumnPage } from './ThreeColumnPage';
 export type { ThreeColumnPageProps, ThreeColumn, ThreeColumnDepth, ThreeColumnMenu } from './ThreeColumnPage';
+export { SplitLayout } from './SplitLayout';
+export type { SplitLayoutProps, SplitLayoutPreview, SplitLayoutPreviewState, SplitLayoutZoom } from './SplitLayout';
 export { Footer } from './Footer';
 export type { FooterProps, FooterLink, FooterColumn, FooterSocial } from './Footer';
 export { EmptyState } from './EmptyState';
