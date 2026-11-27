@@ -33,6 +33,13 @@ type Row = QueryValue & { insert: string };
 // A group is a filter only when each of its parts is a filter. A group with title words stays text.
 const isFilter = (node: QueryNode): boolean => node.type === 'field' || (node.type !== 'text' && node.items.every(isFilter));
 
+// A side with OR outside any parenthesis goes in parentheses, so a space joins it by AND.
+const grouped = (text: string) => {
+  let depth = 0;
+  const or = (text.match(/"[^"]*"|\(|\)|[^\s()"]+/g) || []).some(t => (depth += t === '(' ? 1 : t === ')' ? -1 : 0, !depth && /^OR$/i.test(t)));
+  return or ? `(${text})` : text;
+};
+
 // The last condition: a key with one value word or an open quote, or `@` and a name.
 // A completed value ends at a space, so `state:open @ma` reads `@ma`.
 const KEY_SUFFIX = /(?:^|\s)([\w-]+:\s*(?:"[^"]*"?|[^\s():"]*)|@[^\s()]*)$/;
@@ -102,9 +109,9 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
     input.current?.focus();
   };
   const remove = (i: number) => { onChange({ chips: chips.filter((_, j) => j !== i), draft }); input.current?.focus(); };
-  // The chip goes back after the title words in the field, so the words stay.
+  // The chip goes back after the title words in the field, so the words stay. AND still joins them.
   const edit = (i: number) => {
-    onChange({ chips: chips.filter((_, j) => j !== i), draft: draft.trim() ? `${draft.trim()} ${chips[i]}` : chips[i] });
+    onChange({ chips: chips.filter((_, j) => j !== i), draft: draft.trim() ? `${grouped(draft.trim())} ${grouped(chips[i])}` : chips[i] });
     setChecked(false); setOpen(false);
     input.current?.focus();
   };

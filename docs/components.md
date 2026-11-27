@@ -821,9 +821,10 @@ shows its name and hint on one left edge, and the key's badge at the right edge.
 condition becomes a chip under the field. Only a known key with a valid value, or a known
 person, becomes a chip. Title words stay in the field and match the titles. An unknown key or
 person gives no chip. A click on a chip's label puts it back in the field after the title words,
-and its mark removes it. A query with AND, OR or a parenthesis stays one chip when each of its
-conditions is a filter. A group with title words stays in the field. A query that does not read
-shows its error under the field, with words that say what to change.
+and its mark removes it. A side that holds OR goes in parentheses there, so the matches stay the
+same. A query with AND, OR or a parenthesis stays one chip when each of its conditions is a
+filter. A group with title words stays in the field. A query that does not read shows its
+error under the field, with words that say what to change.
 `peopleStatus` shows Searching people, or People did not load with Retry. The field reads the
 last condition apart from the conditions before it, so `state:open @ma` offers people.
 

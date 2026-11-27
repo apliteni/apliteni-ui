@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import axe from 'axe-core';
 import { QuerySearch, type QuerySearchProps } from './QuerySearch';
-import type { QueryKey, QueryState } from './query';
+import { matchQuery, readQuery, type QueryKey, type QueryState } from './query';
 
 afterEach(cleanup);
 
@@ -120,6 +120,33 @@ describe('QuerySearch', () => {
     await user.keyboard('{Enter}');
     expect(chips()).toEqual(['Open or Ada Lovelace']);
     expect(field()).toHaveValue('');
+  });
+  it('keeps the same matches when a chip goes back to the field beside an OR expression', async () => {
+    // Fabricated tasks, read by the real parser and matcher.
+    const tasks = [
+      { state: 'open', who: 'p1', title: 'Send the report' },
+      { state: 'done', who: 'p2', title: 'File the tax return' },
+      { state: 'done', who: 'p1', title: 'Pay the invoice' },
+      { state: 'open', who: 'p2', title: 'Check the invoice' },
+      { state: 'done', who: 'p2', title: 'Close the books' },
+    ];
+    const matches = (query: QueryState) => tasks.filter((t) => matchQuery(readQuery(query, KEYS).nodes,
+      (key, value) => key === 'state' ? t.state === value : t.who === (value === 'me' ? 'p1' : value),
+      (words) => t.title.toLowerCase().includes(words.toLowerCase()))).map((t) => t.title);
+    const user = userEvent.setup();
+    for (const [chip, draft, label, edited] of [
+      ['state:open OR state:done', 'report', 'Open or Done: edit state:open OR state:done', 'report (state:open OR state:done)'],
+      ['state:open', 'invoice OR report', 'Open: edit state:open', '(invoice OR report) state:open'],
+    ]) {
+      const spy = vi.fn();
+      const before = { chips: [chip], draft };
+      render(<Harness start={before} spy={spy} />);
+      await user.click(screen.getByRole('button', { name: label }));
+      const after = spy.mock.lastCall![0] as QueryState;
+      expect(after).toEqual({ chips: [], draft: edited });
+      expect(matches(after)).toEqual(matches(before));
+      cleanup();
+    }
   });
   it('keeps the title words in the field when a chip goes back to the field to edit', async () => {
     const user = userEvent.setup();
