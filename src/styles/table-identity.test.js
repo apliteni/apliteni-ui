@@ -464,6 +464,8 @@ async function measurePicturePixels(page, css, width) {
   return blue;
 }
 
+/* The name is longer than the widest cap at a cut width, 320px at 720px, so the link
+ * overflows its cell and the cut is measured at both widths. */
 function directLinkFixture(css, width) {
   return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
     <style>${css}</style>
@@ -471,7 +473,7 @@ function directLinkFixture(css, width) {
     </head><body><div class="stage"><div class="ui-table-scroll">
     <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
       <thead><tr><th class="ui-table__identity">Company</th><th class="ui-table__num">Price</th></tr></thead>
-      <tbody><tr><td class="ui-table__identity" data-direct-cell><a href="#company" data-direct-link>Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr></tbody>
+      <tbody><tr><td class="ui-table__identity" data-direct-cell><a href="#company" data-direct-link>Cedar Infrastructure Holdings International Logistics and Trading Group</a></td><td class="ui-table__num">1.00</td></tr></tbody>
     </table></div></div></body></html>`;
 }
 
