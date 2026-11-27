@@ -117,7 +117,10 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
-.vsw__btn:hover:not(:focus-visible) { border-color: var(--accent); }
+.vsw__btn:hover:not(:focus-visible),
+.vsw__btn:active:not(:focus-visible),
+.vsw.open .vsw__btn:not(:focus-visible),
+.vsw .ui-dropdown.open > .vsw__btn:not(:focus-visible) { border-color: var(--accent); }
 .vsw__btn:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .vsw__btn .cur { color: var(--strong); font-weight: 600; letter-spacing: 0.01em; }
 .vsw__btn .car {
@@ -307,7 +310,10 @@
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
 /* The React menu puts the dropdown trigger's pill padding and flex row on the avatar. */
 .acct .avatar { display: grid; padding: 0; }
-.acct .avatar:hover:not(:focus-visible) { border-color: var(--accent); }
+.acct .avatar:hover:not(:focus-visible),
+.acct .avatar:active:not(:focus-visible),
+.acct.open .avatar:not(:focus-visible),
+.acct .ui-dropdown.open > .avatar:not(:focus-visible) { border-color: var(--accent); }
 .avatar:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 /* The account button holding an Avatar: the part paints the circle in the reader's hue and
    the button keeps its edge, cursor, hover and ring. why: docs/components.md#avatar */

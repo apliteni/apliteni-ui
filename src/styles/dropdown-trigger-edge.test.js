@@ -74,18 +74,22 @@ const SHEETS = [...KIT_SHEETS, ...REACT_SHEETS];
  * and draws the unavailable edge, so it is classified as off and not as hover. */
 const STATES = [
   ['off', /:disabled\b|\[disabled\]|:not\(\s*:enabled\s*\)|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i],
+  // A trigger keeps its hover edge while pressed and while its menu is open, an invalid one its
+  // invalid edge. These come before invalid and focus, so a press or an open menu, which also
+  // say `[aria-invalid]` or `:not(:focus-visible)`, does not stand in for those states. #915
+  ['pressed', /:active\b/i],
+  ['open', /\.open\b|\[aria-expanded\s*=\s*("true"|'true'|true)\]/i],
   // Before hover, so the invalid edge under the pointer is not read as the live hover. #835
   ['invalid', /\[aria-invalid\s*=\s*("true"|'true'|true)\]/i],
   ['hover', /:hover\b/i],
   ['focus', /:focus(-visible|-within)?\b/i],
-  ['open', /\.open\b|\[aria-expanded\s*=\s*("true"|'true'|true)\]/i],
 ];
 /* The whole state vocabulary. A rule at a state that is not in it fails the gate
  * rather than being filed under "resting" and quietly counted as covered. */
 const MEASURED = ['rest', ...STATES.map(([name]) => name)];
-/* The states the kit's own trigger has to answer. `open` is allowed and not
- * required: the kit answers opening on the chevron, not on the trigger's edge. */
-const REQUIRED = ['rest', 'hover', 'off'];
+/* The states the kit's own trigger has to answer. Pressed and open keep the hover edge
+ * since #915; src/styles/trigger-press.test.js holds that for every menu trigger. */
+const REQUIRED = ['rest', 'hover', 'pressed', 'open', 'off'];
 /* `off` is the one state whose edge is supposed to be the unavailable ink. In
  * every other state, painting it is the defect #580 reports. */
 const LIVE = MEASURED.filter((state) => state !== 'off');
@@ -111,7 +115,11 @@ const STATEFUL = '(?::(?:hover|active|focus(?:-visible|-within)?|disabled|enable
   + '|\\.open\\b|\\.is-(?:open|active|selected|busy)\\b)';
 const STATE_IN_SELECTOR = new RegExp(`${STATEFUL}|:not\\([^)]*\\)`, 'gi');
 
-const scopeOf = (selector) => selector.replace(STATE_IN_SELECTOR, '').replace(/\s+/g, ' ').trim();
+/* A trigger always sits in its `.ui-dropdown`, so a rule that names that box only to say it is
+ * open (`.ui-dropdown.open > .ui-dropdown__trigger`) is about the same trigger, not a new scope.
+ * A `.ui-dropdown >` under a child combinator stays, because the scope there names the box. */
+const scopeOf = (selector) => selector.replace(STATE_IN_SELECTOR, '').replace(/\s+/g, ' ').trim()
+  .replace(/(^|[^>\s] )\.ui-dropdown > (?=\.ui-dropdown__trigger)/, '$1');
 
 const classify = (selector) => STATES.find(([, re]) => re.test(selector))?.[0]
   ?? (new RegExp(STATEFUL, 'i').test(selector) ? 'unknown' : 'rest');
@@ -250,6 +258,12 @@ function matchesDisabledTarget(rule, target) {
   const wantsAria = hasAriaDisabled(selector);
   if (target.spelling === 'native' && (wantsAria || /:enabled\b/i.test(stripNot(selector)))) return false;
   if (target.spelling === 'aria' && wantsNative) return false;
+  // An off trigger never opens: a native one takes no click, and Dropdown refuses to open an
+  // aria-disabled one. So a rule for an open menu cannot reach it. #915
+  if (/\.open\b/.test(stripNot(selector))) return false;
+  // No target is pressed. A press rule is not a rest rule, so it cannot stand in for one. The
+  // aria-disabled press keeps the off edge in its own rule in dropdown.css; that is not measured.
+  if (/:active\b/i.test(stripNot(selector))) return false;
   if (/:hover\b/i.test(selector) && !target.hover) return false;
   if (hasPositiveFocus(selector) && !target.focus) return false;
   if (hasNotFocus(selector) && target.focus) return false;
@@ -556,7 +570,9 @@ test('the reading refuses every way the two edges can come back together', () =>
     // fault the fix itself could have introduced.
     ['.ui-card .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
     // A state nobody measured, ranked as resting and counted as covered.
-    ['.ui-dropdown__trigger:active { border-color: var(--border); }', 'unmeasured-state'],
+    ['.ui-dropdown__trigger:target { border-color: var(--border); }', 'unmeasured-state'],
+    // The press painted with the off ink, one state along from hover.
+    ['.ui-dropdown__trigger:enabled:active:not(:focus-visible) { border-color: var(--border); }', 'live-is-off'],
     // Each disabled spelling and state can be broken on its own. This includes
     // the exact reviewer mutation first: native resting disabled used to pass.
     ['.ui-dropdown__trigger:disabled { border-color: var(--control-edge); }', 'off-not-off'],

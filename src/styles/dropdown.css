@@ -58,11 +58,16 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+/* Pressed and open keep the hover edge, so a press and an open menu show on the trigger. #915 */
+.ui-dropdown__trigger:enabled:active:not(:focus-visible),
+.ui-dropdown.open > .ui-dropdown__trigger:enabled:not(:focus-visible),
 .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 /* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
    under the pointer. The hover selector ties live hover at (0,4,0) and comes later, and the
    off rules below tie it and come later still, so an off trigger keeps the off edge. #835
    why: docs/components.md#fields */
+.ui-dropdown__trigger[aria-invalid="true"]:active:not(:focus-visible),
+.ui-dropdown.open > .ui-dropdown__trigger[aria-invalid="true"]:not(:focus-visible),
 .ui-dropdown__trigger[aria-invalid="true"],
 .ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--pink); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 /* As a select: under the ring the edge keeps its width and goes transparent, so focus has
@@ -80,6 +85,7 @@
 .ui-dropdown__trigger:disabled:focus-visible,
 .ui-dropdown__trigger[aria-disabled="true"]:hover,
 .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible),
+.ui-dropdown__trigger[aria-disabled="true"]:active:not(:focus-visible),
 .ui-dropdown__trigger[aria-disabled="true"]:focus-visible,
 .ui-dropdown__trigger[aria-disabled="true"] {
   border-color: var(--disabled-border);

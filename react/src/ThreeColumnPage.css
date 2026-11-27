@@ -61,6 +61,7 @@
   border-radius: var(--radius-xs);
 }
 .ui-columns__head .ui-columns__menu:hover,
+.ui-columns__head .ui-columns__menu:active,
 .ui-columns__head .ui-dropdown.open > .ui-columns__menu { background: color-mix(in srgb, var(--nav-active-fill) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
 .ui-columns__menu > .ui-dropdown__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-columns__count { flex: none; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }

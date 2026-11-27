@@ -412,9 +412,49 @@ test('a chip has the inner space of a select: 13px before the text and 11px afte
   assert.deepEqual({ start: chip.start + trigger.start, end: chip.end + trigger.end }, select);
 });
 
-test('a chip stops at the owner\'s 224px', () => {
-  const cap = rules(BAR).find((r) => r.selector === '.ui-filter-bar__chip' && valueOf(r.body, 'max-inline-size'));
-  assert.equal(valueOf(cap?.body ?? '', 'max-inline-size'), 'var(--ui-filter-chip-max)');
-  const token = rules(BAR).find((r) => r.selector === '.ui-filter-bar' && valueOf(r.body, '--ui-filter-chip-max'));
-  assert.equal(valueOf(token?.body ?? '', '--ui-filter-chip-max'), '224px');
+/**
+ * Rule: a chip stops at 128px, or at the cap a product sets on the chip or on any box around it.
+ * The 128px is the fallback of the chip's own var(), so no kit rule may declare the custom
+ * property: a declaration on the bar hid a cap set on the toolbar, which is #915.
+ * WHAT THIS DOES NOT REACH: layout and var() resolution. stories/filter-chip-width.test.js
+ * measures the caps in a browser.
+ */
+const declares = (css) => rules(css).filter((r) => valueOf(r.body, '--ui-filter-chip-max') !== null).map((r) => r.selector);
+const chipCap = (css) => valueOf(rules(css).find((r) => r.selector === '.ui-filter-bar__chip' && valueOf(r.body, 'max-inline-size'))?.body ?? '', 'max-inline-size');
+test('a chip stops at 128px, or at a cap that a product sets around it', () => {
+  assert.equal(chipCap(BAR), 'var(--ui-filter-chip-max, 128px)');
+  assert.deepEqual(declares(SHEETS), [], 'a kit rule declares --ui-filter-chip-max, so a cap on the toolbar does not reach the chip');
+  const old = '.ui-filter-bar { --ui-filter-chip-max: 224px; }\n.ui-filter-bar__chip { max-inline-size: var(--ui-filter-chip-max); }';
+  assert.deepEqual(declares(old), ['.ui-filter-bar'], 'the check passes the bar\'s own declaration');
+  assert.notEqual(chipCap(old), chipCap(BAR), 'the check passes a cap with no fallback');
+});
+
+/**
+ * Rule: a live chip takes the accent edge while its trigger is under the pointer, pressed or
+ * open, and not under the focus ring. The chip takes the trigger's edge away, so before #915 a
+ * pointer got no answer. An off trigger is not :enabled, so an off chip keeps its off edge.
+ * WHAT THIS DOES NOT REACH: paint. stories/filter-chip-width.test.js reads the edge colour
+ * under a real pointer.
+ */
+const edges = (css) => rules(css).filter((r) => r.selector.startsWith('.ui-filter-bar__chip:has(')
+  && valueOf(r.body, 'border-color') === 'var(--accent)').map((r) => r.selector);
+const underRing = (css) => {
+  const reset = /\.ui-filter-bar__chip:has\(> \.ui-dropdown > \.ui-dropdown__trigger:enabled:focus-visible\) \{ border-color: var\(--control-edge\); \}/.exec(css);
+  const last = Math.max(...[...css.matchAll(/\.ui-filter-bar__chip:has\([^{]*\{ border-color: var\(--accent\); \}/g)].map((m) => m.index));
+  return Boolean(reset) && reset.index > last;
+};
+test('a live chip takes the accent edge under the pointer, pressed and open, and not under the ring', () => {
+  const found = edges(BAR);
+  for (const state of [':hover', ':active', '.open']) {
+    assert.ok(found.some((s) => s.includes(state)), `no chip rule answers ${state} with the accent edge`);
+  }
+  for (const s of found) assert.match(s, /:enabled/, `\`${s}\` also paints an off chip`);
+  // Under the ring the chip takes its resting edge back, in a later rule that ties the answers.
+  // A :not() inside :has() is a state the contrast walk cannot host, so the guard is a reset.
+  assert.ok(underRing(BAR), 'no later rule gives a chip under the focus ring its resting edge');
+  assert.ok(!underRing(BAR.replace(/\.ui-filter-bar__chip:has\([^{]*:focus-visible\) \{ border-color: var\(--control-edge\); \}/, '')),
+    'the check passes a chip that keeps the accent edge under the ring');
+  const mutant = BAR.replace(/\.ui-filter-bar__chip:has\([^{]*\{ border-color: var\(--accent\); \}/, '');
+  assert.notEqual(mutant, BAR, 'the mutation found no chip edge rule to remove');
+  assert.deepEqual(edges(mutant), [], 'the check passes a chip with no pointer answer');
 });

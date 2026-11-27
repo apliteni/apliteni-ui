@@ -621,8 +621,10 @@ describe('band actions', () => {
     const css = read('./AppShell.css');
     const phone = css.slice(css.indexOf('@media (max-width: 560px)'));
     const pressed = phone.match(/\.ui-react-app \.ui-app__bar \.ui-app__search:hover,[^{]*\{([^}]*)\}/)!;
-    expect(pressed[0]).toContain('.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover {');
+    expect(pressed[0]).toContain('.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:active {');
     expect(pressed[1]).toContain('background: var(--surface);');
+    // An open menu keeps the same fill, in a rule of its own with no transform. #915
+    expect(phone).toMatch(/\.ui-react-app__band-actions > \.ui-dropdown\.open > \.ui-dropdown__trigger \{ background: var\(--surface\);/);
   });
 
   it('keeps the actions column as wide as the actions, keeps a short title whole, and spends no empty gap with no sidebar', () => {
