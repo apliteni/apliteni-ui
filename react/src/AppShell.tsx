@@ -167,6 +167,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <span>{word}</span>
   </a>;
 
+  // The phone menu's head starts with the mark, on the column the row glyphs stand on (#869).
+  const drawerMark = brand ?? <i className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`${uid}-menu`, 24) }} />;
+
   // A product's rows lead every account menu, keyed by place so a label never meets the
   // shell's own values (#736).
   const ownItems = accountItems.map(({ label, icon, href }, i) => ({ label, icon, href, value: `item-${i}` }));
@@ -207,7 +210,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
       </a>
     </header>
     {page}
-    <Drawer open={menu} onClose={() => setMenu(false)} title={word}
+    <Drawer open={menu} onClose={() => setMenu(false)} title={word} mark={drawerMark}
       side={drawerSide ?? 'left'} size="sm" footer={<div className="ui-app__drawer">{accountBlock()}</div>}>
       <div className="ui-app__drawer">{sidebar('Menu sections')}</div>
     </Drawer>
@@ -260,7 +263,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
       </header>
       {page}
     </div>
-    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} side={drawerSide ?? 'right'} size="sm" initialFocusRef={firstRow}
+    {navigable && <Drawer open={menu} onClose={() => setMenu(false)} title={word} mark={drawerMark} side={drawerSide ?? 'right'} size="sm" initialFocusRef={firstRow}
       headerActions={headSlot} footer={<div className="ui-app__drawer">{accountBlock(true, true)}</div>}>
       <div className="ui-react-app__menu" ref={menuBody}>{bandControl && <div className="ui-react-app__control">{bandControl}</div>}{sidebar('Menu sections')}</div>
     </Drawer>}

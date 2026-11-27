@@ -7,6 +7,7 @@ import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
+import { AccountMenu } from '../../react/src/AccountMenu';
 import { BackLink } from '../../react/src/BackLink';
 import { Dropdown } from '../../react/src/Dropdown';
 // The shell's own band rules, so the Do picture draws the bell as the shell does.
@@ -14,6 +15,7 @@ import '../../react/src/AppShell.css';
 import { KeyValueList } from '../../react/src/KeyValueList';
 import { SidebarNav, type SidebarNavSections } from '../../react/src/SidebarNav';
 import { RestingFilters } from '../_table-filters';
+import { prism } from '@apliteni/apliteni-ui';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
@@ -37,6 +39,19 @@ const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side">
   sections={(mixed ? [{ label: 'Money', items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts] },
     { label: 'Workspace', items: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }] }]
     : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
+
+// The open sidebar's two columns, drawn with the shell's own parts: the logo, the glyphs
+// and the avatar on one edge, or the avatar moved onto the names' edge.
+// The account is the shell's own row, so its name starts after the avatar.
+const DANA = { name: 'Dana Reyes', email: 'dana@example.com' };
+const SideColumn = ({ off }: { off: boolean }) => <Stage><div className={`ui-app ui-react-app tp-rail${off ? ' tp-av--off' : ''}`}><div className="ui-app__rail">
+  <div className="ui-app__head"><a className="ui-app__brand" href="#" aria-label="Finance">
+    <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`tp-mark-${off}`, 24) }} /><span>Finance</span>
+  </a></div>
+  <SidebarNav aria-label={off ? 'Sections, avatar off the column' : 'Sections, one column'} active="payouts"
+    sections={[{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, { id: 'payouts', icon: 'card', label: 'Payouts' }] }]} />
+  <AccountMenu account={DANA} items={[]} onSelect={() => {}} withTheme={false} inPlace={false} />
+</div></div></Stage>;
 
 // The one primary action.
 const Agents = ({ all = false }: { all?: boolean }) => <Stage>
@@ -169,6 +184,7 @@ const AtLoad = ({ open }: { open: boolean }) => <><p>On load</p><div className="
 const specimens = [
   { id: 'layout', do: () => <Shells moved={false} />, dont: () => <Shells moved /> },
   { id: 'sidebar', do: () => <Side mixed={false} />, dont: () => <Side mixed /> },
+  { id: 'sidebar-column', do: () => <SideColumn off={false} />, dont: () => <SideColumn off /> },
   { id: 'bar-end', do: () => <BarEnd page={false} />, dont: () => <BarEnd page /> },
   { id: 'width', do: () => <Frame centered={false} over={false} />, dont: () => <Frame centered over /> },
   { id: 'head', do: () => <Head parts={['back', 'title', 'sub', 'filters']} />,

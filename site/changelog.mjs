@@ -1,17 +1,20 @@
-// Write for people who use the kit. Start with what changed and who is affected.
-// Use one to three short sentences per change; add detail only for migration
-// steps or behavior limits. Use plain words, without praise, filler or a test diary.
-// Keep versions, dates, change types, component links and issue references.
-// The first sentence is the page summary; full text also appears in release notes.
-
 export const RELEASES = [
   {
-    v: '0.222.0', date: '2026-11-27',
+    v: '0.227.0', date: '2026-11-27',
     changes: [
       ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],
       ['added', 'New `--inverse-*` tokens give one bar the other theme: dark on a light page and light on a dark page, in the page\'s accent family. Part of #902.', ['Tokens']],
       ['fixed', 'A `Dropdown` panel in the page now opens on the other side of its trigger when its own side has no room and the other side has more. A panel in a Modal or a Drawer already did this. A menu that opens upward near the top of the view no longer opens above the view. Part of #902.', ['Dropdown']],
       ['added', 'A new Selection bar guideline page sets the bar\'s theme, a pick that applies at once with a notice, and the rest of the actions in More. Component choice sends the actions for selected rows to the bar. Part of #902.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.224.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],
+      ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
+      ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
+      ['added', 'The page guideline has a new rule, Align the sidebar on one column: the logo, the section icons and the avatar start on one edge. Part of #869.', ['Guidelines']],
     ],
   },
   {

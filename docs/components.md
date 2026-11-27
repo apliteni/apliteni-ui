@@ -221,6 +221,12 @@ holds each line of text that the button shows, and the menu takes the same name.
   button.
 - Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
   glyph, and keeps the same accessible name.
+- The open sidebar and the phone menu have two columns. The logo, each section icon, a group label
+  and the avatar start 8px inside the row fill. The product name, each label and the
+  account name start 46px inside it, after a 30px symbol box. A sub-item keeps the indent of its
+  list. A custom `brand` keeps its own width, so the product name moves with it. The phone menu's
+  head shows the logo before the product name. A folded sidebar puts each section icon and the
+  avatar on one centre line.
 - The current section is one quiet fill behind its row. A row under the pointer has a lighter
   fill. In the topbar layout, a shell with one destination and no back link draws no sidebar, no fold
   control and no menu button. The section stays in the command palette. The rail layout always
@@ -1404,7 +1410,8 @@ when the task needs more than one record. When a flow needs a drawer or a page:
 
 `side` is `right`, `left`, `top` or `bottom`. `size` is `sm`, `md` or `lg`. `status` puts the
 state of the record, such as one `Badge`, directly after the title. `headerActions` puts controls
-at the end of the header, before the close button.
+at the end of the header, before the close button. `mark` puts a mark, such as a product logo,
+before the title. Screen readers skip it, and the title stays the drawer's name.
 
 **A long title.** The title stays on one line. A long title ends in an ellipsis before the status,
 and the status, the actions and the close button stay whole. A cut title is a Tab stop. On hover,
