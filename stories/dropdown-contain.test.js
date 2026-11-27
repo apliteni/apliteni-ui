@@ -711,7 +711,7 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
  * `aria-disabled="true"`, as the default, the ghost and the text trigger. Then the mouse moves
  * over it, presses it, leaves it while held, lets go and presses Escape. After each step the
  * edge must be the edge at rest. One more run adds the invalid press rule without its off
- * twin, as 0.226.0 shipped it at fa8fdb8a, and the walk must report the pink edge.
+ * twin, as the branch had it at fa8fdb8a, and the walk must report the pink edge.
  *
  * Its limits: one engine and the default accent. The story renders the trigger live, so the
  * walk writes the off state into the page. React writes `disabled` only on a change, so the

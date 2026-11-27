@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react';
 import { Button } from './primitives/Button';
+import { ColumnResizer, clamp } from './ColumnResizer';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Loading';
 import './SplitLayout.css';
@@ -30,7 +31,28 @@ export type SplitLayoutProps = {
   zoom?: SplitLayoutZoom;
   defaultZoom?: SplitLayoutZoom;
   onZoomChange?: (zoom: SplitLayoutZoom) => void;
+  /** Lets the reader drag the line between the panes in a window above 860px, where the layout
+   *  holds both panes' 320px. Off by default. */
+  resizable?: boolean;
+  /** The width of the first pane in px, for an app that keeps it. Without it, the layout keeps
+   *  the width until a reload. */
+  primaryWidth?: number;
+  /** Gets the width of the first pane in px at each change, also during a drag. */
+  onResize?: (width: number) => void;
   className?: string;
+};
+
+// The first pane takes --panel-sm to --measure when it is resized, and the preview keeps
+// --panel-sm. The space of the layout lowers the maximum. why: docs/components.md#split-layout
+const PANE = [320, 860] as const;
+const PREVIEW = 320;
+// The panes split above 860px, so the line shows only there.
+const STACKED = '(max-width: 860px)';
+const stacked = () => typeof window !== 'undefined' && !!window.matchMedia?.(STACKED).matches;
+const watch = (fn: () => void) => {
+  const query = typeof window === 'undefined' ? undefined : window.matchMedia?.(STACKED);
+  query?.addEventListener?.('change', fn);
+  return () => query?.removeEventListener?.('change', fn);
 };
 
 const STEPS = [50, 100, 150, 200] as const;
@@ -56,9 +78,28 @@ function useOverflows(watch: unknown) {
 /** A page split under the top bar: the content and its actions, and a preview of the source
  *  document on the document ground. */
 export function SplitLayout({
-  primary, primaryLabel = 'Details', preview, actions, zoom, defaultZoom = 'fit', onZoomChange, className,
+  primary, primaryLabel = 'Details', preview, actions, zoom, defaultZoom = 'fit', onZoomChange,
+  resizable = false, primaryWidth, onResize, className,
 }: SplitLayoutProps) {
   const uid = useId();
+  const root = useRef<HTMLDivElement>(null);
+  const narrow = useSyncExternalStore(watch, stacked, () => false);
+  const [total, setTotal] = useState<number | null>(null);
+  useEffect(() => {
+    const box = root.current;
+    if (!resizable || !box || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setTotal(box.clientWidth || null));
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [resizable]);
+  // The first width is the stylesheet's 60%. Each width fits the limits and the space.
+  const [ownWidth, setOwnWidth] = useState<number | null>(null);
+  const start = Math.round((total ?? 0) * 0.6);
+  const most = Math.min(PANE[1], (total ?? Infinity) - PREVIEW);
+  const width = Math.round(clamp(primaryWidth ?? ownWidth ?? start, PANE[0], most));
+  // The line shows only where both panes keep their minimum, so its minimum never passes its maximum.
+  const resizing = resizable && !narrow && total !== null && most >= PANE[0];
+  const resize = (next: number) => { if (primaryWidth === undefined) setOwnWidth(next); onResize?.(next); };
   const state = preview.state ?? 'ready';
   const [own, setOwn] = useState(defaultZoom);
   const at = zoom ?? own;
@@ -130,13 +171,17 @@ export function SplitLayout({
     go(to);
   };
 
-  return <div className={['ui-split', className].filter(Boolean).join(' ')}
-    style={{ '--ui-split-foot': `${footHeight}px` } as CSSProperties}>
-    <div ref={pane} className="ui-split__primary" role="region" aria-label={primaryLabel}
+  return <div ref={root} className={['ui-split', resizable && 'ui-split--resizable', className].filter(Boolean).join(' ')}
+    style={{ '--ui-split-foot': `${footHeight}px`, ...(resizing && { '--ui-split-primary': `${width}px` }) } as CSSProperties}>
+    <div ref={pane} id={`${uid}-primary`} className="ui-split__primary" role="region" aria-label={primaryLabel}
       {...(paneScrolls && { tabIndex: 0 })}>
       <div className="ui-split__content">{primary}</div>
     </div>
     <section className="ui-split__preview ui-document-ground" aria-labelledby={`${uid}-title`}>
+      {/* When the line goes with the focus, the focus goes to the preview's title, which every width shows. */}
+      {resizing && <ColumnResizer value={width} min={PANE[0]} max={most} controls={`${uid}-primary`}
+        labelledBy={`${uid}-primary`} onChange={resize} onReset={() => resize(clamp(start, PANE[0], most))}
+        focusAway={() => title.current?.focus()} />}
       <div className="ui-split__controls">
         <h2 ref={title} id={`${uid}-title`} className="ui-card__title" tabIndex={-1}>{preview.title}</h2>
         <div className="ui-split__tools" role="group" aria-label="Zoom">

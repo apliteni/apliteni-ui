@@ -3,11 +3,15 @@
    Put it in AppShell with width="full". why: docs/components.md#split-layout */
 .ui-split {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  /* A layout that resizes gives the first pane's width in px. */
+  grid-template-columns: var(--ui-split-primary, minmax(0, 3fr)) minmax(0, 2fr);
   grid-template-rows: minmax(0, 1fr) auto;
   /* Each pane scrolls alone, so the layout takes the window under the band. */
   height: calc(100dvh - var(--ui-app-band, 0px));
 }
+/* Before the first measure, a layout that resizes starts at 60% inside its limits, so the
+   measured width moves nothing. 320px and 860px are the pane's limits in SplitLayout.tsx. */
+.ui-split--resizable { grid-template-columns: var(--ui-split-primary, clamp(320px, 60%, min(860px, 100% - 320px))) minmax(0, 1fr); }
 .ui-split__primary { grid-area: 1 / 1; min-width: 0; overflow-y: auto; padding: var(--space-8); }
 /* Each scroll box holds its own absolute parts, such as a hidden table caption, so they scroll
    with it and never lengthen the window. */
@@ -28,7 +32,7 @@
 .ui-split__content .ui-table tbody th:not(.ui-table__num--strong) { font-weight: var(--weight-normal); }
 .ui-split__name { color: var(--accent); }
 
-.ui-split__preview { grid-area: 1 / 2 / 3 / 3; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-inline-start: 1px solid var(--border); }
+.ui-split__preview { grid-area: 1 / 2 / 3 / 3; position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-inline-start: 1px solid var(--border); }
 /* The tools keep the reading surface on the ground, so their words keep body contrast. */
 .ui-split__controls { flex: none; margin: var(--space-6) var(--space-6) 0; background: var(--bg); /* code-bg: inherit — the page ground, so a chip takes the page's hand-off. */ }
 .ui-split__controls > h2 { margin: 0; padding: var(--space-4) var(--space-4) var(--space-2); }
@@ -88,6 +92,8 @@
      action row, so the sheet and the action show together. */
   .ui-split__stage { flex: none; height: clamp(var(--space-16), calc(100dvh - var(--ui-app-band, 0px) - 3 * var(--space-16)), 65dvh); }
   .ui-split__actions { position: sticky; bottom: 0; z-index: var(--z-sticky); padding: var(--space-3) var(--space-6) calc(var(--space-3) + env(safe-area-inset-bottom)); }
+  /* No line before the window is measured, as in markup rendered on a server. */
+  .ui-split__preview > .ui-resizer { display: none; }
 }
 @media (max-width: 560px) {
   .ui-split__primary { padding: var(--space-6) var(--space-4); }

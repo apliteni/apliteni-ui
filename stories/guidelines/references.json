@@ -326,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:527",
+    "ref": "src/styles/dropdown.css:531",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:590",
+    "ref": "src/styles/dropdown.css:594",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -342,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:480",
+    "ref": "src/styles/dropdown.css:484",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -612,11 +612,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:485",
+    "ref": "src/styles/dropdown.css:489",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:486",
+    "ref": "src/styles/dropdown.css:490",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -1259,7 +1259,7 @@
  "_three-column-page.js": {
   "three-columns": [
    {
-    "ref": "react/src/ThreeColumnPage.tsx:141",
+    "ref": "react/src/ThreeColumnPage.tsx:189",
     "pattern": "{columns.map((col, i) => col && column(col, (i + 1) as ThreeColumnDepth))}"
    }
   ],
@@ -1295,45 +1295,45 @@
     "pattern": "caption={`Rows for ${month}`}"
    },
    {
-    "ref": "react/src/showcases/Library.tsx:84",
+    "ref": "react/src/showcases/Library.tsx:86",
     "pattern": "const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:24",
+    "ref": "react/src/ThreeColumnPage.css:26",
     "pattern": ".ui-columns__col--2:last-child { grid-column: 2 / -1; }"
    }
   ],
   "column-widths": [
    {
-    "ref": "react/src/ThreeColumnPage.css:14",
-    "pattern": "grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);"
+    "ref": "react/src/ThreeColumnPage.css:15",
+    "pattern": "grid-template-columns: var(--ui-columns-1, 240px) var(--ui-columns-2, clamp(260px, 26%, var(--panel-sm))) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:22",
+    "ref": "react/src/ThreeColumnPage.css:24",
     "pattern": ".ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:80",
+    "ref": "react/src/ThreeColumnPage.css:82",
     "pattern": "@container ui-columns (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:89",
+    "ref": "react/src/ThreeColumnPage.css:93",
     "pattern": "@media (max-width: 560px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:131",
+    "ref": "react/src/ThreeColumnPage.tsx:179",
     "pattern": "<BackLink href={depthHref?.(up) ?? '#'} label={columns[first - 2]!.title}"
    }
   ],
   "column-header": [
    {
-    "ref": "react/src/ThreeColumnPage.css:37",
+    "ref": "react/src/ThreeColumnPage.css:39",
     "pattern": "min-height: calc(var(--space-12) + var(--space-2));"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:113",
+    "ref": "react/src/ThreeColumnPage.tsx:160",
     "pattern": "{col.menu && <Dropdown variant=\"menu\" align=\"start\" triggerContent={col.title} triggerClass=\"ui-columns__menu\""
    }
   ]
@@ -1379,11 +1379,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:488",
+    "ref": "src/styles/dropdown.css:492",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:490",
+    "ref": "src/styles/dropdown.css:494",
     "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
