@@ -83,6 +83,9 @@ test('a pinned linked title is one line, cut at a ceiling, so the pin never cove
   const TABLE = read('table.css');
   const body = rule(TABLE, '.ui-table--pinned .ui-table__title.ui-table__linked > a:not([class]):only-child');
   for (const decl of ['display: block', 'max-width: clamp(min(var(--panel-sm), 40vw), calc(100vw - var(--container)), var(--panel-lg))', 'overflow: hidden', 'text-overflow: ellipsis']) has(body, decl);
-  assert.ok(TABLE.indexOf('.ui-table--pinned .ui-table__title.ui-table__linked > a') < TABLE.indexOf('@media (max-width: 720px)'),
-    'the cut comes before the 720px block, whose own cap cuts first on a phone');
+  // At 560px and below nothing is pinned (#902), so the cut is only above it, and before the
+  // block up to 720px, whose own cap cuts first there.
+  const at = TABLE.indexOf('.ui-table--pinned .ui-table__title.ui-table__linked > a');
+  assert.match(TABLE.slice(TABLE.lastIndexOf('@media', at), at), /^@media \(width > 560px\) \{\s*$/, 'the cut is only above the phone step');
+  assert.ok(at < TABLE.indexOf('@media (width > 560px) and (width <= 720px)'), 'the cut comes before the block up to 720px');
 });

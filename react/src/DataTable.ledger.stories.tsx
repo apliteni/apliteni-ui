@@ -199,8 +199,9 @@ export const PinnedTitle = {
   ),
 };
 
-// On a phone the table keeps its columns and scrolls sideways in its frame. The pinned
-// counterparty stays in view, and the note wraps at its floor width.
+// On a phone the table keeps its columns and scrolls sideways in its frame, the
+// counterparty with them. Above 560px the pinned counterparty stays in view. The note
+// wraps at its floor width.
 export const PinnedScroll = {
   render: function Render() {
     const { bar, shown } = useTableFilters(PAYMENTS, {

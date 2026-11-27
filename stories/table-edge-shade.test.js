@@ -1,5 +1,5 @@
 /* Rule: a table scroll frame draws no shade on its edges, and a pinned column casts none
- * on the columns that scroll under it (#770). The scroller's own border and the pinned
+ * on the columns that scroll under it (#770). On a phone no column is pinned. The scroller's own border and the pinned
  * column's divider are the only lines left. docs/components.md states it.
  *
  * Two halves:
@@ -105,6 +105,8 @@ const THEMES = ['light', 'dark'];
  * must be one of them. The members story must be one too. Before #770 its "Actions" label
  * widened the page under a header that does not stick, and its closed tooltips made the
  * frame scroll past the table. Each defect is put back there to prove the check sees it.
+ * No cell stays in place while a frame scrolls to its end: a phone pins no column
+ * (rev_1982326c19de/d88). The pin is put back on the payouts story to prove it.
  *
  * The members story also holds the card frame (#782), at 390 and 1440 wide: at 390 the
  * table overflows, so the frame is a keyboard stop and its ring shows on all four sides
@@ -121,7 +123,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
   const { existsSync } = await import('node:fs');
   const { playwright, serve, indexed, openStory, STORY_DONE } = await import('./lib/dropdown-contain.js');
   const {
-    PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX,
+    PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX, PIN_ON_PHONE,
     decodePNG, CARD_FRAME, cardFrameFindings, FRAME_BANDLESS, FRAME_TOPLESS, FRAME_EDGE_LINE, FRAME_GAP_BELOW,
   } = await import('./lib/table-edge-shade.js');
   const shot = async (page) => decodePNG(await page.screenshot({ fullPage: true, animations: 'disabled' }));
@@ -178,7 +180,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
         t.diagnostic(`${theme} ${story.id}: ${JSON.stringify(fit)}`);
         assert.deepEqual(phoneFitFindings(fit, mustScroll), [], `${story.label} ${theme}`);
         if (story.id === PAYOUTS_STORY) {
-          for (const [what, mutation] of [['an unclipped frame', FRAME_UNCLIPPED], ['a frame without a zero floor', FRAME_FLOORLESS]]) {
+          for (const [what, mutation] of [['an unclipped frame', FRAME_UNCLIPPED], ['a frame without a zero floor', FRAME_FLOORLESS], ['a pinned column', PIN_ON_PHONE]]) {
             const style = await page.addStyleTag({ content: mutation });
             assert.notDeepEqual(phoneFitFindings(await page.evaluate(PHONE_FIT), true), [], `${theme}: ${what} still passed`);
             await style.evaluate((node) => node.remove());
@@ -210,4 +212,115 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
     await browser.close();
     server.proc.kill();
   }
+});
+
+/* A pinned table scrolled by the keyboard, at the ten window sizes and on six devices, in
+ * light and dark: the Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's
+ * list, and a two-screen phone of 466×678 and 890×626 at scale 3 with touch. Each story
+ * focuses its first frame and presses ArrowRight until the frame stops moving. After each
+ * key the focus stays in the frame, no fixed element moves by more than 1px, web-vitals'
+ * onCLS stays below 0.1, and the page does not scroll sideways. At the end, at 560px and
+ * below, the first cell of each row moved by the whole scroll: no column is pinned
+ * (rev_1982326c19de/d88). Above 560px the pinned cell did not move. Nothing opens, so there
+ * is nothing for Escape to close. It needs web-vitals: set UI_WEB_VITALS to
+ * web-vitals/dist/web-vitals.iife.js. Limits: one engine, the default accent, and the two
+ * stories that pin a column with and without a selection column. */
+const SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [360, 800], [466, 678], [984, 1016], [1536, 864], [2560, 1440]];
+const DEVICES = ['Galaxy Z Fold 7', 'Galaxy Z Fold 7 Cover', 'Galaxy Z Flip 7', 'Galaxy Z Flip 7 Cover'];
+const DUO = [[466, 678], [890, 626]];
+const KEYED = [PAYOUTS_STORY, 'components-finance-composition--pinned-selection'];
+
+const KEY_READ = () => {
+  const f = document.querySelector('.ui-table-scroll');
+  const doc = document.scrollingElement;
+  const first = [...f.querySelectorAll('tbody tr > :first-child')].map((c) => c.getBoundingClientRect().left);
+  return {
+    cls: window.__cls,
+    over: doc.scrollWidth - doc.clientWidth,
+    focus: f.contains(document.activeElement),
+    scroll: f.scrollLeft,
+    range: f.scrollWidth - f.clientWidth,
+    first,
+    fixed: [...document.querySelectorAll('body *')].filter((el) => getComputedStyle(el).position === 'fixed')
+      .map((el) => { const b = el.getBoundingClientRect(); return [b.left, b.top]; }),
+  };
+};
+
+/** What is wrong after one key, as lines. */
+const keyFindings = (was, now, label) => [
+  ...(now.focus ? [] : [`${label}: the focus left the frame`]),
+  ...(now.over > 0 ? [`${label}: the page scrolls ${now.over}px sideways`] : []),
+  ...(now.cls >= 0.1 ? [`${label}: the layout shift is ${now.cls}`] : []),
+  ...now.fixed.filter((b, i) => was.fixed[i] && Math.max(Math.abs(b[0] - was.fixed[i][0]), Math.abs(b[1] - was.fixed[i][1])) > 1)
+    .map(() => `${label}: a fixed element moved`),
+];
+
+/** What is wrong with the first column after the frame scrolled, as lines. */
+const pinFindings = (start, end, width, label) => {
+  if (end.scroll === 0) return [];
+  const phone = width <= 560;
+  const off = start.first.filter((x, i) => (phone ? Math.abs(x - end.first[i] - end.scroll) > 1 : Math.abs(x - end.first[i]) > 1));
+  return off.length ? [`${label}: ${off.length} first cells ${phone ? 'stayed in place on a phone' : 'scrolled away above the phone step'}`] : [];
+};
+
+test('measured in a browser: a pinned table scrolled by the keyboard at ten sizes and six devices', { skip: !RUN_BROWSER && 'set EDGE_SHADE=1' }, async (t) => {
+  const { existsSync } = await import('node:fs');
+  const { env } = process;
+  const { playwright, serve, openStory, STORY_DONE } = await import('./lib/dropdown-contain.js');
+  assert.ok(env.UI_WEB_VITALS && existsSync(env.UI_WEB_VITALS), 'point UI_WEB_VITALS at web-vitals/dist/web-vitals.iife.js');
+  const vitals = readFileSync(env.UI_WEB_VITALS, 'utf8');
+  const build = path.join(root, 'storybook-static');
+  const pw = await playwright();
+  assert.ok(pw, 'EDGE_SHADE=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  const contexts = [
+    ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
+    ...DEVICES.map((name) => { assert.ok(pw.devices[name], `Playwright has no device "${name}"`); return [name, pw.devices[name]]; }),
+    ...DUO.map(([width, height]) => [`two-screen ${width}×${height}`, { viewport: { width, height }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }]),
+  ];
+  const browser = await pw.chromium.launch({ executablePath: env.UI_CHROME || undefined, args: ['--no-sandbox'] });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  let walked = 0;
+  let scrolled = 0;
+  try {
+    for (const [name, context] of contexts) for (const theme of THEMES) for (const id of KEYED) {
+      const label = `${id} ${name} ${theme}`;
+      const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion: 'reduce' });
+      await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
+      const page = await ctx.newPage();
+      const got = await openStory(page, { id }, { port: server.port, theme });
+      assert.equal(got.phase, STORY_DONE, `${label}: ${got.phase}`);
+      await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(() => { const f = document.querySelector('.ui-table-scroll'); f.scrollIntoView({ block: 'center' }); f.scrollLeft = 0; f.tabIndex = f.tabIndex < 0 ? 0 : f.tabIndex; f.focus(); });
+      const start = await page.evaluate(KEY_READ);
+      let was = start;
+      for (let i = 0; i < 40; i += 1) {
+        await page.keyboard.press('ArrowRight');
+        await page.evaluate(() => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(ok))));
+        const now = await page.evaluate(KEY_READ);
+        assert.deepEqual(keyFindings(was, now, label), []);
+        if (now.scroll === was.scroll) break;
+        was = now;
+      }
+      assert.ok(was.scroll >= was.range - 1, `${label}: the keys stopped at ${was.scroll} of ${was.range}`);
+      assert.deepEqual(pinFindings(start, was, context.viewport.width, label), []);
+      walked += 1;
+      if (was.scroll > 0) scrolled += 1;
+      t.diagnostic(`${label}: range ${was.range}, cls ${was.cls}`);
+      await ctx.close();
+    }
+  } finally {
+    await browser.close();
+    server.proc.kill();
+  }
+  assert.equal(walked, contexts.length * THEMES.length * KEYED.length, 'a context was not walked');
+  assert.ok(scrolled >= 12, `only ${scrolled} walks had a range to scroll, so the pin was barely measured`);
+});
+
+test('the keyboard walk rejects a stuck first column on a phone and a lost pin above it', () => {
+  const start = { first: [10, 10] };
+  const end = { first: [10, 10], scroll: 200 };
+  assert.notDeepEqual(pinFindings(start, end, 390, 'phone'), [], 'a pinned column on a phone passed');
+  assert.deepEqual(pinFindings(start, end, 820, 'tablet'), []);
+  assert.notDeepEqual(pinFindings(start, { first: [-190, -190], scroll: 200 }, 820, 'tablet'), [], 'a lost pin above the phone step passed');
+  assert.equal(keyFindings({ fixed: [[0, 0]] }, { focus: false, over: 4, cls: 0.2, fixed: [[0, 3]] }, 'x').length, 4);
 });
