@@ -1,11 +1,17 @@
 export const RELEASES = [
   {
-    v: '0.227.0', date: '2026-11-27',
+    v: '0.229.0', date: '2026-11-27',
     changes: [
       ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],
       ['added', 'New `--inverse-*` tokens give one bar the other theme: dark on a light page and light on a dark page, in the page\'s accent family. Part of #902.', ['Tokens']],
       ['fixed', 'A `Dropdown` panel in the page now opens on the other side of its trigger when its own side has no room and the other side has more. A panel in a Modal or a Drawer already did this. A menu that opens upward near the top of the view no longer opens above the view. Part of #902.', ['Dropdown']],
       ['added', 'A new Selection bar guideline page sets the bar\'s theme, a pick that applies at once with a notice, and the rest of the actions in More. Component choice sends the actions for selected rows to the bar. Part of #902.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.225.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'A link in running text, such as a paragraph, a list item, a caption or a hint, now has an underline at all times, because its colour alone differs from the text around it by less than 3:1. The kit underlines each `a` element that has no kit class (a class that starts with `ui-`, or `brand`), so a link with an empty class or your own class gets it too. Hover and focus are as before. A link in a table cell, a linked Stat band figure and a kit control, such as a nav row, a button or a tab, do not change. If your app has its own anchor control with no kit class, give it `text-decoration: none`. Part of #869.', []],
     ],
   },
   {
