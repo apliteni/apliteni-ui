@@ -250,7 +250,7 @@ it('gives the bar, the pill and Clear corners that share a centre', () => {
   expect(clear).toMatch(/background-clip:\s*padding-box;/);
   expect(clear).toMatch(/padding:\s*3px var\(--space-2\);/);
   expect(rule('.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control:active')).toMatch(/transform:\s*none;/);
-  const hover = rule('.ui-selection-bar .ui-selection-bar__control:enabled:hover,\n.ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control');
+  const hover = rule('.ui-selection-bar .ui-selection-bar__control:enabled:hover,\n.ui-selection-bar .ui-selection-bar__control:enabled:active,\n.ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control');
   expect(hover).toMatch(/background-color:\s*var\(--inverse-hover\);/);
   expect(hover).not.toMatch(/(^|;|\s)background:/);
 });

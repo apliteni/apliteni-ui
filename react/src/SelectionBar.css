@@ -98,6 +98,7 @@
   color: var(--inverse-text);
 }
 .ui-selection-bar .ui-selection-bar__control:enabled:hover,
+.ui-selection-bar .ui-selection-bar__control:enabled:active,
 .ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control {
   border-color: transparent;
   /* The colour only, so Clear keeps its ground inside its band. */

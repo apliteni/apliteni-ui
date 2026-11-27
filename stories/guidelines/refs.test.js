@@ -325,8 +325,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 182: The page gained sidebar-column (#869).
   // 183: Dashboards and reports gained trend-in-head (#863).
   // 184: Dense tables added filter-chip-width (#915).
-  // 187: Selection bar added three rules and Component choice selection-bar (#902).
-  assert.equal(count, 187, 'update the rule count when adding or removing a rule');
+  // 188: Selection bar added three rules and Component choice selection-bar (#902).
+  assert.equal(count, 188, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {
