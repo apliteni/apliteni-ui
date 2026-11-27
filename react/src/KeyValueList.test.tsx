@@ -266,9 +266,9 @@ const hangOf = (table: Element, style: HTMLStyleElement) => {
 it.each(['light', 'dark'])('parts drawer groups by space, stands a heading on a hairline, and sets a table in the drawer text, in %s', theme => {
   expect(drawerAt(theme)).toEqual({
     groups: [{ gap: '0px', line: false }, { gap: '32px', line: false }, { gap: '32px', line: false }, { gap: '32px', line: false }],
-    // #850: the light theme's approved space-only style takes the hairline off the group
-    // heading and closes the gap it held; dark keeps the hairline.
-    heading: theme === 'dark' ? { line: '1px hairline', pad: '8px' } : { line: false, pad: '0px' },
+    // #900: the light group heading keeps the dark theme's 1px line and 8px gap, but the
+    // line is transparent, so space still owns the group. Dark keeps the hairline.
+    heading: theme === 'dark' ? { line: '1px hairline', pad: '8px' } : { line: '1px rgba(0, 0, 0, 0)', pad: '8px' },
     figure: { label: ['13px', true], value: ['22px', '600', 'nowrap', true], row: ['flex', 'center'] },
     table: {
       head: ['1px hairline', '13px', '600', true],

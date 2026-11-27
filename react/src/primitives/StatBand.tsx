@@ -1,6 +1,7 @@
 import { useId, type ReactNode } from 'react';
 import { Icon } from './Icon';
 import { Tooltip } from '../Tooltip';
+import { Crossfade } from '../Crossfade';
 
 // The React face of statBand(). Same classes, same <dl>, same rules; the one
 // difference is that `value` and `trend` take React nodes, so a figure can be a
@@ -84,7 +85,7 @@ export function StatBand({ stats, variant = 'tiles', basis, basisId: sharedBasis
           return (
             <div className={cls} key={`${s.label}-${i}`}>
               <dt className="ui-stat__label">{s.label}</dt>
-              <dd className="ui-stat__value">{s.value}</dd>
+              <dd className="ui-stat__value"><Crossfade value={s.value} /></dd>
               <ContextRow caption={s.caption} delta={s.delta} basisId={basisId} />
               {s.trend ? <dd className="ui-stat__trend">{s.trend}</dd> : null}
             </div>

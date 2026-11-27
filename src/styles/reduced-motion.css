@@ -18,4 +18,11 @@
     scroll-behavior: auto !important;
   }
   [data-reveal] { opacity: 1 !important; transform: none !important; }
+  /* #900: a theme change is one step under reduced motion, like every other change. The
+     view-transition snapshots would otherwise run their own animation outside this net. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
