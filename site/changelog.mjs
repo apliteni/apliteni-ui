@@ -4,6 +4,7 @@ export const RELEASES = [
     changes: [
       ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
       ['changed', 'In a dropdown panel, a hovered row and a chosen row now share one quiet ground, the new token `--float-row-fill`, and the check is the text ink, not the accent. A filter chip menu loses its accent wash. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
+      ['fixed', 'A dropdown in a `Field` now makes room in its trigger for each row\'s badge and check. Before, its panel, which is as wide as the trigger, broke the label of a row with a badge, or of the chosen longest row, over two or more lines. The trigger is 24px wider for the check, and wider again where a row with a badge is the widest. Part of #888.', ['Dropdown']],
     ],
   },
   {

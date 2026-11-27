@@ -325,6 +325,27 @@ export const PersonPickerFailedPhoto: StoryObj<typeof Dropdown> = {
   ),
 };
 
+// A form dropdown whose rows carry a badge. The panel is as wide as the trigger, so the
+// trigger makes room for each row's badge and check. why: docs/components.md#fields
+const RELEASES: DropdownEntry[] = [
+  ...VERSIONS.map((it) => (typeof it === 'string' ? it : { ...it, selected: false })),
+  { label: 'v0.9.0', value: '0.9.0', muted: 'Archived' },
+];
+
+export const FieldWithBadges: StoryObj<typeof Dropdown> = {
+  render: () => {
+    const [version, setVersion] = useState<string | number | undefined>();
+    return (
+      <Stage><Column><Card>
+        <Field label="Version">{(control) => (
+          <Dropdown {...control} variant="select" items={RELEASES} selectedValue={version} onSelect={setVersion}
+            placeholder="Choose a version" defaultOpen />
+        )}</Field>
+      </Card></Column></Stage>
+    );
+  },
+};
+
 // A unit list with two categories, where an archived unit stays selectable. The Dropdown
 // marks it with `muted`; the native select writes the same word into the option text.
 // The units are fabricated. why: docs/components.md#dropdown

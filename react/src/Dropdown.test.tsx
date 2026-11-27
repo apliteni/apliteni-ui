@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { afterEach, vi } from 'vitest';
 import { dropdownMatch, filterPanelFit } from '@apliteni/apliteni-ui';
 import { Dropdown, type DropdownProps, type DropdownEntry } from './Dropdown';
+import { Field } from './Field';
 import { classesOfEl } from './test/classlist';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -992,6 +993,24 @@ it('a muted row carries its word in state ink, and the arrows and Enter still pi
 it('a caller-owned selection shows a muted row with its word in the trigger', () => {
   const { container } = render(<Dropdown variant="select" ariaLabel="Unit" sections={UNITS} selectedValue="cedar" />);
   expect(within(container as HTMLElement).getByRole('button').textContent).toBe('Cedar Studio (Archived)');
+});
+
+// The panel in a Field is as wide as its trigger, and the trigger is as wide as its widest
+// hidden row. So a hidden row holds what its panel row draws after the label: the badge
+// and the check. A muted row's word is already in the row's text. #888
+// why: docs/components.md#fields
+// LIMITS: JSDOM lays nothing out. The widths are DROPDOWN_EDGES=1's, in
+// stories/dropdown-contain.test.js.
+it('in a Field, each hidden row holds its panel row\'s badge and check', () => {
+  const items = [...UNITS[0].items, { label: 'v1.2.0', value: '1.2.0', badge: { text: 'Beta', tone: 'accent' as const } }];
+  const { container } = render(<Field label="Unit">{(control) => <Dropdown {...control} variant="select" items={items} />}</Field>);
+  const lines = [...container.querySelectorAll('.ui-dropdown__fit > .ui-dropdown__line')].slice(1);
+  expect(lines.map((line) => [line.textContent, line.querySelector('.ui-dropdown__badge')?.className ?? null,
+    line.querySelectorAll('.ui-dropdown__tick').length])).toEqual([
+    ['Birch Studio', null, 1],
+    ['Cedar Studio (Archived)', null, 1],
+    ['v1.2.0Beta', 'ui-dropdown__badge is-accent', 1],
+  ]);
 });
 
 // ---- A filter chip's menu -----------------------------------------------------

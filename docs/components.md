@@ -571,7 +571,7 @@ its words on one line. Without `ghost` the trigger keeps its edge.
   the edge. At 720px and below, the gap is the 16px page margin, or the safe area of the phone
   when that is wider.
 - The panel is at least 240px wide where the view allows. Inside a Field, the panel takes the
-  field's width instead, so a form control stays one column with its label. A long unbroken
+  trigger's width instead, so a form control stays one column with its label. A long unbroken
   word, such as a file name or a URL, breaks in the middle, so one row cannot make the panel
   wider than the screen.
 - An open panel is never taller than the room between the trigger and the edge of the view. It
@@ -690,9 +690,10 @@ picker or by drop. `accept` only filters the system picker, so check the file be
 and `aria-describedby`. Spread them on the control. A dropdown or date picker trigger then has the
 label and the value as its name, and the error gives it the invalid edge. In a field, a dropdown
 trigger has the height of a text input and keeps the pill corner. It fits its longest option up to
-the field width, so a value change does not change its width. A native select has the same width
+the field width, so a value change does not change its width. It also makes room for each row's
+badge and check, so a row label in its panel stays on one line. A native select has the same width
 rule. In vanilla markup, put the placeholder and each option's shown words, with its state
-word, in the hidden `ui-dropdown__fit` element. A long
+word, its badge and the check, in the hidden `ui-dropdown__fit` element. A long
 value stays on one line and ends with an ellipsis.
 
 **Corners.** A one-line field has the 16px field corner. A text area and message box have the

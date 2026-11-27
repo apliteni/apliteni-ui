@@ -939,6 +939,8 @@ export function Dropdown({
                 ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
                 : <Avatar empty />)}
               <span className="ui-dropdown__value">{shownOf(item)}</span>
+              {!mutedOf(item) && item.badge && <RowBadge badge={item.badge} />}
+              <Glyph name="check" className="ui-dropdown__tick" />
             </span>
           ))}
         </span>}

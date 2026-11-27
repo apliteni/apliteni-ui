@@ -306,6 +306,66 @@ test('measured in a browser, four widths and both themes', {
       }
     });
 
+    // The panel in a Field is as wide as its trigger. So the hidden rows hold each row's
+    // badge and check, and no label wraps, with nothing chosen and with each row chosen. #888
+    await t.test('a badge row keeps its label on one line in a field', async () => {
+      const BADGE_STORY = 'react-dropdown--field-with-badges';
+      const badgeStory = all.find((story) => story.id === BADGE_STORY);
+      assert.ok(badgeStory, `no story with the id ${BADGE_STORY} in the built index`);
+      const read = async (theme, view, mutation = '') => {
+        const context = await browser.newContext(view);
+        const page = await context.newPage();
+        try {
+          const rendered = await openStory(page, badgeStory, { port: server.port, theme });
+          assert.equal(rendered.phase, 'finished', `${theme} did not render the badge story`);
+          if (mutation) await page.addStyleTag({ content: mutation });
+          return await page.evaluate(async () => {
+            const frame = () => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+            const trigger = document.querySelector('.ui-field [data-dropdown-trigger]');
+            if (!trigger) throw new Error('the Version trigger is missing');
+            if (trigger.getAttribute('aria-expanded') !== 'true') trigger.click();
+            await frame();
+            // A label is one line when it is no taller than the shortest label.
+            const wrapped = () => {
+              const labels = [...document.querySelectorAll('[data-dd-item] .ui-dropdown__label')];
+              const heights = labels.map((el) => el.getBoundingClientRect().height);
+              const line = Math.min(...heights);
+              return labels.filter((el, i) => heights[i] > line * 1.5).map((el) => el.textContent);
+            };
+            const states = [{ chosen: 'nothing', rows: document.querySelectorAll('[data-dd-item]').length, wrapped: wrapped() }];
+            const labels = [...document.querySelectorAll('[data-dd-item] .ui-dropdown__label')].map((el) => el.textContent);
+            for (const label of labels) {
+              const row = [...document.querySelectorAll('[data-dd-item]')]
+                .find((el) => el.querySelector('.ui-dropdown__label')?.textContent === label);
+              row.click();
+              await frame();
+              trigger.click();
+              await frame();
+              states.push({ chosen: label, rows: document.querySelectorAll('[data-dd-item].is-selected').length, wrapped: wrapped() });
+            }
+            return states;
+          });
+        } finally {
+          await context.close();
+        }
+      };
+      const VIEWS = [
+        { viewport: { width: 1280, height: 800 } },
+        { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true },
+      ];
+      for (const theme of THEMES) for (const view of VIEWS) {
+        const at = `${theme} at ${view.viewport.width}px`;
+        const states = await read(theme, view);
+        // Nothing chosen, then each of the four rows chosen in turn.
+        assert.equal(states.length, 5, `${at} measured ${states.length} states, not 5`);
+        assert.equal(states[0].rows, 4, `${at} drew ${states[0].rows} rows, not 4`);
+        for (const state of states.slice(1)) assert.equal(state.rows, 1, `${at} with ${state.chosen} chosen marked ${state.rows} rows`);
+        for (const state of states) assert.deepEqual(state.wrapped, [], `${at} with ${state.chosen} chosen wrapped ${state.wrapped.join(', ')}`);
+        const old = await read(theme, view, '.ui-dropdown__fit .ui-dropdown__badge, .ui-dropdown__fit .ui-dropdown__tick { display: none !important; }');
+        assert.ok(old.some((state) => state.wrapped.length), `${at} did not reject the hidden rows without the badge and the check`);
+      }
+    });
+
     await t.test('a long option never widens the page past its field', async () => {
       const LONG_STORY = 'react-fields--form-row-long-value';
       const longStory = all.find((story) => story.id === LONG_STORY);
