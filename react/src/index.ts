@@ -70,6 +70,8 @@ export type {
   DatePickerProps, DatePickerMode, DatePickerRange, DatePickerPreset,
 } from './DatePicker';
 export { Dropdown } from './Dropdown';
+export { ProposedValue } from './ProposedValue';
+export type { ProposedValueProps } from './ProposedValue';
 export type {
   DropdownProps, DropdownItem, DropdownEntry, DropdownSection, DropdownSeparator,
   DropdownBadge, DropdownRowProps, DropdownSearch, DropdownAvatar,

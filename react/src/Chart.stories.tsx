@@ -53,6 +53,37 @@ export const Months: StoryObj = {
   ),
 };
 
+/* The chart's head from #863: the main figure, a range picker in plain text and
+   the trend at the end of its row, all over the plot. Made-up revenue for the
+   first half of 2026; each range compares with the same number of months before it. */
+const HALF = ['Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026'];
+const HALF_REVENUE = [24000, 31000, 28000, 35000, 39000, 42000];
+const RANGES = [
+  { value: '3', label: 'Last 3 months', figure: '€116,000',
+    trend: { value: '+€33k', basis: 'Compared with €83,000 in the 3 months before' } },
+  { value: '6', label: 'Last 6 months', figure: '€199,000',
+    trend: { value: '+€19k', basis: 'Compared with €180,000 in the 6 months before' } },
+];
+
+function HeadDemo() {
+  const [range, setRange] = useState('6');
+  const shown = RANGES.find((r) => r.value === range)!;
+  const from = HALF.length - Number(range);
+  return (
+    <Card title="Revenue">
+      <Chart title="Revenue by month" grouping="month" figure={shown.figure} trend={shown.trend}
+        ranges={RANGES} range={range} onRangeChange={setRange} values
+        periods={HALF.slice(from).map((label) => ({ label }))}
+        series={[{ id: 'revenue', name: 'Revenue', values: HALF_REVENUE.slice(from), tone: 'accent' }]}
+        format={eur} formatAxis={eurAxis} />
+    </Card>
+  );
+}
+
+/** Padded, not centred, so the card takes the frame's width, and
+ *  the table it switches to shows its columns at their content's width. */
+export const Head: StoryObj = { render: () => <HeadDemo />, parameters: { layout: 'padded' } };
+
 /** The same card after Table in the Chart and Table switch at the end of its
  *  title row (#736). The table takes the plot's place, and the switch keeps its own. */
 export const AsTable: StoryObj = {

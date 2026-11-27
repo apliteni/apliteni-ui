@@ -176,7 +176,11 @@ describe('flat bar', () => {
     for (const subject of subjects) {
       total += subject.bars.length;
       if (subject.bars.length === 0) failures.push(`${subject.name} draws no bar`);
-      if (subject.root.querySelectorAll('linearGradient').length > 0) {
+      // A line's own fill (#863) is a ramp under a line, not under a bar, so
+      // a page that draws both a bar chart and a line chart still passes.
+      const ramps = [...subject.root.querySelectorAll('linearGradient')]
+        .filter((g) => !g.querySelector('.ui-chart__fill-floor'));
+      if (ramps.length > 0) {
         failures.push(`${subject.name} draws a fade ramp`);
       }
       for (const bar of subject.bars) {

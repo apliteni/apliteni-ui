@@ -78,7 +78,7 @@ const netK = (n: number) => `${n}k €`;
 // can name the first four months and keep every bar labelled on the narrowest phone.
 const periodsOf = (months: string[]) => months.map(month => ({ label: `${month} 2026`, short: month }));
 const MonthChart = ({ months = MONTHS, net = NET_BY_MONTH, span = 'first half of the year', chartLabel }:
-  { months?: string[]; net?: number[]; span?: string; chartLabel?: string }) => <Chart variant="months"
+  { months?: string[]; net?: number[]; span?: string; chartLabel?: string }) => <Chart variant="bars"
   title={`Net settled by month, ${span}${chartLabel ? `, ${chartLabel}` : ''}`}
   periods={periodsOf(months)} series={[{ id: 'net', name: 'Net settled', values: net, tone: 'accent' }]}
   format={netK} table={false} />;
@@ -139,6 +139,19 @@ const SEASON_SERIES: ChartLookSeries[] = [
   { id: 'y2025', name: '2025', tone: 'accent', values: [16.4, 17.0, 18.8, 18.1, 19.7, 20.6] },
 ];
 const HALF_YEAR = MONTHS.map(month => ({ label: month, short: month }));
+// The head the trend-in-head Do draws: the six months' total, a range picker
+// and the change against the six months before, with its basis in the tooltip.
+const RANGES = [{ value: '3', label: 'Last 3 months' }, { value: '6', label: 'Last 6 months' }];
+const NET_TREND = { value: '+186k €', basis: 'Compared with 2,634k € in the 6 months before' };
+const HeadCard = ({ onPlot = false }: { onPlot?: boolean }) => <Card title="Net settled">
+  {onPlot
+    ? <div className="gd-on-plot"><MonthChart chartLabel="trend on the plot" />
+      <span className="gd-plot-trend ui-chart__trend">{NET_TREND.value}</span></div>
+    : <Chart variant="bars" title="Net settled by month, first half of the year, trend in the head"
+      figure="2,820k €" trend={NET_TREND} ranges={RANGES} range="6" onRangeChange={noop}
+      periods={periodsOf(MONTHS)} series={[{ id: 'net', name: 'Net settled', values: NET_BY_MONTH, tone: 'accent' }]}
+      format={netK} table={false} />}
+</Card>;
 const LineCard = ({ title, sub, series, look = 'labels', legend = false, span = 'first half of 2026', periods = PERIODS, chartLabel }:
   { title: string; sub?: string; series: ChartLookSeries[]; look?: 'thin' | 'labels'; legend?: boolean; span?: string; periods?: typeof PERIODS; chartLabel?: string }) =>
   <Card title={title} sub={sub}>
@@ -228,6 +241,7 @@ const specimens = [
   { id: 'no-range-on-chart',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="no range" /></Stage>,
     dont: () => <Stage><LineCard title="Spend against estimate" sub="First half of 2026" series={SPEND_SERIES} legend chartLabel="range in subtitle" /></Stage> },
+  { id: 'trend-in-head', do: () => <Stage><HeadCard /></Stage>, dont: () => <Stage><HeadCard onPlot /></Stage> },
   { id: 'value-not-legend',
     do: () => <Stage><LineCard title="Spend against estimate" series={SPEND_SERIES} legend chartLabel="with values" />
       <LineCard title="Seasonal spend" series={SEASON_SERIES} look="thin" legend span="first half of each year" periods={HALF_YEAR} /></Stage>,

@@ -9,15 +9,23 @@
 //
 // Limits: the ratios are the stylesheet's values, not painted pixels, so
 // antialiasing, the ramp between the two ends, host overrides and a consumer's
-// own --ui-chart-ground are out; the browser captures on the PR carry the paint. The zero
+// own --ui-chart-ground are out; the browser captures on the PR carry the paint.
+// A bar's rest strength is blended onto its ground as a flat colour, so the measured ratio is the bar's
+// top, not its fade. The zero
 // rule, the isolated point's rim and the line's casing are not series and are not measured
 // here. Nor is one series against another — two series are told apart by the side
 // of zero they stand on and by the legend, never by hue alone.
+// A line over the fills of a line look is measured against the fills at their
+// top strength, one fill or two laid over each other, which is the strongest
+// ground the ramp reaches. Three fills over one point are out. A point marker's
+// ring is measured the same way, and an area's wash is read at the line fill's
+// top strength.
 // The same list, kept current, is stories/guidelines/accessibility-coverage.json.
 import { describe, expect, it } from 'vitest';
+import { render } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { ChartTone } from './Chart';
+import { Chart, type ChartTone } from './Chart';
 import {
   // stories/lib/contrast.js is plain JS outside this workspace's tsconfig. It is
   // imported for its arithmetic, unit-tested in stories/lib/contrast.test.js.
@@ -140,6 +148,133 @@ describe('the chart\'s tones', () => {
     expect(rows.filter((row) => row.value >= AA_LARGE),
       'a fade clears 3:1 on the card, so it is a second strong colour and no longer a base')
       .toEqual([]);
+  });
+
+  /* A bar at rest draws at less than full strength, and the active bar at full
+   * strength. The sheet sets the rest strength in one rule, which names the tones
+   * that take it. Each named tone, blended onto its ground at that strength, must
+   * still clear 3:1. The rejection is the same measurement for every tone: at the
+   * same strength some tones fall under 3:1, which is why the rule names only
+   * some of them. */
+  const REST = /:is\(([^)]*)\)\.ui-chart__bar:not\(\.is-active\)\s*\{\s*opacity:\s*([\d.]+);\s*\}/.exec(CHART_CSS);
+  const restRows = (names: string[], strength: number) => THEMES.flatMap((theme) =>
+    (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]).flatMap((ground) => names.map((name) => {
+      const { tone, behind } = measure(theme, 'default', ground, TONES.get(name)!.strong);
+      const seen = tone!.slice(0, 3).map((c, i) => c * strength + behind![i] * (1 - strength));
+      return { where: `${name} at rest on the ${ground}, ${theme}`, value: ratio([...seen, 1], behind) as number };
+    })));
+
+  it('clears 3:1 for every tone the rest rule names, at the rule\'s strength', () => {
+    expect(REST, 'the one rest rule was not found in src/styles/chart.css').not.toBeNull();
+    const names = [...REST![1].matchAll(/\.ui-chart__tone--([\w-]+)/g)].map(([, name]) => name);
+    const strength = Number(REST![2]);
+    expect(names.length, 'the rule names at least one tone').toBeGreaterThan(0);
+    for (const name of names) expect(TONES.has(name), `${name} is a tone the sheet paints`).toBe(true);
+    expect(strength).toBeLessThan(1);
+    const rows = restRows(names, strength);
+    expect(rows).toHaveLength(names.length * 2 * THEMES.length);
+    for (const row of rows) {
+      expect(row.value, `${row.where} measures ${row.value.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA_LARGE);
+    }
+  });
+
+  it('rejects the rest strength for a tone the rule leaves out', () => {
+    const strength = Number(REST![2]);
+    expect(restRows([...TONES.keys()], strength).filter((row) => row.value < AA_LARGE).length,
+      'every tone clears 3:1 at the rest strength, so this check rejects nothing').toBeGreaterThan(0);
+  });
+
+  /* A line look fills under each line, so a line crosses the fill of another
+   * line, or two fills laid over each other. Where a casing of the ground lies
+   * under every stroke, the line touches the ground and not the fills. Where it
+   * does not, the line touches the fills. The rows measure what the rendered
+   * chart puts beside the line. */
+  const TOP = Number(/\.ui-chart__fill-top\s*\{[^}]*stop-opacity:\s*([\d.]+);/.exec(CHART_CSS)?.[1]);
+  const over = (under: number[], paint: Rgba) => under.map((c, i) => paint[i] * TOP + c * (1 - TOP));
+  const fillRows = (cased: boolean) => THEMES.flatMap((theme) => ACCENTS.flatMap((accent) =>
+    (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]).flatMap((ground) => {
+      const at = (name: string) => measure(theme, accent, ground, TONES.get(name)!.strong);
+      const names = [...TONES.keys()];
+      const behind = at(names[0]).behind!.slice(0, 3);
+      const stacks = [...names.map((a) => [a]), ...names.flatMap((a) => names.map((b) => [a, b]))];
+      return names.flatMap((line) => stacks.map((stack) => {
+        const fills = stack.reduce((under, name) => over(under, at(name).tone!), behind);
+        const beside = cased ? behind : fills;
+        return {
+          where: `${line} line over the ${stack.join(' and ')} fill on the ${ground}, ${theme}, ${accent} accent`,
+          value: ratio(at(line).tone, [...beside, 1]) as number,
+        };
+      }));
+    })));
+  const lineChart = () => render(
+    <Chart variant="line" look="thin" title="Income and spend" format={(v: number) => String(v)}
+      periods={['Jan', 'Feb', 'Mar', 'Apr'].map((label) => ({ label }))}
+      series={[{ id: 'income', name: 'Income', tone: 'info', values: [40, 10, 40, 10] },
+        { id: 'spend', name: 'Spend', tone: 'accent', values: [10, 40, 10, 40] }]} />,
+  );
+  /** True when a wider casing of the ground lies under every stroke of the line look. */
+  const casedLines = () => {
+    const { container } = lineChart();
+    const drawn = [...container.querySelectorAll('line.ui-chart__line-casing, line.ui-chart__line')];
+    const at = (el: Element) => ['x1', 'y1', 'x2', 'y2'].map((n) => el.getAttribute(n)).join(' ');
+    const strokes = drawn.filter((el) => el.classList.contains('ui-chart__line'));
+    expect(strokes.length, 'the line look draws its strokes as segments').toBe(6);
+    const width = (name: string) => Number(/stroke-width:\s*([\d.]+)/
+      .exec(new RegExp(`\\.ui-chart__${name}\\s*\\{([^}]*)\\}`).exec(CHART_CSS)?.[1] ?? '')?.[1]);
+    const ground = /\.ui-chart__line-casing\s*\{[^}]*stroke:\s*var\(--ui-chart-ground\)/.test(CHART_CSS);
+    return ground && width('line-casing') > width('line') && strokes.every((stroke) => drawn
+      .slice(0, drawn.indexOf(stroke))
+      .some((el) => el.classList.contains('ui-chart__line-casing') && at(el) === at(stroke)));
+  };
+
+  it('clears 3:1 for every line against the fills it crosses, under every accent', () => {
+    expect(TOP, 'the fill\'s top strength was not found in src/styles/chart.css').toBeGreaterThan(0);
+    const rows = fillRows(casedLines());
+    const n = TONES.size;
+    expect(rows).toHaveLength(THEMES.length * ACCENTS.length * 2 * n * (n + n * n));
+    expect(rows.filter((row) => row.value < AA_LARGE)
+      .map((row) => `${row.where}: ${row.value.toFixed(2)}:1`)).toEqual([]);
+  });
+
+  /* #863, the owner's choice: a point marker is a ring of its tone around the
+   * ground. The ring is the marker's only ink. Where a wider casing of the
+   * ground lies under every ring, the ring touches the ground on each side, and
+   * the line and the fills stop at the casing. Where it does not, the ring's
+   * outer edge touches the fills, measured as the line rows are. */
+  const fillOf = (name: string) => new RegExp(`\\.ui-chart__${name}\\s*\\{([^}]*)\\}`).exec(CHART_CSS)?.[1] ?? '';
+  const casedPoints = (looks: [variant: 'line' | 'area', look: string][]) => looks.every(([variant, look]) => {
+    const { container, unmount } = render(
+      <Chart variant={variant} look={look as never} title="Income and spend" format={(v: number) => String(v)}
+        periods={['Jan', 'Feb', 'Mar', 'Apr'].map((label) => ({ label }))}
+        series={[{ id: 'income', name: 'Income', tone: 'info', values: [40, 10, 40, 10] },
+          { id: 'spend', name: 'Spend', tone: 'accent', values: [10, 40, 10, 40] }]} />,
+    );
+    const drawn = [...container.querySelectorAll('circle.ui-chart__dot-casing, circle.ui-chart__dot')];
+    const rings = drawn.filter((el) => el.classList.contains('ui-chart__dot'));
+    expect(rings.length, `the ${variant} ${look} look draws a point on each value`).toBe(8);
+    const at = (el: Element) => ['cx', 'cy'].map((n) => el.getAttribute(n)).join(' ');
+    const r = (el: Element) => Number(el.getAttribute('r'));
+    const width = (name: string) => Number(/stroke-width:\s*([\d.]+)/.exec(fillOf(name))?.[1]);
+    const ground = /fill:\s*var\(--ui-chart-ground\)/;
+    const hollow = ground.test(fillOf('dot')) && /stroke:\s*var\(--ui-chart-tone\)/.test(fillOf('dot'));
+    const casing = ground.test(fillOf('dot-casing')) && /stroke:\s*var\(--ui-chart-ground\)/.test(fillOf('dot-casing'));
+    const cased = hollow && casing && rings.every((ring) => drawn.slice(0, drawn.indexOf(ring)).some((el) =>
+      el.classList.contains('ui-chart__dot-casing') && at(el) === at(ring)
+      && r(el) + width('dot-casing') / 2 > r(ring) + width('dot') / 2));
+    unmount();
+    return cased;
+  });
+  const POINT_LOOKS: [variant: 'line' | 'area', look: string][] = [['line', 'points'], ['area', 'curves']];
+
+  it('clears 3:1 for every point marker against the ground and the fills it stands on, under every accent', () => {
+    const rows = fillRows(casedPoints(POINT_LOOKS));
+    expect(rows.filter((row) => row.value < AA_LARGE)
+      .map((row) => `${row.where.replace(' line ', ' point ')}: ${row.value.toFixed(2)}:1`)).toEqual([]);
+  });
+
+  it('rejects a line laid straight on the fills', () => {
+    expect(fillRows(false).filter((row) => row.value < AA_LARGE).length,
+      'every line clears 3:1 on bare fills, so this check rejects nothing').toBeGreaterThan(0);
   });
 
   it('rejects a tone whose value stops resolving instead of scoring it', () => {
