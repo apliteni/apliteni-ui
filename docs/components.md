@@ -611,8 +611,8 @@ its words on one line. Without `ghost` the trigger keeps its edge.
   the body does not scroll.
 - A closed panel adds no scroll room at the end of a page or a body. Closing a panel does not move
   the field while the user is still scrolled into the room that the panel needed.
-- The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
-  or a transition.
+- The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll,
+  a transition or a font that loads late.
 - A row names its item in the body weight, as a native list does. A group label is 13px, bold
   and in muted ink, at 5.60:1 on the panel in dark and 6.11:1 in light under every accent. The
   options under it are not indented.
@@ -633,7 +633,8 @@ searched, so put the words that a user types in the label. `search={{ count, nou
 size of the set, for example "Search 214 people". Each open starts with the whole list. A query
 with no matches says so. A panel with a search field is at least 280px wide, also inside a
 [`Field`](#fields), so the field shows its search text. Inside a `Field` the panel is never wider
-than the view less 8px at each side.
+than the view less 8px at each side. In a `Modal` or a `Drawer` it is as wide as its trigger, or
+280px when the trigger is narrower.
 
 **Submenus.** The account menu of `AppShell` has a Theme row that opens a submenu. Right and Enter
 open it, Left and Escape close it, and the focus goes back to the row. On a phone the submenu

@@ -533,11 +533,15 @@ test('measured in a browser, four widths and both themes', {
  * It opens react-dropdown-placement--in-a-form in a Modal and in a Drawer, with four fields
  * above the select and two below it, at each of ten window sizes and on six devices: the
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
- * phone of 466×678 and 890×626 at scale 3 with touch. One more run scrolls the body when a
- * panel opens, and the walk must report that the trigger moved.
+ * phone of 466×678 and 890×626 at scale 3 with touch. It walks the plain select in light and
+ * the select with a search field in light and dark. An open panel is its trigger's width, and
+ * a search panel is at least 280px, never wider than the view less 8px at each side (#924).
+ * The walk starts after the fonts are loaded, so a late font cannot move the trigger under
+ * the baseline. One more run scrolls the body when a panel opens, and the walk must report
+ * that the trigger moved.
  *
- * Its limits: one engine, the light theme and the default accent. The layout shift is
- * web-vitals' onCLS, which does not count a shift within 500ms of an input.
+ * Its limits: one engine and the default accent. The layout shift is web-vitals' onCLS,
+ * which does not count a shift within 500ms of an input.
  * why: docs/components.md#dropdown
  */
 const FLOAT_STORY = 'react-dropdown-placement--in-a-form';
@@ -545,6 +549,8 @@ const FLOAT_SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 10
 const FLOAT_DEVICES = ['Galaxy Z Fold 7', 'Galaxy Z Fold 7 Cover', 'Galaxy Z Flip 7', 'Galaxy Z Flip 7 Cover'];
 const FLOAT_DUO = [[466, 678], [890, 626]];
 const FLOAT_STAGES = ['modal', 'drawer'];
+// The plain select, and the select with a search field in both themes. #924
+const FLOAT_KINDS = [['select', false, 'light'], ['search', true, 'light'], ['search', true, 'dark']];
 
 // The state after one action: the trigger, the panel and its side, the focus, every fixed
 // element outside the dropdown, every box that scrolls, the layout shift and the sideways
@@ -561,8 +567,9 @@ const FLOAT_READ = () => {
   return {
     open: dd.classList.contains('open'),
     side: panel.getAttribute('data-dd-lifted'),
-    trigger: { x: t.left, top: t.top, bottom: t.bottom },
-    panel: { top: p.top, bottom: p.bottom, left: p.left, right: p.right },
+    trigger: { x: t.left, top: t.top, bottom: t.bottom, width: t.width },
+    panel: { top: p.top, bottom: p.bottom, left: p.left, right: p.right, width: p.width },
+    search: panel.classList.contains('ui-dropdown__panel--search'),
     focus: !dd.contains(el) ? null : panel.contains(el) ? 'panel' : el === trigger ? 'trigger' : 'dropdown',
     fixed: all.filter((e) => getComputedStyle(e).position === 'fixed')
       .map((e) => { const r = e.getBoundingClientRect(); return { name: `${e.tagName.toLowerCase()}.${[...e.classList].join('.')}`, x: r.left, y: r.top }; }),
@@ -617,6 +624,9 @@ async function floatWalk(page, label, touch) {
       if (after.side === 'down' && after.panel.top < after.trigger.bottom) found.push(`${at}: the panel covers its trigger`);
       if (after.side === 'up' && after.panel.bottom > after.trigger.top) found.push(`${at}: the panel covers its trigger`);
       if (after.panel.top < 0 || after.panel.bottom > after.view[1] || after.panel.left < 0 || after.panel.right > after.view[0]) found.push(`${at}: the panel leaves the view`);
+      // A fixed panel's 100% is the view, so a search floor of max(100%, 280px) made it 1264px at 1280. #924
+      const width = Math.min(after.search ? Math.max(after.trigger.width, 280) : after.trigger.width, after.view[0] - 16);
+      if (Math.abs(after.panel.width - width) > 1) found.push(`${at}: the panel is ${Math.round(after.panel.width)}px wide, not ${Math.round(width)}px`);
       sides.push(after.side);
     } else if (name === 'key: Escape' && after.focus !== 'trigger') found.push(`${at}: Escape did not give the focus back to the trigger`);
     before = after;
@@ -633,6 +643,14 @@ const SCROLL_ON_OPEN = `new MutationObserver(() => {
   while (box && !['auto', 'scroll'].includes(getComputedStyle(box).overflowY)) box = box.parentElement;
   if (box) box.scrollTop += 80;
 }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });`;
+
+// The search floor of 74ee3b7b, whose 100% is the view once the panel is fixed. #924
+const VIEW_WIDE_SEARCH = `document.addEventListener('DOMContentLoaded', () => {
+  const style = document.createElement('style');
+  style.textContent = '.ui-field > .ui-dropdown > .ui-dropdown__panel.ui-dropdown__panel--search'
+    + ' { min-inline-size: min(max(100%, 280px), var(--ui-dropdown-ceiling, 100vw)); }';
+  document.head.append(style);
+});`;
 
 test('in a Modal or a Drawer, each key and click opens the panel over the body and moves nothing', {
   skip: !RUN && 'set DROPDOWN_EDGES=1',
@@ -655,13 +673,16 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
   ];
   const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
   const server = await serve(build, path.join(build, 'iframe.html'));
-  const open = async (context, stage, script) => {
+  const open = async (context, stage, script, [, find, theme] = FLOAT_KINDS[0]) => {
     const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
     await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });\n${script ?? ''}` });
     const page = await ctx.newPage();
-    await page.goto(`http://127.0.0.1:${server.port}/iframe.html?id=${FLOAT_STORY}&viewMode=story&globals=theme:light&args=stage:${stage};before:4;after:2;rows:12`);
+    await page.goto(`http://127.0.0.1:${server.port}/iframe.html?id=${FLOAT_STORY}&viewMode=story&globals=theme:${theme}&args=stage:${stage};before:4;after:2;rows:12;find:!${find}`);
     await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
       && window.__STORYBOOK_PREVIEW__.currentRender.id === id, FLOAT_STORY);
+    // A font that lands after the baseline moves the trigger, and the walk reads that as an
+    // action's move. The late font has its own test below.
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
     await settle(page, false);
     // A person scrolls the field into view before they use it, and so does a click here.
     await page.locator('.ui-dropdown [data-dropdown-trigger]').scrollIntoViewIfNeeded();
@@ -674,16 +695,19 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
     const seen = new Set();
     for (const [label, context] of subjects) {
       for (const stage of FLOAT_STAGES) {
-        const { ctx, page } = await open(context, stage);
-        const { found, sides } = await floatWalk(page, `${label} ${stage}`, !!context.hasTouch);
-        findings.push(...found);
-        sides.forEach((s) => seen.add(s));
-        table.push(`${label} ${stage}: ${FLOAT_ACTIONS.length} actions, opens ${[...new Set(sides)].join(' and ')}, ${found.length ? 'fail' : 'pass'}`);
-        await ctx.close();
+        for (const kind of FLOAT_KINDS) {
+          const { ctx, page } = await open(context, stage, '', kind);
+          const name = `${label} ${stage} ${kind[0]} ${kind[2]}`;
+          const { found, sides } = await floatWalk(page, name, !!context.hasTouch);
+          findings.push(...found);
+          sides.forEach((s) => seen.add(s));
+          table.push(`${name}: ${FLOAT_ACTIONS.length} actions, opens ${[...new Set(sides)].join(' and ')}, ${found.length ? 'fail' : 'pass'}`);
+          await ctx.close();
+        }
       }
     }
     process.stdout.write(`${table.join('\n')}\n`);
-    assert.equal(table.length, (FLOAT_SIZES.length + FLOAT_DEVICES.length + FLOAT_DUO.length) * FLOAT_STAGES.length, 'a size or a device was not measured');
+    assert.equal(table.length, (FLOAT_SIZES.length + FLOAT_DEVICES.length + FLOAT_DUO.length) * FLOAT_STAGES.length * FLOAT_KINDS.length, 'a size or a device was not measured');
     assert.deepEqual(findings, []);
     // Both sides are reached, so the 120px choice is measured and not only the usual side.
     assert.deepEqual([...seen].sort(), ['down', 'up'], `the panels opened only ${[...seen]}`);
@@ -693,6 +717,78 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
     const { found } = await floatWalk(page, 'mutated', false);
     await ctx.close();
     assert.ok(found.some((f) => f.includes('the trigger moved')), `a body scrolled on the open and the walk found: ${found.join('; ') || 'nothing'}`);
+    // The second mutation: a search panel as wide as the view must be caught.
+    const wide = await open({ viewport: { width: 1280, height: 800 } }, 'drawer', VIEW_WIDE_SEARCH, FLOAT_KINDS[1]);
+    const { found: wideFound } = await floatWalk(wide.page, 'mutated', false);
+    await wide.ctx.close();
+    assert.ok(wideFound.some((f) => f.includes('px wide, not')), `a search panel had the view's width and the walk found: ${wideFound.join('; ') || 'nothing'}`);
+  } finally {
+    await browser.close();
+    server.proc.kill();
+  }
+});
+
+/* Rule: an open panel lifted out of a Modal or Drawer body follows its trigger when a late
+ * font moves the trigger. Nothing resizes and nothing scrolls then, so only the font tells.
+ *
+ * Off unless DROPDOWN_EDGES=1, as the walk above is. It serves the kit's two families from
+ * DejaVu Sans with larger metrics (size-adjust 120%), holds the font file until the panel
+ * is open, then lets it load. The font must move the trigger, or the case proves nothing.
+ * The panel must then stand 9px below the trigger, or 9px above it if it turned up. #924
+ *
+ * Its limits: one engine, 1280×800 in a Modal and a Drawer, the light theme and a system
+ * font file in place of the kit's own. It needs DejaVu Sans at the path below.
+ * why: docs/components.md#dropdown
+ */
+const LATE_FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
+test('in a Modal or a Drawer, a late font moves the trigger and the open panel follows it', {
+  skip: !RUN && 'set DROPDOWN_EDGES=1',
+}, async () => {
+  const { serve, playwright } = await import('./lib/dropdown-contain.js');
+  const { readFileSync } = await import('node:fs');
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_EDGES=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  assert.ok(existsSync(LATE_FONT), `no font file at ${LATE_FONT} to serve late`);
+  const font = readFileSync(LATE_FONT);
+  const build = path.join(root, 'storybook-static');
+  assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  const read = () => {
+    const dd = document.querySelector('.ui-dropdown');
+    const t = dd.querySelector('[data-dropdown-trigger]').getBoundingClientRect();
+    const panel = dd.querySelector('.ui-dropdown__panel');
+    const p = panel.getBoundingClientRect();
+    return { fonts: document.fonts.status, side: panel.getAttribute('data-dd-lifted'), top: t.top, bottom: t.bottom, panelTop: p.top, panelBottom: p.bottom };
+  };
+  try {
+    const findings = [];
+    for (const stage of FLOAT_STAGES) {
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, timezoneId: 'UTC' });
+      let release;
+      const held = new Promise((resolve) => { release = resolve; });
+      const face = (family) => `@font-face { font-family: '${family}'; src: url(https://fonts.gstatic.com/late.ttf); font-display: swap; size-adjust: 120%; ascent-override: 110%; descent-override: 40%; }`;
+      await ctx.route('https://fonts.googleapis.com/**', (route) => route.fulfill({ contentType: 'text/css', body: `${face('IBM Plex Sans')}\n${face('Poppins')}` }));
+      await ctx.route('https://fonts.gstatic.com/**', async (route) => { await held; await route.fulfill({ contentType: 'font/ttf', body: font }); });
+      const page = await ctx.newPage();
+      await page.goto(`http://127.0.0.1:${server.port}/iframe.html?id=${FLOAT_STORY}&viewMode=story&globals=theme:light&args=stage:${stage};before:4;after:2;rows:12;find:!true`, { waitUntil: 'commit' });
+      await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
+        && window.__STORYBOOK_PREVIEW__.currentRender.id === id, FLOAT_STORY);
+      await page.locator('.ui-dropdown [data-dropdown-trigger]').click();
+      await settle(page, true);
+      const before = await page.evaluate(read);
+      if (before.fonts !== 'loading') findings.push(`${stage}: the font was ${before.fonts} before the release, so it was not late`);
+      release();
+      await page.waitForFunction(() => document.fonts.status === 'loaded' && [...document.fonts].some((f) => f.status === 'loaded'));
+      await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      const after = await page.evaluate(read);
+      await ctx.close();
+      if (Math.abs(after.bottom - before.bottom) < 2) findings.push(`${stage}: the late font moved the trigger ${after.bottom - before.bottom}px, so the case proves nothing`);
+      const off = after.side === 'up' ? after.top - 9 - after.panelBottom : after.panelTop - after.bottom - 9;
+      if (Math.abs(off) > 1) findings.push(`${stage}: the trigger moved ${Math.round(after.bottom - before.bottom)}px and the ${after.side} panel is ${Math.round(off)}px off its place`);
+      process.stdout.write(`late font ${stage}: trigger moved ${Math.round(after.bottom - before.bottom)}px, panel ${after.side} ${Math.round(off)}px off\n`);
+    }
+    assert.deepEqual(findings, []);
   } finally {
     await browser.close();
     server.proc.kill();

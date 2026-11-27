@@ -564,9 +564,14 @@ export function Dropdown({
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', follow, true);
     view.addEventListener('resize', resize);
+    // A late font moves the trigger and nothing resizes or scrolls, so a lifted panel
+    // follows it when a font is loaded. #924
+    const fonts = el.ownerDocument?.fonts;
+    fonts?.addEventListener?.('loadingdone', follow);
     return () => {
       view.removeEventListener('scroll', follow, true);
       view.removeEventListener('resize', resize);
+      fonts?.removeEventListener?.('loadingdone', follow);
     };
   }, [open, direction]);
 

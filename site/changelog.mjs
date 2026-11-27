@@ -2,7 +2,8 @@ export const RELEASES = [
   {
     v: '0.229.0', date: '2026-11-27',
     changes: [
-      ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
+      ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. In a `Modal` or a `Drawer` it is as wide as its trigger, or 280px when the trigger is narrower. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
+      ['fixed', 'An open `Dropdown` panel in a `Modal` or a `Drawer` now follows its trigger when a font loads late. Before, the panel could cover the lower part of the trigger. Part of #924.', ['Dropdown']],
     ],
   },
   {

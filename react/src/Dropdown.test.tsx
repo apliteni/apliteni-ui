@@ -1868,6 +1868,23 @@ it('a panel in a scrolling body opens above its trigger when the view has less t
   expect(body.scrollTop).toBe(0);
 });
 
+// A font that arrives late moves the trigger, and no box resizes and nothing scrolls. The
+// font set is a stand-in with only its event, so the test controls when the font lands. #924
+it('a lifted panel follows its trigger when a late font moves it', async () => {
+  const fonts = new EventTarget();
+  Object.defineProperty(document, 'fonts', { value: fonts, configurable: true });
+  try {
+    phone(600);
+    const { panel } = await inBody();
+    expect(panel.style.top).toBe(`${600 + 9}px`);
+    phone(615);
+    fonts.dispatchEvent(new Event('loadingdone'));
+    expect(panel.style.top).toBe(`${615 + 9}px`);
+  } finally {
+    delete (document as { fonts?: unknown }).fonts;
+  }
+});
+
 it('a trigger in a page reserves the 8px edge under the open panel, so closing moves nothing and opening adds no scroll', () => {
   phone(600);
   const { container } = render(<Dropdown value="Account" variant="menu" defaultOpen items={MENU} />);
