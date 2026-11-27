@@ -322,8 +322,9 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 179: Dropdown added trigger-value (#899).
   // 180: Motion gained hover-at-once (#865).
   // 181: Motion gained every-change (#900).
-  // 182: Dashboards and reports gained trend-in-head (#863).
-  assert.equal(count, 182, 'update the rule count when adding or removing a rule');
+  // 182: The page gained sidebar-column (#869).
+  // 183: Dashboards and reports gained trend-in-head (#863).
+  assert.equal(count, 183, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

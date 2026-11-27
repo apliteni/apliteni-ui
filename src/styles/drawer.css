@@ -161,6 +161,8 @@
 .ui-drawer__lead > .ui-tip-host > span:not(.ui-tip) { display: block; }
 .ui-drawer__title:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 .ui-drawer__status { display: inline-flex; flex: none; }
+/* A mark before the title keeps its size, and the title shrinks first. */
+.ui-drawer__mark { display: inline-flex; flex: none; }
 /* Header actions stand at the far end, beside the close button. */
 .ui-drawer__actions { display: flex; flex: none; align-items: center; gap: var(--space-1); margin-inline-start: auto; }
 .ui-drawer__close {
