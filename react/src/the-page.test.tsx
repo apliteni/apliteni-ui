@@ -63,7 +63,7 @@ const GATED: { id: string; says: string }[] = [
 ];
 
 // The floors are what the tree holds today, not a round number underneath it.
-const FOUND = { files: 11, screens: 31, apps: 25, ledes: 15, sidebars: 29, bandEnds: 3, notes: 9 };
+const FOUND = { files: 11, screens: 31, apps: 25, ledes: 15, sidebars: 29, bandEnds: 3 };
 
 describe('the page: React screens', () => {
   it('found the kit’s own screens', () => {
@@ -126,15 +126,16 @@ describe('the page: React screens', () => {
     expect(CHECKS['sign-in-note']({ ...drawn[0], where: 'named', doc })).toHaveLength(1);
   });
 
-  // `sidebar-column` only reads a screen with a sidebar note, so this counts them, and a
-  // second note, a note with parts and a note away from the account must fail it.
-  it('the sidebar-column check reaches sidebar notes and refuses a misplaced one', () => {
-    const drawn = screens.filter((s) => s.doc.querySelector('.ui-app__note'));
-    expect(drawn.length, 'screens with a sidebar note').toBeGreaterThanOrEqual(FOUND.notes);
-    const doc = document.implementation.createHTMLDocument('misplaced');
-    doc.body.innerHTML = '<div class="ui-app__rail"><p class="ui-app__note">v2.14.0</p><nav></nav>'
-      + '<p class="ui-app__note"><a href="#">v2.14.0</a></p><div class="ui-app__user"></div></div>';
-    expect(CHECKS['sidebar-column']({ ...drawn[0], where: 'misplaced', doc })).toHaveLength(3);
+  // `sidebar-column` reads the rows of each sidebar, so a row with no icon must fail it.
+  it('the sidebar-column check refuses a section row with no icon', () => {
+    const drawn = screens.filter((s) => s.doc.querySelector('nav.ui-nav--side .ui-nav__ic'));
+    expect(drawn.length, 'screens with sidebar icons').toBeGreaterThanOrEqual(FOUND.sidebars);
+    const doc = document.implementation.createHTMLDocument('bare');
+    doc.body.innerHTML = '<nav class="ui-nav ui-nav--side" aria-label="Sections"><ul class="ui-nav__list">'
+      + '<li><a class="ui-nav__item"><span class="ui-nav__ic"></span><span class="ui-nav__label">Overview</span></a>'
+      + '<ul class="ui-nav__sub"><li><a class="ui-nav__item ui-nav__item--sub">Pending</a></li></ul></li>'
+      + '<li><a class="ui-nav__item"><span class="ui-nav__label">Payouts</span></a></li></ul></nav>';
+    expect(CHECKS['sidebar-column']({ ...drawn[0], where: 'bare', doc })).toEqual(['bare gives the sidebar row "Payouts" no icon. Each section has one.']);
   });
 
   for (const rule of GATED) {

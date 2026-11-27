@@ -130,11 +130,6 @@ export const PhoneDropdown: Story = { render, globals: { viewport: { value: 'pho
   args: { bandControl: <Dropdown variant="menu" ariaLabel="Workspace" triggerContent="Workspace"
     items={[{ label: 'Demo workspace', value: 'demo' }, { label: 'Sample workspace', value: 'sample' }]} /> } };
 
-// One short line at the foot of the section list, above the account (#869).
-export const Note: Story = { render, args: { sidebarNote: 'v2.14.0' } };
-export const NoteFolded: Story = { render, args: { sidebarNote: 'v2.14.0', defaultCollapsed: true } };
-export const NotePhoneMenu: Story = { ...PhoneMenu, args: { sidebarNote: 'v2.14.0' } };
-
 export const RailCentered: Story = { render, args: { layout: 'rail' } };
 export const RailWide: Story = { render, args: { layout: 'rail', width: 'wide' } };
 export const RailFolded: Story = { render, args: { layout: 'rail', defaultCollapsed: true } };

@@ -28,13 +28,13 @@
 
 <!-- rule: sidebar-column -->
 
-**Rule:** Align the logo, navigation icons, version, and avatar on one column, and hide the version when the sidebar folds.
+**Rule:** Align the logo, navigation icons, and avatar on one column.
 
-**Why:** One edge leads the eye from the logo to the account, and a folded strip has no room for words.
+**Why:** One edge leads the eye from the logo to the account.
 
-**Do:** Put one fact, such as the version, above the account.
+**Do:** Give each section an icon, so the column has no gap.
 
-**Don't:** Start the version under the section names.
+**Don't:** Start the avatar under the section names.
 
 ## Keep the bar’s end for product alerts
 

@@ -75,17 +75,14 @@ export const CHECKS = {
         + 'and sub-items. It takes one or the other.');
   },
 
-  // The sidebar's note is one short line of words, the last line above the account,
-  // and a screen draws one (#869). Its column is measured in a browser by
-  // stories/sidebar-edges.test.js, because a copied document has no layout.
+  // Each section row of a sidebar has an icon, so the icons make one column from the logo
+  // to the avatar (#869). A row with no icon puts its label on that column. The column's
+  // edges are measured in a browser by stories/sidebar-edges.test.js, because a copied
+  // document has no layout. A sub-item keeps the indent of its list and is not read.
   'sidebar-column'(s) {
-    const notes = [...s.doc.querySelectorAll('.ui-app__note')];
-    return [
-      ...(notes.filter((n) => !inOverlay(n)).length > 1 ? [`${s.where} draws ${notes.length} sidebar notes. It takes one.`] : []),
-      ...notes.filter((n) => n.children.length).map((n) => `${s.where} puts parts in the sidebar note "${text(n)}". It takes words only.`),
-      ...notes.filter((n) => (n.nextElementSibling ? !n.nextElementSibling.matches('.ui-app__user') : !inOverlay(n)))
-        .map((n) => `${s.where} puts the sidebar note "${text(n)}" away from the account. It is the last line above it.`),
-    ];
+    return [...s.doc.querySelectorAll('nav.ui-nav--side .ui-nav__item:not(.ui-nav__item--sub)')]
+      .filter((row) => !row.querySelector('.ui-nav__ic'))
+      .map((row) => `${s.where} gives the sidebar row "${text(row)}" no icon. Each section has one.`);
   },
 
   // The band's right end holds glyph controls for every page, one or two of them, and

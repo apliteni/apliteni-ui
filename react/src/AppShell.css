@@ -20,8 +20,8 @@
 .ui-app__drawer,
 .ui-react-app__menu,
 .ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__header { --ui-nav-col: 216px; --ui-nav-strip: 41px; --ui-app-av: 30px; }
-/* The open rail's two columns go on in the phone menu (#869): the mark, the row glyphs,
-   the note and the avatar start one --space-2 inside the row fill, and the product name,
+/* The open rail's two columns go on in the phone menu (#869): the mark, the row glyphs
+   and the avatar start one --space-2 inside the row fill, and the product name,
    the labels and the account name one --space-2 after a symbol box as wide as the avatar.
    layout.css draws the same columns on the rail. why: docs/components.md#page-shell */
 .ui-react-app .ui-app__rail .ui-react-app__mark,
@@ -31,13 +31,9 @@
 :is(.ui-react-app__menu, .ui-drawer__body > .ui-app__drawer) .ui-nav__item:not(.ui-nav__item--sub) > .ui-nav__ic { width: var(--ui-app-av); }
 :is(.ui-react-app__menu, .ui-drawer__body > .ui-app__drawer) .ui-nav__cap { padding-inline: var(--space-2); }
 .ui-app__drawer .ui-app__av { margin-inline-start: var(--space-2); }
-/* The note is the last line of the menu's list: the list fills the body, which is a
-   column, and the note stands at its foot, above the account. */
-.ui-drawer__body > :is(.ui-react-app__menu, .ui-app__drawer) { display: flex; flex: 1 0 auto; flex-direction: column; }
-.ui-drawer__body > :is(.ui-react-app__menu, .ui-app__drawer) > .ui-app__note { margin-top: auto; padding-top: var(--space-5); }
 /* The menu is no form: the account stays at the panel's foot, as on the rail, so the
    body fills the space a form drawer leaves under its footer. why: docs/components.md#page-shell */
-.ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__body { flex-grow: 1; display: flex; flex-direction: column; }
+.ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__body { flex-grow: 1; }
 .ui-app__drawer .ui-app__user-trigger {
   width: 100%;
   gap: var(--space-2);

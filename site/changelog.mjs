@@ -8,11 +8,10 @@ export const RELEASES = [
   {
     v: '0.219.0', date: '2026-11-27',
     changes: [
-      ['added', '`AppShell` takes `sidebarNote`, one short line of text, such as the product version, at the foot of the section list above the account. It shows at the bottom of the phone menu too, and a folded sidebar hides it. Part of #869.', ['AppShell']],
       ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],
       ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
       ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
-      ['added', 'The page guideline has a new rule, Align the sidebar on one column. Part of #869.', ['Guidelines']],
+      ['added', 'The page guideline has a new rule, Align the sidebar on one column: the logo, the section icons and the avatar start on one edge. Part of #869.', ['Guidelines']],
     ],
   },
   {

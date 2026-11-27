@@ -104,9 +104,8 @@ const THEMES = ['dark', 'light'] as const;
 // Then the search field of the SearchField small filters on their own line story (#903).
 // Then the files search field in the Toast Bottom Bar story (#907).
 // Then the search field of the Transactions showcase (#865).
-// Then the client search field in the three AppShell Note stories (#869).
 // Move this count with the specimens.
-const FIELD_COUNT = 214;
+const FIELD_COUNT = 211;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read

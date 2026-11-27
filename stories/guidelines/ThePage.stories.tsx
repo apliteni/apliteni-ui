@@ -40,17 +40,16 @@ const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side">
     { label: 'Workspace', items: [{ id: 'prefs', icon: 'gear', label: 'Preferences' }] }]
     : [{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, payouts, { id: 'prefs', icon: 'gear', label: 'Preferences' }] }]) as SidebarNavSections} /></div></Stage>;
 
-// The open sidebar's two columns, drawn with the shell's own parts: the logo, the glyphs,
-// the version and the avatar on one edge, or the version moved onto the names' edge.
-// The account is the shell's own row, so its name starts on the names' edge.
+// The open sidebar's two columns, drawn with the shell's own parts: the logo, the glyphs
+// and the avatar on one edge, or the avatar moved onto the names' edge.
+// The account is the shell's own row, so its name starts after the avatar.
 const DANA = { name: 'Dana Reyes', email: 'dana@example.com' };
-const SideColumn = ({ off }: { off: boolean }) => <Stage><div className="ui-app ui-react-app tp-rail"><div className="ui-app__rail">
+const SideColumn = ({ off }: { off: boolean }) => <Stage><div className={`ui-app ui-react-app tp-rail${off ? ' tp-av--off' : ''}`}><div className="ui-app__rail">
   <div className="ui-app__head"><a className="ui-app__brand" href="#" aria-label="Finance">
     <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`tp-mark-${off}`, 24) }} /><span>Finance</span>
   </a></div>
-  <SidebarNav aria-label={off ? 'Sections, version off the column' : 'Sections, one column'} active="payouts"
+  <SidebarNav aria-label={off ? 'Sections, avatar off the column' : 'Sections, one column'} active="payouts"
     sections={[{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, { id: 'payouts', icon: 'card', label: 'Payouts' }] }]} />
-  <p className={`ui-app__note${off ? ' tp-note--off' : ''}`}>v2.14.0</p>
   <AccountMenu account={DANA} items={[]} onSelect={() => {}} withTheme={false} inPlace={false} />
 </div></div></Stage>;
 

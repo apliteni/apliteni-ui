@@ -194,10 +194,6 @@ const LEDGER = {
     noFocus: 'the rail hides its wordmark as it collapses. Nothing is focused when it comes back — the '
       + 'reader expanded the rail, they did not open it',
   },
-  ':where(.ui-app.is-collapsed) .ui-app__rail .ui-app__note': {
-    noFocus: 'the rail hides its note as it collapses. The note is words and holds no control, so '
-      + 'nothing is focused when it comes back (#869)',
-  },
   '.ui-btn[aria-busy="true"] > span[aria-hidden="true"]:not(.ui-btn__dots)': {
     noFocus: 'a busy button hides its own label and keeps the focus it already had; there is nothing '
       + 'inside the label to focus',

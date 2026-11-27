@@ -91,7 +91,7 @@
 .ui-app__brand svg { display: block; flex: none; }
 
 /* The open rail has two columns (#869). Each symbol starts one --space-2 inside the row
-   fill: the logo box, the row glyphs, the note and the avatar. Each name starts one
+   fill: the logo box, the row glyphs and the avatar. Each name starts one
    --space-2 after a symbol box as wide as the avatar: the product name, the labels and
    the account name. A sub-item keeps the indent of its list. A folded rail keeps
    nav.css's rows, which centre each glyph on the strip. why: docs/components.md#page-shell */
@@ -149,24 +149,6 @@
 }
 /* A drawer's footer carries no rule above it, so the block keeps the rail's rule out. */
 .ui-app__drawer .ui-app__user { padding-top: 0; border-top: 0; }
-/* One short line at the foot of the section list, such as the product's version (#869).
-   It is words the reader reads, so it takes body ink. It stands on the symbol column,
-   keeps the open column while the rail folds, and leaves with the other words.
-   why: docs/components.md#page-shell */
-.ui-app__note {
-  margin: 0;
-  padding-inline: var(--space-2);
-  /* rank: caption */
-  font-size: var(--text-sm);
-  font-weight: var(--weight-normal);
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: opacity var(--dur-fast) var(--ease), visibility var(--dur-fast) linear;
-}
-.ui-app__rail > .ui-app__note { width: var(--ui-nav-col); flex: none; }
-:where(.ui-app.is-collapsed) .ui-app__rail .ui-app__note { opacity: 0; visibility: hidden; }
 /* The avatar is the reader block's own glyph, so half the difference between the
    glyph column and itself is the inset that centres it on the line every glyph above
    it stands on. The arithmetic and not the 5.5 it comes to: both numbers are declared

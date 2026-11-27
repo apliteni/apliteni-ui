@@ -20,7 +20,7 @@ export const FinanceShell = ({ active, title, sub, back, tools, children }: {
   // shell's own --ui-app-main, which the main column reads.
   <div style={{ '--ui-app-main': '960px' } as CSSProperties}>
     <AppShell layout="rail" word="Finance" sections={sections} pathname={`/${active}`} title={title} lede={sub}
-      back={back} tools={tools} sidebarNote="v2.14.0"
+      back={back} tools={tools}
       account={FINANCE_READER} onSignOut={() => {}}
       renderLink={(section, props) => <a {...props} href={linkOf[section.href].href} target={linkOf[section.href].target} />}>
       {children}

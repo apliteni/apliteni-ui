@@ -272,7 +272,7 @@ Report the result in the PR. CI skips this check because Playwright is not a dep
 ## Check the sidebar edges locally
 
 Before opening a PR that changes the open or folded sidebar's horizontal spacing, the phone menu's
-rows or head, React `<AppShell>`'s sidebar note, or the sidebar pair on the page guideline,
+rows or head, or the sidebar pair on the page guideline,
 measure the edges in a real browser. Run `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… SIDEBAR_EDGES=1 node --test stories/sidebar-edges.test.js`
 It measures every AppShell story at 1280 and 390 in both themes, and fails a case that it

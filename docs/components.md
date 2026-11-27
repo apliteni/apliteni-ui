@@ -171,11 +171,6 @@ place. A separator stands before Sign out. In the topbar layout, a Theme row ope
 Auto, Light and Dark. The account button's name is "Signed in as", the name and the address. It
 holds each line of text that the button shows, and the menu takes the same name.
 
-**The sidebar note.** `sidebarNote` puts one short line of text, such as the product's version,
-at the foot of the section list, above the account, in both layouts. It is 13px body text on one
-line, and a long note ends in an ellipsis. The phone menu shows it as the last line of the list,
-above the account. A folded sidebar hides it. Give it one fact, not a link or a status.
-
 **Topbar layout only.**
 
 - `searchLabel` gives the words and the accessible name of the search trigger, at every width.
@@ -220,8 +215,8 @@ above the account. A folded sidebar hides it. Give it one fact, not a link or a 
   button.
 - Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
   glyph, and keeps the same accessible name.
-- The open sidebar and the phone menu have two columns. The logo, each section icon, a group label,
-  the note and the avatar start 8px inside the row fill. The product name, each label and the
+- The open sidebar and the phone menu have two columns. The logo, each section icon, a group label
+  and the avatar start 8px inside the row fill. The product name, each label and the
   account name start 46px inside it, after a 30px symbol box. A sub-item keeps the indent of its
   list. A custom `brand` keeps its own width, so the product name moves with it. The phone menu's
   head shows the logo before the product name. A folded sidebar puts each section icon and the

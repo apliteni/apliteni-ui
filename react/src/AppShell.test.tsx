@@ -628,47 +628,18 @@ describe('band actions', () => {
   });
 });
 
-// One short line at the foot of the section list, above the account (#869). jsdom lays
-// nothing out, so the order is read from the markup and the edges from the stylesheets;
-// stories/sidebar-edges.test.js measures them in Chromium.
-describe('sidebar note', () => {
-  const rail = () => document.querySelector('.ui-app__rail')!;
-  const kids = (el: Element) => [...el.children].map(c => c.className.split(' ')[0]);
-
-  it('stands after the section list and before the account, in each layout, and is not drawn when empty', () => {
-    const { rerender } = render(<AppShell {...props} sidebarNote="v2.14.0" />);
-    expect(kids(rail()).slice(-3)).toEqual(['ui-nav', 'ui-app__note', 'ui-app__user']);
-    expect(rail().querySelector('.ui-app__note')).toHaveTextContent('v2.14.0');
-    rerender(<AppShell {...props} layout="rail" sidebarNote="v2.14.0" />);
-    expect(kids(rail()).slice(-3)).toEqual(['ui-nav', 'ui-app__note', 'ui-app__user']);
-    rerender(<AppShell {...props} sidebarNote="" />);
-    expect(kids(rail()).slice(-2)).toEqual(['ui-nav', 'ui-app__user']);
-    rerender(<AppShell {...props} />);
-    expect(document.querySelector('.ui-app__note')).toBeNull();
-  });
-
-  it('is the last line of the phone menu, above the account, under a head that starts with the mark', () => {
+// The open sidebar and the phone menu have two columns (#869). jsdom lays nothing out, so
+// the edges are read from the stylesheets; stories/sidebar-edges.test.js measures them in
+// Chromium.
+describe('sidebar columns', () => {
+  it('the phone menu head starts with the mark', () => {
     for (const layout of ['topbar', 'rail'] as const) {
-      render(<AppShell {...props} layout={layout} word="Finance" sidebarNote="v2.14.0" />);
+      render(<AppShell {...props} layout={layout} word="Finance" />);
       fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
       const dialog = screen.getByRole('dialog', { name: 'Finance' });
-      const list = dialog.querySelector('.ui-drawer__body')!.firstElementChild!;
-      expect(list.lastElementChild).toHaveClass('ui-app__note');
-      expect(list.lastElementChild).toHaveTextContent('v2.14.0');
-      expect(dialog.querySelector('.ui-drawer__footer .ui-app__user')).not.toBeNull();
       expect(dialog.querySelector('.ui-drawer__lead > .ui-drawer__mark > .ui-react-app__mark svg')).not.toBeNull();
       cleanup();
     }
-  });
-
-  it('takes the caption rank in body ink, and leaves when the sidebar folds', () => {
-    const css = read('../../src/styles/layout.css');
-    const rule = css.match(/\n\.ui-app__note \{([^}]*)\}/)![1];
-    expect(rule).toMatch(/font-size: var\(--text-sm\);\s*font-weight: var\(--weight-normal\);\s*color: var\(--text\);/);
-    expect(rule).not.toMatch(/muted/);
-    // A long note stays on one line and ends in an ellipsis.
-    expect(rule).toMatch(/white-space: nowrap;\s*overflow: hidden;\s*text-overflow: ellipsis;/);
-    expect(css).toContain(':where(.ui-app.is-collapsed) .ui-app__rail .ui-app__note { opacity: 0; visibility: hidden; }');
   });
 
   // The CI half of stories/sidebar-edges.test.js: the edges as the declarations add up.
@@ -704,7 +675,6 @@ describe('sidebar note', () => {
     expect(px(decl('.ui-react-app .ui-app__rail .ui-react-app__mark', 'width'))).toBe(av);
     expect(symbol + av + px(decl('.ui-app__brand', 'gap'))).toBe(62);
     expect(fill + px(decl('.ui-app:not(.is-collapsed) > .ui-app__rail .ui-nav__cap', 'padding-inline'))).toBe(24);
-    expect(fill + px(decl('.ui-app__note', 'padding-inline'))).toBe(24);
     expect(fill + px(decl('.ui-app:not(.is-collapsed) > .ui-app__rail .ui-app__av', 'margin-inline-start'))).toBe(24);
     expect(decl('.ui-app__rail .ui-app__user-trigger .ui-avatar', 'margin')).toBe('0');
     expect(24 + av + px(decl('.ui-app .ui-app__user-trigger', 'gap'))).toBe(62);

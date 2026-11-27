@@ -1,9 +1,8 @@
 /* Rule: the open sidebar has two columns, and the phone menu keeps them (#869). The logo
- * box, each row glyph box, a group label, the note and the avatar start one --space-2
- * inside the row fill. The product name, each label and the account name start one
- * --space-2 after a symbol box as wide as the avatar. The current row's fill starts on
- * the row fill edge. A folded sidebar puts each row glyph and the avatar on the strip's
- * centre line, and hides the note.
+ * box, each row glyph box, a group label and the avatar start one --space-2 inside the
+ * row fill. The product name, each label and the account name start one --space-2 after
+ * a symbol box as wide as the avatar. The current row's fill starts on the row fill
+ * edge. A folded sidebar puts each row glyph and the avatar on the strip's centre line.
  * Before #869 the glyphs stood at 28px, the labels at 56px, the logo at 22.75px and the
  * avatar at 11.5px, and the folded avatar's centre was 10px off the glyphs' centre line.
  *
@@ -15,13 +14,17 @@
  *
  * It discovers every React/AppShell story and plans one case for each story, size and
  * theme: the sidebar at 1280 and the phone menu at 390. A case with no measurement
- * fails, unless ABSENT names it with its reason, and a listed case that measures fails
- * too. A case's rendered theme must equal the planned theme, or it fails. A story in
- * FOLDED must measure folded, and every other one open. The measured count must equal
- * the planned count. A mutation hides one sidebar and one menu, and the coverage check
- * must name both. A mutation renders the wrong theme, and the coverage check must name
- * it. It also measures the do-and-don't pair on the page guideline at both sizes and in
- * both themes: the Do rail keeps both columns, and the Don't rail breaks only the note's.
+ * fails, unless ABSENT names it with its reason. A case in ABSENT is opened too, and it
+ * fails when its reason is no longer true: a shell with one section that draws a sidebar
+ * or a menu, or a forced-light story that renders dark. A case's rendered theme must
+ * equal the planned theme, or it fails. A story in FOLDED must measure folded, and every
+ * other one open. The measured count must equal the planned count less ABSENT. A
+ * mutation hides one sidebar and one menu, and the coverage check must name both. A
+ * mutation renders the wrong theme, and the coverage check must name it. A mutation
+ * gives each kind of ABSENT case a sidebar or a dark theme, and the coverage check must
+ * name both. It also measures the do-and-don't pair on the page guideline at both sizes
+ * and in both themes: the Do rail keeps both columns, and the Don't rail moves only the
+ * avatar and the account name after it.
  * The CI half is the edge arithmetic in react/src/AppShell.test.tsx.
  *
  * Its limits: one engine, the default accent, and two widths. A text
@@ -46,13 +49,16 @@ const STRIP = 41;
 const SIZES = [{ width: 1280, height: 800 }, { width: 390, height: 844 }];
 const THEMES = ['light', 'dark'];
 // The stories that draw a folded sidebar at 1280. Every other sidebar is open.
-const FOLDED = new Set(['react-appshell--folded', 'react-appshell--note-folded', 'react-appshell--rail-folded']);
+const FOLDED = new Set(['react-appshell--folded', 'react-appshell--rail-folded']);
 // The cases that measure nothing, each with its reason. Every other case must measure.
-// A shell with one section draws no sidebar and no menu: react/src/AppShell.tsx `navigable`.
+// Each reason has a test of the case's measurement, which must hold, or the exclusion is
+// stale. A shell with one section draws no sidebar and no menu: react/src/AppShell.tsx
+// `navigable`.
 const ALONE = 'one section, so the shell draws no sidebar and no menu';
 // A story that forces light in its globals draws no dark case: the URL theme cannot
-// override a story-level global.
+// override a story-level global. It renders light when the plan asks for dark.
 const FORCED_LIGHT = 'the story forces light theme, so it draws no dark case';
+const HOLDS = { [ALONE]: (m) => m === null, [FORCED_LIGHT]: (m) => m !== null && m.theme === 'light' };
 const ABSENT = Object.fromEntries([
   ...['react-appshell--band-actions-alone', 'react-appshell--band-actions-alone-phone']
     .flatMap((id) => SIZES.flatMap(({ width }) => THEMES.map((theme) => [`${id} at ${width} ${theme}`, ALONE]))),
@@ -79,21 +85,10 @@ const MEASURE = async (pick) => {
   const shown = (el) => el && el.checkVisibility({ visibilityProperty: true });
   const rows = (scope) => [...scope.querySelectorAll('.ui-nav__item:not(.ui-nav__item--sub)')]
     .filter((row) => !row.closest('.ui-app__head') && shown(row));
-  const note = (scope) => scope.querySelector('.ui-app__note');
-  const ink = (el) => {
-    const probe = document.createElement('i');
-    probe.style.color = 'var(--text)';
-    el.append(probe);
-    const text = getComputedStyle(probe).color;
-    probe.remove();
-    const s = getComputedStyle(el);
-    return { size: s.fontSize, weight: s.fontWeight, color: s.color, text };
-  };
   const dialog = pick ? null : document.querySelector('.ui-drawer.is-open .ui-drawer__panel');
   if (dialog) {
     const body = dialog.querySelector('.ui-drawer__body');
     const fill = left(body) + parseFloat(getComputedStyle(body).paddingLeft);
-    const n = note(dialog);
     const av = dialog.querySelector('.ui-drawer__footer .ui-app__av');
     return ({
       where: 'menu', fill, theme: document.documentElement.getAttribute('data-theme'),
@@ -101,7 +96,6 @@ const MEASURE = async (pick) => {
         ['logo', left(dialog.querySelector('.ui-drawer__mark'))],
         ...rows(body).filter((r) => r.querySelector('.ui-nav__ic')).map((r) => [r.textContent.trim(), left(r.querySelector('.ui-nav__ic'))]),
         ...[...body.querySelectorAll('.ui-nav__cap')].filter(shown).map((c) => [`group ${c.textContent}`, words(c)]),
-        ...(n ? [['note', words(n)]] : []),
         ['avatar', left(av)],
       ],
       names: [
@@ -110,7 +104,6 @@ const MEASURE = async (pick) => {
         ['account name', words(dialog.querySelector('.ui-drawer__footer .ui-app__who b'))],
       ],
       fills: rows(body).filter((r) => r.classList.contains('is-active')).map((r) => [r.textContent.trim(), left(r)]),
-      note: n && { ...ink(n), last: !n.nextElementSibling, shown: shown(n) },
       groups: body.querySelectorAll('.ui-nav__cap').length,
     });
   }
@@ -118,7 +111,6 @@ const MEASURE = async (pick) => {
   if (!shown(rail) || rail.getBoundingClientRect().width === 0) return (null);
   const app = rail.closest('.ui-app');
   const fill = left(rail) + parseFloat(getComputedStyle(rail).paddingLeft);
-  const n = note(rail);
   const av = rail.querySelector('.ui-app__user .ui-avatar');
   const rail_ = app.classList.contains('ui-app--topbar') ? 'topbar' : 'rail';
   if (app.classList.contains('is-collapsed')) {
@@ -128,7 +120,6 @@ const MEASURE = async (pick) => {
         ...rows(rail).map((r) => [r.textContent.trim(), centre(r.querySelector('.ui-nav__ic svg') ?? r)]),
         ['avatar', centre(av)],
       ],
-      note: n && { shown: shown(n) },
     });
   }
   const brand = rail.querySelector('.ui-app__head .ui-app__brand');
@@ -139,7 +130,6 @@ const MEASURE = async (pick) => {
       ...(mark ? [['logo', left(mark)]] : []),
       ...rows(rail).filter((r) => r.querySelector('.ui-nav__ic')).map((r) => [r.textContent.trim(), left(r.querySelector('.ui-nav__ic'))]),
       ...[...rail.querySelectorAll('.ui-nav__cap')].filter(shown).map((c) => [`group ${c.textContent}`, words(c)]),
-      ...(n ? [['note', words(n)]] : []),
       ['avatar', left(av)],
     ],
     names: [
@@ -148,7 +138,6 @@ const MEASURE = async (pick) => {
       ['account name', words(rail.querySelector('.ui-app__who b'))],
     ],
     fills: rows(rail).filter((r) => r.classList.contains('is-active')).map((r) => [r.textContent.trim(), left(r)]),
-    note: n && { ...ink(n), last: n.nextElementSibling?.classList.contains('ui-app__user'), shown: shown(n) },
     groups: rail.querySelectorAll('.ui-nav__cap').length,
   });
 };
@@ -162,18 +151,11 @@ function judge(id, m) {
   if (m.where === 'folded') {
     const line = m.fill + STRIP / 2;
     for (const [name, x] of m.centres) if (off(x, line)) found.push(`${at}: ${name}'s centre is ${x}px, not on the ${line}px centre line`);
-    if (m.note?.shown) found.push(`${at}: the note shows in a folded sidebar`);
     return found;
   }
   for (const [name, x] of m.symbols) if (off(x, m.fill + SYMBOL)) found.push(`${at}: ${name} starts at ${x}px, not on the ${m.fill + SYMBOL}px symbol column`);
   for (const [name, x] of m.names) if (off(x, m.fill + NAME)) found.push(`${at}: ${name} starts at ${x}px, not on the ${m.fill + NAME}px name column`);
   for (const [name, x] of m.fills) if (off(x, m.fill)) found.push(`${at}: the fill of ${name} starts at ${x}px, not at ${m.fill}px`);
-  if (m.note) {
-    if (!m.note.shown) found.push(`${at}: the note does not show`);
-    if (!m.note.last) found.push(`${at}: the note is not the last line above the account`);
-    if (m.note.size !== '13px' || m.note.weight !== '400') found.push(`${at}: the note is ${m.note.size} ${m.note.weight}, not the 13px caption rank`);
-    if (m.note.color !== m.note.text) found.push(`${at}: the note is ${m.note.color}, not body ink ${m.note.text}`);
-  }
   return found;
 }
 
@@ -196,13 +178,17 @@ async function measure(page, story, { port, size, theme, extra, forceTheme }, op
   return read();
 }
 
-/** Every case the plan expects and did not get, every listed absence that measured, and
- *  every sidebar in the wrong state. `cases` maps each planned key to its measurement. */
+/** Every case the plan expects and did not get, every listed absence whose reason no
+ *  longer holds, and every sidebar in the wrong state. `cases` maps each planned key to
+ *  its measurement. */
 function coverage(cases) {
   const found = [];
   for (const [at, m] of cases) {
     const id = at.split(' ')[0];
-    if (ABSENT[at]) { if (m) found.push(`${at}: ABSENT says "${ABSENT[at]}", but it measured ${m.where}`); continue; }
+    if (ABSENT[at]) {
+      if (!HOLDS[ABSENT[at]](m)) found.push(`${at}: ABSENT says "${ABSENT[at]}", but it measured ${m ? `${m.where} in ${m.theme}` : 'nothing'}`);
+      continue;
+    }
     if (!m) { found.push(`${at}: no sidebar or menu was measured`); continue; }
     const theme = at.split(' ').at(-1);
     if (m.theme !== theme) found.push(`${at}: rendered theme ${m.theme}, not the planned ${theme}`);
@@ -231,16 +217,16 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
     const port = server.port;
     const findings = [];
     const cases = new Map();
-    const drawn = { open: 0, folded: 0, menu: 0, notes: 0, groups: 0, rail: 0 };
+    const drawn = { open: 0, folded: 0, menu: 0, groups: 0, rail: 0 };
     for (const story of stories) {
       for (const size of SIZES) {
         for (const theme of THEMES) {
           const at = key(story.id, size.width, theme);
-          const m = ABSENT[at] ? null : await measure(page, story, { port, size, theme }, openStory);
+          // An ABSENT case is opened too, so the coverage check can test its reason.
+          const m = await measure(page, story, { port, size, theme }, openStory);
           cases.set(at, m);
-          if (!m) continue;
+          if (!m || ABSENT[at]) continue;
           drawn[m.where] += 1;
-          if (m.note) drawn.notes += 1;
           if (m.groups) drawn.groups += 1;
           if (m.layout === 'rail') drawn.rail += 1;
           findings.push(...judge(`${story.id} ${theme}`, m));
@@ -248,19 +234,19 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
       }
     }
     const planned = stories.length * SIZES.length * THEMES.length;
-    const measured = [...cases.values()].filter(Boolean).length;
+    const measured = [...cases].filter(([at, m]) => m && !ABSENT[at]).length;
     console.log(`planned ${planned}, measured ${measured}, absent ${Object.keys(ABSENT).length}: ${JSON.stringify(drawn)}`);
     assert.equal(cases.size, planned, 'a story, a size or a theme left the plan');
     assert.deepEqual(coverage(cases), []);
     assert.equal(measured, planned - Object.keys(ABSENT).length, 'the measured cases are not the planned cases less ABSENT');
     assert.ok(drawn.folded >= FOLDED.size * THEMES.length, `${drawn.folded} folded sidebars measured`);
-    assert.ok(drawn.notes >= 3 * THEMES.length, `${drawn.notes} notes measured: the open note, the folded note and the menu note`);
     assert.ok(drawn.groups >= 2, `${drawn.groups} sidebars with group labels measured`);
     assert.ok(drawn.rail >= 3, `${drawn.rail} rail layout sidebars measured`);
     assert.deepEqual(findings, []);
 
     // The pair on the page guideline: two rails at each size, in each theme. The Do rail
-    // keeps every column, and the Don't rail moves only the note off the symbol column.
+    // keeps every column, and the Don't rail moves only the avatar off the symbol column,
+    // and the account name after it.
     const guide = indexed(build).filter((s) => s.id.startsWith('guidelines-the-page--'));
     assert.equal(guide.length, 1, `${guide.length} page guideline stories found`);
     const pair = [];
@@ -274,7 +260,9 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
         if (!yes || !no) { pair.push(`${at}: the pair shows ${[yes, no].filter(Boolean).length} of its 2 rails`); continue; }
         pair.push(...judge(`${at} Do`, yes));
         const wrong = judge(`${at} Don't`, no);
-        if (wrong.length !== 1 || !wrong[0].includes('note starts at')) pair.push(`${at} Don't: ${wrong.length} findings, not the note's one: ${wrong.join('; ')}`);
+        if (wrong.length !== 2 || !wrong[0].includes('avatar starts at') || !wrong[1].includes('account name starts at')) {
+          pair.push(`${at} Don't: ${wrong.length} findings, not the avatar's and the account name's: ${wrong.join('; ')}`);
+        }
       }
     }
     assert.deepEqual(pair, []);
@@ -303,20 +291,32 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
     assert.ok(namedTheme.some((f) => f === `${at}: rendered theme dark, not the planned light`),
       `a wrong-theme case passed: the coverage check cannot see ${at}`);
 
+    // The stale-exclusion mutation: each kind of ABSENT case gets what its reason says it
+    // lacks. A one-section case takes a measured sidebar and menu, and a forced-light case
+    // takes a dark render. The check must name each, or a stale exclusion would pass.
+    const stale = new Map(cases);
+    const alone = 'react-appshell--band-actions-alone';
+    for (const size of SIZES) stale.set(key(alone, size.width, 'light'), cases.get(key(centred.id, size.width, 'light')));
+    const forced = key('react-appshell--band-actions-light', 1280, 'dark');
+    stale.set(forced, await measure(page, band, { port, size: SIZES[0], theme: 'dark' }, openStory));
+    const namedStale = coverage(stale);
+    for (const at of [...SIZES.map((size) => key(alone, size.width, 'light')), forced]) {
+      assert.ok(ABSENT[at], `the stale-exclusion mutation needs ${at} in ABSENT`);
+      assert.ok(namedStale.some((f) => f.startsWith(`${at}: ABSENT says`)), `a stale exclusion passed: the coverage check cannot see ${at}`);
+    }
+
     // The mutation: the rows and the avatar as they were before #869. The walk must see
-    // the glyphs, the labels and the avatar leave their columns, and a note that stays.
-    const note = stories.find((s) => s.id === 'react-appshell--note');
-    const folded = stories.find((s) => s.id === 'react-appshell--note-folded');
-    assert.ok(note && folded, 'the mutation needs react-appshell--note and react-appshell--note-folded');
+    // the glyphs, the labels and the avatar leave their columns.
+    const folded = stories.find((s) => s.id === 'react-appshell--folded');
+    assert.ok(folded, 'the mutation needs react-appshell--folded');
     const OLD = '.ui-app__rail .ui-nav--side .ui-nav__item, .ui-react-app__menu .ui-nav__item { padding-inline: 12px !important; gap: 11px !important; }'
       + ' .ui-nav__ic { width: auto !important; } .ui-app__av { margin-inline-start: 5.5px !important; }'
-      + ' .ui-app__user-trigger .ui-avatar { margin-inline-start: -10px !important; }'
-      + ' .ui-app__note { visibility: visible !important; color: var(--muted) !important; }';
+      + ' .ui-app__user-trigger .ui-avatar { margin-inline-start: -10px !important; }';
     const mutated = [];
-    for (const story of [note, folded]) {
+    for (const story of [centred, folded]) {
       mutated.push(...judge(story.id, await measure(page, story, { port, size: SIZES[0], theme: 'light', extra: OLD }, openStory)));
     }
-    for (const says of ['Overview starts at', 'avatar starts at', "avatar's centre", 'note shows in a folded', 'not body ink']) {
+    for (const says of ['Overview starts at', 'avatar starts at', "avatar's centre"]) {
       assert.ok(mutated.some((f) => f.includes(says)), `the old rules passed: this walk cannot see "${says}"`);
     }
   } finally {

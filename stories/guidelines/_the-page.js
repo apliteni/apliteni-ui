@@ -23,8 +23,8 @@ export const SPEC_CSS = `
        It also stays on a phone, where the shell hides its own rail. */
     .tp-rail { display: block; min-height: 0; background: none; }
     .tp-rail .ui-app__rail { display: flex; position: static; height: auto; border-radius: var(--radius-md); }
-    /* The version moved onto the names' edge: the symbol box and its gap. */
-    .tp-rail .tp-note--off { padding-inline-start: calc(var(--space-2) + var(--ui-app-av) + var(--space-2)); }
+    /* The avatar moved onto the names' edge: the symbol box and its gap. */
+    .tp-rail.tp-av--off > .ui-app__rail .ui-app__user .ui-app__av { margin-inline-start: calc(var(--space-2) + var(--ui-app-av) + var(--space-2)); }
     .tp-out__row { display: flex; align-items: baseline; gap: var(--space-3);
       font: 400 13px/1.5 var(--font-sans); color: var(--text); }
     /* Rank chip. Longhands and no line-height, because the chip rank inherits
