@@ -2,7 +2,7 @@
  "_dense-tables.js": {
   "surface": [
    {
-    "ref": "src/styles/table.css:249",
+    "ref": "src/styles/table.css:247",
     "pattern": ".ui-table { background: var(--table-bg);"
    }
   ],
@@ -30,11 +30,11 @@
  "_accessibility-floor.js": {
   "target-size": [
    {
-    "ref": "src/styles/button.css:136",
+    "ref": "src/styles/button.css:133",
     "pattern": ".ui-btn--sm"
    },
    {
-    "ref": "src/styles/input.css:175",
+    "ref": "src/styles/input.css:181",
     "pattern": ".ui-check input::before"
    },
    {
@@ -70,7 +70,7 @@
   ],
   "disabled-legibility": [
    {
-    "ref": "src/styles/button.css:153",
+    "ref": "src/styles/button.css:150",
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
@@ -82,7 +82,7 @@
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
-    "ref": "src/styles/input.css:64",
+    "ref": "src/styles/input.css:70",
     "pattern": "opacity: 1;"
    }
   ],
@@ -132,7 +132,7 @@
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
-    "ref": "src/styles/button.css:72",
+    "ref": "src/styles/button.css:69",
     "pattern": "background: var(--accent-strong);"
    },
    {
@@ -142,23 +142,23 @@
   ],
   "selection-accent": [
    {
-    "ref": "src/styles/segmented.css:60",
+    "ref": "src/styles/segmented.css:59",
     "pattern": "color: var(--accent-contrast);"
    },
    {
-    "ref": "src/styles/segmented.css:61",
+    "ref": "src/styles/segmented.css:60",
     "pattern": "background: var(--accent-strong);"
    },
    {
-    "ref": "src/styles/nav.css:370",
+    "ref": "src/styles/nav.css:365",
     "pattern": ".ui-nav--tabs.is-underline .ui-nav__tab.is-active::after"
    },
    {
-    "ref": "src/styles/nav.css:378",
+    "ref": "src/styles/nav.css:373",
     "pattern": "background: var(--glow-purple);"
    },
    {
-    "ref": "src/styles/nav.css:377",
+    "ref": "src/styles/nav.css:372",
     "pattern": "color: var(--accent);"
    },
    {
@@ -173,7 +173,7 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme \u00d7 accent cells"
+    "pattern": "theme × accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
@@ -186,11 +186,11 @@
     "pattern": "accent?: boolean"
    },
    {
-    "ref": "src/styles/segmented.css:50",
+    "ref": "src/styles/segmented.css:49",
     "pattern": "background: var(--strong)"
    },
    {
-    "ref": "src/styles/topbar.css:74",
+    "ref": "src/styles/topbar.css:73",
     "pattern": ".dtsw a.cur { color: var(--surface); background: var(--strong); }"
    }
   ]
@@ -320,11 +320,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:475",
+    "ref": "src/styles/dropdown.css:479",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:537",
+    "ref": "src/styles/dropdown.css:542",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -332,15 +332,15 @@
  "_destructive-actions.js": {
   "colour": [
    {
-    "ref": "src/styles/button.css:124",
+    "ref": "src/styles/button.css:121",
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:428",
+    "ref": "src/styles/dropdown.css:432",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
-    "ref": "src/styles/nav.css:117",
+    "ref": "src/styles/nav.css:116",
     "pattern": ".ui-nav__item.is-danger:hover"
    }
   ],
@@ -394,7 +394,7 @@
   ],
   "save-under-form": [
    {
-    "ref": "src/styles/drawer.css:192",
+    "ref": "src/styles/drawer.css:188",
     "pattern": "flex: 0 1 auto;"
    }
   ],
@@ -404,7 +404,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:224",
+    "ref": "src/styles/drawer.css:220",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -414,7 +414,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:227",
+    "ref": "src/styles/drawer.css:223",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -424,7 +424,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:295",
+    "ref": "src/styles/drawer.css:291",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -580,7 +580,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:416",
+    "ref": "src/styles/layout.css:415",
     "pattern": "rank: page-title"
    },
    {
@@ -606,11 +606,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:433",
+    "ref": "src/styles/dropdown.css:437",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:434",
+    "ref": "src/styles/dropdown.css:438",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -646,7 +646,7 @@
     "pattern": "--space-3: 12px"
    },
    {
-    "ref": "src/styles/table.css:101",
+    "ref": "src/styles/table.css:99",
     "pattern": "padding: var(--space-2) var(--space-3)"
    },
    {
@@ -666,7 +666,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:558",
+    "ref": "src/styles/layout.css:557",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -690,11 +690,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:471",
+    "ref": "src/styles/layout.css:470",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:472",
+    "ref": "src/styles/layout.css:471",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -722,11 +722,11 @@
   ],
   "text-edge": [
    {
-    "ref": "src/styles/segmented.css:143",
+    "ref": "src/styles/segmented.css:142",
     "pattern": "padding: var(--space-1)"
    },
    {
-    "ref": "src/styles/segmented.css:152",
+    "ref": "src/styles/segmented.css:151",
     "pattern": "padding: var(--space-3)"
    }
   ]
@@ -814,8 +814,18 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:308",
+    "ref": "src/styles/drawer.css:304",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
+   }
+  ],
+  "hover-at-once": [
+   {
+    "ref": "src/styles/button.css:51",
+    "pattern": "transition: transform var(--dur-fast) var(--ease);"
+   },
+   {
+    "ref": "src/styles/dropdown.css:51",
+    "pattern": "transition: --ui-dropdown-field-veil var(--dur-fast) var(--ease);"
    }
   ]
  },
@@ -908,7 +918,7 @@
     "pattern": "aria-busy={busy ? true : undefined}"
    },
    {
-    "ref": "src/styles/button.css:190",
+    "ref": "src/styles/button.css:187",
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
@@ -963,7 +973,7 @@
  "_density-and-accents.js": {
   "purposeful-accent": [
    {
-    "ref": "src/styles/button.css:72",
+    "ref": "src/styles/button.css:69",
     "pattern": "background: var(--accent-strong)"
    }
   ],
@@ -1105,7 +1115,7 @@
     "pattern": "export const Button = forwardRef"
    },
    {
-    "ref": "src/styles/button.css:71",
+    "ref": "src/styles/button.css:68",
     "pattern": ".ui-btn--primary {"
    }
   ]
@@ -1147,7 +1157,7 @@
     "pattern": "border-radius: var(--radius-pill);"
    },
    {
-    "ref": "src/styles/input.css:38",
+    "ref": "src/styles/input.css:44",
     "pattern": ".ui-textarea { border-radius: var(--radius-2xl); }"
    },
    {
@@ -1171,11 +1181,11 @@
   ],
   "link-to-the-report": [
    {
-    "ref": "src/styles/table.css:126",
+    "ref": "src/styles/table.css:124",
     "pattern": ".ui-table :where(td, th) a:not(.ui-btn):not(.ui-identity) {"
    },
    {
-    "ref": "src/styles/table.css:280",
+    "ref": "src/styles/table.css:278",
     "pattern": ".ui-table tbody tr.is-target > :is(td, th),"
    },
    {
@@ -1185,7 +1195,7 @@
   ],
   "report-depth": [
    {
-    "ref": "src/styles/table.css:100",
+    "ref": "src/styles/table.css:98",
     "pattern": ".ui-table--dense td"
    }
   ],
@@ -1257,7 +1267,7 @@
     "pattern": "className={`ui-nav__item ui-wizard__step${shown === step.id ? ' is-active' : ''}`}"
    },
    {
-    "ref": "src/styles/nav.css:79",
+    "ref": "src/styles/nav.css:78",
     "pattern": ".ui-nav__item.is-active {"
    },
    {
@@ -1363,11 +1373,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:436",
+    "ref": "src/styles/dropdown.css:440",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:438",
+    "ref": "src/styles/dropdown.css:442",
     "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
