@@ -193,6 +193,15 @@ const RX_SCROLL_RINGED: Record<string, string> = {
     + 'bloom lights the dialog instead of the box that scrolls. The band lands in the '
     + 'body\'s own 16px of padding. It is a stop whenever the caller\'s children hold no '
     + 'control. Artur chose the picture on #531 round r30.',
+  '.ui-split__primary': 'the inward band, on the split layout\'s first pane. Above 860px the pane '
+    + 'scrolls alone, and it is a stop while it scrolls, so a pane of facts with no control can '
+    + 'still be read by key. The band lands in the pane\'s own padding (#903).',
+  '.ui-split__stage': 'the inward band, on the preview stage. The sheet scrolls in it above Fit, '
+    + 'and the stage is a stop while it scrolls, so the band lands in the stage\'s padding on the '
+    + 'document ground (#903).',
+  '.ui-split': 'the inward band, on the whole split at 860px and below, where the panes stack in '
+    + 'one scroll. While the preview loads every zoom step is off, so a first pane with no control '
+    + 'leaves Chrome to make the split a stop, and the band answers it (#903).',
   '.ui-columns__scroll': 'the inward band, on the column\'s scroll box below its header row, so '
     + 'the four sides show. Each of the three-column page\'s columns scrolls alone. A column whose '
     + 'content holds no control, such as the facts and the text of an open file, is a stop in '

@@ -197,6 +197,11 @@ const SUBJECTS = [
     themes: ['light'],
   })),
   {
+    name: "the split layout's Fit while it is on",
+    rule: '.ui-split__tools > .ui-btn[aria-pressed="true"]:enabled', ground: '--bg',
+    paintedBy: '.ui-split__controls, which SplitLayout.css paints --bg',
+  },
+  {
     name: 'the row a menu would pick',
     rule: '.ui-dropdown__item.is-active', ground: '--bg-elevated',
     paintedBy: '.ui-dropdown__panel, which dropdown.css paints --bg-elevated',

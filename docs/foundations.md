@@ -450,7 +450,8 @@ with the band and take nothing to opt into. A component that rings its own ancho
 cell's link or the footer's — is the more specific rule and keeps the shape and the
 corner it already drew. **A control of your own wears `.ui-focusable`**, the kit's opt-in class,
 for a focusable that is neither a link nor a kit control — a `div` or `span` you gave a
-`tabindex`.
+`tabindex`. **A heading with `tabindex="-1"` draws the band with no class**, so the title that a
+script focuses after a step change shows the kit ring.
 
 **A focused control draws the band and nothing beside it.** A boxed text field keeps its 1px border width during visible focus.
 The same rule applies to a text area, select and search field. Their border becomes transparent during visible focus.

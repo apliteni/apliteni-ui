@@ -106,7 +106,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 45 -> 46: #845 adds the ThemeChoice picture, which shows its radio's focus.
   // 46 -> 47: #871 adds the three-column page's column title, the focus target after a move.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis, a Tab stop with a readout.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 49: #903 adds the split layout's preview title, the focus target after Try again.
+  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -150,11 +151,12 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // 2px apart and an outward band crossed into the next row.
   // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
   // 19 -> 20: #907 rings a toast stack inward while it is taller than the view and scrolls.
-  assert.equal(scrollRules.length, 20,
+  // 20 -> 21: #903 rings the split layout's two panes inward, because each scrolls alone.
+  assert.equal(scrollRules.length, 21,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 5,
-    'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns '
-    + 'and the scrolling toast stack are not all among them, so the walk '
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 6,
+    'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns, '
+    + 'the scrolling toast stack and the split layout\'s panes are not all among them, so the walk '
     + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules, '--ring-scroll'), []);
 });
@@ -278,10 +280,12 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 45 -> 46: #845 adds the ThemeChoice picture.
   // 46 -> 47: #871 adds the three-column page's column title.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
-  assert.equal(consumers.length, 48, 'ring consumer discovery changed');
+  // 48 -> 49: #903 adds the split layout's preview title.
+  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
   // 19 -> 20: #907 adds the scrolling toast stack.
-  assert.equal(scrollRules.length, 20, 'scroll-ring consumer discovery changed');
+  // 20 -> 21: #903 adds the split layout's panes.
+  assert.equal(scrollRules.length, 21, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 
