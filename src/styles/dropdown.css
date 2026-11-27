@@ -660,6 +660,9 @@
   max-width: calc(100% + var(--ui-dropdown-hang));
 }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger--ghost { padding-inline-start: var(--ui-dropdown-hang); }
+/* A ghost trigger is as narrow as its value, and a row adds its padding and selection mark.
+   So the panel fits its widest row, at least the trigger and at most the view's room. #888 */
+.ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) > .ui-dropdown__panel { inline-size: max-content; min-inline-size: 100%; }
 @media (max-width: 560px) {
   .ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: var(--space-3); }
 }

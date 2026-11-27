@@ -1,7 +1,8 @@
 /* Rule: a proposed value's check sets the value and opens no menu, and its dismiss mark sets
  * the field to None. After each act the focus stays on the field, the value's first letter
  * moves at most 1px, the cumulative layout shift stays under 0.1 and the page does not scroll
- * sideways. Escape closes the menu that Enter opens.
+ * sideways. Escape closes the menu that Enter opens. No scrolling box cuts the focused control,
+ * and each row of an open menu keeps its words on one line.
  *
  * Off unless PROPOSED_VALUE=1: Playwright and web-vitals are not dependencies of this
  * package, CI does not run it, and the result is reported by hand in the pull request.
@@ -14,9 +15,9 @@
  * context at each of ten window sizes and on six devices: the Galaxy Z Fold 7 and Flip 7 and
  * their cover screens from Playwright's list, and a two-screen phone of 466×678 and 890×626 at
  * scale 3 with touch. The form walk clicks the Category check, then Enter and Escape on the
- * trigger. The table walk clicks the dismiss mark of one row, Enter and Escape, Tab to the
- * check of a later row and Enter on it. A walk that cannot reach a control stops with
- * Playwright's timeout.
+ * trigger. The table walk tabs to the check of one row, clicks its dismiss mark, then Enter and
+ * Escape, Tab to the check of a later row and Enter on it. A walk that cannot reach a control
+ * stops with Playwright's timeout.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input. The fixed elements
@@ -48,10 +49,35 @@ const READ = (host) => {
     over: doc.scrollWidth - doc.clientWidth,
     focus: field?.contains(el) && el.checkVisibility() ? (el.getAttribute('aria-label') || el.textContent.trim()) : null,
     menu: Boolean(document.querySelector('[data-dropdown-trigger][aria-expanded="true"]')),
-    // Page coordinates, so a scroll that brings the focus into view is not a move.
-    letter: text ? text.getBoundingClientRect().left + scrollX : null,
+    // Page and box coordinates, so a scroll that brings the focus into view is not a move.
+    letter: text ? text.getBoundingClientRect().left + scrollX + (() => {
+      let scrolled = 0;
+      for (let up = text.parentElement; up && up !== document.scrollingElement; up = up.parentElement) scrolled += up.scrollLeft;
+      return scrolled;
+    })() : null,
     word: text?.textContent.trim() ?? null,
     last: rows.length ? rows[rows.length - 1].getBoundingClientRect().top + scrollY : null,
+    // The focused control's part that a scrolling box around it cuts, in px.
+    cut: (() => {
+      const box = el.getBoundingClientRect();
+      let most = 0;
+      for (let up = el.parentElement; up; up = up.parentElement) {
+        if (getComputedStyle(up).overflowX === 'visible') continue;
+        const frame = up.getBoundingClientRect();
+        most = Math.max(most, frame.left - box.left, box.right - frame.right);
+      }
+      return Math.round(most);
+    })(),
+    // The open menu's rows whose words break onto a second line.
+    broken: [...document.querySelectorAll('.ui-dropdown.open [role="option"]')].filter((row) => {
+      const words = document.createTreeWalker(row, NodeFilter.SHOW_TEXT);
+      const range = document.createRange();
+      for (let node = words.nextNode(); node; node = words.nextNode()) {
+        range.selectNodeContents(node);
+        if (new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size > 1) return true;
+      }
+      return false;
+    }).map((row) => row.textContent.trim()),
   };
 };
 const frames = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(ok, 0))));
@@ -78,6 +104,11 @@ const FORM = [
   }, { word: 'Groceries', menu: false }],
 ];
 const TABLE = [
+  ['key: Tab to Apply Utilities', ROW('Luz del Sur'), async (page) => {
+    const apply = page.getByRole('button', { name: 'Apply Utilities' });
+    for (let i = 0; i < 6 && !(await apply.evaluate((b) => b === document.activeElement)); i += 1) await page.keyboard.press('Tab');
+    await focused(page, apply);
+  }, { word: 'Utilities', menu: false }],
   ['click: Dismiss Utilities', ROW('Luz del Sur'), async (page) => {
     await page.getByRole('button', { name: 'Dismiss Utilities' }).click();
     await focused(page, trigger(page, /Category for Luz del Sur/));
@@ -140,6 +171,8 @@ async function walk(page, label, story, { only } = {}) {
     if (after.last !== null && Math.abs(after.last - before.last) > 1) found.push(`${at}: the last row moved ${Math.round(after.last - before.last)}px`);
     if (!(after.cls < 0.1)) found.push(`${at}: the layout shift is ${after.cls}`);
     if (after.over > 0) found.push(`${at}: the page scrolls ${after.over}px sideways`);
+    if (after.cut > 1) found.push(`${at}: a scrolling box cuts ${after.cut}px of the focused control`);
+    if (after.broken.length) found.push(`${at}: the menu row breaks: ${after.broken.join(', ')}`);
   }
   return { found, ran };
 }
@@ -186,8 +219,8 @@ test('a proposed value applies and dismisses with no menu, and holds the focus a
     const caught = [];
     const [form, cell] = STORIES;
     const phone = { viewport: { width: 390, height: 844 } };
-    const mutate = async (story, setup, only, says) => {
-      const { ctx, page } = await open(browser, server.port, vitals, phone, story.id);
+    const mutate = async (story, setup, only, says, context = phone) => {
+      const { ctx, page } = await open(browser, server.port, vitals, context, story.id);
       page.setDefaultTimeout(3000);
       await setup(page);
       const { found } = await walk(page, 'mutated', story, { only }).catch((error) => ({ found: [String(error)] }));
@@ -213,6 +246,12 @@ test('a proposed value applies and dismisses with no menu, and holds the focus a
       await page.evaluate(() => { document.querySelector('.ui-card').style.marginTop = '300px'; });
       await page.evaluate(frames);
     }, ['click: Apply Groceries'], 'layout shift');
+    // A form menu as narrow as its ghost trigger breaks the chosen row.
+    await mutate(form, (page) => page.addStyleTag({ content: '.ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100% !important; min-inline-size: 0 !important; }' }),
+      ['click: Apply Groceries', 'key: Enter'], 'menu row breaks');
+    // A card that does not bring the focused check into view leaves it cut at 360px.
+    await mutate(cell, (page) => page.evaluate(() => { Element.prototype.scrollIntoView = () => {}; }),
+      ['key: Tab to Apply Utilities'], 'cuts', { viewport: { width: 360, height: 800 } });
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this walk cannot see it');
   } finally {
     await browser.close();

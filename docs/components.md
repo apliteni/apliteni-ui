@@ -494,8 +494,9 @@ small control height: 32px with a mouse and 40px on a touch screen. Use it on a
 chevron, the focus ring and the invalid edge. The pointer and an open panel give it the fill of a
 hovered table row. Off, it draws no box and shows the off ink. In a field and as the first part of a
 table cell, its value starts on the column edge, and the pill hangs into the room before it. In a
-row it stands on the centre of the first text line, so the row keeps its height. Without `ghost`
-the trigger keeps its edge.
+row it stands on the centre of the first text line, so the row keeps its height. In a field the
+panel fits its widest row, at least the trigger and at most the room in the view, so a row keeps
+its words on one line. Without `ghost` the trigger keeps its edge.
 
 **What the user sees.**
 
@@ -679,8 +680,9 @@ dismiss mark, so an act moves no column and no row.
 
 **Keyboard and screen reader.** The proposed state is a group. In a field the label and the word
 "suggested" name it. Outside a field it takes `ariaLabel` and then "suggested", and the select
-reads `ariaLabel` and then its value. The check is named "Apply" and the value. The dismiss mark
-is named "Dismiss" and the value. Both names are also the pointer titles.
+reads `ariaLabel` and then its value. An invalid field keeps `aria-invalid` in each state. The
+check is named "Apply" and the value. The dismiss mark is named "Dismiss" and the value. Both names
+are also the pointer titles.
 
 ### Search field
 
@@ -969,7 +971,8 @@ scrolls sideways. A tinted card, a landing card and a stat tile keep their box a
 **A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
 while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,
 as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
-scroll frame does.
+scroll frame does. A control in the card that takes the focus by keyboard or by script scrolls
+fully into view, as in the frame.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one

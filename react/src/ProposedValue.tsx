@@ -70,6 +70,7 @@ export function ProposedValue({
         aria-labelledby={inForm ? `${field!.labelId} ${word}` : undefined}
         aria-label={inForm ? undefined : `${ariaLabel ?? none}, suggested`}
         aria-describedby={describedBy}
+        aria-invalid={invalid}
       >
         {/* The state's word for assistive technology. The gradient shows it to the eye. */}
         <span id={word} hidden>suggested</span>

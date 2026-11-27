@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type FocusEvent, type ReactNode } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
 import { Pagination, sizeOf } from './Pagination';
 import './DataTable.css';
@@ -160,6 +160,16 @@ export function DataTable<T extends { name: string }>({
     read();
     return () => observer.disconnect();
   }, [scrollable]);
+  // An engine scrolls a focused control into the frame's view only when the control is
+  // fully hidden, so a Tab to a control that shows in part leaves it cut. A focus that
+  // the keyboard or a script moves brings the whole control in. A pointer's focus is left
+  // alone, so a click does not move its target. The frame and a card that scrolls the
+  // table both do this.
+  const pressed = useRef(false);
+  const reveal = (e: { target: EventTarget | null }) => {
+    if (!pressed.current) (e.target as Element).scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  };
+  const press = (down: boolean) => () => { pressed.current = down; };
   // A table that is not sticky or pinned sits directly in a card, and the card scrolls it
   // sideways (card.css `.ui-card:has(> .ui-table)`). The card is then the scroll region, so it
   // takes the name and keyboard access the `.ui-table-scroll` frame takes. The attributes are
@@ -170,16 +180,21 @@ export function DataTable<T extends { name: string }>({
     const el = table.current;
     const card = el?.parentElement;
     if (!el || !card || !card.classList.contains('ui-card')) return;
+    const handlers = [['focusin', reveal], ['pointerdown', press(true)], ['pointerup', press(false)],
+      ['pointercancel', press(false)]] as const;
+    for (const [type, fn] of handlers) card.addEventListener(type, fn);
+    const unwire = () => { for (const [type, fn] of handlers) card.removeEventListener(type, fn); };
     // A card that is itself a link or a button, or that already declares a role, name or
     // stop of its own, keeps them: the table inside scrolls without a named region rather
     // than stealing the card's role and name. Only a plain, unnamed card takes the frame's.
-    if (card.tagName === 'A' || card.tagName === 'BUTTON') return;
+    if (card.tagName === 'A' || card.tagName === 'BUTTON') return unwire;
     for (const attr of ['role', 'aria-label', 'aria-labelledby', 'tabindex']) {
-      if (card.hasAttribute(attr)) return;
+      if (card.hasAttribute(attr)) return unwire;
     }
     card.setAttribute('role', 'region');
     card.setAttribute('aria-label', scrollLabel);
     const clear = () => {
+      unwire();
       card.removeAttribute('role');
       card.removeAttribute('aria-label');
       card.removeAttribute('tabindex');
@@ -199,15 +214,6 @@ export function DataTable<T extends { name: string }>({
     read();
     return () => { observer.disconnect(); clear(); };
   }, [scrollable, scrollLabel]);
-  // An engine scrolls a focused control into the frame's view only when the control is
-  // fully hidden, so a Tab to a control that shows in part leaves it cut. A focus that
-  // the keyboard or a script moves brings the whole control in. A pointer's focus is left
-  // alone, so a click does not move its target.
-  const pressed = useRef(false);
-  const reveal = (e: FocusEvent<HTMLDivElement>) => {
-    if (!pressed.current) e.target.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-  };
-  const press = (down: boolean) => () => { pressed.current = down; };
   const [localSort, setLocalSort] = useState<TableSort<T>>(
     { key: columns.find((c) => c.sortable)?.key, dir: -1 });
   const owned = controlledPage === undefined;

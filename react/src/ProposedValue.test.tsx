@@ -136,8 +136,15 @@ it('outside a field the buttons are sm, the size of the row select', () => {
   expect(screen.getByRole('button', { name: 'Dismiss Groceries' })).toHaveClass('ui-btn--sm', 'ui-btn--ghost');
 });
 
+it('an invalid field keeps its invalid state while it is proposed', () => {
+  render(<Harness proposed="groceries" aria-invalid />);
+  expect(screen.getByRole('group')).toHaveAttribute('aria-invalid', 'true');
+  fireEvent.click(screen.getByRole('button', { name: 'Dismiss Groceries' }));
+  expect(trigger()).toHaveAttribute('aria-invalid', 'true');
+});
+
 it('each state passes axe', async () => {
-  for (const props of [{ start: 'transport' }, {}, { proposed: 'groceries' }]) {
+  for (const props of [{ start: 'transport' }, {}, { proposed: 'groceries' }, { proposed: 'groceries', 'aria-invalid': true }]) {
     const { container, unmount } = render(<Harness inField {...props} />);
     const result = await axe.run(container);
     expect(result.violations.map((v) => v.id)).toEqual([]);
