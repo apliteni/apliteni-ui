@@ -89,7 +89,9 @@
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
+/* Off. The off hover-not-focus and pressed selectors are (0,4,0), tied with live hover and the
+   invalid press, and later. A press stays on when the pointer leaves the trigger, so the pressed
+   one holds the off edge there. #915
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
    activation is refused in ddTriggerOff(), not with pointer-events, which would
@@ -97,6 +99,7 @@
 .ui-dropdown__trigger:disabled,
 .ui-dropdown__trigger:disabled:hover,
 .ui-dropdown__trigger:disabled:hover:not(:focus-visible),
+.ui-dropdown__trigger:disabled:active:not(:focus-visible),
 .ui-dropdown__trigger:disabled:focus-visible,
 .ui-dropdown__trigger[aria-disabled="true"]:hover,
 .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible),
@@ -112,9 +115,10 @@
 .ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
 /* An off ghost trigger draws no box, as an off ghost button does, and takes the same ink for a
    ground it cannot know. Each selector ties an off rule above and comes later. #888
-   The pressed one also holds when the pointer leaves the pressed trigger. #915 */
+   The pressed ones also hold when the pointer leaves the pressed trigger. #915 */
 .ui-dropdown__trigger--ghost:disabled,
 .ui-dropdown__trigger--ghost:disabled:hover:not(:focus-visible),
+.ui-dropdown__trigger--ghost:disabled:active:not(:focus-visible),
 .ui-dropdown__trigger--ghost[aria-disabled="true"],
 .ui-dropdown__trigger--ghost[aria-disabled="true"]:hover:not(:focus-visible),
 .ui-dropdown__trigger--ghost[aria-disabled="true"]:active:not(:focus-visible),

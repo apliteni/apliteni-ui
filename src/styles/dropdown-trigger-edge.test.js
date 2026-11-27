@@ -93,16 +93,13 @@ const REQUIRED = ['rest', 'hover', 'pressed', 'open', 'off'];
 /* `off` is the one state whose edge is supposed to be the unavailable ink. In
  * every other state, painting it is the defect #580 reports. */
 const LIVE = MEASURED.filter((state) => state !== 'off');
-const DISABLED_TARGETS = [
-  { spelling: 'native', state: 'rest', hover: false, focus: false },
-  { spelling: 'native', state: 'hover', hover: true, focus: false },
-  { spelling: 'native', state: 'focus', hover: false, focus: true },
-  { spelling: 'native', state: 'hover focus', hover: true, focus: true },
-  { spelling: 'aria', state: 'rest', hover: false, focus: false },
-  { spelling: 'aria', state: 'hover', hover: true, focus: false },
-  { spelling: 'aria', state: 'focus', hover: false, focus: true },
-  { spelling: 'aria', state: 'hover focus', hover: true, focus: true },
-];
+/* Each spelling, under the pointer or not, focused or not, pressed or not, and invalid or not.
+ * A pressed target can be off the trigger: the pointer pressed it and left while held. #915 */
+const DISABLED_TARGETS = ['native', 'aria'].flatMap((spelling) => [false, true].flatMap((invalid) =>
+  [false, true].flatMap((pressed) => [false, true].flatMap((hover) => [false, true].map((focus) => ({
+    spelling, hover, focus, pressed, invalid,
+    state: [hover && 'hover', focus && 'focus', pressed && 'pressed', invalid && 'invalid'].filter(Boolean).join(' ') || 'rest',
+  }))))));
 
 /* Anything in a selector that reports a state rather than naming a box. One
  * source for two jobs: stripped, it leaves the SCOPE — the control a run of
@@ -261,9 +258,8 @@ function matchesDisabledTarget(rule, target) {
   // An off trigger never opens: a native one takes no click, and Dropdown refuses to open an
   // aria-disabled one. So a rule for an open menu cannot reach it. #915
   if (/\.open\b/.test(stripNot(selector))) return false;
-  // No target is pressed. A press rule is not a rest rule, so it cannot stand in for one. The
-  // aria-disabled press keeps the off edge in its own rule in dropdown.css; that is not measured.
-  if (/:active\b/i.test(stripNot(selector))) return false;
+  if (/:active\b/i.test(stripNot(selector)) && !target.pressed) return false;
+  if (hasInvalid(selector) && !target.invalid) return false;
   if (/:hover\b/i.test(selector) && !target.hover) return false;
   if (hasPositiveFocus(selector) && !target.focus) return false;
   if (hasNotFocus(selector) && target.focus) return false;
@@ -274,10 +270,14 @@ const disabledWinner = (rules, target) => rules
   .filter((r) => r.edge && matchesDisabledTarget(r, target))
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
+/* A trigger receives its own scope and each enclosing suffix scope. A variant, such as the ghost
+ * trigger, also carries the base class, so it receives the base class's scopes too. #915 */
+const reaches = (scope, ancestor) => scope.endsWith(ancestor)
+  || scope.replace(/(\.ui-dropdown__trigger)--[\w-]+$/, '$1').endsWith(ancestor);
+
 function disabledEdgeFindings(byScope) {
   return [...byScope].flatMap(([scope]) => {
-    // A trigger receives its own scope and each enclosing suffix scope.
-    const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
+    const rules = [...byScope].filter(([ancestor]) => reaches(scope, ancestor))
       .flatMap(([, inherited]) => inherited);
     // Read through the inherited rules too: a scope that only sizes a borderless
     // trigger, such as the small row's chip, is still borderless. #822
@@ -304,7 +304,7 @@ const FOCUS_TARGETS = [false, true].flatMap((invalid) => [false, true].map((hove
 const hasInvalid = (selector) => /\[aria-invalid\s*=\s*("true"|'true'|true)\]/i.test(stripNot(selector));
 function focusEdgeFindings(byScope) {
   return [...byScope].flatMap(([scope]) => {
-    const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
+    const rules = [...byScope].filter(([ancestor]) => reaches(scope, ancestor))
       .flatMap(([, inherited]) => inherited)
       .filter((r) => r.edge && r.state !== 'off' && r.state !== 'open' && !hasNativeDisabled(r.selector));
     return FOCUS_TARGETS.flatMap((target) => {
@@ -371,7 +371,7 @@ test('an unavailable trigger keeps its off edge or borderless box in every scope
   // text trigger of a chart's range. Fifteen since #888: the ghost trigger, open and in a
   // form field. Fourteen since #915: an open menu is a state of its trigger, not a scope.
   assert.equal(BY_SCOPE.size, 14, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 112);
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 448);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
@@ -384,7 +384,8 @@ test('disabled readings reject live paint in every discovered scope and state', 
   for (const scope of BY_SCOPE.keys()) {
     for (const target of DISABLED_TARGETS) {
       const off = target.spelling === 'native' ? ':disabled' : '[aria-disabled="true"]';
-      const state = `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
+      const state = `${target.invalid ? '[aria-invalid="true"]' : ''}${target.pressed ? ':active' : ''}`
+        + `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
       const file = SHEETS.at(-1);
       const broken = scopes(subjects({
         [file]: `${read(file)}\n${scope}${off}${state} { border: 1px solid var(--control-edge); }`,
