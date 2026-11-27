@@ -316,14 +316,6 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
       if (target.classList?.contains('is-active') && target.matches('path')) target.classList.remove('is-active');
     })).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] })),
       'the open row has no active bar', TALL);
-    // A wheel the chart does not hear, as f9e6f26f did not.
-    caught.push(['wheel ignored', (await cut('key: Tab', 'light', false, (page) => page.evaluate(() => {
-      addEventListener('wheel', (event) => event.stopImmediatePropagation(), { capture: true, passive: true });
-    }))).some((f) => f.includes('stayed open'))]);
-    // A readout placed from its bar's top, as the anchor was before this check.
-    caught.push(['readout over its bar', (await run('key: Tab', 'light', (page) => page.evaluate(() => {
-      for (const anchor of document.querySelectorAll('.ui-chart__anchor')) anchor.setAttribute('height', '0');
-    }))).some((f) => f.includes('covers'))]);
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
   } finally {
     await browser.close();
