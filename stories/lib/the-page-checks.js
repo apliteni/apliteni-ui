@@ -75,6 +75,16 @@ export const CHECKS = {
         + 'and sub-items. It takes one or the other.');
   },
 
+  // Each section row of a sidebar has an icon, so the icons make one column from the logo
+  // to the avatar (#869). A row with no icon puts its label on that column. The column's
+  // edges are measured in a browser by stories/sidebar-edges.test.js, because a copied
+  // document has no layout. A sub-item keeps the indent of its list and is not read.
+  'sidebar-column'(s) {
+    return [...s.doc.querySelectorAll('nav.ui-nav--side .ui-nav__item:not(.ui-nav__item--sub)')]
+      .filter((row) => !row.querySelector('.ui-nav__ic'))
+      .map((row) => `${s.where} gives the sidebar row "${text(row)}" no icon. Each section has one.`);
+  },
+
   // The band's right end holds glyph controls for every page, one or two of them, and
   // no page's own button (#847). A word on a control there is a page action; a count
   // such as 3 or 99+ is the bell's. A dropdown's panel is not on the band.

@@ -168,6 +168,19 @@ describe('the status after the title', () => {
     render(<Drawer open title="Filters" onClose={noop}>body</Drawer>);
     expect(title().parentElement).toHaveClass('ui-drawer__lead');
     expect(document.querySelector('.ui-drawer__status')).toBeNull();
+    expect(document.querySelector('.ui-drawer__mark')).toBeNull();
+  });
+
+  it('a mark stands before the title, keeps its size and is hidden from screen readers', () => {
+    css();
+    render(<Drawer open title="Finance" mark={<i className="logo" />} onClose={noop}>body</Drawer>);
+    const lead = title().parentElement!;
+    expect([...lead.children].map((n) => n.className)).toEqual(['ui-drawer__mark', 'ui-drawer__title']);
+    const mark = lead.querySelector('.ui-drawer__mark')!;
+    expect(mark).toHaveAttribute('aria-hidden', 'true');
+    expect(mark.querySelector('.logo')).not.toBeNull();
+    expect(getComputedStyle(mark).flexShrink).toBe('0');
+    expect(screen.getByRole('dialog', { name: 'Finance' })).toBeInTheDocument();
   });
 
   it('a cut title is a Tab stop, its readout shows the whole title, Escape closes only the readout, and the focus stays in the drawer when the title fits', async () => {

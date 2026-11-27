@@ -24,6 +24,18 @@
 
 **Don't:** Put Orders and its sub-items under a Workspace label.
 
+## Align the sidebar on one column
+
+<!-- rule: sidebar-column -->
+
+**Rule:** Align the logo, navigation icons, and avatar on one column.
+
+**Why:** One edge leads the eye from the logo to the account.
+
+**Do:** Give each section an icon, so the column has no gap.
+
+**Don't:** Start the avatar under the section names.
+
 ## Keep the bar’s end for product alerts
 
 <!-- rule: bar-end -->
