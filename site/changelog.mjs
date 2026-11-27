@@ -6,12 +6,28 @@
 
 export const RELEASES = [
   {
-    v: '0.219.0', date: '2026-11-27',
+    v: '0.221.0', date: '2026-11-27',
     changes: [
       ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
       ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
       ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
       ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view, with its focus ring, when the keyboard or a script focuses it. Part of #888.', ['DataTable']],
+    ],
+  },
+  {
+    v: '0.220.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A `Chart` takes a head over its plot: `figure` for the main figure, `ranges`, `range` and `onRangeChange` for a range picker, and `trend` for the change, which stands at the end of the picker\'s row with its basis in a tooltip. On a phone, the range picker reaches the 44px tap floor. A chart with none of the three draws no head. Part of #863.', ['Chart']],
+      ['added', 'A `Chart` takes `grouping`, such as `month`, which heads the first column of its table. The default stays `Period`. Part of #863.', ['Chart']],
+      ['deprecated', 'The `Chart` variant `months` is now `bars`, which is also the default. `months` still draws the same chart and is removed at the next major. Change `variant="months"` to `variant="bars"`. The class `ui-chart--months` is now `ui-chart--bars`, and `ui-chart--months-rows` is now `ui-chart--bars-rows`, so a stylesheet that names the old class must change. Part of #863.', ['Chart']],
+      ['changed', 'A bar in the `accent`, `bad` or `neutral` tone now draws at 85% at rest, and the bar that a hover, a tap or the arrow keys make active draws at full strength, at once. Each still clears 3:1 on the card and the page. The other tones stay at full strength. Part of #863.', ['Chart']],
+      ['changed', 'A `line` chart now fills under each line with its tone, from 20% at the line\'s highest value to nothing at the plot\'s floor. A 1px band of the chart\'s ground runs along each side of each line, so the line keeps 3:1 over the fills. Part of #863.', ['Chart']],
+      ['changed', 'The table of a `Chart` now makes each column as wide as its longest cell, so a value stands next to its period. Part of #863.', ['Chart']],
+      ['changed', 'A point on a `line` or an `area` chart is now a ring of its series tone around the card\'s ground, not a filled dot. This covers the active point and the points of the `points`, `curves` and `labels` looks, in both themes. The point keeps its size and 3:1 on the card and the page. Part of #863.', ['Chart']],
+      ['fixed', 'A `Chart` readout that opens below its mark, such as on the first row of a rows look at the top of a landscape phone, now clears the bar it describes. Part of #863.', ['Chart']],
+      ['fixed', 'When a tap or Tab moves the page to show a `Chart`, a wheel, a touch move or a scroll key by the reader now closes the readout, and the chart no longer moves the page back after it. Part of #863.', ['Chart']],
+      ['added', 'A `Dropdown` takes `triggerClass="ui-dropdown__trigger--text"` for a trigger that is its words and an arrow, with no fill and no edge at rest. Part of #863.', ['Dropdown']],
+      ['added', 'The Dashboards and reports guideline has a new rule, Put the trend in the chart\'s head: show the trend beside the main figure, never on the plot. Part of #863.', ['Guidelines']],
     ],
   },
   {

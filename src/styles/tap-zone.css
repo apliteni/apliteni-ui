@@ -219,6 +219,12 @@
      text, and they stand under the title on a phone, so the layer has room on each side. #832 */
   .ui-app__tools { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
 
+  /* A chart head's range row: the figure above it is text and not a target, 8px
+     off, and the plot is 12px below. Twice that 8px lets the text trigger reach
+     the floor, 34 drawn and 44 reached, without a pixel of the figure or the
+     plot. #863 */
+  .ui-chart__range { --tap-clear-y: calc(var(--space-2, 8px) * 2); }
+
   /* The selection box is 19px in a 58px row and a 34px header: the layer has room to reach the floor both ways. */
   .ui-table__selection { --tap-clear-x: var(--tap-min); --tap-clear-y: var(--tap-min); }
   /* A dense or compact table's rows are 33px to 40px apart and share an edge, so a layer that grows down takes the pixels nearest the next row's box. Those rows keep the 24px floor. */
