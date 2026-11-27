@@ -3,15 +3,21 @@
  * 860px or less skips all of them, and waits for the line's aria-valuenow, never for time.
  * LINES reads in the page that each shown line's pane is as wide as the line says.
  *
+ * After each drag it reads that the line draws no focus ring. The narrowing action focuses the
+ * line, makes the window 800px wide, reads that the focus went to a shown heading or title menu,
+ * and gives the window its width back.
+ *
  * Its limits: the drag is Playwright's mouse, so a touch drag is not walked. The keys and the
- * drag move one line. A double click is read as the line's first width.
+ * drag move one line. A double click is read as the line's first width. The ring is read as the
+ * line's computed outline style.
  * why: docs/components.md#three-column-page
  */
 
 // A line that resizes: a separator that names the pane it sizes. A menu's separator names none.
 export const LINE = '[role="separator"][aria-controls]';
 
-// Each shown line whose pane is not as wide as its aria-valuenow, with both numbers.
+// Each shown line whose pane is not as wide as its aria-valuenow, with both numbers, and each
+// note that an action left: a ring after a drag, or a focus that the narrowing lost.
 export const LINES = () => [...document.querySelectorAll('[role="separator"][aria-controls]')]
   .filter((line) => line.checkVisibility())
   .map((line) => {
@@ -20,7 +26,13 @@ export const LINES = () => [...document.querySelectorAll('[role="separator"][ari
     const now = Number(line.getAttribute('aria-valuenow'));
     return Math.abs(width - now) > 1 ? `the pane of the line named ${line.getAttribute('aria-labelledby')} is ${width.toFixed(1)}px, the line says ${now}px` : null;
   })
-  .filter(Boolean);
+  .filter(Boolean)
+  .concat(window.__lineNotes?.splice(0) ?? []);
+
+// Leaves a note when the line draws the focus ring after a pointer drag.
+const ringless = (page, line) => line.evaluate((el) => {
+  if (getComputedStyle(el).outlineStyle !== 'none') (window.__lineNotes ??= []).push('a pointer drag draws the focus ring');
+});
 
 const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
@@ -54,6 +66,7 @@ export function resizeActions(n) {
       await page.mouse.move(x + 40, y, { steps: 4 });
       await page.mouse.up();
       await until(page, clamp(now + 40, min, max));
+      await ringless(page, line(page));
     }],
     ['drag: Escape in a drag', async (page) => {
       if (!await shown(page)) return false;
@@ -66,11 +79,28 @@ export function resizeActions(n) {
       await page.keyboard.press('Escape');
       await until(page, now);
       await page.mouse.up();
+      await ringless(page, line(page));
     }],
     ['click: double click on a line', async (page) => {
       if (!await shown(page)) return false;
       await line(page).dblclick();
       await until(page, await page.evaluate(() => window.__lineStart));
+    }],
+    ['resize: the window narrows to 800px with the focus on a line', async (page) => {
+      if (!await shown(page)) return false;
+      await line(page).focus();
+      const size = page.viewportSize();
+      await page.setViewportSize({ width: 800, height: size.height });
+      await page.waitForFunction((sel) => ![...document.querySelectorAll(sel)].some((el) => el.checkVisibility()), LINE, { timeout: 5000 });
+      // The page moves the focus in an effect after the commit. A page that never moves it is
+      // judged when the wait ends.
+      await page.waitForFunction(() => document.activeElement !== document.body, null, { timeout: 2000 }).catch(() => {});
+      await page.evaluate(() => {
+        const el = document.activeElement;
+        if (!el?.matches('h2, .ui-columns__menu') || !el.checkVisibility()) (window.__lineNotes ??= []).push(`the focus went to ${el?.tagName.toLowerCase() ?? 'nothing'} when the line went`);
+      });
+      await page.setViewportSize(size);
+      await line(page).waitFor();
     }],
   ];
 }

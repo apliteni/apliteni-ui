@@ -115,7 +115,7 @@ const STORIES = [
   // The keys and the drag walk the line after column 2, and one key the line after column 1.
   // They run only in a page area above 860px, where the two lines show.
   { id: 'react-three-column-page--resizable', actions: [...resizeActions(1), resizeActions(0)[0]], lines: 2,
-    shows: { wide: ['1', '2', '3'], tablet: ['2', '3'], phone: ['3'] }, runs: { wide: 8, tablet: 0, phone: 0 } },
+    shows: { wide: ['1', '2', '3'], tablet: ['2', '3'], phone: ['3'] }, runs: { wide: 9, tablet: 0, phone: 0 } },
 ];
 
 // Opens a story in a new context, with onCLS listening from the first paint.
@@ -291,6 +291,12 @@ test('the three-column page keeps focus, chrome, layout and width through each i
     // Columns that do not follow their line.
     const resizing = STORIES[2];
     await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-columns { grid-template-columns: 240px 300px minmax(0, 1fr); }' }), ['key: ArrowRight on a line'], 'the line says');
+    // A line that draws the ring after a drag, and a page that leaves the focus on a line that goes.
+    await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-resizer:focus { outline: var(--ring); }' }), ['drag: a line'], 'draws the focus ring');
+    await mutate(wide, resizing, (page) => page.evaluate(() => {
+      const keep = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function focus(...args) { if (!this.matches('h2, .ui-columns__menu')) keep.apply(this, args); };
+    }), ['resize: the window narrows to 800px with the focus on a line'], 'when the line went');
     await inspected({ viewport: { width: 820, height: 1180 } }, (page) => page.addStyleTag({ content: '.ui-columns__col { border-inline-start: 1px solid; }' }), 'draws a line');
     await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] { min-width: 1400px; }' }), ['key: Down'], 'sideways');
     await mutate(wide, month, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');

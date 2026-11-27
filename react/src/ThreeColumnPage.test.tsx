@@ -520,8 +520,8 @@ it('resizes only when resizable is set, and names each line by the column it siz
   const line = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ColumnResizer.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   expect(line).toMatch(/\.ui-resizer \{[^}]*width: var\(--space-3\);[^}]*cursor: col-resize;/);
   expect(line).toMatch(/\.ui-resizer::before \{[^}]*width: var\(--space-1\);/);
-  expect(line).toMatch(/\.ui-resizer:hover::before,\n\.ui-resizer\[data-dragging\]::before,\n\.ui-resizer:focus-visible::before \{ background: var\(--muted\); \}/);
-  expect(line).toMatch(/\.ui-resizer:focus-visible \{[^}]*outline: var\(--ring\); outline-offset: var\(--ring-offset\); \}/);
+  expect(line).toMatch(/\.ui-resizer:hover::before,\n\.ui-resizer\[data-dragging\]::before,\n\.ui-resizer:focus-visible:not\(\[data-pointer\]\)::before \{ background: var\(--muted\); \}/);
+  expect(line).toMatch(/\.ui-resizer:focus-visible:not\(\[data-pointer\]\) \{[^}]*outline: var\(--ring\); outline-offset: var\(--ring-offset\); \}/);
   expect(line).toMatch(/@media \(pointer: coarse\) \{\n  \.ui-resizer \{ width: var\(--tap-min\); \}/);
   expect(line).not.toMatch(/accent|transition|animation/);
 });
@@ -582,7 +582,10 @@ it('follows a drag, and Escape puts the widths back to where the drag started', 
   const onResize = vi.fn();
   const [, second] = resizable(1280, { onResize });
   fireEvent.pointerDown(second!, { button: 0, pointerId: 1, clientX: 560 });
+  // The pointer gives the line the focus, so Escape reaches it, but no ring.
+  const ring = /([^{}]*)\{[^}]*outline: var\(--ring\)/.exec(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ColumnResizer.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''))![1]!.trim();
   expect(second).toHaveFocus();
+  expect(second!.matches(ring)).toBe(false);
   expect(second).toHaveAttribute('data-dragging');
   fireEvent.pointerMove(second!, { pointerId: 1, clientX: 600 });
   expect(onResize).toHaveBeenLastCalledWith([240, 360]);
@@ -592,11 +595,14 @@ it('follows a drag, and Escape puts the widths back to where the drag started', 
   fireEvent.keyDown(second!, { key: 'Escape' });
   expect(onResize).toHaveBeenLastCalledWith([240, 320]);
   expect(second).not.toHaveAttribute('data-dragging');
+  expect(second!.matches(ring)).toBe(false);
   // After the drag, a move does nothing, and Escape is the page's again.
   onResize.mockClear();
   fireEvent.pointerMove(second!, { pointerId: 1, clientX: 700 });
   fireEvent.keyDown(second!, { key: 'Escape' });
   expect(onResize).not.toHaveBeenCalled();
+  // A key after the drag shows the ring.
+  expect(second!.matches(ring)).toBe(true);
   // A drag that ends keeps its width, and a drag that the browser cancels goes back.
   fireEvent.pointerDown(second!, { button: 0, pointerId: 2, clientX: 560 });
   fireEvent.pointerMove(second!, { pointerId: 2, clientX: 592 });
@@ -630,6 +636,25 @@ it('puts one line back to its first width on a double click', () => {
 it('draws no line in a page area of 860px or less, or on a phone, and the widths stay the stylesheet\'s', () => {
   // One pixel more of page area has the lines, so the 860px step is the one that removes them.
   expect(resizable(1280, { depth: 3 }, 861)).toHaveLength(2);
+  cleanup();
+  // When the focused line goes, as the sidebar opens, the focus goes to the open column's title.
+  at(1280);
+  let report: ResizeObserverCallback = () => {};
+  vi.stubGlobal('ResizeObserver', class { constructor(fn: ResizeObserverCallback) { report = fn; } observe() {} disconnect() {} });
+  const area = (width: number) => act(() => report([{ contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver));
+  render(page({ resizable: true, depth: 3 }));
+  area(1280);
+  lines()[1]!.focus();
+  area(860);
+  expect(lines()).toHaveLength(0);
+  expect(screen.getByRole('heading', { name: 'Contacts' })).toHaveFocus();
+  // In a browser the stylesheet can hide the line first, and the browser drops the focus.
+  area(1280);
+  const line = lines()[1]!;
+  line.focus();
+  line.checkVisibility = () => false;
+  fireEvent.blur(line);
+  expect(screen.getByRole('heading', { name: 'Contacts' })).toHaveFocus();
   cleanup();
   // A wide window with an 860px page area, as beside an open sidebar, a tablet, and a phone.
   for (const [win, room] of [[1280, 860], [820, 820], [390, 390]] as const) {

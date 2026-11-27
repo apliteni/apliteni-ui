@@ -24,10 +24,13 @@
 }
 .ui-resizer:hover::before,
 .ui-resizer[data-dragging]::before,
-.ui-resizer:focus-visible::before { background: var(--muted); }
+.ui-resizer:focus-visible:not([data-pointer])::before { background: var(--muted); }
 /* The kit's ring stands 2px off the target. The block ends stay inside the page, which clips
-   at its foot, so the target stops short of the ends by the ring's room. */
-.ui-resizer:focus-visible { inset-block: calc(var(--ring-offset) + var(--ring-width)); outline: var(--ring); outline-offset: var(--ring-offset); }
+   at its foot, so the target stops short of the ends by the ring's room. A focus that a pointer
+   gave keeps the same box and draws no ring, also not the browser's own. */
+.ui-resizer:focus-visible { inset-block: calc(var(--ring-offset) + var(--ring-width)); }
+.ui-resizer[data-pointer] { outline: none; }
+.ui-resizer:focus-visible:not([data-pointer]) { outline: var(--ring); outline-offset: var(--ring-offset); }
 @media (pointer: coarse) {
   .ui-resizer { width: var(--tap-min); }
 }

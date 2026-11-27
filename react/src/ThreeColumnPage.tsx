@@ -131,13 +131,15 @@ export function ThreeColumnPage({
   const held = typeof document !== 'undefined' && Boolean(root.current?.contains(document.activeElement));
   // When a move hides or removes the row that had the focus, the focus goes to the title of
   // the open column, which every width shows.
-  useEffect(() => {
-    const active = document.activeElement as HTMLElement | null;
-    const lost = !active || active === document.body || (active.checkVisibility ? !active.checkVisibility() : false);
-    if (!held || !lost) return;
+  const toTitle = () => {
     const col = root.current?.querySelector<HTMLElement>(`[data-column="${at}"] .ui-columns__head`);
     const title = col?.querySelector<HTMLElement>('.ui-columns__menu') ?? col?.querySelector<HTMLElement>('h2');
     title?.focus({ preventScroll: true });
+  };
+  useEffect(() => {
+    const active = document.activeElement as HTMLElement | null;
+    const lost = !active || active === document.body || (active.checkVisibility ? !active.checkVisibility() : false);
+    if (held && lost) toTitle();
   });
 
   const up = (at - 1) as ThreeColumnDepth;
@@ -149,7 +151,7 @@ export function ThreeColumnPage({
     {resizing && n > 1 && (() => {
       const line = lines[n - 2]!;
       return <ColumnResizer value={line.value} min={line.min} max={line.max} controls={`${uid}-col-${n - 1}`}
-        labelledBy={`${uid}-${n - 1}`} onChange={line.set} onReset={() => reset((n - 2) as 0 | 1)} />;
+        labelledBy={`${uid}-${n - 1}`} onChange={line.set} onReset={() => reset((n - 2) as 0 | 1)} focusAway={toTitle} />;
     })()}
     <header className="ui-columns__head">
       {/* The words stand in their own box, because the card title is a flex box and draws no ellipsis. */}

@@ -31,7 +31,8 @@ export type SplitLayoutProps = {
   zoom?: SplitLayoutZoom;
   defaultZoom?: SplitLayoutZoom;
   onZoomChange?: (zoom: SplitLayoutZoom) => void;
-  /** Lets the reader drag the line between the panes in a window above 860px. Off by default. */
+  /** Lets the reader drag the line between the panes in a window above 860px, where the layout
+   *  holds both panes' 320px. Off by default. */
   resizable?: boolean;
   /** The width of the first pane in px, for an app that keeps it. Without it, the layout keeps
    *  the width until a reload. */
@@ -96,7 +97,8 @@ export function SplitLayout({
   const start = Math.round((total ?? 0) * 0.6);
   const most = Math.min(PANE[1], (total ?? Infinity) - PREVIEW);
   const width = Math.round(clamp(primaryWidth ?? ownWidth ?? start, PANE[0], most));
-  const resizing = resizable && !narrow && total !== null;
+  // The line shows only where both panes keep their minimum, so its minimum never passes its maximum.
+  const resizing = resizable && !narrow && total !== null && most >= PANE[0];
   const resize = (next: number) => { if (primaryWidth === undefined) setOwnWidth(next); onResize?.(next); };
   const state = preview.state ?? 'ready';
   const [own, setOwn] = useState(defaultZoom);
@@ -176,8 +178,10 @@ export function SplitLayout({
       <div className="ui-split__content">{primary}</div>
     </div>
     <section className="ui-split__preview ui-document-ground" aria-labelledby={`${uid}-title`}>
+      {/* When the line goes with the focus, the focus goes to the preview's title, which every width shows. */}
       {resizing && <ColumnResizer value={width} min={PANE[0]} max={most} controls={`${uid}-primary`}
-        labelledBy={`${uid}-primary`} onChange={resize} onReset={() => resize(clamp(start, PANE[0], most))} />}
+        labelledBy={`${uid}-primary`} onChange={resize} onReset={() => resize(clamp(start, PANE[0], most))}
+        focusAway={() => title.current?.focus()} />}
       <div className="ui-split__controls">
         <h2 ref={title} id={`${uid}-title`} className="ui-card__title" tabIndex={-1}>{preview.title}</h2>
         <div className="ui-split__tools" role="group" aria-label="Zoom">

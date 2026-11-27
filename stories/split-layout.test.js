@@ -364,6 +364,12 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     const phone = { viewport: { width: 390, height: 844 } };
     // A first pane that does not follow its line.
     await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-split { grid-template-columns: 600px minmax(0, 1fr); }' }), ['key: ArrowRight on a line'], 'the line says');
+    // A line that draws the ring after a drag, and a layout that leaves the focus on a line that goes.
+    await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-resizer:focus { outline: var(--ring); }' }), ['drag: a line'], 'draws the focus ring');
+    await mutate(wide, resizing, (page) => page.evaluate(() => {
+      const keep = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function focus(...args) { if (!this.matches('h2')) keep.apply(this, args); };
+    }), ['resize: the window narrows to 800px with the focus on a line'], 'when the line went');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { grid-template-columns: 1fr 1fr; }' }), 'not 60%');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { height: auto; }' }), 'not at the foot');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { height: 120vh; }' }), 'scrolls');

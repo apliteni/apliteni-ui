@@ -392,7 +392,8 @@ with `.ui-columns__end`, a count or a date, and a row that opens a column ends w
   stays. The target is 12px wide over the full height, 44px on a touch screen, and shows the
   resize cursor. Under the pointer, in a drag and with the keyboard focus, the line turns 4px of
   `--muted`, never the accent. The columns follow the pointer with no motion. A double click puts
-  that line back to its first width. In a page area of 860px or less no line moves.
+  that line back to its first width. In a page area of 860px or less no line moves. When a line
+  goes with the focus on it, the focus goes to the open column's title.
 - When a column before the first one on show is hidden, a back link above the columns names it.
 - Each header row has one height, so the titles stand on one line. The title is the card title's
   size, and a long title ends in an ellipsis. The count follows it, and the tools stand at the
@@ -407,7 +408,8 @@ scroll box shows the inward focus band on its four sides. The back link is named
 the column's title. On a touch phone each list row and the title menu have a 44px target.
 A line that resizes is a separator, named by the title of the column it sizes, with its width,
 limits and a "240 pixels" text. Left and Right move it 16px, with Shift 48px, and Home and End
-take it to its limits. Escape in a drag puts the widths back to where the drag started.
+take it to its limits. Escape in a drag puts the widths back to where the drag started. A
+pointer gives the line the focus with no ring, and a key shows the ring.
 
 ### Split layout
 
@@ -440,8 +442,10 @@ it from `onResize` and give it back in `primaryWidth`. The layout holds no data 
 - Under the band, the page splits into two panes from the band to the foot. The first takes 60%
   and the preview 40%, with a 1px `--border` line between them. Neither pane is a card.
 - With `resizable`, above 860px, the reader drags the line between the panes. The first pane
-  takes 320px to 860px, and the preview keeps at least 320px. The line looks and moves as the
-  three-column page's line, and a double click puts it back to 60%.
+  takes 320px to 860px, and the preview keeps at least 320px. A layout narrower than 640px, as
+  beside an open sidebar, has no line. The line looks and moves as the three-column page's line,
+  and a double click puts it back to 60%. When the line goes with the focus on it, the focus
+  goes to the preview's title.
 - The first pane holds the values that will be saved. A value in its key-value list or table is
   heavier than its label, and the pane's name is in the accent. The preview takes none of these.
 - The preview pane is the document ground, `--ui-document-ground`, from edge to edge. Its title

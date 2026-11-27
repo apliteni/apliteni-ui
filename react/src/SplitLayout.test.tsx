@@ -224,12 +224,15 @@ it('splits 60 and 40 under the band, and stacks at 860px with sticky tools and a
 // Limits: JSDOM lays nothing out, so the layout's width is a stubbed clientWidth that a stubbed
 // ResizeObserver reports, and a drag is a pointer event's clientX. stories/split-layout.test.js
 // drags the line in a browser.
-const wide = (width: number) => {
+// The layout is as wide as the window, or narrower, as beside an open sidebar.
+const wide = (width: number, room = width) => {
   vi.stubGlobal('matchMedia', (query: string) => ({ matches: width <= Number(/max-width: (\d+)px/.exec(query)?.[1] ?? 0), addEventListener() {}, removeEventListener() {} }));
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.matches('.ui-split') ? width : 0; });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.matches('.ui-split') ? room : 0; });
   vi.stubGlobal('ResizeObserver', class { constructor(private fn: () => void) {} observe() { this.fn(); } disconnect() {} });
 };
 const line = () => screen.queryByRole('separator');
+// The rule that draws the kit's ring on the line.
+const ring = /([^{}]*)\{[^}]*outline: var\(--ring\)/.exec(readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ColumnResizer.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''))![1]!.trim();
 const split = () => document.querySelector<HTMLElement>('.ui-split')!;
 
 it('resizes only when resizable is set, from 320px to 860px, with 320px left for the preview', () => {
@@ -279,14 +282,20 @@ it('follows a drag, and Escape puts the pane back to where the drag started', ()
   render(layout({ resizable: true, onResize }));
   const sep = line()!;
   fireEvent.pointerDown(sep, { button: 0, pointerId: 1, clientX: 1000 });
+  // The pointer gives the line the focus, so Escape reaches it, but no ring.
   expect(sep).toHaveFocus();
+  expect(sep.matches(ring)).toBe(false);
   fireEvent.pointerMove(sep, { pointerId: 1, clientX: 900 });
   expect(onResize).toHaveBeenLastCalledWith(668);
   fireEvent.keyDown(sep, { key: 'Escape' });
   expect(onResize).toHaveBeenLastCalledWith(768);
+  expect(sep.matches(ring)).toBe(false);
   onResize.mockClear();
   fireEvent.pointerMove(sep, { pointerId: 1, clientX: 800 });
   expect(onResize).not.toHaveBeenCalled();
+  // A key after the drag shows the ring.
+  fireEvent.keyDown(sep, { key: 'ArrowLeft' });
+  expect(sep.matches(ring)).toBe(true);
 });
 
 it('draws no line at 860px and below, where the panes stack', () => {
@@ -294,6 +303,16 @@ it('draws no line at 860px and below, where the panes stack', () => {
   wide(861);
   render(layout({ resizable: true }));
   expect(line()).not.toBeNull();
+  cleanup();
+  // Beside an open sidebar the layout can be narrower than both panes' 320px. It has a line
+  // only from 640px, and there the line's minimum and maximum meet.
+  wide(861, 639);
+  render(layout({ resizable: true }));
+  expect(line()).toBeNull();
+  cleanup();
+  wide(861, 640);
+  render(layout({ resizable: true }));
+  expect(['aria-valuemin', 'aria-valuemax'].map(a => line()!.getAttribute(a))).toEqual(['320', '320']);
   cleanup();
   wide(860);
   render(layout({ resizable: true, primaryWidth: 500 }));
@@ -306,4 +325,29 @@ it('draws no line at 860px and below, where the panes stack', () => {
   // Markup from a wider render, as on a server, keeps its line, so the stylesheet hides it.
   const stacked = css.slice(css.indexOf('@media (max-width: 860px)'), css.indexOf('@media (max-width: 560px)'));
   expect(stacked).toMatch(/\.ui-split__preview > \.ui-resizer \{ display: none; \}/);
+});
+
+it('moves the focus to the preview\'s title when the focused line goes', () => {
+  wide(1280);
+  const { rerender } = render(layout({ resizable: true }));
+  line()!.focus();
+  wide(860);
+  rerender(layout({ resizable: true }));
+  expect(line()).toBeNull();
+  expect(screen.getByRole('heading', { name: 'Document preview' })).toHaveFocus();
+  // In a browser the stylesheet can hide the line first, and the browser drops the focus.
+  wide(1280);
+  rerender(layout({ resizable: true }));
+  const sep = line()!;
+  sep.focus();
+  sep.checkVisibility = () => false;
+  fireEvent.blur(sep);
+  expect(screen.getByRole('heading', { name: 'Document preview' })).toHaveFocus();
+  // A line that goes without the focus leaves the focus where it is.
+  wide(1280);
+  rerender(layout({ resizable: true }));
+  screen.getByRole('button', { name: 'Continue' }).focus();
+  wide(860);
+  rerender(layout({ resizable: true }));
+  expect(screen.getByRole('button', { name: 'Continue' })).toHaveFocus();
 });
