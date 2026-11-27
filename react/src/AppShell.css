@@ -66,7 +66,7 @@
 /* The head control (#732): one glyph before the fold, drawn as the fold is. The fold is a
    nav row, 9px of padding over a 1lh glyph box at --text-base and line-height 1.2, on the
    --ui-nav-strip column: src/styles/nav.css:64 `padding: 9px 12px;` and
-   src/styles/layout.css:244 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
+   src/styles/layout.css:226 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
    control has no border and no fill at rest, and takes the rail's hover wash and the fold's ink. */
 .ui-react-app .ui-app__fold-row:has(> .ui-react-app__head-control) { display: flex; align-items: center; gap: var(--space-1); }
 .ui-react-app__head-control { display: flex; align-items: center; flex: none; }
@@ -94,7 +94,7 @@
 .ui-react-app__head-control svg { display: block; width: 17px; height: 17px; opacity: 0.66; stroke-width: 2.2; }
 /* A folded rail is one glyph column wide, and the fold takes it in the head. So the control
    leaves the row and stands on the same column one rail gap under the head's rule, and the
-   head keeps room for it. The fold row is centred in the band-high head (layout.css:343).
+   head keeps room for it. The fold row is centred in the band-high head (layout.css:359).
    A band control's faded box under the head is that room. Without one, the head makes it. */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-react-app__head-control { position: absolute; inset-inline-start: 0; top: calc(50% + var(--ui-app-band) / 2 + var(--space-5)); }
 :where(.ui-app.is-collapsed) .ui-app__rail > .ui-app__head:has(.ui-react-app__head-control):not(:has(+ .ui-react-app__control)) { margin-bottom: calc(18px + 1.2 * var(--text-base) + var(--space-5)); }

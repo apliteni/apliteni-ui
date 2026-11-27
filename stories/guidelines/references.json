@@ -444,7 +444,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:187",
+    "ref": "react/src/AppShell.tsx:190",
     "pattern": "back && <BackLink"
    }
   ],
@@ -580,7 +580,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:450",
+    "ref": "src/styles/layout.css:432",
     "pattern": "rank: page-title"
    },
    {
@@ -632,7 +632,7 @@
   ],
   "measure": [
    {
-    "ref": "src/styles/layout.css:342",
+    "ref": "src/styles/layout.css:324",
     "pattern": "var(--ui-app-main, var(--measure))"
    },
    {
@@ -666,7 +666,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:592",
+    "ref": "src/styles/layout.css:574",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -690,11 +690,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:505",
+    "ref": "src/styles/layout.css:487",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:506",
+    "ref": "src/styles/layout.css:488",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -1061,7 +1061,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:70",
+    "ref": "react/src/AppShell.tsx:67",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
