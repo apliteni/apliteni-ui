@@ -26,8 +26,12 @@
  * Before each walk it measures the bar's two ends. The count's pill and the last control stand
  * as far from the bar's end as from its top, and the bar's corner is half its height or more,
  * so each end shares a centre with the pill or the control in it. rev_604d2230cca9/d61
+ * It measures the ends again at 360×800 with the text at 200%, in light and dark, in every
+ * story that draws a bar: there the count takes two lines and the bar is taller than the
+ * control at its end.
  *
- * Its limits: one engine, the light theme and the default accent. The layout shift is
+ * Its limits: one engine, the default accent, and the light theme except for the 200% ends.
+ * The 200% text doubles the kit's --text-* tokens, as a reader's text zoom does not exactly. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input. The resize walk
  * does not compare where the bar stands, because a new window size moves it. The source half is
  * in react/src/SelectionBar.test.tsx and react/src/showcases/SelectedRows.test.tsx, and the
@@ -39,6 +43,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { DOUBLE_TEXT } from './lib/double-text.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [360, 800], [466, 678], [984, 1016], [1536, 864], [2560, 1440]];
@@ -99,6 +104,19 @@ async function ends(page, label) {
     if (Math.abs(inline - block) > 0.5) found.push(`${label}: the ends share no centre, the ${name} gap is ${inline}px and the top gap ${block}px`);
   }
   return found;
+}
+
+// The ends at 200% text: the count must take two lines, or the case is not the one measured.
+const LARGE = { viewport: { width: 360, height: 800 } };
+async function doubled(page, label) {
+  assert.ok(await page.evaluate(DOUBLE_TEXT) > 0, `${label}: no --text-* token to double`);
+  await page.evaluate(frames);
+  const { tally, line } = await page.evaluate(() => {
+    const count = document.querySelector('.ui-selection-bar__count');
+    return { tally: count.getBoundingClientRect().height, line: count.querySelector('.ui-selection-bar__control').getBoundingClientRect().height };
+  });
+  assert.ok(tally > line * 1.5, `${label}: the count stays on one line, ${tally}px for a ${line}px control`);
+  return ends(page, label);
 }
 
 // The bar has come in: it has ended its own entrance animation.
@@ -179,13 +197,13 @@ const RESIZES = [
   }, { inside: true }],
 ];
 
-async function open(browser, port, vitals, context) {
+async function open(browser, port, vitals, context, { story = STORY, theme = 'light' } = {}) {
   const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
   await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
   const page = await ctx.newPage();
-  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${STORY}&viewMode=story&globals=theme:light`);
+  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}`);
   await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
-    && window.__STORYBOOK_PREVIEW__.currentRender.id === id, STORY);
+    && window.__STORYBOOK_PREVIEW__.currentRender.id === id, story);
   await page.locator('.ui-selection-bar').waitFor();
   await settled(page);
   await page.waitForFunction(() => document.fonts.status === 'loaded');
@@ -232,7 +250,11 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
   const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
-  assert.ok(Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries).includes(STORY), `the Storybook build has no ${STORY}`);
+  const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
+  assert.ok(ids.includes(STORY), `the Storybook build has no ${STORY}`);
+  // Every story that draws a bar: the showcase and the component's own stories.
+  const bars = [STORY, ...ids.filter((id) => id.startsWith('react-selectionbar--'))];
+  assert.equal(bars.length, 5, `the bar stories are ${bars.join(', ')}`);
 
   const subjects = [
     ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
@@ -260,8 +282,21 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       table.push(`${label} ${width}px: ends, ${ran.length} actions and ${moves.ran.length} resizes, ${shape.length + found.length + moves.found.length ? 'fail' : 'pass'}`);
       await resized.ctx.close();
     }
-    process.stdout.write(`${table.join('\n')}\n`);
+    // At 200% text the count takes two lines, so the bar is taller than the control at its end.
+    const large = [];
+    for (const story of bars) {
+      for (const theme of ['light', 'dark']) {
+        const { ctx, page } = await open(browser, server.port, vitals, LARGE, { story, theme });
+        const label = `${story} ${theme} 360×800 text 200%`;
+        const shape = await doubled(page, label);
+        findings.push(...shape);
+        large.push(`${label}: ends, ${shape.length ? 'fail' : 'pass'}`);
+        await ctx.close();
+      }
+    }
+    process.stdout.write(`${[...table, ...large].join('\n')}\n`);
     assert.equal(table.length, SIZES.length + DEVICES.length + DUO.length, 'a size or a device was not measured');
+    assert.equal(large.length, bars.length * 2, 'a bar story or a theme was not measured at 200% text');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -310,6 +345,15 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       await page.addStyleTag({ content });
       const found = await ends(page, 'mutated');
       caught.push([says, found.some((f) => f.includes(says)), found]);
+      await ctx.close();
+    }
+    // A bar whose end keeps the 1px for the pill's edge at any height, as before #911's second
+    // review.
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, LARGE);
+      await page.addStyleTag({ content: '.ui-selection-bar.ui-selection-bar { padding-right: calc(var(--space-3) + 1px); }' });
+      const found = await doubled(page, 'mutated');
+      caught.push(['no centre', found.some((f) => f.includes('no centre')), found]);
       await ctx.close();
     }
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');

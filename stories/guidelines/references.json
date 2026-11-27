@@ -1379,13 +1379,13 @@
  "_selection-bar.js": {
   "other-theme": [
    {
-    "ref": "react/src/SelectionBar.css:28",
+    "ref": "react/src/SelectionBar.css:29",
     "pattern": "background: var(--inverse-bg);"
    }
   ],
   "more-by-name": [
    {
-    "ref": "react/src/SelectionBar.tsx:159",
+    "ref": "react/src/SelectionBar.tsx:180",
     "pattern": "items: extra.map((action): DropdownItem => ({ label: action.label, value: action.id"
    }
   ]

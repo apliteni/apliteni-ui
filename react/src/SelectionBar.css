@@ -21,8 +21,9 @@
   gap: var(--space-2);
   max-width: 100%;
   /* Round ends that share a centre with the count's pill and the last control. The end
-     takes 1px over --space-3 for the pill's edge, which the last control does not have. */
-  padding: var(--space-3) calc(var(--space-3) + 1px) var(--space-3) var(--space-3);
+     adds how far the last control stands below the top padding: 1px for the pill's edge,
+     and more when large text wraps the count. The bar measures it. */
+  padding: var(--space-3) calc(var(--space-3) + var(--ui-selection-end, 1px)) var(--space-3) var(--space-3);
   border: 1px solid var(--inverse-frame);
   border-radius: var(--radius-pill);
   background: var(--inverse-bg); /* code-bg: none — the bar holds controls and a count, never a code chip. */
