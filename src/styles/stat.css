@@ -49,6 +49,10 @@
   white-space: nowrap;
 }
 
+/* A linked figure reads as a number, not as running text, so it has no underline. Its link ink
+   and the focus ring mark it. why: docs/foundations.md#text-ink */
+.ui-stat__value a { text-decoration: none; }
+
 /* A figure's own words about its value, in the caption rank's size and weight
    with the band's tighter leading, as the label takes, so it claims no rank.
    Body ink on no fill; no tone reaches it, having no change to colour. */

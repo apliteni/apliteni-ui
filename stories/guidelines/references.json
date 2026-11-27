@@ -64,7 +64,7 @@
   ],
   "ring-contrast": [
    {
-    "ref": "src/styles/base.css:172",
+    "ref": "src/styles/base.css:178",
     "pattern": "outline: var(--ring);"
    }
   ],
@@ -566,7 +566,7 @@
   ],
   "sentence-case": [
    {
-    "ref": "src/styles/base.css:131",
+    "ref": "src/styles/base.css:137",
     "pattern": "in sentence case like every"
    },
    {
@@ -600,7 +600,7 @@
   ],
   "eyebrow-names-the-kind": [
    {
-    "ref": "src/styles/base.css:134",
+    "ref": "src/styles/base.css:140",
     "pattern": "rank: label"
    }
   ],
@@ -618,7 +618,7 @@
  "_layout-and-density.js": {
   "container": [
    {
-    "ref": "src/styles/base.css:128",
+    "ref": "src/styles/base.css:134",
     "pattern": "max-width: var(--container)"
    },
    {
@@ -914,11 +914,11 @@
  "_state-set.js": {
   "focus-visible": [
    {
-    "ref": "src/styles/base.css:165",
+    "ref": "src/styles/base.css:171",
     "pattern": ".ui-focusable:focus-visible,"
    },
    {
-    "ref": "src/styles/base.css:172",
+    "ref": "src/styles/base.css:178",
     "pattern": "outline: var(--ring);"
    },
    {
@@ -993,19 +993,19 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:184",
+    "ref": "src/styles/stat.css:188",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:185",
+    "ref": "src/styles/stat.css:189",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    },
    {
-    "ref": "src/styles/stat.css:228",
+    "ref": "src/styles/stat.css:232",
     "pattern": "@container (19rem < width <= 22rem) {"
    },
    {
-    "ref": "src/styles/stat.css:230",
+    "ref": "src/styles/stat.css:234",
     "pattern": ".ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat { flex-basis: 0; }"
    }
   ]
@@ -1189,7 +1189,7 @@
   ],
   "soft-lines-between-blocks": [
    {
-    "ref": "src/styles/stat.css:136",
+    "ref": "src/styles/stat.css:140",
     "pattern": "border: 1px solid var(--card-edge);"
    }
   ],
