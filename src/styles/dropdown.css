@@ -24,6 +24,8 @@
 }
 
 /* Trigger — pill button: [pre] [value] [chevron] */
+@property --ui-dropdown-field-edge { syntax: "<color>"; inherits: false; initial-value: transparent; }
+@property --ui-dropdown-field-veil { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
 .ui-dropdown__trigger {
   display: inline-flex;
   align-items: center;
@@ -38,12 +40,15 @@
      is what --disabled-border resolves to in LIGHT, so a live trigger used to draw
      the exact line the kit paints an unavailable control with. #580
      why: docs/foundations.md#colour-and-contrast */
-  border: 1px solid var(--control-edge);
+  --ui-dropdown-field-edge: var(--control-edge);
+  border: 1px solid color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge));
   border-radius: var(--radius-pill);
   /* The button's tight 13px line, so the two texts share a baseline. #822 This block padding,
      between two steps, and the edge hold the pill at 32px, level with an sm button. #814 */
   line-height: var(--leading-tight); padding: 7.2px 11px 7.2px 13px;
-  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+  /* A state sets the ink at once, and only focus's veil fades, as on .ui-input.
+     why: docs/foundations.md#motion */
+  transition: --ui-dropdown-field-veil var(--dur-fast) var(--ease);
 }
 /* The small dropdown, `.ui-dropdown--sm`: its trigger takes the small control height, level
    with a small search field, filter bar and button. 32px with a mouse, 40px on a touch screen.
@@ -53,17 +58,17 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
-.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { border-color: var(--accent); }
+.ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 /* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
    under the pointer. The hover selector ties live hover at (0,4,0) and comes later, and the
    off rules below tie it and come later still, so an off trigger keeps the off edge. #835
    why: docs/components.md#fields */
 .ui-dropdown__trigger[aria-invalid="true"],
-.ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { border-color: var(--pink); }
+.ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--pink); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 /* As a select: under the ring the edge keeps its width and goes transparent, so focus has
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
-.ui-dropdown__trigger:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); outline: var(--ring); outline-offset: var(--ring-offset); }
 /* A trigger drawn as a ghost button, such as the menu on a movable card, keeps the ghost
    button's open look at rest: no fill and no edge. The pointer still gets the edge above.
    #866, rev_c072f0f9bb83/d6. why: docs/components.md#movable-card */
@@ -340,7 +345,6 @@
      standing. The same answer .ui-toast__action gives. */
   font: inherit;
   color: var(--text);
-  transition: background var(--dur-fast) var(--ease);
 }
 /* Hover is a fill and an outline means focus, so a hovered row draws no edge. A row that is
    hovered AND focused draws the ring over the fill.
@@ -369,7 +373,7 @@
 /* Trailing selected tick (listbox variant) */
 .ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
 .ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
-.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight already transitions; picking it closes the panel, which fades out over --dur-med */
+.ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight changes at once; picking it closes the panel, which fades out over --dur-med */
 .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--text); }
 
 /* A row that opens a submenu (#736): the current value at the trailing edge in body ink,
@@ -500,21 +504,22 @@
   color: var(--strong);
   /* The ground and line .ui-input takes. why: docs/foundations.md#elevation */
   background: var(--field-bg); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
-  border: 1px solid var(--field-edge);
+  --ui-dropdown-field-edge: var(--field-edge);
+  border: 1px solid color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge));
   border-radius: var(--radius-lg); /* The one-line field corner, as .ui-input. #836 */
   padding: 8px 12px 8px 34px;
   /* The height Chromium paints (38.25px), stated so the target-size gate, which
      cannot see an <input>'s line of text, reads the box a reader hits. */
   min-height: 38px;
-  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  transition: --ui-dropdown-field-veil var(--dur-fast) var(--ease); /* Focus's veil only, as on the trigger. */
 }
 /* The light-only `background: var(--bg)` override this field used to carry is gone:
    --field-bg says the same thing for every field. Gated by
    stories/dropdown-field-ground.test.js. why: docs/foundations.md#elevation */
 
 .ui-dropdown__search-input::placeholder { /* muted-ink: placeholder — empty search field */ color: var(--muted); }
-.ui-dropdown__search-input:hover { border-color: var(--field-edge-hover); }
-.ui-dropdown__search-input:focus-visible { border-color: transparent; outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-dropdown__search-input:hover { --ui-dropdown-field-edge: var(--field-edge-hover); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
+.ui-dropdown__search-input:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); outline: var(--ring); outline-offset: var(--ring-offset); }
 
 /* The rows' own cap, read from the same property the panel reads: the `scroll`
    option lands on the list when there is a field above it. #489 */

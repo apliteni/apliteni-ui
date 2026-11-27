@@ -4,7 +4,7 @@ export const TITLE = content.title;
 export const BLURB = content.blurb;
 // The shape of a rule: AGENTS.md#the-guidelines-collection
 //
-// Each pair is a row of still frames of the kit's own drawer, the values a
+// Each pair is a row of still frames of the kit's own drawer or table row, the values a
 // motion is written with, or the plotted kit curves. No picture on this page moves.
 
 export const RULES = content.rules;
@@ -49,4 +49,9 @@ export const SPEC_CSS = `
       background: var(--bg-elevated); box-shadow: inset 1px 0 0 var(--border);
       transform: translateX(var(--gm-at, 100%)); }
     .gm-mini__title { height: 6px; width: 60%; border-radius: 2px; background: var(--text); }
+
+    /* A row's hover fill part of the way in: the kit's row hover over the table's ground. */
+    .gm-hover > td { background: color-mix(in srgb, var(--surface-3) calc(var(--gm-fill, 0) * 100%), var(--table-bg)); }
+    /* A still frame takes no pointer, so the live row hover cannot paint over its timed fill. */
+    .gm-still { pointer-events: none; }
   </style>`;

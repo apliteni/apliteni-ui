@@ -25,7 +25,7 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Stat bands](stat-bands.md) | Key figures, change colour and the comparison basis. | Read it before you show key figures. |
 | [Drawers](drawer.md) | A drawer or a page, drawer content and dividers. | Read it before you open a record in a panel. |
 | [File drop](file-drop.md) | The upload row, the drag target and file states. | Read it before you build a file upload. |
-| [Motion](motion.md) | Motion durations, curves and reduced motion. | Read it before you add animation or transitions. |
+| [Motion](motion.md) | Motion durations, hovers that change at once, curves and reduced motion. | Read it before you add animation or transitions. |
 | [The command palette](command-palette.md) | Palette contents, ranking and keyboard. | Read it before you build or change the palette. |
 | [Hover readouts](hover-readouts.md) | Hover values, their placement and touch access. | Read it before you show values on hover or tap. |
 | [Going back](going-back.md) | The back link, its destination and the parent address. | Read it when a page sits under another page. |

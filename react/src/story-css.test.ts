@@ -10,8 +10,8 @@
 // composed from kit parts, so its sheet is read even when its own module imports it.
 // A sheet a shipped component imports is that component's own CSS and is not read here:
 // the React components are the kit in this workspace, and their paint is theirs to
-// write. DocumentReview and FeedbackShowcase are showcases with no component behind
-// them, so their sheets are story CSS and are read.
+// write. FeedbackShowcase is a showcase with no component behind it, so its sheet is
+// story CSS and is read.
 //
 // The limits of the reading are stated in scripts/lib/story-css.js. The one that bites
 // hardest in JSX: a `style={{…}}` whose `className` is built by an expression reads as
@@ -101,9 +101,11 @@ const subjects: string[] = [...new Set([
 // Access showcase's rework (#850) reads twenty-eight declarations in its inline sheet. The
 // finance comparison's ten inset declarations left when the kit took its insets back (#875).
 // The command palette story's two muted notes became kit callouts (#886). The Feedback
-// showcase's type, colour, opacity and motion became kit classes (#907).
+// showcase's type, colour, opacity and motion became kit classes (#907). The Document
+// review's forty-five declarations, in two showcase files, left when it moved onto
+// SplitLayout (#903).
 // The task page and the task mail showcases add two sheets (#866).
-const FOUND = { subjects: 75, declarations: 525, carriers: 51, sheets: 8 };
+const FOUND = { subjects: 75, declarations: 480, carriers: 49, sheets: 7 };
 
 const tokens: Set<string> = kitTokenNames(
   read('src/tokens/tokens.css'),
@@ -127,18 +129,11 @@ const ALLOWED: Record<string, string> = {
   // A table wider than its scroll region is the only way the region scrolls, and the
   // region's own inset is wrong when the table is inside a card rather than on a page.
   'react/src/Finance.stories.tsx|.pinned-selection .ui-table': 'the pinned columns need a table wider than the viewport',
-  'react/src/DocumentReview.stories.tsx|.doc-flow__sheet.ui-card__page': 'the page width and the Fit scale are measured from the stage at run time',
 
   // Space between two kit parts belongs to whatever stacks them, and these stack by hand.
-  'react/src/DocumentReview.stories.tsx|.doc-flow__sheet .ui-skel + .ui-skel': 'the preview stacks its skeleton bars by hand',
   'react/src/PeriodPicker.stories.tsx|.ui-card__title': 'the title is the first line of this card',
   'react/src/Landing.stories.tsx|.ui-section-head': 'the accent card closes its heading with the card padding',
   'stories/apps/EmptyStates.stories.tsx|.ui-toolbar': 'the page stacks the toolbar by hand',
-
-  // One column of one table reads left because it holds text. The kit right-aligns a
-  // footer label on the assumption it spans to sit against its figure; here it owns a
-  // column. The font-weight rules on the same selectors are paint, and are recorded below.
-  'react/src/DocumentReview.stories.tsx|.ui-table.doc-flow__amounts :is(tbody, tfoot) th': 'a text column keeps its own alignment',
 
   // A skeleton stands in for content that is not there, so only the page knows its size.
   'react/src/PeriodPicker.stories.tsx|.ui-skel__bar.m-skeleton': 'a skeleton is the size of what it replaces',
@@ -179,8 +174,6 @@ const RECORDED: Record<string, { shadow?: number; glue?: number }> = {
   'react/src/AccentPicker.stories.tsx': { shadow: 2 },
   'react/src/BadgeStatus.stories.tsx': { shadow: 2, glue: 39 },
   'react/src/DatePicker.stories.tsx': { shadow: 2 },
-  'react/src/DocumentReview.css': { shadow: 1 },
-  'react/src/DocumentReview.stories.tsx': { shadow: 11, glue: 31 },
   'react/src/SidebarNav.stories.tsx': { shadow: 2 },
   // The phone ground and one-row viewer toolbar need five more placements than the
   // ceiling: the bleed, the clear space above the ground, and the tighter toolbar fit.
@@ -202,7 +195,7 @@ describe('story CSS', () => {
   it('finds every story and every story-only stylesheet', () => {
     expect(subjects.length).toBeGreaterThanOrEqual(FOUND.subjects);
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
-      'react/src/DocumentReview.css', 'react/src/FeedbackShowcase.css',
+      'react/src/FeedbackShowcase.css',
       'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
       'react/src/showcases/Notifications.css', 'react/src/showcases/SplitLayout.css',
       'react/src/showcases/TaskMail.css', 'react/src/showcases/Tasks.css',

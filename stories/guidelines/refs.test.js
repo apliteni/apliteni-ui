@@ -320,8 +320,9 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 177: Dropdown added group-labels (#886).
   // 178: Drawers gained status-after-title (#868).
   // 179: Dropdown added trigger-value (#899).
+  // 180: Motion gained hover-at-once (#865).
   // 182: Task list added task-board and task-head, and Notification email added task-mail (#866).
-  assert.equal(count, 182, 'update the rule count when adding or removing a rule');
+  assert.equal(count, 183, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

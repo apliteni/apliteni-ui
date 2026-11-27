@@ -133,8 +133,9 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     setCollapsed(next);
     storeRailCollapsed(next);
   };
-  // A back link means the page on screen sits below the active row, so the row reports
-  // aria-current="true": "page" would announce the list as the page the reader is on.
+  // A back link, or a pathname below the active row's own path, means the page on screen
+  // sits below that row, so the row reports aria-current="true": "page" would announce the
+  // list as the page the reader is on. The match is by path segment, as `active` is.
   // shell.js does the same through sidebarNav()'s `activeIs`.
   // why: guidelines/going-back.md#keep-the-section-active
   const row = ({ href, label, icon, count }: AppShellLink) => ({ id: href, href, label, icon, badge: layout === 'rail' ? undefined : count });
@@ -142,7 +143,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     ? groups.map(group => ({ label: group.label, items: group.sections.map(row) }))
     : [{ items: sections.map(section => ({ ...row(section), items: section.items?.map(row) })) }];
   const sidebar = (label: string) => <SidebarNav aria-label={label} sections={nav} active={active?.href}
-    activeIs={back ? 'section' : 'page'}
+    activeIs={back || (active && current !== path(active.href)) ? 'section' : 'page'}
     renderLink={(item, props) => {
       const section = links.find(link => link.href === item.id)!;
       const linkProps = { ...props, onClick: (event: React.MouseEvent<HTMLAnchorElement>) => {

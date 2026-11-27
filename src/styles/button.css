@@ -47,11 +47,8 @@
   background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */
   color: var(--text);
   white-space: nowrap;
-  transition: background var(--dur-fast) var(--ease),
-    border-color var(--dur-fast) var(--ease),
-    color var(--dur-fast) var(--ease),
-    transform var(--dur-fast) var(--ease),
-    filter var(--dur-fast) var(--ease);
+  /* The press moves. The hover paint changes at once. why: docs/foundations.md#motion */
+  transition: transform var(--dur-fast) var(--ease);
 }
 
 .ui-btn:hover {

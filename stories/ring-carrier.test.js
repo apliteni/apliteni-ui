@@ -49,6 +49,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { customPropertiesIn } from '../scripts/lib/box-shadow.js';
+import { inlineLocals } from './lib/contrast.js';
 
 const files = ['src', 'react/src'].flatMap((base) => readdirSync(base, { recursive: true })
   .filter((file) => String(file).endsWith('.css')).map((file) => `${base}/${file}`));
@@ -105,10 +106,11 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 45 -> 46: #845 adds the ThemeChoice picture, which shows its radio's focus.
   // 46 -> 47: #871 adds the three-column page's column title, the focus target after a move.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis, a Tab stop with a readout.
-  // 48 -> 49: #866 adds a movable card, one Tab stop that the keyboard moves by its menu.
-  // 49 -> 50: #866 adds the query chip's remove mark, which kept its ring when #885 took
+  // 48 -> 49: #903 adds the split layout's preview title, the focus target after Try again.
+  // 49 -> 50: #866 adds a movable card, one Tab stop that the keyboard moves by its menu.
+  // 50 -> 51: #866 adds the query chip's remove mark, which kept its ring when #885 took
   // the filter chip's mark away.
-  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
+  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -152,12 +154,13 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // 2px apart and an outward band crossed into the next row.
   // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
   // 19 -> 20: #907 rings a toast stack inward while it is taller than the view and scrolls.
-  // 20 -> 21: #866 rings the card board inward, because its columns scroll sideways in it.
-  assert.equal(scrollRules.length, 21,
+  // 20 -> 21: #903 rings the split layout's two panes inward, because each scrolls alone.
+  // 21 -> 22: #866 rings the card board inward, because its columns scroll sideways in it.
+  assert.equal(scrollRules.length, 22,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 5,
-    'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns '
-    + 'and the scrolling toast stack are not all among them, so the walk '
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 6,
+    'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns, '
+    + 'the scrolling toast stack and the split layout\'s panes are not all among them, so the walk '
     + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules, '--ring-scroll'), []);
 });
@@ -259,7 +262,9 @@ const accent = (value, seen = new Set()) => references(value).some((name) => {
 /** The edge properties a second band can arrive on, beside the `outline` the band takes. */
 const EDGE = /(?:^|;)\s*(border(?:-(?:top|right|bottom|left))?(?:-color)?|box-shadow|outline-color)\s*:\s*([^;]+)/g;
 const fillOf = (body) => /(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)/.exec(body)?.[1].trim();
-const secondBands = (subjects) => subjects.flatMap((rule) => [...rule.body.matchAll(EDGE)]
+// A rule's own properties are put in place first, so a field's ink under its focus veil reads
+// as the edge that rule settles on.
+const secondBands = (subjects) => subjects.flatMap((rule) => [...inlineLocals(rule.body).matchAll(EDGE)]
   .filter(([, , value]) => accent(value))
   // A border in the FILL's own colour is the fill reaching the border box, not an edge
   // beside the band — the primary button's hover and the picker's chosen day both
@@ -279,13 +284,15 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 45 -> 46: #845 adds the ThemeChoice picture.
   // 46 -> 47: #871 adds the three-column page's column title.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
-  // 48 -> 49: #866 adds a movable card.
-  // 49 -> 50: #866 adds the query chip's remove mark.
-  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
+  // 48 -> 49: #903 adds the split layout's preview title.
+  // 49 -> 50: #866 adds a movable card.
+  // 50 -> 51: #866 adds the query chip's remove mark.
+  assert.equal(consumers.length, 51, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
   // 19 -> 20: #907 adds the scrolling toast stack.
-  // 20 -> 21: #866 adds the card board.
-  assert.equal(scrollRules.length, 21, 'scroll-ring consumer discovery changed');
+  // 20 -> 21: #903 adds the split layout's panes.
+  // 21 -> 22: #866 adds the card board.
+  assert.equal(scrollRules.length, 22, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 
@@ -313,7 +320,11 @@ test('the second-band gate rejects each way of drawing one', () => {
   const real = consumers.find((r) => r.file === 'src/styles/input.css');
   assert.ok(real, 'input.css no longer takes the ring; move this check');
   assert.deepEqual(secondBands([{ ...real, body: `border-color: var(--accent); ${real.body}` }]),
-    [`src/styles/input.css: ${real.selector} paints border-color in the accent beside the band`]);
+    [`src/styles/input.css: ${real.selector} paints border-color in the accent beside the band`]);  // An accent ink under a veil that stays open is the same second band.
+  const veiled = consumers.find((r) => r.file === 'src/styles/dropdown.css' && /trigger:focus-visible/.test(r.selector));
+  assert.ok(veiled, 'the dropdown trigger no longer takes the ring; move this check');
+  assert.deepEqual(secondBands([{ ...veiled, body: veiled.body.replace('--ui-dropdown-field-veil: 100%;', '--ui-dropdown-field-edge: var(--accent); --ui-dropdown-field-veil: 0%;') }]),
+    [`src/styles/dropdown.css: ${veiled.selector} paints border-color in the accent beside the band`]);
 });
 
 // An always-on accent edge is the same second band, drawn by the pointer instead of by
