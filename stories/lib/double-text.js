@@ -1,6 +1,6 @@
-/* A page function for page.evaluate. It doubles every --text-* token on the root, so the
- * kit's text is at 200% and its spacing is not. It returns the count of doubled tokens.
- * Limits: a size that is not a --text-* token stays as it is. */
+/* A page function for page.evaluate. It doubles every --text-* size on the root, so the
+ * kit's text is at 200% and its spacing is not. It returns the count of doubled sizes.
+ * Limits: a size that is not a --text-* custom property stays as it is. */
 export const DOUBLE_TEXT = () => {
   const rootStyle = document.documentElement.style;
   for (const sheet of document.styleSheets) {

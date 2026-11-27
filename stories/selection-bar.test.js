@@ -31,7 +31,7 @@
  * control at its end.
  *
  * Its limits: one engine, the default accent, and the light theme except for the 200% ends.
- * The 200% text doubles the kit's --text-* tokens, as a reader's text zoom does not exactly. The layout shift is
+ * The 200% text doubles the kit's --text-* sizes, as a reader's text zoom does not exactly. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input. The resize walk
  * does not compare where the bar stands, because a new window size moves it. The source half is
  * in react/src/SelectionBar.test.tsx and react/src/showcases/SelectedRows.test.tsx, and the
@@ -109,7 +109,7 @@ async function ends(page, label) {
 // The ends at 200% text: the count must take two lines, or the case is not the one measured.
 const LARGE = { viewport: { width: 360, height: 800 } };
 async function doubled(page, label) {
-  assert.ok(await page.evaluate(DOUBLE_TEXT) > 0, `${label}: no --text-* token to double`);
+  assert.ok(await page.evaluate(DOUBLE_TEXT) > 0, `${label}: no --text-* size to double`);
   await page.evaluate(frames);
   const { tally, line } = await page.evaluate(() => {
     const count = document.querySelector('.ui-selection-bar__count');
