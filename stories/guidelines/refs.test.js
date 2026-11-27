@@ -324,7 +324,8 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 181: Motion gained every-change (#900).
   // 182: The page gained sidebar-column (#869).
   // 183: Dashboards and reports gained trend-in-head (#863).
-  assert.equal(count, 183, 'update the rule count when adding or removing a rule');
+  // 184: Dense tables added filter-chip-width (#915).
+  assert.equal(count, 184, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

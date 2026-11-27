@@ -153,3 +153,17 @@
 **Don't:** Put a full-size field above dense rows.
 
 **Except:** Tabs keep one size, and touch controls stand a chip's height.
+
+## Cap long filter chips
+
+<!-- rule: filter-chip-width -->
+
+**Why:** Room kept for unseen values pushes the other controls onto a second line.
+
+**Rule:** Cap each filter chip so that long values do not wrap the bar.
+
+**Do:** End a long value with an ellipsis, and show it whole in the menu.
+
+**Don't:** Keep room for every long category name.
+
+**Except:** On a phone the bar wraps.

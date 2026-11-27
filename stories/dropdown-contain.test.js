@@ -808,3 +808,150 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
     server.proc.kill();
   }
 });
+
+/* Rule: an off trigger keeps its off edge while it is pressed, also when the pointer leaves it
+ * while the button is held, and also when a Field marks it invalid. The menu stays shut. No
+ * fixed element moves by more than 1px, the layout shift stays under 0.1 and the page does not
+ * scroll sideways. #915
+ *
+ * Off unless DROPDOWN_EDGES=1, and it needs web-vitals, as the walk above does.
+ *
+ * It opens react-fields--form-row-invalid in both themes at each of the ten window sizes and on
+ * the six devices above. On the invalid Owner trigger it sets the native `disabled` or
+ * `aria-disabled="true"`, as the default, the ghost and the text trigger. Then the mouse moves
+ * over it, presses it, leaves it while held, lets go and presses Escape. After each step the
+ * edge must be the edge at rest. One more run adds the invalid press rule without its off
+ * twin, as the branch had it at fa8fdb8a, and the walk must report the pink edge.
+ *
+ * Its limits: one engine and the default accent. The story renders the trigger live, so the
+ * walk writes the off state into the page. React writes `disabled` only on a change, so the
+ * page keeps it. A touch press cannot leave its target in Playwright, so a touch device is
+ * walked with the mouse. The filter chip is not walked: its trigger draws no edge, and a chip
+ * goes off only with its fieldset, which src/styles/filter-bar.test.js holds.
+ * why: docs/components.md#dropdown
+ */
+const OFF_STORY = 'react-fields--form-row-invalid';
+const OFF_CASES = ['default', 'ghost', 'text'].flatMap((variant) => ['native', 'aria'].map((spelling) => ({ variant, spelling })));
+// The invalid press rule as fa8fdb8a shipped it, with no off rule after it.
+const PRESS_PINK = '.ui-dropdown__trigger[aria-invalid="true"]:active:not(:focus-visible) { border-color: var(--pink); }';
+
+// Sets one case on the invalid Owner trigger, or takes it away again.
+const OFF_SET = ({ variant, spelling, on }) => {
+  const el = document.querySelector('.ui-field [data-dropdown-trigger][aria-invalid="true"]');
+  el.classList.toggle(`ui-dropdown__trigger--${variant}`, on && variant !== 'default');
+  if (spelling === 'native') el.disabled = on;
+  else if (on) el.setAttribute('aria-disabled', 'true');
+  else el.removeAttribute('aria-disabled');
+};
+const OFF_READ = () => {
+  const el = document.querySelector('.ui-field [data-dropdown-trigger][aria-invalid="true"]');
+  const doc = document.scrollingElement;
+  return {
+    edge: getComputedStyle(el).borderTopColor,
+    open: !!el.closest('.ui-dropdown.open'),
+    fixed: [...document.querySelectorAll('body *')].filter((e) => getComputedStyle(e).position === 'fixed')
+      .map((e) => { const r = e.getBoundingClientRect(); return { name: `${e.tagName.toLowerCase()}.${[...e.classList].join('.')}`, x: r.left, y: r.top }; }),
+    cls: window.__cls,
+    over: doc.scrollWidth - doc.clientWidth,
+  };
+};
+
+// Walks one case and returns its findings.
+async function offWalk(page, label, kase) {
+  const found = [];
+  await page.evaluate(OFF_SET, { ...kase, on: true });
+  const trigger = page.locator('.ui-field [data-dropdown-trigger][aria-invalid="true"]');
+  await trigger.scrollIntoViewIfNeeded();
+  await page.mouse.move(1, 1);
+  await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'));
+  const rest = await page.evaluate(OFF_READ);
+  const box = await trigger.boundingBox();
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  const away = box.y + box.height + 40 < page.viewportSize().height ? box.y + box.height + 40 : Math.max(1, box.y - 40);
+  const steps = [
+    ['hover', () => page.mouse.move(x, y)],
+    ['press', () => page.mouse.down()],
+    ['leave while held', () => page.mouse.move(x, away, { steps: 4 })],
+    ['let go', () => page.mouse.up()],
+    ['key: Escape', () => page.keyboard.press('Escape')],
+  ];
+  for (const [name, run] of steps) {
+    await run();
+    await page.waitForFunction(() => document.getAnimations().every((a) => a.playState !== 'running'));
+    const now = await page.evaluate(OFF_READ);
+    const at = `${label} ${kase.variant} ${kase.spelling} ${name}`;
+    if (now.edge !== rest.edge) found.push(`${at}: the edge is ${now.edge}, not the off edge ${rest.edge}`);
+    if (now.open) found.push(`${at}: the menu opened`);
+    for (const f of now.fixed) {
+      const was = rest.fixed.find((b) => b.name === f.name);
+      if (was && Math.max(Math.abs(f.x - was.x), Math.abs(f.y - was.y)) > 1) found.push(`${at}: ${f.name} moved`);
+    }
+    if (!(now.cls < 0.1)) found.push(`${at}: the layout shift is ${now.cls}`);
+    if (now.over > 0) found.push(`${at}: the page scrolls ${now.over}px sideways`);
+  }
+  await page.evaluate(OFF_SET, { ...kase, on: false });
+  return found;
+}
+
+test('a pressed off trigger keeps its off edge when the pointer leaves it, in both themes', {
+  skip: !RUN && 'set DROPDOWN_EDGES=1',
+}, async () => {
+  const { serve, playwright } = await import('./lib/dropdown-contain.js');
+  const { readFileSync } = await import('node:fs');
+  const pw = await playwright();
+  assert.ok(pw, 'DROPDOWN_EDGES=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  assert.ok(process.env.UI_WEB_VITALS && existsSync(process.env.UI_WEB_VITALS), 'point UI_WEB_VITALS at web-vitals/dist/web-vitals.iife.js');
+  const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
+  const build = path.join(root, 'storybook-static');
+  assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
+  const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
+  assert.ok(ids.includes(OFF_STORY), `the Storybook build has no ${OFF_STORY}`);
+
+  const subjects = [
+    ...FLOAT_SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
+    ...FLOAT_DEVICES.map((name) => { assert.ok(pw.devices[name], `Playwright has no device "${name}"`); return [name, pw.devices[name]]; }),
+    ...FLOAT_DUO.map(([width, height]) => [`two-screen ${width}×${height}`, { viewport: { width, height }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }]),
+  ];
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  const open = async (context, theme, css) => {
+    const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
+    await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
+    const page = await ctx.newPage();
+    await page.goto(`http://127.0.0.1:${server.port}/iframe.html?id=${OFF_STORY}&viewMode=story&globals=theme:${theme}`);
+    await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
+      && window.__STORYBOOK_PREVIEW__.currentRender.id === id, OFF_STORY);
+    if (css) await page.addStyleTag({ content: css });
+    return { ctx, page };
+  };
+  try {
+    const findings = [];
+    const table = [];
+    for (const [label, context] of subjects) {
+      for (const theme of ['light', 'dark']) {
+        const { ctx, page } = await open(context, theme);
+        const found = [];
+        for (const kase of OFF_CASES) found.push(...await offWalk(page, `${label} ${theme}`, kase));
+        findings.push(...found);
+        table.push(`${label} ${theme}: ${OFF_CASES.length} cases, ${found.length ? 'fail' : 'pass'}`);
+        await ctx.close();
+      }
+    }
+    process.stdout.write(`${table.join('\n')}\n`);
+    assert.equal(table.length, (FLOAT_SIZES.length + FLOAT_DEVICES.length + FLOAT_DUO.length) * 2, 'a size, a device or a theme was not measured');
+    assert.deepEqual(findings, []);
+
+    // The mutation: the invalid press rule without its off twin must be caught, default and ghost.
+    const { ctx, page } = await open({ viewport: { width: 1280, height: 800 } }, 'light', PRESS_PINK);
+    const caught = [];
+    for (const kase of OFF_CASES.filter(({ spelling }) => spelling === 'native')) caught.push(...await offWalk(page, 'mutated', kase));
+    await ctx.close();
+    for (const variant of ['default', 'ghost']) {
+      assert.ok(caught.some((f) => f.startsWith(`mutated ${variant} native leave while held: the edge`)), `the walk missed the pink press on the ${variant} trigger: ${caught.join('; ') || 'nothing'}`);
+    }
+  } finally {
+    await browser.close();
+    server.proc.kill();
+  }
+});

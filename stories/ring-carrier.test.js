@@ -50,6 +50,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { customPropertiesIn } from '../scripts/lib/box-shadow.js';
 import { inlineLocals } from './lib/contrast.js';
+import { splitSelectorList } from '../scripts/lib/selector-list.js';
 
 const files = ['src', 'react/src'].flatMap((base) => readdirSync(base, { recursive: true })
   .filter((file) => String(file).endsWith('.css')).map((file) => `${base}/${file}`));
@@ -327,6 +328,13 @@ test('the second-band gate rejects each way of drawing one', () => {
 // one way — the band wins, one indicator — so every hover rule that paints an accent
 // edge stands aside with `:not(:focus-visible)`.
 const hoverEdges = rules.filter((rule) => /:hover/.test(rule.selector) && secondBands([rule]).length);
+// A chip answers its trigger's pointer through :has(), where the contrast walk cannot host a
+// :not(). It stands aside in a later rule of its sheet: the same selector at :focus-visible,
+// with no accent edge. #915
+const listOf = (selector) => splitSelectorList(selector).map((s) => s.trim());
+const resetUnderBand = (rule, all = rules) => listOf(rule.selector).filter((s) => /:hover/.test(s)).every((s) => all
+  .some((later, i) => i > all.indexOf(rule) && later.file === rule.file
+    && listOf(later.selector).includes(s.replace(':hover', ':focus-visible')) && !secondBands([later]).length));
 
 test('a hover rule that paints an accent edge stands aside under the band', () => {
   assert.ok(hoverEdges.length >= 6,
@@ -334,7 +342,7 @@ test('a hover rule that paints an accent edge stands aside under the band', () =
     + '(the secondary button, the check box, the social mark, the version button, the '
     + 'avatar and the dropdown trigger)');
   const standing = hoverEdges
-    .filter((rule) => !/:not\(\s*:focus-visible\s*\)/.test(rule.selector))
+    .filter((rule) => !/:not\(\s*:focus-visible\s*\)/.test(rule.selector) && !resetUnderBand(rule))
     .map((rule) => `${rule.file}: ${rule.selector}`);
   // ONE exception, and it is not a hover mark: the picker paints an accent border on
   // today's cell AT REST, and these two rules only keep it there while the pointer is
@@ -351,6 +359,12 @@ test('the hover gate rejects an accent edge left standing under the band', () =>
   const real = hoverEdges.find((r) => r.file === 'src/styles/dropdown.css');
   assert.ok(real, 'the dropdown trigger no longer lights its edge on hover; move this check');
   assert.match(real.selector, /:not\(\s*:focus-visible\s*\)/, 'the real rule stands aside');
-  assert.equal(/:not\(\s*:focus-visible\s*\)/.test(real.selector.replace(':not(:focus-visible)', '')), false,
+  assert.equal(/:not\(\s*:focus-visible\s*\)/.test(real.selector.replaceAll(':not(:focus-visible)', '')), false,
     'stripping the guard from the real rule leaves a selector this gate would name');
+  // The chip's reset under the band, taken away, leaves its accent edge standing.
+  const chip = hoverEdges.find((r) => r.file === 'src/styles/filter-bar.css' && /__chip:has/.test(r.selector));
+  assert.ok(chip && resetUnderBand(chip), 'the filter chip no longer stands aside in a later rule; move this check');
+  const reset = rules.find((r) => r.file === chip.file && /__chip:has\([^)]*:focus-visible\)/.test(r.selector));
+  assert.ok(reset, 'the chip has no reset rule to remove');
+  assert.equal(resetUnderBand(chip, rules.filter((r) => r !== reset)), false, 'removing the chip\'s reset is not caught');
 });

@@ -195,7 +195,9 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-app .ui-app__user-trigger:hover,
+.ui-app .ui-app__user-trigger:active,
+.ui-app .ui-dropdown.open > .ui-app__user-trigger { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.

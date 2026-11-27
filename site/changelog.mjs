@@ -1,10 +1,20 @@
 export const RELEASES = [
   {
-    v: '0.229.0', date: '2026-11-27',
+    v: '0.230.0', date: '2026-11-27',
     changes: [
       ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
       ['changed', 'In a dropdown panel, a hovered row now takes one quiet grey ground, the new token `--float-row-fill`. The chosen row takes a soft accent tint, `--float-row-selected`, and one step more under the pointer, `--float-row-selected-hover`. The check is the text ink, not the accent. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
       ['fixed', 'A dropdown in a `Field` now makes room in its trigger for each row\'s badge and check. Before, its panel, which is as wide as the trigger, broke the label of a row with a badge, or of the chosen longest row, over two or more lines. The trigger is 24px wider for the check, and wider again where a row with a badge is the widest. Part of #888.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.229.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'A filter chip now keeps the width of its longest value up to 128px, in place of 224px, so five chips with long values fit one line beside a search field at 1440px. A pick still does not move the row. A longer value ends with an ellipsis, and the hover title, the trigger name and the menu keep the full value. Part of #915.', ['FilterBar']],
+      ['added', 'A filter takes `maxWidth`, in CSS pixels, to give its chip a different cap. `--ui-filter-chip-max` set on the toolbar or another box around the bar now reaches every chip. Before, the bar replaced it with its own value. Part of #915.', ['FilterBar']],
+      ['changed', 'A filter chip now has the accent edge under the pointer, while pressed and while its menu is open. Before, it showed no hover. Part of #915.', ['FilterBar']],
+      ['changed', 'A dropdown trigger now keeps its hover answer while pressed and while its menu is open: the accent edge on a select, and the hover fill on a trigger with no edge, such as the account block, a band control, a band action, the head control and a column menu. Before, a menu opened by a tap or left by the pointer showed nothing on its trigger. An off trigger keeps its off edge while pressed. Part of #915.', ['Dropdown', 'AppShell', 'AccountMenu', 'TopBar', 'ThreeColumnPage', 'DatePicker']],
+      ['changed', 'The Dense tables guideline has a new rule, Cap long filter chips. Part of #915.', ['Guidelines']],
     ],
   },
   {
