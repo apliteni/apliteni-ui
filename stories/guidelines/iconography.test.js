@@ -90,6 +90,9 @@ const readName = (raw, text) => {
   if (/^['"][^'"]*['"]$/.test(raw) && !raw.includes('${')) {
     return { name: raw.slice(1, -1), nameFrom: 'literal' };
   }
+  // A template that opens with words, such as `Apply ${label}`: those words open the name (#888).
+  const opening = /^\{?`([^`$]*)\$\{/.exec(raw)?.[1];
+  if (/[A-Za-z]{2,}/.test(opening ?? '')) return { name: opening.trim(), nameFrom: 'template' };
   for (const id of [...raw.matchAll(IDENT)].map((m) => m[0]).reverse()) {
     const found = new RegExp(`\\b${id}\\s*=\\s*['"]([^'"]+)['"]`).exec(text);
     if (found) return { name: found[1], nameFrom: 'default' };
@@ -284,4 +287,17 @@ test('a listed glyph carried by an action the list does not allow turns the gate
   assert.deepEqual(listProblems([{ ...site, name: 'Copy project ID' }]), []);
   assert.equal(listProblems([{ ...site, name: undefined }]).length, 1,
     'a name the walk cannot read must be reported, not skipped');
+});
+
+// A template name is read by the words before its first interpolation (#888). The proposed
+// value's check and dismiss mark are named this way, so the read must reach them and must
+// refuse a wrong opening word written the same way.
+test('a template name is read by its opening words, and a wrong one is refused', () => {
+  const read = (raw) => ({ file: 'fixture', line: 1, glyph: 'check', how: 'wordless', ...readName(raw, '') });
+  assert.equal(read('{`Apply ${label}`}').nameFrom, 'template');
+  assert.deepEqual(listProblems([read('{`Apply ${label}`}')]), []);
+  assert.equal(listProblems([read('{`Remove ${label}`}')]).length, 1);
+  assert.equal(listProblems([read('{`${label}`}')]).length, 1, 'a name with no words before it stays unread');
+  assert.ok(callSites.some((c) => c.nameFrom === 'template' && c.file === 'react/src/ProposedValue.tsx'),
+    'the proposed value check and dismiss mark dropped out of the walk');
 });

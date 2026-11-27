@@ -746,16 +746,17 @@ it('offers no column pager when the columns overflow, only the scroll region', (
 
 // An engine scrolls a focused control into the frame only when it is fully hidden. JSDOM
 // has no scrolling, so this checks the call and its options. A browser measured the result
-// in the pull request.
-it('brings a control that the frame shows in part fully into view on a keyboard focus', async () => {
+// in the pull request. A card that scrolls a table directly is the frame too (#888).
+it.each(['frame', 'card'])('brings a control that the %s shows in part fully into view on a keyboard focus', async (frame) => {
   const user = userEvent.setup();
   const revealed: Element[] = [];
   const reveal = vi.fn(function (this: Element) { revealed.push(this); });
   const own = Element.prototype.scrollIntoView;
   Element.prototype.scrollIntoView = reveal;
   try {
-    render(<DataTable selectable={false} pager={false} pinnedIdentity scrollLabel="Ledger" rows={rows}
-      columns={[...columns, { key: 'name', label: 'Actions', render: (r) => <button type="button">Revoke {r.name}</button> }]} />);
+    const table = <DataTable selectable={false} pager={false} pinnedIdentity={frame === 'frame'} scrollLabel="Ledger" rows={rows}
+      columns={[...columns, { key: 'name', label: 'Actions', render: (r) => <button type="button">Revoke {r.name}</button> }]} />;
+    render(frame === 'card' ? <Card>{table}</Card> : table);
     const [first, next] = screen.getAllByRole('button', { name: /^Revoke/ });
     await user.click(first);
     // A click does not move the control it lands on.

@@ -851,6 +851,72 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       assert.equal(short.size, 2 + statCases.length, `A change at its line height passed in some fixtures: ${[...short]}`);
     });
 
+    /* The chart head's range trigger is a text trigger, 34px drawn, between the
+     * figure, which is text, and the plot. The row declares its clearance, so the
+     * trigger reaches 44px down the centre line, and its layer touches neither the
+     * figure nor the plot. Limit: one story, the real Head, in both themes, and
+     * only the centre line is hit-tested. #863 */
+    const HEAD = 'react-chart--head';
+    const headAt = async (sheet, theme) => {
+      const subject = subjects.find((s) => s.id === HEAD);
+      assert.ok(subject, `${HEAD} is not in the sweep, so the chart head is not measured.`);
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 900 }, deviceScaleFactor: 1, hasTouch: true, reducedMotion: 'reduce' });
+      try {
+        const page = await ctx.newPage();
+        await page.setContent(`<!doctype html><html lang="en" data-theme="${theme}"><head><style>html,body{margin:0;padding:0}${sheet}</style></head><body>${subject.html}</body></html>`);
+        return await page.evaluate(() => {
+          const t = document.querySelector('.ui-chart__range .ui-dropdown__trigger');
+          if (!t) return null;
+          const b = t.getBoundingClientRect();
+          const layer = Number.parseFloat(getComputedStyle(t, '::after').height);
+          const cx = b.x + b.width / 2;
+          const cy = b.y + b.height / 2;
+          const owns = (y) => t.contains(document.elementFromPoint(cx, y));
+          let up = 0; while (up < 44 && owns(b.top - 0.5 - up)) up += 1;
+          let down = 0; while (down < 44 && owns(b.bottom - 0.5 + down)) down += 1;
+          return {
+            drawn: b.height,
+            reach: b.height + up + down,
+            top: cy - layer / 2,
+            bottom: cy + layer / 2,
+            figure: document.querySelector('.ui-chart__summary > .ui-stat__value').getBoundingClientRect().bottom,
+            plot: document.querySelector('.ui-chart__frame').getBoundingClientRect().top,
+          };
+        });
+      } finally {
+        await ctx.close();
+      }
+    };
+    const headMisses = (m, theme) => {
+      if (!m) return [`${theme}: no range trigger in the chart head`];
+      const out = [];
+      if (m.drawn >= TAP_MIN) out.push(`${theme}: the trigger draws ${m.drawn}px, so this check measures nothing`);
+      if (m.reach < TAP_MIN - 0.5) out.push(`${theme}: the trigger reaches ${m.reach}px down its centre line`);
+      if (m.top < m.figure) out.push(`${theme}: the layer reaches ${(m.figure - m.top).toFixed(2)}px into the figure`);
+      if (m.bottom > m.plot) out.push(`${theme}: the layer reaches ${(m.bottom - m.plot).toFixed(2)}px into the plot`);
+      return out;
+    };
+
+    await t.test('the chart head\'s range trigger reaches 44px, clear of the figure and the plot', async () => {
+      const misses = [];
+      for (const theme of ['light', 'dark']) {
+        const m = await headAt(withCss, theme);
+        misses.push(...headMisses(m, theme));
+        t.diagnostic(`${theme}: ${m && `${m.drawn.toFixed(2)} drawn, ${m.reach.toFixed(2)} reached, `
+          + `${(m.top - m.figure).toFixed(2)}px under the figure, ${(m.plot - m.bottom).toFixed(2)}px over the plot`}`);
+      }
+      assert.deepEqual(misses, []);
+    });
+
+    await t.test('a chart head\'s range row without its clearance is rejected', async () => {
+      const shut = withCss.replace(/\.ui-chart__range \{ --tap-clear-y: [^}]*\}/, '');
+      assert.notEqual(shut, withCss, 'The mutation did not apply, so it proves nothing.');
+      const misses = [];
+      for (const theme of ['light', 'dark']) misses.push(...headMisses(await headAt(shut, theme), theme));
+      assert.equal(misses.filter((m) => /reaches [\d.]+px down/.test(m)).length, 2,
+        `The trigger kept its 44px without the row's clearance: ${misses.join(' / ') || 'no miss'}`);
+    });
+
     await t.test('each wordless option owns a 44px target without crossing the shared middle', () => {
       // The chart/table switch in a card's tools: two 24px glyph pills in a 32px
       // track. The symmetric clamp left each at 28 across, so a tap at the pill's

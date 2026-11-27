@@ -42,6 +42,8 @@
    the rounded corners / clipping its last column. Clipping to the card's
    border-box also keeps zebra stripes from escaping the radius. */
 .ui-card:has(> .ui-table) { overflow-x: auto; }
+/* A control that a keyboard focus scrolls into view brings its ring in too. #888 */
+.ui-card:has(> .ui-table) { scroll-padding-inline: calc(var(--ring-width) + var(--ring-offset)); }
 /* On a phone the card scrolls under a finger, so it shows no scrollbar, as the table's
    scroll frame does. A classic scrollbar left a 15px strip under the last row. #885 */
 @media (max-width: 560px) {

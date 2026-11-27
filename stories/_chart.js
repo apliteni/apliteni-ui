@@ -38,7 +38,7 @@ export const CHART_CSS = `
     .ch-area { fill: color-mix(in srgb, var(--accent) 14%, transparent); }
     .ch-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
     .ch-hit { fill: transparent; }
-    .ch-dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; opacity: 0; }
+    .ch-dot { fill: var(--surface); stroke: var(--accent); stroke-width: 2; opacity: 0; }
     /* One flat tone, as the kit draws it: the full accent, with a small corner at
        the measured end. */
     .ch-bar { fill: var(--accent); }
