@@ -669,7 +669,8 @@ The check calls `onChange` with the proposed value and opens no menu. The dismis
 `onDismiss` and shows "None" until `proposed` changes. A dismissed proposal that comes back after
 another one shows again. After either act the focus goes to the select. The menu has a None row
 first, which calls `onChange(undefined)`. The None row uses the value `''`, so give each option
-another value. A proposal that no enabled option has shows the empty state, so the check never
+another value. `applyVariant="ghost"` draws the check with no outline, as the dismiss mark is
+drawn. The default `secondary` keeps its outline. A proposal that no enabled option has shows the empty state, so the check never
 sets a disabled option. A long value ends in an ellipsis, and its pointer title shows it in full.
 
 **Size.** In a `Field` the part has the height of a text input. Elsewhere it has the 32px size of a

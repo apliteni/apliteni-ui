@@ -132,8 +132,15 @@ it('in a field the label names the group and the select, and the buttons are md'
 
 it('outside a field the buttons are sm, the size of the row select', () => {
   render(<Harness proposed="groceries" />);
-  expect(screen.getByRole('button', { name: 'Apply Groceries' })).toHaveClass('ui-btn--sm');
+  expect(screen.getByRole('button', { name: 'Apply Groceries' })).toHaveClass('ui-btn--sm', 'ui-btn--secondary');
   expect(screen.getByRole('button', { name: 'Dismiss Groceries' })).toHaveClass('ui-btn--sm', 'ui-btn--ghost');
+});
+
+it('applyVariant="ghost" draws the check with no outline, as the dismiss mark is drawn', () => {
+  render(<Harness proposed="groceries" applyVariant="ghost" />);
+  const check = screen.getByRole('button', { name: 'Apply Groceries' });
+  expect(check).toHaveClass('ui-btn--sm', 'ui-btn--ghost');
+  expect(check).not.toHaveClass('ui-btn--secondary');
 });
 
 it('an invalid field keeps its invalid state while it is proposed', () => {
@@ -144,7 +151,7 @@ it('an invalid field keeps its invalid state while it is proposed', () => {
 });
 
 it('each state passes axe', async () => {
-  for (const props of [{ start: 'transport' }, {}, { proposed: 'groceries' }, { proposed: 'groceries', 'aria-invalid': true }]) {
+  for (const props of [{ start: 'transport' }, {}, { proposed: 'groceries' }, { proposed: 'groceries', applyVariant: 'ghost' as const }, { proposed: 'groceries', 'aria-invalid': true }]) {
     const { container, unmount } = render(<Harness inField {...props} />);
     const result = await axe.run(container);
     expect(result.violations.map((v) => v.id)).toEqual([]);

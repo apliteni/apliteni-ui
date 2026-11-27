@@ -15,6 +15,8 @@ export type ProposedValueProps = {
   onChange: (value: string | number | undefined) => void;
   /** The dismiss mark drops the proposal. The field shows None until a new proposal comes. */
   onDismiss?: () => void;
+  /** The paint of the check. `ghost` draws it with no outline, as the dismiss mark is drawn. */
+  applyVariant?: 'secondary' | 'ghost';
   /** The words of the empty field and of its first row. */
   none?: string;
   /** Names the control outside a `Field`, for example "Category for Luz del Sur". */
@@ -34,7 +36,7 @@ const NONE = '';
  * why: docs/components.md#proposed-value
  */
 export function ProposedValue({
-  items, value, proposed, onChange, onDismiss, none = 'None', ariaLabel, id, disabled,
+  items, value, proposed, onChange, onDismiss, applyVariant = 'secondary', none = 'None', ariaLabel, id, disabled,
   'aria-describedby': describedBy, 'aria-invalid': invalid,
 }: ProposedValueProps) {
   const auto = useId();
@@ -79,7 +81,7 @@ export function ProposedValue({
           <span className="ui-proposed__text">{offer.label}</span>
         </span>
         <span className="ui-proposed__acts">
-          <Button iconOnly icon="check" size={inForm ? 'md' : 'sm'} disabled={disabled}
+          <Button iconOnly icon="check" variant={applyVariant} size={inForm ? 'md' : 'sm'} disabled={disabled}
             aria-label={`Apply ${offer.label}`} title={`Apply ${offer.label}`} onClick={apply} />
           <Button iconOnly icon="x" variant="ghost" size={inForm ? 'md' : 'sm'} disabled={disabled}
             aria-label={`Dismiss ${offer.label}`} title={`Dismiss ${offer.label}`} onClick={dismiss} />

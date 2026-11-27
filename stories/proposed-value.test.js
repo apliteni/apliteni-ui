@@ -11,7 +11,8 @@
  *   UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals/dist/web-vitals.iife.js PROPOSED_VALUE=1 \
  *     node --test stories/proposed-value.test.js
  *
- * It opens react-proposed-value--form-row and react-proposed-value--table-cell in a new
+ * It opens react-proposed-value--form-row, react-proposed-value--table-cell and
+ * react-proposed-value--ghost-check, with the form walk and then the table walk, in a new
  * context at each of ten window sizes and on six devices: the Galaxy Z Fold 7 and Flip 7 and
  * their cover screens from Playwright's list, and a two-screen phone of 466×678 and 890×626 at
  * scale 3 with touch. The form walk clicks the Category check, then Enter and Escape on the
@@ -138,6 +139,9 @@ const TABLE = [
 const STORIES = [
   { id: 'react-proposed-value--form-row', actions: FORM },
   { id: 'react-proposed-value--table-cell', actions: TABLE },
+  // The check with no outline, rev_604d2230cca9/d59. One story holds a table and then a form.
+  { id: 'react-proposed-value--ghost-check', actions: FORM },
+  { id: 'react-proposed-value--ghost-check', actions: TABLE },
 ];
 
 async function open(browser, port, vitals, context, story) {
