@@ -17,10 +17,13 @@
  * touch. The script puts the focus on Clear, then the walk presses Tab to the first list,
  * ArrowDown, ArrowDown and Enter on Ready, ArrowDown, Escape and Escape. Then it clicks a row's box, clicks the
  * first list and presses Escape. A walk that cannot reach the focus it waits for stops, and its
- * error says that the focus left.
+ * error says that the focus left. A second walk in a new context sets the window to 1280×800,
+ * puts the focus on Archive, sets the window to 390×844, where Archive goes into More, and
+ * sets it back. The focus must go to More, and then to the first action that came out of More.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
- * web-vitals' onCLS, which does not count a shift within 500ms of an input. The source half is
+ * web-vitals' onCLS, which does not count a shift within 500ms of an input. The resize walk
+ * does not compare where the bar stands, because a new window size moves it. The source half is
  * in react/src/SelectionBar.test.tsx and react/src/showcases/SelectedRows.test.tsx, and the
  * pick's effect on the rows is proved there, not here.
  * why: docs/components.md#selection-bar
@@ -120,6 +123,29 @@ const ACTIONS = [
   }, { inside: true, open: false, tally: '1 selected' }],
 ];
 
+// The window size changes. The focus follows Archive into More, and then goes to the first
+// action that comes out of More.
+const more = (page) => page.locator('.ui-selection-bar > .ui-dropdown > .ui-dropdown__trigger');
+const action = (page, name) => page.locator('.ui-selection-bar__actions').getByRole('button', { name });
+const ORDER = ['Status', 'Owner', 'Tags', 'Move', 'Archive'];
+let standing = 0;
+const RESIZES = [
+  ['resize: 1280×800 and the focus on Archive', async (page) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await action(page, 'Archive').focus();
+    await focused(page, action(page, 'Archive'));
+  }, { inside: true }],
+  ['resize: 390×844 moves Archive into More', async (page) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await focused(page, more(page));
+    standing = await page.locator('.ui-selection-bar__actions > *').count();
+  }, { inside: true }],
+  ['resize: 1280×800 moves the actions out of More', async (page) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await focused(page, action(page, ORDER[standing]));
+  }, { inside: true }],
+];
+
 async function open(browser, port, vitals, context) {
   const ctx = await browser.newContext({ ...context, timezoneId: 'UTC' });
   await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
@@ -133,13 +159,13 @@ async function open(browser, port, vitals, context) {
   return { ctx, page };
 }
 
-async function walk(page, label, { only } = {}) {
+async function walk(page, label, { only, steps = ACTIONS } = {}) {
   const found = [];
   const ran = [];
   await page.getByRole('button', { name: 'Clear' }).focus();
   await page.evaluate(frames);
   let before = await page.evaluate(READ);
-  for (const [name, run, want] of ACTIONS.filter(([n]) => !only || only.includes(n))) {
+  for (const [name, run, want] of steps.filter(([n]) => !only || only.includes(n))) {
     await run(page);
     await page.evaluate(frames);
     const after = await page.evaluate(READ);
@@ -152,7 +178,7 @@ async function walk(page, label, { only } = {}) {
     }
     // The bar stands where it stood while it shows. A bar that leaves and comes back, or that a
     // scroll sticks or frees, is not compared.
-    if (before.bar && after.bar && before.stuck === after.stuck) {
+    if (steps === ACTIONS && before.bar && after.bar && before.stuck === after.stuck) {
       const moved = Math.max(Math.abs(after.bottom - before.bottom), Math.abs(after.left - before.left));
       if (moved > 1) found.push(`${at}: the bar moved ${Math.round(moved)}px`);
     }
@@ -191,8 +217,13 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       const { found, ran } = await walk(page, label).catch((error) => { throw new Error(`${label}: ${error.message}`, { cause: error }); });
       findings.push(...found);
       assert.equal(ran.length, ACTIONS.length, `${label}: ${ran.length} of ${ACTIONS.length} actions ran`);
-      table.push(`${label} ${width}px: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
       await ctx.close();
+      const resized = await open(browser, server.port, vitals, context);
+      const moves = await walk(resized.page, label, { steps: RESIZES }).catch((error) => { throw new Error(`${label}: ${error.message}`, { cause: error }); });
+      findings.push(...moves.found);
+      assert.equal(moves.ran.length, RESIZES.length, `${label}: ${moves.ran.length} of ${RESIZES.length} resizes ran`);
+      table.push(`${label} ${width}px: ${ran.length} actions and ${moves.ran.length} resizes, ${found.length + moves.found.length ? 'fail' : 'pass'}`);
+      await resized.ctx.close();
     }
     process.stdout.write(`${table.join('\n')}\n`);
     assert.equal(table.length, SIZES.length + DEVICES.length + DUO.length, 'a size or a device was not measured');
@@ -201,11 +232,11 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
     // The mutations: each check must see its own failure.
     const caught = [];
     const phone = { viewport: { width: 390, height: 844 } };
-    const mutate = async (setup, only, says) => {
+    const mutate = async (setup, only, says, steps = ACTIONS) => {
       const { ctx, page } = await open(browser, server.port, vitals, phone);
       page.setDefaultTimeout(3000);
       await setup(page);
-      const { found } = await walk(page, 'mutated', { only }).catch((error) => ({ found: [String(error)] }));
+      const { found } = await walk(page, 'mutated', { only, steps }).catch((error) => ({ found: [String(error)] }));
       caught.push([says, found.some((f) => f.includes(says)), found]);
       await ctx.close();
     };
@@ -230,6 +261,14 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       const open = document.querySelector('.ui-selection-bar .ui-dropdown.open');
       if (open) open.closest('.ui-selection-bar').querySelector('.ui-selection-bar__count button').click();
     }, true)), ['key: Tab to the first list', 'key: ArrowDown opens the list', 'key: Escape closes the list'], 'focus left');
+    // A bar that moves no focus when a resize moves its actions, as before #911's review: only
+    // the walk's own focus on Archive goes through.
+    await mutate((page) => page.evaluate(() => {
+      const focus = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function (...options) {
+        if (!this.closest('.ui-selection-bar') || this.textContent === 'Archive') focus.apply(this, options);
+      };
+    }), null, 'focus left', RESIZES);
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');
     const [, , lost] = caught.find(([says]) => says === 'focus left');
     assert.ok(lost.length && lost.every((f) => f.includes('focus left') && !/^TimeoutError/.test(f)), `the focus mutation failed for another reason: ${JSON.stringify(lost)}`);
