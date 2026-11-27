@@ -30,7 +30,9 @@ export type QuerySearchProps = {
 
 type Row = QueryValue & { insert: string };
 
-const KEY_SUFFIX = /(?:^|\s)([\w-]+:\s*[^():]*|@[^\s()]*)$/;
+// The last condition: a key with one value word or an open quote, or `@` and a name.
+// A completed value ends at a space, so `state:open @ma` reads `@ma`.
+const KEY_SUFFIX = /(?:^|\s)([\w-]+:\s*(?:"[^"]*"?|[^\s():"]*)|@[^\s()]*)$/;
 
 /**
  * A search field that reads typed qualifiers. It suggests keys, then values or people, and
@@ -60,7 +62,7 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
   const before = full.slice(0, full.length - text.length);
   const typed = text.match(/^([\w-]+):\s*(.*)$/);
   const key = typed ? findQueryKey(keys, typed[1]) : text.startsWith('@') ? keys.find(k => k.kind === 'person') : undefined;
-  const needle = (typed ? typed[2] : text.slice(1)).replace(/^@/, '').toLowerCase();
+  const needle = (typed ? typed[2] : text.slice(1)).replace(/^[@"]|"$/g, '').toLowerCase();
   const people = key?.kind === 'person';
   const rows: Row[] = key
     ? [...(typed && key.self ? [key.self] : []), ...key.values]
@@ -70,6 +72,7 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
       .map(k => ({ value: `${k.key}:`, label: k.label, hint: k.hint, insert: `${k.key}:` }));
   const menu = open && (!text || !!key || rows.length > 0);
   const waiting = people && peopleStatus != null;
+  const retry = waiting && peopleStatus === 'error';
   const offered = waiting ? [] : rows;
   const listId = `${uid}-list`;
   const helpId = `${uid}-help`;
@@ -140,7 +143,8 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
     }
     if (e.key === 'Tab') {
       if (menu && offered[active] && !e.shiftKey) { e.preventDefault(); choose(offered[active]); }
-      else setOpen(false);
+      // People did not load: Tab goes on to Retry in the panel's foot, so the panel stays open.
+      else if (!(menu && retry && !e.shiftKey)) setOpen(false);
       return;
     }
     if (e.key === 'Backspace' && !draft && chips.length) {
@@ -183,9 +187,11 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
         </div>
         {waiting && peopleStatus === 'loading' && <div className="ui-dropdown__empty" role="status">Searching people…</div>}
         {/* The kit's pinned foot, so Retry keeps the panel's own room under it. */}
-        {waiting && peopleStatus === 'error' && <div className="ui-dropdown__foot">
+        {retry && <div className="ui-dropdown__foot">
           <span role="alert">People did not load.</span>
-          <Button size="sm" onMouseDown={e => e.preventDefault()} onClick={() => { onRetryPeople?.(); input.current?.focus(); }}>Retry</Button>
+          <Button size="sm" onMouseDown={e => e.preventDefault()} onClick={() => { onRetryPeople?.(); input.current?.focus(); }}
+            onKeyDown={e => { if (e.key === 'Escape') { setOpen(false); input.current?.focus(); } }}
+            onBlur={e => { if (e.relatedTarget !== input.current) setOpen(false); }}>Retry</Button>
         </div>}
         {!waiting && !rows.length && <div className="ui-dropdown__empty" role="status">{people ? 'No people found.' : 'No values found.'} Change the text.</div>}
       </div>}

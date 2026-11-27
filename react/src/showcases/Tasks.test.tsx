@@ -46,6 +46,8 @@ describe('the Tasks page', () => {
     const user = userEvent.setup();
     render(<Tasks view="board" />);
     expect(screen.getAllByRole('region', { name: /, \d+ tasks$/ }).map((c) => c.getAttribute('aria-label'))).toEqual(['To do, 4 tasks', 'In progress, 5 tasks', 'Done, 3 tasks']);
+    // Each column head is the kit's title row, so it keeps the row's gap under it, as the approved board does.
+    for (const c of screen.getAllByRole('region', { name: /, \d+ tasks$/ })) expect(c.querySelector('h2')!.parentElement).toHaveClass('ui-card__head');
     await user.click(screen.getByRole('button', { name: 'Group by: Status' }));
     await user.click(screen.getByRole('option', { name: 'Assignee' }));
     expect(column(/^Ada Lovelace, 5 tasks$/)).toBeInTheDocument();
@@ -64,6 +66,20 @@ describe('the Tasks page', () => {
     expect(column(/^Done, 4 tasks$/)).toContainElement(screen.getByRole('group', { name: 'Match the October bank statement' }));
     await user.click(screen.getByRole('button', { name: 'Undo' }));
     expect(column(/^To do, 4 tasks$/)).toContainElement(screen.getByRole('group', { name: 'Match the October bank statement' }));
+  });
+  it('keeps the focus on the moved card after a move by keys, so the next key acts on that task', async () => {
+    const user = userEvent.setup();
+    render(<Tasks view="board" />);
+    const name = 'Actions for Match the October bank statement';
+    screen.getByRole('button', { name }).focus();
+    await user.keyboard('{Enter}');
+    const card = screen.getByRole('group', { name: 'Match the October bank statement' });
+    const items = within(within(card).getByRole('menu')).getAllByRole('menuitem');
+    while (document.activeElement !== items.find((i) => i.textContent === 'In progress')) await user.keyboard('{ArrowDown}');
+    await user.keyboard('{Enter}');
+    const moved = screen.getByRole('group', { name: 'Match the October bank statement' });
+    expect(column(/^In progress, /)).toContainElement(moved);
+    expect(within(moved).getByRole('button', { name })).toHaveFocus();
   });
   it('gives a table row the menu Open, Reassign and Copy link', async () => {
     const user = userEvent.setup();

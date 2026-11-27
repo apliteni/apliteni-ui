@@ -45,6 +45,16 @@ describe('readQuery and matchQuery', () => {
     expect(matchQuery(readQuery({ chips: ['(state:done OR assignee:p1)'], draft: '' }, KEYS).nodes, field, text)).toBe(true);
     expect(matchQuery(readQuery({ chips: ['state:done'], draft: '' }, KEYS).nodes, field, text)).toBe(false);
   });
+  it('rejects an AND group when only one side matches, and binds AND before OR', () => {
+    const match = (query: string) => matchQuery(readQuery({ chips: [query], draft: '' }, KEYS).nodes, field, text);
+    expect(match('(state:done AND assignee:p1)')).toBe(false);
+    expect(match('(state:open AND assignee:p2)')).toBe(false);
+    expect(match('(state:open AND assignee:p1)')).toBe(true);
+    // AND binds first. Read so, `open OR (done AND p2)` is true. Read OR first, it is false.
+    expect(match('state:done AND assignee:p2 OR state:open')).toBe(true);
+    expect(match('state:open OR state:done AND assignee:p2')).toBe(true);
+    expect(match('(state:open OR state:done) AND assignee:p2')).toBe(false);
+  });
   it('filters nothing by a draft that does not read yet, and returns its error', () => {
     const read = readQuery({ chips: ['state:open'], draft: '(state:' }, KEYS);
     expect(read.nodes).toHaveLength(1);

@@ -44,6 +44,11 @@ const WEBKIT_DEVICES = ['iPhone 13', 'iPad Pro 11', 'iPad Pro 11 landscape'];
 const THEMES = ['light', 'dark'];
 const BOARD = 'showcases-tasks--board';
 const TABLE = 'showcases-tasks--table';
+const RETRY = 'showcases-tasks--search-people-error';
+// The census: the themes that the kit draws, read from its theme sheet and not from the walk.
+// So a walk that drops a theme leaves cases unmeasured, and the gate fails. #866
+const DRAWN = [...new Set([...readFileSync(path.join(root, 'src/tokens/tokens.css'), 'utf8')
+  .matchAll(/\[data-theme="(\w+)"\]/g)].map((m) => m[1]))].sort();
 /** What the fixed check leaves out: an open panel, and the card that follows the pointer. */
 const LOOSE = '[data-dropdown-panel], [role="listbox"], [role="menu"], .ui-card--lifted';
 
@@ -90,6 +95,14 @@ async function open(browser, port, vitals, context, story, theme) {
   return { ctx, page };
 }
 
+/** Every case that the gate must measure for one subject. It is built apart from the walk. */
+const census = (label, touch) => DRAWN.flatMap((theme) => [
+  ...['search', 'Group by', 'menu'].flatMap((part) => ['key', touch ? 'tap' : 'click'].map((how) => `${label} ${theme} board ${part} ${how}`)),
+  ...['search', 'menu'].flatMap((part) => ['key', touch ? 'tap' : 'click'].map((how) => `${label} ${theme} table ${part} ${how}`)),
+  `${label} ${theme} board view`, `${label} ${theme} table view`,
+  `${label} ${theme} board drag`, `${label} ${theme} board move by keys`, `${label} ${theme} people Retry by keys`,
+]);
+
 /** Reads the three page checks after a step, against the state before it. */
 async function check(page, at, before, found) {
   await page.evaluate(frames);
@@ -114,7 +127,7 @@ const partsOf = (page, story) => [
 ];
 
 // Each part opens by key, then by click or tap. Escape closes it each time.
-async function walkParts(page, label, story, touch, found) {
+async function walkParts(page, label, story, touch, found, seen) {
   let before = await page.evaluate(READ, LOOSE);
   let ran = 0;
   for (const [name, trigger] of partsOf(page, story)) {
@@ -149,6 +162,7 @@ async function walkParts(page, label, story, touch, found) {
       s = await trigger.evaluate(PART);
       if (s.open) found.push(`${at}: Escape did not close the part`);
       if (!s.focus) found.push(`${at}: Escape moved the focus out of the part`);
+      seen.add(at);
       ran += 2;
     }
   }
@@ -189,7 +203,7 @@ async function pointer(page, kind) {
 }
 
 // The first To do card goes to In progress. The checks run while it is held and after the drop.
-async function walkDrag(page, label, kind, found) {
+async function walkDrag(page, label, kind, found, seen) {
   const card = page.locator('[data-group="todo"] [data-task]').first();
   const name = await card.getAttribute('data-task');
   const column = page.locator('[data-group="doing"] .tasks-column__head');
@@ -230,7 +244,68 @@ async function walkDrag(page, label, kind, found) {
   const done = await page.evaluate(DRAG, [name, 0, 0]);
   if (done.column !== 'doing') found.push(`${at}: the card landed in ${done.column}`);
   if (done.lifted || done.slot) found.push(`${at}: a slot or the moving card stayed after the drop`);
+  seen.add(`${label} board drag`);
   return 2;
+}
+
+// The first To do card goes to In progress by its menu and the keys. The focus stays on that
+// card's menu button, so the next key acts on the same task. #866
+async function walkKeyMove(page, label, found, seen) {
+  const card = page.locator('[data-group="todo"] [data-task]').first();
+  const name = await card.getAttribute('data-task');
+  const at = `${label} move by keys`;
+  await card.scrollIntoViewIfNeeded();
+  let before = await page.evaluate(READ, LOOSE);
+  await card.getByRole('button', { name: /^Actions for / }).focus();
+  await page.keyboard.press('Enter');
+  for (let i = 0; i < 8 && (await page.evaluate(() => document.activeElement?.textContent?.trim())) !== 'In progress'; i += 1) {
+    await page.keyboard.press('ArrowDown');
+  }
+  await page.keyboard.press('Enter');
+  before = await check(page, at, before, found);
+  const after = await page.evaluate((task) => {
+    const el = document.activeElement;
+    return { column: document.querySelector(`[data-task="${task}"]`)?.closest('[data-group]')?.dataset.group ?? null,
+      focus: Boolean(el?.closest(`[data-task="${task}"]`) && /^Actions for /.test(el.getAttribute('aria-label') ?? '')), on: el?.tagName ?? '' };
+  }, name);
+  if (after.column !== 'doing') found.push(`${at}: the card landed in ${after.column}`);
+  if (!after.focus) found.push(`${at}: the focus went to ${after.on}, not to the moved card's menu button`);
+  seen.add(`${label} board move by keys`);
+  return 1;
+}
+
+// People did not load: Tab from the search reaches Retry in the open panel, and Enter retries
+// and puts the focus back in the search. #866
+async function walkRetry(page, label, found, seen) {
+  const at = `${label} people Retry by keys`;
+  const field = page.getByRole('combobox', { name: 'Search tasks' });
+  await field.scrollIntoViewIfNeeded();
+  let before = await page.evaluate(READ, LOOSE);
+  await field.focus();
+  await page.keyboard.press('Tab');
+  before = await check(page, `${at} Tab`, before, found);
+  const on = await page.evaluate(() => ({ text: document.activeElement?.textContent?.trim(), open: document.querySelector('[role="combobox"]')?.getAttribute('aria-expanded') }));
+  if (on.text !== 'Retry' || on.open !== 'true') found.push(`${at}: Tab reached "${on.text}" with the panel ${on.open === 'true' ? 'open' : 'shut'}`);
+  await page.keyboard.press('Enter');
+  before = await check(page, `${at} Enter`, before, found);
+  const back = await page.evaluate(() => ({ field: document.activeElement?.getAttribute('role') === 'combobox', alert: Boolean(document.querySelector('.ui-query [role="alert"]')) }));
+  if (!back.field) found.push(`${at}: Retry did not put the focus back in the search`);
+  if (back.alert) found.push(`${at}: the people error stayed after Retry`);
+  seen.add(at);
+  return 2;
+}
+
+// Each wordless view option is a square inside its track, as tall as the track's inside:
+// 24px with a mouse and 32px on a touch screen. rev_f2d9bddb40b6/d9, #866
+async function walkView(page, label, story, found, seen) {
+  const at = `${label} ${story.split('--')[1]} view`;
+  const sizes = await page.evaluate(() => [...document.querySelectorAll('.ui-toolbar > .ui-seg button.ui-seg--icon')].map((b) => {
+    const box = b.getBoundingClientRect();
+    const track = b.parentElement.getBoundingClientRect();
+    return [Math.round(box.width), Math.round(track.height - 8)];
+  }));
+  if (sizes.length !== 2 || sizes.some(([w, h]) => w !== h)) found.push(`${at}: view options ${JSON.stringify(sizes)}, [width, track inside] expected equal`);
+  seen.add(at);
 }
 
 function setup(pw) {
@@ -239,7 +314,7 @@ function setup(pw) {
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build} — run: npm run build-storybook`);
   const ids = Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries);
-  for (const id of [BOARD, TABLE]) assert.ok(ids.includes(id), `the Storybook build has no ${id}`);
+  for (const id of [BOARD, TABLE, RETRY]) assert.ok(ids.includes(id), `the Storybook build has no ${id}`);
   return { build, vitals: readFileSync(process.env.UI_WEB_VITALS, 'utf8') };
 }
 
@@ -259,19 +334,25 @@ test('the task page keeps the focus in each open part and holds through each key
   try {
     const findings = [];
     const table = [];
-    let walked = 0;
+    const seen = new Set();
+    const expected = [];
     for (const [label, context] of subjects) {
       const touch = Boolean(context.hasTouch);
       let actions = 0;
       const mine = [];
+      expected.push(...census(label, touch));
       for (const theme of THEMES) {
         for (const story of [BOARD, TABLE]) {
           const { ctx, page } = await open(browser, server.port, vitals, context, story, theme);
-          actions += await walkParts(page, `${label} ${theme}`, story, touch, mine);
-          if (story === BOARD) actions += await walkDrag(page, `${label} ${theme}`, touch ? 'cdp' : 'mouse', mine);
-          walked += 1;
+          await walkView(page, `${label} ${theme}`, story, mine, seen);
+          actions += await walkParts(page, `${label} ${theme}`, story, touch, mine, seen);
+          if (story === BOARD) actions += await walkDrag(page, `${label} ${theme}`, touch ? 'cdp' : 'mouse', mine, seen);
+          if (story === BOARD) actions += await walkKeyMove(page, `${label} ${theme}`, mine, seen);
           await ctx.close();
         }
+        const { ctx, page } = await open(browser, server.port, vitals, context, RETRY, theme);
+        actions += await walkRetry(page, `${label} ${theme}`, mine, seen);
+        await ctx.close();
       }
       findings.push(...mine);
       table.push(`| ${label} | Chromium | ${context.viewport.width}×${context.viewport.height} | ${touch ? 'touch' : 'mouse'} | ${actions} | ${mine.length ? 'fail' : 'pass'} |`);
@@ -284,14 +365,19 @@ test('the task page keeps the focus in each open part and holds through each key
           assert.ok(context, `Playwright has no device "${name}"`);
           let actions = 0;
           const mine = [];
+          expected.push(...census(name, true));
           for (const theme of THEMES) {
             for (const story of [BOARD, TABLE]) {
               const { ctx, page } = await open(webkit, server.port, vitals, context, story, theme);
-              actions += await walkParts(page, `${name} ${theme}`, story, true, mine);
-              if (story === BOARD) actions += await walkDrag(page, `${name} ${theme}`, 'webkit', mine);
-              walked += 1;
+              await walkView(page, `${name} ${theme}`, story, mine, seen);
+              actions += await walkParts(page, `${name} ${theme}`, story, true, mine, seen);
+              if (story === BOARD) actions += await walkDrag(page, `${name} ${theme}`, 'webkit', mine, seen);
+              if (story === BOARD) actions += await walkKeyMove(page, `${name} ${theme}`, mine, seen);
               await ctx.close();
             }
+            const { ctx, page } = await open(webkit, server.port, vitals, context, RETRY, theme);
+            actions += await walkRetry(page, `${name} ${theme}`, mine, seen);
+            await ctx.close();
           }
           findings.push(...mine);
           table.push(`| ${name} | WebKit | ${context.viewport.width}×${context.viewport.height} | touch | ${actions} | ${mine.length ? 'fail' : 'pass'} |`);
@@ -301,7 +387,12 @@ test('the task page keeps the focus in each open part and holds through each key
       }
     }
     process.stdout.write(`| Size or device | Engine | Viewport | Input | Actions | Result |\n| --- | --- | --- | --- | --- | --- |\n${table.join('\n')}\n`);
-    assert.equal(walked, (subjects.length + (process.env.UI_WEBKIT ? WEBKIT_DEVICES.length : 0)) * THEMES.length * 2, 'a size, a theme or a story was not walked');
+    assert.deepEqual(DRAWN, ['dark', 'light'], 'the theme sheet names other themes, so the census changed');
+    assert.equal(expected.length, (subjects.length + (process.env.UI_WEBKIT ? WEBKIT_DEVICES.length : 0)) * DRAWN.length * 15, 'the census lost a subject');
+    assert.deepEqual(expected.filter((c) => !seen.has(c)), [], 'a case of the census was not measured');
+    // The census fails a walk that drops a theme: a light-only run leaves cases unmeasured.
+    assert.ok(expected.some((c) => c.includes(' dark ') && !new Set([...seen].filter((k) => !k.includes(' dark '))).has(c)),
+      'a light-only walk would pass the census');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -315,8 +406,9 @@ test('the task page keeps the focus in each open part and holds through each key
       caught.push([says, found.some((f) => f.includes(says))]);
       await ctx.close();
     };
-    const parts = (page, found) => walkParts(page, 'mutated', BOARD, false, found);
-    const drag = (page, found) => walkDrag(page, 'mutated', 'mouse', found);
+    const parts = (page, found) => walkParts(page, 'mutated', BOARD, false, found, new Set());
+    const drag = (page, found) => walkDrag(page, 'mutated', 'mouse', found, new Set());
+    const keyMove = (page, found) => walkKeyMove(page, 'mutated', found, new Set());
     await mutate((page) => page.evaluate(() => document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') setTimeout(() => document.activeElement.blur());
     }, true)), 'focus left', parts);
@@ -345,6 +437,14 @@ test('the task page keeps the focus in each open part and holds through each key
     // A target slot with no live region.
     await mutate((page) => page.evaluate(() => document.querySelector('.ui-sr[role="status"]').removeAttribute('role')),
       'the live region says', drag);
+    // A move that drops the focus, as the board did before #866 kept it on the moved card.
+    await mutate((page) => page.evaluate(() => document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.activeElement?.getAttribute('role') === 'menuitem') setTimeout(() => setTimeout(() => document.activeElement.blur()));
+    }, true)), 'not to the moved card', keyMove);
+    // View options that are narrower than the track, as the touch switch was before #866.
+    await mutate(async (page) => {
+      await page.addStyleTag({ content: '.ui-toolbar > .ui-seg button.ui-seg--icon { min-width: 0 !important; width: 20px; }' });
+    }, 'view options', (page, found) => walkView(page, 'mutated', BOARD, found, new Set()));
     assert.deepEqual(caught.filter(([, ok]) => !ok).map(([says]) => says), [], 'a check did not see its own failure');
   } finally {
     await browser.close();

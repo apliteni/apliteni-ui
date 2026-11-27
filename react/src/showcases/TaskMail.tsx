@@ -25,8 +25,9 @@ export function TaskMail({ mail = 'new' }: TaskMailProps) {
     return () => removeEventListener('resize', fit);
   });
   return (
-    <main className="task-mail">
-      <h1>{m.title}</h1>
+    // The mail in the frame has its own main, so this one has a name. axe: landmark-unique.
+    <main className="task-mail" aria-labelledby={`${mail}-title`}>
+      <h1 id={`${mail}-title`}>{m.title}</h1>
       <KeyValueList className="task-mail__facts" rows={[
         { label: 'From', value: m.from }, { label: 'To', value: m.to },
         { label: 'Subject', value: m.subject }, { label: 'Sent', value: m.sent },
@@ -39,7 +40,8 @@ export function TaskMail({ mail = 'new' }: TaskMailProps) {
         <section aria-labelledby={`${mail}-html`}>
           <h2 id={`${mail}-html`}>HTML</h2>
           {/* The card gives the frame its edge in the dark theme. A light card bleeds into the page gutter,
-              which a frame must not do, so the frame takes no outer space. */}
+              which a frame must not do, so the frame takes no outer space. The gate's allow-list
+              in react/src/story-css.test.ts holds this placement. */}
           <iframe ref={frame} className="ui-card ui-focusable task-mail__frame" style={{ margin: 0, padding: 0 }} title={`${m.title}, HTML form`} srcDoc={m.html} onLoad={fit} />
         </section>
       </div>

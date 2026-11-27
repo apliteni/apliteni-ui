@@ -520,7 +520,7 @@ A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 
 on each side to make 44.
 A wordless button that is a direct child of a toolbar draws 36 or 40 wide. Its layer reaches
 into half of the toolbar's 10px gap on each side to make 44, and the gap does not open
-(src/styles/tap-zone.css:186 `--tap-clear-x: 10px`). To give a lone small, default or
+(src/styles/tap-zone.css:197 `--tap-clear-x: 10px`). To give a lone small, default or
 large button the floor, put it in a toolbar. An extra-small wordless button draws 24 wide, so its layer stays under 44.
 Where a phone user taps it, use `size="sm"` or larger.
 A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.

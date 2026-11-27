@@ -1,9 +1,10 @@
 /* One sideways track of columns in the kit's board region. A column never takes less than
    a small panel, so the columns stay side by side and the region scrolls instead of wrapping. */
 .tasks-board__track { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(var(--panel-sm), 1fr); gap: var(--space-6); padding-inline-end: var(--space-6); }
-/* A column's name and its count, at the two ends of one line. It holds no tool, so it is not
-   a card title row. */
-.tasks-column__head { display: flex; align-items: baseline; justify-content: space-between; padding-block: var(--space-2); }
+/* A column's name and its count, at the two ends of the kit's title row. The row keeps its
+   own gap under it, also the wider gap on a touch phone, as in the approved board.
+   rev_f2d9bddb40b6/d9 */
+.tasks-column__head { padding-block: var(--space-2); }
 .tasks-column__stack { display: flex; flex-direction: column; gap: var(--space-3); }
 
 /* A card's assignee and due date share one line, at its two ends. */

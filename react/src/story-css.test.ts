@@ -6,7 +6,7 @@
 // recorded figures, which is what AGENTS.md#verification asks for.
 //
 // This workspace's subjects are its stories, the stylesheets only a story imports, and
-// every stylesheet in react/src/showcases/ whoever imports it. A showcase is a page
+// every stylesheet and module in react/src/showcases/ whoever imports it. A showcase is a page
 // composed from kit parts, so its sheet is read even when its own module imports it.
 // A sheet a shipped component imports is that component's own CSS and is not read here:
 // the React components are the kit in this workspace, and their paint is theirs to
@@ -75,6 +75,9 @@ export const subjectsAmong = (paths: string[]) => paths.filter((p) => SERVED.tes
 /** A stylesheet in the showcases folder: read for any importer, a module included. */
 export const isShowcaseSheet = (file: string) => /^react\/src\/showcases\/(?:.+\/)?[^/]+\.css$/.test(file);
 
+/** A module in the showcases folder: read for its inline styles, as its sheet is. #866 */
+export const isShowcaseModule = (file: string) => /^react\/src\/showcases\/(?:.+\/)?[^/]+\.tsx$/.test(file) && isModule(file);
+
 // The showcases under stories/apps/ and the `_name.tsx` modules they build with, which
 // the root Storybook serves beside this workspace's stories (#429 moved them from the
 // vanilla collection, whose gate read them until then). Foundations and guideline pages
@@ -87,6 +90,7 @@ const ROOT_SHOWCASES = filesUnder('stories')
 const subjects: string[] = [...new Set([
   ...subjectsAmong(files),
   ...ROOT_SHOWCASES,
+  ...files.filter(isShowcaseModule),
   ...files.filter((f) => f.endsWith('.css')).filter((f) => isShowcaseSheet(f) || storyOnlySheet(f)),
 ])].sort();
 
@@ -141,6 +145,8 @@ const ALLOWED: Record<string, string> = {
 
   // The comparison stacks kit parts in its own column. The kit sets every inset.
   'react/src/FinanceComposition.css|.finance-comparison .ui-app__sub': 'the comparison heading sets its own gap to the subtitle',
+  // A frame is a replaced element. It takes the card's edge, not the card's inset or hang. #866
+  'react/src/showcases/TaskMail.tsx|.ui-card.ui-focusable.task-mail__frame': 'the mail frame takes the card edge but no inset or hang',
   'react/src/FinanceComposition.css|.finance-comparison .ui-seg--underline': 'the view tabs span the card without widening it, and hang their padding so the first label sits on the column edge',
 };
 
@@ -214,6 +220,9 @@ describe('story CSS', () => {
     expect(storyOnlySheet(sheet), 'the sheet should be imported by its module').toBe(false);
     expect(subjects).toContain(sheet);
     expect(isShowcaseSheet('react/src/showcases/New.css')).toBe(true);
+    // A showcase module is read for its inline styles, so its placements need a reason too. #866
+    expect(subjects).toContain('react/src/showcases/TaskMail.tsx');
+    expect(subjects).not.toContain('react/src/showcases/tasks-data.ts');
     expect(isShowcaseSheet('react/src/DataTable.css')).toBe(false);
   });
 

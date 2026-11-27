@@ -66,6 +66,18 @@ describe('QuerySearch', () => {
     await user.type(field(), 'assignee:');
     expect(options()[0]).toHaveTextContent('Me');
   });
+  it('offers people for the last condition after a completed one, and keeps the completed one', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.type(field(), 'state:open @ma');
+    expect(screen.getByRole('listbox', { name: 'Assignee suggestions' })).toBeInTheDocument();
+    expect(options().map((o) => o.textContent)).toEqual(['Mara Lindqvist']);
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(chips()).toEqual(['Open', 'Mara Lindqvist']);
+    // An open quote still reads as one value with its spaces.
+    await user.type(field(), 'assignee:"Ada L');
+    expect(options().map((o) => o.textContent)).toEqual(['Ada Lovelace']);
+  });
   it('commits a grouped query as one chip with Enter', async () => {
     const user = userEvent.setup();
     render(<Harness />);
@@ -176,6 +188,27 @@ describe('QuerySearch', () => {
     expect(retry).toHaveBeenCalledOnce();
     rerender(<QuerySearch keys={KEYS} value={{ chips: [], draft: '@zz' }} onChange={() => {}} ariaLabel="Search tasks" defaultOpen />);
     expect(screen.getByRole('status')).toHaveTextContent('No people found. Change the text.');
+  });
+  it('reaches Retry with Tab, retries with Enter, and closes the panel when the focus leaves it', async () => {
+    const retry = vi.fn();
+    const user = userEvent.setup();
+    render(<Harness start={{ chips: [], draft: '@ma' }} defaultOpen peopleStatus="error" onRetryPeople={retry} />);
+    field().focus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Retry' })).toHaveFocus();
+    expect(field()).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{Enter}');
+    expect(retry).toHaveBeenCalledOnce();
+    expect(field()).toHaveFocus();
+    await user.tab();
+    await user.keyboard('{Escape}');
+    expect(field()).toHaveFocus();
+    expect(field()).toHaveAttribute('aria-expanded', 'false');
+    await user.click(field());
+    await user.tab();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Next control' })).toHaveFocus();
+    expect(field()).toHaveAttribute('aria-expanded', 'false');
   });
   it('names the chip group and has no axe violation with an open menu and chips', async () => {
     const { container } = render(<Harness start={{ chips: ['state:open'], draft: 'state:' }} defaultOpen chipsLabel="Active task filters" />);

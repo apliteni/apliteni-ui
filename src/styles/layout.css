@@ -910,6 +910,16 @@
 .ui-toolbar:has(> .ui-query) { flex-wrap: nowrap; align-items: flex-start; }
 .ui-toolbar > .ui-query { flex: 1 1 0; min-width: 0; max-width: var(--panel-lg); }
 .ui-toolbar:has(> .ui-query) > .ui-seg:last-child { align-self: flex-start; margin-inline-start: auto; }
+/* A wordless view option is as wide as the row's control height less the track's padding:
+   24px with a mouse, 32px on a touch screen, so the switch is 60px or 76px wide.
+   rev_f2d9bddb40b6/d9 */
+.ui-toolbar:has(> .ui-query) > .ui-seg button.ui-seg--icon { min-width: calc(var(--control-height-sm) - 2 * var(--space-1)); }
+/* A column head in a board is the card title row. On a touch phone the board itself keeps the
+   row's 12px gap under it, the gap that tap-zone.css gives every title row there. The board
+   region is a keyboard stop, so the tap sheet may not change its size. rev_f2d9bddb40b6/d9, #866 */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-card-board .ui-card__head { margin-bottom: var(--space-3); }
+}
 @media (max-width: 560px) {
   .ui-toolbar:has(> .ui-query) { flex-wrap: wrap; }
   .ui-toolbar > .ui-query { flex-basis: 100%; max-width: none; }

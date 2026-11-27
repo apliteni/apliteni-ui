@@ -675,16 +675,21 @@ shows its name and hint on one left edge, and the key's badge at the right edge.
 condition becomes a chip under the field. A click on a chip's label puts it back in the field,
 and its mark removes it. A query with AND, OR or a parenthesis stays one chip. A query that does
 not read shows its error under the field, with words that say what to change.
-`peopleStatus` shows Searching people, or People did not load with Retry.
+`peopleStatus` shows Searching people, or People did not load with Retry. The field reads the
+last condition apart from the conditions before it, so `state:open @ma` offers people.
 
 **Keyboard and screen reader.** The field keeps the focus. Up and Down move the active row and
 wrap. Enter or Tab takes it. Enter with no active row commits the text. Escape closes the menu,
 and a click in the field opens it again. Backspace in an empty field removes the last chip. On a
-focused chip, Backspace or Delete removes it, and Escape goes back to the field. The field is a
-combobox with a listbox, and the chips are a group with a hidden legend.
+focused chip, Backspace or Delete removes it, and Escape goes back to the field. When people did
+not load, Tab goes from the field to Retry and the menu stays open. Enter on Retry retries and
+puts the focus back in the field. The field is a combobox with a listbox, and the chips are a
+group with a hidden legend.
 
 **Room on the screen.** The panel opens under the chips, as wide as the field, and stops above
-the bottom of the visible viewport. Its rows scroll.
+the bottom of the visible viewport. Its rows scroll. On a touch phone a chip's label and its
+remove mark each reach 44px. The chip opens 11px between them, and the mark's layer takes that
+room (`src/styles/tap-zone.css`, `.ui-query__chip`).
 
 ### Checkbox and switch
 
@@ -909,7 +914,10 @@ at the end of the row, also on a phone.
 
 A small [query search](#query-search) takes `size="sm"`, and its chips are then a small filter bar.
 In a toolbar the query search takes the free width up to 560px, and its chips grow it downwards. So Group by and the
-view switch stay level with its field, and the view switch stands at the end of the row.
+view switch stay level with its field, and the view switch stands at the end of the row. Each
+wordless view option is as wide as the row's control height less the track's padding: 24px with a
+mouse and 32px on a touch screen (`src/styles/layout.css`). On a touch phone each option reaches
+44px into the free room beside the switch.
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
 560px and below, each search field takes the full line and the other controls wrap under it. The
@@ -1005,7 +1013,8 @@ pointer `ui-card--lifted`, so it stays fixed above the page and takes no pointer
 **Keyboard and screen reader.** The card is one Tab stop, named by `label`, and the browser can
 drag it. The page owns the move: mouse drag, a long press and drag on touch, and the same moves
 in the card's menu for the keyboard. Say the target in a live region, because the slot has no
-text.
+text. A move from the menu unmounts the card in its old column, so focus the menu button of the
+moved card after it renders (`react/src/showcases/Tasks.tsx`, `refocus`).
 
 **Room on the screen.** Put the columns side by side in one sideways scroll region. A column
 never wraps under another. The region is `.ui-card-board`, with `role="region"`, a name and

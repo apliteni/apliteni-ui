@@ -252,7 +252,7 @@ function TaskBoard({ rows, group, menu, onMove, onOpen }: {
           const before = candidate ? tasks.find((t) => byDue(candidate, t) <= 0)?.name : undefined;
           const slot = <CardSlot height={cardHeight} />;
           return <section key={g.id} className="tasks-column" data-group={g.id} aria-label={`${g.label}, ${tasks.length} tasks`}>
-            <div className="tasks-column__head"><h2 className="ui-card__title">{g.label}</h2><span>{tasks.length}</span></div>
+            <div className="ui-card__head tasks-column__head"><h2 className="ui-card__title">{g.label}</h2><span>{tasks.length}</span></div>
             <div className="tasks-column__stack">
               {tasks.map((t) => <Fragment key={t.name}>
                 {landing && before === t.name && slot}
@@ -288,7 +288,7 @@ function TaskBoard({ rows, group, menu, onMove, onOpen }: {
 
 const BoardSkeleton = () => <div className="ui-card-board" role="region" aria-label="Task board loading" tabIndex={0}>
   <div className="tasks-board__track">{STATUSES.map((s) => <section className="tasks-column" key={s.id} aria-label={s.label}>
-    <div className="tasks-column__head"><h2 className="ui-card__title">{s.label}</h2></div>
+    <div className="ui-card__head tasks-column__head"><h2 className="ui-card__title">{s.label}</h2></div>
     <div className="tasks-column__stack">{[0, 1, 2].map((i) => <div className="ui-card ui-card--movable" key={i}><Skeleton lines={['72%', '44%']} /></div>)}</div>
   </section>)}</div>
 </div>;
@@ -331,6 +331,13 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
   const [dateTask, setDateTask] = useState<Task | null>(null);
   const [newDate, setNewDate] = useState('');
   const closeRef = useRef<HTMLButtonElement>(null);
+  // A move from a card's menu unmounts the card in its old column. Its new menu button takes the focus.
+  const [refocus, setRefocus] = useState<string | null>(null);
+  useEffect(() => {
+    if (!refocus) return;
+    document.querySelector<HTMLElement>(`[data-task="${refocus}"] .ui-card__action .ui-dropdown__trigger`)?.focus();
+    setRefocus(null);
+  }, [refocus]);
 
   const { nodes } = readQuery(query, TASK_KEYS);
   const shown = tasks.filter((t) => matchQuery(nodes, taskField(t), taskText(t)));
@@ -348,7 +355,7 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
     if (what === 'open') setOpened(task);
     if (what === 'reassign') setReassign(task);
     if (what === 'due') { setDateTask(task); setNewDate(task.due); }
-    if (what.startsWith('move:')) move(task, what.slice(5), 'status');
+    if (what.startsWith('move:')) { move(task, what.slice(5), 'status'); setRefocus(task.name); }
     if (what === 'copy') {
       try {
         await navigator.clipboard.writeText(`${TASK_URL}${task.name}`);
