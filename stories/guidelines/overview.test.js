@@ -114,7 +114,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 178: Drawers gained status-after-title (#868).
   // 179: Dropdown added trigger-value (#899).
   // 180: Motion gained every-change (#900).
-  assert.equal(rules, 180);
+  // 181: Motion gained hover-at-once (#865).
+  assert.equal(rules, 181);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

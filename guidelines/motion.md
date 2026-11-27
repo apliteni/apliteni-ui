@@ -18,25 +18,39 @@
 
 **Rule:** Give every visible change of state a smooth transition with a kit duration and easing.
 
-**Why:** A change that snaps reads as a fault, and one shared timing keeps each change fluent.
+**Why:** A change that snaps reads as a fault, and shared timing keeps changes fluent.
 
 **Do:** Cross-fade a count that changes in place in 150ms, and fade a theme change across the page in 250ms.
 
 **Don't:** Leave a value, a drawer or a theme change in one frame.
 
-**Except:** The focus ring and text typed in a field stay in one step on purpose.
+**Except:** Hover changes at once; the focus ring and text typed in a field stay in one step.
 
 ## Match duration to motion
 
 <!-- rule: durations -->
 
-**Rule:** Use 150ms for controls, 250ms for surfaces, 400ms for entrances, and 80ms (`--dur-instant`) for presses.
+**Rule:** Use 80ms for presses, 150ms for focus and a turning caret, 250ms for surfaces, and 400ms for entrances.
 
-**Why:** Shared durations keep the same interaction from taking different amounts of time across the product.
+**Why:** Shared durations keep one interaction from taking different times across the product.
 
-**Do:** Use `--dur-fast`, `--dur-med`, `--dur-slow`, and `--dur-instant` for controls, surfaces, entrances, and presses respectively.
+**Do:** Use the kit's four duration steps for presses, controls, surfaces and entrances.
 
 **Don't:** Use an unrelated duration such as 300ms.
+
+## Change a hover at once
+
+<!-- rule: hover-at-once -->
+
+**Rule:** Change a hover at once; it does not fade.
+
+**Why:** A reply within 0.1 seconds feels instant, and a hover fade trails the pointer.
+
+**Do:** Fill a table row, a button or a menu row in the pointer's first frame.
+
+**Don't:** Fade a hover fill in over 150ms.
+
+**Except:** A press, a focus edge, a turning caret and a lift keep their motion.
 
 ## Use the kit curves
 

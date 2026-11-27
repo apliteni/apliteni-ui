@@ -54,6 +54,28 @@ const CountFilm = ({ fade }: { fade: boolean }) => {
     ])}
   </div>;
 };
+// A table row under the pointer, as still frames at the times printed above them. `fill`
+// is how far the row's hover fill has come, 0 to 1; a fade over --dur-fast on --ease has
+// come 3% at 16ms and 46% at 50ms. A frame is still, so it takes no pointer: the live hover
+// would paint over the timed fill (`_motion.js`).
+const HoverFilm = ({ frames }: { frames: [string, number][] }) => <div className="gm-film">
+  {frames.map(([time, fill]) => [
+    <p key={`${time}-t`}>{time}</p>,
+    <div key={time} className="gl-stage gm-still">
+      <table className="ui-table ui-table--hover">
+        <thead><tr><th>ID</th><th className="ui-table__num">Net</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>1162</td><td className="ui-table__num">14,942.27</td><td><Badge variant="success">Paid</Badge></td></tr>
+          <tr className="gm-hover" style={{ '--gm-fill': fill } as CSSProperties}>
+            <td>1161</td><td className="ui-table__num">9,310.00</td><td><Badge variant="success">Paid</Badge></td></tr>
+        </tbody>
+      </table>
+    </div>,
+  ])}
+</div>;
+const AT_ONCE: [string, number][] = [['Before the pointer arrives', 0], ['16 ms, the next frame', 1]];
+const FADED: [string, number][] = [['Before the pointer arrives', 0], ['16 ms, 3% of the fill', 0.03],
+  ['50 ms, 46% of the fill', 0.46], ['150 ms', 1]];
 
 // What each motion is written with.
 const Durations = ({ rows }: { rows: [string, string, string][] }) => <div className="gl-stage"><div className="ui-card-stack"><RestingFilters search="Search motions" placeholder="Motion" label="Motion filters" /><table className="ui-table">
@@ -114,10 +136,11 @@ const specimens = [
   { id: 'after-load', do: () => <Film frames={SLIDE} />, dont: () => <Film frames={JUMP} /> },
   { id: 'every-change', do: () => <CountFilm fade />, dont: () => <CountFilm fade={false} /> },
   { id: 'durations',
-    do: () => <Durations rows={[['Button hover', '--dur-fast', '150 ms'], ['Drawer slide', '--dur-med', '250 ms'],
+    do: () => <Durations rows={[['Focus edge', '--dur-fast', '150 ms'], ['Drawer slide', '--dur-med', '250 ms'],
       ['Entrance', '--dur-slow', '400 ms'], ['Button press', '--dur-instant', '80 ms']]} />,
-    dont: () => <Durations rows={[['Button hover', '--dur-fast', '150 ms'], ['Drawer slide', '300ms', '300 ms'],
+    dont: () => <Durations rows={[['Focus edge', '--dur-fast', '150 ms'], ['Drawer slide', '300ms', '300 ms'],
       ['Entrance', '--dur-slow', '400 ms'], ['Button press', '--dur-instant', '80 ms']]} /> },
+  { id: 'hover-at-once', do: () => <HoverFilm frames={AT_ONCE} />, dont: () => <HoverFilm frames={FADED} /> },
   { id: 'easing', do: () => <Curves />, dont: () => <Curves off /> },
   { id: 'reduced',
     do: () => <><p>Reduced motion requested</p><Film frames={JUMP} /></>,

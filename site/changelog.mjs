@@ -6,11 +6,18 @@
 
 export const RELEASES = [
   {
-    v: '0.216.0', date: '2026-11-27',
+    v: '0.219.0', date: '2026-11-27',
     changes: [
-      ['changed', 'Every visible change of state is now a smooth transition with a kit duration and easing. A count or a status line that changes in place, such as the `Pagination` status or a `StatBand` figure, cross-fades in 150ms, and the React theme control cross-fades the whole page, its scrollbar and any open scrim in 250ms. Under reduced motion, and where the browser has no view transition, each change is one step. Part of #900.', ['Pagination', 'Stat band', 'ThemeToggle']],
+      ['changed', 'Every visible change of state is now a smooth transition with a kit duration and easing, except a hover, the focus ring and text typed in a field, which change in one step. A count or a status line that changes in place, such as the `Pagination` status or a `StatBand` figure, cross-fades in 150ms, and the React theme control cross-fades the whole page, its scrollbar and any open scrim in 250ms. Under reduced motion, and where the browser has no view transition, each change is one step. Part of #900.', ['Pagination', 'Stat band', 'ThemeToggle']],
       ['changed', 'In the light theme a card now keeps the dark theme\'s spacing, so its text no longer hangs out to the page title\'s edge, and no box changes place or size when the theme changes. Only the paint differs: a light card draws no fill, edge or shadow, and a table in it and a drawer group title keep the dark theme\'s spacing. Part of #900.', ['Card', 'Table', 'Drawer']],
       ['added', 'The Motion guideline has a new rule, Every visible change is a smooth transition. Part of #900.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.217.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows in every table form, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves, also while the pointer stays on the field. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
+      ['added', 'The Motion guideline has a new rule, Change a hover at once. Hover is the one state change that does not fade. Part of #865.', ['Guidelines']],
     ],
   },
   {
