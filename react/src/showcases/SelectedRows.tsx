@@ -68,16 +68,24 @@ function Documents({ initialSelected = ['Field guide', 'Release notes'], onOffse
       toast({ title: `${ACTIONS.find(action => action.id === id)?.label}: ${value}`, text: `Updated ${updated}.` });
     }
   };
-  // The bar's room is the bar with 16px over and under it: the inset the notices stand on.
+  // The notices stand on the top of the bar's room, which is the bar with 16px over and under
+  // it. The room sticks to the view's bottom, or stands under the last row on a short page, so
+  // a scroll can move it.
   const showing = selected.size > 0;
   useLayoutEffect(() => {
     const room = page.current?.querySelector<HTMLElement>('.ui-selection-room');
     if (!showing || !room) { onOffset(undefined); return; }
-    const measure = () => onOffset(room.getBoundingClientRect().height);
+    const measure = () => onOffset(Math.min(innerHeight, Math.max(0, innerHeight - room.getBoundingClientRect().top)));
     measure();
     const watch = new ResizeObserver(measure);
     watch.observe(room);
-    return () => watch.disconnect();
+    addEventListener('scroll', measure, { capture: true, passive: true });
+    addEventListener('resize', measure);
+    return () => {
+      watch.disconnect();
+      removeEventListener('scroll', measure, { capture: true });
+      removeEventListener('resize', measure);
+    };
   }, [showing]);
   const toggle = (name: string) => setSelected(current => {
     const next = new Set(current);

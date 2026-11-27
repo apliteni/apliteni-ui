@@ -80,6 +80,9 @@ const settled = (page) => page.waitForFunction(() => document.querySelector('.ui
 // The first list on the bar: Status, or More when Status does not fit.
 const list = (page) => page.locator('.ui-selection-bar .ui-dropdown__trigger').first();
 const shut = (page) => page.waitForFunction(() => !document.querySelector('.ui-selection-bar .ui-dropdown.open'));
+// More lists the actions by name, and its Status row opens the Status picker.
+const inMore = (page) => page.evaluate(() => Boolean(document.querySelector('.ui-selection-bar .ui-dropdown__trigger')?.closest('.ui-selection-bar > .ui-dropdown')));
+const firstRow = (page) => page.locator('.ui-selection-bar .ui-dropdown.open [role="menuitem"]').first();
 
 // [name, run, the state the action must leave]
 const ACTIONS = [
@@ -89,6 +92,10 @@ const ACTIONS = [
     await focused(page, page.locator('.ui-selection-bar .ui-dropdown.open [role="menuitem"]').first());
   }, { inside: true, open: true }],
   ['key: ArrowDown and Enter pick Ready', async (page) => {
+    if (await inMore(page)) {
+      await page.keyboard.press('Enter');
+      await focused(page, firstRow(page).and(page.getByRole('menuitem', { name: 'Draft' })));
+    }
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
     await shut(page);
