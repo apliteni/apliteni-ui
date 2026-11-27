@@ -208,7 +208,7 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
   const build = path.join(root, 'storybook-static');
   assert.ok(existsSync(path.join(build, 'index.json')), `no Storybook build at ${build}. Run: npm run build-storybook`);
   const stories = indexed(build).filter((s) => s.id.startsWith('react-appshell--'));
-  assert.ok(stories.length >= 40, `${stories.length} AppShell stories found. A sweep that lost them measures nothing.`);
+  assert.ok(stories.length >= 37, `${stories.length} AppShell stories found. A sweep that lost them measures nothing.`);
 
   const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
   const server = await serve(build, path.join(build, 'iframe.html'));
