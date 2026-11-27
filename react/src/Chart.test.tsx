@@ -1212,27 +1212,31 @@ const printedSpans = (row: Element, plotWidth: number) => {
 
 // The sweep: each pick, and no pick, at 11 plot widths. They hold the 390px,
 // 820px and 1440px widths of #882 and the 650.390625px plot of the design
-// review's pick case. 11 widths stay inside the 5s budget of a test. Where
-// main's step prints the picked name, the head must print it too: a pick never
-// hides its own name (owner, rev_e24bde907983/d14). Main's step is the widest
-// name's room over the column, counted from the last period. Limits: the
-// widths are the fallback figures, not a browser's, and the sweep is finite.
+// review's pick case. Each width renders the chart once, and each pick is a
+// rerender of it, so the 143 cases stay inside the 5s budget of a test on a
+// loaded host. Where main's step prints the picked name, the head must print
+// it too: a pick never hides its own name (owner, rev_e24bde907983/d14).
+// Main's step is the widest name's room over the column, counted from the last
+// period. Limits: the widths are the fallback figures, not a browser's, the
+// sweep is finite, and a pick is read after a change of `selected`, not on a
+// fresh mount.
 it('prints no two category names on top of each other, and keeps the picked name, at every pick', () => {
   const room = Math.max(...LONG_UNITS.map(labelWidth)) + 8;
   const count = LONG_UNITS.length;
+  const chart = (pick?: number) => <Chart variant="stacked" title="Margin by unit" selected={pick}
+    periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
+    series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
+    format={eur} />;
+  let measured = 0;
   for (const width of [390, 495, 600, 650.390625, 705, 820, 915, 1020, 1125, 1280, 1440]) {
     const mainStep = Math.max(1, Math.ceil(room / (width / count)));
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+    const { container, rerender } = render(chart());
     for (const pick of [undefined, ...LONG_UNITS.keys()]) {
-      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
-      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
-      const { container } = render(<Chart variant="stacked" title="Margin by unit" selected={pick}
-        periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
-        series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
-        format={eur} />);
-      const row = container.querySelector('.ui-chart__periods')!;
-      const spans = printedSpans(row, width);
-      cleanup();
-      vi.restoreAllMocks();
+      rerender(chart(pick));
+      const spans = printedSpans(container.querySelector('.ui-chart__periods')!, width);
+      measured += 1;
       const at = `${width}px, pick ${pick ?? 'none'}`;
       expect(spans.length, `${at} prints some names`).toBeGreaterThan(0);
       expect(spans.slice(1).filter((s, k) => s.start < spans[k].end + LABEL_FLOOR).map((s) => s.i),
@@ -1241,7 +1245,10 @@ it('prints no two category names on top of each other, and keeps the picked name
         expect(spans.map((s) => s.i), `${at}: main prints the picked name, so the head does`).toContain(pick);
       }
     }
+    cleanup();
+    vi.restoreAllMocks();
   }
+  expect(measured, 'every width and every pick is measured').toBe(11 * (count + 1));
 });
 
 // #882: the picked label is drawn at weight 600, wider than the body weight.
