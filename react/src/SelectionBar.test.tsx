@@ -267,3 +267,51 @@ it('moves the end of the bar in as far as its last control stands below the top 
   expect(screen.queryByRole('button', { name: 'More' })).toBeNull();
   expect(end(bar)).toBe('0px');
 });
+
+// A bar first drawn at 200% text in a narrow room, against one that grows to 200% after it is
+// drawn. jsdom lays nothing out, so this is a model of the bar's room: each action is 80 wide
+// with a 4 gap, More 70, and a gap of 8 before each group. The count's text is `text` wide and
+// wraps into 40px lines in what the actions and the end leave, but never under 20.
+// The last control stands half the extra height of the count below the top.
+// Before #911's fourth review the first draw read the end from the bar with every action on
+// it, and that end kept the count narrow: in a browser, 450px tall with one letter on a line.
+// Limits: the model wraps by width alone, and the browser half measures the real fonts.
+it.each([300, 330, 360])('settles a bar first drawn at 200 percent text in a %ipx room as a bar that grew', (room) => {
+  let text = 100;
+  const notify = new Set<() => void>();
+  vi.stubGlobal('ResizeObserver', class {
+    constructor(callback: () => void) { notify.add(callback); }
+    observe() {}
+    disconnect() {}
+  });
+  const lines = (bar: Element) => {
+    const end = parseFloat((bar as HTMLElement).style.getPropertyValue('--ui-selection-end')) || 0;
+    const shown = bar.querySelectorAll(':scope > .ui-selection-bar__actions > *').length;
+    const span = shown ? shown * 80 + (shown - 1) * 4 + 8 : 0;
+    const more = bar.querySelector(':scope > .ui-dropdown') ? 70 + 8 : 0;
+    return Math.ceil(text / Math.max(20, room - 26 - end - span - more)) * 40;
+  };
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+    const measured = this.parentElement?.classList.contains('ui-selection-bar__measure');
+    const bar = this.closest('.ui-selection-bar')!;
+    const size = measured ? (this.classList.contains('ui-selection-bar__count') ? text : this.textContent === 'More' ? 70 : 80) : 0;
+    const height = this.classList.contains('ui-selection-bar') ? lines(this) : 32;
+    const top = !measured && this.closest('.ui-selection-bar > .ui-dropdown, .ui-selection-bar__actions, .ui-selection-bar > .ui-selection-bar__count') ? (lines(bar) - 32) / 2 : 0;
+    return { width: size, height, top, left: 0, right: size, bottom: top + height, x: 0, y: top, toJSON: () => ({}) } as DOMRect;
+  });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.classList.contains('ui-selection-room') ? room : 0;
+  });
+  const five = ['Status', 'Owner', 'Tags', 'Move', 'Archive'].map((label): SelectionBarAction => ({ id: label, label }));
+  const end = () => screen.getByRole('region').style.getPropertyValue('--ui-selection-end');
+
+  const grown = render(<SelectionBar count={2} actions={five} {...handlers()} />);
+  text = 300;
+  act(() => notify.forEach(callback => callback()));
+  const settled = end();
+  grown.unmount();
+  render(<SelectionBar count={2} actions={five} {...handlers()} />);
+  expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
+  expect(end()).toBe(settled);
+  expect(settled).toBe('24px');
+});

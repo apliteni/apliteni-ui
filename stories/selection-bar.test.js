@@ -29,7 +29,8 @@
  * At normal text the two ends also match: the same gap and an inner shape of the same height.
  * It measures the ends again at 360×800 with the text at 200%, in light and dark, in every
  * story that draws a bar: there the count takes two lines and the bar is taller than the
- * control at its end.
+ * control at its end. At 300, 330 and 360px wide it draws each of these stories again with the
+ * text already at 200%. That bar must settle at the height and the end of the bar that grew.
  *
  * Its limits: one engine, the default accent, and the light theme except for the 200% ends.
  * The 200% text doubles the kit's --text-* sizes, as a reader's text zoom does not exactly. The layout shift is
@@ -124,6 +125,38 @@ async function doubled(page, label) {
   });
   assert.ok(tally > line * 1.5, `${label}: the count stays on one line, ${tally}px for a ${line}px control`);
   return ends(page, label, { twin: false });
+}
+
+// The bar that grew to 200% text, and the same story drawn again with the text at 200%. The
+// first draw must settle as the bar that grew: the same height and the same ends.
+const FIRST = [300, 330, 360];
+// The bar's height, its end and its two ends, once they stay the same for three frames.
+const still = async (page) => {
+  await page.waitForFunction(() => {
+    const bar = document.querySelector('.ui-selection-bar:not([data-grown])');
+    if (!bar) return false;
+    const key = `${bar.getBoundingClientRect().height}/${bar.style.getPropertyValue('--ui-selection-end')}`;
+    window.__still = window.__still?.[0] === key ? [key, window.__still[1] + 1] : [key, 0];
+    return window.__still[1] >= 3;
+  }, null, { polling: 'raf' });
+  return page.evaluate(() => ({ height: document.querySelector('.ui-selection-bar:not([data-grown])').getBoundingClientRect().height }));
+};
+async function firstDraw(page, story, label, mutate) {
+  assert.ok(await page.evaluate(DOUBLE_TEXT) > 0, `${label}: no --text-* size to double`);
+  const grown = { ...await still(page), ...await page.evaluate(ENDS) };
+  if (mutate) await page.addStyleTag({ content: mutate });
+  await page.evaluate((id) => {
+    document.querySelector('.ui-selection-bar').dataset.grown = '';
+    window.__STORYBOOK_ADDONS_CHANNEL__.emit('forceRemount', { storyId: id });
+  }, story);
+  await page.locator('.ui-selection-bar:not([data-grown])').waitFor();
+  const first = { ...await still(page), ...await page.evaluate(ENDS) };
+  const found = [];
+  const apart = (a, b) => [a].flat().some((value, i) => Math.abs(value - [b].flat()[i]) > 0.5);
+  if (apart(first.height, grown.height) || apart(first.end, grown.end)) {
+    found.push(`${label}: the first draw differs, a ${first.height}px bar with ends ${JSON.stringify(first.end)}, and the bar that grew ${grown.height}px with ${JSON.stringify(grown.end)}`);
+  }
+  return [...found, ...await ends(page, label, { twin: false })];
 }
 
 // The bar has come in: it has ended its own entrance animation.
@@ -299,11 +332,19 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
         findings.push(...shape);
         large.push(`${label}: ends, ${shape.length ? 'fail' : 'pass'}`);
         await ctx.close();
+        for (const width of FIRST) {
+          const drawn = await open(browser, server.port, vitals, { viewport: { width, height: 800 } }, { story, theme });
+          const at = `${story} ${theme} ${width}×800 text 200% first draw`;
+          const again = await firstDraw(drawn.page, story, at);
+          findings.push(...again);
+          large.push(`${at}: ${again.length ? 'fail' : 'pass'}`);
+          await drawn.ctx.close();
+        }
       }
     }
     process.stdout.write(`${[...table, ...large].join('\n')}\n`);
     assert.equal(table.length, SIZES.length + DEVICES.length + DUO.length, 'a size or a device was not measured');
-    assert.equal(large.length, bars.length * 2, 'a bar story or a theme was not measured at 200% text');
+    assert.equal(large.length, bars.length * 2 * (1 + FIRST.length), 'a bar story, a theme or a width was not measured at 200% text');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -371,6 +412,13 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       await page.addStyleTag({ content: '.ui-selection-bar.ui-selection-bar { padding-right: var(--space-3); }' });
       const found = await doubled(page, 'mutated');
       caught.push(['no centre', found.some((f) => f.includes('no centre')), found]);
+      await ctx.close();
+    }
+    // A first draw whose end stays wide, as at 5be944b8: the count is one letter a line.
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 330, height: 800 } });
+      const found = await firstDraw(page, STORY, 'mutated', '.ui-selection-bar { --ui-selection-end: 189.48px !important; }');
+      caught.push(['first draw differs', found.some((f) => f.includes('first draw differs')), found]);
       await ctx.close();
     }
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');

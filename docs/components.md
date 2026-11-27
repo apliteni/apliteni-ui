@@ -990,7 +990,8 @@ that fit stay on the bar, and More at the end holds the rest. More lists the act
 button's row runs the action. A list's row opens that action's own list from More, under the
 action's name, and the focus goes into it. On a phone the bar takes the row, with the count at the
 start and More at the end. With large text the count and Clear can take two lines, so the bar
-stays in the view. The page never scrolls sideways.
+stays in the view. A bar first drawn with large text is as tall as a bar whose text grows after
+it is drawn. The page never scrolls sideways.
 
 **Keyboard and screen reader.** The bar is a region named "Selected rows", from `noun`. The Tab
 order is Clear, the actions, then More. The count is not a stop. Escape closes an open list

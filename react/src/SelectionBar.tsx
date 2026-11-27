@@ -75,6 +75,8 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
   const [end, setEnd] = useState<number | null>(null);
   const shownNow = useRef(shown);
   shownNow.current = shown;
+  // The count the last fit chose. Until the bar shows it, the fit has not settled.
+  const fitted = useRef(total);
   // The control that held the focus when a fit moved actions: an action's index, or More.
   const moving = useRef<{ held: number | 'more'; from: number } | null>(null);
 
@@ -116,6 +118,7 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
       const free = host.clientWidth - chrome - whole - barGap;
       // A room that is not laid out, as in jsdom, has no width to judge, so every action stands.
       const next = host.clientWidth ? fitActions(widths, free, more + barGap, px(getComputedStyle(slot.current).columnGap)) : widths.length;
+      fitted.current = next;
       if (next === shownNow.current) { readEnd(); return; }
       const now = document.activeElement;
       const index = now ? Array.from(slot.current.children).findIndex(cell => cell.contains(now)) : -1;
@@ -134,7 +137,9 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
   // An action that moves into More, or More that goes, takes the focus with it. The focus
   // goes to More, or to the first enabled action that came out of More, or else to Clear.
   useIsoLayoutEffect(() => {
-    readEnd();
+    // A bar drawn with every action, before its first fit takes some away, wraps the count.
+    // An end read from it stays: its padding keeps the count narrow. #911
+    if (fitted.current === shown) readEnd();
     const move = moving.current;
     moving.current = null;
     const frame = bar.current;
