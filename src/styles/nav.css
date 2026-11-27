@@ -72,7 +72,6 @@
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .ui-nav .ui-nav__item { color: var(--text); } /* (0,2,0): a host sheet's a:link is (0,1,1) — why: docs/components.md#page-shell */
 .ui-nav__item:hover { background: color-mix(in srgb, var(--nav-active-fill) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ color: var(--strong); }
@@ -99,7 +98,7 @@
    A glyph in --accent beside it was the same sentence said twice, and beside an
    accent counter it was said three times. See #429 and #475. */
 .ui-nav__item.is-active .ui-nav__ic svg,
-.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens with its row, whose own highlight already transitions */
+.ui-nav__item.is-current .ui-nav__ic svg { opacity: 1; stroke: currentColor; } /* motion: still — the glyph brightens at once with its row's highlight */
 .ui-nav__label {
   flex: 1 1 auto; min-width: 0;
   pointer-events: none; /* words, not a control — see .ui-nav__cap */
@@ -238,11 +237,8 @@
 .ui-nav--side.is-collapsed .ui-nav__cap { width: var(--ui-nav-col); }
 /* The row takes the rail's clock too, so its box IS the rail's box in every frame and
    not only at either end. Waiting out the words on a --dur-fast delay left the open
-   column's hit area inside a half-shut rail. (Restates the base it replaces.) */
-.ui-nav--side.is-collapsed .ui-nav__item {
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
-    width var(--dur-med) var(--ease);
-}
+   column's hit area inside a half-shut rail. */
+.ui-nav--side.is-collapsed .ui-nav__item { transition: width var(--dur-med) var(--ease); }
 /* What that delay was protecting, kept without it: the words hold their own width
    instead of being squeezed out by the closing row. They overflow it and cost nothing —
    inert at either width, and painting nothing at opacity 0. */
@@ -275,7 +271,7 @@
   width: var(--ui-nav-strip);
   height: 100%;
   border-radius: 10px;
-  transform: translateY(-50%); /* motion: still — a mark on the current row, whose own highlight already transitions; this centres it, it does not travel */
+  transform: translateY(-50%); /* motion: still — a mark on the current row, whose highlight changes at once; this centres it, it does not travel */
   background: var(--nav-active-fill); /* code-bg: inherit — The plate contains no focus target. */
   z-index: -1;
 }
@@ -348,7 +344,6 @@
   font-size: var(--text-base);
   font-weight: 500;
   border-radius: 10px 10px 0 0;
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-nav__tab:hover { color: var(--strong); }
 .ui-nav__tab:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: 8px; }
