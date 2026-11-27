@@ -1,0 +1,4406 @@
+{
+  "main": {
+    "unset": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: any"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: any"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: any"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: any"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: any"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1101.703125,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "short": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: May 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: Studio"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Software"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: Under EUR 100"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Manual entry"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1101.703125,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "long": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1101.703125,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1101.703125,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 190.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 729.203125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 958.4375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 1143.703125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1453.703125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 756,
+        "x": 32,
+        "y": 158.96875,
+        "height": 88
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 32,
+          "y": 206.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 254.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 220
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 178.15625,
+          "y": 154.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 16,
+          "y": 334.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 394.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 729.203125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 958.4375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 1143.703125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1453.703125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-selection": "Category: Professional advisory services",
+    "light-keyboard": "Month: September 2026",
+    "dark-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1101.703125,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 190.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 729.203125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 958.4375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 1143.703125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1453.703125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 756,
+        "x": 32,
+        "y": 158.96875,
+        "height": 88
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 158.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 32,
+          "y": 206.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 254.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 220
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 178.15625,
+          "y": 154.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 16,
+          "y": 334.96875,
+          "height": 40,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 394.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 729.203125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 958.4375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 1143.703125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1453.703125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-selection": "Category: Professional advisory services",
+    "dark-keyboard": "Month: September 2026"
+  },
+  "shared": {
+    "unset": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: any",
+          "accessibleName": "Month: any"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: any",
+          "accessibleName": "Unit: any"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: any",
+          "accessibleName": "Category: any"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: any",
+          "accessibleName": "Amount: any"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: any",
+          "accessibleName": "Source: any"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "short": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: May 2026",
+          "accessibleName": "Month: May 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: Studio",
+          "accessibleName": "Unit: Studio"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Software",
+          "accessibleName": "Category: Software"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: Under EUR 100",
+          "accessibleName": "Amount: Under EUR 100"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Manual entry",
+          "accessibleName": "Source: Manual entry"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "long": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 32,
+        "y": 158.96875,
+        "height": 40
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 168,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 304,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 440,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 576,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 206.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 160
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 164,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 164,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 334.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-selection": "Category: Professional advisory services",
+    "light-keyboard": "Month: September 2026",
+    "dark-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 32,
+        "y": 158.96875,
+        "height": 40
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 168,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 304,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 440,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 576,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 206.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 160
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 164,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 164,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 334.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-selection": "Category: Professional advisory services",
+    "dark-keyboard": "Month: September 2026"
+  },
+  "product": {
+    "unset": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: any",
+          "accessibleName": "Month: any"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: any",
+          "accessibleName": "Unit: any"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: any",
+          "accessibleName": "Category: any"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: any",
+          "accessibleName": "Amount: any"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: any",
+          "accessibleName": "Source: any"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "short": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: May 2026",
+          "accessibleName": "Month: May 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: Studio",
+          "accessibleName": "Unit: Studio"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Software",
+          "accessibleName": "Category: Software"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: Under EUR 100",
+          "accessibleName": "Amount: Under EUR 100"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Manual entry",
+          "accessibleName": "Source: Manual entry"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "long": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 32,
+        "y": 158.96875,
+        "height": 40
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 182.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 302.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 470.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 590.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 206.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 160
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 178.15625,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 196,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 334.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-selection": "Category: Professional advisory services",
+    "light-keyboard": "Month: September 2026",
+    "dark-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 32,
+        "y": 158.96875,
+        "height": 40
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 182.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 302.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 470.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 590.15625,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 206.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 160
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 178.15625,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 196,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 334.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 752.984375,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 112,
+          "x": 534.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 160,
+          "x": 654.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 112,
+          "x": 822.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 112,
+          "x": 942.15625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1168.984375,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-selection": "Category: Professional advisory services",
+    "dark-keyboard": "Month: September 2026"
+  },
+  "current": {
+    "unset": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 528.953125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 79.734375,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: any",
+          "accessibleName": "Month: any"
+        },
+        {
+          "name": "unit",
+          "width": 66.640625,
+          "x": 471.734375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: any",
+          "accessibleName": "Unit: any"
+        },
+        {
+          "name": "category",
+          "width": 95.25,
+          "x": 546.375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: any",
+          "accessibleName": "Category: any"
+        },
+        {
+          "name": "amount",
+          "width": 89.1875,
+          "x": 649.625,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: any",
+          "accessibleName": "Amount: any"
+        },
+        {
+          "name": "source",
+          "width": 83.3125,
+          "x": 746.8125,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: any",
+          "accessibleName": "Source: any"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 944.953125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "short": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 639.640625,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 100.59375,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: May 2026",
+          "accessibleName": "Month: May 2026"
+        },
+        {
+          "name": "unit",
+          "width": 80.5,
+          "x": 492.59375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: Studio",
+          "accessibleName": "Unit: Studio"
+        },
+        {
+          "name": "category",
+          "width": 95.703125,
+          "x": 581.09375,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Software",
+          "accessibleName": "Category: Software"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 684.796875,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: Under EUR 100",
+          "accessibleName": "Amount: Under EUR 100"
+        },
+        {
+          "name": "source",
+          "width": 120.015625,
+          "x": 820.796875,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Manual entry",
+          "accessibleName": "Source: Manual entry"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1055.640625,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "long": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 32,
+        "y": 158.96875,
+        "height": 40
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 168,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 304,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 440,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 576,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 206.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 160
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 164,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 164,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 334.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "light-selection": "Category: Professional advisory services",
+    "light-keyboard": "Month: September 2026",
+    "dark-1440": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1280": {
+      "viewport": [
+        1280,
+        800
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-1920": {
+      "viewport": [
+        1920,
+        1080
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-820": {
+      "viewport": [
+        820,
+        1180
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 32,
+        "y": 158.96875,
+        "height": 40
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 32,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 168,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 304,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 440,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 576,
+          "y": 158.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 32,
+        "y": 206.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-390": {
+      "viewport": [
+        390,
+        844
+      ],
+      "search": {
+        "width": 320,
+        "x": 16,
+        "y": 94.96875,
+        "height": 40
+      },
+      "bar": {
+        "width": 358,
+        "x": 16,
+        "y": 154.96875,
+        "height": 160
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 16,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 164,
+          "y": 154.96875,
+          "height": 40,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 16,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 164,
+          "y": 214.96875,
+          "height": 40,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 16,
+          "y": 274.96875,
+          "height": 40,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 16,
+        "y": 334.96875,
+        "height": 40
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-2560": {
+      "viewport": [
+        2560,
+        1440
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Month: September 2026",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Unit: International operations",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Category: Professional advisory services",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Amount: EUR 10,000 and above",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "Source: Imported bank statement",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "dark-selection": "Category: Professional advisory services",
+    "dark-keyboard": "Month: September 2026"
+  }
+}

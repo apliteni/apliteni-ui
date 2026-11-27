@@ -1,0 +1,170 @@
+{
+  "light": [
+    {
+      "value": "Any category",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Software",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Travel",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Office supplies",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Equipment repairs",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Staff training",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Customer research",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Building maintenance",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Shipping services",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Insurance",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Translation services",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Conference registration",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Professional advisory services",
+      "violations": [],
+      "incomplete": []
+    }
+  ],
+  "light-focus": "Professional advisory services",
+  "dark": [
+    {
+      "value": "Any category",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Software",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Travel",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Office supplies",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Equipment repairs",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Staff training",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Customer research",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Building maintenance",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Shipping services",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Insurance",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Translation services",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Conference registration",
+      "violations": [],
+      "incomplete": []
+    },
+    {
+      "value": "Professional advisory services",
+      "violations": [],
+      "incomplete": []
+    }
+  ],
+  "dark-focus": "Professional advisory services",
+  "direct-cap-text": [
+    {
+      "width": 86,
+      "valueWidth": 86,
+      "scrollWidth": 100,
+      "ellipsis": "ellipsis"
+    },
+    {
+      "width": 86,
+      "valueWidth": 86,
+      "scrollWidth": 145,
+      "ellipsis": "ellipsis"
+    },
+    {
+      "width": 86,
+      "valueWidth": 86,
+      "scrollWidth": 179,
+      "ellipsis": "ellipsis"
+    },
+    {
+      "width": 86,
+      "valueWidth": 86,
+      "scrollWidth": 135,
+      "ellipsis": "ellipsis"
+    },
+    {
+      "width": 86,
+      "valueWidth": 86,
+      "scrollWidth": 153,
+      "ellipsis": "ellipsis"
+    }
+  ]
+}

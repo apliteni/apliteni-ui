@@ -1,0 +1,21 @@
+/* Layout glue for the same full-width test page in all four documents. */
+.study { padding: var(--space-8); min-width: 0; }
+.study-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-8); }
+.study-toolbar { column-gap: var(--space-8); row-gap: var(--space-2); align-items: start; margin-bottom: var(--space-2); }
+.study-toolbar > div:has(> .ui-filter-bar) { max-width: 100%; min-width: 0; }
+.study-extra { width: 192px; flex: none; }
+.study-review { display: grid; gap: var(--space-2); margin-top: var(--space-8); }
+.study-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.study-empty { padding-block: var(--space-8); }
+/* Proposed component geometry. No kit source changes are made by this study. */
+[data-variant="shared"] .ui-filter-bar,
+[data-variant="current"] .ui-filter-bar { --ui-filter-chip-max: 128px; }
+[data-variant="product"] [data-filter-id="month"] { --ui-filter-chip-max: 144px; }
+[data-variant="product"] [data-filter-id="unit"] { --ui-filter-chip-max: 112px; }
+[data-variant="product"] [data-filter-id="category"] { --ui-filter-chip-max: 160px; }
+[data-variant="product"] [data-filter-id="amount"] { --ui-filter-chip-max: 112px; }
+[data-variant="product"] [data-filter-id="source"] { --ui-filter-chip-max: 112px; }
+@media (max-width: 560px) {
+  .study { padding: var(--space-4); }
+  .study-toolbar > .ui-input-group { width: 100%; flex-basis: 100%; }
+}

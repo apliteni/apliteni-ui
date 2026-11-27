@@ -1,0 +1,399 @@
+{
+  "main": {
+    "light-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "light-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "dark-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "phone-dark": {
+      "violations": [],
+      "incomplete": []
+    },
+    "320-overflow": false,
+    "ancestor-cap": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 1037.703125,
+        "x": 32,
+        "y": 150.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 142.15625,
+          "x": 32,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 187.046875,
+          "x": 182.15625,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 221.234375,
+          "x": 377.203125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 177.265625,
+          "x": 606.4375,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 195.171875,
+          "x": 791.703125,
+          "y": 150.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1101.703125,
+        "y": 150.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    },
+    "computed-cap": "224px",
+    "direct-cap": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "search": {
+        "width": 320,
+        "x": 32,
+        "y": 110.96875,
+        "height": 32
+      },
+      "bar": {
+        "width": 754.828125,
+        "x": 384,
+        "y": 110.96875,
+        "height": 32
+      },
+      "chips": [
+        {
+          "name": "month",
+          "width": 128,
+          "x": 384,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Month: September 2026"
+        },
+        {
+          "name": "unit",
+          "width": 128,
+          "x": 520,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Unit: International operations"
+        },
+        {
+          "name": "category",
+          "width": 128,
+          "x": 656,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Category: Professional advisory services"
+        },
+        {
+          "name": "amount",
+          "width": 128,
+          "x": 792,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Amount: EUR 10,000 and above"
+        },
+        {
+          "name": "source",
+          "width": 128,
+          "x": 928,
+          "y": 110.96875,
+          "height": 32,
+          "title": "",
+          "accessibleName": "Source: Imported bank statement"
+        }
+      ],
+      "extra": {
+        "width": 192,
+        "x": 1170.828125,
+        "y": 110.96875,
+        "height": 32
+      },
+      "overflow": false,
+      "fonts": true
+    }
+  },
+  "shared": {
+    "light-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "light-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "dark-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "phone-dark": {
+      "violations": [],
+      "incomplete": []
+    },
+    "320-overflow": false,
+    "200-percent-overflow": false,
+    "longer-text-overflow": false
+  },
+  "product": {
+    "light-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "light-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "dark-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "phone-dark": {
+      "violations": [],
+      "incomplete": []
+    },
+    "320-overflow": false,
+    "200-percent-overflow": false,
+    "longer-text-overflow": false
+  },
+  "current": {
+    "light-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "light-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "light-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-selected": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-hover": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-focus": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-pressed": {
+      "violations": [],
+      "incomplete": []
+    },
+    "dark-menu": {
+      "violations": [],
+      "incomplete": [
+        "color-contrast",
+        "scrollable-region-focusable"
+      ]
+    },
+    "dark-unset": {
+      "violations": [],
+      "incomplete": []
+    },
+    "phone-dark": {
+      "violations": [],
+      "incomplete": []
+    },
+    "320-overflow": false,
+    "200-percent-overflow": false,
+    "longer-text-overflow": false
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "shared": {
+    "sandbox": "allow-scripts",
+    "keyboardPick": "Category: Software",
+    "nestedFrames": false,
+    "themeAndPhoneMenu": "pass"
+  },
+  "product": {
+    "sandbox": "allow-scripts",
+    "keyboardPick": "Category: Software",
+    "nestedFrames": false,
+    "themeAndPhoneMenu": "pass"
+  },
+  "current": {
+    "sandbox": "allow-scripts",
+    "keyboardPick": "Category: Software",
+    "nestedFrames": false,
+    "themeAndPhoneMenu": "pass"
+  }
+}
