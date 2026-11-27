@@ -327,7 +327,9 @@ export const PersonPickerFailedPhoto: StoryObj<typeof Dropdown> = {
 
 // A form dropdown whose rows carry a badge. The panel is as wide as the trigger, so the
 // trigger makes room for each row's badge and check. why: docs/components.md#fields
+// The release candidate's long badge makes its row the widest, so the trigger must fit the badge.
 const RELEASES: DropdownEntry[] = [
+  { label: 'v1.3.0', value: '1.3.0', badge: 'Release candidate' },
   ...VERSIONS.map((it) => (typeof it === 'string' ? it : { ...it, selected: false })),
   { label: 'v0.9.0', value: '0.9.0', muted: 'Archived' },
 ];

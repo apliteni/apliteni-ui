@@ -361,9 +361,9 @@ test('measured in a browser, four widths and both themes', {
       for (const theme of THEMES) for (const view of VIEWS) {
         const at = `${theme} at ${view.viewport.width}px`;
         const states = await read(theme, view);
-        // Nothing chosen, then each of the four rows chosen in turn.
-        assert.equal(states.length, 5, `${at} measured ${states.length} states, not 5`);
-        assert.equal(states[0].rows, 4, `${at} drew ${states[0].rows} rows, not 4`);
+        // Nothing chosen, then each of the five rows chosen in turn.
+        assert.equal(states.length, 6, `${at} measured ${states.length} states, not 6`);
+        assert.equal(states[0].rows, 5, `${at} drew ${states[0].rows} rows, not 5`);
         for (const state of states.slice(1)) assert.equal(state.rows, 1, `${at} with ${state.chosen} chosen marked ${state.rows} rows`);
         for (const state of states) assert.deepEqual(state.wrapped, [], `${at} with ${state.chosen} chosen wrapped ${state.wrapped.join(', ')}`);
         const noBadge = await read(theme, view, '.ui-dropdown__fit .ui-dropdown__badge { display: none !important; }');
