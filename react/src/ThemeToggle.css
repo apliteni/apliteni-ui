@@ -1,1 +1,13 @@
 .ui-theme-toggle { display: inline-flex; align-items: center; gap: var(--space-3); }
+
+/* #900: the theme change cross-fades the whole page, its scrollbar and any scrim in
+   250ms (--dur-med). The React control starts a view transition in ThemeToggle.tsx; the
+   root group's old and new snapshots run the one animation below. The transition stays
+   transparent to the pointer for the whole fade, so a click during it still lands. */
+::view-transition-group(root),
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--dur-med);
+  animation-timing-function: var(--ease);
+}
+::view-transition { pointer-events: none; }

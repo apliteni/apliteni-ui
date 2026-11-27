@@ -1,0 +1,14 @@
+/* A count or a status line changing in place: the outgoing text stays until the
+   incoming text has faded in, each over 150ms (--dur-fast). The reduced-motion
+   sheet caps every animation at 0.01ms, so the change is one step there. */
+.ui-crossfade { position: relative; display: inline-block; }
+.ui-crossfade__in { animation: ui-crossfade-in var(--dur-fast) var(--ease); }
+.ui-crossfade__in--still { animation: none; }
+.ui-crossfade__out {
+  position: absolute;
+  inset: 0 auto auto 0;
+  pointer-events: none;
+  animation: ui-crossfade-out var(--dur-fast) var(--ease) both;
+}
+@keyframes ui-crossfade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ui-crossfade-out { from { opacity: 1; } to { opacity: 0; } }

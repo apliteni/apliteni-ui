@@ -1,9 +1,16 @@
 export const RELEASES = [
   {
-    v: '0.227.0', date: '2026-11-27',
+    v: '0.229.0', date: '2026-11-27',
     changes: [
-      ['fixed', 'A light `ui-card--fit` card now takes the full width of its column when its content is wide, as a dark one does. Before, the light card hung its side inset outside the column but stayed column-wide, so its table lost 48px, or 32px at 720px and below. Part of #924.', ['Card']],
       ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
+    ],
+  },
+  {
+    v: '0.228.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'Every visible change of state is now a smooth transition with a kit duration and easing, except a hover, the focus ring and text typed in a field, which change in one step. A count or a status line that changes in place, such as the `Pagination` status or a `StatBand` figure, cross-fades in 150ms, and the React theme control cross-fades the whole page, its scrollbar and any open scrim in 250ms. Under reduced motion, and where the browser has no view transition, each change is one step. Part of #900.', ['Pagination', 'Stat band', 'ThemeToggle']],
+      ['changed', 'In the light theme a card now keeps the dark theme\'s spacing, so its text no longer hangs out to the page title\'s edge, and no box changes place or size when the theme changes. Only the paint differs: a light card draws no fill, edge or shadow, and a table in it and a drawer group title keep the dark theme\'s spacing. Part of #900.', ['Card', 'Table', 'Drawer']],
+      ['added', 'The Motion guideline has a new rule, Every visible change is a smooth transition. Part of #900.', ['Guidelines']],
     ],
   },
   {

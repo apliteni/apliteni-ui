@@ -2,6 +2,8 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderToString } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { ThemeToggle, THEME_INIT_SCRIPT } from './ThemeToggle';
 
 const key = 'apliteni-strategy-theme';
@@ -141,4 +143,68 @@ it('isolates the story choice and restores the previous page choice', async () =
   expect(document.documentElement).toHaveAttribute('data-theme-choice', 'dark');
   expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
   expect(localStorage.getItem(key)).toBeNull();
+});
+
+// The theme change is a smooth transition: the whole page, its scrollbar and an
+// open scrim cross-fade in 250ms (--dur-med) on --ease, started as a view
+// transition. Under reduced motion, and where the browser has no view
+// transition, the change is one step. #900
+
+describe('theme change cross-fade', () => {
+  const css = () => readFileSync(join(dirname(expect.getState().testPath!), 'ThemeToggle.css'), 'utf8');
+  // The OS light query reads `matches`; the reduced-motion query reads its own.
+  const stubMedia = (reduced: boolean) => {
+    vi.stubGlobal('matchMedia', (q: string) => Object.assign(new EventTarget(), {
+      matches: q === '(prefers-reduced-motion: reduce)' ? reduced : false,
+    }));
+  };
+  const clickToLight = async () => {
+    localStorage.setItem(key, 'dark');
+    render(<ThemeToggle />);
+    await userEvent.setup().click(screen.getByRole('button'));
+  };
+
+  it('times the page cross-fade at 250ms (--dur-med) on --ease', () => {
+    expect(css()).toMatch(/::view-transition-group\(root\)/);
+    expect(css()).toContain('animation-duration: var(--dur-med);');
+    expect(css()).toContain('animation-timing-function: var(--ease);');
+  });
+
+  it('rejects a page cross-fade re-timed to the control duration', () => {
+    const broken = css().replace('animation-duration: var(--dur-med);', 'animation-duration: var(--dur-fast);');
+    expect(broken).not.toBe(css());
+    expect(broken).not.toContain('animation-duration: var(--dur-med);');
+  });
+
+  it('applies the new theme inside a view transition when the browser supports it', async () => {
+    stubMedia(false);
+    const start = vi.fn((apply: () => void) => { apply(); });
+    Object.defineProperty(document, 'startViewTransition', { configurable: true, value: start });
+    try {
+      await clickToLight();
+      expect(start).toHaveBeenCalledTimes(1);
+      expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+    } finally {
+      delete (document as Document & { startViewTransition?: unknown }).startViewTransition;
+    }
+  });
+
+  it('applies the new theme in one step under reduced motion', async () => {
+    stubMedia(true);
+    const start = vi.fn((apply: () => void) => { apply(); });
+    Object.defineProperty(document, 'startViewTransition', { configurable: true, value: start });
+    try {
+      await clickToLight();
+      expect(start).not.toHaveBeenCalled();
+      expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+    } finally {
+      delete (document as Document & { startViewTransition?: unknown }).startViewTransition;
+    }
+  });
+
+  it('applies the new theme in one step when the browser has no view transition', async () => {
+    stubMedia(false);
+    await clickToLight();
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+  });
 });

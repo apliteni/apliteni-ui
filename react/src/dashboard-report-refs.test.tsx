@@ -37,7 +37,7 @@
  *
  * Discover subjects from source and check the coverage count.
  */
-import { test } from 'vitest';
+import { test, afterEach } from 'vitest';
 import assert from 'node:assert/strict';
 import type { ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -597,11 +597,17 @@ test('landing on the wrong row is a finding, and landing on none says so', () =>
 });
 
 // These checks exercise the sample controls in JSDOM. Browser evidence checks paint and focus.
-/** A TSX screen mounted for real, hooks and all, so a reader's choices can be made on it. */
+/** A TSX screen mounted for real, hooks and all, so a reader's choices can be made on it.
+ *  The roots are unmounted after each test: a StatBand cross-fade keeps a 200ms timer, and
+ *  a root left mounted schedules an update after jsdom is gone. */
+const liveCleanups: (() => void)[] = [];
+afterEach(() => { for (const cleanup of liveCleanups.splice(0)) cleanup(); });
 const live = (story: unknown) => {
   const Story = () => (story as { render: () => ReactElement }).render();
   const box = document.body.appendChild(document.createElement('div'));
-  act(() => createRoot(box).render(<Story />));
+  const root = createRoot(box);
+  liveCleanups.push(() => { act(() => root.unmount()); box.remove(); });
+  act(() => root.render(<Story />));
   return box;
 };
 
@@ -617,7 +623,7 @@ const pick = (root: Element, id: string, value: string) => {
 
 test('the Report filters Paid rows and clears both filters, and its figures follow', () => {
   const doc = live(ReportStories.Default);
-  const figures = () => [...doc.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
+  const figures = () => [...doc.querySelectorAll('.ui-stat__value .ui-crossfade__in')].map((node) => node.textContent);
   const atRest = figures();
   // The control starts on 1Y, and the first paint already holds to that window
   // (PR #552 design re-review, finding B), so 1Y alone already drops SAL-1047 before
@@ -658,7 +664,7 @@ test('the Report filters Paid rows and clears both filters, and its figures foll
 
 test('the Dashboard period changes its totals and trends', () => {
   const dashboard = live(DashboardStories.Default);
-  const figures = () => [...dashboard.querySelectorAll('.ui-stat__value')].map((node) => node.textContent);
+  const figures = () => [...dashboard.querySelectorAll('.ui-stat__value .ui-crossfade__in')].map((node) => node.textContent);
   const yearly = figures();
   const yearlyTrend = dashboard.querySelector('.ui-stat__trend')!.innerHTML;
   const periods = () => [...dashboard.querySelectorAll('.ui-toolbar .ui-seg button')];

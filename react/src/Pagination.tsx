@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
+import { Crossfade } from './Crossfade';
 
 // The React face of the kit's pagination() factory. The vanilla output is the
 // source of truth for every class name here, and Pagination.test.tsx compares
@@ -239,7 +240,7 @@ export function Pagination({
       aria-label={label} aria-busy={loading ? true : undefined}>
       {/* The only live region in the strip: numbers, size control and four
           buttons all announcing would read one page turn out four times. */}
-      <p className="ui-pager__status" aria-live="polite" aria-atomic="true">{status}</p>
+      <p className="ui-pager__status" aria-live="polite" aria-atomic="true"><Crossfade value={status} /></p>
       {sizes.length ? (
         <div className="ui-pager__size">
           <label className="ui-pager__size-label" htmlFor={`${uid}-size`}>Rows</label>

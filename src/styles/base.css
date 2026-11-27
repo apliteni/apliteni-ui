@@ -14,7 +14,15 @@ html {
   scroll-behavior: smooth;
 }
 
+/* #900: the viewport scrollbar paints with the theme, so the page's own chrome changes
+   when the theme does. `body` resets the inherited value so inner scrollbars — a table, a
+   drawer, a panel — keep the browser's own chrome, which the kit does not restyle. */
+:root {
+  scrollbar-color: var(--muted) var(--bg);
+}
+
 body {
+  scrollbar-color: auto;
   background: var(--bg); /* code-bg: inherit — page background inherits root overrides. */
   color: var(--text);
   font-family: var(--font-sans);

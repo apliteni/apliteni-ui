@@ -77,8 +77,7 @@ export const Interactive: StoryObj = {
 };
 
 // `ui-card--fit` ends a card at its table. A table wider than the column takes the full column
-// and scrolls inside the card. A light card hangs its side inset outside the column, so it is the
-// column and both insets wide. The amounts are fabricated. #924
+// and scrolls inside the card, in both themes. The amounts are fabricated. #924
 type UnitRow = { name: string; [month: string]: string };
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const MONTHS = Array.from({ length: 30 }, (_, i) => MONTH_NAMES[i % 12] + ' ' + (2024 + Math.floor(i / 12)));
