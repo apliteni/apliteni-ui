@@ -82,7 +82,8 @@ const CLEAR_SIZE = 'sm';
    with or without state qualifiers, carrying no OTHER variant's class. */
 const kitFillsOf = (css, kit) => rules(css).filter(({ selector, body }) => {
   if (!selector.startsWith(kit)) return false;
-  const variants = selector.match(/\.ui-btn--[\w-]+/g) ?? [];
+  // Any kit modifier is another control, the ghost trigger (#888) as much as a button variant.
+  const variants = selector.match(/\.ui-[\w-]+--[\w-]+/g) ?? [];
   if (variants.some((v) => ![`.ui-btn--${CLEAR_VARIANT}`, `.ui-btn--${CLEAR_SIZE}`].includes(v))) return false;
   if (/[\s>+~]/.test(selector)) return false; // a descendant, not the control itself
   const fill = fillOf(body);

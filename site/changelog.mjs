@@ -1,9 +1,3 @@
-// Write for people who use the kit. Start with what changed and who is affected.
-// Use one to three short sentences per change; add detail only for migration
-// steps or behavior limits. Use plain words, without praise, filler or a test diary.
-// Keep versions, dates, change types, component links and issue references.
-// The first sentence is the page summary; full text also appears in release notes.
-
 export const RELEASES = [
   {
     v: '0.224.0', date: '2026-11-27',
@@ -12,6 +6,15 @@ export const RELEASES = [
       ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
       ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
       ['added', 'The page guideline has a new rule, Align the sidebar on one column: the logo, the section icons and the avatar start on one edge. Part of #869.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.221.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
+      ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
+      ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
+      ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view, with its focus ring, when the keyboard or a script focuses it. Part of #888.', ['DataTable']],
     ],
   },
   {

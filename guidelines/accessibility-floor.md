@@ -32,13 +32,13 @@
 
 **Rule:** Below the phone step, open a row of small controls to 44 minus their drawn size, so both tap zones fit between the drawn edges.
 
-**Why:** A zone reaches half the gap before it crosses its neighbour's edge, so the gap is what decides whether either control reaches the floor.
+**Why:** A zone reaches half the gap before it crosses its neighbour's edge, so the gap decides if either control reaches the floor.
 
 **Do:** Open a row of 24px marks to 20px on a phone, where both zones fit and neither mark changes size.
 
 **Don't:** Keep the desktop 8px and let the control written later in the markup win the overlap.
 
-**Except:** A row that is already full opens downward only — widening it across makes the controls narrower, which is the one thing the floor must not do. Rows that share an edge — a menu, a dense table, a settings list — have nothing to open and keep their drawn targets. A row that opens nothing grows no zone at all.
+**Except:** A full row opens downward only: opening it across makes its controls narrower, which the floor forbids. Rows that share an edge — a menu, a dense table, a settings list — have nothing to open and keep their drawn targets. A row that opens nothing grows no zone at all.
 
 ## Focus ring contrast
 
@@ -62,7 +62,7 @@
 
 **Don't:** Unavailable keeps the live paint, so only the cursor reports the state.
 
-**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade, and a control that draws no box when it is on — a ghost button — draws none when it is off, so its ink carries the state alone. Where the browser fades a control for you, as Chromium does a disabled select, reset that fade: it takes the edge and the words down together, and a reader still has to read the words.
+**Except:** A disabled label must stay legible, so the pair changes rather than fades. Only the label-free switch track may fade. A control that draws no box when on, such as a ghost button, draws none when off, so its ink alone carries the state. Reset a fade that the browser adds, as Chromium does to a disabled select: it fades the edge and the words together, and the words must stay readable.
 
 ## Touch field text
 
@@ -90,6 +90,8 @@
 
 **Don't:** Pale ink propped up by larger text.
 
+**Except:** A proposed value's gradient ink, at 4.5:1 or more throughout (#888).
+
 ## Status labels
 
 <!-- rule: status-label -->
@@ -115,6 +117,8 @@
 **Do:** One opaque ground under the whole sentence.
 
 **Don't:** The same sentence crossing a gradient, where each word sits on a different pair.
+
+**Except:** A proposed value's gradient ink, measured at every point (#888).
 
 ## Keyboard first
 
