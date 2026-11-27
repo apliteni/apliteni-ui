@@ -1,5 +1,5 @@
 /* Rule: on a split layout, each key and click keeps the focus on a shown control of the page
- * that nothing covers, moves no shell chrome and no action row by more than 1px, keeps the cumulative layout shift
+ * that nothing covers and whose focus ring no box cuts, moves no shell chrome and no action row by more than 1px, keeps the cumulative layout shift
  * under 0.1 and causes no sideways scroll. Escape leaves the focus where it was. Above 860px
  * the content takes 60% and the preview 40%, both reach the foot of the window, and the page
  * does not scroll down. At 860px and less the preview sits below the content and the action
@@ -12,11 +12,13 @@
  *   UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals/dist/web-vitals.iife.js SPLIT_LAYOUT=1 \
  *     node --test stories/split-layout.test.js
  *
- * It opens three stories in a new context at each of ten window sizes and on six devices: the
+ * It opens four stories in a new context at each of ten window sizes and on six devices: the
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
  * phone of 466×678 and 890×626 at scale 3 with touch. The Document review walks Tab from the
  * Invoices link with Zoom out at the foot of the window, Zoom in by key, Zoom out to its end, Fit by Tab and Enter, Escape, Continue to approval and Back to
- * review. Its unavailable preview walks Try again, Tab and Escape. The zoomed split layout
+ * review. Its unavailable preview walks Try again, Tab and Escape. The unavailable split layout
+ * walks Enter on Try again at the foot of the scroll, so the stacked tools are stuck when the
+ * focus goes to their title, and Escape. The zoomed split layout
  * walks Tab into the scrolled page, ArrowDown and End where the sheet is taller than its stage,
  * then a click on an action and Escape. The shell
  * chrome is every fixed or sticky element outside the split, found in the page, and the
@@ -28,7 +30,9 @@
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
  * that a press causes on purpose is not measured. No layer opens on these screens, so
  * Escape is checked to leave the focus as it was. The cover check reads one point, the centre,
- * and skips a control whose centre is outside the window.
+ * and skips a control whose centre is outside the window. The ring check reads the outline
+ * against each box that clips and the window. It does not see a ring drawn as a shadow, a cut by
+ * clip-path, or a sticky element painted over the ring.
  * why: docs/components.md#split-layout
  */
 import test from 'node:test';
@@ -51,6 +55,22 @@ const READ = () => {
   const shown = el && el !== document.body && page.contains(el) && el.checkVisibility();
   const box = shown && el.getBoundingClientRect();
   const hit = box && document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+  // The focus ring reaches its outline width plus its offset past the box. Each box that clips
+  // and the window must hold all of it.
+  const css = shown && getComputedStyle(el);
+  const out = css && css.outlineStyle !== 'none' ? parseFloat(css.outlineWidth) + parseFloat(css.outlineOffset) : 0;
+  let cut = null;
+  for (let a = shown ? el.parentElement : null; a && !cut; a = a.parentElement) {
+    const own = getComputedStyle(a);
+    const view = a === document.documentElement;
+    if (!view && own.overflowX === 'visible' && own.overflowY === 'visible') continue;
+    const r = view ? { top: 0, left: 0 } : a.getBoundingClientRect();
+    const top = r.top + (view ? 0 : a.clientTop);
+    const left = r.left + (view ? 0 : a.clientLeft);
+    const edge = [['top', top - (box.top - out)], ['bottom', box.bottom + out - (top + a.clientHeight)],
+      ['left', left - (box.left - out)], ['right', box.right + out - (left + a.clientWidth)]].find(([, past]) => past > 0.5);
+    if (edge) cut = `${view ? 'the window' : `${a.tagName.toLowerCase()}.${[...a.classList].join('.')}`} cuts its ${edge[0]} by ${edge[1].toFixed(1)}px`;
+  }
   const chrome = [...document.querySelectorAll('body *')]
     .filter((e) => (split ? !split.contains(e) : true) && ['fixed', 'sticky'].includes(getComputedStyle(e).position))
     .concat([...document.querySelectorAll('.ui-split__actions')])
@@ -58,7 +78,7 @@ const READ = () => {
   const doc = document.scrollingElement;
   return {
     focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
-    cover: hit && !el.contains(hit) ? `${hit.tagName.toLowerCase()}.${[...hit.classList].join('.')}` : null,
+    cover: hit && !el.contains(hit) ? `${hit.tagName.toLowerCase()}.${[...hit.classList].join('.')}` : null, cut,
     chrome, cls: window.__cls, over: doc.scrollWidth - doc.clientWidth,
   };
 };
@@ -125,6 +145,19 @@ const UNAVAILABLE = [
   }],
   ['key: Escape', async (page) => { await page.keyboard.press('Escape'); }],
 ];
+// The reader scrolls to the foot and presses Try again, so the stacked preview tools are stuck
+// at the top of the scroll when the focus goes to their title.
+const RETRY = [
+  ['key: Enter on Try again at the foot', async (page) => {
+    await page.evaluate(() => {
+      for (const box of [document.scrollingElement, ...document.querySelectorAll('.ui-split, .ui-split__primary')]) box.scrollTop = box.scrollHeight;
+    });
+    await button(page, 'Try again').focus();
+    await page.keyboard.press('Enter');
+    await focused(page.getByRole('heading', { level: 2, name: 'Signed copy' }));
+  }],
+  ['key: Escape', async (page) => { await page.keyboard.press('Escape'); }],
+];
 // A 200% sheet fits the height of its stage in a large window, so there the three scroll
 // actions do not run.
 const scrolls = (page) => page.evaluate(() => {
@@ -159,6 +192,7 @@ const STORIES = [
   { id: 'apps-document-review--default', actions: REVIEW },
   { id: 'apps-document-review--default', args: 'preview:unavailable', actions: UNAVAILABLE },
   { id: 'react-split-layout--zoomed', actions: ZOOMED, optional: 3 },
+  { id: 'react-split-layout--unavailable', actions: RETRY },
 ];
 const label = (story) => `${story.id}${story.args ? ` ${story.args}` : ''}`;
 
@@ -215,6 +249,7 @@ async function walk(page, name, actions, { only } = {}) {
     ran.push(act);
     if (!after.focus) found.push(`${name} ${act}: the focus left the page's shown controls`);
     if (after.cover) found.push(`${name} ${act}: ${after.cover} covers the focused ${after.focus}`);
+    if (after.cut) found.push(`${name} ${act}: the ring of the focused ${after.focus} is cut: ${after.cut}`);
     for (const c of after.chrome) {
       const was = before.chrome.find((b) => b.name === c.name);
       if (was && Math.max(Math.abs(c.x - was.x), Math.abs(c.y - was.y)) > 1) found.push(`${name} ${act}: ${c.name} moved ${Math.round(c.x - was.x)},${Math.round(c.y - was.y)}px`);
@@ -297,7 +332,7 @@ test('the split layout keeps focus, chrome, layout and width through each intera
 
     // The mutations: each check must see its own failure.
     const caught = [];
-    const [review, unavailable, zoomed] = STORIES;
+    const [review, unavailable, zoomed, retry] = STORIES;
     const mutate = async (context, story, setup, only, says) => {
       const { ctx, page } = await open(browser, server.port, vitals, context, story);
       await setup(page);
@@ -330,6 +365,8 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     });
     await mutate(phone, review, noTitle, ['click: Continue to approval'], 'focus');
     await mutate(wide, unavailable, noTitle, ['click: Try again'], 'focus');
+    // Stuck tools that give the title's ring no room above it, as before #914's second review.
+    await mutate({ viewport: { width: 466, height: 678 } }, retry, (page) => page.addStyleTag({ content: '.ui-split .ui-split__controls { padding-top: 0; } .ui-split .ui-split__controls > h2 { padding-top: var(--space-4); }' }), ['key: Enter on Try again at the foot'], 'is cut');
     // A zoom step at its end that keeps the focus the browser dropped.
     await mutate(wide, review, (page) => page.evaluate(() => {
       const keep = HTMLElement.prototype.focus;

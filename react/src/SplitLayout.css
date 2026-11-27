@@ -80,7 +80,10 @@
   .ui-split { display: block; overflow-y: auto; scroll-padding-bottom: calc(var(--ui-split-foot, 0px) + var(--ring-gap-width) + var(--ring-width)); }
   .ui-split__primary { overflow: visible; padding: var(--space-6); }
   .ui-split__preview { border-inline-start: 0; }
-  .ui-split__controls { position: sticky; top: 0; z-index: var(--z-sticky); }
+  /* The stuck title keeps its whole focus ring inside the scroll. The tools hold the ring's
+     room above the title, and the title gives the same room back, so nothing moves. */
+  .ui-split__controls { position: sticky; top: 0; z-index: var(--z-sticky); padding-top: calc(var(--ring-offset) + var(--ring-width)); }
+  .ui-split__controls > h2 { padding-top: calc(var(--space-4) - var(--ring-offset) - var(--ring-width)); }
   /* The stage leaves three space-16 steps of the screen for the band, the tools and the
      action row, so the sheet and the action show together. */
   .ui-split__stage { flex: none; height: clamp(var(--space-16), calc(100dvh - var(--ui-app-band, 0px) - 3 * var(--space-16)), 65dvh); }
