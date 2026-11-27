@@ -98,8 +98,10 @@ These parts keep another corner:
   palette's corners.
 - A file drop area keeps its large dashed corner. The button in it is a pill.
 - The selection bar has round ends. The pill and the control at each end stand as far from the
-  bar's end as from its top, so the curves share a centre. This also holds when large text puts
-  the count on two lines and the bar grows taller than the control.
+  bar's end as from its top, so the curves share a centre: the inner radius is the bar's radius
+  less the gap. At normal text both ends have the same gap and an inner shape of the same
+  height. The centres stay shared when large text puts the count on two lines and the bar grows
+  taller than the control.
 
 ## Typefaces
 

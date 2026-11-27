@@ -1379,7 +1379,7 @@
  "_selection-bar.js": {
   "other-theme": [
    {
-    "ref": "react/src/SelectionBar.css:29",
+    "ref": "react/src/SelectionBar.css:30",
     "pattern": "background: var(--inverse-bg);"
    }
   ],

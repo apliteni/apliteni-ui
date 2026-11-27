@@ -26,6 +26,7 @@
  * Before each walk it measures the bar's two ends. The count's pill and the last control stand
  * as far from the bar's end as from its top, and the bar's corner is half its height or more,
  * so each end shares a centre with the pill or the control in it. rev_604d2230cca9/d61
+ * At normal text the two ends also match: the same gap and an inner shape of the same height.
  * It measures the ends again at 360×800 with the text at 200%, in light and dark, in every
  * story that draws a bar: there the count takes two lines and the bar is taller than the
  * control at its end.
@@ -87,21 +88,27 @@ const focused = async (page, locator) => {
   }
 };
 // Each end of the bar: the gap from the bar's end to the pill or the last control, the gap
-// from the bar's top to it, the bar's corner and half its height. Border box to border box.
+// from the bar's top to it, its height, the bar's corner and half its height. Border box to
+// border box.
 const ENDS = () => {
   const bar = document.querySelector('.ui-selection-bar');
   const box = bar.getBoundingClientRect();
   const pill = bar.querySelector('.ui-selection-bar__count').getBoundingClientRect();
   const last = [...bar.querySelectorAll(':scope > .ui-selection-bar__actions .ui-selection-bar__control, :scope > .ui-dropdown > .ui-selection-bar__control')].pop().getBoundingClientRect();
   return { corner: parseFloat(getComputedStyle(bar).borderTopLeftRadius), half: box.height / 2,
-    start: [pill.left - box.left, pill.top - box.top], end: [box.right - last.right, last.top - box.top] };
+    start: [pill.left - box.left, pill.top - box.top, pill.height], end: [box.right - last.right, last.top - box.top, last.height] };
 };
-async function ends(page, label) {
+// `twin`: the two ends match, as at normal text. Large text that wraps the count makes the pill
+// taller than the control at the end, so there each end only keeps its own centre.
+async function ends(page, label, { twin = true } = {}) {
   const { corner, half, start, end } = await page.evaluate(ENDS);
   const found = [];
   if (corner < half) found.push(`${label}: the bar's ends are not round, a ${corner}px corner on a ${half * 2}px bar`);
   for (const [name, [inline, block]] of [['start', start], ['end', end]]) {
     if (Math.abs(inline - block) > 0.5) found.push(`${label}: the ends share no centre, the ${name} gap is ${inline}px and the top gap ${block}px`);
+  }
+  if (twin && (Math.abs(start[0] - end[0]) > 0.5 || Math.abs(start[2] - end[2]) > 0.5)) {
+    found.push(`${label}: the ends differ, a ${start[0]}px gap to a ${start[2]}px pill and a ${end[0]}px gap to a ${end[2]}px control`);
   }
   return found;
 }
@@ -116,7 +123,7 @@ async function doubled(page, label) {
     return { tally: count.getBoundingClientRect().height, line: count.querySelector('.ui-selection-bar__control').getBoundingClientRect().height };
   });
   assert.ok(tally > line * 1.5, `${label}: the count stays on one line, ${tally}px for a ${line}px control`);
-  return ends(page, label);
+  return ends(page, label, { twin: false });
 }
 
 // The bar has come in: it has ended its own entrance animation.
@@ -339,19 +346,29 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
         if (!this.closest('.ui-selection-bar') || this.textContent === 'Archive') focus.apply(this, options);
       };
     }), null, 'focus left', RESIZES);
-    // A bar with the old 12px corner and the same padding at each end, as before #911's review.
-    for (const [says, content] of [['not round', '.ui-selection-bar { border-radius: var(--radius-md); }'], ['no centre', '.ui-selection-bar { padding: var(--space-3); }']]) {
+    // A bar with the old 12px corner, as before #911's review, and an end 2px wider than the top.
+    for (const [says, content] of [['not round', '.ui-selection-bar { border-radius: var(--radius-md); }'], ['no centre', '.ui-selection-bar.ui-selection-bar { padding-right: calc(var(--space-3) + 2px); }']]) {
       const { ctx, page } = await open(browser, server.port, vitals, phone);
       await page.addStyleTag({ content });
       const found = await ends(page, 'mutated');
       caught.push([says, found.some((f) => f.includes(says)), found]);
       await ctx.close();
     }
-    // A bar whose end keeps the 1px for the pill's edge at any height, as before #911's second
-    // review.
+    // A pill whose edge takes room, as at c9e6fa7c: each end keeps its centre, but the pill
+    // is 2px taller than More and its gap 1px smaller.
+    {
+      const { ctx, page } = await open(browser, server.port, vitals, phone);
+      await page.addStyleTag({ content: '.ui-selection-bar .ui-selection-bar__count { outline: 0; border: 1px solid var(--inverse-edge); }' });
+      await page.evaluate(frames);
+      await page.evaluate(frames);
+      const found = await ends(page, 'mutated');
+      caught.push(['ends differ', found.some((f) => f.includes('ends differ')), found]);
+      await ctx.close();
+    }
+    // A bar whose end keeps no room for a wrapped count, as before #911's second review.
     {
       const { ctx, page } = await open(browser, server.port, vitals, LARGE);
-      await page.addStyleTag({ content: '.ui-selection-bar.ui-selection-bar { padding-right: calc(var(--space-3) + 1px); }' });
+      await page.addStyleTag({ content: '.ui-selection-bar.ui-selection-bar { padding-right: var(--space-3); }' });
       const found = await doubled(page, 'mutated');
       caught.push(['no centre', found.some((f) => f.includes('no centre')), found]);
       await ctx.close();

@@ -20,10 +20,11 @@
   align-items: center;
   gap: var(--space-2);
   max-width: 100%;
-  /* Round ends that share a centre with the count's pill and the last control. The end
-     adds how far the last control stands below the top padding: 1px for the pill's edge,
-     and more when large text wraps the count. The bar measures it. */
-  padding: var(--space-3) calc(var(--space-3) + var(--ui-selection-end, 1px)) var(--space-3) var(--space-3);
+  /* Round ends that share a centre with the count's pill and the last control: the inner
+     radius is the outer radius less the gap, and the gap is the same at the side and the top.
+     The end adds how far the last control stands below the top padding: 0 beside a one-line
+     pill, and more when large text wraps the count. The bar measures it. */
+  padding: var(--space-3) calc(var(--space-3) + var(--ui-selection-end, 0px)) var(--space-3) var(--space-3);
   border: 1px solid var(--inverse-frame);
   border-radius: var(--radius-pill);
   background: var(--inverse-bg); /* code-bg: none — the bar holds controls and a count, never a code chip. */
@@ -50,7 +51,10 @@
   gap: 0 var(--space-1);
   min-width: 0;
   padding-left: var(--space-2);
-  border: 1px solid var(--inverse-edge);
+  /* The edge is drawn inside the pill and takes no room, so the pill is as tall as the
+     control at the other end, and both ends have the same gap and the same inner shape. */
+  outline: 1px solid var(--inverse-edge);
+  outline-offset: -1px;
   border-radius: var(--radius-pill);
 }
 .ui-selection-bar__tally { min-width: 0; overflow-wrap: anywhere; color: var(--inverse-text); font-size: var(--text-sm); }
@@ -102,6 +106,6 @@
   .ui-selection-bar__actions { gap: var(--tap-gap); --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--space-4); }
 }
 @media (forced-colors: active) {
-  .ui-selection-bar,
-  .ui-selection-bar__count { border-color: CanvasText; }
+  .ui-selection-bar { border-color: CanvasText; }
+  .ui-selection-bar__count { outline-color: CanvasText; }
 }

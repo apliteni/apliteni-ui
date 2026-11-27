@@ -221,19 +221,23 @@ it('keeps the inverse ink off the bar box, so its lists keep the page theme', ()
 
 // The sheet, read as text: the bar's ends are round, so they share a centre with the count's
 // pill and the last control, and each stands as far from the bar's end as from its top. The
-// end adds what the bar measures, and 1px for the pill's edge before a layout. The browser
-// half, stories/selection-bar.test.js, measures the gaps. rev_604d2230cca9/d61
+// pill's edge is drawn inside it, so the pill is as tall as the control at the other end. The
+// end adds what the bar measures, and 0 before a layout. The browser half,
+// stories/selection-bar.test.js, measures the gaps. rev_604d2230cca9/d61
 it('gives the bar round ends that share a centre with the pill and the last control', () => {
   const css = read('./SelectionBar.css').replace(/\/\*[\s\S]*?\*\//g, '');
   const bar = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selector]) => selector.trim() === '.ui-selection-bar')![2];
   expect(bar).toMatch(/border-radius:\s*var\(--radius-pill\);/);
-  expect(bar).toMatch(/padding:\s*var\(--space-3\) calc\(var\(--space-3\) \+ var\(--ui-selection-end, 1px\)\) var\(--space-3\) var\(--space-3\);/);
+  expect(bar).toMatch(/padding:\s*var\(--space-3\) calc\(var\(--space-3\) \+ var\(--ui-selection-end, 0px\)\) var\(--space-3\) var\(--space-3\);/);
+  const pill = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selector]) => selector.trim() === '.ui-selection-bar__count')![2];
+  expect(pill).toMatch(/outline:\s*1px solid var\(--inverse-edge\);\s*outline-offset:\s*-1px;/);
+  expect(pill).not.toMatch(/(^|;|\s)border(-width)?\s*:/);
 });
 
 // jsdom lays nothing out, so the bar's height and the top of its last control are given,
 // under a 1px edge and a 12px padding. At 200% text the count takes two lines: the bar is
-// 115.3px tall and More stands 35.05px below its top, so the end takes 22.05px. Beside a
-// one-line pill More stands 14px down and the end takes 1px. A pill at the end takes 0.
+// 115.3px tall and More stands 35.05px below its top, so the end takes 22.05px. A More that
+// stands 13.5px down takes 0.5px. A pill at the end takes 0.
 // Limits: the figures are given, and the browser half measures the gaps a font gives.
 it('moves the end of the bar in as far as its last control stands below the top padding', () => {
   let tall = 115.3;
@@ -256,8 +260,8 @@ it('moves the end of the bar in as far as its last control stands below the top 
   const bar = screen.getByRole('region');
   expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
   expect(end(bar)).toBe('22.05px');
-  [tall, down] = [34, 14];
-  expect(end(bar)).toBe('1px');
+  [tall, down] = [59, 13.5];
+  expect(end(bar)).toBe('0.5px');
   [tall, down] = [34, 13];
   rerender(<SelectionBar count={2} actions={[]} {...handlers()} />);
   expect(screen.queryByRole('button', { name: 'More' })).toBeNull();

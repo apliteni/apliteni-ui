@@ -79,14 +79,14 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
   const moving = useRef<{ held: number | 'more'; from: number } | null>(null);
 
   // The end padding adds how far the control at the end stands below the top padding, so it
-  // stands as far from the end as from the top. That is 1px beside the count's pill, more
-  // when large text wraps the count, and 0 for the pill at the end. It is read only on a
+  // stands as far from the end as from the top. That is 0 beside a one-line pill and for the
+  // pill at the end, and more when large text wraps the count. It is read only on a
   // settled fit: a bar that holds more actions than its room wraps the count for a moment.
   // why: docs/foundations.md#control-corners
   const readEnd = () => {
     const frame = bar.current;
     const box = frame?.getBoundingClientRect();
-    // A bar that is not laid out, as in jsdom, keeps the sheet's 1px.
+    // A bar that is not laid out, as in jsdom, keeps the sheet's 0.
     if (!frame || !box?.height) return;
     const more = frame.querySelector(':scope > .ui-dropdown');
     const last = more ? buttonIn(more) : buttonIn(slot.current?.lastElementChild) ?? frame.querySelector(':scope > .ui-selection-bar__count');
