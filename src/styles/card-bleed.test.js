@@ -1,29 +1,26 @@
-/* Rule: a card and the parts in it stay inside the page, and on the light page their text
- * starts on the page title's edge.
+/* Rule: a card and the parts in it keep one geometry in both themes, so nothing moves or
+ * changes size when the theme changes (#900). The light theme keeps the dark theme's
+ * spacing; only the paint differs — a light card draws no fill, edge or shadow.
  *
- * A light card hangs its side inset outside the column, so its text starts on the page
- * title's edge. A table in it sits on the column, and a frame hangs out by its side band
- * only. In a dark card, a row table, its frame and a viewer bleed through the card's side
- * inset to reach the card's edges. In 0.190.0 the hang stayed 24px where the folded shell
- * pads the page by 16px, and a light row table kept the dark bleed, so the page scrolled
- * 8px sideways and the table text left the title's edge (#875).
+ * Before #900 the light card hung its side inset outside the column and sat its table flush
+ * on the column edges, so every box moved when the theme changed. The light card now keeps
+ * the dark card's 24px inset and no hang, and a row table, its frame and a viewer bleed by
+ * that inset in both themes alike.
  *
  * This gate builds the cascade of the shell, card, table and stat sheets at each width
  * and theme in JSDOM, with the shared reader of stories/lib/css-at-width.js, and lets JSDOM
  * resolve each custom property per element. It checks:
- * - the card's hang is not more than the page's side padding,
- * - in light, the text of a card, a row table, a row table frame and a dense row table
- *   frame starts and ends within 1px of the column edges,
- * - in dark, the row table and its frame bleed by the card's side inset,
+ * - a card's side inset is 24px in both themes at every width,
+ * - a card never hangs past the column, in either theme,
+ * - a row table and its frame bleed by the card's side inset in both themes,
  * - a viewer bleeds by the card's side inset in both themes,
- * - a stat tile keeps its box and does not hang. It has a 24px side inset, and 16px in
- *   light at 560px and below, as on main,
- * - a dark card, and a light card above 720px, keep a 24px side inset.
+ * - a stat tile keeps its box and does not hang, with a 24px side inset in both themes
+ *   at every width.
  *
  * Limits: JSDOM has no layout, so the gate adds computed margins, borders and paddings,
- * and measures no box. The pointer queries are left out. The page padding above 720px is a
- * clamp, so the gate reads its floor. The card is placed in the shell's main area only. The
- * boxes and the scroll width are measured in Chromium and recorded on the pull request.
+ * and measures no box. The pointer queries are left out. The card is placed in the shell's
+ * main area only. The boxes and the scroll width are measured in Chromium and recorded on
+ * the pull request.
  *
  * why: docs/components.md#card
  */
@@ -39,7 +36,6 @@ const SHEETS = { layout: read('./layout.css'), card: read('./card.css'), table: 
 const WIDTHS = [390, 560, 561, 640, 720, 721, 1280];
 const SKIP = ['(pointer: coarse)', 'not (pointer: coarse)'];
 const SPACE_6 = Number(/--space-6:\s*(\d+)px/.exec(TOKENS)[1]);
-const SPACE_4 = Number(/--space-4:\s*(\d+)px/.exec(TOKENS)[1]);
 
 const px = (value) => {
   const floor = /^clamp\(\s*(-?[\d.]+)px/.exec(value);
@@ -73,42 +69,30 @@ export function checkBleed(sheets = SHEETS, widths = WIDTHS) {
     try {
       const { document, getComputedStyle } = dom.window;
       const at = (what) => `${theme} ${width}px ${what}`;
-      const page = px(getComputedStyle(document.querySelector('.ui-app__main')).paddingLeft);
       for (const id of ['rows', 'frame', 'dense', 'viewer']) {
         const card = document.getElementById(id);
         const part = card.firstElementChild;
         const c = side(getComputedStyle, card, 'Left');
         const bleed = -side(getComputedStyle, part, 'Left').margin;
         const hang = -c.margin;
-        if (![page, hang, c.padding, bleed].every(Number.isFinite)) { problems.push(at(`#${id}: a value does not resolve to px`)); continue; }
-        if (hang > page) problems.push(at(`#${id}: the card hangs ${hang}px past a ${page}px page padding`));
-        if ((theme === 'dark' || width > 720) && c.padding !== SPACE_6) problems.push(at(`#${id}: the side inset moved to ${c.padding}px`));
-        if (theme === 'light' && hang !== c.padding) problems.push(at(`#${id}: the card hangs ${hang}px with a ${c.padding}px side inset`));
-        const cell = card.querySelector('td');
-        if (theme === 'light' && cell) {
-          for (const end of ['Left', 'Right']) {
-            const endCell = card.querySelector(end === 'Left' ? 'td:first-child' : 'td:last-child');
-            const [k, f, t] = [card, part, endCell].map((el) => side(getComputedStyle, el, end));
-            // The card's 1px edge is transparent in light, so the text may stand 1px in.
-            const text = k.margin + k.border + k.padding + f.margin + (part === cell.closest('table') ? 0 : f.border) + t.padding;
-            if (!Number.isFinite(text) || Math.abs(text) > 1) problems.push(at(`#${id}: the table text stands ${text}px off the column's ${end.toLowerCase()} edge`));
-          }
-        }
-        if (theme === 'dark' && ['rows', 'frame'].includes(id) && bleed !== c.padding) problems.push(at(`#${id}: the part bleeds ${bleed}px through a ${c.padding}px side inset`));
+        if (![hang, c.padding, bleed].every(Number.isFinite)) { problems.push(at(`#${id}: a value does not resolve to px`)); continue; }
+        // The one geometry in both themes, so nothing moves when the theme changes (#900).
+        if (c.padding !== SPACE_6) problems.push(at(`#${id}: the side inset moved to ${c.padding}px`));
+        if (hang !== 0) problems.push(at(`#${id}: the card hangs ${hang}px past the column`));
+        if (['rows', 'frame'].includes(id) && bleed !== c.padding) problems.push(at(`#${id}: the part bleeds ${bleed}px through a ${c.padding}px side inset`));
         if (id === 'viewer' && bleed !== c.padding) problems.push(at(`#viewer: the viewer bleeds ${bleed}px through a ${c.padding}px side inset`));
         measured += 1;
       }
-      // A light tile pads 16px at 560px and below, as on main, and 24px above.
+      // A tile keeps its own 24px inset in both themes at every width (#900).
       const tile = side(getComputedStyle, document.getElementById('tile'), 'Left');
-      const tileInset = theme === 'light' && width <= 560 ? SPACE_4 : SPACE_6;
-      if (tile.padding !== tileInset || tile.margin !== 0) problems.push(at(`#tile: the tile pads ${tile.padding}px and hangs ${-tile.margin}px`));
+      if (tile.padding !== SPACE_6 || tile.margin !== 0) problems.push(at(`#tile: the tile pads ${tile.padding}px and hangs ${-tile.margin}px`));
       measured += 1;
     } finally { dom.window.close(); }
   }
   return { problems, measured };
 }
 
-test('a card and its parts stay inside the page, with light text on the column edge', () => {
+test('a card and its parts keep one geometry in both themes, so a theme change moves nothing', () => {
   const { problems, measured } = checkBleed();
   assert.deepEqual(problems, []);
   assert.equal(measured, 2 * WIDTHS.length * 5, 'every theme, width and part must be measured');
@@ -120,21 +104,19 @@ test('the bleed check rejects the hangs, bleeds and insets of 0.190.0', () => {
     assert.notEqual(next, SHEETS[sheet], `the mutation edits ${sheet}.css: ${from}`);
     return { ...SHEETS, [sheet]: next };
   };
-  const LIGHT = ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live)';
   const cases = [
-    // The light inset shrinks only at 560px, so the card hangs past the folded page.
-    ['the light hang', swap('card', '@media (max-width: 720px)', '@media (max-width: 560px)'), 'past a 16px page padding', 561],
-    // Without the light table rule the dark bleed wins, and the text leaves the column.
-    ['the light row table', swap('table', `${LIGHT} > .ui-table {`, `${LIGHT} > .ui-none {`), '#rows: the table text stands -15px', 390],
-    ['the light row table above 720px', swap('table', `${LIGHT} > .ui-table {`, `${LIGHT} > .ui-none {`), '#rows: the table text stands -23px', 1280],
-    ['the light frame band', swap('table', `${LIGHT} > .ui-table-scroll {`, `${LIGHT} > .ui-none {`), '#dense: the table text stands', 1280],
-    ['the viewer bleed', swap('card', 'calc(-1 * var(--ui-card-inset)) 0;', 'calc(-1 * var(--space-6)) 0;'), '#viewer: the viewer bleeds 24px', 390],
-    // A dark card that follows the light inset changes a theme the fix must keep.
-    ['the dark inset', swap('card', `${LIGHT} {\n    --ui-card-inset`, '.ui-card {\n    --ui-card-inset'), 'dark 390px #rows', 390],
-    // A light tile that takes the light card's inset loses 8px from 561 to 720px.
-    ['the tile inset', swap('stat', '--ui-card-inset: var(--ui-tile-inset, var(--space-6));', ''), '#tile: the tile pads 16px', 640],
-    // A phone tile that keeps 24px changes the look that main has at 560px and below.
-    ['the phone tile inset', swap('card', '{ --ui-tile-inset: var(--space-4); }', '{ }'), '#tile: the tile pads 24px', 390],
+    // A light card that hangs again steals the column and moves its box off the dark theme's.
+    ['the light hang', swap('card', 'box-shadow: none;\n}', 'box-shadow: none;\n  margin-inline: calc(-1 * var(--ui-card-inset));\n}'), 'light 390px #rows: the card hangs', 390],
+    // A light card whose side inset shrinks moves the text off the dark theme's edge.
+    ['the light inset', swap('card', 'box-shadow: none;\n}', 'box-shadow: none;\n  padding-inline: var(--space-4);\n}'), 'light 390px #rows: the side inset moved to 16px', 390],
+    // A table that stops bleeding leaves the card's side band empty in both themes.
+    ['the table bleed', swap('table', 'margin-inline: calc(-1 * var(--ui-card-inset));', 'margin-inline: 0;'), '#rows: the part bleeds 0px', 390],
+    // A viewer that stops bleeding does the same.
+    ['the viewer bleed', swap('card', 'margin: var(--space-4) calc(-1 * var(--ui-card-inset)) 0;', 'margin: var(--space-4) 0 0;'), '#viewer: the viewer bleeds 0px', 390],
+    // A light tile that narrows moves its text off the tile's 24px box.
+    ['the tile inset', swap('stat', '--ui-card-inset: var(--ui-tile-inset, var(--space-6));', '--ui-card-inset: var(--ui-tile-inset, var(--space-4));'), '#tile: the tile pads 16px', 640],
+    // A phone tile that pads 16px again moves its label 8px off the dark theme's box.
+    ['the phone tile inset', swap('card', 'difference. */', 'difference. */\n@media (max-width: 560px) {\n  :root[data-theme="light"] .ui-stats--tiles { --ui-tile-inset: var(--space-4); }\n}'), '#tile: the tile pads 16px', 390],
   ];
   for (const [name, sheets, says, width] of cases) {
     const { problems } = checkBleed(sheets, [width]);

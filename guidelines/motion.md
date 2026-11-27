@@ -12,7 +12,19 @@
 
 **Don't:** Make new content appear in one frame.
 
-**Except:** Update counts, ranges, and status lines immediately.
+## Every visible change is a smooth transition
+
+<!-- rule: every-change -->
+
+**Rule:** Give every visible change of state a smooth transition with a kit duration and easing.
+
+**Why:** A change that snaps reads as a fault, and shared timing keeps changes fluent.
+
+**Do:** Cross-fade a count that changes in place in 150ms, and fade a theme change across the page in 250ms.
+
+**Don't:** Leave a value, a drawer or a theme change in one frame.
+
+**Except:** Hover changes at once; the focus ring and text typed in a field stay in one step.
 
 ## Match duration to motion
 
@@ -20,7 +32,7 @@
 
 **Rule:** Use 80ms for presses, 150ms for focus and a turning caret, 250ms for surfaces, and 400ms for entrances.
 
-**Why:** Shared durations keep the same interaction from taking different amounts of time across the product.
+**Why:** Shared durations keep one interaction from taking different times across the product.
 
 **Do:** Use the kit's four duration steps for presses, controls, surfaces and entrances.
 
@@ -30,9 +42,9 @@
 
 <!-- rule: hover-at-once -->
 
-**Rule:** Change a hover at once, as the one state change that does not fade.
+**Rule:** Change a hover at once; it does not fade.
 
-**Why:** A reply within about 0.1 seconds feels instant (Miller, 1968, Nielsen, 1993), and a hover fade trails the pointer.
+**Why:** A reply within 0.1 seconds feels instant, and a hover fade trails the pointer.
 
 **Do:** Fill a table row, a button or a menu row in the pointer's first frame.
 

@@ -450,11 +450,9 @@
 /* The tools wrap at the narrowest phone, so a period picker and a view action stay in the column. #832 */
 .ui-app__tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: var(--space-3); max-width: 100%; }
 /* --ui-block-gap is the gap between two blocks. A control row above a block reads it, so
-   its margin holds in each theme. */
+   its margin holds in each theme. One spacing in both themes, so no block moves when the
+   theme changes. #900 */
 .ui-app__body { --ui-block-gap: var(--space-5); display: flex; flex-direction: column; gap: var(--ui-block-gap); }
-/* #850: on the light page a card draws no box, so the body opens to the page's group gap.
-   why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-app__body { --ui-block-gap: var(--space-10); gap: var(--ui-block-gap); }
 /* A stat band closes one section, so the block after it keeps the group gap on
    top of the body's: the air the old soft line used to give, now as space alone.
    why: guidelines/dashboards-and-reports.md, #850 */
