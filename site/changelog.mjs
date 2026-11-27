@@ -1,5 +1,12 @@
 export const RELEASES = [
   {
+    v: '0.231.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'At 560px and below, the phone breakpoint, a table pins no column. A `pinnedIdentity` column and the selection column now scroll sideways with the other columns, draw no divider, and keep their whole text and logo. Above 560px the pin is as before. You do not need to change a call. Part of #902.', ['Table', 'DataTable']],
+      ['changed', 'The Dense tables guideline rule Scroll instead of squeezing now says that a phone table has no pinned column. Part of #902.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.229.0', date: '2026-11-27',
     changes: [
       ['changed', 'A filter chip now keeps the width of its longest value up to 128px, in place of 224px, so five chips with long values fit one line beside a search field at 1440px. A pick still does not move the row. A longer value ends with an ellipsis, and the hover title, the trigger name and the menu keep the full value. Part of #915.', ['FilterBar']],

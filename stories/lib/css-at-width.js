@@ -14,12 +14,16 @@ import { substitute, tokensFor } from './contrast.js';
 /** Blank out comments. A declaration inside one is not a declaration. */
 export const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, ' ');
 
-/** `(max-width: 720px)`, `(min-width: 561px)` and their conjunctions. A part that the
- *  caller names in `skip`, such as `(pointer: coarse)`, makes the block not apply. Anything
- *  else is a case a caller cannot judge, so it stops rather than passing over it. */
+/** `(max-width: 720px)`, `(min-width: 561px)`, the range form `(width > 560px)` and their
+ *  conjunctions. A part that the caller names in `skip`, such as `(pointer: coarse)`, makes
+ *  the block not apply. Anything else is a case a caller cannot judge, so it stops rather
+ *  than passing over it. */
+const COMPARE = { '<': (a, b) => a < b, '<=': (a, b) => a <= b, '>': (a, b) => a > b, '>=': (a, b) => a >= b };
 export function mediaApplies(condition, width, skip = []) {
   return condition.split(/\s+and\s+/).map((part) => part.trim()).every((part) => {
     if (part === '(forced-colors: active)' || skip.includes(part)) return false;
+    const range = /^\(width\s*(<=|>=|<|>)\s*(\d+(?:\.\d+)?)px\)$/.exec(part);
+    if (range) return COMPARE[range[1]](width, Number(range[2]));
     const m = /^\((max|min)-width:\s*(\d+(?:\.\d+)?)px\)$/.exec(part);
     assert.ok(m, `a media condition this gate cannot evaluate: ${part}`);
     return m[1] === 'max' ? width <= Number(m[2]) : width >= Number(m[2]);

@@ -88,7 +88,7 @@
 
 **Don't:** Squeeze columns until values are unreadable or silently remove data.
 
-**Except:** On a phone, a table stays a table and scrolls sideways. Never turn its rows into cards.
+**Except:** On a phone, a table stays a table and scrolls sideways with no pinned column. Never turn its rows into cards.
 
 ## Keep identity sub-lines as text
 

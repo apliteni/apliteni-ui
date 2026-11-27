@@ -1,5 +1,5 @@
 /* Rule: a table scroll frame draws no shade on its edges, and a pinned column casts none
- * on the columns that scroll under it (#770). The scroller's own border and the pinned
+ * on the columns that scroll under it (#770). On a phone no column is pinned. The scroller's own border and the pinned
  * column's divider are the only lines left. docs/components.md states it.
  *
  * Two halves:
@@ -105,6 +105,8 @@ const THEMES = ['light', 'dark'];
  * must be one of them. The members story must be one too. Before #770 its "Actions" label
  * widened the page under a header that does not stick, and its closed tooltips made the
  * frame scroll past the table. Each defect is put back there to prove the check sees it.
+ * No cell stays in place while a frame scrolls to its end: a phone pins no column
+ * (rev_1982326c19de/d88). The pin is put back on the payouts story to prove it.
  *
  * The members story also holds the card frame (#782), at 390 and 1440 wide: at 390 the
  * table overflows, so the frame is a keyboard stop and its ring shows on all four sides
@@ -121,7 +123,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
   const { existsSync } = await import('node:fs');
   const { playwright, serve, indexed, openStory, STORY_DONE } = await import('./lib/dropdown-contain.js');
   const {
-    PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX,
+    PHONE_FIT, phoneFitFindings, FRAME_UNCLIPPED, FRAME_FLOORLESS, LABEL_ESCAPES, CLOSED_TIP_BOX, PIN_ON_PHONE,
     decodePNG, CARD_FRAME, cardFrameFindings, FRAME_BANDLESS, FRAME_TOPLESS, FRAME_EDGE_LINE, FRAME_GAP_BELOW,
   } = await import('./lib/table-edge-shade.js');
   const shot = async (page) => decodePNG(await page.screenshot({ fullPage: true, animations: 'disabled' }));
@@ -178,7 +180,7 @@ test('measured in a browser: a phone table scrolls inside its frame', { skip: !R
         t.diagnostic(`${theme} ${story.id}: ${JSON.stringify(fit)}`);
         assert.deepEqual(phoneFitFindings(fit, mustScroll), [], `${story.label} ${theme}`);
         if (story.id === PAYOUTS_STORY) {
-          for (const [what, mutation] of [['an unclipped frame', FRAME_UNCLIPPED], ['a frame without a zero floor', FRAME_FLOORLESS]]) {
+          for (const [what, mutation] of [['an unclipped frame', FRAME_UNCLIPPED], ['a frame without a zero floor', FRAME_FLOORLESS], ['a pinned column', PIN_ON_PHONE]]) {
             const style = await page.addStyleTag({ content: mutation });
             assert.notDeepEqual(phoneFitFindings(await page.evaluate(PHONE_FIT), true), [], `${theme}: ${what} still passed`);
             await style.evaluate((node) => node.remove());
