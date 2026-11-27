@@ -22,7 +22,10 @@
  * mutation hides one sidebar and one menu, and the coverage check must name both. A
  * mutation renders the wrong theme, and the coverage check must name it. A mutation
  * gives each kind of ABSENT case a sidebar or a dark theme, and the coverage check must
- * name both. It also measures the do-and-don't pair on the page guideline at both sizes
+ * name both. A case in ABSENT for one section must show the shell's main area and no
+ * Storybook error, or it fails: a story that throws or renders nothing draws no sidebar
+ * either. A mutation makes one such story throw in its render, and another empties its
+ * root, and the coverage check must name each. It also measures the do-and-don't pair on the page guideline at both sizes
  * and in both themes: the Do rail keeps both columns, and the Don't rail moves only the
  * avatar and the account name after it.
  * The CI half is the edge arithmetic in react/src/AppShell.test.tsx.
@@ -58,7 +61,7 @@ const ALONE = 'one section, so the shell draws no sidebar and no menu';
 // A story that forces light in its globals draws no dark case: the URL theme cannot
 // override a story-level global. It renders light when the plan asks for dark.
 const FORCED_LIGHT = 'the story forces light theme, so it draws no dark case';
-const HOLDS = { [ALONE]: (m) => m === null, [FORCED_LIGHT]: (m) => m !== null && m.theme === 'light' };
+const HOLDS = { [ALONE]: (m) => m?.where === 'none', [FORCED_LIGHT]: (m) => m !== null && m.where !== 'none' && m.theme === 'light' };
 const ABSENT = Object.fromEntries([
   ...['react-appshell--band-actions-alone', 'react-appshell--band-actions-alone-phone']
     .flatMap((id) => SIZES.flatMap(({ width }) => THEMES.map((theme) => [`${id} at ${width} ${theme}`, ALONE]))),
@@ -67,6 +70,19 @@ const ABSENT = Object.fromEntries([
 ]);
 // The guideline pair: Guidelines/The page, rule "Align the sidebar on one column".
 const PAIR = '.tp-rail .ui-app__rail';
+// The story drew its shell: the main area is in the story root, and Storybook shows no
+// error. A story that throws in its render still reaches phase `finished`, with an empty
+// root and the error display on the body.
+const SHELL = () => !document.body.classList.contains('sb-show-errordisplay')
+  && !!document.querySelector('#storybook-root .ui-app .ui-app__main');
+// The render mutations. THROW gives the story a `groups` that is not a list, so AppShell
+// throws in its render. EMPTY removes everything the story drew.
+const THROW = (id) => new Promise((done) => {
+  const channel = window.__STORYBOOK_ADDONS_CHANNEL__;
+  for (const event of ['storyThrewException', 'storyErrored', 'storyRendered']) channel.once(event, done);
+  channel.emit('updateStoryArgs', { storyId: id, updatedArgs: { groups: 'x' } });
+});
+const EMPTY = () => document.querySelector('#storybook-root').replaceChildren();
 
 // The edges of the sidebar or the open menu that the page shows now, or of the rail at
 // `pick` in a page with more than one. It is async, so a missing element fails the
@@ -162,17 +178,22 @@ function judge(id, m) {
 const key = (id, width, theme) => `${id} at ${width} ${theme}`;
 
 /** One case: the sidebar at 1280, or the menu at 390 when the story has a menu button.
- *  `extra` is a style that a mutation adds. A story that does not render measures nothing. */
-async function measure(page, story, { port, size, theme, extra, forceTheme }, openStory) {
+ *  `extra` is a style that a mutation adds, and `mutate` a page function that it runs. A
+ *  story that does not render its shell measures nothing. A shell with no sidebar and no
+ *  menu measures `where: 'none'`. */
+async function measure(page, story, { port, size, theme, extra, forceTheme, mutate }, openStory) {
   await page.setViewportSize(size);
   const got = await openStory(page, story, { port, theme });
   if (got.phase !== 'finished' || got.id !== story.id) return null;
+  if (mutate) await page.evaluate(mutate, story.id);
+  if (!(await page.evaluate(SHELL))) return null;
+  const none = async () => ({ where: 'none', theme: await page.evaluate(() => document.documentElement.getAttribute('data-theme')) });
   if (extra) await page.addStyleTag({ content: extra });
   if (forceTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), forceTheme);
   const read = () => page.evaluate(MEASURE).catch((e) => { throw new Error(`${key(story.id, size.width, theme)}: ${e.message}`); });
-  if (size.width > 720) return read();
+  if (size.width > 720) return (await read()) ?? none();
   const menu = page.locator('.ui-app__menu:visible');
-  if (!(await menu.count())) return null;
+  if (!(await menu.count())) return none();
   if (!(await page.locator('.ui-drawer.is-open').count())) await menu.click();
   await page.locator('.ui-drawer.is-open .ui-drawer__panel').waitFor();
   return read();
@@ -186,10 +207,11 @@ function coverage(cases) {
   for (const [at, m] of cases) {
     const id = at.split(' ')[0];
     if (ABSENT[at]) {
-      if (!HOLDS[ABSENT[at]](m)) found.push(`${at}: ABSENT says "${ABSENT[at]}", but it measured ${m ? `${m.where} in ${m.theme}` : 'nothing'}`);
+      if (!HOLDS[ABSENT[at]](m)) found.push(`${at}: ABSENT says "${ABSENT[at]}", but it measured ${m ? `${m.where} in ${m.theme}` : 'no shell'}`);
       continue;
     }
-    if (!m) { found.push(`${at}: no sidebar or menu was measured`); continue; }
+    if (!m) { found.push(`${at}: the story drew no shell`); continue; }
+    if (m.where === 'none') { found.push(`${at}: no sidebar or menu was measured`); continue; }
     const theme = at.split(' ').at(-1);
     if (m.theme !== theme) found.push(`${at}: rendered theme ${m.theme}, not the planned ${theme}`);
     const want = at.includes(' at 390 ') ? 'menu' : FOLDED.has(id) ? 'folded' : 'open';
@@ -225,7 +247,7 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
           // An ABSENT case is opened too, so the coverage check can test its reason.
           const m = await measure(page, story, { port, size, theme }, openStory);
           cases.set(at, m);
-          if (!m || ABSENT[at]) continue;
+          if (!m || m.where === 'none' || ABSENT[at]) continue;
           drawn[m.where] += 1;
           if (m.groups) drawn.groups += 1;
           if (m.layout === 'rail') drawn.rail += 1;
@@ -234,7 +256,7 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
       }
     }
     const planned = stories.length * SIZES.length * THEMES.length;
-    const measured = [...cases].filter(([at, m]) => m && !ABSENT[at]).length;
+    const measured = [...cases].filter(([at, m]) => m && m.where !== 'none' && !ABSENT[at]).length;
     console.log(`planned ${planned}, measured ${measured}, absent ${Object.keys(ABSENT).length}: ${JSON.stringify(drawn)}`);
     assert.equal(cases.size, planned, 'a story, a size or a theme left the plan');
     assert.deepEqual(coverage(cases), []);
@@ -303,6 +325,22 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
     for (const at of [...SIZES.map((size) => key(alone, size.width, 'light')), forced]) {
       assert.ok(ABSENT[at], `the stale-exclusion mutation needs ${at} in ABSENT`);
       assert.ok(namedStale.some((f) => f.startsWith(`${at}: ABSENT says`)), `a stale exclusion passed: the coverage check cannot see ${at}`);
+    }
+
+    // The render mutations: a one-section story that throws in its render, and one that
+    // renders nothing. Each draws no sidebar, as the exclusion expects, so the check
+    // must name each by its missing shell, or a broken story would pass as an absence.
+    const lone = stories.find((s) => s.id === alone);
+    assert.ok(lone, `the render mutations need ${alone}`);
+    for (const mutate of [THROW, EMPTY]) {
+      const broken = new Map(cases);
+      for (const size of SIZES) broken.set(key(alone, size.width, 'light'), await measure(page, lone, { port, size, theme: 'light', mutate }, openStory));
+      const namedBroken = coverage(broken);
+      for (const size of SIZES) {
+        const at = key(alone, size.width, 'light');
+        assert.ok(namedBroken.includes(`${at}: ABSENT says "${ALONE}", but it measured no shell`),
+          `a ${mutate === THROW ? 'thrown' : 'empty'} render passed: the coverage check cannot see ${at}`);
+      }
     }
 
     // The mutation: the rows and the avatar as they were before #869. The walk must see
