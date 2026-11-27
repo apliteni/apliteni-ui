@@ -72,7 +72,8 @@ test('export at the row end: below the phone step the end control stays in the r
  * and centres are in docs/evidence/768-row-align. */
 const endBesideChips = (layout, filterBar) => {
   const phone = [...layout.matchAll(/@media \(max-width: 560px\)\s*\{([\s\S]*?)\n\}/g)].map((m) => m[1]).join('\n');
-  const end = phone.match(/\.ui-toolbar--split:has\(\.ui-filter-bar\)\s*>\s*:last-child\s*\{([^}]*)\}/);
+  // A small bar's row is excluded: its end control takes the small height by its own size. #903
+  const end = phone.match(/\.ui-toolbar--split:has\(\.ui-filter-bar:not\(\.ui-filter-bar--sm\)\)\s*>\s*:last-child\s*\{([^}]*)\}/);
   if (!end || !/min-height:\s*var\(--ui-filter-row-h\)/.test(end[1])) return 'the phone end control takes no chip height';
   // Without comments: an apostrophe in a comment would open a string for the selector split.
   const named = [...filterBar.replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([^{}]+)\{([^}]*--ui-filter-row-h:[^}]*)\}/g)]

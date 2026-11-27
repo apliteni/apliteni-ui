@@ -17,8 +17,8 @@
 .ui-query__remove { position: relative; flex: none; border: 0; background: transparent; /* muted-ink: glyph — query chip remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-pill); cursor: pointer; }
 .ui-query__remove:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
 .ui-query__remove:disabled { /* muted-ink: state — unavailable remove mark on the page */ color: var(--disabled-ink-bare); }
-/* In a small toolbar row the mark takes a tight line, so it fits the 32px chip. */
-.ui-toolbar:has(> .ui-query .ui-input--sm) .ui-query__remove { line-height: var(--leading-tight); }
+/* In a small bar the mark takes a tight line, so it fits the small chip. */
+.ui-filter-bar--sm .ui-query__remove { line-height: var(--leading-tight); }
 /* On a touch screen a chip's label is at least the 44px floor wide, because its layer may not
    grow across into the remove mark. */
 @media (pointer: coarse) {

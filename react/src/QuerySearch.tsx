@@ -13,7 +13,7 @@ export type QuerySearchProps = {
   /** The field's name. */
   ariaLabel: string;
   placeholder?: string;
-  /** `sm` is the small toolbar field, as on SearchField. */
+  /** `sm` is the small field, as on SearchField. Its chips are then a small filter bar. */
   size?: 'sm';
   /** The hidden name of the chip group. */
   chipsLabel?: string;
@@ -191,7 +191,7 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
       </div>}
     </div>
     <span id={helpId} className="ui-sr">Type a title, {keys.map(k => `${k.key}:`).join(', ')}{keys.some(k => k.kind === 'person') ? ', or @name' : ''}. Arrows choose a suggestion. Enter applies it. Escape closes the list.</span>
-    {chips.length > 0 && <fieldset className="ui-filter-bar ui-query__chips">
+    {chips.length > 0 && <fieldset className={`ui-filter-bar${size === 'sm' ? ' ui-filter-bar--sm' : ''} ui-query__chips`}>
       <legend className="ui-filter-bar__legend">{chipsLabel}</legend>
       {chips.map((raw, i) => {
         let label = raw;

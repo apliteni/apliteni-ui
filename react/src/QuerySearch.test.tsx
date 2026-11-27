@@ -121,6 +121,12 @@ describe('QuerySearch', () => {
     await user.keyboard('{Backspace}');
     expect(chips()).toEqual(['Open']);
   });
+  it('makes its chips a small filter bar when the field is small', () => {
+    const { rerender } = render(<QuerySearch keys={KEYS} value={{ chips: ['state:open'], draft: '' }} onChange={() => {}} ariaLabel="Search tasks" size="sm" />);
+    expect(screen.getByRole('group', { name: 'Active filters' })).toHaveClass('ui-filter-bar', 'ui-filter-bar--sm');
+    rerender(<QuerySearch keys={KEYS} value={{ chips: ['state:open'], draft: '' }} onChange={() => {}} ariaLabel="Search tasks" />);
+    expect(screen.getByRole('group', { name: 'Active filters' })).not.toHaveClass('ui-filter-bar--sm');
+  });
   it('edits a chip by its label, and removes a focused chip with Delete or by its mark', async () => {
     const user = userEvent.setup();
     render(<Harness start={{ chips: ['state:open', 'assignee:p2', 'report'], draft: '' }} />);

@@ -151,12 +151,13 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // 16 -> 18: #789 rings the nav row inward, at rest and current, because the rows stand
   // 2px apart and an outward band crossed into the next row.
   // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
-  // 19 -> 20: #866 rings the card board inward, because its columns scroll sideways in it.
-  assert.equal(scrollRules.length, 20,
+  // 19 -> 20: #907 rings a toast stack inward while it is taller than the view and scrolls.
+  // 20 -> 21: #866 rings the card board inward, because its columns scroll sideways in it.
+  assert.equal(scrollRules.length, 21,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
-  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 4,
-    'React\'s modal body, the picker\'s shortcut row, the account rail and the three-column page\'s columns '
-    + 'are not all among them, so the walk '
+  assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 5,
+    'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns '
+    + 'and the scrolling toast stack are not all among them, so the walk '
     + 'stopped reading react/src');
   assert.deepEqual(offsetProblems(scrollRules, '--ring-scroll'), []);
 });
@@ -282,8 +283,9 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 49 -> 50: #866 adds the query chip's remove mark.
   assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
-  // 19 -> 20: #866 adds the card board.
-  assert.equal(scrollRules.length, 20, 'scroll-ring consumer discovery changed');
+  // 19 -> 20: #907 adds the scrolling toast stack.
+  // 20 -> 21: #866 adds the card board.
+  assert.equal(scrollRules.length, 21, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 

@@ -6,15 +6,40 @@
 
 export const RELEASES = [
   {
-    v: '0.211.0', date: '2026-11-26',
+    v: '0.221.0', date: '2026-11-27',
     changes: [
       ['added', '`QuerySearch` is a list search that reads typed filters, such as `state:open`, and `@name` for a person. It suggests keys, values and people, and each condition becomes a chip that you can edit or remove. `parseQuery`, `readQuery` and `matchQuery` read the same query for your list. Apps with a plain `SearchField` see no change. Part of #866.', ['QuerySearch']],
       ['added', '`MovableCard` is a card that a person moves to another column, such as a task on a board. It keeps its box in both themes and is one named Tab stop. `CardSlot` marks where a card lands, `held` leaves an empty slot, and `ui-card--lifted` keeps the moving copy fixed above the page. `ui-card-board` is the sideways scroll region for the columns, with the scroll band on keyboard focus and no scrollbar at 560px and below. Part of #866.', ['Card']],
       ['fixed', 'A pinned `DataTable` title that is a link keeps one line above 720px too. It is cut between `--panel-sm` and `--panel-lg`, so a long title no longer covers the other columns. Tables with a pinned, linked title are affected. Part of #866.', ['DataTable']],
       ['added', '`AppShell` takes `head="compact"`, which puts `actions` at the end of the title row and stands the next block 8px under it. Pages without it keep the actions row. Part of #866.', ['AppShell']],
-      ['changed', 'A toolbar that starts with a small `QuerySearch` is a small row, as one with a small `SearchField` is, and keeps the search, Group by and the view switch on one line above 560px. A dropdown trigger with `ui-btn--ghost` now has no fill and no edge at rest. Part of #866.', ['Toolbar', 'Dropdown']],
+      ['changed', '`QuerySearch` takes `size="sm"` for a small field, and its chips are then a small filter bar. A toolbar that starts with a `QuerySearch` keeps the search, Group by and the view switch on one line above 560px. A dropdown trigger with `ui-btn--ghost` now has no fill and no edge at rest. Part of #866.', ['Toolbar', 'Dropdown']],
       ['added', 'Two guideline pages: Task list, with the rules Move cards on a board and Put New task beside the title, and Notification email, with the rule Link the task and the settings. The Toolbar docs now allow the create action at the end of a compact title row. Part of #866.', ['Guidelines']],
       ['added', 'Two showcases: Tasks, with a Table and a Board of the same tasks and one shared search, and Task mail, with a new task mail and a daily digest in plain text and HTML. Part of #866.', ['Showcases']],
+    ],
+  },
+  {
+    v: '0.214.0', date: '2026-11-26',
+    changes: [
+      ['added', '`FilterBar` and `Dropdown` take `size="sm"`, or the classes `.ui-filter-bar--sm` and `.ui-dropdown--sm`. Beside a small `SearchField` and a small `Button`, the chips, Filter, Clear all and the trigger are then 32px high with a mouse and 40px on a touch screen. Part of #903.', ['FilterBar', 'Dropdown']],
+      ['changed', 'A toolbar that starts with a small search field no longer makes its chips 32px. An app with a small filter row passes `size="sm"` to its `FilterBar` and `Dropdown`, or the chips stay 40px. The height now holds when the field is in a wrapper or the bar is outside the toolbar. Part of #903.', ['FilterBar', 'SearchField']],
+      ['changed', 'On a touch screen a small `Button` or `Segmented` on a toolbar is 40px high in any row, and a small wordless button is a 40px circle. On a phone, a wordless button of the small, default or large size on a toolbar reaches the 44px tap floor. An extra-small wordless button (`size="xs"`) does not reach it, so use `size="sm"` or larger where a phone user taps it. A wordless button of the default size beside a small search field is no longer 46px. Give it `size="sm"`. Part of #903.', ['Button']],
+    ],
+  },
+  {
+    v: '0.213.0', date: '2026-11-26',
+    changes: [
+      ['added', '`Toast` takes `bottomOffset`, the inset of the stack from the bottom of the view, in pixels or a CSS length. The default stays 16px. A page with a bar at the bottom sets it so the notices stand above the bar. Remove any selector that moves `.rx-toast-stack`. Part of #907.', ['Toast']],
+      ['changed', 'The countdown ring of an undo notice takes the ink of its action, so it keeps 3:1 on its track in each tone and theme. The `--toast-timer-mix` and `--toast-timer-mix-strong` custom properties are removed. Part of #907.', ['Toast']],
+      ['fixed', 'A toast stack that is taller than the view stops 16px below the top and scrolls, so every notice stays on screen on a short phone. The published reach follows a resize of the view. When a notice leaves, a control in the stack that has the focus stays in view. The Dismiss button of a notice has a hover title. Part of #907.', ['Toast']],
+      ['fixed', 'An icon-only `Button` with an `aria-label` takes it as its hover title too, unless you set a `title`. Part of #907.', ['Button']],
+    ],
+  },
+  {
+    v: '0.212.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `StatBand` with `variant="band"` and up to three figures now keeps them in one row on a phone. Below 42rem of band width the value steps down to 22px, 18px and then 15.5px, and the gap between figures closes to 16px, 8px and then 4px. Three values of `−€9,999,999` fit in one row above 19rem, and the figures stack only at 19rem or below. Tiles, an open band and a band of four figures keep their folds. Part of #865.', ['Stat band']],
+      ['changed', 'A toolbar directly after a stat band in the page body now keeps one group gap, 32px, in both themes, in place of the group gap plus the body gap. Part of #865.', ['Stat band', 'Toolbar']],
+      ['changed', 'The Density and accents guideline rule Check a narrow stat band now says: a band keeps up to three figures in one row above 19rem and stacks them at 19rem or below. A new Transactions showcase shows the band above a search, a filter and a table. Part of #865.', ['Guidelines']],
     ],
   },
   {

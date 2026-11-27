@@ -421,8 +421,8 @@ decorative content before the label, and it wins over `icon`. `block` fills the 
 `<button type="button">`. Refs and native attributes go to the element that it draws.
 
 **Icon-only buttons.** With `iconOnly`, the glyph is the whole button. The button copies its
-string children, or else its icon name, into `aria-label` and `title`. With neither, it has no
-name. Earn a wordless button on the Button labels page of the guidelines.
+string children, or else its icon name, into `aria-label` and `title`. An `aria-label` that you
+set is also the `title`, unless you set a `title`. With neither, it has no name. Earn a wordless button on the Button labels page of the guidelines.
 
 **Busy.** `busy` shows three pulsing dots in place of the label, and the button keeps its size.
 The button keeps the focus. Clicks, Enter and Space do nothing while it is busy. A status region
@@ -488,7 +488,9 @@ dropdown must have a search field: [Component choice](../guidelines/component-ch
 `avatar`, `badge`, `muted`, `selected` and `disabled`. `'---'` is a separator. `sections` groups
 rows under group labels, with space before each next group. `header` and `footer` add content above and below the rows. `onSelect` gets the value
 and the row. `open`, `defaultOpen` and `onOpenChange` control the panel. `disabled` turns the
-trigger off: no keyboard stop, no panel and the disabled paint.
+trigger off: no keyboard stop, no panel and the disabled paint. `size="sm"` gives the trigger the
+small control height: 32px with a mouse and 40px on a touch screen. Use it on a
+[toolbar](#toolbar) beside a small search field.
 
 **What the user sees.**
 
@@ -650,7 +652,8 @@ a dense table. With a mouse it is 32px high with `--text-sm`. On a touch screen 
 16px text, because iOS zooms into a field with smaller text. `width` sizes the whole group, icon
 included, for a field that should fit its expected input instead of growing across the toolbar row;
 give it a CSS width such as `24ch`. The field has no clear button of its
-own, because the browser draws one. See [Toolbar](#toolbar).
+own, because the browser draws one. The page structure around the field does not change its
+height. See [Toolbar](#toolbar).
 
 ### Query search
 
@@ -852,6 +855,9 @@ row with an empty value. A pick and Clear all call your handlers. They never cha
 `add` and `onAdd` add a Filter control after the chips. Its menu holds one section for each filter that the bar does not show,
 with a search field from ten values. When you add the filter in the same update, the focus goes to
 the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words and the look.
+`size="sm"` gives the chips, Filter and Clear all the small control height: 32px with a mouse and
+40px on a touch screen. The bar keeps it in a toolbar, in a wrapper or on a line of its own.
+Without `size`, a chip is 40px high.
 
 **What the user sees.** A chip shows only the chosen value. Without a value, it shows the filter
 name. Each chip takes the width of its longest value, up to 224px. A value change does not change
@@ -883,20 +889,26 @@ of the title row instead, as on the task page.
 ```tsx
 <div className="ui-toolbar">
   <SearchField ariaLabel="Search invoices" size="sm" />
-  <FilterBar … />
+  <FilterBar size="sm" … />
+  <Dropdown size="sm" … />
   <Segmented label="View" size="sm" … />
+  <Button size="sm" iconOnly icon="download">Export rows</Button>
 </div>
 ```
 
 **What the user sees.** Each control on a toolbar line has the same height, so a button beside a
 field has the same top and bottom edge. Do not change the size of a control to make it fit. A
-toolbar that starts with a small search field is a small row: with a mouse, the chips, Filter,
-Clear all, a dropdown trigger, a small Segmented and a small button are 32px. Give the Segmented
-and the button `size="sm"` yourself. The small search field stops at 320px. On a touch screen the
-row is 40px. `.ui-toolbar--split` puts the last control at the end of the row, also on a phone.
+small row gives each control `size="sm"`: the search field, the filter bar, a dropdown, a
+Segmented and a button. With a mouse they are 32px high, and on a touch screen 40px. A wordless
+small button is a circle of that height. The size prop sets the height, not the page structure,
+so a wrapper around the field or a filter bar outside the toolbar keeps it. On a touch screen a
+small button or Segmented takes 40px as a direct child of `.ui-toolbar`. Without React, the
+classes are `.ui-input--sm`, `.ui-filter-bar--sm`, `.ui-dropdown--sm`, `.ui-seg--sm` and
+`.ui-btn--sm`. The small search field stops at 320px. `.ui-toolbar--split` puts the last control
+at the end of the row, also on a phone.
 
-A toolbar that starts with a small [query search](#query-search) is a small row too. The query
-search takes the free width up to 560px, and its chips grow it downwards. So Group by and the
+A small [query search](#query-search) takes `size="sm"`, and its chips are then a small filter bar.
+In a toolbar the query search takes the free width up to 560px, and its chips grow it downwards. So Group by and the
 view switch stay level with its field, and the view switch stands at the end of the row.
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At
@@ -1079,18 +1091,32 @@ ninth notice makes the pile no taller than a third. A device without hover alway
 column. Under reduced motion the timer line is not drawn, and the ring moves one step each second.
 In forced colours the ring stays, in the button colour, and its track takes the grey text colour.
 
-**Colour of the ring.** The ring mixes the notice tone into the notice ground: 45% in dark and
-95% in light (`--toast-timer-mix`). A danger ring and a neutral ring take 60% in dark and 85% in
-light (`--toast-timer-mix-strong`). Every ring keeps 3:1 on the notice ground and on the hover fill
-of its action, in both themes, under every accent. The track mixes 35% of the ring colour into the
-notice ground. It shows on both grounds, and the ring keeps 2:1 against it. In light the hover
-fill of the action is `--surface-3`, because a mix of `--bg` does not show on the white notice.
+**Colour of the ring.** The ring takes the ink of its action. The track mixes 35% of the ring
+colour into the notice ground. The ring keeps 3:1 on the notice ground, on the hover fill of its
+action and on its track, in each tone, in both themes, under every accent. The lowest is the danger
+ring on its track in light, at 3.35:1. The track shows on both grounds. In light the hover fill of
+the action is `--surface-3`, because a mix of `--bg` does not show on the white notice.
 
 **Keyboard and screen reader.** An ordinary notice is polite and a danger notice is assertive. A
 new notice does not move the focus.
 
-**Room on the screen.** The provider sets `--rx-toast-stack` on the document root to the height of
-the stack, or `0px` when it is empty. A fixed page action can use it to stay clear of the notices.
+**Room on the screen.** The stack stands 16 px above the bottom of the view. A page with a bar at
+the bottom sets `bottomOffset` on the provider to the whole inset: a number in pixels or a CSS
+length. Set it to the height of the bar, the gap under the bar and 16 px, so that the notices stand
+16 px above the bar. Do not set the position of the stack with a selector on its class.
+
+```tsx
+<Toast bottomOffset={selected ? 88 : undefined}><App /></Toast>
+```
+
+The provider sets `--rx-toast-stack` on the document root to how far the stack reaches up from
+the bottom of the view, or `0px` when it is empty. The reach includes `bottomOffset`, and the
+provider sets it again when `bottomOffset` changes and when the view changes size. A fixed page
+action can use it to stay clear of the notices.
+
+A stack that is taller than the room above its inset stops 16 px below the top of the view and
+scrolls. It shows its newest notice. While a control in the stack has the focus, the stack keeps
+that control in view, also after a notice leaves. A pile does not scroll.
 
 ### Success confirmations
 
@@ -1507,15 +1533,28 @@ On a touch phone, the change is a 44 by 44px target in the layout, in every vari
 container. The figure is taller there by the difference. With a mouse, the figure keeps its size.
 
 **Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
-flex row or an `auto` grid track. On a page, a `StatBand` closes a section, so the block after it
-keeps one group gap of air below the figures, on top of the body's own gap. A toolbar directly before
-an open band keeps 24px to the figure labels, in the page body and in a card stack, also on a touch
-phone.
+flex row or an `auto` grid track. On a page, a `StatBand` closes a section. Leave one group gap
+between a stat band and the controls for its table. Another block after the band keeps one group gap
+of air below the figures, on top of the body's own gap. A toolbar directly before an open band keeps
+24px to the figure labels, in the page body and in a card stack, also on a touch phone.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
 | Band and tiles | 56rem | 42rem | 28rem | 14rem |
 | Open | 66rem | 50rem | 32rem | 15rem |
+
+A `band` of up to three figures keeps them in one row above 19rem and stacks them at 19rem or below.
+In place of the folds above, its value steps down one rank at a time and the columns close up. At the
+lower edge of each range, three values of `−€9,999,999` fit in one row in both themes, also
+when the text has hinted glyphs, as on Linux:
+
+| Band width | Value | Gap between figures |
+|---|---|---|
+| Above 42rem | 30px | 40px |
+| Above 28rem, to 42rem | 22px | 16px |
+| Above 22rem, to 28rem | 18px | 8px |
+| Above 19rem, to 22rem | 15.5px | 4px |
+| 19rem or below | As the table above gives | One figure per row |
 
 **Keyboard and screen reader.** The band is a description list, so a screen reader reads each
 figure as one statement.

@@ -43,7 +43,7 @@ const Head = () => <div className="gl-stage gl-head">
   <div className="gl-head__row"><h3>Tasks</h3><Button variant="primary" icon="plus">New task</Button></div>
   <div className="ui-toolbar">
     <QuerySearch keys={TASK_KEYS} value={{ chips: [], draft: '' }} onChange={noop} ariaLabel="Search tasks" size="sm" placeholder="Search tasks, state: or @name" />
-    <Dropdown ariaLabel="Group by" variant="select" value="Status" selectedValue="status" items={[{ label: 'Status', value: 'status' }, { label: 'Assignee', value: 'assignee' }]} onSelect={noop} />
+    <Dropdown ariaLabel="Group by" variant="select" size="sm" value="Status" selectedValue="status" items={[{ label: 'Status', value: 'status' }, { label: 'Assignee', value: 'assignee' }]} onSelect={noop} />
     <View />
   </div>
 </div>;

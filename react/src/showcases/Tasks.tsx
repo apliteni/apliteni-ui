@@ -372,7 +372,7 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
         peopleStatus={request === 'people-loading' ? 'loading' : request === 'people-error' ? 'error' : undefined}
         onRetryPeople={() => setRequest('ready')}
         defaultOpen={fixture.open} defaultActive={fixture.active} defaultChecked={fixture.checked} />
-      {view === 'board' && <Dropdown ariaLabel="Group by" variant="select" value={GROUPS.find((g) => g.value === group)!.label} selectedValue={group}
+      {view === 'board' && <Dropdown ariaLabel="Group by" variant="select" size="sm" value={GROUPS.find((g) => g.value === group)!.label} selectedValue={group}
         items={GROUPS} onSelect={(value) => setGroup(value as TaskGroup)} />}
       <Segmented label="View" size="sm" value={view} onChange={(next) => setView(next as TaskView)} options={[
         { label: 'Table', value: 'table', icon: 'table', iconOnly: true },

@@ -1,9 +1,8 @@
 /**
  * Rule: a task board's parts are kit parts (#866). A movable card keeps its own box in
  * both themes, its two slots are drawn from existing tokens, the menu on a card is a ghost
- * button at rest, a board scrolls sideways with the scroll band, a query search makes its
- * toolbar a small row, and the toolbar keeps the search, Group by and View on one line
- * above 560px. Read as text, because the package
+ * button at rest, a board scrolls sideways with the scroll band, and the toolbar keeps the
+ * search, Group by and View on one line above 560px. Read as text, because the package
  * ships CSS as its artifact. The paint and the drag are measured in a browser by
  * stories/task-page.test.js.
  * why: docs/components.md#movable-card, docs/components.md#query-search
@@ -61,17 +60,6 @@ test('a trigger drawn as a ghost button has no fill and no edge at rest', () => 
   const body = rule(read('dropdown.css'), '.ui-dropdown__trigger.ui-btn--ghost');
   has(body, 'background: transparent');
   has(body, 'border-color: transparent');
-});
-
-test('a query search on a small field makes its toolbar a small row, like a small search field', () => {
-  const bar = read('filter-bar.css');
-  const plain = bar.match(/\.ui-toolbar:has\(> \.ui-input-group > \.ui-input--sm\)[^,{]*/g) ?? [];
-  const query = bar.match(/\.ui-toolbar:has\(> \.ui-query \.ui-input--sm\)[^,{]*/g) ?? [];
-  assert.ok(plain.length >= 5);
-  // Each small-row selector has its query twin, with the same rest of the selector.
-  const rest = (list, head) => list.map((s) => s.slice(head.length).trim()).filter((s) => !s.startsWith('+'));
-  assert.deepEqual(rest(query, '.ui-toolbar:has(> .ui-query .ui-input--sm)'),
-    rest(plain.filter((s) => !s.includes('+ .ui-toolbar')), '.ui-toolbar:has(> .ui-input-group > .ui-input--sm)'));
 });
 
 test('the toolbar keeps the query search, Group by and View on one line above 560px', () => {

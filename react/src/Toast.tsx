@@ -13,7 +13,7 @@ export type ToastNotice = {
   text?: string;
   action?: { label: string; onClick: () => void };
 };
-export type ToastProps = { children: ReactNode; collapse?: boolean; limit?: number };
+export type ToastProps = { children: ReactNode; collapse?: boolean; limit?: number; bottomOffset?: number | string };
 const Context = createContext<((notice: ToastNotice) => void) | null>(null);
 const StackHoldContext = createContext(false);
 const glyphs = { success: 'circleCheck', danger: 'circleX', warn: 'circleAlert', info: 'info', neutral: 'bolt' };
@@ -113,7 +113,7 @@ function Notice({ notice, remove, leave, evicted }: { notice: ToastNotice; remov
         </svg>}
         {notice.action.label}
       </button>}
-      {notice.dismissible !== false && <button type="button" className="ui-toast__close" aria-label="Dismiss" disabled={leaving} onClick={dismiss}>
+      {notice.dismissible !== false && <button type="button" className="ui-toast__close" aria-label="Dismiss" title="Dismiss" disabled={leaving} onClick={dismiss}>
         <Icon name="x" />
       </button>}
       {timed && !ringed && <span className="ui-toast__timer is-running" aria-hidden="true"
@@ -132,7 +132,9 @@ type Entry = { id: number; notice: ToastNotice; remove: () => void; leave: () =>
  * why: docs/components.md#toast */
 const REACH = '--rx-toast-stack';
 
-function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number) {
+function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: number, offset?: string) {
+  // A stack taller than the room above its inset scrolls. Its top then keeps the side gap.
+  const [scroll, setScroll] = useState(false);
   useLayoutEffect(() => {
     const element = stack.current;
     const view = element?.ownerDocument.defaultView;
@@ -141,14 +143,39 @@ function usePublishedReach(stack: RefObject<HTMLDivElement | null>, count: numbe
     const publish = () => {
       const box = element.getBoundingClientRect();
       root.style.setProperty(REACH, `${box.height ? Math.round(view.innerHeight - box.top) : 0}px`);
+      setScroll(element.scrollHeight > box.bottom - (parseFloat(view.getComputedStyle(element).right) || 0));
     };
     publish();
+    // The newest notice is at the bottom, so a stack that scrolls shows it. While a control in the
+    // stack holds the focus, the stack keeps that control in view instead, so a dismissal that
+    // hands the focus on does not hide it.
+    const focus = element.ownerDocument.activeElement;
+    if (focus && focus !== element && element.contains(focus)) {
+      const box = element.getBoundingClientRect();
+      const control = focus.getBoundingClientRect();
+      element.scrollTop += Math.min(0, control.top - box.top) + Math.max(0, control.bottom - box.bottom);
+    } else element.scrollTop = element.scrollHeight;
     // A notice grows when its text wraps and the stack grows with every notice
     // added, so the height is watched rather than read once.
     const observer = typeof view.ResizeObserver === 'function' ? new view.ResizeObserver(publish) : undefined;
     observer?.observe(element);
-    return () => { observer?.disconnect(); root.style.removeProperty(REACH); };
-  }, [stack, count]);
+    // An offset in view units, such as 10vh, moves the stack when the view changes size, and the
+    // room above the stack changes with it, so the view's resize publishes the reach again.
+    view.addEventListener('resize', publish);
+    // Under reduced motion the kit's net gives every change a 0.01ms transition, so a new
+    // offset moves the stack after this read. The reach is read again when the move ends, or
+    // after 100ms when no end event comes, as for a stack that is not drawn.
+    const moved = (event: TransitionEvent) => { if (event.target === element) publish(); };
+    element.addEventListener('transitionend', moved);
+    const late = setTimeout(publish, 100);
+    return () => {
+      observer?.disconnect(); clearTimeout(late); view.removeEventListener('resize', publish);
+      element.removeEventListener('transitionend', moved); root.style.removeProperty(REACH);
+    };
+    // A new offset moves the stack without a resize, so it publishes the reach again. A stack that
+    // starts or stops to scroll reads it again too, and shows its newest notice.
+  }, [stack, count, offset, scroll]);
+  return scroll;
 }
 
 /* The pile keeps its own measurements: where every notice rests behind the front
@@ -165,7 +192,7 @@ function usePile(stack: RefObject<HTMLDivElement | null>, piled: boolean, count:
   }, [stack, piled, count]);
 }
 
-export function Toast({ children, collapse = false, limit }: ToastProps) {
+export function Toast({ children, collapse = false, limit, bottomOffset }: ToastProps) {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [stackHovered, setStackHovered] = useState(false);
   const [stackFocused, setStackFocused] = useState(false);
@@ -192,7 +219,13 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
   const piled = collapse && entries.length >= TOAST_PILE_MIN;
   // The pointer or the focus anywhere in the stack holds every timer, so no notice moves under it.
   const stackHeld = stackHovered || stackFocused;
-  usePublishedReach(stack, entries.length);
+  // `bottomOffset` is the stack's whole inset from the bottom of the view: a number in pixels or a
+  // CSS length. A page with a bar at the bottom sets it to clear the bar. The default is 16px.
+  const inset = typeof bottomOffset === 'number' ? `${bottomOffset}px` : bottomOffset;
+  // A length the browser cannot read keeps the kit's 16px, not the last offset that it could read.
+  const placed = inset !== undefined && (typeof CSS === 'undefined' || CSS.supports('bottom', inset)) ? inset : undefined;
+  // A pile has its own height, so only a plain column scrolls.
+  const scroll = usePublishedReach(stack, entries.length, placed) && !piled;
   usePile(stack, piled, entries.length);
   /* A focused notice that leaves takes the focus with it and sends no blur. A notice that leaves
    * from under a still pointer sends no mouseleave. So each hold is read again here when a notice
@@ -214,7 +247,8 @@ export function Toast({ children, collapse = false, limit }: ToastProps) {
   return <Context.Provider value={push}>
     {children}
     {typeof document !== 'undefined' && createPortal(
-      <div className={`ui-toast-stack rx-toast-stack${piled ? ' ui-toast-stack--collapsed' : ''}`} ref={stack}
+      <div className={`ui-toast-stack rx-toast-stack${piled ? ' ui-toast-stack--collapsed' : scroll ? ' rx-toast-stack--scroll' : ''}`} ref={stack}
+        style={placed === undefined ? undefined : { bottom: placed }}
         tabIndex={piled ? 0 : undefined} role={piled ? 'region' : undefined} aria-label={piled ? 'Notifications' : undefined}
         onMouseEnter={event => { trackPointer(event); setStackHovered(true); }} onMouseMove={trackPointer}
         onMouseLeave={() => setStackHovered(false)}
