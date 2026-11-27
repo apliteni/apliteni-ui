@@ -4,9 +4,10 @@ import { SEARCH_STATES } from './tasks-data';
 
 // The page restores its state from the URL hash. Storybook keeps one frame and its hash between stories.
 // A change to another story clears the hash that the story before it wrote. A reload keeps the hash.
+// A harness that renders a story with no id gets a clean hash each time.
 let shownId = new URLSearchParams(window.location.search).get('id');
-const fresh = (id: string) => {
-  if (id !== shownId) window.history.replaceState(null, '', window.location.pathname + window.location.search);
+const fresh = (id?: string) => {
+  if (!id || id !== shownId) window.history.replaceState(null, '', window.location.pathname + window.location.search);
   shownId = id;
 };
 

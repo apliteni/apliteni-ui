@@ -100,8 +100,8 @@
 /* A movable card: one record that a person drags to another column, such as a task on a
    board. It keeps its fill, edge and shadow in both themes, because a card that moves
    must show its own box. The edge answers the pointer, and the card never lifts, because
-   a transform would move the fixed menu that it opens. The selector repeats the light
-   page's exclusions, so this box outranks the light card's open grouping of space.
+   a transform would move the fixed menu that it opens. The selector outranks the light
+   card's open grouping of space, and it leaves out the padded, accent and live cards.
    #866, rev_c072f0f9bb83/d6. why: docs/components.md#movable-card */
 :root[data-theme] .ui-card.ui-card--movable:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
   --ui-card-ground: var(--surface);

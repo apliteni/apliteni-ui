@@ -27,7 +27,7 @@ const has = (body, decl) => assert.match(body, new RegExp(`(^|[;\\s])${decl.repl
 const weight = (selector) => (selector.match(/\.[\w-]+|\[[^\]]+\]|:(?!root\b|not\()[\w-]+/g) ?? []).length
   + (selector.match(/:root\b/g) ?? []).length;
 
-const LIGHT = ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live)';
+const LIGHT = ':root[data-theme="light"] .ui-card';
 const MOVABLE = ':root[data-theme] .ui-card.ui-card--movable:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live)';
 const HELD = ':root[data-theme] .ui-card.ui-card--movable.is-held:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live)';
 

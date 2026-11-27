@@ -20,7 +20,9 @@
  * list, and a two-screen phone of 466×678 and 890×626 at scale 3 with touch. On each it opens
  * each part by key, then by click or tap, and presses Escape after each. On the Board it then
  * drags the first To do card to In progress, by mouse on a size and by a long press on a
- * touch device.
+ * touch device. With the search set to To do, it moves a card to In progress by keys, and the
+ * focus goes to Search tasks. On the Table it adds a chip, changes to Board and reloads, and
+ * the chip and the view stay.
  *
  * Its limits: the default accent. Chromium touch is sent through the DevTools protocol, and
  * WebKit touch through WebKit's own protocol, so neither is a finger on glass. The fixed check
@@ -83,11 +85,11 @@ const DRAG = ([name, x, y]) => {
   };
 };
 
-async function open(browser, port, vitals, context, story, theme) {
+async function open(browser, port, vitals, context, story, theme, hash = '') {
   const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion: 'reduce' });
   await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
   const page = await ctx.newPage();
-  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}`);
+  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${story}&viewMode=story&globals=theme:${theme}${hash}`);
   await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
     && window.__STORYBOOK_PREVIEW__.currentRender.id === id, story);
   await page.waitForFunction(() => document.fonts.status === 'loaded');
@@ -101,6 +103,7 @@ const census = (label, touch) => DRAWN.flatMap((theme) => [
   ...['search', 'menu'].flatMap((part) => ['key', touch ? 'tap' : 'click'].map((how) => `${label} ${theme} table ${part} ${how}`)),
   `${label} ${theme} board view`, `${label} ${theme} table view`,
   `${label} ${theme} board drag`, `${label} ${theme} board move by keys`, `${label} ${theme} people Retry by keys`,
+  `${label} ${theme} filtered move by keys`, `${label} ${theme} table reload`,
 ]);
 
 /** Reads the three page checks after a step, against the state before it. */
@@ -274,6 +277,51 @@ async function walkKeyMove(page, label, found, seen) {
   return 1;
 }
 
+// The search shows only To do. A move by keys to In progress hides the card, so the focus goes
+// to Search tasks, whose filter hid it. #866
+const TODO = '#view=board&group=status&q=state%3Atodo';
+async function walkFilteredMove(page, label, found, seen) {
+  const at = `${label} filtered move by keys`;
+  const card = page.locator('[data-group="todo"] [data-task]').first();
+  const name = await card.getAttribute('data-task');
+  await card.scrollIntoViewIfNeeded();
+  let before = await page.evaluate(READ, LOOSE);
+  await card.getByRole('button', { name: /^Actions for / }).focus();
+  await page.keyboard.press('Enter');
+  for (let i = 0; i < 8 && (await page.evaluate(() => document.activeElement?.textContent?.trim())) !== 'In progress'; i += 1) {
+    await page.keyboard.press('ArrowDown');
+  }
+  await page.keyboard.press('Enter');
+  before = await check(page, at, before, found);
+  const after = await page.evaluate((task) => ({ gone: !document.querySelector(`[data-task="${task}"]`),
+    search: document.activeElement?.getAttribute('aria-label') === 'Search tasks', on: document.activeElement?.tagName ?? '' }), name);
+  if (!after.gone) found.push(`${at}: the search still shows the moved card`);
+  if (!after.search) found.push(`${at}: the focus went to ${after.on}, not to Search tasks`);
+  seen.add(at);
+  return 1;
+}
+
+// A chip from the search and the Board view stay in the URL, so a reload keeps both. #866
+async function walkReload(page, label, found, seen) {
+  const at = `${label} table reload`;
+  await page.getByRole('combobox', { name: 'Search tasks' }).focus();
+  await page.keyboard.type('state:');
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Board' }).click({ timeout: 5000 });
+  const hash = await page.evaluate(() => location.hash);
+  await page.reload();
+  await page.waitForFunction(() => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished');
+  await page.evaluate(frames);
+  const before = await page.evaluate(READ, LOOSE);
+  await check(page, at, before, found);
+  const after = await page.evaluate(() => ({ hash: location.hash,
+    chip: Boolean(document.querySelector('[aria-label="Open: edit state:open"]')), board: Boolean(document.querySelector('.ui-card-board')) }));
+  if (!after.chip || !after.board || after.hash !== hash) found.push(`${at}: the reload lost the URL state, ${hash} became ${after.hash}`);
+  seen.add(at);
+  return 2;
+}
+
 // People did not load: Tab from the search reaches Retry in the open panel, and Enter retries
 // and puts the focus back in the search. #866
 async function walkRetry(page, label, found, seen) {
@@ -353,6 +401,12 @@ test('the task page keeps the focus in each open part and holds through each key
         const { ctx, page } = await open(browser, server.port, vitals, context, RETRY, theme);
         actions += await walkRetry(page, `${label} ${theme}`, mine, seen);
         await ctx.close();
+        const todo = await open(browser, server.port, vitals, context, BOARD, theme, TODO);
+        actions += await walkFilteredMove(todo.page, `${label} ${theme}`, mine, seen);
+        await todo.ctx.close();
+        const reload = await open(browser, server.port, vitals, context, TABLE, theme);
+        actions += await walkReload(reload.page, `${label} ${theme}`, mine, seen);
+        await reload.ctx.close();
       }
       findings.push(...mine);
       table.push(`| ${label} | Chromium | ${context.viewport.width}×${context.viewport.height} | ${touch ? 'touch' : 'mouse'} | ${actions} | ${mine.length ? 'fail' : 'pass'} |`);
@@ -378,6 +432,12 @@ test('the task page keeps the focus in each open part and holds through each key
             const { ctx, page } = await open(webkit, server.port, vitals, context, RETRY, theme);
             actions += await walkRetry(page, `${name} ${theme}`, mine, seen);
             await ctx.close();
+            const todo = await open(webkit, server.port, vitals, context, BOARD, theme, TODO);
+            actions += await walkFilteredMove(todo.page, `${name} ${theme}`, mine, seen);
+            await todo.ctx.close();
+            const reload = await open(webkit, server.port, vitals, context, TABLE, theme);
+            actions += await walkReload(reload.page, `${name} ${theme}`, mine, seen);
+            await reload.ctx.close();
           }
           findings.push(...mine);
           table.push(`| ${name} | WebKit | ${context.viewport.width}×${context.viewport.height} | touch | ${actions} | ${mine.length ? 'fail' : 'pass'} |`);
@@ -388,7 +448,7 @@ test('the task page keeps the focus in each open part and holds through each key
     }
     process.stdout.write(`| Size or device | Engine | Viewport | Input | Actions | Result |\n| --- | --- | --- | --- | --- | --- |\n${table.join('\n')}\n`);
     assert.deepEqual(DRAWN, ['dark', 'light'], 'the theme sheet names other themes, so the census changed');
-    assert.equal(expected.length, (subjects.length + (process.env.UI_WEBKIT ? WEBKIT_DEVICES.length : 0)) * DRAWN.length * 15, 'the census lost a subject');
+    assert.equal(expected.length, (subjects.length + (process.env.UI_WEBKIT ? WEBKIT_DEVICES.length : 0)) * DRAWN.length * 17, 'the census lost a subject');
     assert.deepEqual(expected.filter((c) => !seen.has(c)), [], 'a case of the census was not measured');
     // The census fails a walk that drops a theme: a light-only run leaves cases unmeasured.
     assert.ok(expected.some((c) => c.includes(' dark ') && !new Set([...seen].filter((k) => !k.includes(' dark '))).has(c)),
@@ -398,8 +458,8 @@ test('the task page keeps the focus in each open part and holds through each key
     // The mutations: each check must see its own failure.
     const caught = [];
     const desk = { viewport: { width: 1280, height: 800 } };
-    const mutate = async (setupPage, says, walk) => {
-      const { ctx, page } = await open(browser, server.port, vitals, desk, BOARD, 'light');
+    const mutate = async (setupPage, says, walk, story = BOARD, hash = '') => {
+      const { ctx, page } = await open(browser, server.port, vitals, desk, story, 'light', hash);
       await setupPage(page);
       const found = [];
       await walk(page, found);
@@ -444,10 +504,17 @@ test('the task page keeps the focus in each open part and holds through each key
     // View options that are narrower than the track, as the touch switch was before #866.
     await mutate(async (page) => {
       await page.addStyleTag({ content: '.ui-toolbar > .ui-seg button.ui-seg--icon { min-width: 0 !important; width: 20px; }' });
-      // The width eases to its new value, so the walk waits until each option has its injected width.
+      // The injected sheet applies a frame after addStyleTag returns, so the walk waits for its width.
       await page.waitForFunction(() => [...document.querySelectorAll('.ui-toolbar > .ui-seg button.ui-seg--icon')]
         .every((b) => b.getBoundingClientRect().width === 20), null, { timeout: 5000 });
     }, 'view options', (page, found) => walkView(page, 'mutated', BOARD, found, new Set()));
+    // A filtered move that drops the focus, as the board did before the second #866 review.
+    await mutate((page) => page.evaluate(() => document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.activeElement?.getAttribute('role') === 'menuitem') setTimeout(() => setTimeout(() => document.activeElement.blur()));
+    }, true)), 'not to Search tasks', (page, found) => walkFilteredMove(page, 'mutated', found, new Set()), BOARD, TODO);
+    // A story that clears the URL hash on a reload, as the story wrapper did before the second #866 review.
+    await mutate((page) => page.context().addInitScript(() => history.replaceState(null, '', location.pathname + location.search)),
+      'the reload lost the URL state', (page, found) => walkReload(page, 'mutated', found, new Set()), TABLE);
     assert.deepEqual(caught.filter(([, ok]) => !ok).map(([says]) => says), [], 'a check did not see its own failure');
   } finally {
     await browser.close();
