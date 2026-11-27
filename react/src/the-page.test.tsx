@@ -126,6 +126,18 @@ describe('the page: React screens', () => {
     expect(CHECKS['sign-in-note']({ ...drawn[0], where: 'named', doc })).toHaveLength(1);
   });
 
+  // `sidebar-column` reads the rows of each sidebar, so a row with no icon must fail it.
+  it('the sidebar-column check refuses a section row with no icon', () => {
+    const drawn = screens.filter((s) => s.doc.querySelector('nav.ui-nav--side .ui-nav__ic'));
+    expect(drawn.length, 'screens with sidebar icons').toBeGreaterThanOrEqual(FOUND.sidebars);
+    const doc = document.implementation.createHTMLDocument('bare');
+    doc.body.innerHTML = '<nav class="ui-nav ui-nav--side" aria-label="Sections"><ul class="ui-nav__list">'
+      + '<li><a class="ui-nav__item"><span class="ui-nav__ic"></span><span class="ui-nav__label">Overview</span></a>'
+      + '<ul class="ui-nav__sub"><li><a class="ui-nav__item ui-nav__item--sub">Pending</a></li></ul></li>'
+      + '<li><a class="ui-nav__item"><span class="ui-nav__label">Payouts</span></a></li></ul></nav>';
+    expect(CHECKS['sidebar-column']({ ...drawn[0], where: 'bare', doc })).toEqual(['bare gives the sidebar row "Payouts" no icon. Each section has one.']);
+  });
+
   for (const rule of GATED) {
     it(`${rule.id}: ${rule.says}`, () => {
       expect(screens.flatMap((s) => CHECKS[rule.id](s))).toEqual([]);

@@ -7,6 +7,8 @@ import { Tooltip } from './Tooltip';
 export type DrawerProps = {
   open: boolean;
   title: string;
+  /** A mark before the title, such as a product logo. It is decoration, so screen readers skip it. */
+  mark?: ReactNode;
   onClose: () => void;
   side?: 'right' | 'left' | 'top' | 'bottom';
   size?: 'sm' | 'md' | 'lg';
@@ -27,7 +29,7 @@ export type DrawerProps = {
 // dialogs and the enter/exit wait are ./dialog's, shared with Modal; the scope tells a
 // dialog rendered inside this one that it sits above it.
 export function Drawer({
-  open, title, onClose, side = 'right', size = 'md', footer, status, headerActions, children, closeLabel = 'Close', initialFocusRef,
+  open, title, mark, onClose, side = 'right', size = 'md', footer, status, headerActions, children, closeLabel = 'Close', initialFocusRef,
 }: DrawerProps) {
   const root = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -67,6 +69,7 @@ export function Drawer({
           tabIndex={-1} ref={panel}>
           <header className="ui-drawer__header">
             <div className="ui-drawer__lead">
+              {mark && <span className="ui-drawer__mark" aria-hidden="true">{mark}</span>}
               {cut
                 ? <Tooltip text={title} placement="bottom" control>{titleEl}</Tooltip>
                 : titleEl}

@@ -1,14 +1,17 @@
-// Write for people who use the kit. Start with what changed and who is affected.
-// Use one to three short sentences per change; add detail only for migration
-// steps or behavior limits. Use plain words, without praise, filler or a test diary.
-// Keep versions, dates, change types, component links and issue references.
-// The first sentence is the page summary; full text also appears in release notes.
-
 export const RELEASES = [
   {
-    v: '0.222.0', date: '2026-11-27',
+    v: '0.226.0', date: '2026-11-27',
     changes: [
       ['changed', 'A link in running text, such as a paragraph, a list item, a caption or a hint, now has an underline at all times, because its colour alone differs from the text around it by less than 3:1. The kit underlines each `a` element that has no kit class (a class that starts with `ui-`, or `brand`), so a link with an empty class or your own class gets it too. Hover and focus are as before. A link in a table cell, a linked Stat band figure and a kit control, such as a nav row, a button or a tab, do not change. If your app has its own anchor control with no kit class, give it `text-decoration: none`. Part of #869.', []],
+    ],
+  },
+  {
+    v: '0.224.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],
+      ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
+      ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
+      ['added', 'The page guideline has a new rule, Align the sidebar on one column: the logo, the section icons and the avatar start on one edge. Part of #869.', ['Guidelines']],
     ],
   },
   {

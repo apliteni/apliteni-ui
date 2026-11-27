@@ -14,9 +14,23 @@
    row and the hover wash take the rail's rung there, as layout.css does for the vanilla drawer. */
 :where(:root[data-theme="light"]) .ui-react-app__menu .ui-nav__item:not(.is-danger):not(.is-active):hover { background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
 :where(:root[data-theme="light"]) .ui-react-app__menu .ui-nav__item.is-active { background: var(--surface-3); /* code-bg: inherit — The control keeps the containing ground. */ }
-/* The rail layout's drawer is portalled to the page, outside .ui-app, so it carries the
-   shell's measures and the account trigger's rail look itself. why: docs/components.md#page-shell */
-.ui-app__drawer { --ui-nav-col: 216px; --ui-nav-strip: 41px; --ui-app-av: 30px; }
+/* The phone menu is portalled to the page, outside .ui-app, so its list, its head and the
+   account carry the shell's measures, and the account trigger keeps its rail look.
+   why: docs/components.md#page-shell */
+.ui-app__drawer,
+.ui-react-app__menu,
+.ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__header { --ui-nav-col: 216px; --ui-nav-strip: 41px; --ui-app-av: 30px; }
+/* The open rail's two columns go on in the phone menu (#869): the mark, the row glyphs
+   and the avatar start one --space-2 inside the row fill, and the product name,
+   the labels and the account name one --space-2 after a symbol box as wide as the avatar.
+   layout.css draws the same columns on the rail. why: docs/components.md#page-shell */
+.ui-react-app .ui-app__rail .ui-react-app__mark,
+.ui-drawer__mark > .ui-react-app__mark { display: inline-flex; width: var(--ui-app-av); }
+.ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__header { padding-inline-start: calc(var(--space-5) + var(--space-2)); }
+:is(.ui-react-app__menu, .ui-drawer__body > .ui-app__drawer) .ui-nav__item:not(.ui-nav__item--sub) { padding-inline: var(--space-2); gap: var(--space-2); }
+:is(.ui-react-app__menu, .ui-drawer__body > .ui-app__drawer) .ui-nav__item:not(.ui-nav__item--sub) > .ui-nav__ic { width: var(--ui-app-av); }
+:is(.ui-react-app__menu, .ui-drawer__body > .ui-app__drawer) .ui-nav__cap { padding-inline: var(--space-2); }
+.ui-app__drawer .ui-app__av { margin-inline-start: var(--space-2); }
 /* The menu is no form: the account stays at the panel's foot, as on the rail, so the
    body fills the space a form drawer leaves under its footer. why: docs/components.md#page-shell */
 .ui-drawer__panel:has(> .ui-drawer__footer > .ui-app__drawer) > .ui-drawer__body { flex-grow: 1; }
@@ -52,7 +66,7 @@
 /* The head control (#732): one glyph before the fold, drawn as the fold is. The fold is a
    nav row, 9px of padding over a 1lh glyph box at --text-base and line-height 1.2, on the
    --ui-nav-strip column: src/styles/nav.css:64 `padding: 9px 12px;` and
-   src/styles/layout.css:210 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
+   src/styles/layout.css:226 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
    control has no border and no fill at rest, and takes the rail's hover wash and the fold's ink. */
 .ui-react-app .ui-app__fold-row:has(> .ui-react-app__head-control) { display: flex; align-items: center; gap: var(--space-1); }
 .ui-react-app__head-control { display: flex; align-items: center; flex: none; }
@@ -80,7 +94,7 @@
 .ui-react-app__head-control svg { display: block; width: 17px; height: 17px; opacity: 0.66; stroke-width: 2.2; }
 /* A folded rail is one glyph column wide, and the fold takes it in the head. So the control
    leaves the row and stands on the same column one rail gap under the head's rule, and the
-   head keeps room for it. The fold row is centred in the band-high head (layout.css:343).
+   head keeps room for it. The fold row is centred in the band-high head (layout.css:359).
    A band control's faded box under the head is that room. Without one, the head makes it. */
 :where(.ui-app.is-collapsed) .ui-app__rail .ui-react-app__head-control { position: absolute; inset-inline-start: 0; top: calc(50% + var(--ui-app-band) / 2 + var(--space-5)); }
 :where(.ui-app.is-collapsed) .ui-app__rail > .ui-app__head:has(.ui-react-app__head-control):not(:has(+ .ui-react-app__control)) { margin-bottom: calc(18px + 1.2 * var(--text-base) + var(--space-5)); }
