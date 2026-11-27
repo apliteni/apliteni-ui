@@ -16,6 +16,8 @@ export const Folders: StoryObj = { render: () => <Library /> };
 export const TitleMenu: StoryObj = { render: () => <Library menu depth={2} /> };
 // A folder with no files: the files column takes the open file's space.
 export const EmptyFolder: StoryObj = { render: () => <Library folder="Templates" depth={2} /> };
+// Above 860px of page area, the reader drags the line after the folders or the files.
+export const Resizable: StoryObj = { render: () => <Library resizable /> };
 export const Loading: StoryObj = { render: () => <Library loading /> };
 // The Month close showcase: the Wizard stands in column 2.
 export const MonthChecks: StoryObj = { render: () => <MonthClose /> };

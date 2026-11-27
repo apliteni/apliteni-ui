@@ -1267,7 +1267,7 @@
  "_three-column-page.js": {
   "three-columns": [
    {
-    "ref": "react/src/ThreeColumnPage.tsx:141",
+    "ref": "react/src/ThreeColumnPage.tsx:189",
     "pattern": "{columns.map((col, i) => col && column(col, (i + 1) as ThreeColumnDepth))}"
    }
   ],
@@ -1303,45 +1303,45 @@
     "pattern": "caption={`Rows for ${month}`}"
    },
    {
-    "ref": "react/src/showcases/Library.tsx:84",
+    "ref": "react/src/showcases/Library.tsx:86",
     "pattern": "const openFolder = (item: Folder) => { setFolderName(item.name); setFileName(item.files[0]?.name); setDepth(2); };"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:24",
+    "ref": "react/src/ThreeColumnPage.css:26",
     "pattern": ".ui-columns__col--2:last-child { grid-column: 2 / -1; }"
    }
   ],
   "column-widths": [
    {
-    "ref": "react/src/ThreeColumnPage.css:14",
-    "pattern": "grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);"
+    "ref": "react/src/ThreeColumnPage.css:15",
+    "pattern": "grid-template-columns: var(--ui-columns-1, 240px) var(--ui-columns-2, clamp(260px, 26%, var(--panel-sm))) minmax(0, 1fr);"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:22",
+    "ref": "react/src/ThreeColumnPage.css:24",
     "pattern": ".ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }"
    }
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:79",
+    "ref": "react/src/ThreeColumnPage.css:81",
     "pattern": "@container ui-columns (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:88",
+    "ref": "react/src/ThreeColumnPage.css:92",
     "pattern": "@media (max-width: 560px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:131",
+    "ref": "react/src/ThreeColumnPage.tsx:179",
     "pattern": "<BackLink href={depthHref?.(up) ?? '#'} label={columns[first - 2]!.title}"
    }
   ],
   "column-header": [
    {
-    "ref": "react/src/ThreeColumnPage.css:37",
+    "ref": "react/src/ThreeColumnPage.css:39",
     "pattern": "min-height: calc(var(--space-12) + var(--space-2));"
    },
    {
-    "ref": "react/src/ThreeColumnPage.tsx:113",
+    "ref": "react/src/ThreeColumnPage.tsx:160",
     "pattern": "{col.menu && <Dropdown variant=\"menu\" align=\"start\" triggerContent={col.title} triggerClass=\"ui-columns__menu\""
    }
   ]
