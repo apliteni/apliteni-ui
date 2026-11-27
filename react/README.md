@@ -307,6 +307,26 @@ is here. `as` takes the element the link is drawn as and passes it every prop th
 does not read, which is how a router link gets its own `to`; `href` is still required,
 because it is what the `javascript:` guard reads.
 
+## Resizable columns
+
+`ThreeColumnPage` and `SplitLayout` take `resizable`, which is off by default. With it, above
+860px, the reader drags the line between two columns, or moves it with the arrow keys. The
+widths stay until a reload. To keep them longer, save them from `onResize` and give them back
+in the width prop. The limits and the keys are in
+[docs/components.md](../docs/components.md#three-column-page).
+
+```tsx
+const [widths, setWidths] = useState(() => savedWidths() ?? undefined);
+<ThreeColumnPage resizable widths={widths} onResize={(next) => { setWidths(next); saveWidths(next); }} columns={columns} />
+
+const [width, setWidth] = useState<number>();
+<SplitLayout resizable primaryWidth={width} onResize={setWidth} primary={fields} preview={preview} />
+```
+
+`widths` holds column 1 and column 2 in px, and `primaryWidth` the first pane in px. The page
+fits a saved width to its limits and to the space it has, so a width saved on a large screen
+is safe on a small one. `onResize` runs at each change, also during a drag.
+
 ## Work on them
 
 From the repo root — one `npm install` covers the workspace:

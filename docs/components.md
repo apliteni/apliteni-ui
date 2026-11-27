@@ -366,6 +366,11 @@ false, is one choice of its group, and the current choice shows the menu's tick.
 in the first group and each set of choices in a labelled group. A menu taller than 300px takes
 `scroll` with its height, so every row shows.
 
+Set `resizable` to let the reader drag the line after column 1 and after column 2. It is off by
+default. `onResize` gets the widths of column 1 and column 2 in px at each change, also during a
+drag. The page keeps the widths until a reload. To keep them longer, save them from `onResize`
+and give them back in `widths`.
+
 A column's list uses the sidebar's rows (`ui-nav__item`) inside `.ui-columns__list`. A row ends
 with `.ui-columns__end`, a count or a date, and a row that opens a column ends with a
 `chevronRight` glyph in `.ui-nav__ic.ui-columns__into`. Other content stands in
@@ -382,6 +387,14 @@ with `.ui-columns__end`, a count or a date, and a row that opens a column ends w
   and 2, and the children and the open child at depth 3. The first takes 40%, and at least 200px.
   An open sidebar on a small laptop thus gives two columns, as a tablet does.
 - In a window of 560px and less, the column at the depth only, and the page scrolls as one.
+- With `resizable`, in a page area wider than 860px, the reader drags the line after column 1 or
+  column 2. Column 1 takes 200px to 320px, column 2 takes 240px to 420px, and column 3 keeps
+  at least 320px. With three columns, the first line trades width with column 2, so column 3
+  stays. The target is 12px wide over the full height, 44px on a touch screen, and shows the
+  resize cursor. Under the pointer, in a drag and with the keyboard focus, the line turns 4px of
+  `--muted`, never the accent. The columns follow the pointer with no motion. A double click puts
+  that line back to its first width. In a page area of 860px or less no line moves. When a line
+  goes with the focus on it, the focus goes to the open column's title.
 - When a column before the first one on show is hidden, a back link above the columns names it.
 - Each header row has one height, so the titles stand on one line. The title is the card title's
   size, and a long title ends in an ellipsis. The count follows it, and the tools stand at the
@@ -394,6 +407,10 @@ with `.ui-columns__end`, a count or a date, and a row that opens a column ends w
 the focus goes to the title of the column at the depth, or to its menu button. A column's
 scroll box shows the inward focus band on its four sides. The back link is named "Back to" and
 the column's title. On a touch phone each list row and the title menu have a 44px target.
+A line that resizes is a separator, named by the title of the column it sizes, with its width,
+limits and a "240 pixels" text. Left and Right move it 16px, with Shift 48px, and Home and End
+take it to its limits. Escape in a drag puts the widths back to where the drag started. A
+pointer gives the line the focus with no ring, and a key shows the ring.
 
 ### Split layout
 
@@ -416,12 +433,20 @@ holds its own `h1` in the first pane.
 one first. `preview` takes the pane's `title`, the sheet's `children`, a `state` of `ready`,
 `loading` or `unavailable`, and `onRetry` for the Try again button of the unavailable state.
 `zoom` is `fit`, `50`, `100`, `150` or `200`. Pass `zoom` with `onZoomChange`, or let the layout
-keep it from `defaultZoom`, which is `fit`. The layout holds no data and no rules of its own.
+keep it from `defaultZoom`, which is `fit`. Set `resizable` to let the reader drag the line
+between the panes. It is off by default. `onResize` gets the first pane's width in px at each
+change, also during a drag. The layout keeps the width until a reload. To keep it longer, save
+it from `onResize` and give it back in `primaryWidth`. The layout holds no data and no rules of its own.
 
 **What the user sees.**
 
 - Under the band, the page splits into two panes from the band to the foot. The first takes 60%
   and the preview 40%, with a 1px `--border` line between them. Neither pane is a card.
+- With `resizable`, above 860px, the reader drags the line between the panes. The first pane
+  takes 320px to 860px, and the preview keeps at least 320px. A layout narrower than 640px, as
+  beside an open sidebar, has no line. The line looks and moves as the three-column page's line,
+  and a double click puts it back to 60%. When the line goes with the focus on it, the focus
+  goes to the preview's title.
 - The first pane holds the values that will be saved. A value in its key-value list or table is
   heavier than its label, and the pane's name is in the accent. The preview takes none of these.
 - The preview pane is the document ground, `--ui-document-ground`, from edge to edge. Its title
@@ -443,6 +468,8 @@ scroll, and then shows the inward focus band. The scale is read when it changes,
 toggle button, and the loading sheet says "Loading the preview". A zoom step that reaches its
 end turns off and gives the focus to the other step. Try again gives the focus to the preview's
 title. The order is the content, the preview, then the actions. On a touch phone each zoom control and each action has a 44px target.
+A line that resizes is a separator named by `primaryLabel`, and takes the three-column page's
+keys. It is a Tab stop before the preview's tools.
 
 ### Footer
 

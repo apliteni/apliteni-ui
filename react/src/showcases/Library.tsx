@@ -57,6 +57,8 @@ export type LibraryProps = {
   menu?: boolean;
   /** The files and the open file are on the way. */
   loading?: boolean;
+  /** The reader can drag the lines between the columns. */
+  resizable?: boolean;
 };
 
 const MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -67,7 +69,7 @@ const files = (n: number) => `${n} ${n === 1 ? 'file' : 'files'}`;
 const libraryHref = (folder: string, file?: string) => (depth: ThreeColumnDepth) =>
   ['#/library', depth > 1 ? `/${folder}` : '', depth > 2 && file ? `/${file}` : ''].join('');
 
-export function Library({ depth: startDepth = 3, folder: startFolder = 'Shared', menu = false, loading = false }: LibraryProps) {
+export function Library({ depth: startDepth = 3, folder: startFolder = 'Shared', menu = false, loading = false, resizable = false }: LibraryProps) {
   const [depth, setDepth] = useState(startDepth);
   const [folderName, setFolderName] = useState(startFolder);
   const folder = FOLDERS.find(item => item.name === folderName) ?? FOLDERS[0];
@@ -95,7 +97,7 @@ export function Library({ depth: startDepth = 3, folder: startFolder = 'Shared',
   return <AppShell word="Example" width="full" title="Library" pathname="/library"
     sections={[{ href: '/library', label: 'Library', icon: 'doc' }, { href: '/settings', label: 'Settings', icon: 'gear' }]}
     account={{ name: 'Demo User', email: 'demo@example.com' }} onSignOut={() => {}}>
-    <ThreeColumnPage depth={depth} onDepthChange={setDepth} depthHref={libraryHref(folder.name, file?.name)} columns={[
+    <ThreeColumnPage resizable={resizable} depth={depth} onDepthChange={setDepth} depthHref={libraryHref(folder.name, file?.name)} columns={[
       { title: 'Folders', count: FOLDERS.length, countLabel: `${FOLDERS.length} folders`, children: <Rows label="Folders"
         rows={FOLDERS.map(item => ({ name: item.name, icon: 'folder', end: String(item.files.length), endLabel: files(item.files.length),
           selected: item === folder, opens: true, onOpen: () => openFolder(item) }))} /> },

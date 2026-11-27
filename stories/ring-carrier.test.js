@@ -107,7 +107,8 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 46 -> 47: #871 adds the three-column page's column title, the focus target after a move.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis, a Tab stop with a readout.
   // 48 -> 49: #903 adds the split layout's preview title, the focus target after Try again.
-  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
+  // 49 -> 50: #903 adds the resize line of a three-column page and a split layout.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -282,7 +283,8 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 46 -> 47: #871 adds the three-column page's column title.
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
   // 48 -> 49: #903 adds the split layout's preview title.
-  assert.equal(consumers.length, 49, 'ring consumer discovery changed');
+  // 49 -> 50: #903 adds the resize line.
+  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
   // 19 -> 20: #907 adds the scrolling toast stack.
   // 20 -> 21: #903 adds the split layout's panes.
