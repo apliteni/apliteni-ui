@@ -25,6 +25,7 @@ const Bar = ({ actions = [STATUS] }: { actions?: SelectionBarAction[] }) =>
 // The pair differs only in the bar's paint: the don't gives it the page's own colours.
 const Table = ({ same = false }: { same?: boolean }) =>
   <div className={`gl-stage gl-stage--bar${same ? ' gl-same-theme' : ''}`}>
+    {/* Three rows need no filter bar. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
     <Card><DataTable columns={COLUMNS} rows={DOCS} pager={false} caption={same ? 'Documents, the same theme' : 'Documents'} scrollLabel={same ? 'Documents, the same theme' : 'Documents'}
       selected={SELECTED} onToggle={noop} onTogglePage={noop} /></Card>
     <Bar />
