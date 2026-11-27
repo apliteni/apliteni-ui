@@ -174,8 +174,9 @@ test('the ring is declared once, and the two bands differ only in where they lan
   const names = ['--ring', '--ring-offset', '--ring-scroll', '--ring-scroll-offset'];
   // A box that takes the other theme's palette computes the ring again, because a :root
   // value reaches it already substituted with the root's accent. It may only restate the
-  // root's own value. #736: the document sheet is light paper in both themes.
-  const RECOMPUTED = ['.ui-card__page'];
+  // root's own value. #736: the document sheet is light paper in both themes. #902: a
+  // selection bar control stands on the inverse ground.
+  const RECOMPUTED = ['.ui-card__page', '.ui-selection-bar__control'];
   const value = (name) => declarations.find((d) => d.name === name && d.selector.startsWith(':root')).value.trim();
   for (const name of names) {
     const at = declarations.filter((d) => d.name === name);

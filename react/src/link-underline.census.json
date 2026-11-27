@@ -53,7 +53,7 @@
   "../../stories/guidelines/GoingBack.stories.tsx:GoingBack": [0, 0, 18],
   "../../stories/guidelines/Iconography.stories.tsx:Iconography": [6, 0, 0],
   "../../stories/guidelines/Notifications.stories.tsx:Notifications": [0, 0, 3],
-  "../../stories/guidelines/Overview.stories.tsx:Overview": [0, 0, 31],
+  "../../stories/guidelines/Overview.stories.tsx:Overview": [0, 0, 32],
   "../../stories/guidelines/ThePage.stories.tsx:ThePage": [0, 0, 16],
   "../../stories/guidelines/ThreeColumnPage.stories.tsx:ThreeColumnPage": [0, 0, 1],
   "./AppShell.stories.tsx:BandActions": [0, 0, 10],
@@ -176,5 +176,7 @@
   "./showcases/Notifications.stories.tsx:TopBarPage": [0, 5, 6],
   "./showcases/Notifications.stories.tsx:TopBarPanel": [0, 0, 6],
   "./showcases/Notifications.stories.tsx:TopBarZero": [0, 0, 6],
+  "./showcases/SelectedRows.stories.tsx:Default": [0, 0, 4],
+  "./showcases/SelectedRows.stories.tsx:Phone": [0, 0, 4],
   "./showcases/SplitLayout.stories.tsx:Default": [0, 0, 4]
 }

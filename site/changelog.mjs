@@ -1,5 +1,15 @@
 export const RELEASES = [
   {
+    v: '0.230.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],
+      ['added', 'New `--inverse-*` tokens give one bar the other theme: dark on a light page and light on a dark page, in the page\'s accent family. Part of #902.', ['Tokens']],
+      ['fixed', 'A `Dropdown` panel in the page now opens on the other side of its trigger when its own side has no room and the other side has more. A panel in a Modal or a Drawer already did this. A menu that opens upward near the top of the view no longer opens above the view. Part of #902.', ['Dropdown']],
+      ['fixed', 'In a pinned `DataTable` with a selection column, the boxes now start on the table\'s text edge, as in an unpinned table, and the next column\'s words keep half a cell gap from the boxes\' divider. Before, the boxes stood 6px in from the table\'s start and the words touched the divider. Part of #902.', ['DataTable']],
+      ['added', 'A new Selection bar guideline page sets the bar\'s theme, a pick that applies at once with a notice, and the rest of the actions in More. Component choice sends the actions for selected rows to the bar. Part of #902.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.229.0', date: '2026-11-27',
     changes: [
       ['changed', 'A filter chip now keeps the width of its longest value up to 128px, in place of 224px, so five chips with long values fit one line beside a search field at 1440px. A pick still does not move the row. A longer value ends with an ellipsis, and the hover title, the trigger name and the menu keep the full value. Part of #915.', ['FilterBar']],

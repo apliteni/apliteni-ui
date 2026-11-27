@@ -44,6 +44,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { DOUBLE_TEXT } from './lib/double-text.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHEET = path.join(root, 'react/src/AccountWindow.css');
@@ -109,23 +110,6 @@ const VIEWS = [{ width: 390, height: 844 }, { width: 320, height: 640 }];
 const GAP = 16;
 const SLACK = 0.5;
 
-// Doubles every --text-* token on the root, so the kit's text is at 200% and its spacing is not.
-const DOUBLE_TEXT = () => {
-  const rootStyle = document.documentElement.style;
-  for (const sheet of document.styleSheets) {
-    let rules;
-    try { rules = sheet.cssRules; } catch { continue; }
-    for (const rule of rules) {
-      if (!rule.style) continue;
-      for (const name of rule.style) {
-        if (!name.startsWith('--text-')) continue;
-        const px = parseFloat(getComputedStyle(document.documentElement).getPropertyValue(name));
-        if (px) rootStyle.setProperty(name, `${px * 2}px`);
-      }
-    }
-  }
-  return [...rootStyle].filter((n) => n.startsWith('--text-')).length;
-};
 
 // The window's boxes and scroll state, after two painted frames.
 const MEASURE = () => new Promise((ok) => requestAnimationFrame(() => requestAnimationFrame(() => {

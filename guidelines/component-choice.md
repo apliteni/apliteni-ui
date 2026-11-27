@@ -6,7 +6,7 @@
 
 **Rule:** In a pair of actions, give the committing action more visual weight than the dismissing action.
 
-**Why:** Equal weight makes it harder to see which button commits the change.
+**Why:** Equal weight hides which button commits.
 
 **Do:** Use a primary Save button beside a ghost Cancel button.
 
@@ -44,15 +44,15 @@
 
 <!-- rule: panels -->
 
-**Rule:** Use `tabs()` to switch panels and `segmented()` for a choice that owns no panel, such as a value, filter or sort order.
+**Rule:** Use `tabs()` to switch panels and `segmented()` for a choice that owns no panel.
 
-**Why:** A tablist promises a panel and arrow-key support; a strip without either fails the reader.
+**Why:** A tablist promises a panel and arrow keys.
 
 **Except:** Links between locations are neither; the kit’s nav uses aria-current, not a tablist.
 
 **Do:** Use a segmented control to filter one list by Any, Verified or Pending.
 
-**Don't:** Give those same list filters tab roles when they have no separate panels.
+**Don't:** Give those filters tab roles.
 
 ## Open a panel at its control
 
@@ -60,7 +60,7 @@
 
 **Rule:** A panel opens next to the control that opened it.
 
-**Why:** The eye and pointer are already there; a far-edge drawer looks unrelated to its button.
+**Why:** The eye and pointer are already there.
 
 **Except:** A dialog that asks a question opens in the screen centre.
 
@@ -74,7 +74,7 @@
 
 **Rule:** Use `successPanel()` for a confirmation inside a page and `success()` for a full-page confirmation or a next action.
 
-**Why:** successPanel() is a page block; success() is the page and tells the reader where to go next.
+**Why:** success() is a whole page that says where to go next.
 
 **Except:** A block that needs somewhere to go next still uses success(); successPanel() takes two strings.
 
@@ -94,4 +94,16 @@
 
 **Do:** For 29 currencies, type “dollar”.
 
-**Don't:** Show only seven of twenty-nine currencies without search when dollars are scattered through the list.
+**Don't:** Show twenty-nine currencies with no search.
+
+## Act on selected rows from a selection bar
+
+<!-- rule: selection-bar -->
+
+**Rule:** Put the actions for selected rows in a selection bar under the table, as the Selection bar page shows.
+
+**Why:** A menu on each row repeats every action and never shows the count.
+
+**Do:** Select two documents and set their status from the bar.
+
+**Don't:** Put a Status menu on each of the two rows.
