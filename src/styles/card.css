@@ -92,6 +92,11 @@
    a 1232px card (#504) — and is capped, so a wider block still fills the room and scrolls.
    why: docs/foundations.md#spacing-and-rhythm */
 .ui-card--fit { width: fit-content; max-width: 100%; }
+/* A light card hangs its side inset outside the column, so its cap takes the column and
+   both insets back. A cap of 100% made a light fit card 2 insets narrower than a dark one. #924 */
+:root[data-theme="light"] .ui-card--fit:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
+  max-width: calc(100% + 2 * var(--ui-card-inset));
+}
 
 /* An accent-tinted card, e.g. a highlighted plan / success surface. It draws no accent
    ring: the tint carries the signal and the edge is the plain card edge. #295

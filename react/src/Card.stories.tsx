@@ -6,6 +6,7 @@ import { Badge } from './primitives/Badge';
 import { Pill } from './primitives/Pill';
 import { Segmented } from './Segmented';
 import { Switch } from './Switch';
+import { DataTable, type Column } from './DataTable';
 
 const meta: Meta = {
   title: 'React/Card',
@@ -96,4 +97,30 @@ export const SettingRows: StoryObj = {
       </Card>
     </div></div>;
   },
+};
+
+// `ui-card--fit` ends a card at its table. A table wider than the column takes the full column
+// and scrolls inside the card. A light card hangs its side inset outside the column, so it is the
+// column and both insets wide. The amounts are fabricated. #924
+type UnitRow = { name: string; [month: string]: string };
+const MONTHS = Array.from({ length: 30 }, (_, i) => `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i % 12]} ${2024 + Math.floor(i / 12)}`);
+const UNIT_ROWS: UnitRow[] = ['Birch Studio', 'Cedar Studio', 'Harbour Consulting'].map((name, u) => ({
+  name, ...Object.fromEntries(MONTHS.map((m, i) => [m, `€${(1200 + u * 340 + i * 85).toLocaleString('en-GB')}.00`])),
+}));
+const unitColumns = (months: string[]): Column<UnitRow>[] => [
+  { key: 'name', label: 'Unit' },
+  ...months.map((m) => ({ key: m, label: m, num: true })),
+];
+
+export const FitTable: StoryObj = {
+  render: () => <div style={page}>
+    <div className="ui-card-stack">
+      <Card className="ui-card--fit" title="Cost this quarter">
+        <DataTable columns={unitColumns(MONTHS.slice(-2))} rows={UNIT_ROWS} selectable={false} pager={false} scrollLabel="Cost this quarter" />
+      </Card>
+      <Card className="ui-card--fit" title="Cost per month">
+        <DataTable columns={unitColumns(MONTHS)} rows={UNIT_ROWS} selectable={false} pager={false} scrollLabel="Cost per month" />
+      </Card>
+    </div>
+  </div>,
 };

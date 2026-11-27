@@ -1,5 +1,12 @@
 export const RELEASES = [
   {
+    v: '0.227.0', date: '2026-11-27',
+    changes: [
+      ['fixed', 'A light `ui-card--fit` card now takes the full width of its column when its content is wide, as a dark one does. Before, the light card hung its side inset outside the column but stayed column-wide, so its table lost 48px, or 32px at 720px and below. Part of #924.', ['Card']],
+      ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
+    ],
+  },
+  {
     v: '0.226.0', date: '2026-11-27',
     changes: [
       ['added', '`ThreeColumnPage` and `SplitLayout` take `resizable`, so the reader can drag the line between two columns above 860px, or move it with the arrow keys. It is off by default, so no current page changes. Each column keeps its limits, and `onResize` with `widths` or `primaryWidth` lets an app keep the widths after a reload. Part of #903.', ['ThreeColumnPage', 'SplitLayout']],

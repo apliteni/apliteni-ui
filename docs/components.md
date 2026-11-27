@@ -631,7 +631,9 @@ every accent. The arrow keys skip it.
 in the field. The match is anywhere in the label, without case or accents. Descriptions are not
 searched, so put the words that a user types in the label. `search={{ count, noun }}` names the
 size of the set, for example "Search 214 people". Each open starts with the whole list. A query
-with no matches says so.
+with no matches says so. A panel with a search field is at least 280px wide, also inside a
+[`Field`](#fields), so the field shows its search text. Inside a `Field` the panel is never wider
+than the view less 8px at each side.
 
 **Submenus.** The account menu of `AppShell` has a Theme row that opens a submenu. Right and Enter
 open it, Left and Escape close it, and the focus goes back to the row. On a phone the submenu
@@ -1065,6 +1067,11 @@ while it overflows the card is a named keyboard stop. `scrollLabel` names it, `T
 as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
 scroll frame does. A control in the card that takes the focus by keyboard or by script scrolls
 fully into view with its focus ring.
+
+**A card that ends at its content.** `.ui-card--fit` ends the card at the width of its content,
+such as one table. When the content is wider than the column, the card takes the full column width
+and the content scrolls inside it. In dark the card is as wide as the column. In light the card
+hangs its side inset outside the column, so it is as wide as the column and both insets.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one

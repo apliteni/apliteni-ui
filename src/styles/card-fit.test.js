@@ -95,3 +95,92 @@ test('the card-width gate rejects a card that can push the page sideways', () =>
   assert.throws(() => cardWidths(noComments(CSS).replace(/width\s*:/g, 'inline-size:')),
     /no card rule sets a width/);
 });
+
+/* Browser half (CARD_FIT=1 with UI_PLAYWRIGHT, optionally UI_CHROME): a fit card holding a
+ * table wider than its column takes the full column in Chromium, in both themes, at 390, 820
+ * and 1440px. A light card hangs its side inset outside the column, 16px at 720px and below
+ * and 24px above, so it is the column and both hangs wide. A narrow table still ends the card
+ * inside the column. It draws raw kit markup in the browser's fallback font, so it proves the
+ * edges, not a table's exact width. #924 */
+const { env } = process;
+const ROOT = path.resolve(HERE, '../..');
+const SHEETS = [...readFileSync(path.join(ROOT, 'src/index.css'), 'utf8').matchAll(/@import "\.\/([^"]+)"/g)]
+  .map((m) => path.join(ROOT, 'src', m[1]));
+// The light cap from before #924: a fit card capped at the column it hangs out of.
+const HANG_CAP_OFF = ['the light fit card capped at 100%',
+  /:root\[data-theme="light"\] \.ui-card--fit:not\(\.ui-card--pad-lg\):not\(\.ui-card--accent\):not\(\.ui-card--live\) \{[^}]*\}\n/, ''];
+const kitSheet = (mutation) => SHEETS.map((p) => {
+  const css = readFileSync(p, 'utf8');
+  if (!mutation || !p.endsWith('card.css')) return css;
+  const broken = css.replace(mutation[1], mutation[2]);
+  assert.notEqual(broken, css, `${mutation[0]}: the mutation did not apply, so it proves nothing`);
+  return broken;
+}).join('\n');
+
+const row = (cells) => `<tr>${cells.map((c) => `<td>${c}</td>`).join('')}</tr>`;
+const table = (columns) => `<table class="ui-table"><thead><tr>${Array.from({ length: columns }, (_, i) => `<th>Month ${i + 1}</th>`).join('')}</tr></thead>`
+  + `<tbody>${row(Array.from({ length: columns }, (_, i) => `€ ${(12345.5 + i * 1111).toFixed(2)}`))}</tbody></table>`;
+const WIDTHS = [{ width: 390, hang: 16 }, { width: 820, hang: 24 }, { width: 1440, hang: 24 }];
+
+async function measureCards(css) {
+  const pw = await import(env.UI_PLAYWRIGHT || 'playwright');
+  const { chromium } = pw.chromium ? pw : pw.default;
+  const browser = await chromium.launch({ executablePath: env.UI_CHROME || undefined });
+  try {
+    const out = [];
+    for (const { width, hang } of WIDTHS) {
+      for (const theme of ['light', 'dark']) {
+        const context = await browser.newContext({ viewport: { width, height: 800 } });
+        const page = await context.newPage();
+        // The column pads each side by the light hang, as the page shell does.
+        await page.setContent(`<!doctype html><html lang="en" data-theme="${theme}"><head><style>${css}
+          body { margin: 0; } .column { margin-inline: ${hang}px; display: flex; flex-direction: column; gap: 24px; }</style></head>`
+          + `<body><div class="column"><div class="ui-card ui-card--fit" id="wide">${table(30)}</div>`
+          + `<div class="ui-card ui-card--fit" id="narrow">${table(2)}</div></div></body></html>`, { waitUntil: 'load' });
+        const box = await page.evaluate(() => {
+          const edges = (el) => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; };
+          return {
+            column: edges(document.querySelector('.column')),
+            wide: edges(document.querySelector('#wide')),
+            narrow: edges(document.querySelector('#narrow')),
+            pageScroll: document.documentElement.scrollWidth - innerWidth,
+          };
+        });
+        out.push({ cell: `${width}px ${theme}`, hang: theme === 'light' ? hang : 0, ...box });
+        await context.close();
+      }
+    }
+    return out;
+  } finally {
+    await browser.close();
+  }
+}
+
+/** What the measured cards do wrong. One expression, so the gate and the mutation run the same code. */
+function cardFaults(cells) {
+  const out = [];
+  if (cells.length !== WIDTHS.length * 2) out.push(`${cells.length} of ${WIDTHS.length * 2} cells measured`);
+  for (const c of cells) {
+    const left = c.column.left - c.hang;
+    const right = c.column.right + c.hang;
+    if (Math.abs(c.wide.left - left) > 0.5 || Math.abs(c.wide.right - right) > 0.5) {
+      out.push(`${c.cell}: the wide fit card runs ${c.wide.left} to ${c.wide.right}px, the column and its hang ${left} to ${right}px`);
+    }
+    if (c.narrow.width >= c.column.width) out.push(`${c.cell}: the narrow fit card is ${c.narrow.width}px, the column ${c.column.width}px — it does not end at its table`);
+    if (c.pageScroll > 0) out.push(`${c.cell}: the page scrolls ${c.pageScroll}px sideways`);
+  }
+  return out;
+}
+
+test('measured in Chromium: a fit card takes the full column in both themes', {
+  skip: !env.CARD_FIT && 'set CARD_FIT=1 and UI_PLAYWRIGHT to run the Chrome layout gate',
+}, async (t) => {
+  const cells = await measureCards(kitSheet());
+  for (const c of cells) t.diagnostic(`${c.cell}: column ${c.column.width}px, wide card ${c.wide.width}px, narrow card ${c.narrow.width}px`);
+  assert.deepEqual(cardFaults(cells), []);
+  await t.test(`the gate rejects ${HANG_CAP_OFF[0]}`, async () => {
+    const found = cardFaults(await measureCards(kitSheet(HANG_CAP_OFF)));
+    assert.ok(found.length > 0, `the gate passed a sheet with ${HANG_CAP_OFF[0]}`);
+    t.diagnostic(found[0]);
+  });
+});
