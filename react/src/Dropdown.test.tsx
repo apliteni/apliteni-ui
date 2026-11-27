@@ -308,6 +308,27 @@ describe('a ghost trigger', () => {
   });
 });
 
+/* #915: an off ghost trigger draws no box in any state, also pressed with the pointer dragged
+ * off it, in both themes. React sets `disabled`; kit markup can set `aria-disabled`, which keeps
+ * the stop. Same limits as above: the winning declarations, not pixels. */
+describe.each(['light', 'dark'] as const)('an off ghost trigger in %s', (theme) => {
+  const { css } = kitCssFor(theme);
+  const sheet = document.createElement('style');
+  beforeAll(() => { sheet.textContent = css; document.head.appendChild(sheet); });
+  afterAll(() => sheet.remove());
+  const clear = ['transparent', 'rgba(0, 0, 0, 0)'];
+  it.each(['disabled', 'aria-disabled'].flatMap((off) => ['', 'hover', 'active', 'hover active'].map((state) => [off, state])))(
+    'draws no edge and no fill when %s at state "%s"', (off, state) => {
+    render(<Dropdown variant="select" ariaLabel="Category" ghost items={[{ label: 'Groceries', value: 'g' }]} />);
+    const el = document.querySelector<HTMLElement>('.ui-dropdown__trigger')!;
+    el.setAttribute(off, off === 'disabled' ? '' : 'true');
+    if (state) el.setAttribute('data-ui-state', state);
+    const style = getComputedStyle(el);
+    expect(clear).toContain(style.borderTopColor);
+    expect(clear).toContain(style.backgroundColor);
+  });
+});
+
 // #580: off is the button's own state. React Testing Library's pointer and
 // keyboard model refuses a disabled control the way a browser does, so both
 // halves of "no stop, no panel" are read here rather than asserted from markup.

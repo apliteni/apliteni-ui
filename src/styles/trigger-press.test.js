@@ -4,8 +4,8 @@
  * chip, a band control or the account block, otherwise shows nothing once the pointer
  * leaves an open menu, and nothing under a finger. rev_cac4d2ac968c/d66, #915
  *
- * It discovers the triggers: the kit's `.ui-dropdown__trigger` and every `triggerClass`
- * that a React component gives a Dropdown. In every sheet, each rule that answers the
+ * It discovers the triggers: the kit's `.ui-dropdown__trigger`, every `triggerClass`
+ * that a React component gives a Dropdown, and each `--` variant of them that a sheet names. In every sheet, each rule that answers the
  * pointer on one of them needs the pressed trigger and the trigger of an open menu in a rule
  * of the same sheet with the same paint. It reads selectors, not the cascade; the filter chip's edge is read in
  * filter-bar.test.js and in a browser in stories/filter-chip-width.test.js.
@@ -24,9 +24,12 @@ const read = (rel) => readFileSync(path.join(root, rel), 'utf8');
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '));
 
 const SHEETS = [...listed('src/styles', '.css'), ...listed('react/src', '.css')];
-const TRIGGERS = ['ui-dropdown__trigger', ...new Set(listed('react/src', '.tsx')
+const BASES = ['ui-dropdown__trigger', ...new Set(listed('react/src', '.tsx')
   .filter((f) => !/\.(test|stories)\.tsx$/.test(f))
   .flatMap((f) => [...read(f).matchAll(/triggerClass="([\w-]+)"/g)].map((m) => m[1])))];
+/** Each base and every `--` variant of it that a sheet names, such as the ghost trigger. */
+const TRIGGERS = [...new Set([...BASES, ...SHEETS.flatMap((f) => BASES.flatMap((b) =>
+  [...read(f).matchAll(new RegExp(`\\.(${b}--[\\w-]+)`, 'g'))].map((m) => m[1])))])];
 
 /** Close the spaces inside parentheses, so a compound splits on its combinators only. */
 const tight = (s) => s.trim().replace(/\s+/g, ' ').replace(/\(([^()]*)\)/g, (m) => m.replace(/\s+/g, ''));
@@ -54,6 +57,9 @@ const PAINT = ['background', 'background-color', 'border-color', 'color', '--ui-
 /** The paint a rule body declares, so a state rule elsewhere in the sheet must declare the same. */
 const paintOf = (body) => PAINT.map((p) => (new RegExp(`(?:^|[;\\s])${p}\\s*:\\s*([^;]+)`).exec(body)?.[1] ?? '').trim()).join('|');
 const withoutOpen = (c) => c.replace(/\.open(?![\w-])/, '');
+/** An open trigger cannot be off, and an open rule without the focus guard covers focus too, so
+ *  these two narrowing filters may be absent from an open selector. */
+const unguarded = (c) => c.replace(/:enabled|:not\(:focus-visible\)/g, '');
 
 /** Each live pointer answer on a trigger, with the states the sheet lacks for it. A pressed or
  *  open selector counts in any rule of the same sheet, under the same query, with the same paint. */
@@ -71,7 +77,7 @@ function sweep(sheets) {
           || all.some(({ t, paint: p }) => p === paint && t === s.replace(/:hover(?=[^:]*$|:)/, ':active'));
         const open = all.some(({ t, paint: p }) => {
           const up = compounds(t).slice(0, -1);
-          return p === paint && subject(t) === rest && up.some((c) => /\.open(?![\w-])/.test(c))
+          return p === paint && unguarded(subject(t)) === unguarded(rest) && up.some((c) => /\.open(?![\w-])/.test(c))
             && above.every((c) => up.map(withoutOpen).includes(c));
         });
         return { file, selector: s, missing: [!pressed && 'pressed', !open && 'open'].filter(Boolean) };
@@ -88,11 +94,14 @@ test('the gate finds the account block and every pointer answer on a menu trigge
   for (const f of ['src/styles/dropdown.css', 'src/styles/filter-bar.css', 'src/styles/layout.css', 'react/src/AppShell.css']) {
     assert.ok(files.has(f), `no trigger answer read in ${f}`);
   }
-  // 14: the select live and invalid; the filter chip and the add control; the account block
-  // on the rail, in the drawer and on the phone band; the head control; the band actions on
-  // a phone and wider; the band control; the topbar view switch and avatar; a column menu.
-  // A new trigger answer changes this count, so read it before you raise it.
-  assert.equal(found.length, 14, found.map(({ file, selector }) => `${file}: ${selector}`).join('\n'));
+  // 16: the select live and invalid; the ghost trigger's edge and fill; the filter chip and
+  // the add control; the account block on the rail, in the drawer and on the phone band; the
+  // head control; the band actions on a phone and wider; the band control; the topbar view
+  // switch and avatar; a column menu. A new trigger answer changes this count, so read it
+  // before you raise it. dropdown-trigger-edge.test.js counts 14 edge scopes: it reads the
+  // ghost's edge as one scope and its fill not at all.
+  assert.ok(TRIGGERS.includes('ui-dropdown__trigger--ghost'), `triggers: ${TRIGGERS}`);
+  assert.equal(found.length, 16, found.map(({ file, selector }) => `${file}: ${selector}`).join('\n'));
 });
 
 test('every menu trigger keeps its hover answer while pressed and while its menu is open', () => {
@@ -119,4 +128,15 @@ test('the sweep refuses a select edge that leaves the open menu', () => {
   assert.notEqual(dropdown, KIT.find(([f]) => f === 'src/styles/dropdown.css')[1], 'the mutation changed nothing');
   const caught = sweep([['src/styles/dropdown.css', dropdown]]).filter(({ missing }) => missing.length);
   assert.deepEqual(caught.map(({ selector, missing }) => [selector, missing]), [['.ui-dropdown__trigger:enabled:hover:not(:focus-visible)', ['open']]]);
+});
+
+test('the sweep refuses a ghost trigger that drops its answer while pressed', () => {
+  const sheet = KIT.find(([f]) => f === 'src/styles/dropdown.css')[1];
+  const dropdown = sheet.replaceAll('.ui-dropdown__trigger--ghost:enabled:active:not(:focus-visible),\n', '');
+  assert.equal(sheet.length - dropdown.length, 2 * '.ui-dropdown__trigger--ghost:enabled:active:not(:focus-visible),\n'.length, 'the mutation did not remove both ghost pressed selectors');
+  const caught = sweep([['src/styles/dropdown.css', dropdown]]).filter(({ missing }) => missing.length);
+  assert.deepEqual(caught.map(({ selector, missing }) => [selector, missing]), [
+    ['.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible)', ['pressed']],
+    ['.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible)', ['pressed']],
+  ]);
 });

@@ -564,8 +564,9 @@ its words on one line. Without `ghost` the trigger keeps its edge.
   no value is set. `label` is deprecated: it draws nothing, warns once in development and goes in
   the next release.
 - The trigger has the accent edge under the pointer, while pressed and while its panel is open.
-  A trigger that a product draws with no edge or no ground, such as a band control or the account
-  block, keeps its hover fill in those states. Under the focus ring the edge stays as at rest.
+  A ghost trigger, and a trigger that a product draws with no edge or no ground, such as a band
+  control or the account block, keeps its hover fill in those states. Under the focus ring the
+  edge keeps its width and goes transparent, so focus shows one line.
 - The panel opens below the trigger. `direction="up"` opens it above. `align` chooses the edge of
   the trigger that the panel hangs from. The panel keeps that edge where it fits, and moves along
   the row where it does not.

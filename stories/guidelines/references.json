@@ -326,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:525",
+    "ref": "src/styles/dropdown.css:527",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:588",
+    "ref": "src/styles/dropdown.css:590",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -342,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:478",
+    "ref": "src/styles/dropdown.css:480",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -612,11 +612,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:483",
+    "ref": "src/styles/dropdown.css:485",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:484",
+    "ref": "src/styles/dropdown.css:486",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -1379,11 +1379,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:486",
+    "ref": "src/styles/dropdown.css:488",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:488",
+    "ref": "src/styles/dropdown.css:490",
     "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {

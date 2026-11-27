@@ -111,11 +111,13 @@
 .ui-dropdown__trigger:disabled .ui-dropdown__value,
 .ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
 /* An off ghost trigger draws no box, as an off ghost button does, and takes the same ink for a
-   ground it cannot know. Each selector ties an off rule above and comes later. #888 */
+   ground it cannot know. Each selector ties an off rule above and comes later. #888
+   The pressed one also holds when the pointer leaves the pressed trigger. #915 */
 .ui-dropdown__trigger--ghost:disabled,
 .ui-dropdown__trigger--ghost:disabled:hover:not(:focus-visible),
 .ui-dropdown__trigger--ghost[aria-disabled="true"],
 .ui-dropdown__trigger--ghost[aria-disabled="true"]:hover:not(:focus-visible),
+.ui-dropdown__trigger--ghost[aria-disabled="true"]:active:not(:focus-visible),
 .ui-dropdown__trigger--ghost[aria-disabled="true"]:focus-visible {
   background: transparent;
   border-color: transparent;
