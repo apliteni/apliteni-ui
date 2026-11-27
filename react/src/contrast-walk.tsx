@@ -75,9 +75,10 @@ type LedgerEntry = { match: (f: Finding) => boolean; count: number; why: string 
 // with the Signal contrast page, which is docs/signal-contrast.md now (#758).
 const PALETTE_STORY = '../../stories/foundations/BrandPrimitives.stories.tsx:Palette';
 const MOTION_PLAYGROUND = '../../stories/foundations/Motion.stories.tsx:Playground';
+const GUIDELINE_MOTION = '../../stories/guidelines/Motion.stories.tsx:Motion';
 const onlyIn = (f: Finding, story: string) => [...f.stories].every(s => s === story);
 /** Whole stories the ledger counts, dealt to part 0. */
-const LEDGER_STORIES = new Set([PALETTE_STORY, MOTION_PLAYGROUND]);
+const LEDGER_STORIES = new Set([PALETTE_STORY, MOTION_PLAYGROUND, GUIDELINE_MOTION]);
 const LEDGER: LedgerEntry[] = [
   {
     match: f => onlyIn(f, PALETTE_STORY),
@@ -95,6 +96,16 @@ const LEDGER: LedgerEntry[] = [
       + 'accent it is inked in, so in dark the ground rises with the ink and the pair stays under '
       + 'AA. The accent that closes it is past the point where it is still this violet, and #96 '
       + 'and #157 chose the hue before the ratio.',
+  },
+  {
+    match: f => onlyIn(f, GUIDELINE_MOTION)
+      && [...f.paths].every(path => path.endsWith('span.gm-crossfade__out')),
+    count: 2,
+    why: 'The every-change rule\'s "do" specimen freezes the count cross-fade at its 75ms '
+      + 'midpoint, where --ease has faded the outgoing value to 22% opacity. That faded value is '
+      + 'the transient state the rule documents — on screen only during the 150ms fade — and a '
+      + 'frozen still of it sits under AA by design. The live Crossfade never holds it, and the '
+      + 'incoming value in the same frame clears AA.',
   },
 ];
 

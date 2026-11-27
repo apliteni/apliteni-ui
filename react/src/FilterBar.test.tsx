@@ -447,6 +447,19 @@ it('holds every line the chip can print, so a pick does not change its width', (
   expect(lines('Office: Not in the menu')).toEqual(['Not in the menu', 'Office', 'Lisbon, head office', 'Porto', 'Western Europe']);
 });
 
+// DOM only: the cap a filter sets, and the full value where a cut chip keeps it. A browser
+// measures the cap and the ellipsis: stories/filter-chip-width.test.js. #915
+it('puts a filter\'s own cap on its chip, keeps the default for a bad one, and keeps the full value in the title', () => {
+  const long = 'Professional advisory services';
+  const make = (id: string, maxWidth?: number): Filter => ({ id, label: 'Category', value: long, maxWidth, items: [{ label: long, value: long }] });
+  render(<FilterBar filters={[make('set', 160), make('none'), make('zero', 0), make('nan', Number.NaN), make('minus', -40), make('endless', Infinity)]} {...callbacks()} />);
+  const cap = (id: string) => document.querySelector<HTMLElement>(`[data-filter-id="${id}"]`)!.style.getPropertyValue('--ui-filter-chip-max');
+  expect(cap('set')).toBe('160px');
+  expect(['none', 'zero', 'nan', 'minus', 'endless'].map(cap)).toEqual(['', '', '', '', '']);
+  for (const trigger of screen.getAllByRole('button', { name: `Category: ${long}` })) expect(trigger).toHaveAttribute('title', `Category: ${long}`);
+  expect(screen.getAllByRole('button', { name: `Category: ${long}` })).toHaveLength(6);
+});
+
 // A reader clears one filter with the first row of its menu. The chip and its trigger stay,
 // and so does the focus.
 it('keeps focus on the chip when its value is cleared', () => {

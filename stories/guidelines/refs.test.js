@@ -321,10 +321,12 @@ test('every guideline has packaged Markdown and renders its rule text from it', 
   // 178: Drawers gained status-after-title (#868).
   // 179: Dropdown added trigger-value (#899).
   // 180: Motion gained hover-at-once (#865).
-  // 181: The page gained sidebar-column (#869).
-  // 182: Dashboards and reports gained trend-in-head (#863).
-  // 185: Task list added task-board and task-head, and Notification email added task-mail (#866).
-  assert.equal(count, 185, 'update the rule count when adding or removing a rule');
+  // 181: Motion gained every-change (#900).
+  // 182: The page gained sidebar-column (#869).
+  // 183: Dashboards and reports gained trend-in-head (#863).
+  // 184: Dense tables added filter-chip-width (#915).
+  // 187: Task list added task-board and task-head, and Notification email added task-mail (#866).
+  assert.equal(count, 187, 'update the rule count when adding or removing a rule');
 });
 
 test('Markdown changes reach the renderer, and mismatched specimen ids fail', () => {

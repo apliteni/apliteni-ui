@@ -74,31 +74,32 @@ const SHEETS = [...KIT_SHEETS, ...REACT_SHEETS];
  * and draws the unavailable edge, so it is classified as off and not as hover. */
 const STATES = [
   ['off', /:disabled\b|\[disabled\]|:not\(\s*:enabled\s*\)|\[aria-disabled\s*=\s*("true"|'true'|true)\]/i],
+  // A trigger keeps its hover edge while pressed and while its menu is open, an invalid one its
+  // invalid edge. These come before invalid and focus, so a press or an open menu, which also
+  // say `[aria-invalid]` or `:not(:focus-visible)`, does not stand in for those states. #915
+  ['pressed', /:active\b/i],
+  ['open', /\.open\b|\[aria-expanded\s*=\s*("true"|'true'|true)\]/i],
   // Before hover, so the invalid edge under the pointer is not read as the live hover. #835
   ['invalid', /\[aria-invalid\s*=\s*("true"|'true'|true)\]/i],
   ['hover', /:hover\b/i],
   ['focus', /:focus(-visible|-within)?\b/i],
-  ['open', /\.open\b|\[aria-expanded\s*=\s*("true"|'true'|true)\]/i],
 ];
 /* The whole state vocabulary. A rule at a state that is not in it fails the gate
  * rather than being filed under "resting" and quietly counted as covered. */
 const MEASURED = ['rest', ...STATES.map(([name]) => name)];
-/* The states the kit's own trigger has to answer. `open` is allowed and not
- * required: the kit answers opening on the chevron, not on the trigger's edge. */
-const REQUIRED = ['rest', 'hover', 'off'];
+/* The states the kit's own trigger has to answer. Pressed and open keep the hover edge
+ * since #915; src/styles/trigger-press.test.js holds that for every menu trigger. */
+const REQUIRED = ['rest', 'hover', 'pressed', 'open', 'off'];
 /* `off` is the one state whose edge is supposed to be the unavailable ink. In
  * every other state, painting it is the defect #580 reports. */
 const LIVE = MEASURED.filter((state) => state !== 'off');
-const DISABLED_TARGETS = [
-  { spelling: 'native', state: 'rest', hover: false, focus: false },
-  { spelling: 'native', state: 'hover', hover: true, focus: false },
-  { spelling: 'native', state: 'focus', hover: false, focus: true },
-  { spelling: 'native', state: 'hover focus', hover: true, focus: true },
-  { spelling: 'aria', state: 'rest', hover: false, focus: false },
-  { spelling: 'aria', state: 'hover', hover: true, focus: false },
-  { spelling: 'aria', state: 'focus', hover: false, focus: true },
-  { spelling: 'aria', state: 'hover focus', hover: true, focus: true },
-];
+/* Each spelling, under the pointer or not, focused or not, pressed or not, and invalid or not.
+ * A pressed target can be off the trigger: the pointer pressed it and left while held. #915 */
+const DISABLED_TARGETS = ['native', 'aria'].flatMap((spelling) => [false, true].flatMap((invalid) =>
+  [false, true].flatMap((pressed) => [false, true].flatMap((hover) => [false, true].map((focus) => ({
+    spelling, hover, focus, pressed, invalid,
+    state: [hover && 'hover', focus && 'focus', pressed && 'pressed', invalid && 'invalid'].filter(Boolean).join(' ') || 'rest',
+  }))))));
 
 /* Anything in a selector that reports a state rather than naming a box. One
  * source for two jobs: stripped, it leaves the SCOPE — the control a run of
@@ -111,7 +112,11 @@ const STATEFUL = '(?::(?:hover|active|focus(?:-visible|-within)?|disabled|enable
   + '|\\.open\\b|\\.is-(?:open|active|selected|busy)\\b)';
 const STATE_IN_SELECTOR = new RegExp(`${STATEFUL}|:not\\([^)]*\\)`, 'gi');
 
-const scopeOf = (selector) => selector.replace(STATE_IN_SELECTOR, '').replace(/\s+/g, ' ').trim();
+/* A trigger always sits in its `.ui-dropdown`, so a rule that names that box only to say it is
+ * open (`.ui-dropdown.open > .ui-dropdown__trigger`) is about the same trigger, not a new scope.
+ * A `.ui-dropdown >` under a child combinator stays, because the scope there names the box. */
+const scopeOf = (selector) => selector.replace(STATE_IN_SELECTOR, '').replace(/\s+/g, ' ').trim()
+  .replace(/(^|[^>\s] )\.ui-dropdown > (?=\.ui-dropdown__trigger)/, '$1');
 
 const classify = (selector) => STATES.find(([, re]) => re.test(selector))?.[0]
   ?? (new RegExp(STATEFUL, 'i').test(selector) ? 'unknown' : 'rest');
@@ -159,31 +164,35 @@ function edgeOf(body) {
 function subjects(overrides = {}) {
   const out = [];
   let order = 0;
-  for (const file of SHEETS) {
-    const css = decomment(overrides[file] ?? read(file));
-    for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      if (selectors.trimStart().startsWith('@')) continue;
-      for (const selector of splitSelectorList(selectors)) {
-        order += 1;
-        const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
-        if (!subject.includes(TRIGGER)) continue;
-        const at = selector.lastIndexOf(TRIGGER);
-        const before = selector.slice(0, at);
-        const depth = [...before].reduce((level, char) => level + (char === '(') - (char === ')'), 0);
-        if (depth !== 0 || subject.includes('::')) continue;
-        out.push({
-          file,
-          order,
-          selector,
-          scope: scopeOf(selector),
-          state: classify(selector),
-          spec: specificity(selector),
-          edge: edgeOf(body),
-        });
-      }
+  for (const file of SHEETS) order = triggerRules(file, overrides[file] ?? read(file), order, out);
+  return out;
+}
+
+/* Push the trigger rules of one sheet's text onto `out`, numbered in source order
+ * after `order`, and return the last number. */
+function triggerRules(file, text, order, out) {
+  for (const [, selectors, body] of decomment(text).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (selectors.trimStart().startsWith('@')) continue;
+    for (const selector of splitSelectorList(selectors)) {
+      order += 1;
+      const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
+      if (!subject.includes(TRIGGER)) continue;
+      const at = selector.lastIndexOf(TRIGGER);
+      const before = selector.slice(0, at);
+      const depth = [...before].reduce((level, char) => level + (char === '(') - (char === ')'), 0);
+      if (depth !== 0 || subject.includes('::')) continue;
+      out.push({
+        file,
+        order,
+        selector,
+        scope: scopeOf(selector),
+        state: classify(selector),
+        spec: specificity(selector),
+        edge: edgeOf(body),
+      });
     }
   }
-  return out;
+  return order;
 }
 
 /* The scopes, each with its rules grouped by state. */
@@ -250,6 +259,11 @@ function matchesDisabledTarget(rule, target) {
   const wantsAria = hasAriaDisabled(selector);
   if (target.spelling === 'native' && (wantsAria || /:enabled\b/i.test(stripNot(selector)))) return false;
   if (target.spelling === 'aria' && wantsNative) return false;
+  // An off trigger never opens: a native one takes no click, and Dropdown refuses to open an
+  // aria-disabled one. So a rule for an open menu cannot reach it. #915
+  if (/\.open\b/.test(stripNot(selector))) return false;
+  if (/:active\b/i.test(stripNot(selector)) && !target.pressed) return false;
+  if (hasInvalid(selector) && !target.invalid) return false;
   if (/:hover\b/i.test(selector) && !target.hover) return false;
   if (hasPositiveFocus(selector) && !target.focus) return false;
   if (hasNotFocus(selector) && target.focus) return false;
@@ -260,10 +274,14 @@ const disabledWinner = (rules, target) => rules
   .filter((r) => r.edge && matchesDisabledTarget(r, target))
   .reduce((best, r) => (best && outranks(best, r) ? best : r), null);
 
+/* A trigger receives its own scope and each enclosing suffix scope. A variant, such as the ghost
+ * trigger, also carries the base class, so it receives the base class's scopes too. #915 */
+const reaches = (scope, ancestor) => scope.endsWith(ancestor)
+  || scope.replace(/(\.ui-dropdown__trigger)--[\w-]+$/, '$1').endsWith(ancestor);
+
 function disabledEdgeFindings(byScope) {
   return [...byScope].flatMap(([scope]) => {
-    // A trigger receives its own scope and each enclosing suffix scope.
-    const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
+    const rules = [...byScope].filter(([ancestor]) => reaches(scope, ancestor))
       .flatMap(([, inherited]) => inherited);
     // Read through the inherited rules too: a scope that only sizes a borderless
     // trigger, such as the small row's chip, is still borderless. #822
@@ -290,7 +308,7 @@ const FOCUS_TARGETS = [false, true].flatMap((invalid) => [false, true].map((hove
 const hasInvalid = (selector) => /\[aria-invalid\s*=\s*("true"|'true'|true)\]/i.test(stripNot(selector));
 function focusEdgeFindings(byScope) {
   return [...byScope].flatMap(([scope]) => {
-    const rules = [...byScope].filter(([ancestor]) => scope.endsWith(ancestor))
+    const rules = [...byScope].filter(([ancestor]) => reaches(scope, ancestor))
       .flatMap(([, inherited]) => inherited)
       .filter((r) => r.edge && r.state !== 'off' && r.state !== 'open' && !hasNativeDisabled(r.selector));
     return FOCUS_TARGETS.flatMap((target) => {
@@ -355,9 +373,10 @@ test('an unavailable trigger keeps its off edge or borderless box in every scope
   // and its 40px phone glyph. Eleven since #903: the small dropdown and the small bar's
   // Filter, and the small bar's chip replaces the small row's. Twelve since #863: the
   // text trigger of a chart's range. Fifteen since #888: the ghost trigger, open and in a
-  // form field. Sixteen since #866: the ghost trigger of a movable card's menu.
-  assert.equal(BY_SCOPE.size, 16, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 128);
+  // form field. Fourteen since #915: an open menu is a state of its trigger, not a scope.
+  // Fifteen since #866: the ghost trigger of a movable card's menu.
+  assert.equal(BY_SCOPE.size, 15, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 480);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');
@@ -370,11 +389,12 @@ test('disabled readings reject live paint in every discovered scope and state', 
   for (const scope of BY_SCOPE.keys()) {
     for (const target of DISABLED_TARGETS) {
       const off = target.spelling === 'native' ? ':disabled' : '[aria-disabled="true"]';
-      const state = `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
-      const file = SHEETS.at(-1);
-      const broken = scopes(subjects({
-        [file]: `${read(file)}\n${scope}${off}${state} { border: 1px solid var(--control-edge); }`,
-      }));
+      const state = `${target.invalid ? '[aria-invalid="true"]' : ''}${target.pressed ? ':active' : ''}`
+        + `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
+      // The live rule comes last in the cascade, read alone after the kit that was read once.
+      const live = [];
+      triggerRules(SHEETS.at(-1), `${scope}${off}${state} { border: 1px solid var(--control-edge); }`, ALL.at(-1).order, live);
+      const broken = scopes([...ALL, ...live]);
       const name = `${scope}: ${target.spelling} ${target.state}:`;
       assert.ok(disabledEdgeFindings(broken).some((finding) => finding.startsWith(name)), name);
     }
@@ -557,7 +577,9 @@ test('the reading refuses every way the two edges can come back together', () =>
     // fault the fix itself could have introduced.
     ['.ui-card .ui-filter-bar [data-filter-add] .ui-dropdown__trigger { border-color: var(--accent); }', 'frozen'],
     // A state nobody measured, ranked as resting and counted as covered.
-    ['.ui-dropdown__trigger:active { border-color: var(--border); }', 'unmeasured-state'],
+    ['.ui-dropdown__trigger:target { border-color: var(--border); }', 'unmeasured-state'],
+    // The press painted with the off ink, one state along from hover.
+    ['.ui-dropdown__trigger:enabled:active:not(:focus-visible) { border-color: var(--border); }', 'live-is-off'],
     // Each disabled spelling and state can be broken on its own. This includes
     // the exact reviewer mutation first: native resting disabled used to pass.
     ['.ui-dropdown__trigger:disabled { border-color: var(--control-edge); }', 'off-not-off'],

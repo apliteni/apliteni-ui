@@ -195,7 +195,9 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-app .ui-app__user-trigger:hover,
+.ui-app .ui-app__user-trigger:active,
+.ui-app .ui-dropdown.open > .ui-app__user-trigger { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 .ui-app__user-trigger .ui-app__who { flex: 1 1 auto; text-align: left; }
 /* The panel is portalled onto <body>, so nothing here may hang off .ui-app: by the
    time it is open it is no longer inside the rail that drew it.
@@ -448,11 +450,9 @@
 /* The tools wrap at the narrowest phone, so a period picker and a view action stay in the column. #832 */
 .ui-app__tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: var(--space-3); max-width: 100%; }
 /* --ui-block-gap is the gap between two blocks. A control row above a block reads it, so
-   its margin holds in each theme. */
+   its margin holds in each theme. One spacing in both themes, so no block moves when the
+   theme changes. #900 */
 .ui-app__body { --ui-block-gap: var(--space-5); display: flex; flex-direction: column; gap: var(--ui-block-gap); }
-/* #850: on the light page a card draws no box, so the body opens to the page's group gap.
-   why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-app__body { --ui-block-gap: var(--space-10); gap: var(--ui-block-gap); }
 /* A stat band closes one section, so the block after it keeps the group gap on
    top of the body's: the air the old soft line used to give, now as space alone.
    why: guidelines/dashboards-and-reports.md, #850 */

@@ -1,6 +1,6 @@
 export const RELEASES = [
   {
-    v: '0.227.0', date: '2026-11-27',
+    v: '0.231.0', date: '2026-11-27',
     changes: [
       ['added', '`QuerySearch` is a list search that reads typed filters, such as `state:open`, and `@name` for a person. It suggests keys, values and people, and each condition becomes a chip that you can edit or remove. `parseQuery`, `readQuery` and `matchQuery` read the same query for your list. Apps with a plain `SearchField` see no change. Part of #866.', ['QuerySearch']],
       ['added', '`MovableCard` is a card that a person moves to another column, such as a task on a board. It keeps its box in both themes and is one named Tab stop. `CardSlot` marks where a card lands, `held` leaves an empty slot, and `ui-card--lifted` keeps the moving copy fixed above the page. `ui-card-board` is the sideways scroll region for the columns, with the scroll band on keyboard focus and no scrollbar at 560px and below. Part of #866.', ['Card']],
@@ -9,6 +9,30 @@ export const RELEASES = [
       ['changed', '`QuerySearch` takes `size="sm"` for a small field, and its chips are then a small filter bar. A toolbar that starts with a `QuerySearch` keeps the search, Group by and the view switch on one line above 560px. A dropdown trigger with `ui-btn--ghost` now has no fill and no edge at rest. On a touch screen a wordless view option on that toolbar is 32px wide, and on a touch phone it reaches 44px. On a touch phone a query chip opens 11px between its label and its remove mark, so each reaches 44px. Apps that adopt `QuerySearch` are affected. Part of #866.', ['Toolbar', 'Dropdown']],
       ['added', 'Two guideline pages: Task list, with the rules Move cards on a board and Put New task beside the title, and Notification email, with the rule Link the task and the settings. The Toolbar docs now allow the create action at the end of a compact title row. Part of #866.', ['Guidelines']],
       ['added', 'Two showcases: Tasks, with a Table and a Board of the same tasks and one shared search, and Task mail, with a new task mail and a daily digest in plain text and HTML. Part of #866.', ['Showcases']],
+    ],
+  },
+  {
+    v: '0.229.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'A filter chip now keeps the width of its longest value up to 128px, in place of 224px, so five chips with long values fit one line beside a search field at 1440px. A pick still does not move the row. A longer value ends with an ellipsis, and the hover title, the trigger name and the menu keep the full value. Part of #915.', ['FilterBar']],
+      ['added', 'A filter takes `maxWidth`, in CSS pixels, to give its chip a different cap. `--ui-filter-chip-max` set on the toolbar or another box around the bar now reaches every chip. Before, the bar replaced it with its own value. Part of #915.', ['FilterBar']],
+      ['changed', 'A filter chip now has the accent edge under the pointer, while pressed and while its menu is open. Before, it showed no hover. Part of #915.', ['FilterBar']],
+      ['changed', 'A dropdown trigger now keeps its hover answer while pressed and while its menu is open: the accent edge on a select, and the hover fill on a trigger with no edge, such as the account block, a band control, a band action, the head control and a column menu. Before, a menu opened by a tap or left by the pointer showed nothing on its trigger. An off trigger keeps its off edge while pressed. Part of #915.', ['Dropdown', 'AppShell', 'AccountMenu', 'TopBar', 'ThreeColumnPage', 'DatePicker']],
+      ['changed', 'The Dense tables guideline has a new rule, Cap long filter chips. Part of #915.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.228.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'Every visible change of state is now a smooth transition with a kit duration and easing, except a hover, the focus ring and text typed in a field, which change in one step. A count or a status line that changes in place, such as the `Pagination` status or a `StatBand` figure, cross-fades in 150ms, and the React theme control cross-fades the whole page, its scrollbar and any open scrim in 250ms. Under reduced motion, and where the browser has no view transition, each change is one step. Part of #900.', ['Pagination', 'Stat band', 'ThemeToggle']],
+      ['changed', 'In the light theme a card now keeps the dark theme\'s spacing, so its text no longer hangs out to the page title\'s edge, and no box changes place or size when the theme changes. Only the paint differs: a light card draws no fill, edge or shadow, and a table in it and a drawer group title keep the dark theme\'s spacing. Part of #900.', ['Card', 'Table', 'Drawer']],
+      ['added', 'The Motion guideline has a new rule, Every visible change is a smooth transition. Part of #900.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.226.0', date: '2026-11-27',
+    changes: [
+      ['added', '`ThreeColumnPage` and `SplitLayout` take `resizable`, so the reader can drag the line between two columns above 860px, or move it with the arrow keys. It is off by default, so no current page changes. Each column keeps its limits, and `onResize` with `widths` or `primaryWidth` lets an app keep the widths after a reload. Part of #903.', ['ThreeColumnPage', 'SplitLayout']],
     ],
   },
   {

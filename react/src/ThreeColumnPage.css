@@ -11,14 +11,16 @@
   /* Column 1 is 240px and column 2 is 26% between 260px and --panel-sm, so the open child
      takes the rest: at least 360px, because three columns need a page area above 860px.
      240px and 260px have no token: they are the column floors of the reference study for #871. */
-  grid-template-columns: 240px clamp(260px, 26%, var(--panel-sm)) minmax(0, 1fr);
+  /* A page that resizes gives the first two widths in px. */
+  grid-template-columns: var(--ui-columns-1, 240px) var(--ui-columns-2, clamp(260px, 26%, var(--panel-sm))) minmax(0, 1fr);
   /* Each column scrolls alone, so the page takes the window under the band. A closed title
      menu's panel keeps its box, so the page clips it at its foot and the window does not scroll. */
   height: calc(100dvh - var(--ui-app-band, 0px));
   overflow-y: clip;
 }
 .ui-columns__up { grid-column: 1 / -1; padding: var(--space-3) var(--space-3) 0; }
-.ui-columns__col { display: flex; flex-direction: column; grid-row: 2; min-width: 0; min-height: 0; }
+/* A column holds the resize line on its start edge. */
+.ui-columns__col { position: relative; display: flex; flex-direction: column; grid-row: 2; min-width: 0; min-height: 0; }
 .ui-columns__col + .ui-columns__col { border-inline-start: 1px solid var(--border); }
 /* With no third column, the children take its space. */
 .ui-columns__col--2:last-child { grid-column: 2 / -1; }
@@ -61,6 +63,7 @@
   border-radius: var(--radius-xs);
 }
 .ui-columns__head .ui-columns__menu:hover,
+.ui-columns__head .ui-columns__menu:active,
 .ui-columns__head .ui-dropdown.open > .ui-columns__menu { background: color-mix(in srgb, var(--nav-active-fill) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
 .ui-columns__menu > .ui-dropdown__text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ui-columns__count { flex: none; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
@@ -82,6 +85,8 @@
   .ui-columns:not([data-depth='3']) > .ui-columns__col--3,
   .ui-columns[data-depth='3'] > .ui-columns__col--1 { display: none; }
   .ui-columns[data-depth='3'] > .ui-columns__col--2 { border-inline-start: 0; }
+  /* No line before the page area is measured, as in markup rendered on a server. */
+  .ui-columns__col > .ui-resizer { display: none; }
 }
 
 /* Phone: one column, the open one, and the page scrolls as one. */

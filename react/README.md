@@ -265,6 +265,21 @@ because they are the row contract `docs/components.md` publishes. And it has no 
 panel is a child of the trigger's container, so a dropdown inside `.ui-app__rail`
 (`position: sticky` with `overflow-y: auto`) still wants the vanilla factory.
 
+## FilterBar
+
+Each chip keeps the width of its longest value up to its cap, so a pick does not move the row.
+The cap is 128px, with the chip's edge, padding and chevron. Give a filter `maxWidth` in CSS
+pixels to change the cap of its chip:
+
+```tsx
+<FilterBar filters={[{ id: 'category', label: 'Category', maxWidth: 160, value, items }]}
+  onChange={setFilter} onClear={clearFilters} />
+```
+
+A longer value ends with an ellipsis. The hover title, the trigger's name and the menu keep the
+full value. A `maxWidth` that is not a positive number keeps the default. To change every chip,
+set `--ui-filter-chip-max` on the bar or on a box around it. See docs/components.md#filter-bar.
+
 ## BackLink
 
 `BackLink` is the kit's `backLink()`, rendered by React rather than through
@@ -283,6 +298,26 @@ It renders the anchor itself, so `ui-back` is on the element the shell's
 is here. `as` takes the element the link is drawn as and passes it every prop this component
 does not read, which is how a router link gets its own `to`; `href` is still required,
 because it is what the `javascript:` guard reads.
+
+## Resizable columns
+
+`ThreeColumnPage` and `SplitLayout` take `resizable`, which is off by default. With it, above
+860px, the reader drags the line between two columns, or moves it with the arrow keys. The
+widths stay until a reload. To keep them longer, save them from `onResize` and give them back
+in the width prop. The limits and the keys are in
+[docs/components.md](../docs/components.md#three-column-page).
+
+```tsx
+const [widths, setWidths] = useState(() => savedWidths() ?? undefined);
+<ThreeColumnPage resizable widths={widths} onResize={(next) => { setWidths(next); saveWidths(next); }} columns={columns} />
+
+const [width, setWidth] = useState<number>();
+<SplitLayout resizable primaryWidth={width} onResize={setWidth} primary={fields} preview={preview} />
+```
+
+`widths` holds column 1 and column 2 in px, and `primaryWidth` the first pane in px. The page
+fits a saved width to its limits and to the space it has, so a width saved on a large screen
+is safe on a small one. `onResize` runs at each change, also during a drag.
 
 ## Work on them
 
