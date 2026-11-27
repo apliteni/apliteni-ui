@@ -997,22 +997,20 @@ it('a caller-owned selection shows a muted row with its word in the trigger', ()
 
 // The panel in a Field is as wide as its trigger, and the trigger is as wide as its widest
 // hidden row. So a hidden row holds what its panel row draws after the label: the badge, or
-// a muted row's state word, and the check. The placeholder takes the check too, so every
-// row ends the same. A muted row also measures its words as the trigger shows them. #888
+// a muted row's state word. A muted row also measures its words as the trigger shows them. #888
 // why: docs/components.md#fields
-// LIMITS: JSDOM lays nothing out. The widths are DROPDOWN_EDGES=1's, in
-// stories/dropdown-contain.test.js.
-it('in a Field, each hidden row holds its panel row\'s badge and check', () => {
+// LIMITS: JSDOM lays nothing out, so the room each line keeps for the check, and the widths,
+// are DROPDOWN_EDGES=1's, in stories/dropdown-contain.test.js.
+it('in a Field, each hidden row holds its panel row\'s badge', () => {
   const items = [...UNITS[0].items, { label: 'v1.2.0', value: '1.2.0', badge: { text: 'Beta', tone: 'accent' as const } }];
   const { container } = render(<Field label="Unit">{(control) => <Dropdown {...control} variant="select" items={items} />}</Field>);
   const lines = [...container.querySelectorAll('.ui-dropdown__fit > .ui-dropdown__line')];
-  expect(lines.map((line) => [line.textContent, line.querySelector('.ui-dropdown__badge')?.className ?? null,
-    line.querySelectorAll('.ui-dropdown__tick').length])).toEqual([
-    ['Select…', null, 1],
-    ['Birch Studio', null, 1],
-    ['Cedar StudioArchived', 'ui-dropdown__badge is-state', 1],
-    ['Cedar Studio (Archived)', null, 0],
-    ['v1.2.0Beta', 'ui-dropdown__badge is-accent', 1],
+  expect(lines.map((line) => [line.textContent, line.querySelector('.ui-dropdown__badge')?.className ?? null])).toEqual([
+    ['Select…', null],
+    ['Birch Studio', null],
+    ['Cedar StudioArchived', 'ui-dropdown__badge is-state'],
+    ['Cedar Studio (Archived)', null],
+    ['v1.2.0Beta', 'ui-dropdown__badge is-accent'],
   ]);
 });
 

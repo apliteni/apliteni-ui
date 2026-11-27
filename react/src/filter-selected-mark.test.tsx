@@ -3,12 +3,12 @@
 // kit's sheets, over the same measurements.
 /* Rule: the chosen value in a filter menu is never marked by colour alone.
  *
- * Since #888 the chosen row takes the kit's quiet row ground, `--float-row-fill`, a
- * step of 1.10:1 in both themes, so on its own it is what WCAG 2.2
+ * Since #888 the chosen row takes the soft accent tint, `--float-row-selected`, a
+ * step of about 1.1:1 on the panel, so on its own it is what WCAG 2.2
  * SC 1.4.1 forbids; the kit's 16px check, in neutral ink, is the non-colour cue, and
  * SC 1.4.11 asks 3:1 of it. This measures the pair, and what hover and focus may not
- * take away. Hover keeps the same ground, because a hovered row takes that ground too
- * (rev_92b7f8a56703/d79), and draws no outline, and focus keeps it under the kit's band in the accent, an `outline` since #578,
+ * take away. Hover takes the tint one step up, `--float-row-selected-hover`
+ * (rev_550b6502339f/d86), and draws no outline, and focus keeps the tint under the kit's band in the accent, an `outline` since #578,
  * rather than a native one (#457). Subjects are swept from the stories, not listed,
  * and a sweep that finds none fails.
  * why: docs/components.md#filter-bar,
@@ -192,10 +192,10 @@ const sameGround = (a, b) => a !== 'IMAGE' && b !== 'IMAGE' && [0, 1, 2, 3].ever
  *
  *  Read from the tokens rather than from the row as it stands, so a mutation that
  *  repaints the row cannot also move the expectation it is measured against. */
-function rowGround(subject) {
+function rowGround(subject, token = '--float-row-selected') {
   const panel = subject.row.closest('.ui-dropdown__panel');
-  const fill = colourOf('var(--float-row-fill)', subject.vars);
-  assert.ok(fill, `${subject.id}: --float-row-fill does not resolve to a colour`);
+  const fill = colourOf(`var(${token})`, subject.vars);
+  assert.ok(fill, `${subject.id}: ${token} does not resolve to a colour`);
   return composite(fill, effectiveBackground(panel, subject.win));
 }
 
@@ -214,7 +214,7 @@ function measureStates(subject) {
   const { row, win } = subject;
   const rest = rowGround(subject);
   const accent = substitute(subject.vars.get('--accent'), subject.vars).trim();
-  assert.ok(sameGround(effectiveBackground(row, win), rest), `${subject.id}: at rest the chosen row is not the quiet ground on the panel`);
+  assert.ok(sameGround(effectiveBackground(row, win), rest), `${subject.id}: at rest the chosen row is not the soft tint on the panel`);
   const out = {};
   try {
     for (const state of ['hover', 'focus-visible']) {
@@ -253,7 +253,8 @@ function measureHover(subject, { rest, edge, cs }) {
   const { row, win } = subject;
   const ground = effectiveBackground(row, win);
   assert.notEqual(ground, 'IMAGE', `${subject.id}: hover's ground must be measurable`);
-  assert.ok(sameGround(ground, rest), `${subject.id}: hover changes the chosen row's ground`);
+  assert.ok(sameGround(ground, rowGround(subject, '--float-row-selected-hover')), `${subject.id}: hover does not take the chosen row one tint step up`);
+  assert.ok(!sameGround(ground, rest), `${subject.id}: hover leaves the chosen row's ground as it is`);
   const tick = ratio(parseColour(win.getComputedStyle(row.querySelector('.ui-dropdown__tick')).color), ground);
   assert.ok(tick >= AA_LARGE, `${subject.id}: hovered, the check is ${tick.toFixed(2)}:1, under 1.4.11's 3:1`);
   const label = ratio(parseColour(win.getComputedStyle(row.querySelector('.ui-dropdown__label')).color), ground);
@@ -356,7 +357,7 @@ for (const theme of THEMES) {
 }
 
 for (const theme of THEMES) {
-  test(`a chosen filter-menu row carries the quiet ground and a neutral check in ${theme}`, async () => {
+  test(`a chosen filter-menu row carries the soft tint and a neutral check in ${theme}`, async () => {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR,
       `swept ${found.length} chosen filter-menu rows, floor ${ROW_FLOOR}: a story stopped drawing one`);
@@ -393,7 +394,7 @@ const MUTATIONS = [
 ];
 
 const STATE_MUTATIONS = [
-  ['the chosen row repainted off the ground', (row, ctx) => { row.setAttribute('style', `background: ${HARD_FILL[ctx.theme]}`); }, /the chosen row is not the quiet ground/],
+  ['the chosen row repainted off the ground', (row, ctx) => { row.setAttribute('style', `background: ${HARD_FILL[ctx.theme]}`); }, /the chosen row is not the soft tint/],
 ];
 
 /* Hover is driven by the attribute `desugar()` rewrites `:hover` to, so an inline
@@ -403,8 +404,8 @@ const STATE_MUTATIONS = [
  * back on hover, which #595 removed; it is read as parsed parts because
  * `cs.outline` as a string is truthy even when it resolves to `none`. #595, #888 */
 const HOVER_MUTATIONS = [
-  ['hover painting the panel', (ctx) => `background: ${asOpaque(ctx.panel)}`, /hover changes the chosen row's ground/],
-  ['hover deepened into a hard fill', (ctx) => `background: ${HARD_FILL[ctx.theme]}`, /hover changes the chosen row's ground/],
+  ['hover painting the panel', (ctx) => `background: ${asOpaque(ctx.panel)}`, /hover does not take the chosen row one tint step up/],
+  ['hover deepened into a hard fill', (ctx) => `background: ${HARD_FILL[ctx.theme]}`, /hover does not take the chosen row one tint step up/],
   ['an outline put back on the hovered row', () => 'outline: 1px solid rgb(120, 120, 120)', /hover draws an outline/],
 ];
 

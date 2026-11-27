@@ -791,12 +791,6 @@ function tableWidths(css) {
         // The row table and its frame reach the card's edges, through the card's side inset.
         '.ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'calc(100% + 2 * var(--ui-card-inset))',
         '.ui-card--fit > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense)))': 'auto',
-        // #850: on the light page a card draws no box, so its table sits flush on the column.
-        ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)': '100%',
-        // #875: a light card with no box hangs its own inset, so its table sits on the column
-        // and its frame hangs out by its side band only.
-        ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table': '100%',
-        ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table-scroll': 'calc(100% + 2 * var(--space-1))',
       }[selector];
       if (width !== expected) {
         problems.push(`${selector} sizes the table itself: width: ${width}`);
@@ -810,8 +804,6 @@ function tableWidths(css) {
     '.ui-card > :where(.ui-table--dense, .ui-table--zebra)',
     ':where(.ui-card--fit) .ui-table',
     '.ui-card--fit > :where(.ui-table--dense, .ui-table--zebra)',
-    ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)',
-    ':root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) > .ui-table',
   ]) {
     if (!rules.some((rule) => rule.selector === selector)) {
       problems.push(`${selector} has no sizing rule`);
@@ -819,16 +811,10 @@ function tableWidths(css) {
   }
   // A dense hover table bleeds by --space-2 at each end, or its first content sits 4px off
   // the card's text edge (#773). The width above is one end of it; these are the rest.
-  // #850 adds the light flush rule: the table and its frame give up the whole bleed.
   for (const [selector, property, value] of [
     ['.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'width', 'calc(100% + 2 * var(--space-2))'],
     ['.ui-card > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'margin-inline', 'calc(-1 * var(--space-2))'],
     ['.ui-card--fit > .ui-table--dense.ui-table--hover:not(.ui-table--zebra)', 'max-width', 'calc(100% + 2 * var(--space-2))'],
-    [':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll)', 'margin-inline', '0'],
-    // #850: the row table's vertical bleed must also give way in light, or the card's
-    // removed bottom padding leaves the last row clipped by the card's overflow.
-    [':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):first-child', 'margin-top', '0'],
-    [':root[data-theme="light"] .ui-card > :is(.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense), .ui-table-scroll:has(> .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense))):last-child', 'margin-bottom', '0'],
   ]) {
     const rule = rulesIn(css).find((candidate) => candidate.selector === selector);
     const found = rule && rule.body.match(new RegExp(`(?:^|;|\\s)${property}\\s*:\\s*([^;}]+)`));
@@ -893,18 +879,6 @@ test('the width gate rejects a table stretched back to its container', () => {
     assert.notEqual(mutation, CSS, `${name}: the mutation must change the sheet`);
     assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);
   }
-  // A flush back onto the column must be rejected, wherever it is written.
-  const FLUSH = ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: 100%;\n  max-width: 100%;\n  margin-inline: 0;\n}';
-  for (const [name, mutation] of [
-    ['the flush width at a bleed', CSS.replace(FLUSH, FLUSH.replace('width: 100%;', 'width: calc(100% + 2 * var(--space-3));'))],
-    ['the flush margin at a bleed', CSS.replace(FLUSH, FLUSH.replace('margin-inline: 0;', 'margin-inline: calc(-1 * var(--space-3));'))],
-    // The vertical flush is the other half of the same defect: the row table's last row.
-    ['the row table top flush at a bleed', CSS.replace(':first-child { margin-top: 0; }', ':first-child { margin-top: calc(-1 * var(--space-6)); }')],
-    ['the row table bottom flush at a bleed', CSS.replace(':last-child { margin-bottom: 0; }', ':last-child { margin-bottom: calc(-1 * var(--space-6)); }')],
-  ]) {
-    assert.notEqual(mutation, CSS, `${name}: the mutation must change the sheet`);
-    assert.ok(tableWidths(mutation).length > 0, `${name} must be rejected`);
-  }
 });
 
 /**
@@ -943,31 +917,6 @@ function bleedReaches(css, shapes = SHAPES) {
   return missed;
 }
 
-/**
- * Rule: the light flush width reaches the table in the shapes the kit actually renders.
- *
- * #850 scopes the flush to the light theme, so this reads the scoped selector. jsdom's
- * `:root` is the document element, so each shape carries the light theme for the match.
- * The rest of the reach contract is the bleed's above.
- */
-function flushReaches(css, shapes = SHAPES) {
-  const selectors = rulesIn(css)
-    .filter(({ selector, body }) => selector.startsWith(':root[data-theme="light"] .ui-card >') && /(?:^|;|\s)width\s*:\s*100%/.test(body))
-    .map(({ selector }) => selector);
-  assert.ok(selectors.length >= 1, `the card flush is gone from the sheet: ${selectors.length} rule(s)`);
-  const missed = [];
-  let measured = 0;
-  for (const [name, html] of Object.entries(shapes)) {
-    const win = new JSDOM(html).window;
-    win.document.documentElement.setAttribute('data-theme', 'light');
-    if (!selectors.some((selector) => win.document.querySelector(selector))) missed.push(name);
-    measured++;
-    win.close();
-  }
-  assert.equal(measured, Object.keys(shapes).length, 'every shape must be measured');
-  return missed;
-}
-
 test('the card bleed reaches the table in every shape the kit renders', () => {
   assert.deepEqual(bleedReaches(CSS), []);
 });
@@ -982,20 +931,4 @@ test('the bleed gate rejects a wrapper that puts the table out of reach', () => 
     'a table one wrapper further from the card must be reported',
   );
   assert.throws(() => bleedReaches(CSS.replace(/margin-inline/g, 'margin-left')), /card bleed is gone/);
-});
-
-test('the card flush reaches the table in every shape the kit renders', () => {
-  assert.deepEqual(flushReaches(CSS), []);
-});
-
-test('the flush gate rejects a wrapper that puts the table out of reach', () => {
-  assert.deepEqual(
-    flushReaches(CSS, {
-      framed: '<div class="ui-card"><div class="ui-table-frame"><div class="ui-table-scroll">'
-        + '<table class="ui-table ui-table--dense"></table></div></div></div>',
-    }),
-    ['framed'],
-    'a table one wrapper further from the card must be reported',
-  );
-  assert.throws(() => flushReaches(CSS.replace(':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: 100%;', ':root[data-theme="light"] .ui-card > :is(.ui-table, .ui-table-scroll) {\n  width: auto;')), /card flush is gone/);
 });

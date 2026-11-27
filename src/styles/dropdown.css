@@ -401,14 +401,19 @@
   font: inherit;
   color: var(--text);
 }
-/* The hovered row and the chosen row share one quiet ground, and the neutral check marks the
-   chosen one. Hover is a fill and an outline means focus, so a hovered row draws no edge.
-   rev_32e9894c9f71/d76 why: docs/foundations.md#elevation */
+/* A hovered row takes the quiet neutral ground. Hover is a fill and an outline means focus,
+   so a hovered row draws no edge. rev_32e9894c9f71/d76 why: docs/foundations.md#elevation */
 .ui-dropdown__item[aria-expanded="true"],
-.ui-dropdown__item.is-selected,
 .ui-dropdown__item:hover:not(:focus-visible) { background: var(--float-row-fill); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* The chosen row takes the soft accent tint and the neutral check, and one tint step more
+   under the pointer. rev_550b6502339f/d86 why: docs/foundations.md#elevation */
+.ui-dropdown__item.is-selected { background: var(--float-row-selected); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-dropdown__item.is-selected:hover:not(:focus-visible) { background: var(--float-row-selected-hover); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 @media (forced-colors: active) {
   .ui-dropdown__item:hover { border: 1px solid Highlight; padding: 8px 11px; }
+  /* The tint is gone in forced colours, so the chosen row takes the system highlight. */
+  .ui-dropdown__item.is-selected { background: Highlight; color: HighlightText; }
+  .ui-dropdown__item.is-selected :is(.ui-dropdown__label, .ui-dropdown__tick) { color: HighlightText; }
 }
 /* The row draws its ring inward, so a row scrolled flush with the list's edge cannot have it
    clipped and the list scrolls as it did. A focused row takes no ground of its own, so the
@@ -432,6 +437,9 @@
    is-sub, the only rows showing.
    why: docs/components.md#dropdown */
 .ui-dropdown__aside { margin-left: auto; flex: none; font-size: var(--text-xs); color: var(--text); }
+/* #900: the theme row's aside shows the current theme name, whose text width changes as the
+   reader switches. A stable min-width and right alignment keep the chevron and name in place. */
+:root .ui-app__user-panel [data-value="theme"] > .ui-dropdown__aside { min-width: var(--space-8); text-align: right; }
 .ui-dropdown__more { margin-left: auto; display: inline-flex; flex: none; /* muted-ink: glyph — submenu chevron */ color: var(--muted); }
 .ui-dropdown__aside + .ui-dropdown__more { margin-left: 0; }
 .ui-dropdown__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.25; }
@@ -480,6 +488,9 @@
 }
 .ui-dropdown__item.is-disabled .ui-dropdown__label,
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
+/* The chosen row's tint takes the option ink to 3.36:1, so a chosen option that became
+   unavailable takes the plain disabled ink: 4.55:1 or more on the tint. #888 */
+.ui-dropdown__item.is-selected.is-disabled { /* muted-ink: state — unavailable option on the chosen row's tint */ color: var(--disabled-ink); }
 /* Body ink at rest, --pink on the way to being pressed. Both states, not hover alone:
    the ring says where the reader is, not that this row ends something.
    why: docs/components.md#dropdown */
@@ -604,8 +615,10 @@
   color: var(--muted);
 }
 /* On the row Enter would pick, the chip sits on --surface-2, where --muted reads 4.37:1 in
-   light. --dim keeps the state ink and clears 4.5:1 (#852). */
-.ui-dropdown__item.is-active > .ui-dropdown__badge.is-state { /* muted-ink: state — archived badge on the search pick */ color: var(--dim); }
+   light. --dim keeps the state ink and clears 4.5:1 (#852). The chosen row's soft tint drops
+   --muted under 4.5:1 in dark, so the chip takes --dim there too. #888 */
+.ui-dropdown__item.is-active > .ui-dropdown__badge.is-state,
+.ui-dropdown__item.is-selected > .ui-dropdown__badge.is-state { /* muted-ink: state — archived badge on the search pick or the chosen row */ color: var(--dim); }
 
 /* A picker of people. A mark leads the trigger and each row; with no value the trigger
    shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
@@ -637,10 +650,10 @@
   visibility: hidden; min-inline-size: 0; overflow: hidden;
 }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit > * { grid-area: 1 / 1; }
-/* A hidden row also holds its panel row's badge and check, and the placeholder the check, so
-   the panel, which is as wide as the trigger, keeps each label on one line. #888
-   why: docs/components.md#fields */
-.ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit .ui-dropdown__tick { display: inline-flex; margin-left: 0; }
+/* The panel is as wide as the trigger, so a hidden row holds its panel row's badge, and every
+   line keeps room for the row's check: the 16px mark and its 8px gap. Then each label in the
+   panel stays on one line. #888 why: docs/components.md#fields */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__line { padding-inline-end: calc(var(--space-4) + var(--space-2)); }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__line { grid-area: 1 / 1; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { grid-area: 1 / 2; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }

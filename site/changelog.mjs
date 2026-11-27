@@ -1,10 +1,24 @@
 export const RELEASES = [
   {
-    v: '0.226.0', date: '2026-11-27',
+    v: '0.229.0', date: '2026-11-27',
     changes: [
       ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
-      ['changed', 'In a dropdown panel, a hovered row and a chosen row now share one quiet ground, the new token `--float-row-fill`, and the check is the text ink, not the accent. A filter chip menu loses its accent wash. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
+      ['changed', 'In a dropdown panel, a hovered row now takes one quiet grey ground, the new token `--float-row-fill`. The chosen row takes a soft accent tint, `--float-row-selected`, and one step more under the pointer, `--float-row-selected-hover`. The check is the text ink, not the accent. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
       ['fixed', 'A dropdown in a `Field` now makes room in its trigger for each row\'s badge and check. Before, its panel, which is as wide as the trigger, broke the label of a row with a badge, or of the chosen longest row, over two or more lines. The trigger is 24px wider for the check, and wider again where a row with a badge is the widest. Part of #888.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.228.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'Every visible change of state is now a smooth transition with a kit duration and easing, except a hover, the focus ring and text typed in a field, which change in one step. A count or a status line that changes in place, such as the `Pagination` status or a `StatBand` figure, cross-fades in 150ms, and the React theme control cross-fades the whole page, its scrollbar and any open scrim in 250ms. Under reduced motion, and where the browser has no view transition, each change is one step. Part of #900.', ['Pagination', 'Stat band', 'ThemeToggle']],
+      ['changed', 'In the light theme a card now keeps the dark theme\'s spacing, so its text no longer hangs out to the page title\'s edge, and no box changes place or size when the theme changes. Only the paint differs: a light card draws no fill, edge or shadow, and a table in it and a drawer group title keep the dark theme\'s spacing. Part of #900.', ['Card', 'Table', 'Drawer']],
+      ['added', 'The Motion guideline has a new rule, Every visible change is a smooth transition. Part of #900.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.226.0', date: '2026-11-27',
+    changes: [
+      ['added', '`ThreeColumnPage` and `SplitLayout` take `resizable`, so the reader can drag the line between two columns above 860px, or move it with the arrow keys. It is off by default, so no current page changes. Each column keeps its limits, and `onResize` with `widths` or `primaryWidth` lets an app keep the widths after a reload. Part of #903.', ['ThreeColumnPage', 'SplitLayout']],
     ],
   },
   {

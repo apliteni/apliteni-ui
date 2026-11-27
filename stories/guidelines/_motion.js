@@ -50,6 +50,11 @@ export const SPEC_CSS = `
       transform: translateX(var(--gm-at, 100%)); }
     .gm-mini__title { height: 6px; width: 60%; border-radius: 2px; background: var(--text); }
 
+    /* A count's two values cross-fade: the outgoing value sits over the incoming
+       one, as the kit's .ui-crossfade does, each at its own eased opacity. */
+    .gm-crossfade { position: relative; display: inline-block; }
+    .gm-crossfade__out { position: absolute; left: 0; top: 0; white-space: nowrap; }
+
     /* A row's hover fill part of the way in: the kit's row hover over the table's ground. */
     .gm-hover > td { background: color-mix(in srgb, var(--surface-3) calc(var(--gm-fill, 0) * 100%), var(--table-bg)); }
     /* A still frame takes no pointer, so the live row hover cannot paint over its timed fill. */

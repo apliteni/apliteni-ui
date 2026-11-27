@@ -24,7 +24,7 @@
 
 **Don't:** Remove a parent's mark when the reader works in the next column.
 
-**Except:** A step list's open step keeps its own tint, which shows its state.
+**Except:** A step list's open step keeps its own state tint.
 
 ## Replace the children when the parent changes
 
@@ -52,7 +52,7 @@
 
 **Don't:** Split the page into three equal columns.
 
-**Except:** A narrow page shows two columns, as a tablet does.
+**Except:** A narrow page shows two columns. A resizable page starts at these widths.
 
 ## Show two columns, then one
 

@@ -311,7 +311,8 @@ test('measured in a browser, four widths and both themes', {
     });
 
     // The panel in a Field is as wide as its trigger. So the hidden rows hold each row's
-    // badge and check, and no label wraps, with nothing chosen and with each row chosen. #888
+    // badge, every line keeps room for the check, and no label wraps, with nothing chosen
+    // and with each row chosen. #888
     await t.test('a badge row keeps its label on one line in a field', async () => {
       const BADGE_STORY = 'react-dropdown--field-with-badges';
       const badgeStory = all.find((story) => story.id === BADGE_STORY);
@@ -365,8 +366,10 @@ test('measured in a browser, four widths and both themes', {
         assert.equal(states[0].rows, 4, `${at} drew ${states[0].rows} rows, not 4`);
         for (const state of states.slice(1)) assert.equal(state.rows, 1, `${at} with ${state.chosen} chosen marked ${state.rows} rows`);
         for (const state of states) assert.deepEqual(state.wrapped, [], `${at} with ${state.chosen} chosen wrapped ${state.wrapped.join(', ')}`);
-        const old = await read(theme, view, '.ui-dropdown__fit .ui-dropdown__badge, .ui-dropdown__fit .ui-dropdown__tick { display: none !important; }');
-        assert.ok(old.some((state) => state.wrapped.length), `${at} did not reject the hidden rows without the badge and the check`);
+        const noBadge = await read(theme, view, '.ui-dropdown__fit .ui-dropdown__badge { display: none !important; }');
+        assert.ok(noBadge.some((state) => state.wrapped.length), `${at} did not reject the hidden rows without the badge`);
+        const noCheck = await read(theme, view, '.ui-dropdown__trigger .ui-dropdown__line { padding-inline-end: 0 !important; }');
+        assert.ok(noCheck.some((state) => state.wrapped.length), `${at} did not reject the lines without room for the check`);
       }
     });
 
@@ -640,17 +643,18 @@ const FLOAT_READ = () => {
     rows: rowPaint(panel),
   };
   // Each painted row against the ground the kit promises it. A probe in the panel resolves
-  // --float-row-fill to the same rgb() string that the cascade gives a row.
+  // each row token to the same rgb() string that the cascade gives a row.
   function rowPaint(box) {
     if (!dd.classList.contains('open')) return [];
     const probe = box.appendChild(document.createElement('i'));
-    probe.style.background = 'var(--float-row-fill)';
-    const fill = getComputedStyle(probe).backgroundColor;
+    const [fill, chosenFill, chosenHover] = ['--float-row-fill', '--float-row-selected', '--float-row-selected-hover']
+      .map((token) => { probe.style.background = `var(${token})`; return getComputedStyle(probe).backgroundColor; });
     probe.remove();
     return [...box.querySelectorAll('.ui-dropdown__item')].flatMap((row) => {
       const chosen = row.classList.contains('is-selected');
       const focus = row.matches(':focus-visible');
-      const want = chosen || (row.matches(':hover') && !focus) ? fill : 'rgba(0, 0, 0, 0)';
+      const hovered = row.matches(':hover') && !focus;
+      const want = chosen ? (hovered ? chosenHover : chosenFill) : hovered ? fill : 'rgba(0, 0, 0, 0)';
       const got = getComputedStyle(row).backgroundColor;
       const state = [chosen && 'chosen', focus && 'focused', row.matches(':hover') && 'hovered'].filter(Boolean).join(' ') || 'resting';
       return got === want ? [] : [`a ${state} row "${row.textContent.trim()}" paints ${got}, not ${want}`];

@@ -208,10 +208,12 @@
   text-align: left;
   font: inherit;
 }
-/* The hovered row and the chosen version share the dropdown row's quiet ground. Only
-   keyboard focus draws its outline. rev_32e9894c9f71/d76 */
-.vopt[aria-selected="true"],
+/* The hovered row takes the dropdown row's quiet ground, and the chosen version its soft tint,
+   one step more under the pointer. Only keyboard focus draws its outline.
+   rev_32e9894c9f71/d76, rev_550b6502339f/d86 */
 .vopt:hover:not(:focus-visible) { background: var(--float-row-fill); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.vopt[aria-selected="true"] { background: var(--float-row-selected); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.vopt[aria-selected="true"]:hover:not(:focus-visible) { background: var(--float-row-selected-hover); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 @media (forced-colors: active) {
   .vopt:hover { border: 1px solid Highlight; padding: 9px 12px; }
 }

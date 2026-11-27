@@ -932,10 +932,9 @@ export function Dropdown({
           <span className="ui-dropdown__line">
             {marked && <Avatar empty />}
             <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
-            <Glyph name="check" className="ui-dropdown__tick" />
           </span>
-          {/* Each row once as its panel row draws it, with the badge and the check, and a muted
-              row once more as the trigger shows it, with its word. #888 */}
+          {/* Each row once as its panel row draws it, with its badge, and a muted row once more
+              as the trigger shows it, with its word. #888 */}
           {rows.map((item, index) => {
             const mark = marked && (item.avatar
               ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
@@ -947,7 +946,6 @@ export function Dropdown({
                   {mark}
                   <span className="ui-dropdown__value">{item.label}</span>
                   {badge && <RowBadge badge={badge} />}
-                  <Glyph name="check" className="ui-dropdown__tick" />
                 </span>
                 {mutedOf(item) && <span className="ui-dropdown__line">
                   {mark}

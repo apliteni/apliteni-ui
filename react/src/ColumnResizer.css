@@ -1,0 +1,36 @@
+/* The line between two panes of a page that resizes. At rest it shows only the pane's own 1px
+   --border line. The target is 12px wide over the pane's full height, and on a touch screen
+   --tap-min wide. Under the pointer, in a drag and with the keyboard focus, the line is 4px of
+   neutral ink, never the accent: the owner's choice, rev_0377082a17f7 d67. The pane follows
+   the pointer with no transition. The pane after the line holds it.
+   why: docs/components.md#three-column-page */
+.ui-resizer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: var(--z-base);
+  width: var(--space-3);
+  translate: -50% 0;
+  cursor: col-resize;
+  touch-action: none;
+}
+.ui-resizer::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  width: var(--space-1);
+  translate: -50% 0;
+}
+.ui-resizer:hover::before,
+.ui-resizer[data-dragging]::before,
+.ui-resizer:focus-visible:not([data-pointer])::before { background: var(--muted); }
+/* The kit's ring stands 2px off the target. The block ends stay inside the page, which clips
+   at its foot, so the target stops short of the ends by the ring's room. A focus that a pointer
+   gave keeps the same box and draws no ring, also not the browser's own. */
+.ui-resizer:focus-visible { inset-block: calc(var(--ring-offset) + var(--ring-width)); }
+.ui-resizer[data-pointer] { outline: none; }
+.ui-resizer:focus-visible:not([data-pointer]) { outline: var(--ring); outline-offset: var(--ring-offset); }
+@media (pointer: coarse) {
+  .ui-resizer { width: var(--tap-min); }
+}

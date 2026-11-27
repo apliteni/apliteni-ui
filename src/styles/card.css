@@ -19,8 +19,7 @@
   position: relative;
 }
 /* #850: the light page takes the card's white, so a light card on the page is a grouping
-   of space, not a box. It draws no fill, edge or shadow, and it hangs its side inset
-   outside the column so its text starts on the page title's edge. Dark keeps its card.
+   of space, not a box. It draws no fill, edge or shadow. Dark keeps its card.
    Floating panels keep their box; the card does not float, it is the page.
    why: docs/foundations.md#elevation */
 :root[data-theme="light"] .ui-card {
@@ -29,27 +28,9 @@
   border: 1px solid transparent;
   box-shadow: none;
 }
-/* The light card's top and bottom inset is gone, so content starts after its title and
-   the section gap, not a box edge, separates one card from the next. The side inset stays
-   and hangs outside the column, so its text lines up with the page title. --pad-lg is the
-   centred landing card, which keeps its own inset and never hangs out. #850 */
-:root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
-  padding-block: 0;
-  margin-inline: calc(-1 * var(--ui-card-inset));
-}
-/* The folded shell pads the page by --space-4, so the hang shrinks to it. A hang of 24px
-   put the card and its table 8px past the page from 561 to 720px. #875 */
-@media (max-width: 720px) {
-  :root[data-theme="light"] .ui-card:not(.ui-card--pad-lg):not(.ui-card--accent):not(.ui-card--live) {
-    --ui-card-inset: var(--space-4);
-    padding-inline: var(--ui-card-inset);
-  }
-}
-/* A light stat tile keeps its box and its 24px inset from 561 to 720px. On a phone it pads
-   16px, as it did before #875. */
-@media (max-width: 560px) {
-  :root[data-theme="light"] .ui-stats--tiles { --ui-tile-inset: var(--space-4); }
-}
+/* #900: the light card keeps the dark theme's spacing — the same 24px inset and no hang —
+   so no box changes place or size when the theme changes. The paint above is the only
+   difference. */
 
 /* A table wider than its card scrolls INSIDE the card instead of bleeding past
    the rounded corners / clipping its last column. Clipping to the card's
@@ -75,11 +56,9 @@
 .ui-card:has(> .ui-table):focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 
 /* Vertical stacks space cards with the container's gap — see .ui-card-stack.
-   (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.) */
+   (No `.ui-card + .ui-card` margin: it leaks into grid/flex rows and misaligns.)
+   One spacing in both themes, so no card moves when the theme changes. #900 */
 .ui-card-stack { --ui-block-gap: var(--space-5); display: flex; flex-direction: column; gap: var(--ui-block-gap); }
-/* #850: on the light page a card draws no box, so the stack opens to the page's group gap.
-   why: docs/foundations.md#spacing-and-rhythm */
-:root[data-theme="light"] .ui-card-stack { --ui-block-gap: var(--space-10); gap: var(--ui-block-gap); }
 
 /* A padding modifier moves the vertical rhythm and keeps the text edge, so cards of
    different padding line up in one column. --pad-lg is the centred landing card, never
