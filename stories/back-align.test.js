@@ -118,12 +118,17 @@ function candidates(build) {
 
 const key = (id, theme, [w, h]) => `${id} ${theme} ${w}x${h}`;
 
-/** Each case where a subject shows fewer links than it should. `counts` holds the links of each
-    case, and `excused` the cases where a part that ABSENT names shows. */
+/** Each case where a subject shows fewer links than it should, or none. `counts` holds the links
+    of each case, and `excused` the cases where a part that ABSENT names shows. */
 function coverage(subjects, counts, excused) {
   const misses = [];
   for (const story of subjects) {
     const most = Math.max(...THEMES.flatMap((theme) => SIZES.map((size) => counts.get(key(story.id, theme, size)) ?? 0)));
+    // A subject shows a link at discovery, so a zero maximum means no link was measured. A
+    // three-column page is the one exception: where its first column shows, it has no way up.
+    if (most === 0 && !THEMES.every((theme) => SIZES.every((size) => excused.has(key(story.id, theme, size))))) {
+      misses.push(`${story.label}: no link measured`);
+    }
     for (const size of SIZES) {
       const [light, dark] = THEMES.map((theme) => counts.get(key(story.id, theme, size)));
       if (light !== dark) misses.push(`${story.label} at ${size.join('x')}: ${light} links in light, ${dark} in dark`);
@@ -216,6 +221,13 @@ test('a back link starts its arrow on the title edge, and its ground and ring st
     assert.ok(coverage(subjects, dark, excused).some((m) => m.startsWith(`${short.label} at 390x844`)), 'a link hidden in dark at 390px passes coverage');
     const both = new Map(dark).set(key(short.id, 'light', [390, 844]), (await open(short, 'light', [390, 844], hide)).length);
     assert.ok(coverage(subjects, both, excused).some((m) => m.startsWith(`${short.label} at 390x844`)), 'a link hidden in both themes at 390px passes coverage');
+
+    // A story whose links all read zero lost every measurement. The total count would still match,
+    // because both sides of that assertion read the same counts.
+    const zeroed = new Map(counts);
+    for (const theme of THEMES) for (const size of SIZES) zeroed.set(key(short.id, theme, size), 0);
+    assert.ok(coverage(subjects, zeroed, excused).some((m) => m === `${short.label}: no link measured`),
+      'a story whose every count is zero passes coverage');
   } finally {
     server.proc.kill();
     await browser.close();
