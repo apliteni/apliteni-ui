@@ -11,7 +11,8 @@
 //    such as `strong`. A badge, a button or a field beside the link is not words around it.
 //  - control: everything else, such as a nav row, a button, a menu row, a tab or a card.
 //    One drawn as a box (flex, grid or inline-block) fails when it has an underline at rest.
-//    A link alone in its block, such as a lone link in a dialog, is not asserted.
+//    A link alone in its block, such as a lone link in a dialog, is not asserted. A case below
+//    holds the three lone links of the kit.
 //
 // WHAT THIS GATE WILL NOT CATCH.
 //  - JSDOM draws nothing. It reads the cascaded `text-decoration-line`, so an underline that
@@ -155,6 +156,25 @@ describe('link underline: a class that is not the kit\'s', () => {
     const links = [...document.querySelectorAll('a')];
     expect(links.map((a) => a.matches('.ui-btn'))).toEqual([false, ...classes.map(() => true)]);
     expect(links.map(underlined)).toEqual([false, ...classes.map(() => false)]);
+  });
+});
+
+// The walk does not assert a lone link, so this case holds the three lone links of the kit.
+// A Stat band figure reads as a number and has no underline. The two others keep it.
+describe('link underline: a lone link', () => {
+  beforeAll(() => useSheet(KIT));
+  const lone = (id: string, text: string) => {
+    mount(byId(id));
+    const a = [...document.querySelectorAll('a[href]')].find((el) => el.textContent === text);
+    expect(a, `${id} has no link "${text}"`).toBeDefined();
+    const result = underlined(a!);
+    cleanup();
+    return result;
+  };
+  it('has no underline on a Stat band figure and keeps it on a link in a dialog or a value list', () => {
+    expect([lone('./StatBand.stories.tsx:Band', '€ 6,459,401'),
+      lone('./Modal.stories.tsx:CollapsedForm', 'Open full page'),
+      lone('./KeyValueList.stories.tsx:OneColumn', 'View invoice')]).toEqual([false, true, true]);
   });
 });
 

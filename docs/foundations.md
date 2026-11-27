@@ -220,9 +220,10 @@ light and 2.41:1 in dark, so the colour alone does not show the link. The kit un
 `a` element that has no kit class. A kit class starts with `ui-`, or is `brand`. A link with an
 empty class or with your own class, such as `analytics-link`, gets the underline. Hover and focus
 keep the link ink and the focus ring. A link in a table cell gets the underline on hover only, as
-"Links in cells" in [components](components.md) says. An anchor that is a kit control, such as a
-nav row, a button, a menu row, a tab, the back link or a card, gets no underline. If your app has
-its own anchor control with no kit class, give it `text-decoration: none`. Any class rule wins.
+"Links in cells" in [components](components.md) says. A linked Stat band figure gets no underline.
+An anchor that is a kit control, such as a nav row, a button, a menu row, a tab, the back link or
+a card, gets no underline. If your app has its own anchor control with no kit class, give it
+`text-decoration: none`. Any class rule wins.
 
 Muted and dim ink have exactly four uses:
 
