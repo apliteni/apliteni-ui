@@ -8,9 +8,9 @@
 
 **Why:** The bar floats over the rows, and in their colours it reads as one more row.
 
-**Do:** Show the bar dark under the light documents table.
+**Do:** Show the bar in the other theme under the documents table.
 
-**Don't:** Show the bar in the white of the table under it.
+**Don't:** Show the bar in the colours of the table under it.
 
 ## Apply each pick at once
 
@@ -32,6 +32,6 @@
 
 **Why:** A bare value such as Avery does not say which action it sets.
 
-**Do:** List Archive and Owner in More, and open the owners from Owner.
+**Do:** List Archive and Owner in More.
 
-**Don't:** List Avery and Blair in More under no action name.
+**Don't:** List Avery, Blair and Casey in More under no action name.

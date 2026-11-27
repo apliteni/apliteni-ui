@@ -7,7 +7,7 @@ export const RULES = content.rules;
 
 // The bar's room sticks to the view's bottom on a page. In a picture it stays in the flow.
 // The don't paints the bar with the page's own surface, ink and edge. More's panel joins the
-// flow, so the stage is as tall as what it shows.
+// flow, so the stage is as tall as what it shows. The Apply don't sets the button beside the list.
 export const SPEC_CSS = `
   <style>
     .gl-stage--bar .ui-selection-room { position: static; }
@@ -18,4 +18,5 @@ export const SPEC_CSS = `
     }
     .gl-stage--menu .ui-dropdown { display: flex; flex-direction: column; align-items: flex-start; }
     .gl-stage--menu .ui-dropdown__panel { position: static; transform: none; margin-top: var(--space-2); }
+    .gl-stage--apply { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-2); }
   </style>`;

@@ -1840,6 +1840,8 @@ it('a panel in a page opens on the other side when its own side cannot hold it',
   expect(await opened(844 - 5, 'down')).toEqual({ up: true, avail: `${844 - 5 - 31 - 9 - 8}px` });
   // Room on its own side: the panel keeps it.
   expect((await opened(600, 'up')).up).toBe(true);
+  // A trigger under the view, as a picture opened at load far down a page: no side to judge.
+  expect((await opened(2000, 'down')).up).toBe(false);
 });
 
 it('a trigger in a page reserves the 8px edge under the open panel, so closing moves nothing and opening adds no scroll', () => {

@@ -59,7 +59,6 @@ const buttonIn = (cell?: Element | null) => (cell?.matches('button') ? cell : ce
 export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows', label, clearLabel = 'Clear', moreLabel = 'More', place = 'centre' }: SelectionBarProps) {
   const room = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLElement>(null);
-  const tally = useRef<HTMLDivElement>(null);
   const slot = useRef<HTMLDivElement>(null);
   const measure = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(actions.length);
@@ -104,14 +103,17 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
       const host = room.current;
       const frame = bar.current;
       const sizes = measure.current;
-      if (!host || !frame || !sizes || !tally.current || !slot.current) return;
+      if (!host || !frame || !sizes || !slot.current) return;
+      // The measure row holds the actions, then More, then the count at its full width: the
+      // count on the bar shrinks under large text, so its own width would leave too much room.
       const cells = Array.from(sizes.children) as HTMLElement[];
-      const widths = cells.slice(0, -1).map(cell => cell.getBoundingClientRect().width);
-      const more = cells[cells.length - 1]?.getBoundingClientRect().width ?? 0;
+      const whole = cells.pop()?.getBoundingClientRect().width ?? 0;
+      const more = cells.pop()?.getBoundingClientRect().width ?? 0;
+      const widths = cells.map(cell => cell.getBoundingClientRect().width);
       const box = getComputedStyle(frame);
       const chrome = px(box.paddingLeft) + px(box.paddingRight) + px(box.borderLeftWidth) + px(box.borderRightWidth);
       const barGap = px(box.columnGap);
-      const free = host.clientWidth - chrome - tally.current.getBoundingClientRect().width - barGap;
+      const free = host.clientWidth - chrome - whole - barGap;
       // A room that is not laid out, as in jsdom, has no width to judge, so every action stands.
       const next = host.clientWidth ? fitActions(widths, free, more + barGap, px(getComputedStyle(slot.current).columnGap)) : widths.length;
       if (next === shownNow.current) return;
@@ -160,7 +162,7 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
   return <>
     {mounted && <div ref={room} className={`ui-selection-room${place === 'start' ? ' ui-selection-room--start' : ''}`}>
       <section ref={bar} className={`ui-selection-bar${entered ? ' is-shown' : ''}`} aria-label={label ?? `Selected ${noun}`} onKeyDown={onKeyDown}>
-        <div ref={tally} className="ui-selection-bar__count">
+        <div className="ui-selection-bar__count">
           <span className="ui-selection-bar__tally">{held.current} selected</span>
           <Button variant="ghost" size="sm" className="ui-selection-bar__control" onClick={onClear}>{clearLabel}</Button>
         </div>
@@ -191,6 +193,10 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
         <div ref={measure} className="ui-selection-bar__measure" aria-hidden="true">
           {actions.map(action => <span key={action.id} className="ui-btn ui-btn--ghost ui-btn--sm ui-selection-bar__control">{action.label}</span>)}
           <span className="ui-btn ui-btn--ghost ui-btn--sm ui-selection-bar__control">{moreLabel}</span>
+          <span className="ui-selection-bar__count">
+            <span className="ui-selection-bar__tally">{held.current} selected</span>
+            <span className="ui-btn ui-btn--ghost ui-btn--sm ui-selection-bar__control">{clearLabel}</span>
+          </span>
         </div>
       </section>
     </div>}

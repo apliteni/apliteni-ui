@@ -58,8 +58,8 @@ const Rows = ({ bar }: { bar: boolean }) => {
     bar ? { key: 'status', label: 'Status' }
       : { key: 'status', label: 'Status', render: row => <Dropdown variant="select" ariaLabel={`Status of ${row.name}`} value={row.status} items={STATUS} onSelect={noop} /> }];
   return <Stage mod="gl-component-choice__rows">
-    <DataTable columns={columns} rows={DOCS} pager={false} caption={bar ? 'Documents' : 'Documents with a menu on each row'}
-      selected={SELECTED} onToggle={noop} onTogglePage={noop} />
+    <Card><DataTable columns={columns} rows={DOCS} pager={false} caption={bar ? 'Documents' : 'Documents with a menu on each row'} scrollLabel={bar ? 'Documents' : 'Documents with a menu on each row'}
+      selected={SELECTED} onToggle={noop} onTogglePage={noop} /></Card>
     {bar && <SelectionBar count={2} actions={[{ id: 'status', label: 'Status', items: STATUS }]} noun="documents" onAction={noop} onClear={noop} />}
   </Stage>;
 };

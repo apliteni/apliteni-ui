@@ -3,6 +3,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { GuidelinePage, NoticePicture, noop } from '../_guideline';
 import { DataTable, type Column } from '../../react/src/DataTable';
 import { Dropdown } from '../../react/src/Dropdown';
+import { Button } from '../../react/src/primitives/Button';
+import { Card } from '../../react/src/primitives/Card';
 import { SelectionBar, type SelectionBarAction } from '../../react/src/SelectionBar';
 // @ts-expect-error -- plain JS story modules, read by the Node gates as well
 import { loadGuideline } from './_markdown.js';
@@ -23,19 +25,24 @@ const Bar = ({ actions = [STATUS] }: { actions?: SelectionBarAction[] }) =>
 // The pair differs only in the bar's paint: the don't gives it the page's own colours.
 const Table = ({ same = false }: { same?: boolean }) =>
   <div className={`gl-stage gl-stage--bar${same ? ' gl-same-theme' : ''}`}>
-    <DataTable columns={COLUMNS} rows={DOCS} pager={false} caption={same ? 'Documents, the same theme' : 'Documents'}
-      selected={SELECTED} onToggle={noop} onTogglePage={noop} />
+    <Card><DataTable columns={COLUMNS} rows={DOCS} pager={false} caption={same ? 'Documents, the same theme' : 'Documents'} scrollLabel={same ? 'Documents, the same theme' : 'Documents'}
+      selected={SELECTED} onToggle={noop} onTogglePage={noop} /></Card>
     <Bar />
   </div>;
 
-// The don't adds an Apply button where the do says what changed.
+// The don't adds an Apply button after the open Status list, where the do says what changed.
+// It draws the list and the button alone, so a phone shows both and not More.
 const Picked = () =>
   <div className="gl-stage gl-stage--bar">
     <NoticePicture title="Status: Ready" text="Updated 2 documents." />
     <Bar />
   </div>;
 const Applied = () =>
-  <div className="gl-stage gl-stage--bar"><Bar actions={[STATUS, { id: 'apply', label: 'Apply' }]} /></div>;
+  <div className="gl-stage gl-stage--menu gl-stage--apply">
+    <Dropdown variant="menu" triggerContent="Status" ariaLabel="Status" open onOpenChange={noop} onSelect={noop}
+      selectedValue="Ready" items={STATUS.items!.map(item => ({ label: item.label, value: item.label }))} />
+    <Button variant="primary" size="sm">Apply</Button>
+  </div>;
 
 const More = ({ names }: { names: string[] }) =>
   <div className="gl-stage gl-stage--menu">

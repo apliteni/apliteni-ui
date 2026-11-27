@@ -12,8 +12,9 @@ const read = (rel: string): string => readFileSync(fileURLToPath(new URL(rel, im
 const handlers = () => ({ onAction: vi.fn(), onClear: vi.fn() });
 
 // jsdom lays nothing out, so the widths are given: the count 100, each action 60, More 50,
-// and the room `width()`. Stand-in ResizeObservers let a test call every fit again.
-const laidOut = (width: () => number) => {
+// and the room `width()`. `shrunk` is the count on the bar, which large text can squeeze
+// under its full width. Stand-in ResizeObservers let a test call every fit again.
+const laidOut = (width: () => number, shrunk = 100) => {
   const notify = new Set<() => void>();
   vi.stubGlobal('ResizeObserver', class {
     constructor(callback: () => void) { notify.add(callback); }
@@ -21,7 +22,8 @@ const laidOut = (width: () => number) => {
     disconnect() {}
   });
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-    const size = this.classList.contains('ui-selection-bar__count') ? 100 : this.parentElement?.classList.contains('ui-selection-bar__measure') ? (this.textContent === 'More' ? 50 : 60) : 0;
+    const measured = this.parentElement?.classList.contains('ui-selection-bar__measure');
+    const size = this.classList.contains('ui-selection-bar__count') ? (measured ? 100 : shrunk) : this.parentElement?.classList.contains('ui-selection-bar__measure') ? (this.textContent === 'More' ? 50 : 60) : 0;
     return { width: size, height: 32, top: 0, left: 0, right: size, bottom: 32, x: 0, y: 0, toJSON: () => ({}) } as DOMRect;
   });
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
@@ -40,6 +42,14 @@ it('stands every action that fits, and leaves room for More when they do not', (
   expect(fitActions([], 0, 70, 4)).toBe(0);
 });
 
+// The count's full width is 100, so 150 is free for three actions of 60: one stands, with
+// More. A fit that read the squeezed count of 40 would stand all three.
+it('fits the actions beside the count at its full width, not at the width it is squeezed to', () => {
+  laidOut(() => 250, 40);
+  render(<SelectionBar count={2} actions={actions} {...handlers()} />);
+  expect(screen.getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'More']);
+});
+
 // DOM only: what is drawn and what it is called. A browser measures the paint.
 it('draws nothing at 0, and a named region with the count and Clear once rows are selected', () => {
   const props = handlers();
@@ -47,7 +57,7 @@ it('draws nothing at 0, and a named region with the count and Clear once rows ar
   expect(screen.queryByRole('region')).toBeNull();
   rerender(<SelectionBar count={2} actions={actions} noun="documents" {...props} />);
   const bar = screen.getByRole('region', { name: 'Selected documents' });
-  expect(within(bar).getByText('2 selected')).toBeInTheDocument();
+  expect(within(bar).getByText('2 selected', { ignore: '.ui-selection-bar__measure *' })).toBeInTheDocument();
   // Clear stands beside the count, before the actions, in the Tab order.
   expect(within(bar).getAllByRole('button').map(button => button.textContent)).toEqual(['Clear', 'Status', 'Archive', 'Owner']);
 });
