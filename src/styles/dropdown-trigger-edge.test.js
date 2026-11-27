@@ -164,31 +164,35 @@ function edgeOf(body) {
 function subjects(overrides = {}) {
   const out = [];
   let order = 0;
-  for (const file of SHEETS) {
-    const css = decomment(overrides[file] ?? read(file));
-    for (const [, selectors, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      if (selectors.trimStart().startsWith('@')) continue;
-      for (const selector of splitSelectorList(selectors)) {
-        order += 1;
-        const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
-        if (!subject.includes(TRIGGER)) continue;
-        const at = selector.lastIndexOf(TRIGGER);
-        const before = selector.slice(0, at);
-        const depth = [...before].reduce((level, char) => level + (char === '(') - (char === ')'), 0);
-        if (depth !== 0 || subject.includes('::')) continue;
-        out.push({
-          file,
-          order,
-          selector,
-          scope: scopeOf(selector),
-          state: classify(selector),
-          spec: specificity(selector),
-          edge: edgeOf(body),
-        });
-      }
+  for (const file of SHEETS) order = triggerRules(file, overrides[file] ?? read(file), order, out);
+  return out;
+}
+
+/* Push the trigger rules of one sheet's text onto `out`, numbered in source order
+ * after `order`, and return the last number. */
+function triggerRules(file, text, order, out) {
+  for (const [, selectors, body] of decomment(text).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    if (selectors.trimStart().startsWith('@')) continue;
+    for (const selector of splitSelectorList(selectors)) {
+      order += 1;
+      const subject = selector.split(/\s+(?![^(]*\))/).at(-1);
+      if (!subject.includes(TRIGGER)) continue;
+      const at = selector.lastIndexOf(TRIGGER);
+      const before = selector.slice(0, at);
+      const depth = [...before].reduce((level, char) => level + (char === '(') - (char === ')'), 0);
+      if (depth !== 0 || subject.includes('::')) continue;
+      out.push({
+        file,
+        order,
+        selector,
+        scope: scopeOf(selector),
+        state: classify(selector),
+        spec: specificity(selector),
+        edge: edgeOf(body),
+      });
     }
   }
-  return out;
+  return order;
 }
 
 /* The scopes, each with its rules grouped by state. */
@@ -386,10 +390,10 @@ test('disabled readings reject live paint in every discovered scope and state', 
       const off = target.spelling === 'native' ? ':disabled' : '[aria-disabled="true"]';
       const state = `${target.invalid ? '[aria-invalid="true"]' : ''}${target.pressed ? ':active' : ''}`
         + `${target.hover ? ':hover' : ''}${target.focus ? ':focus-visible' : ':not(:focus-visible)'}`;
-      const file = SHEETS.at(-1);
-      const broken = scopes(subjects({
-        [file]: `${read(file)}\n${scope}${off}${state} { border: 1px solid var(--control-edge); }`,
-      }));
+      // The live rule comes last in the cascade, read alone after the kit that was read once.
+      const live = [];
+      triggerRules(SHEETS.at(-1), `${scope}${off}${state} { border: 1px solid var(--control-edge); }`, ALL.at(-1).order, live);
+      const broken = scopes([...ALL, ...live]);
       const name = `${scope}: ${target.spelling} ${target.state}:`;
       assert.ok(disabledEdgeFindings(broken).some((finding) => finding.startsWith(name)), name);
     }
