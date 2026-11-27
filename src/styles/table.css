@@ -61,8 +61,6 @@
 .ui-table td:last-child { padding-right: 0; }
 .ui-table td.ui-table__act { padding-right: 0; text-align: right; }
 .ui-table tr.is-dead td { /* muted-ink: state — revoked row */ color: var(--muted); }
-.ui-table tbody tr { transition: background var(--dur-fast) var(--ease); }
-
 /* Row hover: a rounded fill across the full table width. The separate border model with
  * zero spacing lets the row ends round. The table has no side padding, so the end cells
  * hold the room: --space-2 inside the fill at each end, header and body alike, so a

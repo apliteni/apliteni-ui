@@ -535,10 +535,10 @@
     {
       "file": "react/src/DocumentReview.test.tsx",
       "name": "React: Document review flow",
-      "does": "Checks that the approval's pending state marks the control disabled and the step busy from one flag, that a refused approval is announced through an alert naming the cause, that the result's title stays under the page title, and that a step under Invoices reports its parent section rather than the current page.",
+      "does": "Checks that the approval's pending state marks the control disabled and the step busy from one flag, that a refused approval is announced through an alert naming the cause, that the result's title stays under the page title, that a step under Invoices reports its parent section rather than the current page, and that a step change puts the focus on the new step's title.",
       "blind": [
         "Historical browser captures, manual checks and browser measurements mentioned in this entry were not authenticated in this audit. They do not prove this head.",
-        "Real browser focus rings, the sticky action row at 560px and every contrast pair; mounted tests use jsdom and the browser captures on #385 carry those."
+        "Real browser focus rings, the split and its sticky action row at 860px and less, and every contrast pair; mounted tests use jsdom, and the split layout's browser walk and the captures on the #903 PR carry those."
       ]
     },
     {

@@ -6,12 +6,28 @@
 
 export const RELEASES = [
   {
-    v: '0.216.0', date: '2026-11-26',
+    v: '0.218.0', date: '2026-11-27',
     changes: [
       ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
       ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
       ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
       ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view, with its focus ring, when the keyboard or a script focuses it. Part of #888.', ['DataTable']],
+    ],
+  },
+  {
+    v: '0.217.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows in every table form, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves, also while the pointer stays on the field. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
+      ['added', 'The Motion guideline has a new rule, Change a hover at once. Hover is the one state change that does not fade. Part of #865.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.215.0', date: '2026-11-27',
+    changes: [
+      ['added', '`SplitLayout` splits a page under the band into two full-height panes: 60% for the values to check and their actions, and 40% for a preview of the source document on the document ground. Each pane scrolls on its own, and at 860px and below they stack in one scroll with the preview tools and the actions kept in view. The preview has Fit and 50% to 200% zoom, and a loading and an unavailable state with Try again. Part of #903.', ['SplitLayout']],
+      ['changed', 'In `AppShell`, a sidebar row whose path is above the `pathname`, such as `/invoices` for `/invoices/1042`, is now marked as the parent section (`aria-current="true"`) also without a `back` link. Before, it was marked as the page. Apps with sub-routes and no back link are affected. Part of #903.', ['AppShell']],
+      ['changed', 'The Document review showcase now uses `SplitLayout` and writes no CSS of its own. Its review screen holds its title in the first pane. Part of #903.', ['SplitLayout']],
+      ['changed', 'A heading with `tabindex="-1"` now draws the kit focus ring when a script focuses it, such as the title of a new step. Before, the browser drew its own outline. Part of #903.', []],
     ],
   },
   {
