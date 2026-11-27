@@ -357,6 +357,14 @@ headless shell. The gate passes it to the launch:
 stories/toast-stack.test.js:166 `executablePath: process.env.UI_CHROME`
 Report the result in the PR. CI runs only the source half, in `react/src/Toast.test.tsx`.
 
+## Check the selection bar locally
+
+Before opening a PR that changes `react/src/SelectionBar.css`, React `<SelectionBar>` or the
+Selected rows showcase, walk the bar's keys and clicks in a real browser. Run
+`npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js SELECTION_BAR=1 node --test stories/selection-bar.test.js`
+Report the result in the PR. CI runs only the source half, in `react/src/SelectionBar.test.tsx`.
+
 ## Check the stat band fit locally
 
 Before opening a PR that changes the compact band ranges of `src/styles/stat.css` or the

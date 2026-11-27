@@ -5,8 +5,10 @@ import { ConfirmPicture, DrawerPicture, GuidelinePage, NoticePicture, Typed, noo
 import { Button } from '../../react/src/primitives/Button';
 import { Callout } from '../../react/src/primitives/Callout';
 import { Card } from '../../react/src/primitives/Card';
+import { DataTable, type Column } from '../../react/src/DataTable';
 import { Dropdown, type DropdownProps } from '../../react/src/Dropdown';
 import { Segmented } from '../../react/src/Segmented';
+import { SelectionBar } from '../../react/src/SelectionBar';
 import { SidebarNav } from '../../react/src/SidebarNav';
 import { Success, SuccessPanel } from '../../react/src/Success';
 import { Tabs } from '../../react/src/Tabs';
@@ -45,6 +47,24 @@ const MenuOrigin = ({ side }: { side: 'left' | 'right' }) => <Stage>
   </div>
 </Stage>;
 
+// Two of three documents selected. The do sets their status from the bar, and the don't from a
+// menu on each row.
+type Doc = { name: string; status: string };
+const DOCS: Doc[] = [{ name: 'Field guide', status: 'Draft' }, { name: 'Release notes', status: 'Ready' }, { name: 'Test plan', status: 'Draft' }];
+const STATUS = [{ label: 'Draft' }, { label: 'Ready' }];
+const SELECTED = new Set(['Field guide', 'Release notes']);
+const Rows = ({ bar }: { bar: boolean }) => {
+  const columns: Column<Doc>[] = [{ key: 'name', label: 'Document', cell: 'title' },
+    bar ? { key: 'status', label: 'Status' }
+      : { key: 'status', label: 'Status', render: row => <Dropdown variant="select" ariaLabel={`Status of ${row.name}`} value={row.status} items={STATUS} onSelect={noop} /> }];
+  return <Stage mod="gl-component-choice__rows">
+    {/* Three rows need no filter bar. why: guidelines/dense-tables.md#give-a-long-table-its-filter-bar */}
+    <Card><DataTable columns={columns} rows={DOCS} pager={false} caption={bar ? 'Documents' : 'Documents with a menu on each row'} scrollLabel={bar ? 'Documents' : 'Documents with a menu on each row'}
+      selected={SELECTED} onToggle={noop} onTogglePage={noop} /></Card>
+    {bar && <SelectionBar count={2} actions={[{ id: 'status', label: 'Status', items: STATUS }]} noun="documents" onAction={noop} onClear={noop} />}
+  </Stage>;
+};
+
 const specimens = [
   { id: 'paired-actions', do: () => <PairedActions cancel="ghost" />, dont: () => <PairedActions cancel="primary" /> },
   { id: 'interrupt',
@@ -67,6 +87,7 @@ const specimens = [
   { id: 'dropdown-search',
     do: () => <Typed query="dollar"><Currency panelClass="gl-component-choice__search-panel" search={{ placeholder: 'Search currencies' }} /></Typed>,
     dont: () => <Currency scroll /> },
+  { id: 'selection-bar', do: () => <Rows bar />, dont: () => <Rows bar={false} /> },
 ];
 
 const meta: Meta = { title: 'Guidelines/Component choice', parameters: { layout: 'fullscreen' } };
@@ -81,6 +102,8 @@ export const ComponentChoice: StoryObj = {
       + '.gl-component-choice__band{display:flex;justify-content:flex-end;padding:var(--space-2);'
       + 'border-bottom:1px solid var(--border);}'
       + '.gl-component-choice__under{position:relative;flex:1;}'
+      // The bar's room sticks to the view's bottom on a page. In a picture it stays in the flow.
+      + '.gl-component-choice__rows .ui-selection-room{position:static;}'
       + '.gl-component-choice__under .ui-drawer{position:absolute;}'
       + '.gl-component-choice__under .ui-drawer__panel{width:calc(100% - var(--space-12));}'
       // The menu column fills the panel, as the shell's own menu drawer has it, so a phone draws no sideways scroll.

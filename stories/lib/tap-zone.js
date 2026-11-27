@@ -297,6 +297,32 @@ export const PROBE = ({ html, size, interior, families, within }) => {
     '.ui-switch',
   ].join(',');
 
+  // The part of a box that the ancestors which clip it leave drawn. A row a scroll panel
+  // hides is not drawn there, so a tap on that point runs whatever is under the panel.
+  // An ancestor clips only a box whose containing block chain passes through it, so an
+  // absolute box skips static ancestors and a fixed box skips all of them.
+  // Limit: clip-path, contain: paint, a transform that holds a fixed box, and the clip of
+  // the body or the root are not read. #902
+  const drawnBox = (el) => {
+    let { left, top, right, bottom } = el.getBoundingClientRect();
+    let mode = getComputedStyle(el).position;
+    for (let a = el.parentElement; a && a !== document.body && mode !== 'fixed'; a = a.parentElement) {
+      const c = getComputedStyle(a);
+      if (mode === 'absolute' && c.position === 'static') continue;
+      mode = c.position;
+      const r = a.getBoundingClientRect();
+      if (c.overflowX !== 'visible') {
+        left = Math.max(left, r.left + a.clientLeft);
+        right = Math.min(right, r.left + a.clientLeft + a.clientWidth);
+      }
+      if (c.overflowY !== 'visible') {
+        top = Math.max(top, r.top + a.clientTop);
+        bottom = Math.min(bottom, r.top + a.clientTop + a.clientHeight);
+      }
+    }
+    return new DOMRect(left, top, Math.max(right - left, 0), Math.max(bottom - top, 0));
+  };
+
   const visible = (el) => {
     const c = getComputedStyle(el);
     if (c.display === 'none' || c.visibility === 'hidden') return false;
@@ -304,13 +330,14 @@ export const PROBE = ({ html, size, interior, families, within }) => {
     if (c.pointerEvents === 'none') return false;
     if (el.disabled || el.getAttribute('aria-disabled') === 'true') return false;
     if (el.closest('[hidden], [aria-hidden="true"]')) return false;
-    const r = el.getBoundingClientRect();
+    const r = drawnBox(el);
     return r.width >= 1 && r.height >= 1;
   };
 
   const els = [...document.body.querySelectorAll(SELECTOR)].filter(visible);
   const index = new Map(els.map((el, i) => [el, i]));
   const boxes = els.map((el) => el.getBoundingClientRect());
+  const drawn = els.map(drawnBox);
 
   /** Which target owns a point — the control a tap there would run. */
   const owner = (x, y) => {
@@ -375,6 +402,8 @@ export const PROBE = ({ html, size, interior, families, within }) => {
     reachY = b.height + sides[2] + sides[3];
 
     // -- lost: somebody else on this control's own drawn pixels ---------------
+    // Read on the drawn box `d`: the part of the layout box that no ancestor clips.
+    const d = drawn[i];
     // Targets whose own drawn box already overlaps this one. Two controls drawn
     // on top of each other is a layout defect that predates any of this — a
     // showcase grid at 390 where a nowrap label overflows its column, a rail
@@ -385,8 +414,8 @@ export const PROBE = ({ html, size, interior, families, within }) => {
     const overlapping = new Set();
     for (let j = 0; j < boxes.length; j++) {
       if (j === i || related(i, j)) continue;
-      const o = boxes[j];
-      if (o.right > b.left && o.left < b.right && o.bottom > b.top && o.top < b.bottom) overlapping.add(j);
+      const o = drawn[j];
+      if (o.right > d.left && o.left < d.right && o.bottom > d.top && o.top < d.bottom) overlapping.add(j);
     }
 
     // Points are packed into one integer each, and never capped: a truncated
@@ -414,8 +443,8 @@ export const PROBE = ({ html, size, interior, families, within }) => {
       const px = Math.floor(x);
       const py = Math.floor(y);
       // Only a pixel this control itself does not wholly cover can be a shared one.
-      if (!cuts(b.x, b.right, px) && !cuts(b.y, b.bottom, py)) return false;
-      const o = boxes[j];
+      if (!cuts(d.x, d.right, px) && !cuts(d.y, d.bottom, py)) return false;
+      const o = drawn[j];
       return over(o.left, o.right, px) && over(o.top, o.bottom, py);
     };
     const ask = (x, y) => {
@@ -456,8 +485,8 @@ export const PROBE = ({ html, size, interior, families, within }) => {
       // target reads exactly like a clean one.
       return first <= last ? [first, last] : [(lo + hi) / 2, (lo + hi) / 2];
     };
-    const [x0, x1] = centres(b.x, b.right);
-    const [y0, y1] = centres(b.y, b.bottom);
+    const [x0, x1] = centres(d.x, d.right);
+    const [y0, y1] = centres(d.y, d.bottom);
     for (let x = x0; x <= x1; x += 1) { ask(x, y0); ask(x, y1); }
     for (let y = y0; y <= y1; y += 1) { ask(x0, y); ask(x1, y); }
     for (let y = y0; y <= y1; y += interior) {
