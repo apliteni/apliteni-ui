@@ -16,11 +16,12 @@
  * It discovers every React/AppShell story and plans one case for each story, size and
  * theme: the sidebar at 1280 and the phone menu at 390. A case with no measurement
  * fails, unless ABSENT names it with its reason, and a listed case that measures fails
- * too. A story in FOLDED must measure folded, and every other one open. The measured
- * count must equal the planned count. A mutation hides one sidebar and one menu, and
- * the coverage check must name both. It also measures the do-and-don't pair on the
- * page guideline at both sizes and in both themes: the Do rail keeps both columns, and
- * the Don't rail breaks only the note's.
+ * too. A case's rendered theme must equal the planned theme, or it fails. A story in
+ * FOLDED must measure folded, and every other one open. The measured count must equal
+ * the planned count. A mutation hides one sidebar and one menu, and the coverage check
+ * must name both. A mutation renders the wrong theme, and the coverage check must name
+ * it. It also measures the do-and-don't pair on the page guideline at both sizes and in
+ * both themes: the Do rail keeps both columns, and the Don't rail breaks only the note's.
  * The CI half is the edge arithmetic in react/src/AppShell.test.tsx.
  *
  * Its limits: one engine, the default accent, and two widths. A text
@@ -49,8 +50,15 @@ const FOLDED = new Set(['react-appshell--folded', 'react-appshell--note-folded',
 // The cases that measure nothing, each with its reason. Every other case must measure.
 // A shell with one section draws no sidebar and no menu: react/src/AppShell.tsx `navigable`.
 const ALONE = 'one section, so the shell draws no sidebar and no menu';
-const ABSENT = Object.fromEntries(['react-appshell--band-actions-alone', 'react-appshell--band-actions-alone-phone']
-  .flatMap((id) => SIZES.flatMap(({ width }) => THEMES.map((theme) => [`${id} at ${width} ${theme}`, ALONE]))));
+// A story that forces light in its globals draws no dark case: the URL theme cannot
+// override a story-level global.
+const FORCED_LIGHT = 'the story forces light theme, so it draws no dark case';
+const ABSENT = Object.fromEntries([
+  ...['react-appshell--band-actions-alone', 'react-appshell--band-actions-alone-phone']
+    .flatMap((id) => SIZES.flatMap(({ width }) => THEMES.map((theme) => [`${id} at ${width} ${theme}`, ALONE]))),
+  ...['react-appshell--band-actions-light', 'react-appshell--band-actions-phone-light']
+    .flatMap((id) => SIZES.map(({ width }) => [`${id} at ${width} dark`, FORCED_LIGHT])),
+]);
 // The guideline pair: Guidelines/The page, rule "Align the sidebar on one column".
 const PAIR = '.tp-rail .ui-app__rail';
 
@@ -88,7 +96,7 @@ const MEASURE = async (pick) => {
     const n = note(dialog);
     const av = dialog.querySelector('.ui-drawer__footer .ui-app__av');
     return ({
-      where: 'menu', fill,
+      where: 'menu', fill, theme: document.documentElement.getAttribute('data-theme'),
       symbols: [
         ['logo', left(dialog.querySelector('.ui-drawer__mark'))],
         ...rows(body).filter((r) => r.querySelector('.ui-nav__ic')).map((r) => [r.textContent.trim(), left(r.querySelector('.ui-nav__ic'))]),
@@ -115,7 +123,7 @@ const MEASURE = async (pick) => {
   const rail_ = app.classList.contains('ui-app--topbar') ? 'topbar' : 'rail';
   if (app.classList.contains('is-collapsed')) {
     return ({
-      where: 'folded', layout: rail_, fill,
+      where: 'folded', layout: rail_, fill, theme: document.documentElement.getAttribute('data-theme'),
       centres: [
         ...rows(rail).map((r) => [r.textContent.trim(), centre(r.querySelector('.ui-nav__ic svg') ?? r)]),
         ['avatar', centre(av)],
@@ -126,7 +134,7 @@ const MEASURE = async (pick) => {
   const brand = rail.querySelector('.ui-app__head .ui-app__brand');
   const mark = brand?.querySelector('.ui-react-app__mark');
   return ({
-    where: 'open', layout: rail_, fill,
+    where: 'open', layout: rail_, fill, theme: document.documentElement.getAttribute('data-theme'),
     symbols: [
       ...(mark ? [['logo', left(mark)]] : []),
       ...rows(rail).filter((r) => r.querySelector('.ui-nav__ic')).map((r) => [r.textContent.trim(), left(r.querySelector('.ui-nav__ic'))]),
@@ -173,11 +181,12 @@ const key = (id, width, theme) => `${id} at ${width} ${theme}`;
 
 /** One case: the sidebar at 1280, or the menu at 390 when the story has a menu button.
  *  `extra` is a style that a mutation adds. A story that does not render measures nothing. */
-async function measure(page, story, { port, size, theme, extra }, openStory) {
+async function measure(page, story, { port, size, theme, extra, forceTheme }, openStory) {
   await page.setViewportSize(size);
   const got = await openStory(page, story, { port, theme });
   if (got.phase !== 'finished' || got.id !== story.id) return null;
   if (extra) await page.addStyleTag({ content: extra });
+  if (forceTheme) await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), forceTheme);
   const read = () => page.evaluate(MEASURE).catch((e) => { throw new Error(`${key(story.id, size.width, theme)}: ${e.message}`); });
   if (size.width > 720) return read();
   const menu = page.locator('.ui-app__menu:visible');
@@ -195,6 +204,8 @@ function coverage(cases) {
     const id = at.split(' ')[0];
     if (ABSENT[at]) { if (m) found.push(`${at}: ABSENT says "${ABSENT[at]}", but it measured ${m.where}`); continue; }
     if (!m) { found.push(`${at}: no sidebar or menu was measured`); continue; }
+    const theme = at.split(' ').at(-1);
+    if (m.theme !== theme) found.push(`${at}: rendered theme ${m.theme}, not the planned ${theme}`);
     const want = at.includes(' at 390 ') ? 'menu' : FOLDED.has(id) ? 'folded' : 'open';
     if (m.where !== want) found.push(`${at}: measured ${m.where}, not ${want}`);
   }
@@ -224,8 +235,9 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
     for (const story of stories) {
       for (const size of SIZES) {
         for (const theme of THEMES) {
-          const m = await measure(page, story, { port, size, theme }, openStory);
-          cases.set(key(story.id, size.width, theme), m);
+          const at = key(story.id, size.width, theme);
+          const m = ABSENT[at] ? null : await measure(page, story, { port, size, theme }, openStory);
+          cases.set(at, m);
           if (!m) continue;
           drawn[m.where] += 1;
           if (m.note) drawn.notes += 1;
@@ -279,6 +291,17 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
       const at = key(centred.id, size.width, 'light');
       assert.ok(named.some((f) => f.startsWith(`${at}:`)), `a hidden case passed: the coverage check cannot see ${at}`);
     }
+
+    // The theme mutation: a case that renders a theme other than the one the plan
+    // asked for. The check must name it, or a light case would pass as dark coverage.
+    const band = stories.find((s) => s.id === 'react-appshell--band-actions');
+    assert.ok(band, 'the theme mutation needs react-appshell--band-actions');
+    const themed = new Map(cases);
+    const at = key(band.id, 1280, 'light');
+    themed.set(at, await measure(page, band, { port, size: SIZES[0], theme: 'light', forceTheme: 'dark' }, openStory));
+    const namedTheme = coverage(themed);
+    assert.ok(namedTheme.some((f) => f === `${at}: rendered theme dark, not the planned light`),
+      `a wrong-theme case passed: the coverage check cannot see ${at}`);
 
     // The mutation: the rows and the avatar as they were before #869. The walk must see
     // the glyphs, the labels and the avatar leave their columns, and a note that stays.
