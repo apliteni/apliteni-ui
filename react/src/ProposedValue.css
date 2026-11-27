@@ -1,0 +1,74 @@
+/* ProposedValue: a value that the app proposes and the user has not applied. It takes the
+ * place of a ghost select: the value, then a check that applies it, then a mark that
+ * dismisses it. The value has the box and the type of the trigger it replaces, so Apply
+ * moves no letter. why: docs/components.md#proposed-value */
+.ui-proposed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  max-width: 100%;
+}
+.ui-proposed__value {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  /* The sm trigger's block padding and start padding. The value has no box, so it ends at its
+     last letter. */
+  padding: 7.2px 0 7.2px 13px;
+  /* Transparent, so the value keeps the trigger's height. Forced colours draw it below. */
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+}
+/* The one still gradient of two inks. The value draws no box, so the ink alone marks the state.
+   Every point of it keeps 4.5:1 on the field and table grounds in both themes under each accent. */
+.ui-proposed__text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* gradient-ink: measurable-pair, body-contrast, text-ink, purposeful-accent — rev_ce5c10633f49/d23, rev_e1c16afad190/d25 */
+  background-image: linear-gradient(90deg, var(--accent), var(--chip-info-ink));
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.ui-proposed__acts { display: inline-flex; flex: none; align-items: center; gap: var(--space-2); }
+
+/* In a form the value takes the field trigger's padding and type, and it hangs into the room
+   before it as the ghost select does, so its first letter stays on the label's edge. */
+.ui-field > .ui-proposed {
+  display: flex;
+  width: fit-content;
+  margin-inline-start: calc(var(--space-4) * -1);
+  max-width: calc(100% + var(--space-4));
+}
+.ui-field > .ui-proposed > .ui-proposed__value {
+  padding: var(--space-3) 0 var(--space-3) var(--space-4);
+  font-size: var(--text-base);
+  line-height: normal;
+}
+/* In a row the part stands on the centre of the first text line, as the ghost select does. */
+.ui-table td > .ui-proposed:first-child {
+  vertical-align: top;
+  /* The sm trigger's 13px start padding, the room between two steps, as the ghost select hangs. */
+  margin-inline-start: -13px;
+  margin-block: calc((var(--ui-cell-line) - var(--btn-height-sm)) / 2);
+}
+/* A table does not squeeze the value to a few letters. It keeps the value up to a cap, and a
+   narrow table scrolls across in its card instead. */
+.ui-table td > .ui-proposed > .ui-proposed__value { flex: none; max-width: 12rem; }
+@media (pointer: coarse) {
+  /* The field trigger is 16px on a touch screen. The value follows it. */
+  .ui-field > .ui-proposed > .ui-proposed__value { font-size: 16px; }
+}
+@media (max-width: 560px) {
+  .ui-field > .ui-proposed { margin-inline-start: calc(var(--space-3) * -1); max-width: calc(100% + var(--space-3)); }
+  .ui-field > .ui-proposed > .ui-proposed__value { padding-inline-start: var(--space-3); }
+}
+/* Forced colours remove the gradient. The value takes the system ink and a dashed edge, so the
+   state still differs from a set value by its shape. */
+@media (forced-colors: active) {
+  .ui-proposed__text { -webkit-text-fill-color: CanvasText; background-image: none; }
+  .ui-proposed__value { border: 1px dashed CanvasText; border-radius: var(--radius-pill); padding-inline-end: var(--space-3); }
+}
