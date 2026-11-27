@@ -58,8 +58,8 @@ export const Structured: Story = {
 };
 
 // The full name of a payee whose list shows a short name: a table cell is one line, and the
-// readout wraps inside its box (#814). Keyboard focus opens it at once. On a phone the pinned
-// name cell is narrower than the readout, and the readout rises over the cell.
+// readout wraps inside its box (#814). Keyboard focus opens it at once. From 561px to 720px the
+// pinned name cell is narrower than the readout, and the readout rises over the cell.
 const PAYEES = [
   { name: 'Kestrel Print Co.', full: '', date: '2026-10-07' },
   { name: 'Meridian Coastal Logistics', full: 'Meridian Coastal Logistics and Cold Storage Cooperative of the Northern Ports', date: '2026-10-12' },

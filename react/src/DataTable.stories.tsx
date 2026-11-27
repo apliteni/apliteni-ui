@@ -134,7 +134,7 @@ export const NoPager: StoryObj = {
   },
 };
 
-// The pinned identity column is capped on a phone (#500), and the first column is
+// The pinned identity column is capped from 561px to 720px (#500), and the first column is
 // the one that can be sortable and long at the same time. The label gives way; the
 // caret does not, because the direction has no other visible signal.
 // The name opens the campaign and is all the cell holds, so the cell is marked and the

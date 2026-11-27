@@ -43,7 +43,7 @@ function SelectableExample() {
   });
   return <main className="ui-app__main ui-app__main--wide pinned-selection" style={{ '--ui-app-main': '60rem' } as CSSProperties}>
     <style>{'.pinned-selection .ui-table { min-width: 70rem; }'}</style>
-    <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll to compare values while keeping company selection in view.</p>
+    <h1>Select companies</h1><p className="ui-app__sub">Fictional data. Scroll sideways to compare values.</p>
     <div className="ui-card-stack">
     {bar}
     <DataTable rows={shown} selected={selected} empty="No companies match" onToggle={name => setSelected(current => {
@@ -56,8 +56,11 @@ function SelectableExample() {
 }
 
 // These assertions need a browser: jsdom cannot detect a checkbox covered by a sticky cell.
+// At 560px and below nothing is pinned, so both columns scroll away with the table, and the
+// box is clicked only where it is in view.
 export const PinnedSelection = { render: () => <SelectableExample />, play: async ({ canvasElement }: { canvasElement: HTMLElement }) => {
   const region = canvasElement.querySelector<HTMLElement>('.ui-table-scroll')!;
+  const pinned = matchMedia('(width > 560px)').matches;
   const frame = () => new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
   const themeBefore = document.documentElement.dataset.theme;
   const measurements = [];
@@ -73,7 +76,10 @@ export const PinnedSelection = { render: () => <SelectableExample />, play: asyn
           const input = selection.querySelector<HTMLInputElement>('input')!;
           const s = selection.getBoundingClientRect(), i = identity.getBoundingClientRect(), c = input.getBoundingClientRect();
           const edge = region.getBoundingClientRect().left;
-          if (s.left < edge - 1 || Math.abs(i.left - s.right) > 1) throw new Error(`${theme}/${scroll}/${section}: pinned columns overlap or separate`);
+          if (Math.abs(i.left - s.right) > 1) throw new Error(`${theme}/${scroll}/${section}: pinned columns overlap or separate`);
+          if (pinned && s.left < edge - 1) throw new Error(`${theme}/${scroll}/${section}: the pinned box scrolled away`);
+          if (!pinned && scroll && s.left >= edge - 1) throw new Error(`${theme}/${scroll}/${section}: the box stayed in place on a phone`);
+          if (!pinned && scroll) { measurements.push({ theme, scroll: region.scrollLeft, section, selectionWidth: s.width, identityLeft: i.left, selectionRight: s.right }); continue; }
           const hit = document.elementFromPoint(c.left + c.width / 2, c.top + c.height / 2);
           if (hit !== input) throw new Error(`${theme}/${scroll}/${section}: checkbox is covered`);
           const before = input.checked;

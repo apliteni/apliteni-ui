@@ -1,5 +1,7 @@
-/* Rule: on a phone a pinned identity cell is one running text line with a hard
- * cell edge, never a layout row squeezed to fit.
+/* Rule: from the phone step to the fold (561px to 720px) a pinned identity cell is one
+ * running text line with a hard cell edge, never a layout row squeezed to fit. Below the
+ * phone step (560px) nothing is pinned: the cell scrolls with its row and keeps its whole
+ * text (rev_1982326c19de/d88).
  * why: docs/components.md#data-table, #500, #513 */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -31,14 +33,19 @@ const BROWSER_CSS = [
   'src/styles/table.css',
 ].map(read).join('\n');
 
-/** Every rule the phone block writes. Which of them are a pinned identity's business
+/** The block that cuts a pinned identity, from the phone step to the fold. */
+const CUT_BLOCK = '@media (width > 560px) and (width <= 720px)';
+/** One width inside that block. #500 was measured at 390, where the cut applied then. */
+const CUT_WIDTH = 600;
+
+/** Every rule the cut block writes. Which of them are a pinned identity's business
  *  is decided below by what each one REACHES: a rule written on any other class —
  *  `.ui-table__code` is one the kit itself ships — lands inside the cell just the
  *  same, and a name match never sees it. */
-function phoneRules() {
-  const out = blockRules(CSS, '@media (max-width: 720px)');
+function cutRules() {
+  const out = blockRules(CSS, CUT_BLOCK);
   const written = out.reduce((n, rule) => n + rule.declarations.length, 0);
-  assert.ok(written >= 18, `the phone block is down to ${written} declarations; what is no longer written is no longer measured`);
+  assert.ok(written >= 18, `the cut block is down to ${written} declarations; what is no longer written is no longer measured`);
   return out;
 }
 
@@ -60,7 +67,7 @@ function mountAt(width, extra = '', css = CSS, includeFit = false) {
   // The cap is the one length here that a viewport evaluates, and JSDOM reports
   // `min(320px, 50vw)` as `320px` at every width. So it is worked out for this width and
   // written into the sheet before it is mounted: what the cascade then leaves on a cell
-  // is the cap a phone of this width gets, whichever rule wins it — or nothing, if no
+  // is the cap a screen of this width gets, whichever rule wins it — or nothing, if no
   // rule writes it any more.
   const declared = /--ui-table-identity-max:\s*([^;}]+)/.exec(substitute(decomment(css), tokensFor('light', 'default')));
   assert.ok(declared, 'the identity cap property is gone, so a consumer has nothing to retune');
@@ -124,13 +131,13 @@ const contextOf = (el, cap) => ({
 /* How far a focused line's ring reaches past its words: the room a text link takes, the gap
  * and the ring (#814). Read from the tokens, so the clip margin cannot fall behind them. */
 const RING_REACH = ['--space-1', '--ring-gap-width', '--ring-width']
-  .reduce((sum, name) => sum + lengthPx(tokensFor('light', 'default').get(name), 390), 0);
+  .reduce((sum, name) => sum + lengthPx(tokensFor('light', 'default').get(name), CUT_WIDTH), 0);
 const OUTCOME = {
   // The column takes its content, never a share of a table wider than the screen.
   width: (v, { fit }) => ((fit ? v === '1px' : v === '1%') ? null
     : `a column sized ${v} no longer takes its content`),
   'max-width': (v, { cell, cap }) => {
-    const px = lengthPx(v, 390);
+    const px = lengthPx(v, CUT_WIDTH);
     if (cell) return px === cap ? null
       : `the cell is capped at ${v}, which is not the ${cap}px --ui-table-identity-max leaves it`;
     if (v.trim() === 'none') return null;
@@ -140,7 +147,7 @@ const OUTCOME = {
   // A floor wider than the ceiling is the sliver again: the column outgrows its
   // region, and what is inside it can no longer shrink far enough to show an ellipsis.
   'min-width': (v, { cell, cap }) => {
-    const px = lengthPx(v, 390);
+    const px = lengthPx(v, CUT_WIDTH);
     // Inside the cell a percentage floor is bounded by the cell; on the cell itself it
     // measures against a table that is wider than the screen on purpose.
     if (px === null) return cell && parseFloat(v) > 0
@@ -155,7 +162,7 @@ const OUTCOME = {
     : (['clip', 'hidden'].includes(v) ? null : `${v} lets text run past the cap`)),
   'overflow-clip-margin': (v, { cell }) => (cell
     ? `the cell has a clip margin of ${v}, so sticky ink can paint over the next column`
-    : (lengthPx(v, 390) >= RING_REACH ? null
+    : (lengthPx(v, CUT_WIDTH) >= RING_REACH ? null
       : `a cut ${v} from the box leaves a focused line no room for its ring and the room inside it`)),
   'text-overflow': (v, { cell, picture, pictureLine }) => ((picture || pictureLine) && !cell
     ? (v === 'clip' ? null : `${v} promises a cut that a box overflowing in the open never draws`)
@@ -179,10 +186,10 @@ const OUTCOME = {
   'clip-path': (v) => (['', 'none'].includes(v) ? null : `${v} clips this out of view`),
 };
 
-test('at 390 every rule that reaches a pinned identity comes to the outcome it is written for', () => {
-  const { document, style, cap } = mountAt(390, '', CSS, true);
+test('between the phone step and the fold every rule that reaches a pinned identity comes to the outcome it is written for', () => {
+  const { document, style, cap } = mountAt(CUT_WIDTH, '', CSS, true);
   let judged = 0;
-  for (const { selector, declarations } of phoneRules()) {
+  for (const { selector, declarations } of cutRules()) {
     // Reach, not spelling: everything the rule matches that lives in a pinned
     // identity cell, the cell itself included.
     const reachableSelector = selector.replaceAll(':focus-visible', '');
@@ -206,9 +213,9 @@ test('at 390 every rule that reaches a pinned identity comes to the outcome it i
   assert.ok(judged >= 18, `only ${judged} declarations were judged; the sweep stopped finding its subjects`);
 });
 
-/** The phone widths #500 was reported and measured at: the step itself, and the
- *  narrowest screen the kit draws for. */
-const PHONE_WIDTHS = [390, 320];
+/** The widths the cut is held at: the fold itself, and one near the phone step. #500 was
+ *  reported at 390 and 320, where the cut applied before the pin left the phone. */
+const FOLD_WIDTHS = [720, 600];
 /** The shapes `mountAt` builds a pinned identity cell in, header included. */
 const SHAPES = 14;
 
@@ -234,7 +241,7 @@ function capProblems(css, width) {
   const found = [...document.querySelectorAll('.ui-table__identity')];
   if (found.length < SHAPES) problems.push(`only ${found.length} of ${SHAPES} pinned identity cells were measured at ${width}`);
   // Limit: JSDOM draws no boxes, so this is the ceiling the cascade leaves the cell, not
-  // a drawn width. Chromium draws the capped cell at 195px at 390 and 160px at 320, and
+  // a drawn width. For #500 Chromium drew the capped cell at 195px at 390 and 160px at 320, and
   // at 309px with the cap taken off it.
   for (const cell of found) {
     const held = style(cell).maxWidth.trim();
@@ -245,15 +252,15 @@ function capProblems(css, width) {
   return problems;
 }
 
-test('every pinned identity cell is held to the column\'s cap at both phone widths', () => {
-  for (const width of PHONE_WIDTHS) assert.deepStrictEqual(capProblems(CSS, width), [], `at ${width}`);
+test('every pinned identity cell is held to the column\'s cap at both cut widths', () => {
+  for (const width of FOLD_WIDTHS) assert.deepStrictEqual(capProblems(CSS, width), [], `at ${width}`);
 });
 
 /** The white-space half of the "nothing inside the column defeats it" sweep, as a pure
  *  function of the stylesheet so a mutation is held to the same check. jsdom 31 resolves the
  *  shorthand's inheritance, so a computed value that is not nowrap is the defect. why: #500. */
 function whiteSpaceProblems(css) {
-  const { document, style, cells } = mountAt(390, '', css);
+  const { document, style, cells } = mountAt(CUT_WIDTH, '', css);
   const problems = [];
   for (const cell of cells) {
     for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
@@ -267,10 +274,10 @@ function whiteSpaceProblems(css) {
   return problems;
 }
 
-test('at 390 the column fits its region, shows a name and is drawn', () => {
-  const { document, style, cells, cap } = mountAt(390);
+test('between the phone step and the fold the column fits its region, shows a name and is drawn', () => {
+  const { document, style, cells, cap } = mountAt(CUT_WIDTH);
 
-  // The cap's own size, and the cells it has to hold, are required above at both phone
+  // The cap's own size, and the cells it has to hold, are required above at both cut
   // widths. What this test adds is that nothing inside the column defeats it.
   assert.deepStrictEqual(whiteSpaceProblems(CSS), []);
   // The cell AND everything living in it: a rule written on a sub-line's own class
@@ -279,7 +286,7 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
     for (const el of [document.querySelector(cell), ...document.querySelectorAll(`${cell} *`)]) {
       const where = `${cell} <${el.tagName.toLowerCase()}${el.id ? ` id=${el.id}` : ''}>`;
       const box = style(el);
-      assert.ok((lengthPx(box.minWidth, 390) ?? 0) <= cap, `${where} has a floor past the cap: ${box.minWidth}`);
+      assert.ok((lengthPx(box.minWidth, CUT_WIDTH) ?? 0) <= cap, `${where} has a floor past the cap: ${box.minWidth}`);
       assert.notEqual(box.visibility, 'hidden', `${where} is drawn invisible`);
       assert.ok(['', 'static', 'relative', 'sticky'].includes(box.position), `${where} is out of the row at ${box.position}`);
       assert.ok(['', 'none'].includes(box.clipPath), `${where} is clipped out of view`);
@@ -295,7 +302,7 @@ test('at 390 the column fits its region, shows a name and is drawn', () => {
   assert.equal(name.whiteSpace, 'nowrap', 'the name wraps inside the cell');
   assert.equal(name.textOverflow, 'ellipsis', 'a long name is cut without saying so');
   assert.equal(name.maxWidth.trim(), '100%', 'the name is capped away from the link it sits in');
-  assert.ok((lengthPx(name.minWidth, 390) ?? 0) <= cap, `the name has a floor past the cap, so it can never reach an ellipsis: ${name.minWidth}`);
+  assert.ok((lengthPx(name.minWidth, CUT_WIDTH) ?? 0) <= cap, `the name has a floor past the cap, so it can never reach an ellipsis: ${name.minWidth}`);
   assert.notEqual(name.position, 'absolute', 'the name is hidden again rather than shown on one line');
   assert.ok(['', 'none'].includes(name.clipPath), 'the name is clipped out of view rather than shown');
   assert.notEqual(name.display, 'none', 'the name is not drawn');
@@ -457,6 +464,8 @@ async function measurePicturePixels(page, css, width) {
   return blue;
 }
 
+/* The name is longer than the widest cap at a cut width, 320px at 720px, so the link
+ * overflows its cell and the cut is measured at both widths. */
 function directLinkFixture(css, width) {
   return `<!doctype html><html lang="en" data-theme="light"><head><meta charset="utf-8">
     <style>${css}</style>
@@ -464,7 +473,7 @@ function directLinkFixture(css, width) {
     </head><body><div class="stage"><div class="ui-table-scroll">
     <table class="ui-table ui-table--compact ui-table--sticky ui-table--pinned">
       <thead><tr><th class="ui-table__identity">Company</th><th class="ui-table__num">Price</th></tr></thead>
-      <tbody><tr><td class="ui-table__identity" data-direct-cell><a href="#company" data-direct-link>Cedar Infrastructure Holdings International</a></td><td class="ui-table__num">1.00</td></tr></tbody>
+      <tbody><tr><td class="ui-table__identity" data-direct-cell><a href="#company" data-direct-link>Cedar Infrastructure Holdings International Logistics and Trading Group</a></td><td class="ui-table__num">1.00</td></tr></tbody>
     </table></div></div></body></html>`;
 }
 
@@ -547,7 +556,7 @@ async function measureSubLineOverflow(page, css, width, rows = SUBLINE_ROWS) {
   return out;
 }
 
-test('Chrome keeps a sub-line link inside the pinned identity cap at phone widths', {
+test('Chrome keeps a sub-line link inside the pinned identity cap at the cut widths', {
   skip: !process.env.TABLE_IDENTITY_BROWSER && 'set TABLE_IDENTITY_BROWSER=1 to run the Chrome layout gate',
 }, async () => {
   const css = BROWSER_CSS;
@@ -556,7 +565,7 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
   const browser = await chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
   const page = await browser.newPage();
   try {
-    for (const width of PHONE_WIDTHS) {
+    for (const width of FOLD_WIDTHS) {
       const rows = await measureSubLineOverflow(page, css, width);
       for (const row of rows) {
         assert.ok(row.paintedOverflowPx <= 0.5, `${row.id} paints ${row.paintedOverflowPx}px past the cell at ${width}`);
@@ -578,7 +587,7 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
         `the direct-link line ring is open at ${width}: ${JSON.stringify(directFocus)}`);
     }
 
-    const discovered = await measureSubLineOverflow(page, css, 390, [
+    const discovered = await measureSubLineOverflow(page, css, CUT_WIDTH, [
       ...SUBLINE_ROWS,
       ['new-markup', '<em><a href="#office">EU-ADDED-9 district office</a></em>'],
     ]);
@@ -592,11 +601,11 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
         '  .ui-table--pinned .ui-table__identity > * {\n    overflow: visible;');
     assert.notEqual(defect, css, 'the browser mutation no longer matches table.css, so it proves nothing');
     const failures = [];
-    for (const width of PHONE_WIDTHS) {
+    for (const width of FOLD_WIDTHS) {
       const rows = await measureSubLineOverflow(page, defect, width);
       failures.push(...rows.filter((row) => row.paintedOverflowPx > 0.5));
     }
-    assert.ok(new Set(failures.map((row) => row.width)).size === PHONE_WIDTHS.length,
+    assert.ok(new Set(failures.map((row) => row.width)).size === FOLD_WIDTHS.length,
       `dropping only the link's overflow clip did not fail at both widths: ${JSON.stringify(failures)}`);
 
     const siblingDefect = `${css}
@@ -609,11 +618,11 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
   }
 }`;
     const overlaps = [];
-    for (const width of PHONE_WIDTHS) {
+    for (const width of FOLD_WIDTHS) {
       const sibling = await measureSiblingLine(page, siblingDefect, width);
       if (sibling.textBeyondSiblingPx > 0.5 || sibling.siblingPaintInsideLinkPx > 0) overlaps.push({ width, ...sibling });
     }
-    assert.ok(new Set(overlaps.map((row) => row.width)).size === PHONE_WIDTHS.length,
+    assert.ok(new Set(overlaps.map((row) => row.width)).size === FOLD_WIDTHS.length,
       `the sibling mutation did not overlap painted text at both widths: ${JSON.stringify(overlaps)}`);
 
     const pictureDefect = `${css}
@@ -623,11 +632,11 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
   }
 }`;
     const hiddenPictures = [];
-    for (const width of PHONE_WIDTHS) {
+    for (const width of FOLD_WIDTHS) {
       const picturePixels = await measurePicturePixels(page, pictureDefect, width);
       if (picturePixels === 0) hiddenPictures.push({ width, picturePixels });
     }
-    assert.ok(new Set(hiddenPictures.map((row) => row.width)).size === PHONE_WIDTHS.length,
+    assert.ok(new Set(hiddenPictures.map((row) => row.width)).size === FOLD_WIDTHS.length,
       `the picture mutation did not hide the nested image at both widths: ${JSON.stringify(hiddenPictures)}`);
 
     const focusDefect = css
@@ -639,27 +648,79 @@ test('Chrome keeps a sub-line link inside the pinned identity cap at phone width
 `, '');
     assert.notEqual(focusDefect, css, 'the direct-link focus mutation no longer matches table.css, so it proves nothing');
     const openRings = [];
-    for (const width of PHONE_WIDTHS) {
+    for (const width of FOLD_WIDTHS) {
       const directFocus = await measureDirectLinkFocus(page, focusDefect, width);
       if (directFocus.rightEdgePixels === 0) openRings.push({ width, ...directFocus });
     }
-    assert.ok(new Set(openRings.map((row) => row.width)).size === PHONE_WIDTHS.length,
+    assert.ok(new Set(openRings.map((row) => row.width)).size === FOLD_WIDTHS.length,
       `the direct-link focus mutation did not open the ring at both widths: ${JSON.stringify(openRings)}`);
   } finally {
     await browser.close();
   }
 });
 
-test('at 1280 the phone rules are off and the desktop identity is what it was', () => {
+test('at 1280 the cut rules are off and the desktop identity is what it was', () => {
   const { style, cells } = mountAt(1280);
   for (const cell of cells) {
-    assert.equal(style(cell).maxWidth.trim(), 'none', `${cell} took the phone cap to the desktop`);
+    assert.equal(style(cell).maxWidth.trim(), 'none', `${cell} took the cut cap to the desktop`);
     assert.ok(['', 'clip'].includes(style(cell).textOverflow), `${cell} cuts its text on the desktop`);
   }
   // The desktop composition, unchanged by #500: the name wraps inside its own cap and
   // the logo is drawn.
   assert.equal(style('#kit .ui-identity__name').whiteSpace, 'normal', 'the desktop name stopped wrapping');
   assert.notEqual(style('#kit .ui-identity__logo').display, 'none', 'the desktop lost the identity logo');
+});
+
+/* -- Below the phone step nothing is pinned ---------------------------------- */
+
+/** The phone step itself and two phones under it. */
+const PHONE_WIDTHS = [560, 390, 360];
+
+/**
+ * What still pins or cuts a pinned identity or selection cell at one phone width, as lines.
+ * The owner removed the pin from the phone (rev_1982326c19de/d88), so the cells scroll with
+ * their row, draw no divider and keep their whole text and logo. A pure function of the
+ * stylesheet, so the mutations below go through exactly this check.
+ * Limits: JSDOM draws no boxes, so these are the values the cascade leaves. The drawn
+ * scroll is measured at 390 in stories/table-edge-shade.test.js.
+ */
+function phonePinProblems(css, width) {
+  const { document, style, cells } = mountAt(width, '', css);
+  document.querySelector('thead tr').insertAdjacentHTML('afterbegin', '<th class="ui-table__selection" id="selhead"></th>');
+  document.querySelector('tbody tr').insertAdjacentHTML('afterbegin', '<td class="ui-table__selection" id="sel"><input type="checkbox" aria-label="Select row"></td>');
+  const problems = [];
+  for (const cell of ['#selhead', '#sel', ...cells]) {
+    const box = style(cell);
+    // A sticky header holds its top edge only, which is not a pin.
+    if (box.position === 'sticky' && !['', 'auto'].includes(box.left)) problems.push(`${cell} sticks at ${box.left} at ${width}`);
+    if (box.borderRightStyle !== '' && box.borderRightStyle !== 'none') problems.push(`${cell} draws a divider at ${width}`);
+  }
+  for (const cell of cells.filter((c) => c !== '#head')) {
+    const box = style(cell);
+    if (!['', 'none'].includes(box.maxWidth.trim())) problems.push(`${cell} is capped at ${box.maxWidth} at ${width}`);
+    if (box.textOverflow === 'ellipsis') problems.push(`${cell} cuts its text at ${width}`);
+  }
+  if (style('#kit .ui-identity__logo').display === 'none') problems.push(`the identity logo is dropped at ${width}`);
+  return problems;
+}
+
+test('below the phone step a pinned column scrolls with its row and keeps its whole text', () => {
+  for (const width of PHONE_WIDTHS) assert.deepStrictEqual(phonePinProblems(CSS, width), [], `at ${width}`);
+  // Above the phone step the pin stays as it was.
+  assert.ok(phonePinProblems(CSS, 600).some((p) => p.includes('sticks')), 'the pin is gone above the phone step');
+});
+
+test('the gate rejects the pin or the cut put back on a phone', () => {
+  const survived = [];
+  for (const [what, mutate] of [
+    ['the pin opened to every width', (css) => css.replace('@media (width > 560px) {', '@media (width > 0px) {')],
+    ['the cut opened to the phone', (css) => css.replace(`${CUT_BLOCK} {`, '@media (max-width: 720px) {')],
+  ]) {
+    const mutated = mutate(CSS);
+    assert.notEqual(mutated, CSS, `the mutation "${what}" no longer matches table.css, so it proves nothing`);
+    if (PHONE_WIDTHS.every((width) => phonePinProblems(mutated, width).length === 0)) survived.push(what);
+  }
+  assert.deepStrictEqual(survived, [], 'a mutation passed this gate unnoticed');
 });
 
 /* -- The linked identity, which the column and the cell fill meet on --------- */
@@ -675,12 +736,12 @@ test('at 1280 the phone rules are off and the desktop identity is what it was', 
 const SIDES = ['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'];
 const padding = (box) => SIDES.map((side) => box[side]).join(' ');
 
-/** Every way the fill reaches the linked identity wrongly, at the phone width. A pure
+/** Every way the fill reaches the linked identity wrongly, at the cut width. A pure
  *  function of the stylesheet, so the mutations below go through exactly this check. */
 function fillProblems(css) {
   const problems = [];
 
-  const narrow = mountAt(390, '', css);
+  const narrow = mountAt(CUT_WIDTH, '', css);
   const cell = narrow.style('#kit');
   const link = narrow.style('#kit .ui-identity');
   if (padding(cell) !== '0px 0px 0px 0px') {
@@ -762,7 +823,7 @@ test('the gate rejects every way the fill reaches a linked identity wrongly', ()
 /* -- The gate's own gate ---------------------------------------------------- */
 
 /**
- * Each way the cap goes missing while the phone block still reads as if it were there.
+ * Each way the cap goes missing while the cut block still reads as if it were there.
  * The first is the one the review of #500 made: a tidy-up takes the declaration out, the
  * sweep has one fewer declaration to judge rather than a missing cap to report, and
  * Chromium grows the cell to its content.
@@ -775,11 +836,11 @@ const CAP_MUTATIONS = [
       '  .ui-table--pinned .ui-table__identity { max-width: none; }\n  .ui-table--pinned .ui-identity__logo { display: none; }')],
   ['the cap written as a share of a table that is wider than the screen',
     (css) => css.replace('max-width: var(--ui-table-identity-max);', 'max-width: 100%;')],
-  ['the cap spent on --panel-sm alone, which is more than half of either phone width',
+  ['the cap spent on --panel-sm alone, which is more than half of the narrower cut width',
     (css) => css.replace('--ui-table-identity-max: min(var(--panel-sm), 50vw)',
       '--ui-table-identity-max: var(--panel-sm)')],
   ['the whole one-line block moved to the step above the fold',
-    (css) => css.replace('@media (max-width: 720px) {', '@media (min-width: 721px) {')],
+    (css) => css.replace(`${CUT_BLOCK} {`, '@media (min-width: 721px) {')],
 ];
 
 test('the gate rejects every way the identity cap has to be lost', () => {
@@ -788,7 +849,7 @@ test('the gate rejects every way the identity cap has to be lost', () => {
     const mutated = mutate(CSS);
     assert.notEqual(mutated, CSS,
       `the mutation "${what}" no longer matches table.css, so it proves nothing`);
-    if (PHONE_WIDTHS.every((width) => capProblems(mutated, width).length === 0)) survived.push(what);
+    if (FOLD_WIDTHS.every((width) => capProblems(mutated, width).length === 0)) survived.push(what);
   }
   assert.deepStrictEqual(survived, [], 'a mutation passed this gate unnoticed');
 });
