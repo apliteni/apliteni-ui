@@ -108,6 +108,29 @@ describe('QuerySearch', () => {
     expect(field()).toHaveValue('@zz');
     expect(screen.getByRole('alert')).toHaveTextContent('No person matches this name.');
   });
+  it('keeps a group with title words in the field, and makes a chip of a group of filters only', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.type(field(), 'report OR state:open');
+    await user.keyboard('{Enter}');
+    expect(chips()).toEqual([]);
+    expect(field()).toHaveValue('report OR state:open');
+    await user.clear(field());
+    await user.type(field(), 'state:open OR @ada');
+    await user.keyboard('{Enter}');
+    expect(chips()).toEqual(['Open or Ada Lovelace']);
+    expect(field()).toHaveValue('');
+  });
+  it('keeps the title words in the field when a chip goes back to the field to edit', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.type(field(), 'report state:open');
+    await user.keyboard('{Enter}');
+    expect(field()).toHaveValue('report');
+    await user.click(screen.getByRole('button', { name: 'Open: edit state:open' }));
+    expect(field()).toHaveValue('report state:open');
+    expect(chips()).toEqual([]);
+  });
   it('keeps an invalid draft, names the keys, and clears the error on the next edit', async () => {
     const user = userEvent.setup();
     render(<Harness />);

@@ -30,7 +30,8 @@ export type QuerySearchProps = {
 
 type Row = QueryValue & { insert: string };
 
-const hasField = (node: QueryNode): boolean => node.type === 'field' || (node.type !== 'text' && node.items.some(hasField));
+// A group is a filter only when each of its parts is a filter. A group with title words stays text.
+const isFilter = (node: QueryNode): boolean => node.type === 'field' || (node.type !== 'text' && node.items.every(isFilter));
 
 // The last condition: a key with one value word or an open quote, or `@` and a name.
 // A completed value ends at a space, so `state:open @ma` reads `@ma`.
@@ -85,8 +86,8 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
   const commit = (query: string) => {
     try {
       const terms = parseQuery(query, keys);
-      const words = terms.filter(t => !hasField(t.node));
-      onChange({ chips: [...chips, ...terms.filter(t => hasField(t.node)).map(t => t.raw)], draft: words.map(t => t.raw).join(' ') });
+      const words = terms.filter(t => !isFilter(t.node));
+      onChange({ chips: [...chips, ...terms.filter(t => isFilter(t.node)).map(t => t.raw)], draft: words.map(t => t.raw).join(' ') });
       setChecked(false);
       return true;
     } catch {
@@ -101,8 +102,9 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
     input.current?.focus();
   };
   const remove = (i: number) => { onChange({ chips: chips.filter((_, j) => j !== i), draft }); input.current?.focus(); };
+  // The chip goes back after the title words in the field, so the words stay.
   const edit = (i: number) => {
-    onChange({ chips: chips.filter((_, j) => j !== i), draft: chips[i] });
+    onChange({ chips: chips.filter((_, j) => j !== i), draft: draft.trim() ? `${draft.trim()} ${chips[i]}` : chips[i] });
     setChecked(false); setOpen(false);
     input.current?.focus();
   };
