@@ -506,7 +506,6 @@ a.ui-identity:hover { text-decoration: underline; }
    cell's words do. The track is that edge, the 19px box, the 16px gap after it and the 1px
    divider, so the identity moves by the same width. It is 48px at the 12px edge. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--pinned { --ui-table-selection-start: var(--cell-edge); --ui-table-selection-width: calc(var(--ui-table-selection-start) + 19px + var(--space-4) + 1px); }
-:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--pinned { --ui-table-selection-start: 0px; }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) :is(th, td).ui-table__selection { padding-inline: var(--ui-table-selection-start) var(--space-4); text-align: left; }
 
 /* ============================================================================
