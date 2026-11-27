@@ -164,6 +164,13 @@ a:focus-visible,
   outline: var(--ring);
   outline-offset: var(--ring-offset);
 }
+/* A heading that a script moves the focus to, such as the title of a new step, takes the band
+   with a corner. Without it the browser drew its own outline at 2.40:1. #903 */
+:is(h1, h2, h3, h4, h5, h6)[tabindex="-1"]:focus-visible {
+  outline: var(--ring);
+  outline-offset: var(--ring-offset);
+  border-radius: var(--radius-xs);
+}
 /* A text link has no box, so the ring sat on the glyphs with square corners. It takes a corner
    and room at each side. The margin gives the room back, so no word moves. #814 (rev_136bd26bc559/d22) */
 a:not([class]):focus-visible {

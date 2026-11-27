@@ -88,6 +88,7 @@ what the user sees.
 | The product band of a marketing page | `TopBar` | [Top bar](#top-bar) |
 | A sign-in page | `AuthShell` | [Auth shell](#auth-shell) |
 | Parents, the children of the selected parent, and the open child | `ThreeColumnPage` | [Three-column page](#three-column-page) |
+| Values to check beside the document they came from | `SplitLayout` | [Split layout](#split-layout) |
 | A site or app footer | `Footer` | [Footer](#footer) |
 | Run an action | `Button` | [Button](#button) |
 | An action that the user cannot undo | `Button hold` | [Hold to confirm](#hold-to-confirm) |
@@ -148,7 +149,10 @@ A section can hold one level of sub-items in `items`, each with `href`, `label` 
 under group labels instead, give `groups` in place of `sections`: each group has a `label` and its
 `sections`, with no sub-items. A sidebar takes group labels or sub-items, never both, and the
 types refuse the mix. The longest `href` that matches `pathname` is the current section or
-sub-item. The current sub-item stays shown, and its parent row shows as current. `word` names the product, and
+sub-item. The current sub-item stays shown, and its parent row shows as current. When `pathname` is the row's own path, such as `/invoices`, the row is the page
+(`aria-current="page"`). When `pathname` is below it, such as `/invoices/1042`, or the page has a `back` link,
+the row is the parent section (`aria-current="true"`). The match is by path segment, so `/invoices-archive` is not
+below `/invoices`. `word` names the product, and
 its default is `apliteni-ui`, so set it. `brand` replaces the mark, and `brandHref` is its link,
 `/` by default.
 
@@ -388,6 +392,55 @@ with `.ui-columns__end`, a count or a date, and a row that opens a column ends w
 the focus goes to the title of the column at the depth, or to its menu button. A column's
 scroll box shows the inward focus band on its four sides. The back link is named "Back to" and
 the column's title. On a touch phone each list row and the title menu have a 44px target.
+
+### Split layout
+
+Use `SplitLayout` for a page that checks values against their source document, such as the
+fields read from an invoice. Put it in `AppShell` with `width="full"` and no `title`, so the page
+holds its own `h1` in the first pane.
+
+```tsx
+<AppShell width="full" sections={sections} pathname="/invoices/1042" account={account} onSignOut={signOut}>
+  <SplitLayout primaryLabel="Extracted fields"
+    primary={<><h1>Review invoice 1042</h1><h2 className="ui-card__title ui-split__name">Extracted fields</h2><Fields /></>}
+    preview={{ title: 'Document preview', children: <InvoiceSheet />, state, onRetry: reload }}
+    actions={<Button variant="primary" onClick={next}>Continue to approval</Button>}
+    zoom={zoom} onZoomChange={setZoom} />
+</AppShell>
+```
+
+`primary` holds the title, the values and the totals, and `primaryLabel` names that pane,
+`Details` by default. Give the pane's own name the `ui-split__name` class, so it takes the accent. `actions` holds the buttons at the foot of the first pane, the committing
+one first. `preview` takes the pane's `title`, the sheet's `children`, a `state` of `ready`,
+`loading` or `unavailable`, and `onRetry` for the Try again button of the unavailable state.
+`zoom` is `fit`, `50`, `100`, `150` or `200`. Pass `zoom` with `onZoomChange`, or let the layout
+keep it from `defaultZoom`, which is `fit`. The layout holds no data and no rules of its own.
+
+**What the user sees.**
+
+- Under the band, the page splits into two panes from the band to the foot. The first takes 60%
+  and the preview 40%, with a 1px `--border` line between them. Neither pane is a card.
+- The first pane holds the values that will be saved. A value in its key-value list or table is
+  heavier than its label, and the pane's name is in the accent. The preview takes none of these.
+- The preview pane is the document ground, `--ui-document-ground`, from edge to edge. Its title
+  and zoom tools stand on the page ground at its top, and the sheet is a kit page, 420px wide.
+- Above 860px each pane scrolls on its own, and the sidebar and the band stay outside both. The
+  action row stays at the foot of the first pane.
+- Fit shows the whole sheet, however low the pane is, and never draws it above 100%. While Fit
+  is on it has the selected fill, ink and weight. Zoom out and Zoom in step through 50%, 100%,
+  150% and 200%, and a sheet larger than the pane scrolls inside it.
+- At 860px and below, the panes stack in source order in one scroll. The preview tools stay at
+  the top while the preview passes, and the action row stays at the foot of the screen. A
+  control that the focus scrolls into view stops above the action row.
+- While the preview loads, the sheet shows a skeleton and the zoom is off. An unavailable preview
+  shows "Preview unavailable" and Try again in place of the sheet.
+
+**Keyboard and screen reader.** The first pane is a region named by `primaryLabel`, and the
+preview is a region named by its `h2`. A pane is a Tab stop only while it has something to
+scroll, and then shows the inward focus band. The scale is read when it changes, Fit is a
+toggle button, and the loading sheet says "Loading the preview". A zoom step that reaches its
+end turns off and gives the focus to the other step. Try again gives the focus to the preview's
+title. The order is the content, the preview, then the actions. On a touch phone each zoom control and each action has a 44px target.
 
 ### Footer
 

@@ -13,7 +13,7 @@ const sections = [
   { href: '/settings', label: 'Settings', icon: 'gear' },
   { href: '/help', label: 'Help', icon: 'mail' },
 ];
-const props = { sections, pathname: '/reports/weekly', title: 'Weekly report', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut: vi.fn() };
+const props = { sections, pathname: '/reports', title: 'Weekly report', account: { name: 'Demo User', email: 'demo@example.com' }, onSignOut: vi.fn() };
 const read = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
 afterEach(() => { cleanup(); document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/'; });
 
@@ -95,8 +95,11 @@ it('uses the longest matching route, keeps counts in link names, and forwards ro
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
   expect(rail.getByRole('link', { name: 'Reports 3' })).toHaveAttribute('aria-current', 'page');
   expect(rail.getByRole('link', { name: 'Reports 3' })).toHaveAttribute('data-router', '/reports');
-  rerender(<AppShell {...props} pathname="/reports/saved/1" />);
+  rerender(<AppShell {...props} pathname="/reports/saved" />);
   expect(rail.getByRole('link', { name: 'Saved' })).toHaveAttribute('aria-current', 'page');
+  // A page below the row's own path is its child, so the row is its parent section.
+  rerender(<AppShell {...props} pathname="/reports/saved/1" />);
+  expect(rail.getByRole('link', { name: 'Saved' })).toHaveAttribute('aria-current', 'true');
   expect(rail.getByRole('link', { name: 'Reports 3' })).not.toHaveAttribute('aria-current');
   rerender(<AppShell {...props} pathname="/reports-other" />);
   expect(document.querySelector('[aria-current]')).toBeNull();
@@ -126,7 +129,7 @@ it('uses the initials and missing-name rule the vanilla shell used', () => {
 });
 
 it('keeps the section active under a back link and inks both counts alike', () => {
-  const { rerender } = render(<AppShell {...props} back={{ href: '/reports', label: 'Back to Reports' }} />);
+  const { rerender } = render(<AppShell {...props} pathname="/reports/weekly" back={{ href: '/reports', label: 'Back to Reports' }} />);
   const rail = within(screen.getByRole('navigation', { name: 'Sections' }));
   fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
   const bar = within(screen.getByRole('navigation', { name: 'Menu sections' }));
@@ -138,11 +141,13 @@ it('keeps the section active under a back link and inks both counts alike', () =
     // Both navs hand the count the same classes, so `.is-active .is-neutral` re-inks it once.
     expect(within(row).getByText('3')).toHaveClass('ui-nav__badge', 'is-neutral');
   }
-  // And the back link is what decides it: without one the same row is the page.
-  // shell.js decides the same way, from the same back link.
+  // A page below the row's path is a child page without a back link too, such as a split
+  // layout that puts its back link in its own pane (#903). The row's own path is the page.
+  const reports = () => within(screen.getByRole('navigation', { name: 'Sections' })).getByRole('link', { name: 'Reports 3' });
+  rerender(<AppShell {...props} pathname="/reports/weekly" />);
+  expect(reports()).toHaveAttribute('aria-current', 'true');
   rerender(<AppShell {...props} />);
-  expect(within(screen.getByRole('navigation', { name: 'Sections' }))
-    .getByRole('link', { name: 'Reports 3' })).toHaveAttribute('aria-current', 'page');
+  expect(reports()).toHaveAttribute('aria-current', 'page');
 });
 
 it('persists the fold and restores it on remount', () => {
@@ -367,7 +372,7 @@ const grouped = [
 const { sections: _flat, ...shell } = props;
 
 it('draws one level of sub-items, with the current one shown and its parent current', () => {
-  render(<AppShell {...shell} sections={nested} pathname="/payouts/pending/42" />);
+  render(<AppShell {...shell} sections={nested} pathname="/payouts/pending" />);
   for (const name of ['Sections', 'Menu sections']) {
     if (name === 'Menu sections') fireEvent.click(screen.getByRole('button', { name: 'Menu' }));
     const nav = within(screen.getByRole('navigation', { name }));
