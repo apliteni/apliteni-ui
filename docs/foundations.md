@@ -219,6 +219,17 @@ show hierarchy by fading descriptions, labels, captions, timestamps, counts, cod
 or enabled actions with `--muted`, `--dim` or opacity. Use size, weight and spacing for that
 hierarchy. Signal colours still report status and errors. Links keep their link ink.
 
+**A link in running text has an underline at all times.** Running text is a paragraph, a list
+item, a caption or a hint. The link ink differs from body ink by less than 3:1, at 2.27:1 in
+light and 2.41:1 in dark, so the colour alone does not show the link. The kit underlines each
+`a` element that has no kit class. A kit class starts with `ui-`, or is `brand`. A link with an
+empty class or with your own class, such as `analytics-link`, gets the underline. Hover and focus
+keep the link ink and the focus ring. A link in a table cell gets the underline on hover only, as
+"Links in cells" in [components](components.md) says. A linked Stat band figure gets no underline.
+An anchor that is a kit control, such as a nav row, a button, a menu row, a tab, the back link or
+a card, gets no underline. If your app has its own anchor control with no kit class, give it
+`text-decoration: none`. Any class rule wins.
+
 Muted and dim ink have exactly four uses:
 
 - **glyph** — a mark that is not words: an arrow, a chevron, a dismiss icon.

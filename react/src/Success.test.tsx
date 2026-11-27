@@ -137,7 +137,7 @@ it('lets SuccessCheck pick its own mark, defaulting to the line', () => {
 });
 
 // A bare <a> took the browser's own outline, which #457 rejected, until #587 put the
-// element on the kit's shared ring list — src/styles/base.css:156 `a:focus-visible,`. So
+// element on the kit's shared ring list — src/styles/base.css:162 `a:focus-visible,`. So
 // the action asserted here is the plain anchor the README now tells a caller to write,
 // with no focus class on it. jsdom paints nothing: that the SELECTOR reaches every link
 // the catalogue draws is held by stories/inline-link-ring.test.js, and the band itself is
