@@ -287,12 +287,45 @@ describe('a ghost trigger', () => {
     expect(parseColour(background)).toEqual(parseColour(substitute('var(--surface-3)', vars)));
     expect(clear).toContain(edge);
   });
+  // #915: pressed and open keep the hover answer, so a ghost keeps the fill and takes no edge.
+  it('keeps the hovered row fill, with no accent edge, while pressed and while open', () => {
+    const pressed = paint({ ghost: true }, 'active');
+    cleanup();
+    const open = paint({ ghost: true });
+    open.el.closest('.ui-dropdown')!.classList.add('open');
+    const opened = getComputedStyle(open.el);
+    for (const { background, edge } of [pressed, { background: opened.backgroundColor, edge: opened.borderTopColor }]) {
+      expect(parseColour(background)).toEqual(parseColour(substitute('var(--surface-3)', vars)));
+      expect(clear).toContain(edge);
+    }
+  });
   it('keeps the invalid edge and draws none when it is off', () => {
     expect(clear).not.toContain(paint({ ghost: true, 'aria-invalid': true }).edge);
     cleanup();
     const off = paint({ ghost: true, disabled: true });
     expect(clear).toContain(off.edge);
     expect(clear).toContain(off.background);
+  });
+});
+
+/* #915: an off ghost trigger draws no box in any state, also pressed with the pointer dragged
+ * off it, in both themes. React sets `disabled`; kit markup can set `aria-disabled`, which keeps
+ * the stop. Same limits as above: the winning declarations, not pixels. */
+describe.each(['light', 'dark'] as const)('an off ghost trigger in %s', (theme) => {
+  const { css } = kitCssFor(theme);
+  const sheet = document.createElement('style');
+  beforeAll(() => { sheet.textContent = css; document.head.appendChild(sheet); });
+  afterAll(() => sheet.remove());
+  const clear = ['transparent', 'rgba(0, 0, 0, 0)'];
+  it.each(['disabled', 'aria-disabled'].flatMap((off) => ['', 'hover', 'active', 'hover active'].map((state) => [off, state])))(
+    'draws no edge and no fill when %s at state "%s"', (off, state) => {
+    render(<Dropdown variant="select" ariaLabel="Category" ghost items={[{ label: 'Groceries', value: 'g' }]} />);
+    const el = document.querySelector<HTMLElement>('.ui-dropdown__trigger')!;
+    el.setAttribute(off, off === 'disabled' ? '' : 'true');
+    if (state) el.setAttribute('data-ui-state', state);
+    const style = getComputedStyle(el);
+    expect(clear).toContain(style.borderTopColor);
+    expect(clear).toContain(style.backgroundColor);
   });
 });
 

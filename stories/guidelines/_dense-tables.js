@@ -10,6 +10,8 @@ export const SPEC_CSS = `<style>
      stops inside it. It is also the surface this page's first rule asks for: outside a
      card --table-bg is the page's own ground, which leaves a dark table no surface. */
   .gdt-stage { min-width: 0; }
+  /* The don't half of the long chips draws the chip with no cap, which the kit no longer does. */
+  .gdt-uncapped .ui-filter-bar { --ui-filter-chip-max: none; }
   /* The do half's card ends where its table does — the surface is the block, and a
      card holding the slack as white space is the shape this rule is against. The
      don't half keeps the column's full width, which is what it is showing. */

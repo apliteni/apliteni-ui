@@ -47,7 +47,9 @@
   font-weight: inherit;
   letter-spacing: normal;
 }
-.ui-app__drawer .ui-app__user-trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-app__drawer .ui-app__user-trigger:hover,
+.ui-app__drawer .ui-app__user-trigger:active,
+.ui-app__drawer .ui-dropdown.open > .ui-app__user-trigger { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 @media (max-width: 720px) {
   .ui-drawer__footer > .ui-app__drawer { width: 100%; }
 }
@@ -66,7 +68,7 @@
 /* The head control (#732): one glyph before the fold, drawn as the fold is. The fold is a
    nav row, 9px of padding over a 1lh glyph box at --text-base and line-height 1.2, on the
    --ui-nav-strip column: src/styles/nav.css:64 `padding: 9px 12px;` and
-   src/styles/layout.css:226 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
+   src/styles/layout.css:228 `.ui-app__fold { width: var(--ui-nav-strip); gap: 0; }`. So the
    control has no border and no fill at rest, and takes the rail's hover wash and the fold's ink. */
 .ui-react-app .ui-app__fold-row:has(> .ui-react-app__head-control) { display: flex; align-items: center; gap: var(--space-1); }
 .ui-react-app__head-control { display: flex; align-items: center; flex: none; }
@@ -86,7 +88,9 @@
 }
 .ui-react-app__head-control > button:hover,
 .ui-react-app__head-control > a:hover,
-.ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; color: var(--strong); background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+.ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:hover,
+.ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:active { transform: none; color: var(--strong); background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
+.ui-react-app__head-control > .ui-dropdown.open > .ui-dropdown__trigger { color: var(--strong); background: color-mix(in srgb, var(--surface-3) 50%, transparent); /* code-bg: inherit — The wash keeps the containing ground. */ }
 .ui-react-app__head-control > button:focus-visible,
 .ui-react-app__head-control > a:focus-visible,
 .ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:focus-visible { color: var(--strong); }
@@ -176,7 +180,11 @@
   .ui-react-app .ui-app__bar .toggle:hover,
   .ui-react-app .ui-app__bar .ui-app__user-trigger:hover,
   .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-btn:hover,
-  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+  .ui-react-app .ui-app__bar .ui-app__user-trigger:active,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:active { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+  .ui-react-app .ui-app__bar .ui-dropdown.open > .ui-app__user-trigger,
+  .ui-react-app .ui-app__bar .ui-react-app__band-actions > .ui-dropdown.open > .ui-dropdown__trigger { background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
   .ui-react-app .ui-app__bar > .ui-app__brand--band { min-width: 40px; min-height: 40px; }
   .ui-react-app .ui-app__user--bar { margin: 0; }
   /* Search shows only its glyph, an exception in guidelines/iconography.md. The sentence
@@ -196,7 +204,9 @@
   .ui-react-app__band-control > .ui-btn,
   .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger { min-height: 40px; }
   .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger { max-width: 100%; border-color: transparent; background: transparent; }
-  .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger:hover { background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+  .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger:hover,
+  .ui-react-app__band-control > .ui-dropdown > .ui-dropdown__trigger:active,
+  .ui-react-app__band-control > .ui-dropdown.open > .ui-dropdown__trigger { background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
   /* The label ends in an ellipsis only when the band has no room left for it. */
   .ui-react-app__band-control > .ui-btn .ui-btn__label,
   .ui-react-app__band-control .ui-dropdown__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -224,7 +234,9 @@
   border: calc(var(--space-1) / 2) solid var(--bg); /* code-bg: inherit — the ring is the band's own colour. */
   color: var(--danger-contrast); background: var(--signal-solid-danger);
 }
-.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:hover,
+.ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger:active { transform: none; background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
+.ui-react-app__band-actions > .ui-dropdown.open > .ui-dropdown__trigger { background: var(--surface); /* code-bg: inherit — control paint; the band is the ground. */ }
 /* With a sidebar, search keeps the band's centre: two equal outer columns hold it there,
    and the actions stand at the end of the right one. That column never draws narrower than
    the actions, so where the band is short of room search gives up the centre and shrinks. */

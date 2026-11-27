@@ -69,7 +69,7 @@ function walk(sheets: Sheet[], theme: string) {
 
 describe('elevation', () => {
   it('sweeps every stylesheet this workspace ships', () => {
-    expect(SHEETS).toEqual(['./AccountWindow.css', './AppShell.css', './AuthShell.css', './ColumnResizer.css', './DataTable.css', './DatePicker.css', './FeedbackShowcase.css', './Field.css', './FinanceComposition.css', './KeyValueList.css', './Modal.css', './ProposedValue.css', './SelectionBar.css', './SplitLayout.css', './ThemeChoice.css', './ThemeToggle.css', './ThreeColumnPage.css', './Timeline.css', './Toast.css', './Wizard.css', './showcases/Auth.css', './showcases/Notifications.css', './showcases/SplitLayout.css']);
+    expect(SHEETS).toEqual(['./AccountWindow.css', './AppShell.css', './AuthShell.css', './ColumnResizer.css', './Crossfade.css', './DataTable.css', './DatePicker.css', './FeedbackShowcase.css', './Field.css', './FinanceComposition.css', './KeyValueList.css', './Modal.css', './ProposedValue.css', './SelectionBar.css', './SplitLayout.css', './ThemeChoice.css', './ThemeToggle.css', './ThreeColumnPage.css', './Timeline.css', './Toast.css', './Wizard.css', './showcases/Auth.css', './showcases/Notifications.css', './showcases/SplitLayout.css']);
   });
 
   it('casts nothing but a rung of the ladder', () => {

@@ -288,6 +288,21 @@ with no layout, as in jsdom, shows every action.
 
 The Selected rows showcase shows it on a table.
 
+## FilterBar
+
+Each chip keeps the width of its longest value up to its cap, so a pick does not move the row.
+The cap is 128px, with the chip's edge, padding and chevron. Give a filter `maxWidth` in CSS
+pixels to change the cap of its chip:
+
+```tsx
+<FilterBar filters={[{ id: 'category', label: 'Category', maxWidth: 160, value, items }]}
+  onChange={setFilter} onClear={clearFilters} />
+```
+
+A longer value ends with an ellipsis. The hover title, the trigger's name and the menu keep the
+full value. A `maxWidth` that is not a positive number keeps the default. To change every chip,
+set `--ui-filter-chip-max` on the bar or on a box around it. See docs/components.md#filter-bar.
+
 ## BackLink
 
 `BackLink` is the kit's `backLink()`, rendered by React rather than through

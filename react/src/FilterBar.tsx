@@ -1,10 +1,13 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type CSSProperties } from 'react';
 import { Dropdown, type DropdownEntry, type DropdownItem } from './Dropdown';
 import { Button } from './primitives/Button';
 import { Icon } from './primitives/Icon';
 import { useIsoLayoutEffect } from './dialog';
 import { filterChipText, filterChipName, filterChipUnset, filterChipItems, focusNextStop } from '@apliteni/apliteni-ui';
-export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean };
+export type Filter = { id: string; label: string; /** empty or absent while nothing is chosen; the chip then shows `label` */ value?: string; items: DropdownEntry[]; disabled?: boolean; open?: boolean;
+  /** The chip's widest width in CSS pixels, with its edge, padding and chevron. Default 128.
+   *  A longer value ends with an ellipsis. Not a positive number: the default stays. */
+  maxWidth?: number };
 /** A filter the bar can put on itself: the chip's name, and the values its menu offers. */
 export type AddFilter = { id: string; label: string; items: DropdownEntry[] };
 export type FilterBarProps = { filters: Filter[]; label?: string; clearLabel?: string; clearVariant?: 'ghost' | 'secondary' | 'link'; disabled?: boolean; busy?: boolean;
@@ -21,6 +24,10 @@ const isRow = (entry: DropdownEntry): entry is DropdownItem => entry !== '---' &
 // Every line the chip can print: its own, the field's name, and the value each row would
 // print after a pick. A row with an empty value puts the name back, so it adds no line. The
 // chip takes the width of the longest. why: docs/components.md#filter-bar
+// A cap of the filter's own goes on its chip, where the sheet's fallback reads it.
+// why: docs/components.md#filter-bar
+const chipCap = ({ maxWidth }: Filter) => typeof maxWidth === 'number' && Number.isFinite(maxWidth) && maxWidth > 0
+  ? { '--ui-filter-chip-max': `${maxWidth}px` } as CSSProperties : undefined;
 const chipLines = (filter: Filter) => [filterChipText(filter), filter.label, ...(filter.items || []).filter(isRow)
   .filter(item => String(item.value ?? item.label) !== '').map(item => String(item.value ?? item.label))];
 
@@ -79,7 +86,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
       if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) focused.current = null;
     }}>
     <legend className="ui-filter-bar__legend">{label}</legend>
-    {filters.map((filter, index) => <fieldset key={filter.id} className="ui-filter-bar__chip" data-filter-id={filter.id} disabled={filter.disabled}
+    {filters.map((filter, index) => <fieldset key={filter.id} className="ui-filter-bar__chip" data-filter-id={filter.id} disabled={filter.disabled} style={chipCap(filter)}
       onFocus={() => { focused.current = { id: filter.id, index }; }}>
       <legend className="ui-filter-bar__legend">{filter.label}</legend>
       {/* The chip prints one line; the field's name reaches a reader through the
@@ -87,7 +94,7 @@ export function FilterBar({ filters, label = 'Filters', clearLabel = 'Clear all'
       {/* The chip's own value is marked in the items its menu gets, so the line
           the chip prints and the row the menu washes cannot disagree — the same
           shared call the vanilla factory makes. why: src/logic/filter-bar.js */}
-      <Dropdown items={filterChipItems(filter)} variant="select" ariaLabel={filterChipName(filter)}
+      <Dropdown items={filterChipItems(filter)} variant="select" ariaLabel={filterChipName(filter)} title={filterChipName(filter)}
         triggerContent={<span className="ui-filter-bar__fit">
           {[...new Set(chipLines(filter))].map(line => <span key={line} aria-hidden="true">{line}</span>)}
           <span className={filterChipUnset(filter) ? 'ui-dropdown__value is-placeholder' : 'ui-dropdown__value'}>{filterChipText(filter)}</span>

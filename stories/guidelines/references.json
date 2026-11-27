@@ -18,12 +18,18 @@
   ],
   "filter-bar": [
    {
-    "ref": "react/src/FilterBar.tsx:77",
+    "ref": "react/src/FilterBar.tsx:84",
     "pattern": "<fieldset ref={bar} className={size === 'sm' ? 'ui-filter-bar ui-filter-bar--sm' : 'ui-filter-bar'}"
    },
    {
     "ref": "src/styles/filter-bar.css:1",
     "pattern": ".ui-filter-bar { border: 0;"
+   }
+  ],
+  "filter-chip-width": [
+   {
+    "ref": "src/styles/filter-bar.css:26",
+    "pattern": ".ui-filter-bar__chip { max-inline-size: var(--ui-filter-chip-max, 128px); }"
    }
   ]
  },
@@ -64,7 +70,7 @@
   ],
   "ring-contrast": [
    {
-    "ref": "src/styles/base.css:170",
+    "ref": "src/styles/base.css:178",
     "pattern": "outline: var(--ring);"
    }
   ],
@@ -173,7 +179,7 @@
    },
    {
     "ref": "stories/accent-contrast.test.js:2",
-    "pattern": "theme × accent cells"
+    "pattern": "theme \u00d7 accent cells"
    },
    {
     "ref": "react/src/a11y.test.tsx:23",
@@ -320,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:515",
+    "ref": "src/styles/dropdown.css:534",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:578",
+    "ref": "src/styles/dropdown.css:597",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -336,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:468",
+    "ref": "src/styles/dropdown.css:487",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -554,7 +560,7 @@
  "_labels-and-titles.js": {
   "text-ink": [
    {
-    "ref": "src/styles/base.css:135",
+    "ref": "src/styles/base.css:27",
     "pattern": "color: var(--text);"
    }
   ],
@@ -566,11 +572,11 @@
   ],
   "sentence-case": [
    {
-    "ref": "src/styles/base.css:129",
+    "ref": "src/styles/base.css:137",
     "pattern": "in sentence case like every"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:60",
+    "ref": "react/src/ThemeToggle.tsx:65",
     "pattern": "const name = `Theme:"
    },
    {
@@ -580,11 +586,11 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:431",
+    "ref": "src/styles/layout.css:433",
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:191",
+    "ref": "src/styles/card.css:170",
     "pattern": "rank: card-title"
    }
   ],
@@ -600,17 +606,17 @@
   ],
   "eyebrow-names-the-kind": [
    {
-    "ref": "src/styles/base.css:132",
+    "ref": "src/styles/base.css:140",
     "pattern": "rank: label"
    }
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:473",
+    "ref": "src/styles/dropdown.css:492",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:474",
+    "ref": "src/styles/dropdown.css:493",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -618,7 +624,7 @@
  "_layout-and-density.js": {
   "container": [
    {
-    "ref": "src/styles/base.css:126",
+    "ref": "src/styles/base.css:134",
     "pattern": "max-width: var(--container)"
    },
    {
@@ -632,7 +638,7 @@
   ],
   "measure": [
    {
-    "ref": "src/styles/layout.css:324",
+    "ref": "src/styles/layout.css:326",
     "pattern": "var(--ui-app-main, var(--measure))"
    },
    {
@@ -734,15 +740,15 @@
  "_microcopy.js": {
   "state-not-destination": [
    {
-    "ref": "react/src/ThemeToggle.tsx:60",
+    "ref": "react/src/ThemeToggle.tsx:65",
     "pattern": "const name = `Theme:"
    },
    {
-    "ref": "react/src/ThemeToggle.tsx:73",
+    "ref": "react/src/ThemeToggle.tsx:112",
     "pattern": "aria-label={name}"
    },
    {
-    "ref": "react/src/ThemeToggle.test.tsx:44",
+    "ref": "react/src/ThemeToggle.test.tsx:46",
     "pattern": "name: 'Theme: Light. Switch to auto.'"
    }
   ],
@@ -770,6 +776,20 @@
    {
     "ref": "src/styles/callout.css:51",
     "pattern": "animation: ui-toast-in var(--dur-med) var(--ease-out) both;"
+   }
+  ],
+  "every-change": [
+   {
+    "ref": "react/src/ThemeToggle.css:10",
+    "pattern": "animation-duration: var(--dur-med);"
+   },
+   {
+    "ref": "react/src/ThemeToggle.tsx:101",
+    "pattern": "doc.startViewTransition(crossfade);"
+   },
+   {
+    "ref": "src/styles/button.css:51",
+    "pattern": "transition: transform var(--dur-instant) var(--ease);"
    }
   ],
   "durations": [
@@ -821,7 +841,7 @@
   "hover-at-once": [
    {
     "ref": "src/styles/button.css:51",
-    "pattern": "transition: transform var(--dur-fast) var(--ease);"
+    "pattern": "transition: transform var(--dur-instant) var(--ease);"
    },
    {
     "ref": "src/styles/dropdown.css:51",
@@ -832,37 +852,37 @@
  "_pagination.js": {
   "counted-total": [
    {
-    "ref": "react/src/Pagination.tsx:95",
+    "ref": "react/src/Pagination.tsx:96",
     "pattern": "const counted = total != null"
    }
   ],
   "the-jump": [
    {
-    "ref": "react/src/Pagination.tsx:61",
+    "ref": "react/src/Pagination.tsx:62",
     "pattern": "function slotsFor("
    }
   ],
   "ends-disable": [
    {
-    "ref": "react/src/Pagination.tsx:157",
+    "ref": "react/src/Pagination.tsx:158",
     "pattern": "disabled={loading || disabled} aria-disabled"
    }
   ],
   "one-page": [
    {
-    "ref": "react/src/Pagination.tsx:143",
+    "ref": "react/src/Pagination.tsx:144",
     "pattern": "if (single && !sizes.length)"
    }
   ],
   "page-turn": [
    {
-    "ref": "react/src/Pagination.tsx:239",
+    "ref": "react/src/Pagination.tsx:240",
     "pattern": "aria-busy"
    }
   ],
   "announce-range": [
    {
-    "ref": "react/src/Pagination.tsx:242",
+    "ref": "react/src/Pagination.tsx:243",
     "pattern": "aria-live=\"polite\""
    }
   ],
@@ -886,13 +906,13 @@
   ],
   "tone-not-direction": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:57",
+    "ref": "react/src/primitives/StatBand.tsx:58",
     "pattern": "delta.direction"
    }
   ],
   "say-the-basis": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:60",
+    "ref": "react/src/primitives/StatBand.tsx:61",
     "pattern": "aria-describedby={!own && basisId ? basisId : undefined}"
    }
   ]
@@ -900,11 +920,11 @@
  "_state-set.js": {
   "focus-visible": [
    {
-    "ref": "src/styles/base.css:163",
+    "ref": "src/styles/base.css:171",
     "pattern": ".ui-focusable:focus-visible,"
    },
    {
-    "ref": "src/styles/base.css:170",
+    "ref": "src/styles/base.css:178",
     "pattern": "outline: var(--ring);"
    },
    {
@@ -922,7 +942,7 @@
     "pattern": ".ui-btn[aria-busy=\"true\"] {"
    },
    {
-    "ref": "react/src/contrast-walk.tsx:221",
+    "ref": "react/src/contrast-walk.tsx:232",
     "pattern": "inactive user-interface components"
    }
   ],
@@ -979,19 +999,19 @@
   ],
   "check-density": [
    {
-    "ref": "src/styles/stat.css:187",
+    "ref": "src/styles/stat.css:188",
     "pattern": "@container (width <= 28rem)"
    },
    {
-    "ref": "src/styles/stat.css:188",
+    "ref": "src/styles/stat.css:189",
     "pattern": ".ui-stats__list > .ui-stat { flex-basis: 100%; }"
    },
    {
-    "ref": "src/styles/stat.css:231",
+    "ref": "src/styles/stat.css:232",
     "pattern": "@container (19rem < width <= 22rem) {"
    },
    {
-    "ref": "src/styles/stat.css:233",
+    "ref": "src/styles/stat.css:234",
     "pattern": ".ui-stats--band .ui-stats__list:not(:has(> .ui-stat:nth-child(4))) > .ui-stat { flex-basis: 0; }"
    }
   ]
@@ -1105,7 +1125,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:223",
+    "ref": "src/styles/card.css:202",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1169,7 +1189,7 @@
  "_dashboards-and-reports.js": {
   "figures-and-exceptions": [
    {
-    "ref": "react/src/primitives/StatBand.tsx:71",
+    "ref": "react/src/primitives/StatBand.tsx:72",
     "pattern": "export function StatBand("
    }
   ],
@@ -1201,7 +1221,7 @@
   ],
   "report-offers": [
    {
-    "ref": "react/src/FilterBar.tsx:27",
+    "ref": "react/src/FilterBar.tsx:34",
     "pattern": "export function FilterBar("
    }
   ]
@@ -1309,11 +1329,11 @@
   ],
   "collapse-order": [
    {
-    "ref": "react/src/ThreeColumnPage.css:81",
+    "ref": "react/src/ThreeColumnPage.css:82",
     "pattern": "@container ui-columns (max-width: 860px) {"
    },
    {
-    "ref": "react/src/ThreeColumnPage.css:92",
+    "ref": "react/src/ThreeColumnPage.css:93",
     "pattern": "@media (max-width: 560px) {"
    },
    {
@@ -1373,11 +1393,11 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:476",
+    "ref": "src/styles/dropdown.css:495",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:478",
+    "ref": "src/styles/dropdown.css:497",
     "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {

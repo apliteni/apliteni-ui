@@ -58,6 +58,9 @@
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
    what the kit's rows already chose. why: docs/foundations.md#the-focus-ring */
+/* Pressed and open keep the hover edge, so a press and an open menu show on the trigger. #915 */
+.ui-dropdown__trigger:enabled:active:not(:focus-visible),
+.ui-dropdown.open > .ui-dropdown__trigger:enabled:not(:focus-visible),
 .ui-dropdown__trigger:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 /* A ghost trigger draws no edge and no ground at rest, as a ghost button does. The chevron
    marks the control. The pointer and an open panel give it the fill of a hovered table row:
@@ -67,20 +70,28 @@
 /* --ui-dropdown-hang is the trigger's start padding: a form or a table pulls the trigger back by it. */
 .ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: 13px; }
 .ui-dropdown__trigger--ghost { background: transparent; border-color: transparent; padding-inline-start: var(--ui-dropdown-hang); }
+/* Pressed and open keep the ghost's hover answer: the fill and no edge. Each selector ties the #915 rule above and comes later. */
+.ui-dropdown__trigger--ghost:enabled:active:not(:focus-visible),
+.ui-dropdown.open > .ui-dropdown__trigger--ghost:enabled:not(:focus-visible),
 .ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: transparent; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
+.ui-dropdown__trigger--ghost:enabled:active:not(:focus-visible),
 .ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible),
 .ui-dropdown.open > .ui-dropdown__trigger--ghost { background: var(--surface-3); /* code-bg: inherit — control paint under the pointer; a chip never stands in a trigger. */ }
 /* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
    under the pointer. The hover selector ties live hover at (0,4,0) and comes later, and the
    off rules below tie it and come later still, so an off trigger keeps the off edge. #835
    why: docs/components.md#fields */
+.ui-dropdown__trigger[aria-invalid="true"]:active:not(:focus-visible),
+.ui-dropdown.open > .ui-dropdown__trigger[aria-invalid="true"]:not(:focus-visible),
 .ui-dropdown__trigger[aria-invalid="true"],
 .ui-dropdown__trigger[aria-invalid="true"]:hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--pink); border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 /* As a select: under the ring the edge keeps its width and goes transparent, so focus has
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); outline: var(--ring); outline-offset: var(--ring-offset); }
-/* Off. The off hover-not-focus selectors are (0,4,0), tied with live hover and later.
+/* Off. The off hover-not-focus and pressed selectors are (0,4,0), tied with live hover and the
+   invalid press, and later. A press stays on when the pointer leaves the trigger, so the pressed
+   one holds the off edge there. #915
    A pointer over a dead control changes nothing while an aria-disabled one keeps its stop and the ring.
    No fill: --disabled-surface IS this control's --surface, in both themes. The
    activation is refused in ddTriggerOff(), not with pointer-events, which would
@@ -88,9 +99,11 @@
 .ui-dropdown__trigger:disabled,
 .ui-dropdown__trigger:disabled:hover,
 .ui-dropdown__trigger:disabled:hover:not(:focus-visible),
+.ui-dropdown__trigger:disabled:active:not(:focus-visible),
 .ui-dropdown__trigger:disabled:focus-visible,
 .ui-dropdown__trigger[aria-disabled="true"]:hover,
 .ui-dropdown__trigger[aria-disabled="true"]:hover:not(:focus-visible),
+.ui-dropdown__trigger[aria-disabled="true"]:active:not(:focus-visible),
 .ui-dropdown__trigger[aria-disabled="true"]:focus-visible,
 .ui-dropdown__trigger[aria-disabled="true"] {
   border-color: var(--disabled-border);
@@ -101,11 +114,14 @@
 .ui-dropdown__trigger:disabled .ui-dropdown__value,
 .ui-dropdown__trigger[aria-disabled="true"] .ui-dropdown__value { color: inherit; }
 /* An off ghost trigger draws no box, as an off ghost button does, and takes the same ink for a
-   ground it cannot know. Each selector ties an off rule above and comes later. #888 */
+   ground it cannot know. Each selector ties an off rule above and comes later. #888
+   The pressed ones also hold when the pointer leaves the pressed trigger. #915 */
 .ui-dropdown__trigger--ghost:disabled,
 .ui-dropdown__trigger--ghost:disabled:hover:not(:focus-visible),
+.ui-dropdown__trigger--ghost:disabled:active:not(:focus-visible),
 .ui-dropdown__trigger--ghost[aria-disabled="true"],
 .ui-dropdown__trigger--ghost[aria-disabled="true"]:hover:not(:focus-visible),
+.ui-dropdown__trigger--ghost[aria-disabled="true"]:active:not(:focus-visible),
 .ui-dropdown__trigger--ghost[aria-disabled="true"]:focus-visible {
   background: transparent;
   border-color: transparent;
@@ -413,6 +429,9 @@
    is-sub, the only rows showing.
    why: docs/components.md#dropdown */
 .ui-dropdown__aside { margin-left: auto; flex: none; font-size: var(--text-xs); color: var(--text); }
+/* #900: the theme row's aside shows the current theme name, whose text width changes as the
+   reader switches. A stable min-width and right alignment keep the chevron and name in place. */
+:root .ui-app__user-panel [data-value="theme"] > .ui-dropdown__aside { min-width: var(--space-8); text-align: right; }
 .ui-dropdown__more { margin-left: auto; display: inline-flex; flex: none; /* muted-ink: glyph — submenu chevron */ color: var(--muted); }
 .ui-dropdown__aside + .ui-dropdown__more { margin-left: 0; }
 .ui-dropdown__more svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.25; }
