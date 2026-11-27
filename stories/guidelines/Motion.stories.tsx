@@ -46,10 +46,10 @@ const CountFilm = ({ fade }: { fade: boolean }) => {
     {frames.map(([time, value, opacity]) => [
       <p key={`${time}-t`}>{time}</p>,
       <div key={time} className="gl-stage gm-frame">
-        <div className="ui-stats ui-stats--open"><div className="ui-stats__list"><div className="ui-stat">
+        <div className="ui-stats ui-stats--open"><dl className="ui-stats__list"><div className="ui-stat">
           <dt className="ui-stat__label">Paid this month</dt>
           <dd className="ui-stat__value" style={{ opacity }}>{value}</dd>
-        </div></div></div>
+        </div></dl></div>
       </div>,
     ])}
   </div>;

@@ -117,9 +117,9 @@ test('every parenthesised selector the kit writes survives the shared splitter',
   // move an exact one, and the subject set this gate measures is the next line.
   assert.ok(PRELUDES.length > 500, `only ${PRELUDES.length} rules discovered — the sweep lost its sheets`);
   assert.equal(
-    PARENTHESISED.length, 90,
+    PARENTHESISED.length, 85,
     'the kit\'s parenthesised selector lists changed; the current set is one base rule for a heading that takes the focus (#903), one field-zoom rule, '
-    + 'six layout rail rules, one layout filter-bar gap rule, the same in both themes (#849), three layout rules for a wordless button on a toolbar (#831), one layout rule for a toolbar before an open band (#849), four nav rules, fifty-eight table rules, five of them a table in a drawer group (#811), two the gap after a pinned divider (#832), three the column-flush table of #850 and two the restored dense-and-zebra flush, three tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule, one rule for the touch height of the button and segmented control of a small toolbar (#832) and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
+    + 'six layout rail rules, one layout filter-bar gap rule, the same in both themes (#849), three layout rules for a wordless button on a toolbar (#831), one layout rule for a toolbar before an open band (#849), four nav rules, fifty-three table rules, five of them a table in a drawer group (#811), two the gap after a pinned divider (#832), three tap-zone rules, two checkbox mark rules, one drawer control-row rule, one danger hold-fill rule, one code block ink rule, one dropdown description-row rule, one rule for the touch height of the button and segmented control of a small toolbar (#832) and five rules in the design-variable sheet, two of them the drawer group’s chip hand-off (#811)',
   );
   const bad = PARENTHESISED.flatMap(({ file, selector }) => offences(selector, splitSelectorList).map((o) => `${file}  ${o}`));
   assert.deepEqual(bad, [], `the shared splitter tore a selector apart:\n  ${bad.join('\n  ')}`);
@@ -154,6 +154,8 @@ const VALUE_SPLITS = [
   ['stories/lib/css-at-width.js', ')', 'a media-query condition list'],
   ['stories/motion-missing-element.test.js', 'params', 'an animation timing parameter list'],
   ['stories/motion-tokens.test.js', 'd.value', 'a transition value'],
+  ['src/styles/button-press.test.js', 'style.transitionProperty', 'a transition property list'],
+  ['src/styles/button-press.test.js', 'style.transitionDuration', 'a transition duration list'],
 ];
 
 /** Every literal comma split in the trees `npm test` walks, as file + receiver. */
