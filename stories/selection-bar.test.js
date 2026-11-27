@@ -19,7 +19,9 @@
  * first list and presses Escape. A walk that cannot reach the focus it waits for stops, and its
  * error says that the focus left. A second walk in a new context sets the window to 1280×800,
  * puts the focus on Archive, sets the window to 390×844, where Archive goes into More, and
- * sets it back. The focus must go to More, and then to the first action that came out of More.
+ * sets it back. The focus must go to More, and then to the first enabled action that came out
+ * of More. The showcase has no disabled action, so react/src/SelectionBar.test.tsx holds the
+ * disabled case.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input. The resize walk

@@ -943,7 +943,8 @@ stays in the view. The page never scrolls sideways.
 order is Clear, the actions, then More. The count is not a stop. Escape closes an open list
 first. A second Escape calls `onClear`. Your `onClear` moves the focus, such as to the Select all
 box, because the bar leaves with the selection. When the focused action goes into More, the focus
-goes to More. When More goes, the focus goes to the first action that came out of it. A polite status line says each count, such as
+goes to More. When More goes, the focus goes to the first enabled action that came out of it,
+or to Clear when none of them is enabled. A polite status line says each count, such as
 "2 documents selected", and says "No documents selected" when the selection goes back to none.
 
 ## Content and status
