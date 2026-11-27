@@ -7,6 +7,7 @@ import { Badge } from '../../react/src/primitives/Badge';
 import { Button } from '../../react/src/primitives/Button';
 import { Card } from '../../react/src/primitives/Card';
 import { Icon } from '../../react/src/primitives/Icon';
+import { AccountMenu } from '../../react/src/AccountMenu';
 import { BackLink } from '../../react/src/BackLink';
 import { Dropdown } from '../../react/src/Dropdown';
 // The shell's own band rules, so the Do picture draws the bell as the shell does.
@@ -41,6 +42,8 @@ const Side = ({ mixed }: { mixed: boolean }) => <Stage><div className="tp-side">
 
 // The open sidebar's two columns, drawn with the shell's own parts: the logo, the glyphs,
 // the version and the avatar on one edge, or the version moved onto the names' edge.
+// The account is the shell's own row, so its name starts on the names' edge.
+const DANA = { name: 'Dana Reyes', email: 'dana@example.com' };
 const SideColumn = ({ off }: { off: boolean }) => <Stage><div className="ui-app ui-react-app tp-rail"><div className="ui-app__rail">
   <div className="ui-app__head"><a className="ui-app__brand" href="#" aria-label="Finance">
     <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`tp-mark-${off}`, 24) }} /><span>Finance</span>
@@ -48,10 +51,7 @@ const SideColumn = ({ off }: { off: boolean }) => <Stage><div className="ui-app 
   <SidebarNav aria-label={off ? 'Sections, version off the column' : 'Sections, one column'} active="payouts"
     sections={[{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, { id: 'payouts', icon: 'card', label: 'Payouts' }] }]} />
   <p className={`ui-app__note${off ? ' tp-note--off' : ''}`}>v2.14.0</p>
-  <div className="ui-app__user"><span className="ui-app__user-trigger">
-    <span className="ui-app__av" aria-hidden="true"><Avatar personKey="dana@example.com" name="Dana Reyes" size={32} /></span>
-    <span className="ui-app__who"><b>Dana Reyes</b><span>dana@example.com</span></span>
-  </span></div>
+  <AccountMenu account={DANA} items={[]} onSelect={() => {}} withTheme={false} inPlace={false} />
 </div></div></Stage>;
 
 // The one primary action.

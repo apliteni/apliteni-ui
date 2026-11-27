@@ -13,12 +13,17 @@
  *   npm run build-storybook
  *   UI_PLAYWRIGHT=… SIDEBAR_EDGES=1 node --test stories/sidebar-edges.test.js
  *
- * It discovers every React/AppShell story. At 1280 it measures each one that draws a
- * sidebar, open or folded. At 390 it opens the menu of each one that has a menu button.
- * It counts the open sidebars, the folded ones, the menus, the notes, the group labels
- * and the rail layout. The CI half is the edge arithmetic in react/src/AppShell.test.tsx.
+ * It discovers every React/AppShell story and plans one case for each story, size and
+ * theme: the sidebar at 1280 and the phone menu at 390. A case with no measurement
+ * fails, unless ABSENT names it with its reason, and a listed case that measures fails
+ * too. A story in FOLDED must measure folded, and every other one open. The measured
+ * count must equal the planned count. A mutation hides one sidebar and one menu, and
+ * the coverage check must name both. It also measures the do-and-don't pair on the
+ * page guideline at both sizes and in both themes: the Do rail keeps both columns, and
+ * the Don't rail breaks only the note's.
+ * The CI half is the edge arithmetic in react/src/AppShell.test.tsx.
  *
- * Its limits: one engine, the light theme, the default accent, and two widths. A text
+ * Its limits: one engine, the default accent, and two widths. A text
  * edge is the left of a range over its words. A glyph edge is its box, not its painted
  * path. The logo edge is its box: the mark paints 0.75px inside it. An edge is off when
  * it is more than half a pixel from its column. A sub-item keeps the indent of its list
@@ -37,10 +42,22 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SYMBOL = 8;
 const NAME = 8 + 30 + 8;
 const STRIP = 41;
+const SIZES = [{ width: 1280, height: 800 }, { width: 390, height: 844 }];
+const THEMES = ['light', 'dark'];
+// The stories that draw a folded sidebar at 1280. Every other sidebar is open.
+const FOLDED = new Set(['react-appshell--folded', 'react-appshell--note-folded', 'react-appshell--rail-folded']);
+// The cases that measure nothing, each with its reason. Every other case must measure.
+// A shell with one section draws no sidebar and no menu: react/src/AppShell.tsx `navigable`.
+const ALONE = 'one section, so the shell draws no sidebar and no menu';
+const ABSENT = Object.fromEntries(['react-appshell--band-actions-alone', 'react-appshell--band-actions-alone-phone']
+  .flatMap((id) => SIZES.flatMap(({ width }) => THEMES.map((theme) => [`${id} at ${width} ${theme}`, ALONE]))));
+// The guideline pair: Guidelines/The page, rule "Align the sidebar on one column".
+const PAIR = '.tp-rail .ui-app__rail';
 
-// The edges of the sidebar or the open menu that the page shows now. It is async, so a
-// missing element fails the test: a throw inside a frame callback would hang it.
-const MEASURE = async () => {
+// The edges of the sidebar or the open menu that the page shows now, or of the rail at
+// `pick` in a page with more than one. It is async, so a missing element fails the
+// test: a throw inside a frame callback would hang it.
+const MEASURE = async (pick) => {
   await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
   // A missing element reads NaN, which is off every column, so it becomes a finding.
   const left = (el) => (el ? el.getBoundingClientRect().left : NaN);
@@ -64,7 +81,7 @@ const MEASURE = async () => {
     const s = getComputedStyle(el);
     return { size: s.fontSize, weight: s.fontWeight, color: s.color, text };
   };
-  const dialog = document.querySelector('.ui-drawer.is-open .ui-drawer__panel');
+  const dialog = pick ? null : document.querySelector('.ui-drawer.is-open .ui-drawer__panel');
   if (dialog) {
     const body = dialog.querySelector('.ui-drawer__body');
     const fill = left(body) + parseFloat(getComputedStyle(body).paddingLeft);
@@ -89,7 +106,7 @@ const MEASURE = async () => {
       groups: body.querySelectorAll('.ui-nav__cap').length,
     });
   }
-  const rail = document.querySelector('.ui-app__rail');
+  const rail = pick ? document.querySelectorAll(pick.selector)[pick.index] : document.querySelector('.ui-app__rail');
   if (!shown(rail) || rail.getBoundingClientRect().width === 0) return (null);
   const app = rail.closest('.ui-app');
   const fill = left(rail) + parseFloat(getComputedStyle(rail).paddingLeft);
@@ -152,22 +169,37 @@ function judge(id, m) {
   return found;
 }
 
-/** The sidebar at 1280, and the menu at 390 when the story has a menu button. */
-async function measure(page, story, port, openStory) {
-  await page.setViewportSize({ width: 1280, height: 800 });
-  const read = (at) => page.evaluate(MEASURE).catch((e) => { throw new Error(`${story.id} at ${at}: ${e.message}`); });
-  await openStory(page, story, { port, theme: 'light' });
-  const wide = await read(1280);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await openStory(page, story, { port, theme: 'light' });
+const key = (id, width, theme) => `${id} at ${width} ${theme}`;
+
+/** One case: the sidebar at 1280, or the menu at 390 when the story has a menu button.
+ *  `extra` is a style that a mutation adds. A story that does not render measures nothing. */
+async function measure(page, story, { port, size, theme, extra }, openStory) {
+  await page.setViewportSize(size);
+  const got = await openStory(page, story, { port, theme });
+  if (got.phase !== 'finished' || got.id !== story.id) return null;
+  if (extra) await page.addStyleTag({ content: extra });
+  const read = () => page.evaluate(MEASURE).catch((e) => { throw new Error(`${key(story.id, size.width, theme)}: ${e.message}`); });
+  if (size.width > 720) return read();
   const menu = page.locator('.ui-app__menu:visible');
-  let phone = null;
-  if (await menu.count()) {
-    if (!(await page.locator('.ui-drawer.is-open').count())) await menu.click();
-    await page.locator('.ui-drawer.is-open .ui-drawer__panel').waitFor();
-    phone = await read(390);
+  if (!(await menu.count())) return null;
+  if (!(await page.locator('.ui-drawer.is-open').count())) await menu.click();
+  await page.locator('.ui-drawer.is-open .ui-drawer__panel').waitFor();
+  return read();
+}
+
+/** Every case the plan expects and did not get, every listed absence that measured, and
+ *  every sidebar in the wrong state. `cases` maps each planned key to its measurement. */
+function coverage(cases) {
+  const found = [];
+  for (const [at, m] of cases) {
+    const id = at.split(' ')[0];
+    if (ABSENT[at]) { if (m) found.push(`${at}: ABSENT says "${ABSENT[at]}", but it measured ${m.where}`); continue; }
+    if (!m) { found.push(`${at}: no sidebar or menu was measured`); continue; }
+    const want = at.includes(' at 390 ') ? 'menu' : FOLDED.has(id) ? 'folded' : 'open';
+    if (m.where !== want) found.push(`${at}: measured ${m.where}, not ${want}`);
   }
-  return [wide, phone].filter(Boolean);
+  for (const at of Object.keys(ABSENT)) if (!cases.has(at)) found.push(`ABSENT names ${at}, which the plan does not hold`);
+  return found;
 }
 
 test('the sidebar and the phone menu keep one symbol column and one name column', {
@@ -184,26 +216,69 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
   const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
   const server = await serve(build, path.join(build, 'iframe.html'));
   try {
-    const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+    const page = await browser.newPage({ viewport: SIZES[0] });
+    const port = server.port;
     const findings = [];
+    const cases = new Map();
     const drawn = { open: 0, folded: 0, menu: 0, notes: 0, groups: 0, rail: 0 };
     for (const story of stories) {
-      for (const m of await measure(page, story, server.port, openStory)) {
-        drawn[m.where] += 1;
-        if (m.note) drawn.notes += 1;
-        if (m.groups) drawn.groups += 1;
-        if (m.layout === 'rail') drawn.rail += 1;
-        findings.push(...judge(story.id, m));
+      for (const size of SIZES) {
+        for (const theme of THEMES) {
+          const m = await measure(page, story, { port, size, theme }, openStory);
+          cases.set(key(story.id, size.width, theme), m);
+          if (!m) continue;
+          drawn[m.where] += 1;
+          if (m.note) drawn.notes += 1;
+          if (m.groups) drawn.groups += 1;
+          if (m.layout === 'rail') drawn.rail += 1;
+          findings.push(...judge(`${story.id} ${theme}`, m));
+        }
       }
     }
-    console.log(`measured: ${JSON.stringify(drawn)}`);
-    assert.ok(drawn.open >= 25, `${drawn.open} open sidebars measured`);
-    assert.ok(drawn.folded >= 3, `${drawn.folded} folded sidebars measured: Folded, Note Folded and Rail Folded`);
-    assert.ok(drawn.menu >= 25, `${drawn.menu} phone menus measured`);
-    assert.ok(drawn.notes >= 3, `${drawn.notes} notes measured: the open note, the folded note and the menu note`);
+    const planned = stories.length * SIZES.length * THEMES.length;
+    const measured = [...cases.values()].filter(Boolean).length;
+    console.log(`planned ${planned}, measured ${measured}, absent ${Object.keys(ABSENT).length}: ${JSON.stringify(drawn)}`);
+    assert.equal(cases.size, planned, 'a story, a size or a theme left the plan');
+    assert.deepEqual(coverage(cases), []);
+    assert.equal(measured, planned - Object.keys(ABSENT).length, 'the measured cases are not the planned cases less ABSENT');
+    assert.ok(drawn.folded >= FOLDED.size * THEMES.length, `${drawn.folded} folded sidebars measured`);
+    assert.ok(drawn.notes >= 3 * THEMES.length, `${drawn.notes} notes measured: the open note, the folded note and the menu note`);
     assert.ok(drawn.groups >= 2, `${drawn.groups} sidebars with group labels measured`);
     assert.ok(drawn.rail >= 3, `${drawn.rail} rail layout sidebars measured`);
     assert.deepEqual(findings, []);
+
+    // The pair on the page guideline: two rails at each size, in each theme. The Do rail
+    // keeps every column, and the Don't rail moves only the note off the symbol column.
+    const guide = indexed(build).filter((s) => s.id.startsWith('guidelines-the-page--'));
+    assert.equal(guide.length, 1, `${guide.length} page guideline stories found`);
+    const pair = [];
+    for (const size of SIZES) {
+      for (const theme of THEMES) {
+        const at = `${guide[0].id} at ${size.width} ${theme}`;
+        await page.setViewportSize(size);
+        const got = await openStory(page, guide[0], { port, theme });
+        assert.equal(got.phase, 'finished', `${at} did not render`);
+        const [yes, no] = [await page.evaluate(MEASURE, { selector: PAIR, index: 0 }), await page.evaluate(MEASURE, { selector: PAIR, index: 1 })];
+        if (!yes || !no) { pair.push(`${at}: the pair shows ${[yes, no].filter(Boolean).length} of its 2 rails`); continue; }
+        pair.push(...judge(`${at} Do`, yes));
+        const wrong = judge(`${at} Don't`, no);
+        if (wrong.length !== 1 || !wrong[0].includes('note starts at')) pair.push(`${at} Don't: ${wrong.length} findings, not the note's one: ${wrong.join('; ')}`);
+      }
+    }
+    assert.deepEqual(pair, []);
+
+    // The coverage mutation: one sidebar and one menu that draw nothing. The check must
+    // name both cases, or a lost case would pass as it did before.
+    const centred = stories.find((s) => s.id === 'react-appshell--centered');
+    assert.ok(centred, 'the coverage mutation needs react-appshell--centered');
+    const HIDE = '.ui-app__rail, .ui-app__menu { display: none !important; }';
+    const lost = new Map(cases);
+    for (const size of SIZES) lost.set(key(centred.id, size.width, 'light'), await measure(page, centred, { port, size, theme: 'light', extra: HIDE }, openStory));
+    const named = coverage(lost);
+    for (const size of SIZES) {
+      const at = key(centred.id, size.width, 'light');
+      assert.ok(named.some((f) => f.startsWith(`${at}:`)), `a hidden case passed: the coverage check cannot see ${at}`);
+    }
 
     // The mutation: the rows and the avatar as they were before #869. The walk must see
     // the glyphs, the labels and the avatar leave their columns, and a note that stays.
@@ -216,10 +291,7 @@ test('the sidebar and the phone menu keep one symbol column and one name column'
       + ' .ui-app__note { visibility: visible !important; color: var(--muted) !important; }';
     const mutated = [];
     for (const story of [note, folded]) {
-      await page.setViewportSize({ width: 1280, height: 800 });
-      await openStory(page, story, { port: server.port, theme: 'light' });
-      await page.addStyleTag({ content: OLD });
-      mutated.push(...judge(story.id, await page.evaluate(MEASURE)));
+      mutated.push(...judge(story.id, await measure(page, story, { port, size: SIZES[0], theme: 'light', extra: OLD }, openStory)));
     }
     for (const says of ['Overview starts at', 'avatar starts at', "avatar's centre", 'note shows in a folded', 'not body ink']) {
       assert.ok(mutated.some((f) => f.includes(says)), `the old rules passed: this walk cannot see "${says}"`);
