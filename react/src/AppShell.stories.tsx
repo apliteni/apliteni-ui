@@ -71,7 +71,7 @@ export const Folded: Story = { render, args: { defaultCollapsed: true } };
 // A report record: a child page of Reports, so its back link goes to Reports and the
 // Reports row stays active with aria-current="true". why: guidelines/going-back.md
 export const Wide: Story = { render, args: { width: 'wide', pathname: '/reports/q3-2026', title: 'Q3 2026 revenue',
-  lede: 'Closed on 1 October 2026. All figures are in EUR.',
+  lede: 'Closed on 1 October 2026.',
   back: { href: '/reports', label: 'Reports' }, actions: <Button>Export CSV</Button>,
   bandControl: <Button variant="ghost" size="sm">Workspace</Button>,
   children: <Card title="By region"><p>North brought 41% of the quarter's revenue.</p></Card> } };
