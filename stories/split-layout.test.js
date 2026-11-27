@@ -1,7 +1,7 @@
 /* Rule: on a split layout, each key and click keeps the focus on a shown control of the page
- * that nothing covers and whose focus ring no box cuts, moves no shell chrome and no action row by more than 1px, keeps the cumulative layout shift
+ * that nothing covers and whose focus ring no box cuts, moves no shell chrome and no action row foot by more than 1px, keeps the cumulative layout shift
  * under 0.1 and causes no sideways scroll. Escape leaves the focus where it was. Above 860px
- * the content takes 60% and the preview 40%, both reach the foot of the window, and the page
+ * the content takes 60% and the preview 40%, or with a line 60% inside its limits, both reach the foot of the window, and the page
  * does not scroll down. At 860px and less the preview sits below the content and the action
  * row stays at the foot of the window.
  *
@@ -20,7 +20,9 @@
  * walks Enter on Try again at the foot of the scroll, so the stacked tools are stuck when the
  * focus goes to their title, and Escape. The zoomed split layout
  * walks Tab into the scrolled page, ArrowDown and End where the sheet is taller than its stage,
- * then a click on an action and Escape. The shell
+ * then a click on an action and Escape. The resizable split layout walks the keys, a drag,
+ * Escape in a drag and a double click on its line above 860px, as stories/lib/resize-walk.js
+ * says, and reads after each action that the first pane is as wide as the line says. The shell
  * chrome is every fixed or sticky element outside the split, found in the page, and the
  * action row. A focused control is covered when the element at its centre is not inside it,
  * such as the sticky action row over a zoom step. A 320×200 window then checks that Fit shows
@@ -40,6 +42,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { LINE, LINES, resizeActions } from './lib/resize-walk.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [360, 800], [466, 678], [984, 1016], [1536, 864], [2560, 1440]];
@@ -74,10 +77,11 @@ const READ = () => {
   const chrome = [...document.querySelectorAll('body *')]
     .filter((e) => (split ? !split.contains(e) : true) && ['fixed', 'sticky'].includes(getComputedStyle(e).position))
     .concat([...document.querySelectorAll('.ui-split__actions')])
-    .map((e) => { const r = e.getBoundingClientRect(); return { name: `${e.tagName.toLowerCase()}.${[...e.classList].join('.')}`, x: r.left, y: r.top }; });
+    // The action row is held by its foot, because a narrower pane can wrap its buttons upward.
+    .map((e) => { const r = e.getBoundingClientRect(); return { name: `${e.tagName.toLowerCase()}.${[...e.classList].join('.')}`, x: r.left, y: e.matches('.ui-split__actions') ? r.bottom : r.top }; });
   const doc = document.scrollingElement;
   return {
-    focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
+    focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40) || el.getAttribute('role')) : null,
     cover: hit && !el.contains(hit) ? `${hit.tagName.toLowerCase()}.${[...hit.classList].join('.')}` : null, cut,
     chrome, cls: window.__cls, over: doc.scrollWidth - doc.clientWidth,
   };
@@ -193,6 +197,8 @@ const STORIES = [
   { id: 'apps-document-review--default', args: 'preview:unavailable', actions: UNAVAILABLE },
   { id: 'react-split-layout--zoomed', actions: ZOOMED, optional: 3 },
   { id: 'react-split-layout--unavailable', actions: RETRY },
+  // The line between the panes shows only above 860px, so its actions run only there.
+  { id: 'react-split-layout--resizable', actions: resizeActions(0), wideOnly: true },
 ];
 const label = (story) => `${story.id}${story.args ? ` ${story.args}` : ''}`;
 
@@ -216,11 +222,15 @@ async function inspect(page, name) {
     const r = (s) => document.querySelector(s).getBoundingClientRect();
     const doc = document.scrollingElement;
     return { width: innerWidth, foot: innerHeight, down: doc.scrollHeight - doc.clientHeight,
-      primary: r('.ui-split__primary'), preview: r('.ui-split__preview'), actions: r('.ui-split__actions') };
+      primary: r('.ui-split__primary'), preview: r('.ui-split__preview'), actions: r('.ui-split__actions'),
+      line: document.querySelector('[role="separator"][aria-controls]') !== null };
   });
   if (box.width > 860) {
-    const share = box.primary.width / (box.primary.width + box.preview.width);
-    if (Math.abs(share - 0.6) > 0.02) found.push(`${name}: the content takes ${Math.round(share * 100)}%, not 60%`);
+    // A layout with a line starts at 60% inside its limits: 320px, and 860px or all but 320px.
+    const total = box.primary.width + box.preview.width;
+    const want = box.line ? Math.min(Math.max(0.6 * total, 320), Math.min(860, total - 320)) / total : 0.6;
+    const share = box.primary.width / total;
+    if (Math.abs(share - want) > 0.02) found.push(`${name}: the content takes ${Math.round(share * 100)}%, not ${Math.round(want * 100)}%`);
     if (Math.abs(box.preview.bottom - box.foot) > 1) found.push(`${name}: the preview stops at ${Math.round(box.preview.bottom)}px, not at the foot`);
     if (box.down > 0) found.push(`${name}: the page scrolls ${box.down}px down`);
   } else {
@@ -246,6 +256,7 @@ async function walk(page, name, actions, { only } = {}) {
     }
     await page.evaluate(frames);
     const after = await page.evaluate(READ);
+    for (const line of await page.evaluate(LINES)) found.push(`${name} ${act}: ${line}`);
     ran.push(act);
     if (!after.focus) found.push(`${name} ${act}: the focus left the page's shown controls`);
     if (after.cover) found.push(`${name} ${act}: ${after.cover} covers the focused ${after.focus}`);
@@ -295,7 +306,10 @@ test('the split layout keeps focus, chrome, layout and width through each intera
         views[own.wide ? 'wide' : 'stacked'] += 1;
         const { found, ran } = await walk(page, `${name} ${label(story)}`, story.actions);
         findings.push(...found);
-        if (story.optional && ran.length === story.actions.length - story.optional) skipped += 1;
+        const lines = await page.locator(LINE).count();
+        if (story.wideOnly && lines !== (own.wide ? 1 : 0)) findings.push(`${name} ${label(story)}: ${lines} lines at ${own.wide ? 'a split' : 'a stacked'} width`);
+        if (story.wideOnly && !own.wide) { if (ran.length) findings.push(`${name} ${label(story)}: ${ran.length} line actions ran while stacked`); }
+        else if (story.optional && ran.length === story.actions.length - story.optional) skipped += 1;
         else if (ran.length !== story.actions.length) findings.push(`${name} ${label(story)}: ${ran.length} of ${story.actions.length} actions ran: ${ran.join(', ')}`);
         table.push(`${name} ${own.wide ? 'split' : 'stacked'} ${label(story)}: ${ran.length} actions, ${found.length || own.found.length ? 'fail' : 'pass'}`);
         await ctx.close();
@@ -332,7 +346,7 @@ test('the split layout keeps focus, chrome, layout and width through each intera
 
     // The mutations: each check must see its own failure.
     const caught = [];
-    const [review, unavailable, zoomed, retry] = STORIES;
+    const [review, unavailable, zoomed, retry, resizing] = STORIES;
     const mutate = async (context, story, setup, only, says) => {
       const { ctx, page } = await open(browser, server.port, vitals, context, story);
       await setup(page);
@@ -348,6 +362,14 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     };
     const wide = { viewport: { width: 1280, height: 800 } };
     const phone = { viewport: { width: 390, height: 844 } };
+    // A first pane that does not follow its line.
+    await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-split { grid-template-columns: 600px minmax(0, 1fr); }' }), ['key: ArrowRight on a line'], 'the line says');
+    // A line that draws the ring after a drag, and a layout that leaves the focus on a line that goes.
+    await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-resizer:focus { outline: var(--ring); }' }), ['drag: a line'], 'draws the focus ring');
+    await mutate(wide, resizing, (page) => page.evaluate(() => {
+      const keep = HTMLElement.prototype.focus;
+      HTMLElement.prototype.focus = function focus(...args) { if (!this.matches('h2')) keep.apply(this, args); };
+    }), ['resize: the window narrows to 800px with the focus on a line'], 'when the line went');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { grid-template-columns: 1fr 1fr; }' }), 'not 60%');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { height: auto; }' }), 'not at the foot');
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { height: 120vh; }' }), 'scrolls');
