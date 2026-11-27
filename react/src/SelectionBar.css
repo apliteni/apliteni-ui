@@ -17,16 +17,20 @@
 .ui-selection-bar {
   position: relative;
   display: flex;
-  align-items: center;
+  /* The parts stand at the top, so a part in a corner shares the corner's centre also when
+     large text wraps the count. Parts of one line have the same height. */
+  align-items: flex-start;
   gap: var(--space-2);
   max-width: 100%;
-  /* Round ends that share a centre with the count's pill and the last control: the inner
+  /* The corner is the pill's corner and the gap, so the curves share a centre: the inner
      radius is the outer radius less the gap, and the gap is the same at the side and the top.
-     The end adds how far the last control stands below the top padding: 0 beside a one-line
-     pill, and more when large text wraps the count. The bar measures it. */
-  padding: var(--space-3) calc(var(--space-3) + var(--ui-selection-end, 0px)) var(--space-3) var(--space-3);
+     With a pill of one line the ends are round. A wrapped count makes the bar taller, and its
+     corners stay. The pill's corner is half the height of Clear, the height of a pill of one
+     line. The bar measures it, because it grows with the text, and the fallback is its value
+     before a layout. rev_972adb4864fb/d81 */
+  padding: var(--space-3);
   border: 1px solid var(--inverse-frame);
-  border-radius: var(--radius-pill);
+  border-radius: calc(var(--ui-selection-corner, calc(var(--btn-height-sm) / 2)) + var(--space-3) + 1px);
   background: var(--inverse-bg); /* code-bg: none — the bar holds controls and a count, never a code chip. */
   box-shadow: var(--elev-drop);
   pointer-events: auto;
@@ -42,22 +46,35 @@
 
 /* The count and Clear share one pill, so Clear reads as part of the count. Large text can
    make the pair wider than the bar's room, so the pair can shrink, and then Clear goes
-   under the count and a long count breaks. */
+   under the count and a long count breaks. The pill never gets narrower than Clear. */
 .ui-selection-bar__count {
   flex: 0 1 auto;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0 var(--space-1);
-  min-width: 0;
-  padding-left: var(--space-2);
+  min-width: min-content;
   /* The edge is drawn inside the pill and takes no room, so the pill is as tall as the
      control at the other end, and both ends have the same gap and the same inner shape. */
   outline: 1px solid var(--inverse-edge);
   outline-offset: -1px;
-  border-radius: var(--radius-pill);
+  border-radius: var(--ui-selection-corner, calc(var(--btn-height-sm) / 2));
 }
-.ui-selection-bar__tally { min-width: 0; overflow-wrap: anywhere; color: var(--inverse-text); font-size: var(--text-sm); }
+/* The words keep the same space at the sides as above and below them in a pill of one line,
+   also on each line of a wrapped count, so they stay clear of the curve. */
+.ui-selection-bar__tally {
+  min-width: 0;
+  padding: max(0px, calc(var(--ui-selection-corner, calc(var(--btn-height-sm) / 2)) - 0.5lh)) var(--space-2);
+  overflow-wrap: anywhere;
+  color: var(--inverse-text);
+  font-size: var(--text-sm);
+}
+/* Clear stands in the pill's corner with no inset, so its ground takes the pill's corner. Its
+   start padding is the words' end padding less the gap they shared, so the label stays where
+   it was, and under a wrapped count it lines up with the words. */
+.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control {
+  padding-left: var(--space-2);
+  border-radius: var(--ui-selection-corner, calc(var(--btn-height-sm) / 2));
+}
 .ui-selection-bar__actions { flex: none; display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
 
 /* Every control on the bar draws as a ghost button: the name, at its natural width, with

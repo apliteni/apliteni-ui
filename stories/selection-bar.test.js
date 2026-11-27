@@ -24,13 +24,17 @@
  * disabled case.
  *
  * Before each walk it measures the bar's two ends. The count's pill and the last control stand
- * as far from the bar's end as from its top, and the bar's corner is half its height or more,
- * so each end shares a centre with the pill or the control in it. rev_604d2230cca9/d61
- * At normal text the two ends also match: the same gap and an inner shape of the same height.
- * It measures the ends again at 360×800 with the text at 200%, in light and dark, in every
- * story that draws a bar: there the count takes two lines and the bar is taller than the
- * control at its end. At 300, 330 and 360px wide it draws each of these stories again with the
- * text already at 200%. That bar must settle at the height and the end of the bar that grew.
+ * as far from the bar's end as from its top, and that gap is more than 0. The bar's corner is
+ * the pill's corner and that gap, so the curves share a centre. rev_604d2230cca9/d61
+ * The pill's corner is that of a pill of one line, half the height of Clear. Each line of the
+ * count keeps the pill's side padding. Clear stands inside the pill, and its corner is the
+ * pill's corner less its inset, also with the pointer on it. rev_972adb4864fb/d80, d81
+ * At normal text the ends are round, and the two ends match: the same gap and an inner shape
+ * of the same height. It measures the ends again at 360×800 with the text at 200%, in light
+ * and dark, in every story that draws a bar: there the count takes two lines and the bar is
+ * taller than the control at its end. At 280, 300, 330 and 360px wide it draws each of these
+ * stories again with the text already at 200%. That bar must settle at the height, the corner
+ * and the end of the bar that grew.
  *
  * Its limits: one engine, the default accent, and the light theme except for the 200% ends.
  * The 200% text doubles the kit's --text-* sizes, as a reader's text zoom does not exactly. The layout shift is
@@ -90,27 +94,71 @@ const focused = async (page, locator) => {
 };
 // Each end of the bar: the gap from the bar's end to the pill or the last control, the gap
 // from the bar's top to it, its height, the bar's corner and half its height. Border box to
-// border box.
+// border box. Then the pill's corner, the half of Clear, the side gaps of each line of the
+// count, and Clear's box, its corner and its ground. A line beside Clear ends at Clear.
 const ENDS = () => {
   const bar = document.querySelector('.ui-selection-bar');
   const box = bar.getBoundingClientRect();
-  const pill = bar.querySelector('.ui-selection-bar__count').getBoundingClientRect();
+  const count = bar.querySelector(':scope > .ui-selection-bar__count');
+  const pill = count.getBoundingClientRect();
+  const button = count.querySelector('.ui-selection-bar__control');
+  const clear = button.getBoundingClientRect();
   const last = [...bar.querySelectorAll(':scope > .ui-selection-bar__actions .ui-selection-bar__control, :scope > .ui-dropdown > .ui-selection-bar__control')].pop().getBoundingClientRect();
-  return { corner: parseFloat(getComputedStyle(bar).borderTopLeftRadius), half: box.height / 2,
-    start: [pill.left - box.left, pill.top - box.top, pill.height], end: [box.right - last.right, last.top - box.top, last.height] };
-};
-// `twin`: the two ends match, as at normal text. Large text that wraps the count makes the pill
-// taller than the control at the end, so there each end only keeps its own centre.
-async function ends(page, label, { twin = true } = {}) {
-  const { corner, half, start, end } = await page.evaluate(ENDS);
-  const found = [];
-  if (corner < half) found.push(`${label}: the bar's ends are not round, a ${corner}px corner on a ${half * 2}px bar`);
-  for (const [name, [inline, block]] of [['start', start], ['end', end]]) {
-    if (Math.abs(inline - block) > 0.5) found.push(`${label}: the ends share no centre, the ${name} gap is ${inline}px and the top gap ${block}px`);
+  const range = document.createRange();
+  range.selectNodeContents(count.querySelector('.ui-selection-bar__tally'));
+  // A count is more than one text node, so the boxes on one line join into that line.
+  const rows = [];
+  for (const { left, right, top, bottom } of range.getClientRects()) {
+    const row = rows.find((r) => Math.abs(r.top - top) < 1);
+    if (row) Object.assign(row, { left: Math.min(row.left, left), right: Math.max(row.right, right) });
+    else rows.push({ left, right, top, bottom });
   }
-  if (twin && (Math.abs(start[0] - end[0]) > 0.5 || Math.abs(start[2] - end[2]) > 0.5)) {
+  const lines = rows.map((line) => {
+    const beside = clear.top < line.bottom && clear.bottom > line.top && clear.left >= line.right;
+    return [line.left - pill.left, (beside ? clear.left : pill.right) - line.right];
+  });
+  const look = getComputedStyle(button);
+  return { corner: parseFloat(getComputedStyle(bar).borderTopLeftRadius), half: box.height / 2,
+    start: [pill.left - box.left, pill.top - box.top, pill.height], end: [box.right - last.right, last.top - box.top, last.height],
+    pill: parseFloat(getComputedStyle(count).borderTopLeftRadius), clearHalf: clear.height / 2, lines,
+    clear: { inset: [clear.left - pill.left, pill.right - clear.right, clear.top - pill.top, pill.bottom - clear.bottom],
+      corner: parseFloat(look.borderTopLeftRadius), ground: look.backgroundColor } };
+};
+// The words' side padding in the pill.
+const PAD = 8;
+// `twin`: the two ends match, as at normal text. Large text that wraps the count makes the pill
+// taller than the control at the end, so there each end only keeps its own centre, and the bar
+// is a rounded box.
+async function ends(page, label, { twin = true } = {}) {
+  const { corner, half, start, end, pill, clearHalf, lines, clear } = await page.evaluate(ENDS);
+  const found = [];
+  const apart = (a, b) => Math.abs(a - b) > 0.5;
+  if (twin && corner < half - 0.5) found.push(`${label}: the bar's ends are not round, a ${corner}px corner on a ${half * 2}px bar`);
+  for (const [name, [inline, block]] of [['start', start], ['end', end]]) {
+    if (apart(inline, block)) found.push(`${label}: the ends share no centre, the ${name} gap is ${inline}px and the top gap ${block}px`);
+    if (!(inline > 0.5)) found.push(`${label}: the ${name} touches the bar's end, a ${inline}px gap`);
+  }
+  if (twin && (apart(start[0], end[0]) || apart(start[2], end[2]))) {
     found.push(`${label}: the ends differ, a ${start[0]}px gap to a ${start[2]}px pill and a ${end[0]}px gap to a ${end[2]}px control`);
   }
+  if (apart(corner, pill + start[1])) found.push(`${label}: the bar corner shares no centre with the pill, ${corner}px for a ${pill}px pill corner and a ${start[1]}px gap`);
+  if (apart(pill, clearHalf)) found.push(`${label}: the pill corner is not that of one line, ${pill}px for a ${clearHalf * 2}px Clear`);
+  for (const [i, [left, right]] of lines.entries()) {
+    if (left < PAD - 0.5 || right < PAD - 0.5) found.push(`${label}: line ${i + 1} of the count loses its padding, ${left}px and ${right}px at the sides`);
+  }
+  if (clear.inset.some((gap) => gap < -0.5)) found.push(`${label}: Clear stands out of the pill, insets ${JSON.stringify(clear.inset)}`);
+  // Clear's corner: the inset at the side of the pill it stands on, and at the bottom.
+  const inset = Math.max(Math.min(clear.inset[0], clear.inset[1]), clear.inset[3]);
+  if (apart(clear.corner, Math.max(0, pill - inset))) found.push(`${label}: Clear's ground shares no centre with the pill, a ${clear.corner}px corner for a ${pill}px pill corner and a ${inset}px inset`);
+  return found;
+}
+// The pointer on Clear: its ground shows, with the pill's corner.
+async function hovered(page, label, options) {
+  await page.locator('.ui-selection-bar > .ui-selection-bar__count > .ui-selection-bar__control').hover();
+  await page.waitForFunction(() => getComputedStyle(document.querySelector('.ui-selection-bar > .ui-selection-bar__count > .ui-selection-bar__control')).backgroundColor !== 'rgba(0, 0, 0, 0)');
+  await page.evaluate(frames);
+  const found = await ends(page, `${label} Clear hovered`, options);
+  await page.mouse.move(0, 0);
   return found;
 }
 
@@ -124,18 +172,18 @@ async function doubled(page, label) {
     return { tally: count.getBoundingClientRect().height, line: count.querySelector('.ui-selection-bar__control').getBoundingClientRect().height };
   });
   assert.ok(tally > line * 1.5, `${label}: the count stays on one line, ${tally}px for a ${line}px control`);
-  return ends(page, label, { twin: false });
+  return [...await ends(page, label, { twin: false }), ...await hovered(page, label, { twin: false })];
 }
 
 // The bar that grew to 200% text, and the same story drawn again with the text at 200%. The
-// first draw must settle as the bar that grew: the same height and the same ends.
-const FIRST = [300, 330, 360];
-// The bar's height, its end and its two ends, once they stay the same for three frames.
+// first draw must settle as the bar that grew: the same height, corner and ends.
+const FIRST = [280, 300, 330, 360];
+// The bar's height and its two ends, once its height and its corner stay the same for three frames.
 const still = async (page) => {
   await page.waitForFunction(() => {
     const bar = document.querySelector('.ui-selection-bar:not([data-grown])');
     if (!bar) return false;
-    const key = `${bar.getBoundingClientRect().height}/${bar.style.getPropertyValue('--ui-selection-end')}`;
+    const key = `${bar.getBoundingClientRect().height}/${getComputedStyle(bar).borderTopLeftRadius}`;
     window.__still = window.__still?.[0] === key ? [key, window.__still[1] + 1] : [key, 0];
     return window.__still[1] >= 3;
   }, null, { polling: 'raf' });
@@ -153,8 +201,8 @@ async function firstDraw(page, story, label, mutate) {
   const first = { ...await still(page), ...await page.evaluate(ENDS) };
   const found = [];
   const apart = (a, b) => [a].flat().some((value, i) => Math.abs(value - [b].flat()[i]) > 0.5);
-  if (apart(first.height, grown.height) || apart(first.end, grown.end)) {
-    found.push(`${label}: the first draw differs, a ${first.height}px bar with ends ${JSON.stringify(first.end)}, and the bar that grew ${grown.height}px with ${JSON.stringify(grown.end)}`);
+  if (apart(first.height, grown.height) || apart(first.corner, grown.corner) || apart(first.end, grown.end)) {
+    found.push(`${label}: the first draw differs, a ${first.height}px bar with a ${first.corner}px corner and ends ${JSON.stringify(first.end)}, and the bar that grew ${grown.height}px with ${grown.corner}px and ${JSON.stringify(grown.end)}`);
   }
   return [...found, ...await ends(page, label, { twin: false })];
 }
@@ -309,7 +357,7 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
     for (const [label, context] of subjects) {
       const { ctx, page } = await open(browser, server.port, vitals, context);
       const width = await page.evaluate(() => innerWidth);
-      const shape = await ends(page, label);
+      const shape = [...await ends(page, label), ...await hovered(page, label)];
       findings.push(...shape);
       const { found, ran } = await walk(page, label).catch((error) => { throw new Error(`${label}: ${error.message}`, { cause: error }); });
       findings.push(...found);
@@ -387,11 +435,19 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
         if (!this.closest('.ui-selection-bar') || this.textContent === 'Archive') focus.apply(this, options);
       };
     }), null, 'focus left', RESIZES);
-    // A bar with the old 12px corner, as before #911's review, and an end 2px wider than the top.
-    for (const [says, content] of [['not round', '.ui-selection-bar { border-radius: var(--radius-md); }'], ['no centre', '.ui-selection-bar.ui-selection-bar { padding-right: calc(var(--space-3) + 2px); }']]) {
+    // A bar with the old 12px corner, as before #911's review, an end 2px wider than the top,
+    // a pill flush with the bar's start, words with no side padding, and Clear's round ground of
+    // 3d47a2fd.
+    for (const [says, content] of [
+      ['not round', '.ui-selection-bar { border-radius: var(--radius-md); }'],
+      ['no centre', '.ui-selection-bar.ui-selection-bar { padding-right: calc(var(--space-3) + 2px); }'],
+      ['touches', '.ui-selection-bar.ui-selection-bar { padding-left: 0; border-left: 0; }'],
+      ['loses its padding', '.ui-selection-bar .ui-selection-bar__tally { padding-inline: 2px; }'],
+      ['Clear\'s ground', '.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control.ui-selection-bar__control { border-radius: var(--radius-pill); }'],
+    ]) {
       const { ctx, page } = await open(browser, server.port, vitals, phone);
       await page.addStyleTag({ content });
-      const found = await ends(page, 'mutated');
+      const found = [...await ends(page, 'mutated'), ...await hovered(page, 'mutated')];
       caught.push([says, found.some((f) => f.includes(says)), found]);
       await ctx.close();
     }
@@ -406,18 +462,24 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       caught.push(['ends differ', found.some((f) => f.includes('ends differ')), found]);
       await ctx.close();
     }
-    // A bar whose end keeps no room for a wrapped count, as before #911's second review.
-    {
+    // At 200% text: a bar whose parts stand in the middle, as before #911's second review, so
+    // the end control stands lower than its side gap. A stadium pill and bar, as at 3d47a2fd,
+    // whose curve the words of a wrapped count enter.
+    for (const [says, content] of [
+      ['no centre', '.ui-selection-bar.ui-selection-bar { align-items: center; }'],
+      ['not that of one line', '.ui-selection-bar .ui-selection-bar__count.ui-selection-bar__count { border-radius: var(--radius-pill); }'],
+      ['bar corner', '.ui-selection-bar.ui-selection-bar { border-radius: var(--radius-pill); }'],
+    ]) {
       const { ctx, page } = await open(browser, server.port, vitals, LARGE);
-      await page.addStyleTag({ content: '.ui-selection-bar.ui-selection-bar { padding-right: var(--space-3); }' });
+      await page.addStyleTag({ content });
       const found = await doubled(page, 'mutated');
-      caught.push(['no centre', found.some((f) => f.includes('no centre')), found]);
+      caught.push([says, found.some((f) => f.includes(says)), found]);
       await ctx.close();
     }
-    // A first draw whose end stays wide, as at 5be944b8: the count is one letter a line.
+    // A first draw that keeps the corner of normal text, as a corner read before the text grew.
     {
       const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 330, height: 800 } });
-      const found = await firstDraw(page, STORY, 'mutated', '.ui-selection-bar { --ui-selection-end: 189.48px !important; }');
+      const found = await firstDraw(page, STORY, 'mutated', '.ui-selection-bar:not([data-grown]) { --ui-selection-corner: 16px !important; }');
       caught.push(['first draw differs', found.some((f) => f.includes('first draw differs')), found]);
       await ctx.close();
     }

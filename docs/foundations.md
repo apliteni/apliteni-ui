@@ -97,11 +97,14 @@ These parts keep another corner:
 - The search line of the command palette is the top edge of the palette, so it follows the
   palette's corners.
 - A file drop area keeps its large dashed corner. The button in it is a pill.
-- The selection bar has round ends. The pill and the control at each end stand as far from the
-  bar's end as from its top, so the curves share a centre: the inner radius is the bar's radius
-  less the gap. At normal text both ends have the same gap and an inner shape of the same
-  height. The centres stay shared when large text puts the count on two lines and the bar grows
-  taller than the control.
+- The selection bar's corner is the corner of its count pill plus the gap. The pill and the
+  control at each end stand as far from the bar's end as from its top, so the curves share a
+  centre: the inner radius is the bar's radius less the gap. The pill's corner is half the
+  height of Clear. While the count takes one line, the bar and the pill have round ends, and at
+  normal text both ends have the same gap and an inner shape of the same height. When large text
+  puts the count on more lines, the bar and the pill become rounded boxes with the same corners,
+  and each line keeps the pill's side padding. Clear's ground takes the pill's corner less its
+  inset, also under the pointer.
 
 ## Typefaces
 

@@ -67,36 +67,15 @@ type Parts = {
 const firstEnabled = (cells: (Element | null | undefined)[]) =>
   cells.map(buttonIn).find(button => button && !button.matches(':disabled'));
 
-/** How many actions stand on the bar, and how far the control at its end stands below the
- *  top padding. The fit runs again when the room, the labels or the end change, and a
- *  control that held the focus when actions moved gives it on. */
+/** How many actions stand on the bar, and the corner of its pill. The fit runs again when the
+ *  room or the labels change, and a control that held the focus when actions moved gives it on. */
 function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: string, total: number) {
   const [shown, setShown] = useState(total);
-  const [end, setEnd] = useState<number | null>(null);
+  const [corner, setCorner] = useState<number | null>(null);
   const shownNow = useRef(shown);
   shownNow.current = shown;
-  // The count the last fit chose. Until the bar shows it, the fit has not settled.
-  const fitted = useRef(total);
   // The control that held the focus when a fit moved actions: an action's index, or More.
   const moving = useRef<{ held: number | 'more'; from: number } | null>(null);
-
-  // The end padding adds how far the control at the end stands below the top padding, so it
-  // stands as far from the end as from the top. That is 0 beside a one-line pill and for the
-  // pill at the end, and more when large text wraps the count. It is read only on a
-  // settled fit: a bar that holds more actions than its room wraps the count for a moment.
-  // why: docs/foundations.md#control-corners
-  const readEnd = () => {
-    const frame = bar.current;
-    const box = frame?.getBoundingClientRect();
-    // A bar that is not laid out, as in jsdom, keeps the sheet's 0.
-    if (!frame || !box?.height) return;
-    const more = frame.querySelector(':scope > .ui-dropdown');
-    const last = more ? buttonIn(more) : buttonIn(slot.current?.lastElementChild) ?? frame.querySelector(':scope > .ui-selection-bar__count');
-    if (!last) return;
-    const style = getComputedStyle(frame);
-    const below = last.getBoundingClientRect().top - box.top - px(style.borderTopWidth) - px(style.paddingTop);
-    setEnd(Math.max(0, Math.round(below * 100) / 100));
-  };
 
   // The bar measures its own room: the widths of every action as a button, from the hidden
   // row, against the room's width less the count and the bar's own padding.
@@ -106,6 +85,12 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
       const frame = bar.current;
       const sizes = measure.current;
       if (!host || !frame || !sizes || !slot.current) return;
+      // The pill's corner is half the height of Clear, which is the height of a pill of one
+      // line. It grows with the text and not with the room, so a wrapped count keeps it.
+      // A bar that is not laid out, as in jsdom, keeps the sheet's value.
+      const clear = frame.querySelector(':scope > .ui-selection-bar__count > .ui-selection-bar__control');
+      const tall = clear?.getBoundingClientRect().height;
+      if (tall) setCorner(Math.round(tall * 50) / 100);
       // The measure row holds the actions, then More, then the count at its full width: the
       // count on the bar shrinks under large text, so its own width would leave too much room.
       const cells = Array.from(sizes.children) as HTMLElement[];
@@ -118,8 +103,7 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
       const free = host.clientWidth - chrome - whole - barGap;
       // A room that is not laid out, as in jsdom, has no width to judge, so every action stands.
       const next = host.clientWidth ? fitActions(widths, free, more + barGap, px(getComputedStyle(slot.current).columnGap)) : widths.length;
-      fitted.current = next;
-      if (next === shownNow.current) { readEnd(); return; }
+      if (next === shownNow.current) return;
       const now = document.activeElement;
       const index = now ? Array.from(slot.current.children).findIndex(cell => cell.contains(now)) : -1;
       const held = index >= 0 ? index : now && frame.querySelector(':scope > .ui-dropdown')?.contains(now) ? 'more' : null;
@@ -132,14 +116,11 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
     watch.observe(room.current);
     if (measure.current) watch.observe(measure.current);
     return () => watch.disconnect();
-  }, [count, key, end]);
+  }, [count, key]);
 
   // An action that moves into More, or More that goes, takes the focus with it. The focus
   // goes to More, or to the first enabled action that came out of More, or else to Clear.
   useIsoLayoutEffect(() => {
-    // A bar drawn with every action, before its first fit takes some away, wraps the count.
-    // An end read from it stays: its padding keeps the count narrow. #911
-    if (fitted.current === shown) readEnd();
     const move = moving.current;
     moving.current = null;
     const frame = bar.current;
@@ -153,7 +134,7 @@ function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: s
     target?.focus();
   }, [shown]);
 
-  return { shown, end };
+  return { shown, corner };
 }
 
 /** More's list, then the picker of the action picked from it. A pick closes the list, and
@@ -218,7 +199,7 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
   if (count > 0) seen.current = true;
   const said = count > 0 ? `${count} ${noun} selected` : seen.current ? `No ${noun} selected` : '';
   const key = actions.map(action => action.label).join('\n');
-  const { shown, end } = useActionFit({ room, bar, slot, measure }, count, key, actions.length);
+  const { shown, corner } = useActionFit({ room, bar, slot, measure }, count, key, actions.length);
   const visible = actions.slice(0, shown);
   const extra = actions.slice(shown);
   const more = useMore(bar, extra, count, moreLabel, onAction);
@@ -231,7 +212,7 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
   return <>
     {mounted && <div ref={room} className={`ui-selection-room${place === 'start' ? ' ui-selection-room--start' : ''}`}>
       <section ref={bar} className={`ui-selection-bar${entered ? ' is-shown' : ''}`} aria-label={label ?? `Selected ${noun}`} onKeyDown={onKeyDown}
-        style={end == null ? undefined : { '--ui-selection-end': `${end}px` } as CSSProperties}>
+        style={corner == null ? undefined : { '--ui-selection-corner': `${corner}px` } as CSSProperties}>
         <div className="ui-selection-bar__count">
           <span className="ui-selection-bar__tally">{held.current} selected</span>
           <Button variant="ghost" size="sm" className="ui-selection-bar__control" onClick={onClear}>{clearLabel}</Button>

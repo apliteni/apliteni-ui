@@ -219,99 +219,63 @@ it('keeps the inverse ink off the bar box, so its lists keep the page theme', ()
   for (const [, , body] of boxes) expect(body).not.toMatch(/(^|;|\s)color\s*:/);
 });
 
-// The sheet, read as text: the bar's ends are round, so they share a centre with the count's
-// pill and the last control, and each stands as far from the bar's end as from its top. The
-// pill's edge is drawn inside it, so the pill is as tall as the control at the other end. The
-// end adds what the bar measures, and 0 before a layout. The browser half,
-// stories/selection-bar.test.js, measures the gaps. rev_604d2230cca9/d61
-it('gives the bar round ends that share a centre with the pill and the last control', () => {
+// The sheet, read as text. The bar's corner is the pill's corner and the gap, so the curves
+// share a centre. The gap is the same at the side and the top, and the parts stand at the top,
+// so a wrapped count keeps the gaps. The words keep their side padding on each line, and Clear
+// takes the pill's corner, because it stands in the corner with no inset. The pill's edge is
+// drawn inside it, so the pill is as tall as the control at the other end. The browser half,
+// stories/selection-bar.test.js, measures the gaps and the corners. rev_972adb4864fb/d80, d81
+it('gives the bar, the pill and Clear corners that share a centre', () => {
   const css = read('./SelectionBar.css').replace(/\/\*[\s\S]*?\*\//g, '');
-  const bar = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selector]) => selector.trim() === '.ui-selection-bar')![2];
-  expect(bar).toMatch(/border-radius:\s*var\(--radius-pill\);/);
-  expect(bar).toMatch(/padding:\s*var\(--space-3\) calc\(var\(--space-3\) \+ var\(--ui-selection-end, 0px\)\) var\(--space-3\) var\(--space-3\);/);
-  const pill = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selector]) => selector.trim() === '.ui-selection-bar__count')![2];
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+  const rule = (name: string) => rules.filter(([, selector]) => selector.trim() === name).map(([, , body]) => body).join(';');
+  const bar = rule('.ui-selection-bar');
+  expect(bar).toMatch(/align-items:\s*flex-start;/);
+  expect(bar).toMatch(/padding:\s*var\(--space-3\);/);
+  expect(bar).toMatch(/border:\s*1px solid var\(--inverse-frame\);/);
+  expect(bar).toMatch(/border-radius:\s*calc\(var\(--ui-selection-corner, calc\(var\(--btn-height-sm\) \/ 2\)\) \+ var\(--space-3\) \+ 1px\);/);
+  const pill = rule('.ui-selection-bar__count');
   expect(pill).toMatch(/outline:\s*1px solid var\(--inverse-edge\);\s*outline-offset:\s*-1px;/);
-  expect(pill).not.toMatch(/(^|;|\s)border(-width)?\s*:/);
+  expect(pill).not.toMatch(/(^|;|\s)(border(-width)?|padding(-left)?|gap)\s*:/);
+  expect(pill).toMatch(/min-width:\s*min-content;/);
+  expect(pill).toMatch(/border-radius:\s*var\(--ui-selection-corner, calc\(var\(--btn-height-sm\) \/ 2\)\);/);
+  expect(rule('.ui-selection-bar__tally')).toMatch(/padding:\s*max\(0px, calc\(var\(--ui-selection-corner, calc\(var\(--btn-height-sm\) \/ 2\)\) - 0\.5lh\)\) var\(--space-2\);/);
+  const clear = rule('.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control');
+  expect(clear).toMatch(/border-radius:\s*var\(--ui-selection-corner, calc\(var\(--btn-height-sm\) \/ 2\)\);/);
+  expect(clear).toMatch(/padding-left:\s*var\(--space-2\);/);
 });
 
-// jsdom lays nothing out, so the bar's height and the top of its last control are given,
-// under a 1px edge and a 12px padding. At 200% text the count takes two lines: the bar is
-// 115.3px tall and More stands 35.05px below its top, so the end takes 22.05px. A More that
-// stands 13.5px down takes 0.5px. A pill at the end takes 0.
-// Limits: the figures are given, and the browser half measures the gaps a font gives.
-it('moves the end of the bar in as far as its last control stands below the top padding', () => {
-  let tall = 115.3;
-  let down = 35.05;
-  const fit = laidOut(() => 250);
+// jsdom lays nothing out, so Clear's height is given. The pill's corner is half of it: 16px
+// at normal text, and 22.6px when 200% text makes Clear 45.19px. A narrow room does not change
+// it, and a bar first drawn at 200% text has the corner of a bar that grew. A bar with no
+// layout keeps the sheet's value. Limits: the heights are given, and the browser half
+// measures the heights a font gives.
+it('takes the pill corner from the height of Clear, and not from the room', () => {
+  let tall = 32;
+  let room = 400;
+  const fit = laidOut(() => room);
   const sized = vi.mocked(HTMLElement.prototype.getBoundingClientRect);
   const widths = sized.getMockImplementation()!;
   sized.mockImplementation(function (this: HTMLElement) {
     const box = widths.call(this);
-    if (this.classList.contains('ui-selection-bar')) return { ...box, top: 0, height: tall };
-    if (this.closest('.ui-selection-bar > .ui-dropdown, .ui-selection-bar > .ui-selection-bar__count')) return { ...box, top: down };
-    return box;
+    return this.matches('.ui-selection-bar > .ui-selection-bar__count > .ui-selection-bar__control') ? { ...box, height: tall } : box;
   });
-  const end = (bar: HTMLElement) => {
-    Object.assign(bar.style, { borderTopWidth: '1px', borderTopStyle: 'solid', paddingTop: '12px' });
-    fit();
-    return bar.style.getPropertyValue('--ui-selection-end');
-  };
-  const { rerender } = render(<SelectionBar count={2} actions={actions} {...handlers()} />);
-  const bar = screen.getByRole('region');
+  const corner = () => screen.getByRole('region').style.getPropertyValue('--ui-selection-corner');
+  const grown = render(<SelectionBar count={2} actions={actions} {...handlers()} />);
+  expect(corner()).toBe('16px');
+  tall = 45.19;
+  fit();
+  expect(corner()).toBe('22.6px');
+  room = 200;
+  fit();
   expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
-  expect(end(bar)).toBe('22.05px');
-  [tall, down] = [59, 13.5];
-  expect(end(bar)).toBe('0.5px');
-  [tall, down] = [34, 13];
-  rerender(<SelectionBar count={2} actions={[]} {...handlers()} />);
-  expect(screen.queryByRole('button', { name: 'More' })).toBeNull();
-  expect(end(bar)).toBe('0px');
+  expect(corner()).toBe('22.6px');
+  grown.unmount();
+  render(<SelectionBar count={2} actions={actions} {...handlers()} />);
+  expect(corner()).toBe('22.6px');
 });
 
-// A bar first drawn at 200% text in a narrow room, against one that grows to 200% after it is
-// drawn. jsdom lays nothing out, so this is a model of the bar's room: each action is 80 wide
-// with a 4 gap, More 70, and a gap of 8 before each group. The count's text is `text` wide and
-// wraps into 40px lines in what the actions and the end leave, but never under 20.
-// The last control stands half the extra height of the count below the top.
-// Before #911's fourth review the first draw read the end from the bar with every action on
-// it, and that end kept the count narrow: in a browser, 450px tall with one letter on a line.
-// Limits: the model wraps by width alone, and the browser half measures the real fonts.
-it.each([300, 330, 360])('settles a bar first drawn at 200 percent text in a %ipx room as a bar that grew', (room) => {
-  let text = 100;
-  const notify = new Set<() => void>();
-  vi.stubGlobal('ResizeObserver', class {
-    constructor(callback: () => void) { notify.add(callback); }
-    observe() {}
-    disconnect() {}
-  });
-  const lines = (bar: Element) => {
-    const end = parseFloat((bar as HTMLElement).style.getPropertyValue('--ui-selection-end')) || 0;
-    const shown = bar.querySelectorAll(':scope > .ui-selection-bar__actions > *').length;
-    const span = shown ? shown * 80 + (shown - 1) * 4 + 8 : 0;
-    const more = bar.querySelector(':scope > .ui-dropdown') ? 70 + 8 : 0;
-    return Math.ceil(text / Math.max(20, room - 26 - end - span - more)) * 40;
-  };
-  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
-    const measured = this.parentElement?.classList.contains('ui-selection-bar__measure');
-    const bar = this.closest('.ui-selection-bar')!;
-    const size = measured ? (this.classList.contains('ui-selection-bar__count') ? text : this.textContent === 'More' ? 70 : 80) : 0;
-    const height = this.classList.contains('ui-selection-bar') ? lines(this) : 32;
-    const top = !measured && this.closest('.ui-selection-bar > .ui-dropdown, .ui-selection-bar__actions, .ui-selection-bar > .ui-selection-bar__count') ? (lines(bar) - 32) / 2 : 0;
-    return { width: size, height, top, left: 0, right: size, bottom: top + height, x: 0, y: top, toJSON: () => ({}) } as DOMRect;
-  });
-  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) {
-    return this.classList.contains('ui-selection-room') ? room : 0;
-  });
-  const five = ['Status', 'Owner', 'Tags', 'Move', 'Archive'].map((label): SelectionBarAction => ({ id: label, label }));
-  const end = () => screen.getByRole('region').style.getPropertyValue('--ui-selection-end');
-
-  const grown = render(<SelectionBar count={2} actions={five} {...handlers()} />);
-  text = 300;
-  act(() => notify.forEach(callback => callback()));
-  const settled = end();
-  grown.unmount();
-  render(<SelectionBar count={2} actions={five} {...handlers()} />);
-  expect(screen.getByRole('button', { name: 'More' })).toBeInTheDocument();
-  expect(end()).toBe(settled);
-  expect(settled).toBe('24px');
+it('keeps the sheet corner on a bar with no layout', () => {
+  render(<SelectionBar count={2} actions={actions} {...handlers()} />);
+  expect(screen.getByRole('region').style.getPropertyValue('--ui-selection-corner')).toBe('');
 });
