@@ -242,7 +242,17 @@ it('gives the bar, the pill and Clear corners that share a centre', () => {
   expect(rule('.ui-selection-bar__tally')).toMatch(/padding:\s*max\(0px, calc\(var\(--ui-selection-corner, calc\(var\(--btn-height-sm\) \/ 2\)\) - 0\.5lh\)\) var\(--space-2\);/);
   const clear = rule('.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control');
   expect(clear).toMatch(/border-radius:\s*var\(--ui-selection-corner, calc\(var\(--btn-height-sm\) \/ 2\)\);/);
-  expect(clear).toMatch(/padding-left:\s*var\(--space-2\);/);
+  // Clear's ground stands inside a clear band, so it keeps an even gap to the pill's edge and
+  // a corner that is the pill's corner less the band. The band and the padding are the other
+  // controls' edge and padding, so Clear keeps their height. A press does not move it, and the
+  // hover sets the colour only, so the ground keeps its clip. #911
+  expect(clear).toMatch(/border-width:\s*var\(--space-1\);/);
+  expect(clear).toMatch(/background-clip:\s*padding-box;/);
+  expect(clear).toMatch(/padding:\s*3px var\(--space-2\);/);
+  expect(rule('.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control:active')).toMatch(/transform:\s*none;/);
+  const hover = rule('.ui-selection-bar .ui-selection-bar__control:enabled:hover,\n.ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control');
+  expect(hover).toMatch(/background-color:\s*var\(--inverse-hover\);/);
+  expect(hover).not.toMatch(/(^|;|\s)background:/);
 });
 
 // jsdom lays nothing out, so Clear's height is given. The pill's corner is half of it: 16px

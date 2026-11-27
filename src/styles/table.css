@@ -502,6 +502,12 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
 .ui-table--pinned .ui-table__selection ~ .ui-table__identity { left: var(--ui-table-selection-width); }
+/* In a row table the pinned box starts on the table's text edge, as an unpinned box and a first
+   cell's words do. The track is that edge, the 19px box, the 16px gap after it and the 1px
+   divider, so the identity moves by the same width. It is 48px at the 12px edge. */
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--pinned { --ui-table-selection-start: var(--cell-edge); --ui-table-selection-width: calc(var(--ui-table-selection-start) + 19px + var(--space-4) + 1px); }
+:root[data-theme="light"] .ui-card .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense).ui-table--pinned { --ui-table-selection-start: 0px; }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) :is(th, td).ui-table__selection { padding-inline: var(--ui-table-selection-start) var(--space-4); text-align: left; }
 
 /* ============================================================================
  * Running text in a cell — .ui-table__long
@@ -532,16 +538,20 @@ a.ui-identity:hover { text-decoration: underline; }
   line-height: var(--leading-snug);
   padding-inline: 0 var(--cell-gap);
 }
-/* A pinned selection cell keeps its fixed, centred track. */
+/* A pinned selection cell takes its edge from its own track rule. */
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):first-child:not(:where(.ui-table--pinned) .ui-table__selection) { padding-left: var(--cell-edge); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense) :is(th, td):last-child { padding-right: var(--cell-edge); }
 /* A cell of the default density opens with no padding of its own, so the pinned cell gives half its gap to the
    column after the divider, or that column's text touches the divider. The gap keeps its
-   size, so the table keeps one width whether the divider shows or not. #832 */
+   size, so the table keeps one width whether the divider shows or not. #832
+   The column after a pinned selection takes the same padding, because the selection draws a
+   divider too. Its box keeps the whole 16px gap for its tap layer. #911 */
 .ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__identity { padding-right: var(--space-2); }
 .ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__identity + :is(th, td) { padding-left: var(--space-2); }
+.ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__selection + :is(th, td) { padding-left: var(--space-2); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity { padding-right: calc(var(--cell-gap) / 2); }
 .ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__identity + :is(th, td) { padding-left: calc(var(--cell-gap) / 2); }
+.ui-table.ui-table--hover:not(.ui-table--zebra):not(.ui-table--dense):is(.ui-table--pinned) .ui-table__selection + :is(th, td) { padding-left: calc(var(--cell-gap) / 2); }
 /* The scrolled frame's gap after the divider, the same as the padding above. A dense or
    compact cell pads by --space-3, the gap's fallback. */
 .ui-table--pinned:not(.ui-table--dense):not(.ui-table--compact) .ui-table__identity { --ui-table-pin-gap: var(--space-2); }

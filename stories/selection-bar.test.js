@@ -29,6 +29,8 @@
  * The pill's corner is that of a pill of one line, half the height of Clear. Each line of the
  * count keeps the pill's side padding. Clear stands inside the pill, and its corner is the
  * pill's corner less its inset, also with the pointer on it. rev_972adb4864fb/d80, d81
+ * Clear's ground stands inside the pill's edge with an even gap of at least 3px where its box
+ * meets the pill, on hover and on press. #911
  * At normal text the ends are round, and the two ends match: the same gap and an inner shape
  * of the same height. It measures the ends again at 360×800 with the text at 200%, in light
  * and dark, in every story that draws a bar: there the count takes two lines and the bar is
@@ -122,7 +124,8 @@ const ENDS = () => {
     start: [pill.left - box.left, pill.top - box.top, pill.height], end: [box.right - last.right, last.top - box.top, last.height],
     pill: parseFloat(getComputedStyle(count).borderTopLeftRadius), clearHalf: clear.height / 2, lines,
     clear: { inset: [clear.left - pill.left, pill.right - clear.right, clear.top - pill.top, pill.bottom - clear.bottom],
-      corner: parseFloat(look.borderTopLeftRadius), ground: look.backgroundColor } };
+      band: ['Left', 'Right', 'Top', 'Bottom'].map((side) => parseFloat(look[`border${side}Width`])),
+      clip: look.backgroundClip, corner: parseFloat(look.borderTopLeftRadius), ground: look.backgroundColor } };
 };
 // The words' side padding in the pill.
 const PAD = 8;
@@ -150,6 +153,12 @@ async function ends(page, label, { twin = true } = {}) {
   // Clear's corner: the inset at the side of the pill it stands on, and at the bottom.
   const inset = Math.max(Math.min(clear.inset[0], clear.inset[1]), clear.inset[3]);
   if (apart(clear.corner, Math.max(0, pill - inset))) found.push(`${label}: Clear's ground shares no centre with the pill, a ${clear.corner}px corner for a ${pill}px pill corner and a ${inset}px inset`);
+  // Clear's ground is its padding box. Where its box meets the pill's edge, the ground keeps
+  // the same gap of at least 3px, so the ground stands inside the pill's 1px edge, and its
+  // corner is the box's corner less that gap. #911
+  const met = clear.inset.map((gap, side) => [gap, side]).filter(([gap]) => gap < 0.5).map(([gap, side]) => gap + clear.band[side]);
+  if (clear.clip !== 'padding-box' || met.some((gap) => gap < 3 - 0.5)) found.push(`${label}: Clear's ground meets the pill's edge, gaps ${JSON.stringify(met)} with a ${clear.clip} ground`);
+  if (met.length && Math.max(...met) - Math.min(...met) > 0.5) found.push(`${label}: Clear's ground has an uneven gap, ${JSON.stringify(met)}`);
   return found;
 }
 // The pointer on Clear: its ground shows, with the pill's corner.
@@ -158,7 +167,14 @@ async function hovered(page, label, options) {
   await page.waitForFunction(() => getComputedStyle(document.querySelector('.ui-selection-bar > .ui-selection-bar__count > .ui-selection-bar__control')).backgroundColor !== 'rgba(0, 0, 0, 0)');
   await page.evaluate(frames);
   const found = await ends(page, `${label} Clear hovered`, options);
+  // The press: the pointer leaves before it goes up, so Clear is not clicked. A press eases,
+  // so the read waits for Clear's own transitions to end.
+  await page.mouse.down();
+  await page.evaluate(frames);
+  await page.waitForFunction(() => document.querySelector('.ui-selection-bar > .ui-selection-bar__count > .ui-selection-bar__control').getAnimations().every((a) => a.playState !== 'running'));
+  found.push(...await ends(page, `${label} Clear pressed`, options));
   await page.mouse.move(0, 0);
+  await page.mouse.up();
   return found;
 }
 
@@ -444,6 +460,9 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       ['touches', '.ui-selection-bar.ui-selection-bar { padding-left: 0; border-left: 0; }'],
       ['loses its padding', '.ui-selection-bar .ui-selection-bar__tally { padding-inline: 2px; }'],
       ['Clear\'s ground', '.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control.ui-selection-bar__control { border-radius: var(--radius-pill); }'],
+      // Clear's ground on the pill's edge, as at 2650959e, and a press that moves it 1px.
+      ['meets the pill\'s edge', '.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control.ui-selection-bar__control { border-width: 1px; }'],
+      ['uneven gap', '.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control.ui-selection-bar__control:active { transform: translateY(1px); }'],
     ]) {
       const { ctx, page } = await open(browser, server.port, vitals, phone);
       await page.addStyleTag({ content });

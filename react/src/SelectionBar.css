@@ -68,13 +68,20 @@
   color: var(--inverse-text);
   font-size: var(--text-sm);
 }
-/* Clear stands in the pill's corner with no inset, so its ground takes the pill's corner. Its
-   start padding is the words' end padding less the gap they shared, so the label stays where
-   it was, and under a wrapped count it lines up with the words. */
+/* Clear's box fills the pill's corner, so its tap target and the pill's height stay. Its ground
+   is drawn inside a clear 4px band, so on hover and press it stands in the pill with the same
+   gap at the top, the end and the bottom. The ground's corner is the pill's corner less the
+   band, so the curves share a centre. The label keeps its 8px from the ground at both sides.
+   A press does not move Clear, or the gap is uneven. #911 */
 .ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control {
-  padding-left: var(--space-2);
+  border-width: var(--space-1);
+  background-clip: padding-box;
+  /* 3px: with the band it is the 1px edge and 6px padding of the other controls, so Clear keeps
+     their height at every text size. */
+  padding: 3px var(--space-2);
   border-radius: var(--ui-selection-corner, calc(var(--btn-height-sm) / 2));
 }
+.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control:active { transform: none; }
 .ui-selection-bar__actions { flex: none; display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
 
 /* Every control on the bar draws as a ghost button: the name, at its natural width, with
@@ -93,7 +100,8 @@
 .ui-selection-bar .ui-selection-bar__control:enabled:hover,
 .ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control {
   border-color: transparent;
-  background: var(--inverse-hover);
+  /* The colour only, so Clear keeps its ground inside its band. */
+  background-color: var(--inverse-hover);
   color: var(--inverse-strong);
 }
 .ui-selection-bar .ui-selection-bar__control:disabled { background: transparent; /* muted-ink: state — unavailable action on the bar */ color: var(--inverse-muted); }

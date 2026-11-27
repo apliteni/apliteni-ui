@@ -1,10 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { AppShell } from '../AppShell';
 import { DataTable, type Column } from '../DataTable';
+import { Card } from '../primitives/Card';
 import { SelectionBar, type SelectionBarAction } from '../SelectionBar';
 import { Toast, useToast } from '../Toast';
 
-// Selected rows: a table of documents, and the selection bar under it. Each pick changes the
+// Selected rows: a table of documents in a card, so its boxes and words start on the page
+// title's edge, and the selection bar under it. Each pick changes the
 // selected rows at once, the rows stay selected, and a notice says what changed. Ten rows,
 // so the table needs no filter bar. All data is sample data. #902
 type Doc = { name: string; status: string; owner: string; tags: string; folder: string };
@@ -99,8 +101,10 @@ function Documents({ initialSelected = ['Field guide', 'Release notes'], onOffse
     sections={[{ href: '#documents', label: 'Documents', icon: 'doc' }, { href: '#settings', label: 'Settings', icon: 'gear' }]}
     account={{ name: 'Demo Editor', email: 'editor@example.com' }} onSignOut={() => {}}>
     <div ref={page}>
-      <DataTable columns={columns} rows={rows} pager={false} caption="Documents" scrollLabel="Documents" stickyHeader pinnedIdentity
-        selected={selected} onToggle={toggle} onTogglePage={togglePage} />
+      <Card>
+        <DataTable columns={columns} rows={rows} pager={false} caption="Documents" scrollLabel="Documents" stickyHeader pinnedIdentity
+          selected={selected} onToggle={toggle} onTogglePage={togglePage} />
+      </Card>
       <SelectionBar count={selected.size} actions={ACTIONS} noun="documents" onAction={act} onClear={clear} />
     </div>
   </AppShell>;

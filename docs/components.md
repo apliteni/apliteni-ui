@@ -1031,7 +1031,8 @@ page.
 **What the user sees.** At 0 rows the bar is not drawn. Otherwise it is the other theme's bar,
 dark on a light page and light on a dark page, in the page's accent family. See
 [The inverse surface](foundations.md#the-inverse-surface). The count and Clear share one pill at the
-start. Each action follows as a button at its natural width, with its name. A pick never changes
+start. Clear's fill on hover and press stands inside the pill, with an even gap and a corner that
+follows the pill's corner. Each action follows as a button at its natural width, with its name. A pick never changes
 the name or the width. A list opens above the bar in the page's own theme, with a search field from
 ten rows. When the view has no room above the bar, the list opens below it. The bar sticks 16px
 above the bottom of the view while rows scroll under it. At the end of the list it stands in its
@@ -1551,7 +1552,9 @@ least 4.5:1 on a plain or a selected row.
 `pinnedIdentity` pins the first column, or the column whose key you give. A table wider than its
 frame scrolls sideways, and the page does not. The pinned column draws its divider only when the
 region can scroll. When the region is scrolled, the next column's text stops one cell padding
-short of the divider. Below 720px a pinned cell keeps one line and is cut at
+short of the divider. With a selection column, the boxes of a pinned table start on the same edge
+as the words of an unpinned one, and the next column's words keep half a cell gap from the
+boxes' divider. Below 720px a pinned cell keeps one line and is cut at
 `--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
 frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
