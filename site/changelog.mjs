@@ -1,5 +1,12 @@
 export const RELEASES = [
   {
+    v: '0.231.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'At 560px and below, the phone breakpoint, a table pins no column. A `pinnedIdentity` column and the selection column now scroll sideways with the other columns, draw no divider, and keep their whole text and logo. Above 560px the pin is as before. You do not need to change a call. Part of #902.', ['Table', 'DataTable']],
+      ['changed', 'The Dense tables guideline rule Scroll instead of squeezing now says that a phone table has no pinned column. Part of #902.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.230.0', date: '2026-11-27',
     changes: [
       ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],

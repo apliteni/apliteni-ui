@@ -84,15 +84,26 @@ export function pixelAt(img, x, y) {
 }
 
 /** What a page at a phone width reads: how wide the document is against the
- *  viewport, and each table scroll frame's own width and scroll range. */
+ *  viewport, and each table scroll frame's own width and scroll range. `stuck` counts
+ *  the cells that stay in place while the frame scrolls to its end: the frame is
+ *  scrolled, each cell's move is read, and the frame goes back to the start. */
 export const PHONE_FIT = () => ({
   view: window.innerWidth,
   page: document.documentElement.scrollWidth,
-  frames: [...document.querySelectorAll('.ui-table-scroll')].map((f) => ({
-    width: f.clientWidth,
-    range: f.scrollWidth - f.clientWidth,
-    spare: f.scrollWidth - Math.ceil(f.querySelector('.ui-table')?.getBoundingClientRect().width ?? f.scrollWidth),
-  })),
+  frames: [...document.querySelectorAll('.ui-table-scroll')].map((f) => {
+    const range = f.scrollWidth - f.clientWidth;
+    const cells = [...f.querySelectorAll('.ui-table > * > tr > :is(td, th)')];
+    const before = cells.map((c) => c.getBoundingClientRect().left);
+    f.scrollLeft = range;
+    const stuck = range > 0 ? cells.filter((c, i) => before[i] - c.getBoundingClientRect().left < range - 1).length : 0;
+    f.scrollLeft = 0;
+    return {
+      width: f.clientWidth,
+      range,
+      spare: f.scrollWidth - Math.ceil(f.querySelector('.ui-table')?.getBoundingClientRect().width ?? f.scrollWidth),
+      stuck,
+    };
+  }),
 });
 
 /** What is wrong with one PHONE_FIT reading, as lines: a page wider than the screen,
@@ -103,6 +114,7 @@ export const phoneFitFindings = (fit, mustScroll = false) => [
   ...(fit.frames.length ? [] : ['no table scroll frame on the page']),
   ...(mustScroll ? fit.frames : []).filter((f) => f.range <= 0).map((f) => `a ${f.width}px frame has no scroll range`),
   ...fit.frames.filter((f) => f.spare > 1).map((f) => `a frame scrolls ${f.spare}px past its table`),
+  ...fit.frames.filter((f) => f.stuck > 0).map((f) => `${f.stuck} cells stay in place while a ${f.width}px frame scrolls`),
 ];
 
 /** The mutation the containment check must catch: a frame that does not clip, so
@@ -116,6 +128,8 @@ export const FRAME_FLOORLESS = '.ui-table-scroll { display: block !important; }'
  *  tooltip keeps its box, so the frame scrolls past its table. */
 export const LABEL_ESCAPES = '.ui-table-scroll, .ui-table-scroll th { position: static !important; }';
 export const CLOSED_TIP_BOX = '.ui-tip:not(.is-open) { display: flex !important; }';
+/** The pin put back on a phone: rev_1982326c19de/d88 removed it, so every column scrolls. */
+export const PIN_ON_PHONE = '.ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { position: sticky !important; left: 0 !important; }';
 
 /** A card's table frame, focused by keyboard or at rest: its box, its corner radii,
  *  its ring colour, the card's ground and the room between the table and the frame's

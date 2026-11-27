@@ -1594,9 +1594,11 @@ frame scrolls sideways, and the page does not. The pinned column draws its divid
 region can scroll. When the region is scrolled, the next column's text stops one cell padding
 short of the divider. With a selection column, the boxes of a pinned table start on the same edge
 as the words of an unpinned one, and the next column's words keep half a cell gap from the
-boxes' divider. Below 720px a pinned cell keeps one line and is cut at
-`--ui-table-identity-max`. Lower that cap for a table with a selection column. Below 560px the
-frame has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
+boxes' divider. From 561px to 720px a pinned cell keeps one line and is cut at
+`--ui-table-identity-max`. Lower that cap for a table with a selection column. At 560px and below,
+the phone breakpoint, no column is pinned: the pinned column and the selection column scroll with
+the other columns, and a pinned cell keeps its whole text. You do not need to remove
+`pinnedIdentity` for a phone. At 560px and below the frame also has no scrollbar. `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as
 `Invoices`, and name the gesture only when the columns overflow at every width.
 
 **Sorting and paging.** A table either controls its sort with `sort` and `onSortChange`, or leaves

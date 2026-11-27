@@ -379,28 +379,34 @@
    the region's border, which no cell reaches.
    why: docs/foundations.md#the-focus-ring */
 .ui-table-scroll:focus-visible .ui-table--sticky thead th { clip-path: inset(calc(var(--ring-gap-width) + var(--ring-width)) 0 0 0); }
-.ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
-.ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
-/* The divider is the pin's edge: it says the column stayed while the rest moved under it.
-   Columns that all fit never move, so the line divides nothing and reads as an arbitrary
-   rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
-   scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
-.ui-table-scroll { container-type: scroll-state; }
-@container not scroll-state(scrollable: x) {
-  .ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { border-right-color: transparent; }
-}
-/* Once the frame is scrolled, the next column's text keeps its cell padding from the
-   divider: the pinned cell lays its own ground over that padding, so the text that moves
-   under the pin stops short of the line. A frame at rest paints nothing more. The gap is
-   the next cell's padding, set beside each padding rule below. Below 720px the cell cuts
-   what overflows it, so its cut reaches past the divider to hold the widest band, 12px and
-   the 1px line. A plain step, because Chromium computes a calc() here as 0px. why: #845 */
-@container scroll-state(scrollable: left) {
-  .ui-table--pinned .ui-table__identity { overflow-clip-margin: var(--space-4); }
-  .ui-table--pinned .ui-table__identity::after {
-    content: ''; position: absolute; top: 0; bottom: 0; left: calc(100% + 1px);
-    width: var(--ui-table-pin-gap, var(--space-3)); background: inherit; pointer-events: none;
+/* A pin holds a column while the rest scrolls under it. On a phone the frame is too narrow
+   to give a column up, so above the phone step only: below it every column scrolls with
+   the table. why: guidelines/dense-tables.md, rev_1982326c19de/d88 */
+@media (width > 560px) {
+  .ui-table--pinned .ui-table__identity, .ui-table--pinned .ui-table__selection { position: sticky; left: 0; z-index: var(--z-base); background: var(--table-bg); border-right: 1px solid var(--border); }
+  .ui-table--pinned thead .ui-table__identity, .ui-table--pinned thead .ui-table__selection { z-index: calc(var(--z-sticky) + 1); }
+  /* The divider is the pin's edge: it says the column stayed while the rest moved under it.
+     Columns that all fit never move, so the line divides nothing and reads as an arbitrary
+     rule. The resting rule keeps it, so an engine that cannot answer the query is unchanged;
+     scroll-state makes a query container, not a size one. why: guidelines/dense-tables.md */
+  .ui-table-scroll { container-type: scroll-state; }
+  @container not scroll-state(scrollable: x) {
+    .ui-table--pinned :is(.ui-table__identity, .ui-table__selection) { border-right-color: transparent; }
   }
+  /* Once the frame is scrolled, the next column's text keeps its cell padding from the
+     divider: the pinned cell lays its own ground over that padding, so the text that moves
+     under the pin stops short of the line. A frame at rest paints nothing more. The gap is
+     the next cell's padding, set beside each padding rule below. Below 720px the cell cuts
+     what overflows it, so its cut reaches past the divider to hold the widest band, 12px and
+     the 1px line. A plain step, because Chromium computes a calc() here as 0px. why: #845 */
+  @container scroll-state(scrollable: left) {
+    .ui-table--pinned .ui-table__identity { overflow-clip-margin: var(--space-4); }
+    .ui-table--pinned .ui-table__identity::after {
+      content: ''; position: absolute; top: 0; bottom: 0; left: calc(100% + 1px);
+      width: var(--ui-table-pin-gap, var(--space-3)); background: inherit; pointer-events: none;
+    }
+  }
+  .ui-table--pinned .ui-table__selection ~ .ui-table__identity { left: var(--ui-table-selection-width); }
 }
 .ui-value, .ui-delta { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ui-value__unit { margin-left: var(--space-1); font-size: var(--text-xs); color: var(--text); }
@@ -425,11 +431,12 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
-@media (max-width: 720px) {
+@media (width > 560px) and (width <= 720px) {
   /* One line wide: nothing wraps, and --ui-table-identity-max is the ceiling a consumer
-     retunes. The cut takes NO margin — the cell is sticky and the next column scrolls
-     under it, so whatever the cut lets out is painted over that column. A child's ring
-     needs 3px and the cell's padding is 12px, so the room comes from the padding.
+     retunes. Below the phone step nothing is pinned, so the cell keeps its whole text.
+     The cut takes NO margin — the cell is sticky and the next column scrolls under it,
+     so whatever the cut lets out is painted over that column. A child's ring needs 3px
+     and the cell's padding is 12px, so the room comes from the padding.
      why: docs/components.md#data-table, #500, #513 */
   /* A percentage can stretch an intrinsic table beyond its content. */
   .ui-card--fit .ui-table--pinned .ui-table__identity { width: 1px; }
@@ -501,7 +508,6 @@ a.ui-identity:hover { text-decoration: underline; }
 /* One width reserves the selection track and offsets the adjacent identity. */
 .ui-table--pinned { --ui-table-selection-width: var(--space-12); --ui-table-identity-max: min(var(--panel-sm), 50vw); }
 .ui-table--pinned .ui-table__selection { box-sizing: border-box; width: var(--ui-table-selection-width); min-width: var(--ui-table-selection-width); max-width: var(--ui-table-selection-width); padding-inline: 0; text-align: center; }
-.ui-table--pinned .ui-table__selection ~ .ui-table__identity { left: var(--ui-table-selection-width); }
 /* In a row table the pinned box starts on the table's text edge, as an unpinned box and a first
    cell's words do. The track is that edge, the 19px box, the 16px gap after it and the 1px
    divider, so the identity moves by the same width. It is 48px at the 12px edge. */
@@ -511,8 +517,8 @@ a.ui-identity:hover { text-decoration: underline; }
 /* ============================================================================
  * Running text in a cell — .ui-table__long
  *
- * A table never stacks its rows at any width. A wide table scrolls sideways in its frame,
- * and a pinned identity keeps the first column in view. why: #736
+ * A table never stacks its rows at any width. A wide table scrolls sideways in its frame.
+ * Above the phone step, a pinned identity keeps the first column in view. why: #736
  * ========================================================================== */
 
 /* The marked column holds running text at any width. Two classes outrank the nowrap of
