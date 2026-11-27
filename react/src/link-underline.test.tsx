@@ -146,13 +146,23 @@ describe('link underline: a class that is not the kit\'s', () => {
     expect([empty, unrelated].map(kindOf)).toEqual(['text', 'text']);
     expect([underlined(empty), underlined(unrelated), underlined(kit)]).toEqual([true, true, false]);
   });
+  // HTML parts class names with a space, a tab, a line feed, a form feed or a carriage return.
+  it('keeps a kit class without an underline after each separator that HTML allows', () => {
+    const classes = ['analytics-link\tui-btn', 'analytics-link\nui-btn', '\nui-btn', 'analytics-link\fui-btn',
+      'analytics-link\rui-btn', ' \t\nui-btn', 'analytics-link ui-btn'];
+    render(<p>Read <a href="#a" className={'analytics-link\tbrand'}>the report</a> or {classes.map((c) =>
+      <a key={c} href="#b" className={c}>open</a>)} it.</p>);
+    const links = [...document.querySelectorAll('a')];
+    expect(links.map((a) => a.matches('.ui-btn'))).toEqual([false, ...classes.map(() => true)]);
+    expect(links.map(underlined)).toEqual([false, ...classes.map(() => false)]);
+  });
 });
 
 describe('link underline: the gate rejects', () => {
   afterEach(() => useSheet(KIT));
 
   it('a text link with no underline at rest', () => {
-    const mutated = KIT.replace(/a:where\(:not\(\[class\^="ui-"\], \[class\*=" ui-"\], \.brand\)\) \{ text-decoration: underline; \}/, '');
+    const mutated = KIT.replace(/a:where\(:not\(\[class\^="ui-"\][^{]*\.brand\)\) \{ text-decoration: underline; \}/, '');
     expect(mutated, 'the base rule for a link in text is not in the sheet').not.toBe(KIT);
     useSheet(mutated);
     mount(byId(TEXT_STORY));
