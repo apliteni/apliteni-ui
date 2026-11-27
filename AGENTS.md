@@ -93,6 +93,15 @@ the `index.mjs` file of a Playwright package, then run:
 `UI_PLAYWRIGHT=…/playwright/index.mjs TAP_ZONES=1 node --test stories/tap-zone.test.js`
 Report the result in the PR. CI runs only this gate's source half, so the measurement is yours.
 
+## Check the small control heights locally
+
+Before opening a PR that changes `--control-height-sm`, a small size of a search field, filter
+bar, dropdown or button, or a toolbar's height rules, measure the controls in a real browser.
+Run `npm run build -w react` first, then:
+`UI_PLAYWRIGHT=… CONTROL_HEIGHTS=1 node --test stories/control-height.test.js`
+It measures them with a mouse and with touch, and the 44px tap floor at 390px.
+Report the result in the PR. CI runs only the source half, in `react/src/SearchField.test.tsx`.
+
 ## Check the chart's point targets locally
 
 Before opening a PR that changes a chart's point target, its plot height or
@@ -320,13 +329,23 @@ Report the result in the PR. CI runs only the source half, in `react/src/Drawer.
 ## Check the toast stack locally
 
 Before opening a PR that changes `src/styles/callout.css`'s toast rules, `react/src/Toast.css` or
-React `<Toast>`, walk an undo stack's keys and clicks in a real browser. Run
+React `<Toast>`, walk an undo stack's keys and clicks in a real browser. The same run walks a page
+with a bottom bar and checks that the stack stands 16px above the bar. It checks that five notices
+stay inside the view at each size, and that the reach follows a resize of the view. Run
 `npm run build-storybook` first, then:
 `UI_PLAYWRIGHT=… UI_WEB_VITALS=…/web-vitals.iife.js TOAST_STACK=1 node --test stories/toast-stack.test.js`
 If the Playwright package has no browser of its own version, set `UI_CHROME` to a Chrome
 headless shell. The gate passes it to the launch:
 stories/toast-stack.test.js:166 `executablePath: process.env.UI_CHROME`
 Report the result in the PR. CI runs only the source half, in `react/src/Toast.test.tsx`.
+
+## Check the stat band fit locally
+
+Before opening a PR that changes the compact band ranges of `src/styles/stat.css` or the
+Transactions showcase, measure them in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… UI_CHROME=… UI_WEB_VITALS=…/web-vitals.iife.js STAT_FIT=1 node --test stories/stat-band-fit.test.js`
+Report the result in the PR. CI runs only the source halves, in `src/styles/stat.test.js` and
+`react/src/transactions.test.tsx`.
 
 ## Changes
 

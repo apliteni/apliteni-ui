@@ -31,6 +31,16 @@ export const Tiles: StoryObj = { render: () => <BasedBand stats={STATS} /> };
 export const Band: StoryObj = { render: () => <BasedBand stats={STATS} variant="band" /> };
 export const Open: StoryObj = { render: () => <BasedBand stats={STATS} variant="open" /> };
 
+// Three seven-digit amounts in one card. On a phone the band keeps them in one row: the
+// value steps down one rank at a time, and only at 19rem or below does it stack. #865
+export const ThreeFigures: StoryObj = {
+  render: () => <StatBand variant="band" label="Annual cash flow" stats={[
+    { label: 'Income', value: '€2,315,750' },
+    { label: 'Spend', value: '€1,031,250' },
+    { label: 'Net', value: '€1,284,500' },
+  ]} />,
+};
+
 // A caption earns the row a change would have taken only by giving a unit, a
 // period or a limit the figure cannot: a rate could be of income or of orders.
 // Gross margin names its own denominator, so it takes none.

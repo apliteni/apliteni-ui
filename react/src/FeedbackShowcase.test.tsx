@@ -20,10 +20,10 @@ describe('feedback showcase', () => {
     expect(dialog.querySelector('blockquote')).toHaveTextContent(QUOTED);
     const note = screen.getByRole('textbox');
     expect(note).toHaveValue('');
-    expect(screen.getByRole('button', { name: 'Send feedback' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeDisabled();
     fireEvent.change(note, { target: { value: 'Please add a delivery date.' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
-    expect(screen.getByRole('button', { name: 'Send feedback' })).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveAttribute('aria-busy', 'true');
     expect(await screen.findByText('Feedback sent')).toBeInTheDocument();
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
@@ -39,10 +39,10 @@ describe('feedback showcase', () => {
     // used rather than a hardcoded pixel.
     expect((pill.parentElement as HTMLElement).style.bottom)
       .toBe('calc(var(--rx-toast-stack, 0px) + var(--space-4))');
-    expect(pill.parentElement).toHaveStyle({ opacity: '1' });
+    expect(pill.parentElement).not.toHaveAttribute('hidden');
     fireEvent.click(pill);
     // Its dialog is open, so the page's own filled action stands down.
-    expect(pill.parentElement).toHaveStyle({ opacity: '0' });
+    expect(pill.parentElement).toHaveAttribute('hidden');
   });
 
   it('shows context without an excerpt and cancels without sending', async () => {
@@ -63,7 +63,7 @@ describe('feedback showcase', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Feedback' }));
     const note = await screen.findByRole('textbox');
     fireEvent.change(note, { target: { value: 'Please add a delivery date.' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
     expect(await screen.findByRole('alert')).toHaveTextContent("Could not send. Your note is still here; try again.");
     expect(note).not.toHaveAttribute('aria-invalid', 'true');
     expect(note).not.toHaveClass('is-invalid');
@@ -73,7 +73,7 @@ describe('feedback showcase', () => {
     await waitFor(() => expect(document.querySelector('.ui-btn__status')).toHaveTextContent(/^$/));
     expect(note).toHaveValue('Please add a delivery date.');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Send feedback' }));
-    expect(screen.getByRole('button', { name: 'Send feedback' })).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(screen.getByRole('button', { name: 'Send' }));
+    expect(screen.getByRole('button', { name: 'Send' })).toHaveAttribute('aria-busy', 'true');
   });
 });

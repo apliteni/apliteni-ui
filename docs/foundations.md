@@ -496,8 +496,10 @@ A bare `input { font-size: 20px !important; }` has the same specificity as the n
 only while your stylesheet loads after the kit's.
 
 **A small field is the full field on a touch screen.** With a mouse, `SearchField size="sm"` is
-32px high with `--text-sm`. On a touch screen it is 40px high with 16px text, and its toolbar
-and a create row above it stand the same height. So the small size never takes a field under 16px.
+32px high with `--text-sm`. On a touch screen it is 40px high with 16px text. The small filter
+bar, dropdown and toolbar button stand the same height, because each reads
+`--control-height-sm`: 32px with a mouse and 40px on a touch screen. So the small size never
+takes a field under 16px.
 
 ## A tap reaches the floor below the phone step
 
@@ -522,6 +524,11 @@ layer. `input`, `select` and `textarea` generate no pseudo-element and use their
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
 A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 2 past the chip
 on each side to make 44.
+A wordless button that is a direct child of a toolbar draws 36 or 40 wide. Its layer reaches
+into half of the toolbar's 10px gap on each side to make 44, and the gap does not open
+(src/styles/tap-zone.css:182 `--tap-clear-x: 10px`). To give a lone small, default or
+large button the floor, put it in a toolbar. An extra-small wordless button draws 24 wide, so its layer stays under 44.
+Where a phone user taps it, use `size="sm"` or larger.
 A drawer title that its ellipsis cuts is a target too. Its layer reaches up and down to make 44.
 The title clips its own text, so the layer measures against the readout trigger around it.
 A stat band's change with a tooltip has no layer. On a touch phone it is a 44 by 44 target

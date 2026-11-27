@@ -536,7 +536,7 @@ const SOLID_STATUSES = [...toastStatuses().keys()];
 test('every toast status declares the whole set of paint tokens', () => {
   assert.ok(SOLID_STATUSES.length >= 5, `only ${SOLID_STATUSES.length} toast statuses found — the scan is broken`);
   for (const [status, body] of toastStatuses()) {
-    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid', '--toast-timer-tone']
+    const missing = ['--toast-accent', '--toast-action-ink', '--toast-glow', '--toast-on', '--toast-solid']
       .filter((token) => !new RegExp(`${token}\\s*:`).test(body));
     assert.deepStrictEqual(
       missing, [],
@@ -952,17 +952,17 @@ test('the solid-toast gate actually measures something', () => {
 });
 
 /* ---- the undo notice's countdown ring ---------------------------------------
- * A 2px ring in the notice's tone, mixed into the notice ground by --toast-timer-mix or
- * --toast-timer-mix-strong. At 2 CSS px it is a graphic, so it is held to 3:1 against the notice
- * ground and against the action's hover fill behind it, in both themes, under every accent and in
- * every tone. Its track is the full circle behind the arc. The track must show on both grounds, and
- * the arc must stay clearly apart from it. Limit: it reads the declarations, not a rendered ring. #888 */
+ * A 2px ring in the action's own ink. At 2 CSS px it is a graphic, so it is held to 3:1 against the
+ * notice ground and against the action's hover fill behind it, in both themes, under every accent
+ * and in every tone. Its track is the full circle behind the arc. The track must show on both
+ * grounds, and a reader reads the time left from the arc against the track, so the arc keeps 3:1
+ * on the track too. Limit: it reads the declarations, not a rendered ring. #888 #907 */
 
 /* The ring's own ink. The forced-colours rule names a system colour, which has no ratio to read. */
 const ringInk = (css) => [...css.matchAll(RULE)]
   .filter(([, sel]) => splitSelectorList(sel).includes('.ui-toast__ring'))
   .map(([, , body]) => /(?:^|;)\s*color\s*:\s*([^;]+)/.exec(body)?.[1].trim())
-  .find((ink) => ink?.includes('--toast-timer-tone'));
+  .find((ink) => ink?.includes('var(--'));
 
 /* The action's hover fill in a theme. A theme's own rule, as `:where(:root[data-theme="light"])`
  * gives it, wins over the plain rule. */
@@ -1003,15 +1003,15 @@ function ringRatio(theme, accent, status, css, props) {
 /* The tones whose ring falls under 3:1 on the notice ground or on the hover fill. A mutation
  * passes its own callout source or custom property values, so it runs through this same gate. */
 function ringFailures(theme, accent, { css = CALLOUT, props = {} } = {}) {
-  assert.ok(ringInk(css), 'callout.css has no ring ink with --toast-timer-tone');
+  assert.ok(ringInk(css), 'callout.css has no ring ink');
   return SOLID_STATUSES.map((status) => [status, ringRatio(theme, accent, status, css, props)])
     .filter(([, r]) => r < GRAPHIC_AA).map(([status, r]) => `${status}: ${show(r)}:1`);
 }
 
-/* The track shows on the notice ground and on the hover fill, and the arc stays this far from it.
- * The track is soft, so it is held to a visible step and not to 3:1: the arc carries the reading. */
+/* The track shows on the notice ground and on the hover fill, and the arc keeps 3:1 on it. The
+ * track is soft, so it is held to a visible step and not to 3:1: the arc carries the reading. */
 const TRACK_SHOWS = 1.2;
-const ARC_OVER_TRACK = 2;
+const ARC_OVER_TRACK = GRAPHIC_AA;
 function trackFailures(theme, accent, { css = CALLOUT } = {}) {
   assert.ok(trackInk(css), 'callout.css has no ring track that mixes the arc ink');
   return SOLID_STATUSES.flatMap((status) => {
@@ -1070,11 +1070,16 @@ test('the track gate rejects a track that does not show and a track as dark as t
 });
 
 test('the ring gate rejects a ring mixed too far into the ground', () => {
-  // The light soft mix at 40% instead of 95%: the three tones that take it fail.
-  assert.deepEqual(ringFailures('light', 'default', { props: { '--toast-timer-mix': '40%' } }).map((f) => f.split(':')[0]), ['success', 'warn', 'info']);
-  // Dark danger and neutral without the strong mix: 45% leaves them under 3:1.
-  const weak = CALLOUT.replaceAll('--toast-timer-tone: var(--toast-timer-mix-strong)', '--toast-timer-tone: var(--toast-timer-mix)');
-  assert.notStrictEqual(weak, CALLOUT, 'no tone takes --toast-timer-mix-strong');
-  assert.deepEqual(ringFailures('dark', 'default', { css: weak }).map((f) => f.split(':')[0]), ['danger', 'neutral']);
+  // The ring ink mixed 40% into the ground: every tone falls under 3:1 in light.
+  const faint = CALLOUT.replace(/(\.ui-toast__ring\s*\{[^}]*color:\s*)var\(--toast-action-ink\)/, '$1color-mix(in srgb, var(--toast-action-ink) 40%, var(--surface))');
+  assert.notStrictEqual(faint, CALLOUT, 'callout.css has no ring in the action ink to mutate');
+  assert.deepEqual(ringFailures('light', 'default', { css: faint }).map((f) => f.split(':')[0]), ['success', 'danger', 'warn', 'info', 'neutral']);
+});
+
+test('the track gate rejects the tone mix that #907 replaced', () => {
+  // The #888 ring: the tone mixed into the ground. Its arc measured 2.62:1 on the track in light.
+  const mixed = CALLOUT.replace(/(\.ui-toast__ring\s*\{[^}]*color:\s*)var\(--toast-action-ink\)/, '$1color-mix(in srgb, var(--toast-accent) 95%, var(--surface))');
+  assert.notStrictEqual(mixed, CALLOUT, 'callout.css has no ring in the action ink to mutate');
+  assert.ok(trackFailures('light', 'default', { css: mixed }).some((f) => f.startsWith('success arc over track')));
 });
 

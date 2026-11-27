@@ -45,6 +45,10 @@
   line-height: var(--leading-tight); padding: 7.2px 11px 7.2px 13px;
   transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
+/* The small dropdown, `.ui-dropdown--sm`: its trigger takes the small control height, level
+   with a small search field, filter bar and button. 32px with a mouse, 40px on a touch screen.
+   #903 why: docs/components.md#dropdown */
+.ui-dropdown--sm > .ui-dropdown__trigger { min-height: var(--control-height-sm); }
 /* The hover edge steps aside under the band: an accent edge one pixel inside an
    accent band is the second band #578 round r34 took off the focus rules, and a
    pointer resting on a focused control would put it back. One indicator, which is
@@ -433,9 +437,8 @@
 .ui-dropdown__group {
   font-size: var(--text-sm);
   font-weight: var(--weight-bold);
-  /* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */
-  color: var(--muted);
   padding: 7px 12px 4px;
+  /* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);
 }
 
 /* Separator */

@@ -215,3 +215,268 @@ test('an undo stack keeps three notices, each Undo acts on its own notice, and t
     server.proc.kill();
   }
 });
+
+/* Rule: a page with a bar at the bottom sets `bottomOffset`, and the stack stands 16px above the
+ * bar while the bar shows and 16px above the bottom of the view when it does not. The published
+ * reach follows the stack. Off unless TOAST_STACK=1, with the same commands as the walk above.
+ *
+ * It opens react-toast--bottom-bar (four rows, two selected, a floating bar with Clear and
+ * Archive, and one undo notice) at the same ten sizes and six devices, under reduced motion,
+ * because the kit's net then turns the move into a 0.01ms transition that ends after the
+ * provider reads the stack. The walk clicks a third row, Archive, which closes the bar, a row,
+ * which opens it again, and Clear. Between them it moves the focus to the newest Undo by script
+ * and presses Escape. After each step it reads the gap to the bar or to the bottom, the reach
+ * against the stack's top, the layout shift, the sideways overflow, and, after a key, the focus.
+ *
+ * The same test opens react-toast--tones (five notices that stay) at each size and device, and
+ * checks that the stack stands inside the view and shows its newest notice whole. A taller stack
+ * scrolls. It also opens react-toast--presentations-gallery with actions at each size and device,
+ * with full and reduced motion. It presses Enter twice on Show toasts for ten notices, Tab to the
+ * oldest notice's Undo and Escape, and checks that the focus goes to Reload, which stays whole
+ * inside the stack and the view. Then it opens react-toast--undo-one with bottomOffset 10vh at
+ * 1280×800 with full motion, makes the view 1000px tall, and checks that the published reach
+ * follows the stack.
+ *
+ * Its limits: one engine, the light theme and the default accent. The focus is placed by script,
+ * so it reads where the focus is, not how the ring paints. The source half is in
+ * react/src/Toast.test.tsx. #907
+ */
+const BAR_STORY = 'react-toast--bottom-bar';
+const READ_BAR = () => {
+  const stack = document.querySelector('.rx-toast-stack');
+  const doc = document.scrollingElement;
+  const box = stack.getBoundingClientRect();
+  const bar = document.querySelector('.ui-float-bar')?.getBoundingClientRect();
+  return {
+    cls: window.__cls, over: doc.scrollWidth - doc.clientWidth,
+    bar: !!bar, gap: (bar ? bar.top : innerHeight) - box.bottom,
+    reach: parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--rx-toast-stack')),
+    top: innerHeight - box.top,
+    inside: stack.contains(document.activeElement),
+    count: stack.querySelectorAll('.ui-toast:not(.is-leaving)').length,
+  };
+};
+const BAR_ACTIONS = [
+  ['click: select a third row', async (page) => {
+    await page.getByRole('checkbox', { name: 'Select Path sketch' }).click();
+    await page.getByText('3 selected').waitFor();
+  }, { bar: true, count: 1 }],
+  ['click: Archive', async (page) => {
+    await page.getByRole('button', { name: 'Archive' }).click();
+    await page.locator('.ui-float-bar').waitFor({ state: 'detached' });
+    await live(page, 2);
+  }, { bar: false, count: 2 }],
+  ['click: select a row', async (page) => {
+    await page.getByRole('checkbox', { name: 'Select Field notes' }).click();
+    await page.getByText('1 selected').waitFor();
+  }, { bar: true, count: 2 }],
+  ['key: Escape on the newest notice', async (page) => {
+    await notice(page, 'files archived').getByRole('button', { name: 'Undo' }).focus();
+    await page.keyboard.press('Escape');
+    await live(page, 1);
+    await focused(page, button(page, 'Seed list', 'Undo'));
+  }, { bar: true, count: 1 }],
+  ['click: Clear', async (page) => {
+    await page.getByRole('button', { name: 'Clear' }).click();
+    await page.locator('.ui-float-bar').waitFor({ state: 'detached' });
+  }, { bar: false, count: 1 }],
+];
+
+async function openBar(browser, port, vitals, context) {
+  const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion: 'reduce' });
+  await ctx.addInitScript({ content: `${vitals}\nwindow.__cls = 0; webVitals.onCLS((m) => { window.__cls = m.value; }, { reportAllChanges: true });` });
+  const page = await ctx.newPage();
+  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${BAR_STORY}&viewMode=story&globals=theme:light`);
+  await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
+    && window.__STORYBOOK_PREVIEW__.currentRender.id === id, BAR_STORY);
+  await live(page, 1);
+  await page.waitForFunction(() => document.fonts.status === 'loaded');
+  return { ctx, page };
+}
+
+// A stack of five notices on a short view stands inside the view and shows its newest notice whole.
+const TALL_STORY = 'react-toast--tones';
+const READ_TALL = () => {
+  const stack = document.querySelector('.rx-toast-stack');
+  const box = stack.getBoundingClientRect();
+  const newest = stack.lastElementChild.getBoundingClientRect();
+  const doc = document.scrollingElement;
+  return {
+    count: stack.querySelectorAll('.ui-toast').length, top: box.top, bottom: innerHeight - box.bottom,
+    hidden: Math.max(0, box.top - newest.top, newest.bottom - box.bottom), over: doc.scrollWidth - doc.clientWidth,
+  };
+};
+async function openAt(browser, port, context, id, args = '', reducedMotion = 'reduce', init = '') {
+  const ctx = await browser.newContext({ ...context, timezoneId: 'UTC', reducedMotion });
+  if (init) await ctx.addInitScript({ content: init });
+  const page = await ctx.newPage();
+  await page.goto(`http://127.0.0.1:${port}/iframe.html?id=${id}&viewMode=story&globals=theme:light${args}`);
+  await page.waitForFunction((story) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
+    && window.__STORYBOOK_PREVIEW__.currentRender.id === story, id);
+  return { ctx, page };
+}
+async function checkTall(page, label) {
+  await live(page, 5);
+  await page.evaluate(frames);
+  const state = await page.evaluate(READ_TALL);
+  const found = [];
+  if (state.top < 0) found.push(`${label}: the stack stands ${Math.round(-state.top)}px above the view`);
+  if (Math.abs(state.bottom - 16) > 1) found.push(`${label}: the stack stands ${Math.round(state.bottom)}px above the bottom`);
+  if (state.hidden > 1) found.push(`${label}: ${Math.round(state.hidden)}px of the newest notice is out of the stack`);
+  if (state.over > 0) found.push(`${label}: the page scrolls ${state.over}px sideways`);
+  return found;
+}
+// A stack that scrolls keeps the focused control in view when a notice leaves.
+const KEPT_STORY = 'react-toast--presentations-gallery';
+async function checkKept(page, label) {
+  await page.getByRole('button', { name: 'Show toasts' }).focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  await live(page, 10);
+  await page.keyboard.press('Tab');
+  await focused(page, button(page, 'Deployment live', 'Undo').first());
+  await page.keyboard.press('Escape');
+  await live(page, 9);
+  await focused(page, button(page, 'Sync scheduled', 'Reload').first());
+  await page.evaluate(frames);
+  const hidden = await page.evaluate(() => {
+    const box = document.querySelector('.rx-toast-stack').getBoundingClientRect();
+    const control = document.activeElement.getBoundingClientRect();
+    const top = Math.max(0, box.top), bottom = Math.min(innerHeight, box.bottom);
+    return Math.max(0, top - control.top, control.bottom - bottom);
+  });
+  return hidden > 1 ? [`${label}: ${Math.round(hidden)}px of the focused Reload is out of view`] : [];
+}
+// An offset in view units moves the stack when the view changes size. The reach follows it. Full
+// motion, because under reduced motion the net's transition on the move ends in a read of its own.
+async function checkResize(page, label) {
+  await live(page, 1);
+  await page.evaluate(frames);
+  const found = [];
+  for (const height of [800, 1000]) {
+    await page.setViewportSize({ width: 1280, height });
+    await page.evaluate(frames);
+    const state = await page.evaluate(READ_BAR);
+    if (Math.abs(state.gap - height / 10) > 1) found.push(`${label} ${height}px: the stack stands ${Math.round(state.gap)}px above the bottom`);
+    if (Math.abs(state.reach - state.top) > 1) found.push(`${label} ${height}px: the published reach is ${state.reach}px and the stack reaches ${Math.round(state.top)}px`);
+  }
+  return found;
+}
+
+async function walkBar(page, label, { only } = {}) {
+  const found = [];
+  const ran = [];
+  const check = (at, state, want) => {
+    if (want && (state.bar !== want.bar || state.count !== want.count)) found.push(`${at}: bar ${state.bar}, ${state.count} notices`);
+    if (Math.abs(state.gap - 16) > 1) found.push(`${at}: the stack stands ${Math.round(state.gap)}px above the ${state.bar ? 'bar' : 'bottom'}`);
+    if (Math.abs(state.reach - state.top) > 1) found.push(`${at}: the published reach is ${state.reach}px and the stack reaches ${Math.round(state.top)}px`);
+    if (!(state.cls < 0.1)) found.push(`${at}: the layout shift is ${state.cls}`);
+    if (state.over > 0) found.push(`${at}: the page scrolls ${state.over}px sideways`);
+  };
+  await page.evaluate(frames);
+  check(`${label} at rest`, await page.evaluate(READ_BAR), { bar: true, count: 1 });
+  for (const [name, run, want] of BAR_ACTIONS.filter(([n]) => !only || only.includes(n))) {
+    await run(page);
+    await page.evaluate(frames);
+    const state = await page.evaluate(READ_BAR);
+    ran.push(name);
+    check(`${label} ${name}`, state, want);
+    if (name.startsWith('key:') && !state.inside) found.push(`${label} ${name}: the focus left the stack`);
+  }
+  return { found, ran };
+}
+
+test('a page with a bottom bar keeps the stack 16px above the bar, and the reach follows the stack', {
+  skip: process.env.TOAST_STACK !== '1' && 'set TOAST_STACK=1',
+}, async () => {
+  const { serve, playwright } = await import('./lib/dropdown-contain.js');
+  const pw = await playwright();
+  assert.ok(pw, 'TOAST_STACK=1 was set and no Playwright could be resolved. Point UI_PLAYWRIGHT at one.');
+  assert.ok(process.env.UI_WEB_VITALS && existsSync(process.env.UI_WEB_VITALS), 'point UI_WEB_VITALS at web-vitals/dist/web-vitals.iife.js');
+  const vitals = readFileSync(process.env.UI_WEB_VITALS, 'utf8');
+  const build = path.join(root, 'storybook-static');
+  assert.ok(Object.keys(JSON.parse(readFileSync(path.join(build, 'index.json'), 'utf8')).entries).includes(BAR_STORY), `the Storybook build has no ${BAR_STORY}`);
+
+  const subjects = [
+    ...SIZES.map(([width, height]) => [`${width}×${height}`, { viewport: { width, height } }]),
+    ...DEVICES.map((name) => { assert.ok(pw.devices[name], `Playwright has no device "${name}"`); return [name, pw.devices[name]]; }),
+    ...DUO.map(([width, height]) => [`two-screen ${width}×${height}`, { viewport: { width, height }, deviceScaleFactor: 3, hasTouch: true, isMobile: true }]),
+  ];
+  const browser = await pw.chromium.launch({ executablePath: process.env.UI_CHROME });
+  const server = await serve(build, path.join(build, 'iframe.html'));
+  try {
+    const findings = [];
+    const table = [];
+    for (const [label, context] of subjects) {
+      const { ctx, page } = await openBar(browser, server.port, vitals, context);
+      const width = await page.evaluate(() => innerWidth);
+      const { found, ran } = await walkBar(page, label);
+      findings.push(...found);
+      assert.equal(ran.length, BAR_ACTIONS.length, `${label}: ${ran.length} of ${BAR_ACTIONS.length} actions ran`);
+      table.push(`bottom bar ${label} ${width}px: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
+      await ctx.close();
+      const tall = await openAt(browser, server.port, context, TALL_STORY);
+      const high = await checkTall(tall.page, `five notices ${label}`);
+      findings.push(...high);
+      table.push(`five notices ${label} ${width}px: ${high.length ? 'fail' : 'pass'}`);
+      await tall.ctx.close();
+      for (const motion of ['no-preference', 'reduce']) {
+        const kept = await openAt(browser, server.port, context, KEPT_STORY, '&args=action:!true', motion);
+        const lost = await checkKept(kept.page, `focus after a dismissal ${label} ${motion}`);
+        findings.push(...lost);
+        table.push(`focus after a dismissal ${label} ${width}px ${motion}: ${lost.length ? 'fail' : 'pass'}`);
+        await kept.ctx.close();
+      }
+    }
+    const resized = await openAt(browser, server.port, { viewport: { width: 1280, height: 800 } }, 'react-toast--undo-one', '&args=bottomOffset:10vh', 'no-preference');
+    findings.push(...await checkResize(resized.page, 'bottomOffset 10vh'));
+    await resized.ctx.close();
+    process.stdout.write(`${table.join('\n')}\n`);
+    assert.equal(table.length, 4 * (SIZES.length + DEVICES.length + DUO.length), 'a size or a device was not measured');
+    assert.deepEqual(findings, []);
+
+    // The mutations: each check must see its own failure.
+    const caught = [];
+    const phone = { viewport: { width: 390, height: 844 } };
+    const mutate = async (setup, only, says) => {
+      const { ctx, page } = await openBar(browser, server.port, vitals, phone);
+      page.setDefaultTimeout(3000);
+      await setup(page);
+      const { found } = await walkBar(page, 'mutated', { only }).catch((error) => ({ found: [String(error)] }));
+      caught.push([says, found.some((f) => f.includes(says)), found]);
+      await ctx.close();
+    };
+    // A stack that ignores bottomOffset, as on main.
+    await mutate((page) => page.addStyleTag({ content: '.ui-toast-stack.rx-toast-stack { bottom: 16px !important; }' }), [], 'above the bar');
+    // A reach read only before the move: the end of the move never reaches the provider.
+    await mutate((page) => page.evaluate(() => document.addEventListener('transitionend', (event) => event.stopImmediatePropagation(), true)), ['click: Clear'], 'published reach');
+    await mutate((page) => page.evaluate(() => document.addEventListener('keydown', () => setTimeout(() => document.activeElement.blur()), true)),
+      BAR_ACTIONS.map(([name]) => name).filter((name) => name !== 'click: Clear'), 'focus left');
+    await mutate((page) => page.addStyleTag({ content: '#storybook-root { min-width: 200vw; }' }), [], 'sideways');
+    // A stack with no top, as on ee4b2d7c: five notices rise out of a landscape phone's view.
+    const landscape = await openAt(browser, server.port, { viewport: { width: 844, height: 390 } }, TALL_STORY);
+    await landscape.page.addStyleTag({ content: '.ui-toast-stack.rx-toast-stack.rx-toast-stack--scroll { top: auto; }' });
+    const risen = await checkTall(landscape.page, 'mutated');
+    caught.push(['above the view', risen.some((f) => f.includes('above the view')), risen]);
+    await landscape.ctx.close();
+    // A stack that shows its newest notice after every change, as on 0d821a3f: the focused Reload
+    // scrolls out of a landscape phone's view.
+    const scrolled = await openAt(browser, server.port, { viewport: { width: 844, height: 390 } }, KEPT_STORY, '&args=action:!true', 'no-preference',
+      "new MutationObserver(() => { const s = document.querySelector('.rx-toast-stack'); if (s) s.scrollTop = s.scrollHeight; }).observe(document, { childList: true, subtree: true });");
+    scrolled.page.setDefaultTimeout(3000);
+    const away = await checkKept(scrolled.page, 'mutated').catch((error) => [String(error)]);
+    caught.push(['out of view', away.some((f) => f.includes('out of view')), away]);
+    await scrolled.ctx.close();
+    // A reach that the view's resize does not publish again, as on ee4b2d7c.
+    // The window runs its own listeners in the order they came, so this one comes before the page's.
+    const unheard = await openAt(browser, server.port, { viewport: { width: 1280, height: 800 } }, 'react-toast--undo-one', '&args=bottomOffset:10vh', 'no-preference',
+      "addEventListener('resize', (event) => event.stopImmediatePropagation());");
+    const stale = await checkResize(unheard.page, 'mutated');
+    caught.push(['1000px: the published reach', stale.some((f) => f.includes('1000px: the published reach')), stale]);
+    await unheard.ctx.close();
+    assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');
+  } finally {
+    await browser.close();
+    server.proc.kill();
+  }
+});
