@@ -255,7 +255,8 @@ it('opens the title menu from the keyboard, walks it with the arrows and gives t
 });
 
 it('holds the widths: column 1 240px, column 2 26% from 260px to --panel-sm, column 3 the rest', () => {
-  expect(css).toMatch(/\.ui-columns \{[^}]*grid-template-columns: 240px clamp\(260px, 26%, var\(--panel-sm\)\) minmax\(0, 1fr\);/);
+  // A page that resizes gives the first two widths in px.
+  expect(css).toMatch(/\.ui-columns \{[^}]*grid-template-columns: var\(--ui-columns-1, 240px\) var\(--ui-columns-2, clamp\(260px, 26%, var\(--panel-sm\)\)\) minmax\(0, 1fr\);/);
   // Each column scrolls alone in the window under the band, and one line stands between two columns.
   expect(css).toMatch(/\.ui-columns \{[^}]*height: calc\(100dvh - var\(--ui-app-band, 0px\)\);/);
   // The content scrolls in a box below the header row, so the box's focus band shows its four sides.
@@ -469,4 +470,177 @@ it('lets the payee wrap, puts the unit in the header, and a search with no rows 
   expect(search).toHaveValue('');
   expect(search).toHaveFocus();
   expect(screen.getAllByRole('row').length).toBeGreaterThan(1);
+});
+
+// Limits: JSDOM lays nothing out, so the page area is a stubbed ResizeObserver entry and a drag
+// is a pointer event's clientX. stories/three-column.test.js drags the lines in a browser.
+const sized = (width: number) => {
+  let report: ResizeObserverCallback = () => {};
+  vi.stubGlobal('ResizeObserver', class { constructor(fn: ResizeObserverCallback) { report = fn; } observe() {} disconnect() {} });
+  return () => act(() => report([{ contentRect: { width } } as ResizeObserverEntry], {} as ResizeObserver));
+};
+const lines = () => screen.queryAllByRole('separator');
+const values = (line: HTMLElement) => ['aria-valuemin', 'aria-valuenow', 'aria-valuemax'].map(a => Number(line.getAttribute(a)));
+const resizable = (width: number, props: Partial<Parameters<typeof ThreeColumnPage>[0]> = {}, room = width) => {
+  at(width);
+  const area = sized(room);
+  render(page({ resizable: true, ...props }));
+  area();
+  return lines() as HTMLElement[];
+};
+
+it('resizes only when resizable is set, and names each line by the column it sizes', () => {
+  at(1280);
+  const area = sized(1280);
+  render(page());
+  area();
+  expect(lines()).toHaveLength(0);
+  expect(root().getAttribute('style')).toBeNull();
+  cleanup();
+  const [first, second] = resizable(1280);
+  expect(lines()).toHaveLength(2);
+  expect(first).toHaveAccessibleName('Folders');
+  expect(second).toHaveAccessibleName('Shared');
+  expect(first).toHaveAttribute('aria-orientation', 'vertical');
+  expect(first).toHaveAttribute('tabindex', '0');
+  expect(document.getElementById(first!.getAttribute('aria-controls')!)).toHaveAttribute('data-column', '1');
+  expect(document.getElementById(second!.getAttribute('aria-controls')!)).toHaveAttribute('data-column', '2');
+  // Column 1 is 240px and column 2 is 26% of 1280px, at most --panel-sm: the stylesheet's widths.
+  expect(values(first!)).toEqual([200, 240, 320]);
+  expect(values(second!)).toEqual([240, 320, 420]);
+  expect(first).toHaveAttribute('aria-valuetext', '240 pixels');
+  expect(root().style.getPropertyValue('--ui-columns-1')).toBe('240px');
+  expect(root().style.getPropertyValue('--ui-columns-2')).toBe('320px');
+  // Each line stands at the start of the column after the one it sizes.
+  expect(first!.parentElement).toHaveAttribute('data-column', '2');
+  expect(second!.parentElement).toHaveAttribute('data-column', '3');
+  expect(css).toMatch(/\.ui-columns__col \{ position: relative;/);
+  // The line: a 12px target with the resize cursor, 4px of neutral ink in each active state,
+  // the kit's ring on the keyboard focus, no accent and no transition.
+  const line = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'ColumnResizer.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  expect(line).toMatch(/\.ui-resizer \{[^}]*width: var\(--space-3\);[^}]*cursor: col-resize;/);
+  expect(line).toMatch(/\.ui-resizer::before \{[^}]*width: var\(--space-1\);/);
+  expect(line).toMatch(/\.ui-resizer:hover::before,\n\.ui-resizer\[data-dragging\]::before,\n\.ui-resizer:focus-visible::before \{ background: var\(--muted\); \}/);
+  expect(line).toMatch(/\.ui-resizer:focus-visible \{[^}]*outline: var\(--ring\); outline-offset: var\(--ring-offset\); \}/);
+  expect(line).toMatch(/@media \(pointer: coarse\) \{\n  \.ui-resizer \{ width: var\(--tap-min\); \}/);
+  expect(line).not.toMatch(/accent|transition|animation/);
+});
+
+it('moves a line 16px with an arrow, 48px with Shift, and to its limits with Home and End', () => {
+  const onResize = vi.fn();
+  const [first, second] = resizable(1280, { onResize });
+  fireEvent.keyDown(second!, { key: 'ArrowRight' });
+  expect(onResize).toHaveBeenLastCalledWith([240, 336]);
+  fireEvent.keyDown(second!, { key: 'ArrowRight', shiftKey: true });
+  expect(onResize).toHaveBeenLastCalledWith([240, 384]);
+  fireEvent.keyDown(second!, { key: 'ArrowLeft' });
+  expect(onResize).toHaveBeenLastCalledWith([240, 368]);
+  fireEvent.keyDown(second!, { key: 'ArrowLeft', shiftKey: true });
+  expect(onResize).toHaveBeenLastCalledWith([240, 320]);
+  fireEvent.keyDown(second!, { key: 'End' });
+  expect(onResize).toHaveBeenLastCalledWith([240, 420]);
+  expect(second).toHaveAttribute('aria-valuenow', '420');
+  expect(root().style.getPropertyValue('--ui-columns-2')).toBe('420px');
+  // At a limit, a key past it changes nothing, and other keys stay with the page.
+  onResize.mockClear();
+  fireEvent.keyDown(second!, { key: 'ArrowRight' });
+  fireEvent.keyDown(second!, { key: 'Enter' });
+  expect(onResize).not.toHaveBeenCalled();
+  // With three columns, the first line trades width with column 2, so the open child stays.
+  fireEvent.keyDown(first!, { key: 'ArrowRight' });
+  expect(onResize).toHaveBeenLastCalledWith([256, 404]);
+  fireEvent.keyDown(first!, { key: 'End' });
+  expect(onResize).toHaveBeenLastCalledWith([320, 340]);
+  fireEvent.keyDown(first!, { key: 'Home' });
+  // Column 2 keeps its 420px maximum, so column 1 stops at 240px.
+  expect(onResize).toHaveBeenLastCalledWith([240, 420]);
+  expect(values(first!)).toEqual([240, 240, 320]);
+});
+
+it('keeps each column in its limits and the open child at 320px in the space of the page area', () => {
+  // 900px: column 2 has 900 - 240 - 320 = 340px at most.
+  let [first, second] = resizable(900);
+  expect(values(first!)).toEqual([200, 240, 260]);
+  expect(values(second!)).toEqual([240, 260, 340]);
+  cleanup();
+  // Widths from the app that the space cannot hold are fitted to it.
+  [first, second] = resizable(1000, { widths: [400, 500] });
+  expect(values(first!)[1]).toBe(320);
+  expect(values(second!)).toEqual([240, 360, 360]);
+  expect(root().style.getPropertyValue('--ui-columns-1')).toBe('320px');
+  cleanup();
+  // With no third column, column 2 takes the rest, at least 240px, and only column 1 resizes.
+  at(1280);
+  const area = sized(1280);
+  render(page({ resizable: true, columns: cols(false), widths: [300, 300] }));
+  area();
+  expect(lines()).toHaveLength(1);
+  expect(values(lines()[0]!)).toEqual([200, 300, 320]);
+});
+
+it('follows a drag, and Escape puts the widths back to where the drag started', () => {
+  const onResize = vi.fn();
+  const [, second] = resizable(1280, { onResize });
+  fireEvent.pointerDown(second!, { button: 0, pointerId: 1, clientX: 560 });
+  expect(second).toHaveFocus();
+  expect(second).toHaveAttribute('data-dragging');
+  fireEvent.pointerMove(second!, { pointerId: 1, clientX: 600 });
+  expect(onResize).toHaveBeenLastCalledWith([240, 360]);
+  // A drag past the limit stops at it.
+  fireEvent.pointerMove(second!, { pointerId: 1, clientX: 900 });
+  expect(onResize).toHaveBeenLastCalledWith([240, 420]);
+  fireEvent.keyDown(second!, { key: 'Escape' });
+  expect(onResize).toHaveBeenLastCalledWith([240, 320]);
+  expect(second).not.toHaveAttribute('data-dragging');
+  // After the drag, a move does nothing, and Escape is the page's again.
+  onResize.mockClear();
+  fireEvent.pointerMove(second!, { pointerId: 1, clientX: 700 });
+  fireEvent.keyDown(second!, { key: 'Escape' });
+  expect(onResize).not.toHaveBeenCalled();
+  // A drag that ends keeps its width, and a drag that the browser cancels goes back.
+  fireEvent.pointerDown(second!, { button: 0, pointerId: 2, clientX: 560 });
+  fireEvent.pointerMove(second!, { pointerId: 2, clientX: 592 });
+  fireEvent.pointerUp(second!, { pointerId: 2, clientX: 592 });
+  expect(onResize).toHaveBeenLastCalledWith([240, 352]);
+  fireEvent.pointerDown(second!, { button: 0, pointerId: 3, clientX: 560 });
+  fireEvent.pointerMove(second!, { pointerId: 3, clientX: 520 });
+  fireEvent.pointerCancel(second!, { pointerId: 3 });
+  expect(onResize).toHaveBeenLastCalledWith([240, 352]);
+  // A right button starts no drag.
+  onResize.mockClear();
+  fireEvent.pointerDown(second!, { button: 2, pointerId: 4, clientX: 560 });
+  fireEvent.pointerMove(second!, { pointerId: 4, clientX: 600 });
+  expect(onResize).not.toHaveBeenCalled();
+});
+
+it('puts one line back to its first width on a double click', () => {
+  const onResize = vi.fn();
+  const [first, second] = resizable(1280, { onResize });
+  fireEvent.keyDown(first!, { key: 'Home' });
+  expect(onResize).toHaveBeenLastCalledWith([200, 360]);
+  fireEvent.keyDown(second!, { key: 'End' });
+  expect(onResize).toHaveBeenLastCalledWith([200, 420]);
+  fireEvent.doubleClick(second!);
+  // Column 2 goes back to 320px. Column 1 keeps its width.
+  expect(onResize).toHaveBeenLastCalledWith([200, 320]);
+  fireEvent.doubleClick(first!);
+  expect(onResize).toHaveBeenLastCalledWith([240, 280]);
+});
+
+it('draws no line in a page area of 860px or less, or on a phone, and the widths stay the stylesheet\'s', () => {
+  // One pixel more of page area has the lines, so the 860px step is the one that removes them.
+  expect(resizable(1280, { depth: 3 }, 861)).toHaveLength(2);
+  cleanup();
+  // A wide window with an 860px page area, as beside an open sidebar, a tablet, and a phone.
+  for (const [win, room] of [[1280, 860], [820, 820], [390, 390]] as const) {
+    resizable(win, { depth: 3 }, room);
+    expect(lines()).toHaveLength(0);
+    expect(root().style.getPropertyValue('--ui-columns-1')).toBe('');
+    cleanup();
+  }
+  // The stylesheet: the two narrower layouts set their own columns, so a width never reaches them.
+  const tablet = css.slice(css.indexOf('@container ui-columns (max-width: 860px)'));
+  expect(tablet).toMatch(/grid-template-columns: minmax\(200px, 40%\) minmax\(0, 1fr\);/);
+  // Markup from a wider render, as on a server, keeps its lines, so the stylesheet hides them.
+  expect(tablet.slice(0, tablet.indexOf('\n}'))).toMatch(/\.ui-columns__col > \.ui-resizer \{ display: none; \}/);
 });

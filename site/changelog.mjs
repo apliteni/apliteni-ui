@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.221.0', date: '2026-11-27',
+    changes: [
+      ['added', '`ThreeColumnPage` and `SplitLayout` take `resizable`, so the reader can drag the line between two columns above 860px, or move it with the arrow keys. It is off by default, so no current page changes. Each column keeps its limits, and `onResize` with `widths` or `primaryWidth` lets an app keep the widths after a reload. Part of #903.', ['ThreeColumnPage', 'SplitLayout']],
+    ],
+  },
+  {
     v: '0.217.0', date: '2026-11-26',
     changes: [
       ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows in every table form, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves, also while the pointer stays on the field. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],

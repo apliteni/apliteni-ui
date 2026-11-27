@@ -1,5 +1,6 @@
-import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type MouseEvent, type ReactNode } from 'react';
 import { BackLink } from './BackLink';
+import { ColumnResizer, clamp } from './ColumnResizer';
 import { Dropdown, type DropdownProps } from './Dropdown';
 import { Icon } from './primitives/Icon';
 import './ThreeColumnPage.css';
@@ -46,8 +47,25 @@ export type ThreeColumnPageProps = {
   onDepthChange?: (depth: ThreeColumnDepth) => void;
   /** The address of a depth, for the back link. Without it, the link only calls onDepthChange. */
   depthHref?: (depth: ThreeColumnDepth) => string;
+  /** Lets the reader drag the line after column 1 and column 2, in a page area above 860px.
+   *  Off by default. */
+  resizable?: boolean;
+  /** The widths of column 1 and column 2 in px, for an app that keeps them. Without it, the
+   *  page keeps the widths until a reload. */
+  widths?: readonly [number, number];
+  /** Gets the widths of column 1 and column 2 in px at each change, also during a drag. */
+  onResize?: (widths: [number, number]) => void;
   className?: string;
 };
+
+// The limits of a resized column in px. Column 1: 200px, the tablet list floor, to --panel-sm.
+// Column 2: 240px to --panel-md. The open child keeps --panel-sm. The space of the page area
+// lowers each maximum. why: docs/components.md#three-column-page
+const FIRST = [200, 320] as const;
+const SECOND = [240, 420] as const;
+const OPEN = 320;
+/** The first widths, as the stylesheet gives them: 240px, and 26% from 260px to --panel-sm. */
+const firstWidths = (area: number | null): [number, number] => [240, Math.round(clamp((area ?? 0) * 0.26, 260, 320))];
 
 // CSS shows and hides the columns: two when the page area is 860px or narrower, and one at the
 // phone step. This reads the same widths only to name the hidden parent in the back link. The
@@ -69,7 +87,9 @@ const firstShown = (at: Mode, depth: ThreeColumnDepth): ThreeColumnDepth =>
   at === 'wide' ? 1 : at === 'tablet' ? (depth === 3 ? 2 : 1) : depth;
 
 /** A column browser: the parents, the children of the selected parent, and the open child. */
-export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChange, depthHref, className }: ThreeColumnPageProps) {
+export function ThreeColumnPage({
+  columns, depth, defaultDepth = 2, onDepthChange, depthHref, resizable = false, widths, onResize, className,
+}: ThreeColumnPageProps) {
   const uid = useId();
   const [own, setOwn] = useState(defaultDepth);
   const count = columns[2] ? 3 : 2;
@@ -88,6 +108,25 @@ export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChang
   const shown: Mode = query === 'phone' || area === null ? query : area > AREA ? 'wide' : 'tablet';
   const first = firstShown(shown, at);
 
+  // The widths fit the page area: each column keeps its limits, and the open child its floor.
+  const [ownWidths, setOwnWidths] = useState<[number, number] | null>(null);
+  const space = area ?? Infinity;
+  const wanted = widths ?? ownWidths ?? firstWidths(area);
+  const w1 = Math.min(clamp(wanted[0], ...FIRST), space - (count === 3 ? SECOND[0] + OPEN : SECOND[0]));
+  const w2 = clamp(wanted[1], SECOND[0], Math.min(SECOND[1], space - w1 - OPEN));
+  const resizing = resizable && shown === 'wide';
+  const resize = (next: [number, number]) => { if (!widths) setOwnWidths(next); onResize?.(next); };
+  // With three columns, the line after column 1 trades width with column 2, so the open child
+  // keeps its place. With two, column 2 takes the rest.
+  const sum = w1 + w2;
+  const lines = [
+    count === 3
+      ? { value: w1, min: Math.max(FIRST[0], sum - SECOND[1]), max: Math.min(FIRST[1], sum - SECOND[0]), set: (v: number) => resize([v, sum - v]) }
+      : { value: w1, min: FIRST[0], max: Math.min(FIRST[1], space - SECOND[0]), set: (v: number) => resize([v, w2]) },
+    { value: w2, min: SECOND[0], max: Math.min(SECOND[1], space - w1 - OPEN), set: (v: number) => resize([w1, v]) },
+  ];
+  const reset = (n: 0 | 1) => { const start = firstWidths(area); lines[n]!.set(clamp(start[n], lines[n]!.min, lines[n]!.max)); };
+
   // Read while rendering, before the commit can hide or remove the focused row.
   const held = typeof document !== 'undefined' && Boolean(root.current?.contains(document.activeElement));
   // When a move hides or removes the row that had the focus, the focus goes to the title of
@@ -104,8 +143,14 @@ export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChang
   const up = (at - 1) as ThreeColumnDepth;
   const go = (to: ThreeColumnDepth) => { if (depth === undefined) setOwn(to); onDepthChange?.(to); };
   const back = () => go(up);
-  const column = (col: ThreeColumn, n: ThreeColumnDepth) => <section key={n} data-column={n}
+  const column = (col: ThreeColumn, n: ThreeColumnDepth) => <section key={n} id={`${uid}-col-${n}`} data-column={n}
     className={`ui-columns__col ui-columns__col--${n}`} aria-labelledby={`${uid}-${n}`}>
+    {/* The line before this column sizes the column before it. */}
+    {resizing && n > 1 && (() => {
+      const line = lines[n - 2]!;
+      return <ColumnResizer value={line.value} min={line.min} max={line.max} controls={`${uid}-col-${n - 1}`}
+        labelledBy={`${uid}-${n - 1}`} onChange={line.set} onReset={() => reset((n - 2) as 0 | 1)} />;
+    })()}
     <header className="ui-columns__head">
       {/* The words stand in their own box, because the card title is a flex box and draws no ellipsis. */}
       <h2 id={`${uid}-${n}`} className={col.menu ? 'ui-sr' : 'ui-card__title'} tabIndex={-1}>
@@ -126,7 +171,8 @@ export function ThreeColumnPage({ columns, depth, defaultDepth = 2, onDepthChang
   </section>;
 
   // The page area is the query container, so three columns show only where they have room.
-  return <div className="ui-columns-area"><div ref={root} className={['ui-columns', className].filter(Boolean).join(' ')} data-depth={at}>
+  const style = resizing ? { '--ui-columns-1': `${w1}px`, '--ui-columns-2': `${w2}px` } as CSSProperties : undefined;
+  return <div className="ui-columns-area"><div ref={root} className={['ui-columns', className].filter(Boolean).join(' ')} data-depth={at} style={style}>
     {first > 1 && <div className="ui-columns__up">
       <BackLink href={depthHref?.(up) ?? '#'} label={columns[first - 2]!.title}
         onClick={(event: MouseEvent) => {

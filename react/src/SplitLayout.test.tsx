@@ -204,7 +204,12 @@ it('offers Try again on an unavailable preview, and only when there is a way to 
 
 it('splits 60 and 40 under the band, and stacks at 860px with sticky tools and actions', () => {
   const rule = (selector: string, body = css) => new RegExp(`(?:^|\\n)\\s*${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\{([^}]*)\\}`).exec(body)?.[1] ?? '';
-  expect(rule('.ui-split')).toMatch(/grid-template-columns:\s*minmax\(0, 3fr\) minmax\(0, 2fr\)/);
+  // A layout that resizes gives the first pane's width in px.
+  expect(rule('.ui-split')).toMatch(/grid-template-columns:\s*var\(--ui-split-primary, minmax\(0, 3fr\)\) minmax\(0, 2fr\)/);
+  expect(rule('.ui-split__preview')).toMatch(/position:\s*relative/);
+  // Before its first measure, a layout that resizes starts at 60% inside its limits, so the
+  // measure moves nothing.
+  expect(rule('.ui-split--resizable')).toMatch(/grid-template-columns:\s*var\(--ui-split-primary, clamp\(320px, 60%, min\(860px, 100% - 320px\)\)\) minmax\(0, 1fr\)/);
   expect(rule('.ui-split')).toMatch(/height:\s*calc\(100dvh - var\(--ui-app-band, 0px\)\)/);
   expect(rule('.ui-split__primary')).toMatch(/overflow-y:\s*auto/);
   expect(rule('.ui-split__stage')).toMatch(/overflow:\s*auto/);
@@ -214,4 +219,91 @@ it('splits 60 and 40 under the band, and stacks at 860px with sticky tools and a
   expect(rule('.ui-split', stacked)).toMatch(/display:\s*block;\s*overflow-y:\s*auto/);
   expect(rule('.ui-split__controls', stacked)).toMatch(/position:\s*sticky;\s*top:\s*0/);
   expect(rule('.ui-split__actions', stacked)).toMatch(/position:\s*sticky;\s*bottom:\s*0/);
+});
+
+// Limits: JSDOM lays nothing out, so the layout's width is a stubbed clientWidth that a stubbed
+// ResizeObserver reports, and a drag is a pointer event's clientX. stories/split-layout.test.js
+// drags the line in a browser.
+const wide = (width: number) => {
+  vi.stubGlobal('matchMedia', (query: string) => ({ matches: width <= Number(/max-width: (\d+)px/.exec(query)?.[1] ?? 0), addEventListener() {}, removeEventListener() {} }));
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockImplementation(function (this: HTMLElement) { return this.matches('.ui-split') ? width : 0; });
+  vi.stubGlobal('ResizeObserver', class { constructor(private fn: () => void) {} observe() { this.fn(); } disconnect() {} });
+};
+const line = () => screen.queryByRole('separator');
+const split = () => document.querySelector<HTMLElement>('.ui-split')!;
+
+it('resizes only when resizable is set, from 320px to 860px, with 320px left for the preview', () => {
+  wide(1280);
+  render(layout());
+  expect(line()).toBeNull();
+  expect(split()).not.toHaveClass('ui-split--resizable');
+  expect(split().style.getPropertyValue('--ui-split-primary')).toBe('');
+  cleanup();
+  const onResize = vi.fn();
+  render(layout({ resizable: true, primaryLabel: 'Extracted fields', onResize }));
+  const sep = line()!;
+  // The line is named by the pane it sizes, and starts at the stylesheet's 60%.
+  expect(sep).toHaveAccessibleName('Extracted fields');
+  expect(sep).toHaveAttribute('aria-orientation', 'vertical');
+  expect(document.getElementById(sep.getAttribute('aria-controls')!)).toHaveClass('ui-split__primary');
+  expect(['aria-valuemin', 'aria-valuenow', 'aria-valuemax'].map(a => sep.getAttribute(a))).toEqual(['320', '768', '860']);
+  expect(split().style.getPropertyValue('--ui-split-primary')).toBe('768px');
+  expect(sep.parentElement).toHaveClass('ui-split__preview');
+  expect(split()).toHaveClass('ui-split--resizable');
+  fireEvent.keyDown(sep, { key: 'ArrowLeft' });
+  expect(onResize).toHaveBeenLastCalledWith(752);
+  fireEvent.keyDown(sep, { key: 'ArrowRight', shiftKey: true });
+  expect(onResize).toHaveBeenLastCalledWith(800);
+  fireEvent.keyDown(sep, { key: 'ArrowLeft', shiftKey: true });
+  expect(onResize).toHaveBeenLastCalledWith(752);
+  fireEvent.keyDown(sep, { key: 'ArrowRight' });
+  expect(onResize).toHaveBeenLastCalledWith(768);
+  fireEvent.keyDown(sep, { key: 'End' });
+  expect(onResize).toHaveBeenLastCalledWith(860);
+  fireEvent.keyDown(sep, { key: 'Home' });
+  expect(onResize).toHaveBeenLastCalledWith(320);
+  expect(split().style.getPropertyValue('--ui-split-primary')).toBe('320px');
+  // A double click puts the pane back to 60%.
+  fireEvent.doubleClick(sep);
+  expect(onResize).toHaveBeenLastCalledWith(768);
+  cleanup();
+  // In a narrower layout, the preview's 320px lowers the maximum, and a held width is fitted.
+  wide(1000);
+  render(layout({ resizable: true, primaryWidth: 900 }));
+  expect(['aria-valuenow', 'aria-valuemax'].map(a => line()!.getAttribute(a))).toEqual(['680', '680']);
+});
+
+it('follows a drag, and Escape puts the pane back to where the drag started', () => {
+  wide(1280);
+  const onResize = vi.fn();
+  render(layout({ resizable: true, onResize }));
+  const sep = line()!;
+  fireEvent.pointerDown(sep, { button: 0, pointerId: 1, clientX: 1000 });
+  expect(sep).toHaveFocus();
+  fireEvent.pointerMove(sep, { pointerId: 1, clientX: 900 });
+  expect(onResize).toHaveBeenLastCalledWith(668);
+  fireEvent.keyDown(sep, { key: 'Escape' });
+  expect(onResize).toHaveBeenLastCalledWith(768);
+  onResize.mockClear();
+  fireEvent.pointerMove(sep, { pointerId: 1, clientX: 800 });
+  expect(onResize).not.toHaveBeenCalled();
+});
+
+it('draws no line at 860px and below, where the panes stack', () => {
+  // One pixel more has the line, so the 860px step is the one that removes it.
+  wide(861);
+  render(layout({ resizable: true }));
+  expect(line()).not.toBeNull();
+  cleanup();
+  wide(860);
+  render(layout({ resizable: true, primaryWidth: 500 }));
+  expect(line()).toBeNull();
+  expect(split().style.getPropertyValue('--ui-split-primary')).toBe('');
+  cleanup();
+  wide(390);
+  render(layout({ resizable: true }));
+  expect(line()).toBeNull();
+  // Markup from a wider render, as on a server, keeps its line, so the stylesheet hides it.
+  const stacked = css.slice(css.indexOf('@media (max-width: 860px)'), css.indexOf('@media (max-width: 560px)'));
+  expect(stacked).toMatch(/\.ui-split__preview > \.ui-resizer \{ display: none; \}/);
 });

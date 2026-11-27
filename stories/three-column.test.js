@@ -19,7 +19,11 @@
  * walks the Wizard in column 2, a check that opens its rows, a search, the back link and a new
  * month. After each back link it reads that the browser landed on the link's address at the
  * click. react-three-column-page--title-menu opens at depth 2, so a phone shows the title
- * menu, and walks the back link, a folder, the title menu and Escape, and a file. The shell chrome is every fixed or sticky element outside the page,
+ * menu, and walks the back link, a folder, the title menu and Escape, and a file.
+ * react-three-column-page--resizable walks the keys, a drag, Escape in a drag and a double
+ * click on the lines, as stories/lib/resize-walk.js says, and after each action reads that
+ * each column is as wide as its line says. It shows two lines only in a page area above 860px.
+ * The shell chrome is every fixed or sticky element outside the page,
  * found in the page.
  *
  * At each subject it also runs axe's label-content-name-mismatch rule on the page, so a row's
@@ -40,6 +44,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { LINE, LINES, resizeActions } from './lib/resize-walk.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SIZES = [[390, 844], [844, 390], [820, 1180], [1280, 800], [1920, 1080], [360, 800], [466, 678], [984, 1016], [1536, 864], [2560, 1440]];
@@ -57,7 +62,7 @@ const READ = () => {
     .map((e) => { const r = e.getBoundingClientRect(); return { name: `${e.tagName.toLowerCase()}.${[...e.classList].join('.')}`, x: r.left, y: r.top }; });
   const doc = document.scrollingElement;
   return {
-    focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
+    focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40) || el.getAttribute('role')) : null,
     chrome, cls: window.__cls, depth: page.dataset.depth, over: doc.scrollWidth - doc.clientWidth,
     address: window.__address,
     tables: [...page.querySelectorAll('.ui-table-scroll')].filter((e) => e.checkVisibility()).map((e) => e.scrollWidth - e.clientWidth),
@@ -107,6 +112,10 @@ const STORIES = [
     backs: { wide: 0, tablet: 1, phone: 2 } },
   { id: 'react-three-column-page--title-menu', actions: LIBRARY, shows: { wide: ['1', '2', '3'], tablet: ['1', '2'], phone: ['2'] },
     backs: { wide: 0, tablet: 0, phone: 1 } },
+  // The keys and the drag walk the line after column 2, and one key the line after column 1.
+  // They run only in a page area above 860px, where the two lines show.
+  { id: 'react-three-column-page--resizable', actions: [...resizeActions(1), resizeActions(0)[0]], lines: 2,
+    shows: { wide: ['1', '2', '3'], tablet: ['2', '3'], phone: ['3'] }, runs: { wide: 8, tablet: 0, phone: 0 } },
 ];
 
 // Opens a story in a new context, with onCLS listening from the first paint.
@@ -164,6 +173,7 @@ async function walk(page, label, actions, { only } = {}) {
     if (await run(page) === false) continue;
     await page.evaluate(frames);
     const after = await page.evaluate(READ);
+    for (const line of await page.evaluate(LINES)) found.push(`${label} ${name}: ${line}`);
     ran.push(name);
     if (!after.focus) found.push(`${label} ${name}: the focus left the page's shown controls`);
     for (const c of after.chrome) {
@@ -218,7 +228,10 @@ test('the three-column page keeps focus, chrome, layout and width through each i
         const { found, ran } = await walk(page, `${label} ${story.id}`, story.actions);
         findings.push(...found);
         // Every action runs, less the back links that this width does not show.
-        const want = story.actions.length - (2 - story.backs[kind]);
+        const want = story.runs?.[kind] ?? story.actions.length - (2 - story.backs[kind]);
+        // A page that resizes shows its lines only in a page area above 860px.
+        const lines = await page.locator(LINE).count();
+        if (story.lines !== undefined && lines !== (kind === 'wide' ? story.lines : 0)) findings.push(`${label} ${story.id}: ${lines} lines in a ${kind} page area`);
         assert.equal(ran.length, want, `${label} ${story.id}: ${ran.length} of ${want} actions ran: ${ran.join(', ')}`);
         table.push(`${label} ${width}px area ${area}px ${kind} ${story.id.replace('react-three-column-page--', '')}: ${ran.length} actions, ${found.length ? 'fail' : 'pass'}`);
         await ctx.close();
@@ -275,6 +288,9 @@ test('the three-column page keeps focus, chrome, layout and width through each i
       await ctx.close();
     }
     await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] table { min-width: 900px; }' }), ['key: Down'], 'wider than its column');
+    // Columns that do not follow their line.
+    const resizing = STORIES[2];
+    await mutate(wide, resizing, (page) => page.addStyleTag({ content: '.ui-columns { grid-template-columns: 240px 300px minmax(0, 1fr); }' }), ['key: ArrowRight on a line'], 'the line says');
     await inspected({ viewport: { width: 820, height: 1180 } }, (page) => page.addStyleTag({ content: '.ui-columns__col { border-inline-start: 1px solid; }' }), 'draws a line');
     await mutate(wide, month, (page) => page.addStyleTag({ content: '[data-column="3"] { min-width: 1400px; }' }), ['key: Down'], 'sideways');
     await mutate(wide, month, (page) => page.evaluate(() => document.addEventListener('click', () => setTimeout(() => document.activeElement.blur()), true)), ['click: September'], 'focus left');

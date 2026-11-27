@@ -5,12 +5,12 @@ import { Button } from './primitives/Button';
 import { KeyValueList } from './KeyValueList';
 import { SplitLayout, type SplitLayoutPreviewState, type SplitLayoutZoom } from './SplitLayout';
 
-type Args = { state: SplitLayoutPreviewState; zoom: SplitLayoutZoom; long: boolean };
+type Args = { state: SplitLayoutPreviewState; zoom: SplitLayoutZoom; long: boolean; resizable: boolean };
 
 const meta: Meta<Args> = {
   title: 'React/Split layout', id: 'react-split-layout',
   parameters: { layout: 'fullscreen' },
-  args: { state: 'ready', zoom: 'fit', long: false },
+  args: { state: 'ready', zoom: 'fit', long: false, resizable: false },
   argTypes: {
     state: { control: 'inline-radio', options: ['ready', 'loading', 'unavailable'] },
     zoom: { control: 'inline-radio', options: ['fit', 50, 100, 150, 200] },
@@ -27,7 +27,7 @@ const fields = [
 // The long case: more facts than one screen holds, so the first pane scrolls on its own.
 const more = Array.from({ length: 14 }, (_, i) => ({ label: `Clause ${i + 1}`, value: 'Accepted' }));
 
-function Page({ state: from, zoom: start, long }: Args) {
+function Page({ state: from, zoom: start, long, resizable }: Args) {
   const [state, setState] = useState(from);
   const [zoom, setZoom] = useState(start);
   // The controls set the story again after it mounts, so the page takes their new values.
@@ -37,6 +37,7 @@ function Page({ state: from, zoom: start, long }: Args) {
     sections={[{ href: '#documents', label: 'Documents', icon: 'doc' }, { href: '#settings', label: 'Settings', icon: 'gear' }]}
     pathname="#documents" account={{ name: 'Demo Reviewer', email: 'demo@example.com' }} onSignOut={() => {}}>
     <SplitLayout
+      resizable={resizable}
       primaryLabel="Agreement details"
       primary={<>
         <h1>Check the service agreement</h1>
@@ -68,4 +69,6 @@ export const Loading: StoryObj<Args> = { args: { state: 'loading' }, render: (ar
 export const Unavailable: StoryObj<Args> = { args: { state: 'unavailable' }, render: (args) => <Page {...args} /> };
 // Above Fit, the sheet scrolls inside the preview and the tools stay in place.
 export const Zoomed: StoryObj<Args> = { args: { zoom: 200 }, render: (args) => <Page {...args} /> };
+// Above 860px, the reader drags the line between the panes.
+export const Resizable: StoryObj<Args> = { args: { resizable: true }, render: (args) => <Page {...args} /> };
 export const LongContent: StoryObj<Args> = { args: { long: true }, render: (args) => <Page {...args} /> };
