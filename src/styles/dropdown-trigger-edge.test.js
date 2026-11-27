@@ -41,7 +41,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseColour, ratio, substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { inlineLocals, parseColour, ratio, substitute, tokensFor } from '../../stories/lib/contrast.js';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -143,7 +143,7 @@ const EDGE = /(?:^|[;\s])border(?:-(?:top|right|bottom|left|block|inline)(?:-(?:
 const NO_EDGE = /^(0\w*|none|transparent|hidden)$|^0(px|em|rem)?\s|(^|\s)(transparent|hidden|none)(\s|$)/i;
 
 function edgeOf(body) {
-  const found = [...body.matchAll(EDGE)].map((m) => m[1].replace(/!\s*important\s*$/i, '').trim());
+  const found = [...inlineLocals(body).matchAll(EDGE)].map((m) => m[1].replace(/!\s*important\s*$/i, '').trim());
   if (!found.length) return null;
   const last = found.at(-1);
   if (NO_EDGE.test(last)) return { declared: last, drawn: false };
@@ -342,7 +342,7 @@ test('no live trigger draws the ink an unavailable one draws, in any state or th
 test('a focused trigger draws no edge inside its ring, also invalid or under the pointer', () => {
   assert.deepEqual(focusEdgeFindings(BY_SCOPE), [], 'a focused trigger keeps its edge inside the ring');
   for (const broken of [
-    { from: '.ui-dropdown__trigger:focus-visible { border-color: transparent; ', to: '.ui-dropdown__trigger:focus-visible { ' },
+    { from: '.ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); ', to: '.ui-dropdown__trigger:focus-visible { ' },
     '.ui-dropdown__trigger[aria-invalid="true"].ui-dropdown__trigger { border-color: var(--pink); }',
   ]) {
     assert.ok(focusEdgeFindings(readingWith(broken)).length, `no finding on: ${asText(broken)}`);
@@ -542,14 +542,14 @@ test('the reading refuses every way the two edges can come back together', () =>
     // beside it stays correct, so reading `rest` alone goes straight past it.
     ['.ui-dropdown__trigger:focus-visible { border-color: var(--disabled-border); }', 'live-is-off'],
     // The same defect one state along, under the pointer.
-    [{ from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: var(--disabled-border)' },
+    [{ from: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent)', to: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--disabled-border)' },
       'live-is-off'],
     // The invalid edge painted as the off one. #835
-    [{ from: ':hover:not(:focus-visible) { border-color: var(--pink)', to: ':hover:not(:focus-visible) { border-color: var(--disabled-border)' },
+    [{ from: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--pink)', to: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--disabled-border)' },
       'live-is-off'],
     // An edge this arithmetic cannot resolve, which must be reported rather than
     // counted as "not the off ink".
-    [{ from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: currentColor' },
+    [{ from: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent)', to: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: currentColor' },
       'unreadable-edge'],
     // A scoped resting edge deep enough to freeze the states beside it — the
     // fault the fix itself could have introduced.
@@ -578,7 +578,7 @@ test('the reading refuses every way the two edges can come back together', () =>
     .map(([rule, finding]) => `${finding} not raised by: ${asText(rule)}`);
   assert.deepEqual(missed, [], 'these regressions go straight past the reading');
   // The add control's own focus answer taken away: the kit's focus rule cannot reach it.
-  const addFocus = '.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { border-color: transparent; }';
+  const addFocus = '.ui-filter-bar [data-filter-add] .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }';
   const bar = read('src/styles/filter-bar.css');
   assert.ok(bar.includes(addFocus), 'the add control no longer answers focus at its own depth');
   assert.ok(findings(scopes(subjects({ 'src/styles/filter-bar.css': bar.replace(addFocus, '') }))).includes('frozen'),
@@ -590,7 +590,7 @@ test('the reading refuses every way the two edges can come back together', () =>
     '.ui-filter-bar__chip .ui-dropdown__trigger { border: 0; }',
     '.ui-dropdown__panel { border-color: var(--disabled-border); }',
     '/* .ui-dropdown__trigger { border-color: var(--border); } */',
-    { from: ':hover:not(:focus-visible) { border-color: var(--accent)', to: ':hover:not(:focus-visible) { border-color: var(--accent-strong)' },
+    { from: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent)', to: ':hover:not(:focus-visible) { --ui-dropdown-field-edge: var(--accent-strong)' },
   ]) {
     assert.deepEqual(findings(readingWith(fine)), [], `false finding on: ${asText(fine)}`);
   }
@@ -598,12 +598,12 @@ test('the reading refuses every way the two edges can come back together', () =>
 
 test('the sheet still says what the gate reads, so none of this is checking a ghost', () => {
   const css = read('src/styles/dropdown.css');
-  assert.match(css, /\.ui-dropdown__trigger\s*\{[\s\S]*?border:\s*1px solid var\(--control-edge\)/,
+  assert.match(css, /\.ui-dropdown__trigger\s*\{[\s\S]*?--ui-dropdown-field-edge:\s*var\(--control-edge\);\s*border:\s*1px solid color-mix\(in srgb, transparent var\(--ui-dropdown-field-veil\), var\(--ui-dropdown-field-edge\)\)/,
     `${TRIGGER} no longer takes the kit's live control edge`);
   assert.match(css, /\.ui-dropdown__trigger:disabled[\s\S]{0,400}?border-color:\s*var\(--disabled-border\)/,
     `${TRIGGER}:disabled no longer takes ${OFF_EDGE}`);
-  assert.match(css, /\.ui-dropdown__trigger:enabled:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/,
+  assert.match(css, /\.ui-dropdown__trigger:enabled:hover:not\(:focus-visible\)\s*\{[^}]*--ui-dropdown-field-edge:\s*var\(--accent\)/,
     'the trigger no longer answers the pointer');
-  assert.match(css, /\.ui-dropdown__trigger\[aria-invalid="true"\],\s*\.ui-dropdown__trigger\[aria-invalid="true"\]:hover:not\(:focus-visible\)\s*\{[^}]*border-color:\s*var\(--pink\)/,
+  assert.match(css, /\.ui-dropdown__trigger\[aria-invalid="true"\],\s*\.ui-dropdown__trigger\[aria-invalid="true"\]:hover:not\(:focus-visible\)\s*\{[^}]*--ui-dropdown-field-edge:\s*var\(--pink\)/,
     'an invalid trigger no longer draws the kit\'s invalid edge');
 });

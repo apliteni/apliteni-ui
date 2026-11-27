@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { markup } from '../../stories/lib/react-markup.js';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
+import { inlineLocals } from '../../stories/lib/contrast.js';
 
 // The browser half's switches, read from the environment.
 const { env } = process;
@@ -71,7 +72,7 @@ function declarations(css, selector, media = null) {
   let found = null;
   for (const m of body.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     if (splitSelectorList(m[1]).map((s) => s.trim().replace(/\s+/g, ' ')).includes(selector)) {
-      found = { ...found, ...Object.fromEntries([...m[2].matchAll(/([\w-]+)\s*:\s*([^;]+)/g)].map((d) => [d[1], resolve(d[2].trim())])) };
+      found = { ...found, ...Object.fromEntries([...inlineLocals(m[2]).matchAll(/([\w-]+)\s*:\s*([^;]+)/g)].map((d) => [d[1], resolve(d[2].trim())])) };
     }
   }
   return found;
