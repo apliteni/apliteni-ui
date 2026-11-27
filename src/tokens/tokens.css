@@ -179,7 +179,7 @@
   --float-edge: var(--border-strong);  /* a floating surface, outer line */
   --float-edge-inner: var(--border);   /* a floating surface, inner line */
   /* A row in a floating panel: the hovered row and the chosen row share this quiet neutral
-     ground, and a neutral check marks the chosen one. The same mix serves both themes.
+     ground, and a neutral check marks the chosen one. Light restates the same mix.
      rev_92b7f8a56703/d79
      why: docs/foundations.md#elevation */
   --float-row-fill: color-mix(in srgb, var(--text) 5%, var(--bg-elevated));
@@ -442,6 +442,8 @@
   --rail-edge: var(--level-line);
   --float-edge: var(--level-line);
   --float-edge-inner: transparent;
+  /* Restated so a light sheet inside a dark page mixes the light text. rev_92b7f8a56703/d79 */
+  --float-row-fill: color-mix(in srgb, var(--text) 5%, var(--bg-elevated));
   --modal-edge: var(--float-edge);
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it

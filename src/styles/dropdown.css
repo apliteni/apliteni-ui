@@ -223,7 +223,7 @@
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
   /* The rounded popover, with round corners and not the squircle. rev_32e9894c9f71/d76
-     why: docs/foundations.md#corners */
+     why: docs/foundations.md#control-corners */
   border-radius: var(--radius-xl);
   padding: var(--ui-dropdown-pad);
   /* The cap, and the whole of #489: a panel took its content's height until that
