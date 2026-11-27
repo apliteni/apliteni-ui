@@ -12,6 +12,12 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.225.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'A link in running text, such as a paragraph, a list item, a caption or a hint, now has an underline at all times, because its colour alone differs from the text around it by less than 3:1. The kit underlines each `a` element that has no kit class (a class that starts with `ui-`, or `brand`), so a link with an empty class or your own class gets it too. Hover and focus are as before. A link in a table cell, a linked Stat band figure and a kit control, such as a nav row, a button or a tab, do not change. If your app has its own anchor control with no kit class, give it `text-decoration: none`. Part of #869.', []],
+    ],
+  },
+  {
     v: '0.224.0', date: '2026-11-27',
     changes: [
       ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],

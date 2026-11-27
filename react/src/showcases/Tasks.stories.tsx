@@ -2,8 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { Tasks } from './Tasks';
 import { SEARCH_STATES } from './tasks-data';
 
+// The page restores its state from the URL hash. A story starts from its own args, so it clears
+// the hash that the story before it wrote. Storybook keeps one frame between stories.
+const fresh = () => window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
 const meta = {
-  title: 'Showcases/Tasks', id: 'showcases-tasks', component: Tasks, render: (args) => <Tasks {...args} />,
+  title: 'Showcases/Tasks', id: 'showcases-tasks', component: Tasks, render: (args) => { fresh(); return <Tasks {...args} />; },
   argTypes: { search: { control: 'select', options: Object.keys(SEARCH_STATES) } },
   parameters: {
     layout: 'fullscreen',
