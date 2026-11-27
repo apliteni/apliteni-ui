@@ -407,8 +407,9 @@ describe('guideline pages in React: Dashboards and reports', () => {
     const names = [...mount(page).querySelectorAll('[role="group"][aria-label]')]
       .map(group => group.getAttribute('aria-label')!);
     const repeats = names.filter(name => /^(Spend against estimate|Revenue against expenses|Net by region, six (?:bars|rows)|Net settled by month, first (?:half of the year|four months of the year)), /.test(name));
-    expect(repeats.length, 'the repeated charts the page draws').toBe(13);
-    expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(13);
+    // Fifteen since the trend-in-head pair added two net-settled charts.
+    expect(repeats.length, 'the repeated charts the page draws').toBe(15);
+    expect(new Set(repeats).size, 'no two repeated charts share a name').toBe(15);
   });
 });
 

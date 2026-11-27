@@ -597,6 +597,11 @@ with no matches says so.
 open it, Left and Escape close it, and the focus goes back to the row. On a phone the submenu
 replaces the rows, under a back row.
 
+**Text trigger.** `triggerClass="ui-dropdown__trigger--text"` draws the trigger as its words and
+the arrow, in body ink and weight, with no fill and no edge at rest. Its words start on the text
+edge of the surface. Use it for a choice that reads as part of a line, such as a chart's range.
+The hover edge, the focus ring and the disabled paint are the same as on every trigger.
+
 **Your own rows.** `row` lets you draw each row. It gets the row and the props that the row must
 spread: the class, the role, `tabIndex`, `data-dd-item`, the selected and disabled state and the
 click handler. Use it when a row must be a native `<button>` or a router link.
@@ -1556,13 +1561,14 @@ for one figure, and a [table](#data-table) when the user must read exact values 
 
 `title` names the plot, the table and the switch, and is not drawn, because the card around the
 chart has the title. `format` prints exact values in the readout, the live region and the table.
-`formatAxis` prints the axis ticks, which are whole units.
+`formatAxis` prints the axis ticks, which are whole units. `grouping` says what one period is,
+such as `month` or `week`. It heads the first column of the table, and is `Period` by default.
 
 **Variants.**
 
 | `variant` | Data | `look` values | Default look |
 | --- | --- | --- | --- |
-| `months` | `periods`, `series` | `columns`, a column per period with a line across them; `rows`, a bar across for each period with its full name above it | `columns` |
+| `bars` | `periods`, `series` | `columns`, a column per period with a line across them; `rows`, a bar across for each period with its full name above it | `columns` |
 | `bridge` | `steps` | none: one period from a start total to a result | |
 | `spark` | `periods`, `series` | none: one series at text size, for a stat band `trend` | |
 | `line` | `periods`, `series` | `thin`; `points`, a point on each value; `labels`, the last value at the line's end | `thin` |
@@ -1575,9 +1581,22 @@ A stacked look reads a missing value as zero. The readout of a stacked or a shar
 series of the column and the total, and the table adds a `Total` column. A share look shows the
 parts as percentages, and its table keeps your values. Use `curves` for two or three series that
 the user compares by shape, not by total. A donut slice says its value and its share of the whole.
+A point on a line or an area is a ring of its series colour around the card's ground. The active
+value of the `points` look has a larger ring.
 `totalLabel` names the whole, `Total` by default. A donut has no `selectable`.
 
-**Series.** A series is `{ id, name, values }`, with an optional `tone`. In `months`, its `shape`
+`bars` is the default variant. `months` is its old name. It is deprecated and draws the same
+chart, so change `variant="months"` to `variant="bars"` or remove it.
+
+**The head.** `figure` puts the main figure over the plot, at the size of a stat band's value.
+`ranges`, `range` and `onRangeChange` add a range picker under it: the words and an arrow, with
+no pill. Open, it is the kit menu, and the picked range has the check. On a phone, a tap reaches
+the picker 44px high, and its target stays off the figure and the plot. Give the figure and the
+plot for the range you pick. `trend` is `{ value, basis }`. The value stands at the end of the
+picker's row. The basis, such as "Compared with the 6 months before", is its tooltip, reachable
+by Tab. The trend is never drawn on the plot. With none of the three, the chart has no head.
+
+**Series.** A series is `{ id, name, values }`, with an optional `tone`. In `bars`, its `shape`
 is `bars`, `bars-below` or `line`. `bars` stand on the zero line. `bars-below` takes positive
 values and hangs them under the line.
 
@@ -1585,15 +1604,21 @@ values and hangs them under the line.
 `good`, `bad` and `neutral`. The product accent does not change them. Each full tone is at least
 3:1 on the card and the page in both themes.
 
-**What the user sees.** A `months` chart fits its card and does not scroll. It draws every bar.
+**What the user sees.** A `bars` chart fits its card and does not scroll. It draws every bar.
 A bar is one flat tone — the full tone of its series
 — with a small corner at its measured end: --radius-xs or a quarter of the bar's width, whichever is
 smaller. Its foot stays square on the zero line. It takes two thirds of its column, and at most 48px.
+A bar in `accent`, `bad` or `neutral` draws at 85% at rest, and still clears 3:1 on the card and
+the page. The bar that a hover, a tap or the arrow keys make active draws at full strength, at
+once, with no transition. The other tones stay at full strength, because at 85% they fall under 3:1.
+A `line` chart fills under each line with its tone, at 20% at the line's highest value and fading
+to nothing at the plot's floor. A 1px band of the chart's ground runs along each side of each
+line, so the line keeps 3:1 where it crosses a fill. An `area` keeps its own fill.
 In `bridge`, the chart prints every step's `short` name under its step, and a name that does not fit
 its column wraps at a word break. A bridge column is as wide as its widest word, so a four-step
 bridge fits a 300px plot. Where one word alone is wider than the column, the bridge scrolls so that
 word still fits. Give each bar a distinct `short` name, never one cut to a fixed length. In the
-other variants, `months` among them, where the period labels do not fit, the chart prints every
+other variants, `bars` among them, where the period labels do not fit, the chart prints every
 second, third or later label, counted from the first period that is not final, or from the latest
 period. Use this for months, because a reader can infer a skipped month. For categories, such as
 units with a signed margin, set `look="rows"`: each row prints its full `label` above a bar that
@@ -1612,26 +1637,32 @@ The readout and the table always show it. A chart that prints no value gives tha
 bars. `legend`
 shows the legend. A period with `estimated` keeps its solid mark in the series
 ink. Set `estimated` to `'incomplete'` for the period that is still running, to `'projected'` for a
-future period, or to `true` for any other estimate. In `months`, one solid line stands before the
+future period, or to `true` for any other estimate. In `bars`, one solid line stands before the
 first period that is not final, and the words "Not final" stand over that group. Put the periods
 that are not final last. The hover and keyboard readout and each table row say "Incomplete",
 "Projected" or "Estimated", followed by the `note`. The readout of a period also compares it with
 the period before it. Set `compare: false` on a period to show its value with no comparison text.
 A switch at the top right
-shows the same numbers as a chart or as a table. The table has dense rows. In a titled `Card`, the switch stands in the
+shows the same numbers as a chart or as a table. The table has dense rows, and each column is as wide as its
+longest cell, so a value stands next to its period. In a titled `Card`, the switch stands in the
 card's title row. `table={false}` removes the switch and the table. `selectable` with `selected`
 and `onSelect` lets the user pick a column, which gets a band behind it. A
 `line`, `area` or `stacked` chart or a bridge that is wider than its card scrolls, and the value
 axis stays. A chart of periods that is wider than its card opens at its latest period. A bridge
 opens at its opening total.
 
-**Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. Left,
+**Keyboard and screen reader.** The switch is the first Tab stop and the chart is the second. A head
+adds the range picker and the trend between them in a titled `Card`, and before the switch
+without one. Left,
 Right, Home and End move between columns and announce each one. Enter picks a column when
 `selectable` is set. A plot that scrolls adds one more Tab stop for the scroll box. On a touch
 screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
 new tap on the same mark opens its readout again. Every value is
 reachable at full strength by pointer or keyboard. A readout in a scrolling region stays fully
-visible over the region and opens above its mark when that space is available.
+visible over the region and opens above its mark when that space is available. Where it opens
+below, it clears the bar it describes. When a tap or Tab moves the page to show the chart, the
+readout stays open and its row comes into view, for at most one second. A wheel, a touch move or a
+scroll key by the reader stops that move, and the reader's scroll closes the readout.
 
 ### Table values
 
