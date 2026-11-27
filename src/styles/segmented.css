@@ -35,7 +35,6 @@
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-2xl);
   cursor: pointer;
-  transition: color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
 }
 .ui-seg button:hover { color: var(--strong); }
 /* aria-pressed is what segmented() emits now; aria-selected is kept so markup

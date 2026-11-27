@@ -16,7 +16,6 @@
   border-radius: var(--radius-lg);
   color: var(--text);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 /* The drawing scales with the picture, so its lengths are shares of the picture's width. */
 .ui-theme-choice__pic {

@@ -90,7 +90,7 @@
 .ui-react-app__head-control > button:focus-visible,
 .ui-react-app__head-control > a:focus-visible,
 .ui-react-app__head-control > .ui-dropdown > .ui-dropdown__trigger:focus-visible { color: var(--strong); }
-/* The glyph is the nav glyph's size and weight: src/styles/nav.css:95 `.ui-nav__ic svg {`. */
+/* The glyph is the nav glyph's size and weight: src/styles/nav.css:94 `.ui-nav__ic svg {`. */
 .ui-react-app__head-control svg { display: block; width: 17px; height: 17px; opacity: 0.66; stroke-width: 2.2; }
 /* A folded rail is one glyph column wide, and the fold takes it in the head. So the control
    leaves the row and stands on the same column one rail gap under the head's rule, and the
@@ -206,7 +206,7 @@
 .ui-react-app__band-actions { display: flex; align-items: center; flex: none; gap: var(--space-1); }
 /* Every action is a 40px square, a Button and a dropdown trigger alike, so two side by side
    are one size. The glyph is the nav glyph's size and weight, as in the head control:
-   src/styles/nav.css:95. */
+   src/styles/nav.css:94. */
 .ui-react-app__band-actions > .ui-btn,
 .ui-react-app__band-actions > .ui-dropdown > .ui-dropdown__trigger { min-width: 40px; min-height: 40px; justify-content: center; }
 .ui-react-app__band-actions > .ui-btn svg,

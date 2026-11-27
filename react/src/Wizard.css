@@ -64,7 +64,7 @@
   margin-inline: calc(var(--space-3) + var(--space-6) + var(--space-2)) var(--space-3);
   padding-block: var(--space-2);
 }
-.ui-wizard__panel[hidden] { display: none; } /* motion: still — one step opens as another closes, and the row's plate already transitions */
+.ui-wizard__panel[hidden] { display: none; } /* motion: still — one step opens as another closes, and the row's plate changes at once with them */
 .ui-wizard__panel:empty { display: none; }
 .ui-wizard__panel p,
 .ui-wizard__reason { margin: 0; max-width: var(--prose-caption); color: var(--text); font-size: var(--text-base); line-height: 1.5; }

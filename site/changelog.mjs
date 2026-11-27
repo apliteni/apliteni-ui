@@ -15,6 +15,13 @@ export const RELEASES = [
     ],
   },
   {
+    v: '0.217.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows in every table form, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves, also while the pointer stays on the field. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
+      ['added', 'The Motion guideline has a new rule, Change a hover at once. Hover is the one state change that does not fade. Part of #865.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.215.0', date: '2026-11-27',
     changes: [
       ['added', '`SplitLayout` splits a page under the band into two full-height panes: 60% for the values to check and their actions, and 40% for a preview of the source document on the document ground. Each pane scrolls on its own, and at 860px and below they stack in one scroll with the preview tools and the actions kept in view. The preview has Fit and 50% to 200% zoom, and a loading and an unavailable state with Try again. Part of #903.', ['SplitLayout']],
