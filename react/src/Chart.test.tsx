@@ -58,6 +58,34 @@ const tabToFrame = async (user: ReturnType<typeof userEvent.setup>) => { await u
 const frames = async (count: number) => {
   for (let i = 0; i < count; i += 1) await new Promise((done) => requestAnimationFrame(done));
 };
+/** Keeps the window's frames, and the hold's time limit, in a queue the test runs. A busy
+ *  host can then never run the hold's two still frames before the event the test sends
+ *  next. `drain` runs frames until none is queued, which is when the hold has ended.
+ *  Limits: only the window's frames and the HOLD_LIMIT timer are held; other timers run. */
+const heldFrames = () => {
+  const queue = new Map<number, FrameRequestCallback>();
+  let next = 0;
+  const realTimeout = window.setTimeout.bind(window);
+  const spies = [
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((run) => { next += 1; queue.set(next, run); return next; }),
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => { queue.delete(id); }),
+    // The limit ends the hold with no reveal, so a held limit cannot hide a reveal.
+    vi.spyOn(window, 'setTimeout').mockImplementation(((run: () => void, ms?: number, ...rest: unknown[]) =>
+      (ms === 1000 ? 0 : realTimeout(run, ms, ...rest))) as typeof window.setTimeout),
+  ];
+  return {
+    get queued() { return queue.size; },
+    drain() {
+      for (let round = 0; queue.size; round += 1) {
+        if (round === 20) throw new Error('the frames never stop');
+        const batch = [...queue.values()];
+        queue.clear();
+        act(() => batch.forEach((run) => run(performance.now())));
+      }
+    },
+    restore() { spies.forEach((spy) => spy.mockRestore()); },
+  };
+};
 const showTable = () => fireEvent.click(screen.getByRole('button', { name: 'Table' }));
 const plot = () => screen.getByRole('img');
 const markEl = (id: string) => plot().querySelector(`[data-mark="${id}"] .ui-chart__hit`) as Element;
@@ -1123,22 +1151,29 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   // A design review of f9e6f26f: a wheel during the entry is the reader's. It
   // ends the hold, the queued row reveal does not move the page back, and the
   // wheel's scroll closes the readout.
+  // The frames are held, so the wheel always comes while the hold is on.
+  const held = heldFrames();
   await user.tab({ shift: true });
   scrolled.length = 0;
   await user.tab();
+  expect(held.queued, 'the entry holds the readout').toBeGreaterThan(0);
   fireEvent.wheel(document, { deltaY: 120 });
   fireEvent.scroll(document);
   expect(screen.queryByRole('tooltip'), 'the reader\'s scroll closes the readout').toBeNull();
-  await frames(3);
+  expect(held.queued, 'the wheel cancels the hold\'s queued frame').toBe(0);
+  held.drain();
   expect(scrolled, 'the wheel cancels the queued row reveal').toEqual([]);
   // A scroll key the chart does not take is the reader's too.
   await user.tab({ shift: true });
   await user.tab();
+  expect(held.queued, 'the entry holds the readout').toBeGreaterThan(0);
   fireEvent.keyDown(document.body, { key: 'PageDown' });
   fireEvent.scroll(document);
   expect(screen.queryByRole('tooltip'), 'a scroll key ends the hold').toBeNull();
-  await frames(3);
+  expect(held.queued, 'the scroll key cancels the hold\'s queued frame').toBe(0);
+  held.drain();
   expect(scrolled, 'the scroll key cancels the queued row reveal').toEqual([]);
+  held.restore();
   delete (Element.prototype as Partial<Element>).scrollIntoView;
   vi.restoreAllMocks();
 });
