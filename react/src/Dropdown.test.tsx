@@ -287,6 +287,18 @@ describe('a ghost trigger', () => {
     expect(parseColour(background)).toEqual(parseColour(substitute('var(--surface-3)', vars)));
     expect(clear).toContain(edge);
   });
+  // #915: pressed and open keep the hover answer, so a ghost keeps the fill and takes no edge.
+  it('keeps the hovered row fill, with no accent edge, while pressed and while open', () => {
+    const pressed = paint({ ghost: true }, 'active');
+    cleanup();
+    const open = paint({ ghost: true });
+    open.el.closest('.ui-dropdown')!.classList.add('open');
+    const opened = getComputedStyle(open.el);
+    for (const { background, edge } of [pressed, { background: opened.backgroundColor, edge: opened.borderTopColor }]) {
+      expect(parseColour(background)).toEqual(parseColour(substitute('var(--surface-3)', vars)));
+      expect(clear).toContain(edge);
+    }
+  });
   it('keeps the invalid edge and draws none when it is off', () => {
     expect(clear).not.toContain(paint({ ghost: true, 'aria-invalid': true }).edge);
     cleanup();
