@@ -662,6 +662,8 @@ test('in a Modal or a Drawer, each key and click opens the panel over the body a
     await page.goto(`http://127.0.0.1:${server.port}/iframe.html?id=${FLOAT_STORY}&viewMode=story&globals=theme:light&args=stage:${stage};before:4;after:2;rows:12`);
     await page.waitForFunction((id) => window.__STORYBOOK_PREVIEW__?.currentRender?.phase === 'finished'
       && window.__STORYBOOK_PREVIEW__.currentRender.id === id, FLOAT_STORY);
+    // A field is 3px shorter in the fallback font, so the walk starts after the web fonts load.
+    await page.evaluate(() => document.fonts.ready);
     await settle(page, false);
     // A person scrolls the field into view before they use it, and so does a click here.
     await page.locator('.ui-dropdown [data-dropdown-trigger]').scrollIntoViewIfNeeded();
