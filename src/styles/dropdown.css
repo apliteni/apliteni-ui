@@ -67,7 +67,7 @@
 /* --ui-dropdown-hang is the trigger's start padding: a form or a table pulls the trigger back by it. */
 .ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: 13px; }
 .ui-dropdown__trigger--ghost { background: transparent; border-color: transparent; padding-inline-start: var(--ui-dropdown-hang); }
-.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: transparent; }
+.ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible) { --ui-dropdown-field-edge: transparent; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); }
 .ui-dropdown__trigger--ghost:enabled:hover:not(:focus-visible),
 .ui-dropdown.open > .ui-dropdown__trigger--ghost { background: var(--surface-3); /* code-bg: inherit — control paint under the pointer; a chip never stands in a trigger. */ }
 /* The kit's invalid edge, on a Dropdown or a DatePicker that a Field marks invalid, also
