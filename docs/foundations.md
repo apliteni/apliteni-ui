@@ -328,7 +328,7 @@ The ladder, from bottom to top:
 | `--surface` | a card | `#211e2d` | `#ffffff` |
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
-| `--float-row-fill` | a hovered or chosen row in a dropdown panel | `#343042` | `#f4f4f4` |
+| `--float-row-fill` | a hovered or chosen row in a dropdown panel | `#221f2e` | `#f4f4f4` |
 
 `--ui-document-ground` names the bare backdrop behind a document sheet, and aliases
 `--surface-2` in both themes. Use the class `.ui-document-ground` to paint it, so a page reads
@@ -374,9 +374,9 @@ the edge and the drop it rests on without restating them.
 Inside a floating panel, rows keep a reading surface. In a dropdown panel, a hovered row and a
 chosen row share one quiet ground, `--float-row-fill`, and draw no outline. A check in the text
 ink marks the chosen row, never the accent, so the choice is never colour alone. A focused row
-takes no ground of its own, and the focus ring marks it. The ground is the text colour mixed 5%
-into the panel, a neutral grey. It is 1.10:1 on the panel in light and 1.14:1 in dark, so it
-clears the 1.1:1 floor of a selected fill. Fields use the same field tokens as
+takes no ground of its own, and the focus ring marks it. In light the ground is a neutral grey.
+In dark it is one step darker than the panel, so a muted badge and an accent link on the row
+keep 4.5:1. It is 1.10:1 on the panel in both themes, at the 1.1:1 floor of a selected fill. Fields use the same field tokens as
 elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
 itself lighter than a card in dark, so the card surface is the darker step there.
 

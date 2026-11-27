@@ -74,11 +74,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:213",
+    "ref": "src/tokens/tokens.css:214",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:219",
+    "ref": "src/tokens/tokens.css:220",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -128,7 +128,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:234",
+    "ref": "src/tokens/tokens.css:235",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -908,7 +908,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:323",
+    "ref": "src/tokens/tokens.css:324",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],

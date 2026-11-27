@@ -4,7 +4,7 @@
 /* Rule: the chosen value in a filter menu is never marked by colour alone.
  *
  * Since #888 the chosen row takes the kit's quiet row ground, `--float-row-fill`, a
- * neutral step of 1.10:1 in light and 1.14:1 in dark, so on its own it is what WCAG 2.2
+ * step of 1.10:1 in both themes, so on its own it is what WCAG 2.2
  * SC 1.4.1 forbids; the kit's 16px check, in neutral ink, is the non-colour cue, and
  * SC 1.4.11 asks 3:1 of it. This measures the pair, and what hover and focus may not
  * take away. Hover keeps the same ground, because a hovered row takes that ground too

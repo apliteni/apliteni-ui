@@ -178,11 +178,12 @@
   --rail-edge: var(--border);          /* the shell's rail */
   --float-edge: var(--border-strong);  /* a floating surface, outer line */
   --float-edge-inner: var(--border);   /* a floating surface, inner line */
-  /* A row in a floating panel: the hovered row and the chosen row share this quiet neutral
-     ground, and a neutral check marks the chosen one. Light restates the same mix.
-     rev_92b7f8a56703/d79
+  /* A row in a floating panel: the hovered row and the chosen row share this quiet ground,
+     and a neutral check marks the chosen one. Dark sits one step under the panel, because a
+     lighter ground drops the muted badge to 3.95:1 and the accent link to 4.34:1. Light is
+     the neutral grey of rev_92b7f8a56703/d79.
      why: docs/foundations.md#elevation */
-  --float-row-fill: color-mix(in srgb, var(--text) 5%, var(--bg-elevated));
+  --float-row-fill: color-mix(in srgb, var(--surface) 88%, var(--bg-elevated));
   --modal-edge: transparent;           /* the modal: the deep scrim is its edge */
 
   /* Fields use the card surface and an edge in both themes. why: docs/foundations.md#elevation */
@@ -442,7 +443,7 @@
   --rail-edge: var(--level-line);
   --float-edge: var(--level-line);
   --float-edge-inner: transparent;
-  /* Restated so a light sheet inside a dark page mixes the light text. rev_92b7f8a56703/d79 */
+  /* The neutral grey of rev_92b7f8a56703/d79. */
   --float-row-fill: color-mix(in srgb, var(--text) 5%, var(--bg-elevated));
   --modal-edge: var(--float-edge);
 
