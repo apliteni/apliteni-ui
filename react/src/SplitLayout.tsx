@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Button } from './primitives/Button';
 import { EmptyState } from './EmptyState';
 import { Skeleton } from './Loading';
@@ -74,9 +74,21 @@ export function SplitLayout({
   }, [state]);
   const [stage, stageScrolls] = useOverflows(`${state}:${at}`);
   const [pane, paneScrolls] = useOverflows(state);
+  // At 860px and below the action row covers the foot of the one scroll, so the scroll keeps its
+  // height clear when a control scrolls into view. why: guidelines/accessibility-floor.md#keyboard-first
+  const foot = useRef<HTMLDivElement>(null);
+  const [footHeight, setFootHeight] = useState(0);
+  useEffect(() => {
+    const row = foot.current;
+    if (!row || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => setFootHeight(row.offsetHeight));
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [!!actions]);
 
-  // Fit is the largest scale, up to 100%, at which the whole sheet shows in the stage. The
-  // sheet's offset size does not include its own zoom, so the reading does not feed back.
+  // Fit is the largest scale, up to 100%, at which the whole sheet shows in the stage, with no
+  // floor. The sheet's offset size does not include its own zoom, so the reading does not feed
+  // back. A stage with no room left keeps the last scale.
   useEffect(() => {
     const box = stage.current;
     const page = sheet.current;
@@ -85,7 +97,7 @@ export function SplitLayout({
       const css = getComputedStyle(box);
       const width = box.clientWidth - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
       const height = box.clientHeight - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
-      if (page.offsetWidth > 0 && page.offsetHeight > 0) setFit(Math.max(0.1, Math.min(1, width / page.offsetWidth, height / page.offsetHeight)));
+      if (width > 0 && height > 0 && page.offsetWidth > 0 && page.offsetHeight > 0) setFit(Math.min(1, width / page.offsetWidth, height / page.offsetHeight));
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -118,7 +130,8 @@ export function SplitLayout({
     go(to);
   };
 
-  return <div className={['ui-split', className].filter(Boolean).join(' ')}>
+  return <div className={['ui-split', className].filter(Boolean).join(' ')}
+    style={{ '--ui-split-foot': `${footHeight}px` } as CSSProperties}>
     <div ref={pane} className="ui-split__primary" role="region" aria-label={primaryLabel}
       {...(paneScrolls && { tabIndex: 0 })}>
       <div className="ui-split__content">{primary}</div>
@@ -147,6 +160,6 @@ export function SplitLayout({
           </div>}
       </div>
     </section>
-    {actions && <div className="ui-split__actions"><div className="ui-split__row">{actions}</div></div>}
+    {actions && <div ref={foot} className="ui-split__actions"><div className="ui-split__row">{actions}</div></div>}
   </div>;
 }

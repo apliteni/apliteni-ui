@@ -11,6 +11,7 @@ export const RELEASES = [
       ['added', '`SplitLayout` splits a page under the band into two full-height panes: 60% for the values to check and their actions, and 40% for a preview of the source document on the document ground. Each pane scrolls on its own, and at 860px and below they stack in one scroll with the preview tools and the actions kept in view. The preview has Fit and 50% to 200% zoom, and a loading and an unavailable state with Try again. Part of #903.', ['SplitLayout']],
       ['changed', 'In `AppShell`, a sidebar row whose path is above the `pathname`, such as `/invoices` for `/invoices/1042`, is now marked as the parent section (`aria-current="true"`) also without a `back` link. Before, it was marked as the page. Apps with sub-routes and no back link are affected. Part of #903.', ['AppShell']],
       ['changed', 'The Document review showcase now uses `SplitLayout` and writes no CSS of its own. Its review screen holds its title in the first pane. Part of #903.', ['SplitLayout']],
+      ['changed', 'A heading with `tabindex="-1"` now draws the kit focus ring when a script focuses it, such as the title of a new step. Before, the browser drew its own outline. Part of #903.', []],
     ],
   },
   {

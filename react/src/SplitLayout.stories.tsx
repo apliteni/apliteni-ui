@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { AppShell } from './AppShell';
 import { Button } from './primitives/Button';
@@ -30,6 +30,9 @@ const more = Array.from({ length: 14 }, (_, i) => ({ label: `Clause ${i + 1}`, v
 function Page({ state: from, zoom: start, long }: Args) {
   const [state, setState] = useState(from);
   const [zoom, setZoom] = useState(start);
+  // The controls set the story again after it mounts, so the page takes their new values.
+  useEffect(() => setState(from), [from]);
+  useEffect(() => setZoom(start), [start]);
   return <AppShell word="Workspace" width="full"
     sections={[{ href: '#documents', label: 'Documents', icon: 'doc' }, { href: '#settings', label: 'Settings', icon: 'gear' }]}
     pathname="#documents" account={{ name: 'Demo Reviewer', email: 'demo@example.com' }} onSignOut={() => {}}>

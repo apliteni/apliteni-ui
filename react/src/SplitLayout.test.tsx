@@ -3,7 +3,9 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { composeStories } from '@storybook/react';
 import { SplitLayout, type SplitLayoutProps } from './SplitLayout';
+import * as stories from './SplitLayout.stories';
 
 // Limits: JSDOM has no layout and does not apply media queries. The DOM half reads the
 // order, the names, the zoom and the preview states, with ResizeObserver and the box sizes
@@ -110,6 +112,61 @@ it('fits the whole sheet in the stage: the smaller of the two ratios, never abov
   boxes({ '.ui-split__stage': { clientWidth: 2048, clientHeight: 2048 }, '.ui-split__sheet': { offsetWidth: 560, offsetHeight: 792 } });
   render(layout());
   expect(readout()).toHaveTextContent('100%');
+});
+
+it('fits a sheet in a low stage with no floor, and keeps the scale when the stage has no room', () => {
+  // A 320 by 200 window leaves the stage 32px of height for a 792px sheet: 4%, not a 10% floor.
+  boxes({ '.ui-split__stage': { clientWidth: 320, clientHeight: 80 }, '.ui-split__sheet': { offsetWidth: 560, offsetHeight: 792 } });
+  const real = window.getComputedStyle.bind(window);
+  const inset = () => vi.spyOn(window, 'getComputedStyle').mockImplementation((el, pseudo) => el.matches('.ui-split__stage')
+    ? { paddingLeft: '24px', paddingRight: '24px', paddingTop: '24px', paddingBottom: '24px' } as CSSStyleDeclaration
+    : real(el, pseudo));
+  inset();
+  render(layout());
+  expect(readout()).toHaveTextContent('4%');
+  expect(Number(sheet()!.style.zoom) * 792).toBeLessThanOrEqual(32);
+  cleanup();
+  vi.restoreAllMocks();
+  // The padding takes the whole stage, so there is no room to measure and Fit stays at 100%.
+  boxes({ '.ui-split__stage': { clientWidth: 320, clientHeight: 48 }, '.ui-split__sheet': { offsetWidth: 560, offsetHeight: 792 } });
+  inset();
+  render(layout());
+  expect(readout()).toHaveTextContent('100%');
+});
+
+it('keeps the height of the action row clear when the stacked scroll brings a control into view', () => {
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.matches('.ui-split__actions') ? 72 : 0;
+  });
+  vi.stubGlobal('ResizeObserver', class { read: () => void; constructor(read: () => void) { this.read = read; } observe() { this.read(); } disconnect() {} });
+  render(layout());
+  expect(document.querySelector<HTMLElement>('.ui-split')!.style.getPropertyValue('--ui-split-foot')).toBe('72px');
+  const stacked = css.slice(css.indexOf('@media (max-width: 860px)'), css.indexOf('@media (max-width: 560px)'));
+  expect(stacked).toMatch(/\.ui-split \{[^}]*scroll-padding-bottom:\s*calc\(var\(--ui-split-foot, 0px\) \+ var\(--ring-gap-width\) \+ var\(--ring-width\)\)/);
+});
+
+it('marks Fit while it is on with the selected fill, ink and weight, also under the pointer', () => {
+  const body = /\.ui-split__tools > \.ui-btn\[aria-pressed="true"\]:enabled,\s*\.ui-split__tools > \.ui-btn\[aria-pressed="true"\]:enabled:hover\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+  expect(body).toMatch(/background:\s*var\(--surface-3\)/);
+  expect(body).toMatch(/color:\s*var\(--strong\)/);
+  expect(body).toMatch(/font-weight:\s*var\(--weight-semibold\)/);
+});
+
+it('gives the saved values the weight over their labels, and the pane name the accent', () => {
+  expect(css).toMatch(/\.ui-split__content \.ui-kv dd,\s*\.ui-split__content \.ui-table td:not\(\.ui-table__num--strong\) \{ font-weight: var\(--weight-medium\); \}/);
+  expect(css).toMatch(/\.ui-split__content \.ui-table tbody th:not\(\.ui-table__num--strong\) \{ font-weight: var\(--weight-normal\); \}/);
+  expect(css).toMatch(/\.ui-split__name \{ color: var\(--accent\); \}/);
+});
+
+it('takes new story controls after it mounts', () => {
+  const { Default } = composeStories(stories);
+  const { rerender } = render(<Default />);
+  expect(readout()).toHaveTextContent('100%');
+  rerender(<Default state="unavailable" zoom={200} />);
+  expect(screen.getByText('Preview unavailable')).toBeInTheDocument();
+  rerender(<Default state="ready" zoom={200} />);
+  expect(readout()).toHaveTextContent('200%');
+  expect(sheet()!.style.zoom).toBe('2');
 });
 
 it('makes a pane a Tab stop only while it has something to scroll', () => {

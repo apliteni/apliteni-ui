@@ -395,7 +395,8 @@ holds its own `h1` in the first pane.
 
 ```tsx
 <AppShell width="full" sections={sections} pathname="/invoices/1042" account={account} onSignOut={signOut}>
-  <SplitLayout primaryLabel="Extracted fields" primary={<><h1>Review invoice 1042</h1><Fields /></>}
+  <SplitLayout primaryLabel="Extracted fields"
+    primary={<><h1>Review invoice 1042</h1><h2 className="ui-card__title ui-split__name">Extracted fields</h2><Fields /></>}
     preview={{ title: 'Document preview', children: <InvoiceSheet />, state, onRetry: reload }}
     actions={<Button variant="primary" onClick={next}>Continue to approval</Button>}
     zoom={zoom} onZoomChange={setZoom} />
@@ -403,7 +404,7 @@ holds its own `h1` in the first pane.
 ```
 
 `primary` holds the title, the values and the totals, and `primaryLabel` names that pane,
-`Details` by default. `actions` holds the buttons at the foot of the first pane, the committing
+`Details` by default. Give the pane's own name the `ui-split__name` class, so it takes the accent. `actions` holds the buttons at the foot of the first pane, the committing
 one first. `preview` takes the pane's `title`, the sheet's `children`, a `state` of `ready`,
 `loading` or `unavailable`, and `onRetry` for the Try again button of the unavailable state.
 `zoom` is `fit`, `50`, `100`, `150` or `200`. Pass `zoom` with `onZoomChange`, or let the layout
@@ -413,14 +414,18 @@ keep it from `defaultZoom`, which is `fit`. The layout holds no data and no rule
 
 - Under the band, the page splits into two panes from the band to the foot. The first takes 60%
   and the preview 40%, with a 1px `--border` line between them. Neither pane is a card.
+- The first pane holds the values that will be saved. A value in its key-value list or table is
+  heavier than its label, and the pane's name is in the accent. The preview takes none of these.
 - The preview pane is the document ground, `--ui-document-ground`, from edge to edge. Its title
   and zoom tools stand on the page ground at its top, and the sheet is a kit page, 420px wide.
 - Above 860px each pane scrolls on its own, and the sidebar and the band stay outside both. The
   action row stays at the foot of the first pane.
-- Fit shows the whole sheet, and never draws it above 100%. Zoom out and Zoom in step through
-  50%, 100%, 150% and 200%, and a sheet larger than the pane scrolls inside it.
+- Fit shows the whole sheet, however low the pane is, and never draws it above 100%. While Fit
+  is on it has the selected fill, ink and weight. Zoom out and Zoom in step through 50%, 100%,
+  150% and 200%, and a sheet larger than the pane scrolls inside it.
 - At 860px and below, the panes stack in source order in one scroll. The preview tools stay at
-  the top while the preview passes, and the action row stays at the foot of the screen.
+  the top while the preview passes, and the action row stays at the foot of the screen. A
+  control that the focus scrolls into view stops above the action row.
 - While the preview loads, the sheet shows a skeleton and the zoom is off. An unavailable preview
   shows "Preview unavailable" and Try again in place of the sheet.
 

@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { composeStories } from '@storybook/react';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as stories from './DocumentReview.stories';
 
 /* The three-step flow, driven through the story the showcase publishes, so the test and
@@ -16,6 +19,10 @@ afterEach(() => {
   document.cookie = 'apliteni-ui-rail=; Max-Age=0; path=/';
 });
 
+// The kit's rule for a heading that takes the focus from a script, read from the sheet as text:
+// jsdom applies no :focus-visible, so the test matches the focused title to its selector.
+const base = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../src/styles/base.css'), 'utf8');
+const titleRing = /([^{}]*\[tabindex="-1"\]):focus-visible\s*\{([^}]*)\}/.exec(base.replace(/\/\*[\s\S]*?\*\//g, ''));
 const actions = () => within(document.querySelector('.ui-split__actions, .ui-toolbar') as HTMLElement);
 const status = () => document.querySelector('.ui-busy .ui-sr') as HTMLElement;
 
@@ -23,6 +30,9 @@ describe('document review flow', () => {
   it('walks review to approved, keeping the committing action first on every step', () => {
     render(<Default />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Review invoice DEMO-1042');
+    // The saved values lead: their pane's name is the accented h2, before the preview's h2.
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['Extracted fields', 'Document preview']);
+    expect(screen.getByRole('heading', { level: 2, name: 'Extracted fields' })).toHaveClass('ui-split__name');
     // Fix 7: the committing action is the first control in the row, at every step.
     expect(actions().getAllByRole('button')[0]).toHaveTextContent('Continue to approval');
 
@@ -54,8 +64,13 @@ describe('document review flow', () => {
     render(<Default />);
     fireEvent.click(screen.getByRole('button', { name: 'Continue to approval' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Confirm approval' }));
+    // Each step title takes the kit ring, not the browser's own outline.
+    expect(titleRing, 'base.css has no ring for a heading that takes the focus').toBeTruthy();
+    expect(titleRing![2]).toMatch(/outline:\s*var\(--ring\);\s*outline-offset:\s*var\(--ring-offset\)/);
+    expect(document.activeElement!.matches(titleRing![1])).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Back to review' }));
     expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'Review invoice DEMO-1042' }));
+    expect(document.activeElement!.matches(titleRing![1])).toBe(true);
   });
 
   it('marks the whole screen busy from one flag and announces the result', () => {

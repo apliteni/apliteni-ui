@@ -1,5 +1,5 @@
-/* Rule: on a split layout, each key and click keeps the focus on a shown control of the page,
- * moves no shell chrome and no action row by more than 1px, keeps the cumulative layout shift
+/* Rule: on a split layout, each key and click keeps the focus on a shown control of the page
+ * that nothing covers, moves no shell chrome and no action row by more than 1px, keeps the cumulative layout shift
  * under 0.1 and causes no sideways scroll. Escape leaves the focus where it was. Above 860px
  * the content takes 60% and the preview 40%, both reach the foot of the window, and the page
  * does not scroll down. At 860px and less the preview sits below the content and the action
@@ -14,18 +14,21 @@
  *
  * It opens three stories in a new context at each of ten window sizes and on six devices: the
  * Galaxy Z Fold 7 and Flip 7 and their cover screens from Playwright's list, and a two-screen
- * phone of 466×678 and 890×626 at scale 3 with touch. The Document review walks Zoom in by
- * key, Zoom out to its end, Fit by Tab and Enter, Escape, Continue to approval and Back to
+ * phone of 466×678 and 890×626 at scale 3 with touch. The Document review walks Tab from the
+ * Invoices link with Zoom out at the foot of the window, Zoom in by key, Zoom out to its end, Fit by Tab and Enter, Escape, Continue to approval and Back to
  * review. Its unavailable preview walks Try again, Tab and Escape. The zoomed split layout
  * walks Tab into the scrolled page, ArrowDown and End where the sheet is taller than its stage,
  * then a click on an action and Escape. The shell
  * chrome is every fixed or sticky element outside the split, found in the page, and the
- * action row.
+ * action row. A focused control is covered when the element at its centre is not inside it,
+ * such as the sticky action row over a zoom step. A 320×200 window then checks that Fit shows
+ * the whole sheet in the stage.
  *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input, so a shift
  * that a press causes on purpose is not measured. No layer opens on these screens, so
- * Escape is checked to leave the focus as it was.
+ * Escape is checked to leave the focus as it was. The cover check reads one point, the centre,
+ * and skips a control whose centre is outside the window.
  * why: docs/components.md#split-layout
  */
 import test from 'node:test';
@@ -46,6 +49,8 @@ const READ = () => {
   const page = document.querySelector('main');
   const split = document.querySelector('.ui-split');
   const shown = el && el !== document.body && page.contains(el) && el.checkVisibility();
+  const box = shown && el.getBoundingClientRect();
+  const hit = box && document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
   const chrome = [...document.querySelectorAll('body *')]
     .filter((e) => (split ? !split.contains(e) : true) && ['fixed', 'sticky'].includes(getComputedStyle(e).position))
     .concat([...document.querySelectorAll('.ui-split__actions')])
@@ -53,6 +58,7 @@ const READ = () => {
   const doc = document.scrollingElement;
   return {
     focus: shown ? (el.getAttribute('aria-label') || el.textContent.trim().slice(0, 40)) : null,
+    cover: hit && !el.contains(hit) ? `${hit.tagName.toLowerCase()}.${[...hit.classList].join('.')}` : null,
     chrome, cls: window.__cls, over: doc.scrollWidth - doc.clientWidth,
   };
 };
@@ -65,6 +71,19 @@ const focused = (locator) => locator.and(locator.page().locator(':focus')).waitF
 const button = (page, name) => page.getByRole('button', { name, exact: true });
 const scale = (page) => page.locator('.ui-split__scale');
 const REVIEW = [
+  // The reader has scrolled until Zoom out sits at the foot of the window, under a stacked
+  // action row. Chromium scrolls a control that Tab reaches only when it is outside the
+  // scroll's clear area, so this is the case that the row's reserved height decides.
+  ['key: Tab from Invoices', async (page) => {
+    await page.evaluate(() => {
+      const split = document.querySelector('.ui-split');
+      const out = document.querySelector('[aria-label="Zoom out"]');
+      split.scrollTop += out.getBoundingClientRect().bottom - split.getBoundingClientRect().bottom;
+      [...document.querySelectorAll('main a')].filter((a) => a.textContent.trim() === 'Invoices').pop().focus({ preventScroll: true });
+    });
+    await page.keyboard.press('Tab');
+    await focused(button(page, 'Zoom out'));
+  }],
   ['key: Enter on Zoom in', async (page) => {
     await button(page, 'Zoom in').focus();
     await page.keyboard.press('Enter');
@@ -195,6 +214,7 @@ async function walk(page, name, actions, { only } = {}) {
     const after = await page.evaluate(READ);
     ran.push(act);
     if (!after.focus) found.push(`${name} ${act}: the focus left the page's shown controls`);
+    if (after.cover) found.push(`${name} ${act}: ${after.cover} covers the focused ${after.focus}`);
     for (const c of after.chrome) {
       const was = before.chrome.find((b) => b.name === c.name);
       if (was && Math.max(Math.abs(c.x - was.x), Math.abs(c.y - was.y)) > 1) found.push(`${name} ${act}: ${c.name} moved ${Math.round(c.x - was.x)},${Math.round(c.y - was.y)}px`);
@@ -255,6 +275,26 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     if (!process.env.SPLIT_LAYOUT_ONLY) assert.ok(skipped <= 2, `the scroll actions ran at only ${subjects.length - skipped} subjects`);
     assert.deepEqual(findings, []);
 
+    // Fit shows the whole sheet, also in a window that leaves the stage a few pixels.
+    const fits = async (setup) => {
+      const { ctx, page } = await open(browser, server.port, vitals, { viewport: { width: 320, height: 200 } }, STORIES[0]);
+      await setup?.(page);
+      await page.evaluate(frames);
+      const fit = await page.evaluate(() => {
+        const stage = document.querySelector('.ui-split__stage');
+        const sheet = document.querySelector('.ui-split__sheet').getBoundingClientRect();
+        const css = getComputedStyle(stage);
+        return { pressed: document.querySelector('.ui-split__tools [aria-pressed="true"]') !== null, sheet: sheet.height,
+          room: stage.clientHeight - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom),
+          scrolls: stage.scrollHeight > stage.clientHeight + 1 || stage.scrollWidth > stage.clientWidth + 1 };
+      });
+      await ctx.close();
+      return fit;
+    };
+    const small = await fits();
+    assert.ok(small.pressed, 'Fit is not on in the 320×200 window');
+    assert.ok(small.sheet <= small.room + 1 && !small.scrolls, `at 320×200 Fit draws a ${small.sheet}px sheet in ${small.room}px of stage`);
+
     // The mutations: each check must see its own failure.
     const caught = [];
     const [review, unavailable, zoomed] = STORIES;
@@ -278,6 +318,11 @@ test('the split layout keeps focus, chrome, layout and width through each intera
     await inspected(wide, (page) => page.addStyleTag({ content: '.ui-split { height: 120vh; }' }), 'scrolls');
     await inspected(phone, (page) => page.addStyleTag({ content: '.ui-split__preview { order: -1; } .ui-split { display: flex; flex-direction: column; }' }), 'below the content');
     await inspected(phone, (page) => page.addStyleTag({ content: '.ui-split__actions { position: static; }' }), 'action row stops');
+    // The 10% floor that Fit had before #914's review.
+    const floored = await fits((page) => page.addStyleTag({ content: '.ui-split__sheet { zoom: 0.1 !important; }' }));
+    caught.push(['Fit floor', floored.sheet > floored.room + 1 || floored.scrolls]);
+    // A stacked scroll that does not keep the action row's height clear.
+    await mutate({ viewport: { width: 466, height: 678 } }, review, (page) => page.addStyleTag({ content: '.ui-split { scroll-padding-bottom: 0 !important; }' }), ['key: Tab from Invoices'], 'covers');
     // A step change that does not move the focus to the new title.
     const noTitle = (page) => page.evaluate(() => {
       const keep = HTMLElement.prototype.focus;

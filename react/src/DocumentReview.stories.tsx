@@ -164,6 +164,7 @@ export const Default: StoryObj<Args> = {
       <p className="ui-app__sub">
         Check the fields read from the document against the document itself. Approval saves them to the record.
       </p>
+      <h2 className="ui-card__title ui-split__name">Extracted fields</h2>
       {fieldsLoading ? <Skeleton lines={8} /> : <>
         <KeyValueList rows={identity} />
         {/* Figures the reader compares belong in a right-aligned table, in the document's
