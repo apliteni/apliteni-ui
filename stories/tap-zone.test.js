@@ -1139,6 +1139,36 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       );
     });
 
+    await t.test('every control in the Button gallery reaches the floor', async () => {
+      // The gallery shows a consumer how to place a button, so its specimens stand
+      // in kit rows that open the room. Limit: only the React Button gallery is held.
+      // The other component galleries still place controls outside such rows. #903
+      const GALLERY = 'react-button--';
+      const mine = B.filter((b) => b.story.startsWith(GALLERY));
+      assert.ok(
+        new Set(mine.map((b) => b.story)).size >= 7 && mine.length >= 10,
+        `${mine.length} targets measured in the Button gallery. The gallery has seven stories `
+        + 'and ten controls, so a smaller count is a story that stopped rendering.',
+      );
+      const short = mine.filter((b) => b.floorMiss > 0)
+        .map((b) => `${b.story} — ${name(b)} reaches ${b.reach.join('x')}`);
+      assert.deepEqual(
+        short, [],
+        `${short.length} Button gallery control(s) do not reach ${TAP_MIN}x${TAP_MIN}. Place the `
+        + 'specimen in a kit row that declares the phone clearance, such as .ui-toolbar.',
+      );
+      // The mutation: the gallery as it stood at 8473a5c3, with no kit row around a button.
+      const bare = subjects.filter((s) => s.id.startsWith(GALLERY))
+        .map((s) => ({ ...s, html: s.html.replace(/class="ui-toolbar"/g, '') }));
+      const missed = flatten((await at(390, true, withCss, bare)).rows).filter((b) => b.floorMiss > 0);
+      assert.ok(
+        missed.length > 0,
+        'The Button gallery without its kit rows still reached the floor, so the check above '
+        + 'would pass over the defect it was written for.',
+      );
+      t.diagnostic(`Button gallery: ${mine.length} targets at the floor; ${missed.length} miss it without the kit rows`);
+    });
+
     await t.test('this gate rejects a specimen whose clearance is taken away', async () => {
       // The mutation: the Drawers page before the review of #492 — the same
       // rows, packed, with no clearance declared. The check above has to fail

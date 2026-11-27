@@ -6,13 +6,38 @@
 
 export const RELEASES = [
   {
-    v: '0.213.0', date: '2026-11-26',
+    v: '0.219.0', date: '2026-11-27',
     changes: [
       ['added', '`AppShell` takes `sidebarNote`, one short line of text, such as the product version, at the foot of the section list above the account. It shows at the bottom of the phone menu too, and a folded sidebar hides it. Part of #869.', ['AppShell']],
       ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],
       ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
       ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
       ['added', 'The page guideline has a new rule, Align the sidebar on one column. Part of #869.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.214.0', date: '2026-11-26',
+    changes: [
+      ['added', '`FilterBar` and `Dropdown` take `size="sm"`, or the classes `.ui-filter-bar--sm` and `.ui-dropdown--sm`. Beside a small `SearchField` and a small `Button`, the chips, Filter, Clear all and the trigger are then 32px high with a mouse and 40px on a touch screen. Part of #903.', ['FilterBar', 'Dropdown']],
+      ['changed', 'A toolbar that starts with a small search field no longer makes its chips 32px. An app with a small filter row passes `size="sm"` to its `FilterBar` and `Dropdown`, or the chips stay 40px. The height now holds when the field is in a wrapper or the bar is outside the toolbar. Part of #903.', ['FilterBar', 'SearchField']],
+      ['changed', 'On a touch screen a small `Button` or `Segmented` on a toolbar is 40px high in any row, and a small wordless button is a 40px circle. On a phone, a wordless button of the small, default or large size on a toolbar reaches the 44px tap floor. An extra-small wordless button (`size="xs"`) does not reach it, so use `size="sm"` or larger where a phone user taps it. A wordless button of the default size beside a small search field is no longer 46px. Give it `size="sm"`. Part of #903.', ['Button']],
+    ],
+  },
+  {
+    v: '0.213.0', date: '2026-11-26',
+    changes: [
+      ['added', '`Toast` takes `bottomOffset`, the inset of the stack from the bottom of the view, in pixels or a CSS length. The default stays 16px. A page with a bar at the bottom sets it so the notices stand above the bar. Remove any selector that moves `.rx-toast-stack`. Part of #907.', ['Toast']],
+      ['changed', 'The countdown ring of an undo notice takes the ink of its action, so it keeps 3:1 on its track in each tone and theme. The `--toast-timer-mix` and `--toast-timer-mix-strong` custom properties are removed. Part of #907.', ['Toast']],
+      ['fixed', 'A toast stack that is taller than the view stops 16px below the top and scrolls, so every notice stays on screen on a short phone. The published reach follows a resize of the view. When a notice leaves, a control in the stack that has the focus stays in view. The Dismiss button of a notice has a hover title. Part of #907.', ['Toast']],
+      ['fixed', 'An icon-only `Button` with an `aria-label` takes it as its hover title too, unless you set a `title`. Part of #907.', ['Button']],
+    ],
+  },
+  {
+    v: '0.212.0', date: '2026-11-26',
+    changes: [
+      ['changed', 'A `StatBand` with `variant="band"` and up to three figures now keeps them in one row on a phone. Below 42rem of band width the value steps down to 22px, 18px and then 15.5px, and the gap between figures closes to 16px, 8px and then 4px. Three values of `−€9,999,999` fit in one row above 19rem, and the figures stack only at 19rem or below. Tiles, an open band and a band of four figures keep their folds. Part of #865.', ['Stat band']],
+      ['changed', 'A toolbar directly after a stat band in the page body now keeps one group gap, 32px, in both themes, in place of the group gap plus the body gap. Part of #865.', ['Stat band', 'Toolbar']],
+      ['changed', 'The Density and accents guideline rule Check a narrow stat band now says: a band keeps up to three figures in one row above 19rem and stacks them at 19rem or below. A new Transactions showcase shows the band above a search, a filter and a table. Part of #865.', ['Guidelines']],
     ],
   },
   {

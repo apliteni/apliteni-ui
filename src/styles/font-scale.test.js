@@ -22,7 +22,7 @@ const PASSED_ON = /^(?:inherit|var\(--[\w-]+-font\))$/;
 const FIELD_TRIGGER = '.ui-field > .ui-dropdown > .ui-dropdown__trigger';
 // A wordless button beside a full field measures the field's 16px line box on a touch
 // screen, so its circle is the field's height. It shows no text at that size. #831
-const FIELD_CIRCLE = '.ui-toolbar:has(> .ui-input-group > .ui-input, > .ui-input) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm)';
+const FIELD_CIRCLE = '.ui-toolbar:has(> .ui-input-group > .ui-input:not(.ui-input--sm), > .ui-input:not(.ui-input--sm)) > .ui-btn--icon:not(.ui-btn--xs, .ui-btn--sm)';
 const KEPT = [
   // iOS zooms into a field under 16px. docs/foundations.md#a-field-is-16px-on-a-touch-screen
   { file: 'field-zoom.css', value: '16px !important' },

@@ -240,11 +240,13 @@ export const Button = forwardRef<ButtonElement, RootProps>(function Button({
   // aria-label + title (an explicit aria-label / aria-labelledby always wins),
   // then the icon name. With neither, nothing is invented: a control named
   // "Button" reads as named to axe and says nothing to the person hearing it.
+  // An explicit aria-label is also the hover title, unless the caller sets one.
   // why: guidelines/microcopy.md#name-every-control
   const labelled = rest['aria-label'] != null || rest['aria-labelledby'] != null;
   const fallback = typeof children === 'string' && children.trim() ? children.trim() : icon;
-  const named = iconOnly && !labelled && fallback
-    ? { 'aria-label': fallback, title: rest.title ?? fallback }
+  const spoken = rest['aria-label'] != null ? rest['aria-label'] : !labelled ? fallback : undefined;
+  const named = iconOnly && spoken
+    ? { 'aria-label': spoken, title: rest.title ?? spoken }
     : {};
   const Root = href === undefined ? 'button' : 'a';
   const describedBy = holds ? cx(rest['aria-describedby'], holdHelpId) : rest['aria-describedby'];
