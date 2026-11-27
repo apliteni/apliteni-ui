@@ -11,7 +11,7 @@ export const RELEASES = [
       ['added', 'A new React `ProposedValue` shows a value that the app proposes and the user has not applied. The value is written in a still gradient, then a check applies it and a dismiss mark sets the field to None. Neither opens the menu. With a value, or with none, it is a ghost select. Part of #888.', ['ProposedValue']],
       ['added', 'React `Dropdown` takes `ghost`: a trigger with no edge and no ground at rest, which keeps the chevron, the hover fill and the focus ring. Without the prop a trigger keeps its look. Part of #888.', ['Dropdown']],
       ['changed', 'Four guideline rules name the gradient ink of a proposed value as an exception, and Iconography adds its check to the icon-only list. Part of #888.', ['Guidelines']],
-      ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view when the keyboard or a script focuses it, as the scroll frame does. Part of #888.', ['DataTable']],
+      ['fixed', 'A `DataTable` directly in a card now brings a control that the card shows in part fully into view, with its focus ring, when the keyboard or a script focuses it. Part of #888.', ['DataTable']],
     ],
   },
   {

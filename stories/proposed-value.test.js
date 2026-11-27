@@ -1,8 +1,8 @@
 /* Rule: a proposed value's check sets the value and opens no menu, and its dismiss mark sets
  * the field to None. After each act the focus stays on the field, the value's first letter
  * moves at most 1px, the cumulative layout shift stays under 0.1 and the page does not scroll
- * sideways. Escape closes the menu that Enter opens. No scrolling box cuts the focused control,
- * and each row of an open menu keeps its words on one line.
+ * sideways. Escape closes the menu that Enter opens. No scrolling box cuts the focused control
+ * or its ring, and each row of an open menu keeps its words on one line.
  *
  * Off unless PROPOSED_VALUE=1: Playwright and web-vitals are not dependencies of this
  * package, CI does not run it, and the result is reported by hand in the pull request.
@@ -57,14 +57,17 @@ const READ = (host) => {
     })() : null,
     word: text?.textContent.trim() ?? null,
     last: rows.length ? rows[rows.length - 1].getBoundingClientRect().top + scrollY : null,
-    // The focused control's part that a scrolling box around it cuts, in px.
+    // The focused control's part, with its ring, that a scrolling box around it cuts, in px.
     cut: (() => {
       const box = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      const ring = style.outlineStyle === 'none' ? 0 : parseFloat(style.outlineWidth) + parseFloat(style.outlineOffset);
       let most = 0;
       for (let up = el.parentElement; up; up = up.parentElement) {
         if (getComputedStyle(up).overflowX === 'visible') continue;
         const frame = up.getBoundingClientRect();
-        most = Math.max(most, frame.left - box.left, box.right - frame.right);
+        const left = frame.left + up.clientLeft;
+        most = Math.max(most, left - (box.left - ring), box.right + ring - (left + up.clientWidth));
       }
       return Math.round(most);
     })(),

@@ -972,7 +972,7 @@ scrolls sideways. A tinted card, a landing card and a stat tile keep their box a
 while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default,
 as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
 scroll frame does. A control in the card that takes the focus by keyboard or by script scrolls
-fully into view, as in the frame.
+fully into view with its focus ring.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
