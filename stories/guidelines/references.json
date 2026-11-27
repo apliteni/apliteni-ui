@@ -390,7 +390,7 @@
   ],
   "status-after-title": [
    {
-    "ref": "react/src/Drawer.tsx:73",
+    "ref": "react/src/Drawer.tsx:76",
     "pattern": "className=\"ui-drawer__status\""
    },
    {
@@ -400,7 +400,7 @@
   ],
   "save-under-form": [
    {
-    "ref": "src/styles/drawer.css:188",
+    "ref": "src/styles/drawer.css:190",
     "pattern": "flex: 0 1 auto;"
    }
   ],
@@ -410,7 +410,7 @@
     "pattern": "export function DrawerSection("
    },
    {
-    "ref": "src/styles/drawer.css:220",
+    "ref": "src/styles/drawer.css:222",
     "pattern": ".ui-drawer__section + .ui-drawer__section"
    }
   ],
@@ -420,7 +420,7 @@
     "pattern": ".ui-drawer__header {"
    },
    {
-    "ref": "src/styles/drawer.css:223",
+    "ref": "src/styles/drawer.css:225",
     "pattern": ".ui-drawer__section-title {"
    }
   ],
@@ -430,7 +430,7 @@
     "pattern": "ui-drawer__row"
    },
    {
-    "ref": "src/styles/drawer.css:291",
+    "ref": "src/styles/drawer.css:293",
     "pattern": ".ui-drawer__row dt { color: var(--text); }"
    }
   ]
@@ -450,7 +450,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:187",
+    "ref": "react/src/AppShell.tsx:190",
     "pattern": "back && <BackLink"
    }
   ],
@@ -586,7 +586,7 @@
   ],
   "title-rank": [
    {
-    "ref": "src/styles/layout.css:417",
+    "ref": "src/styles/layout.css:433",
     "pattern": "rank: page-title"
    },
    {
@@ -638,7 +638,7 @@
   ],
   "measure": [
    {
-    "ref": "src/styles/layout.css:310",
+    "ref": "src/styles/layout.css:326",
     "pattern": "var(--ui-app-main, var(--measure))"
    },
    {
@@ -672,7 +672,7 @@
   ],
   "breakpoints": [
    {
-    "ref": "src/styles/layout.css:559",
+    "ref": "src/styles/layout.css:575",
     "pattern": "@media (max-width: 720px)"
    },
    {
@@ -696,11 +696,11 @@
     "pattern": "--space-8: 32px"
    },
    {
-    "ref": "src/styles/layout.css:472",
+    "ref": "src/styles/layout.css:488",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child) { margin-bottom: calc(var(--space-2) - var(--ui-block-gap)); }"
    },
    {
-    "ref": "src/styles/layout.css:473",
+    "ref": "src/styles/layout.css:489",
     "pattern": ".ui-stack > .ui-toolbar + * { margin-top: var(--space-2); }"
    }
   ],
@@ -820,7 +820,7 @@
     "pattern": "transition-duration: 0.01ms !important;"
    },
    {
-    "ref": "src/styles/drawer.css:304",
+    "ref": "src/styles/drawer.css:306",
     "pattern": ".ui-drawer.is-open * { transition: none !important; }"
    }
   ],

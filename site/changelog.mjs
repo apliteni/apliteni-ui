@@ -1,18 +1,21 @@
-// Write for people who use the kit. Start with what changed and who is affected.
-// Use one to three short sentences per change; add detail only for migration
-// steps or behavior limits. Use plain words, without praise, filler or a test diary.
-// Keep versions, dates, change types, component links and issue references.
-// The first sentence is the page summary; full text also appears in release notes.
-
 export const RELEASES = [
   {
-    v: '0.222.0', date: '2026-11-27',
+    v: '0.226.0', date: '2026-11-27',
     changes: [
       ['changed', 'A filter chip now keeps the width of its longest value up to 128px, in place of 224px, so five chips with long values fit one line beside a search field at 1440px. A pick still does not move the row. A longer value ends with an ellipsis, and the hover title, the trigger name and the menu keep the full value. Part of #915.', ['FilterBar']],
       ['added', 'A filter takes `maxWidth`, in CSS pixels, to give its chip a different cap. `--ui-filter-chip-max` set on the toolbar or another box around the bar now reaches every chip. Before, the bar replaced it with its own value. Part of #915.', ['FilterBar']],
       ['changed', 'A filter chip now has the accent edge under the pointer, while pressed and while its menu is open. Before, it showed no hover. Part of #915.', ['FilterBar']],
       ['changed', 'A dropdown trigger now keeps its hover answer while pressed and while its menu is open: the accent edge on a select, and the hover fill on a trigger with no edge, such as the account block, a band control, a band action, the head control and a column menu. Before, a menu opened by a tap or left by the pointer showed nothing on its trigger. Part of #915.', ['Dropdown', 'AppShell', 'AccountMenu', 'TopBar', 'ThreeColumnPage', 'DatePicker']],
       ['changed', 'The Dense tables guideline has a new rule, Cap long filter chips. Part of #915.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.224.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'The open sidebar and the phone menu now have two columns. The logo, the section icons, a group label and the avatar start 8px inside the row fill, and the product name, the section labels and the account name start 46px inside it. In every app the labels move 6px right and the icons 4px left. The phone menu head now shows the logo before the product name. Part of #869.', ['AppShell']],
+      ['fixed', 'A folded sidebar now puts the avatar on the centre line of the section icons. Before, it stood 10px left of it. Part of #869.', ['AppShell']],
+      ['added', '`Drawer` takes `mark`, such as a product logo, before the title. Screen readers skip it. Part of #869.', ['Drawer']],
+      ['added', 'The page guideline has a new rule, Align the sidebar on one column: the logo, the section icons and the avatar start on one edge. Part of #869.', ['Guidelines']],
     ],
   },
   {
