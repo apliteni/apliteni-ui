@@ -1095,18 +1095,21 @@ export function Chart(props: ChartProps) {
     const end = (reveal: boolean) => {
       view.cancelAnimationFrame(frame);
       view.clearTimeout(limit);
-      doc.removeEventListener('scroll', moved, true);
-      for (const type of ['wheel', 'touchmove', 'keydown']) doc.removeEventListener(type, input, true);
+      for (const [type, listener, options] of listeners) doc.removeEventListener(type, listener, options);
       revealing.current = false;
       endHold.current = null;
       const queued = afterHold.current.splice(0);
       if (reveal) queued.forEach((run) => run());
     };
-    doc.addEventListener('scroll', moved, true);
+    // One list adds and removes each listener, so both use the same capture.
     // The key listener is on the bubble side, after the chart's own handler.
-    doc.addEventListener('wheel', input, { capture: true, passive: true });
-    doc.addEventListener('touchmove', input, { capture: true, passive: true });
-    doc.addEventListener('keydown', input);
+    const listeners: [string, (event: globalThis.Event) => void, AddEventListenerOptions][] = [
+      ['scroll', moved, { capture: true }],
+      ['wheel', input, { capture: true, passive: true }],
+      ['touchmove', input, { capture: true, passive: true }],
+      ['keydown', input, {}],
+    ];
+    for (const [type, listener, options] of listeners) doc.addEventListener(type, listener, options);
     const tick = () => {
       still += 1;
       if (still < 2) { frame = view.requestAnimationFrame(tick); return; }

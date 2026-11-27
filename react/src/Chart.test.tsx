@@ -1171,12 +1171,48 @@ it('bounds the hold of a Tab entry in time, and to the boxes that hold the chart
   expect(screen.queryByRole('tooltip'), 'a box that does not hold the chart is not the chart\'s scroll').toBeNull();
   other.remove();
 
-  const removed = vi.spyOn(document, 'removeEventListener');
+  // A review of 6c72f6fb: the hold removed its key listener with another
+  // capture than it added it with, so each entry left one on the document. The
+  // ledger keys a listener by its target, type, capture and function, as the
+  // browser does. Limits: it sees only the document and the window.
   await user.tab({ shift: true });
+  await frames(3);
+  const live = new Map<string, number>();
+  const ids = new Map<unknown, number>();
+  const key = (on: string, type: string, fn: unknown, options?: boolean | EventListenerOptions) => {
+    const capture = typeof options === 'boolean' ? options : Boolean(options?.capture);
+    if (!ids.has(fn)) ids.set(fn, ids.size + 1);
+    return `${on} ${type} ${capture ? 'capture' : 'bubble'} #${ids.get(fn)}`;
+  };
+  for (const [on, target] of [['document', document], ['window', window]] as const) {
+    const add = target.addEventListener.bind(target);
+    const remove = target.removeEventListener.bind(target);
+    vi.spyOn(target, 'addEventListener').mockImplementation((type, fn, options) => {
+      live.set(key(on, type, fn, options), 1);
+      add(type, fn, options);
+    });
+    vi.spyOn(target, 'removeEventListener').mockImplementation((type, fn, options) => {
+      live.delete(key(on, type, fn, options));
+      remove(type, fn, options);
+    });
+  }
+  const listening = () => [...live.keys()].map((id) => id.replace(/ #\d+$/, '')).sort();
+  for (let entry = 0; entry < 3; entry += 1) {
+    await user.tab();
+    expect(listening(), 'the hold listens for the reader\'s scroll and the chart\'s own').toEqual([
+      'document keydown bubble', 'document keydown bubble', 'document scroll capture',
+      'document scroll capture', 'document touchmove capture', 'document wheel capture', 'window resize bubble',
+    ]);
+    // The hold ends after two still frames, and the row reveal it queued holds again.
+    await frames(6);
+    expect(listening(), 'the end of the hold removes each of its listeners; the open readout keeps its own')
+      .toEqual(['document keydown bubble', 'document scroll capture', 'window resize bubble']);
+    await user.tab({ shift: true });
+    expect(listening(), 'a closed readout leaves no listener').toEqual([]);
+  }
   await user.tab();
   unmount();
-  expect(removed.mock.calls.map(([type]) => type), 'an unmount releases the hold')
-    .toEqual(expect.arrayContaining(['wheel', 'touchmove', 'scroll']));
+  expect(listening(), 'an unmount in the hold removes each listener').toEqual([]);
   delete (Element.prototype as Partial<Element>).scrollIntoView;
   vi.restoreAllMocks();
 });
