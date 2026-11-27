@@ -31,7 +31,7 @@ test('measured in a browser, four widths and both themes', {
   const lib = await import('./lib/dropdown-contain.js');
   const {
     WIDTHS, THEMES, serve, reactPass, indexed, openStory, panels, outside, where, SHIFT_OFF,
-    reactEdgeCases, broken, whereCase, WRAP_OFF, NO_MUTATION_OBSERVER,
+    reactEdgeCases, broken, whereCase, WRAP_OFF, NO_MUTATION_OBSERVER, READ, SLACK,
     NO_SCROLL_LISTENER, LONG_LABEL, NO_CHARACTER_DATA, NO_MOTION_END, playwright,
   } = lib;
 
@@ -465,6 +465,52 @@ test('measured in a browser, four widths and both themes', {
           + 'pass with that half of the fix removed.',
         );
       }
+    });
+
+    /* #888: a ghost trigger in a form hangs past its column, so a long value makes the
+       trigger wider than the view's room. Its panel is at least the trigger, and that floor
+       must stop at the panel's ceiling. The story's first field takes a long value, and its
+       card takes no padding, so the field fills the page less the canvas's 16px padding.
+       Its limits: the light theme, the in-place panel, and two phone widths. At 466px the
+       story sets two fields in a row, so the trigger is narrower than the room. */
+    await t.test('a long ghost field in a form keeps its menu inside the view room', async () => {
+      const GHOST_STORY = 'react-proposed-value--form-row';
+      assert.ok(all.some((s) => s.id === GHOST_STORY), `no story with the id ${GHOST_STORY} in the built index`);
+      const LONG_VALUE = 'Professional services and international subscriptions';
+      const FLOOR_UNCAPPED = '.ui-field > .ui-dropdown > .ui-dropdown__panel { min-inline-size: 100% !important; }';
+      const ghost = async (width, mutation) => {
+        const ctx = await browser.newContext({ viewport: { width, height: 800 } });
+        const page = await ctx.newPage();
+        const got = await openStory(page, { id: GHOST_STORY }, { port: server.port, theme: 'light' });
+        assert.equal(got.phase, 'finished', `${GHOST_STORY} did not render at ${width}px: ${got.phase}`);
+        await page.evaluate(() => document.fonts.ready);
+        if (mutation) await page.addStyleTag({ content: mutation });
+        await page.evaluate((long) => {
+          document.querySelector('.ui-card').style.padding = '0';
+          document.querySelector('.ui-field .ui-dropdown__value').textContent = long;
+          document.querySelector('[data-dropdown-trigger]').click();
+        }, LONG_VALUE);
+        await page.locator('.ui-dropdown.open').waitFor();
+        await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+        const reading = await page.evaluate(`(${READ})()`);
+        const trigger = await page.evaluate(() => document.querySelector('.ui-field > .ui-dropdown').getBoundingClientRect().width);
+        await ctx.close();
+        return { case: 'a long ghost field in a form', state: `open at ${width}px`, half: 'react', trigger, ...reading };
+      };
+      const GHOST_WIDTHS = [360, 390];
+      const got = [];
+      for (const width of GHOST_WIDTHS) got.push(await ghost(width));
+      console.log(`long ghost field: ${got.length} readings\n${got.map(whereCase).join('\n')}`);
+      assert.equal(got.length, GHOST_WIDTHS.length, 'a width was not measured');
+      // The fixture must make the trigger wider than the room, or it measures nothing.
+      for (const r of got) assert.ok(r.trigger > r.bound, `${whereCase(r)}: the trigger is ${r.trigger}px, not wider than the room`);
+      // The room leaves the edge inset at each end, so the panel keeps that gap to the view.
+      const gapless = (list) => list.filter((r) => broken([r]).length || r.left < (r.view - r.bound) / 2 - SLACK
+        || r.right > r.view - (r.view - r.bound) / 2 + SLACK);
+      assert.deepEqual(gapless(got).map(whereCase), [], 'a long ghost field opened a menu past the view room.');
+      const refused = gapless([await ghost(390, FLOOR_UNCAPPED)]);
+      console.log(`the floor's cap taken away: ${refused.map(whereCase).join('; ') || 'none'}`);
+      assert.ok(refused.length > 0, 'with the floor uncapped, the menu stayed inside the view room. Then this case cannot see the fault.');
     });
   } finally {
     await browser.close();
