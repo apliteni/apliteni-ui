@@ -110,6 +110,18 @@
 
 **Don't:** The same card with the first half of 2026 under its title.
 
+## Put the trend in the chart's head
+
+<!-- rule: trend-in-head -->
+
+**Rule:** Show a chart's trend beside its main figure, over the plot, never on it.
+
+**Why:** On the plot, the trend hides marks and reads as one more value of the series.
+
+**Do:** Net settled with its figure, its range and the change at the end of that row.
+
+**Don't:** The same change written in a corner of the plot.
+
 ## Name the lines by their values or a key
 
 <!-- rule: value-not-legend -->
