@@ -219,12 +219,11 @@
 
 .ui-chart--spark .ui-chart__line { stroke-width: 1.6; }
 
-/* The edge the readout is placed against: the mark's top. Geometry only — it
-   paints nothing. The readout opens above that edge where the frame has the
-   room and flips below it where it has not, which near the top of the plot
-   means covering the mark and the first axis labels. The guideline asks for
-   that flip rather than for a readout outside the part.
-   why: guidelines/hover-readouts.md#prefer-above-the-mark */
+/* The box the readout is placed against: the mark's box. Geometry only — it
+   paints nothing. The readout opens above its top where the view has the
+   room and flips below it where it has not. Below, it opens under the box's
+   bottom, clear of the bar it describes, and moves up only as far as the view
+   makes it. why: guidelines/hover-readouts.md#prefer-above-the-mark */
 .ui-chart__anchor { fill: none; pointer-events: none; }
 
 /* The hit area a pointer lands on. It is the series' own band in the column, so
@@ -255,13 +254,13 @@
 /* The rule under the column the reader is on. It is the zero rule's weight: a
    line read across, not a mark. */
 .ui-chart__cross { stroke: var(--border-strong); stroke-width: 1; }
-/* A point, cut out of the ground, so two lines that
-   meet still show both points. */
-.ui-chart__dot { fill: var(--ui-chart-tone); stroke: var(--ui-chart-ground); stroke-width: 2; }
+/* A point is a ring of its tone around the ground. Its casing of the ground
+   cuts it out of the line and the fills it stands on, so two lines that meet
+   still show both points, and the ring touches only the ground. */
+.ui-chart__dot-casing { fill: var(--ui-chart-ground); stroke: var(--ui-chart-ground); stroke-width: 2; }
+.ui-chart__dot { fill: var(--ui-chart-ground); stroke: var(--ui-chart-tone); stroke-width: 2; }
 .ui-chart--line-thin .ui-chart__line { stroke-width: 1.5; }
 .ui-chart--line-points .ui-chart__line { stroke-width: 2.5; }
-/* The curves look's point is a ring of its tone around the ground. */
-.ui-chart--area-curves .ui-chart__dot { fill: var(--ui-chart-ground); stroke: var(--ui-chart-tone); }
 /* An area is the fade of its tone. Where its values vary, the component names a
    ramp as --ui-chart-paint: the fade at the lowest value, the tone at the highest.
    The edge line on top of it holds the value. */

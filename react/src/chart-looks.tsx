@@ -68,6 +68,16 @@ export const pct = (share: number) => `${Math.round(share * 100)}%`;
 const px = (n: number) => Math.round(n * 10) / 10;
 const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 const tone = (t: ChartTone) => `ui-chart__tone--${t}`;
+
+/** A point marker of radius `r`: a ring of its tone around the ground, on a
+ *  casing of the ground as wide as the old filled point, so the ring touches
+ *  only the ground and not the line or the fills under it. why: #863 */
+const point = (key: string, t: ChartTone, x: number, y: number, r: number) => (
+  <g key={key}>
+    <circle className="ui-chart__dot-casing" cx={px(x)} cy={px(y)} r={px(r)} />
+    <circle className={cx('ui-chart__dot', tone(t))} cx={px(x)} cy={px(y)} r={px(r - 1)} />
+  </g>
+);
 const MISSING = '—';
 
 /* The rows look. A row is as tall as the pointer's floor, so a phone gets 44px
@@ -435,10 +445,7 @@ function linesDrawing(g: LookGeometry, open: number | null) {
     if (!shown || (look.share && i !== open)) return null;
     // The share look's dot marks only the top of the whole.
     if (look.share && layer !== look.layers[look.layers.length - 1]) return null;
-    return (
-      <circle key={`dot-${layer.id}-${i}`} className={cx('ui-chart__dot', tone(layer.tone))}
-        cx={px(centre(i))} cy={px(y(at(layer, i)))} r={points && i === open ? 5.5 : 4} />
-    );
+    return point(`dot-${layer.id}-${i}`, layer.tone, centre(i), y(at(layer, i)), points && i === open ? 5.5 : 4);
   }));
   const ends = look.variant === 'line' && look.look === 'labels' && look.layers.map((layer) => {
     const last = [...Array(n).keys()].reverse().find((i) => finite(layer, i));
@@ -463,8 +470,7 @@ function linesDrawing(g: LookGeometry, open: number | null) {
     }
     return (
       <g key={`end-${layer.id}`}>
-        <circle className={cx('ui-chart__dot', tone(layer.tone))}
-          cx={px(centre(last))} cy={px(at)} r="4" />
+        {point('dot', layer.tone, centre(last), at, 4)}
         <text className="ui-chart__text ui-chart__text--strong" textAnchor="end"
           x={px(x)} y={px(base)}>{format(layer.values[last])}</text>
       </g>

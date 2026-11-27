@@ -1081,6 +1081,9 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   const user = userEvent.setup();
   rowsChart(300, { table: false });
   expect(frame()).toHaveAccessibleName('Margin by unit. Arrow keys step through the 6 rows.');
+  // The anchor is as tall as the row's bar, so a readout below the row clears it.
+  const bar = plot().querySelector('[data-anchor="margin-0"]')!;
+  expect(Number(bar.getAttribute('height')), 'the anchor spans its bar').toBeGreaterThan(0);
   await user.tab();
   expect(screen.getByRole('status')).toHaveTextContent(/^Infrastructure Operations\. Margin €42,000\.$/);
   fireEvent.keyDown(frame(), { key: 'ArrowDown' });
@@ -1117,6 +1120,63 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   await frames(3);
   expect(scrolled, 'the open row comes into view after the entry')
     .toEqual([plot().querySelector('[data-mark="margin-4"] .ui-chart__hit')]);
+  // A design review of f9e6f26f: a wheel during the entry is the reader's. It
+  // ends the hold, the queued row reveal does not move the page back, and the
+  // wheel's scroll closes the readout.
+  await user.tab({ shift: true });
+  scrolled.length = 0;
+  await user.tab();
+  fireEvent.wheel(document, { deltaY: 120 });
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'the reader\'s scroll closes the readout').toBeNull();
+  await frames(3);
+  expect(scrolled, 'the wheel cancels the queued row reveal').toEqual([]);
+  // A scroll key the chart does not take is the reader's too.
+  await user.tab({ shift: true });
+  await user.tab();
+  fireEvent.keyDown(document.body, { key: 'PageDown' });
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'a scroll key ends the hold').toBeNull();
+  await frames(3);
+  expect(scrolled, 'the scroll key cancels the queued row reveal').toEqual([]);
+  delete (Element.prototype as Partial<Element>).scrollIntoView;
+  vi.restoreAllMocks();
+});
+
+// A design review of f9e6f26f: a scroll that never stops kept the hold on, so
+// the queued reveal moved the page when it stopped. The hold ends at its time
+// limit and cancels the reveal, and a scroll of a box that does not hold the
+// chart does not keep it on. Limits: the limit's callback is called directly,
+// as JSDOM moves no page; stories/chart-fit.test.js walks a real wheel.
+it('bounds the hold of a Tab entry in time, and to the boxes that hold the chart', async () => {
+  const user = userEvent.setup();
+  const timers = vi.spyOn(window, 'setTimeout');
+  const scrolled: Element[] = [];
+  Element.prototype.scrollIntoView = function scrollIntoView(this: Element) { scrolled.push(this); };
+  const { unmount } = rowsChart(300, { table: false });
+  await user.tab();
+  const limit = timers.mock.calls.find(([, ms]) => ms === 1000)?.[0] as (() => void) | undefined;
+  expect(limit, 'the hold sets its time limit').toBeTypeOf('function');
+  fireEvent.scroll(document);
+  limit!();
+  await frames(3);
+  expect(scrolled, 'the time limit cancels the queued row reveal').toEqual([]);
+  fireEvent.scroll(document);
+  expect(screen.queryByRole('tooltip'), 'after the limit a page scroll closes the readout').toBeNull();
+
+  const other = document.body.appendChild(document.createElement('div'));
+  await user.tab({ shift: true });
+  await user.tab();
+  fireEvent.scroll(other);
+  expect(screen.queryByRole('tooltip'), 'a box that does not hold the chart is not the chart\'s scroll').toBeNull();
+  other.remove();
+
+  const removed = vi.spyOn(document, 'removeEventListener');
+  await user.tab({ shift: true });
+  await user.tab();
+  unmount();
+  expect(removed.mock.calls.map(([type]) => type), 'an unmount releases the hold')
+    .toEqual(expect.arrayContaining(['wheel', 'touchmove', 'scroll']));
   delete (Element.prototype as Partial<Element>).scrollIntoView;
   vi.restoreAllMocks();
 });
@@ -2342,6 +2402,15 @@ it('places a wrapped readout by its wrapped height near the top of a scrolled ca
 
     hover('income-0');
     expect(tip.classList.contains('is-below'), 'the wrapped readout moves below the mark instead of clipping above').toBe(true);
+    // #863, the owner's choice: a readout below its mark opens under the mark's
+    // bottom, clear of the bar it describes, and not over it from its top.
+    expect(tip.style.getPropertyValue('--ui-tip-y'), 'below, the readout clears the bar').toBe('80px');
+    // A view too short for that moves it up only as far as the view's floor:
+    // 180 less the 8px gap less the readout's 96px.
+    Object.defineProperty(document.documentElement, 'clientHeight', { value: 180, configurable: true });
+    fireEvent.mouseLeave(plot());
+    hover('income-0');
+    expect(tip.style.getPropertyValue('--ui-tip-y'), 'the readout stays in the view').toBe('76px');
   } finally {
     layer.restore();
   }

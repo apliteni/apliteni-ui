@@ -1526,6 +1526,8 @@ A stacked look reads a missing value as zero. The readout of a stacked or a shar
 series of the column and the total, and the table adds a `Total` column. A share look shows the
 parts as percentages, and its table keeps your values. Use `curves` for two or three series that
 the user compares by shape, not by total. A donut slice says its value and its share of the whole.
+A point on a line or an area is a ring of its series colour around the card's ground. The active
+value of the `points` look has a larger ring.
 `totalLabel` names the whole, `Total` by default. A donut has no `selectable`.
 
 `bars` is the default variant. `months` is its old name. It is deprecated and draws the same
@@ -1602,9 +1604,10 @@ Right, Home and End move between columns and announce each one. Enter picks a co
 screen, the first tap on a mark opens its readout and does not call `onSelect`. After Escape, a
 new tap on the same mark opens its readout again. Every value is
 reachable at full strength by pointer or keyboard. A readout in a scrolling region stays fully
-visible over the region and opens above its mark when that space is available. When a tap or Tab
-moves the page to show the chart, the readout stays open and its row comes into view. A scroll
-by the reader closes the readout.
+visible over the region and opens above its mark when that space is available. Where it opens
+below, it clears the bar it describes. When a tap or Tab moves the page to show the chart, the
+readout stays open and its row comes into view, for at most one second. A wheel, a touch move or a
+scroll key by the reader stops that move, and the reader's scroll closes the readout.
 
 ### Table values
 

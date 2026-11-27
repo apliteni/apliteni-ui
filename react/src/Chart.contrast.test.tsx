@@ -17,7 +17,9 @@
 // of zero they stand on and by the legend, never by hue alone.
 // A line over the fills of a line look is measured against the fills at their
 // top strength, one fill or two laid over each other, which is the strongest
-// ground the ramp reaches. Three fills over one point are out.
+// ground the ramp reaches. Three fills over one point are out. A point marker's
+// ring is measured the same way, and an area's wash is read at the line fill's
+// top strength.
 // The same list, kept current, is stories/guidelines/accessibility-coverage.json.
 import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
@@ -232,6 +234,42 @@ describe('the chart\'s tones', () => {
     expect(rows).toHaveLength(THEMES.length * ACCENTS.length * 2 * n * (n + n * n));
     expect(rows.filter((row) => row.value < AA_LARGE)
       .map((row) => `${row.where}: ${row.value.toFixed(2)}:1`)).toEqual([]);
+  });
+
+  /* #863, the owner's choice: a point marker is a ring of its tone around the
+   * ground. The ring is the marker's only ink. Where a wider casing of the
+   * ground lies under every ring, the ring touches the ground on each side, and
+   * the line and the fills stop at the casing. Where it does not, the ring's
+   * outer edge touches the fills, measured as the line rows are. */
+  const fillOf = (name: string) => new RegExp(`\\.ui-chart__${name}\\s*\\{([^}]*)\\}`).exec(CHART_CSS)?.[1] ?? '';
+  const casedPoints = (looks: [variant: 'line' | 'area', look: string][]) => looks.every(([variant, look]) => {
+    const { container, unmount } = render(
+      <Chart variant={variant} look={look as never} title="Income and spend" format={(v: number) => String(v)}
+        periods={['Jan', 'Feb', 'Mar', 'Apr'].map((label) => ({ label }))}
+        series={[{ id: 'income', name: 'Income', tone: 'info', values: [40, 10, 40, 10] },
+          { id: 'spend', name: 'Spend', tone: 'accent', values: [10, 40, 10, 40] }]} />,
+    );
+    const drawn = [...container.querySelectorAll('circle.ui-chart__dot-casing, circle.ui-chart__dot')];
+    const rings = drawn.filter((el) => el.classList.contains('ui-chart__dot'));
+    expect(rings.length, `the ${variant} ${look} look draws a point on each value`).toBe(8);
+    const at = (el: Element) => ['cx', 'cy'].map((n) => el.getAttribute(n)).join(' ');
+    const r = (el: Element) => Number(el.getAttribute('r'));
+    const width = (name: string) => Number(/stroke-width:\s*([\d.]+)/.exec(fillOf(name))?.[1]);
+    const ground = /fill:\s*var\(--ui-chart-ground\)/;
+    const hollow = ground.test(fillOf('dot')) && /stroke:\s*var\(--ui-chart-tone\)/.test(fillOf('dot'));
+    const casing = ground.test(fillOf('dot-casing')) && /stroke:\s*var\(--ui-chart-ground\)/.test(fillOf('dot-casing'));
+    const cased = hollow && casing && rings.every((ring) => drawn.slice(0, drawn.indexOf(ring)).some((el) =>
+      el.classList.contains('ui-chart__dot-casing') && at(el) === at(ring)
+      && r(el) + width('dot-casing') / 2 > r(ring) + width('dot') / 2));
+    unmount();
+    return cased;
+  });
+  const POINT_LOOKS: [variant: 'line' | 'area', look: string][] = [['line', 'points'], ['area', 'curves']];
+
+  it('clears 3:1 for every point marker against the ground and the fills it stands on, under every accent', () => {
+    const rows = fillRows(casedPoints(POINT_LOOKS));
+    expect(rows.filter((row) => row.value < AA_LARGE)
+      .map((row) => `${row.where.replace(' line ', ' point ')}: ${row.value.toFixed(2)}:1`)).toEqual([]);
   });
 
   it('rejects a line laid straight on the fills', () => {

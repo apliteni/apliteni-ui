@@ -20,15 +20,17 @@ import {
   type ChartStackedLook, type Layer, type Look, type LookGeometry,
 } from './chart-looks';
 
-/** The anchor's box on the screen. The anchor is a zero-height rect at the
- *  mark's top, and WebKit collapses a zero-area SVG rect's bounding box to
- *  nothing at the svg's origin, which would pin the readout to the plot's top
- *  left. Its screen place is read from its own `x`/`y`/`width` through the
- *  svg's screen box instead, which every engine reports. why: #863 */
-function anchorScreenBox(mark: Element): { left: number; top: number; width: number } {
+/** The anchor's box on the screen. The anchor is a rect over the mark: from the
+ *  mark's top, as tall as a bar, and zero tall for a point. WebKit collapses a
+ *  zero-area SVG rect's bounding box to nothing at the svg's origin, which would
+ *  pin the readout to the plot's top left. Its screen place is read from its own
+ *  `x`/`y`/`width`/`height` through the svg's screen box instead, which every
+ *  engine reports. why: #863 */
+function anchorScreenBox(mark: Element): { left: number; top: number; width: number; height: number } {
   const x = Number(mark.getAttribute('x')) || 0;
   const y = Number(mark.getAttribute('y')) || 0;
   const w = Number(mark.getAttribute('width')) || 0;
+  const h = Number(mark.getAttribute('height')) || 0;
   const svg = mark.closest('svg');
   const [vbX = 0, vbY = 0, vbW = 0, vbH = 0] = (svg?.getAttribute('viewBox')?.split(/\s+/) ?? []).map(Number);
   const rect = svg?.getBoundingClientRect();
@@ -37,10 +39,11 @@ function anchorScreenBox(mark: Element): { left: number; top: number; width: num
       left: rect.left + (x - vbX) * (rect.width / vbW),
       top: rect.top + (y - vbY) * (rect.height / vbH),
       width: w * (rect.width / vbW),
+      height: h * (rect.height / vbH),
     };
   }
   const fallback = mark.getBoundingClientRect();
-  return { left: fallback.left, top: fallback.top, width: fallback.width };
+  return { left: fallback.left, top: fallback.top, width: fallback.width, height: fallback.height };
 }
 
 export function placeChartTip(mark: Element, tip: HTMLElement) {
@@ -66,8 +69,14 @@ export function placeChartTip(mark: Element, tip: HTMLElement) {
   tip.classList.toggle('is-below', isBelow);
   const ideal = rect.left + rect.width / 2 - tip.offsetWidth / 2;
   const left = Math.max(box.left, Math.min(ideal, box.right - tip.offsetWidth));
+  // A readout below its mark opens under the mark's bottom, clear of the bar it
+  // describes. Where the view is too short for that, it moves up no further
+  // than it must to stay in the view, and never above the mark's top.
+  const y = isBelow
+    ? Math.max(rect.top, Math.min(rect.top + rect.height, view.clientHeight - gap - tip.offsetHeight))
+    : rect.top;
   tip.style.setProperty('--ui-tip-x', `${rect.left + rect.width / 2}px`);
-  tip.style.setProperty('--ui-tip-y', `${rect.top}px`);
+  tip.style.setProperty('--ui-tip-y', `${y}px`);
   tip.style.setProperty('--ui-tip-shift', `${left - ideal}px`);
 }
 
@@ -305,6 +314,12 @@ const TARGET = 24;
  */
 const TAP_FLOOR = 44;
 const PHONE_MAX = 560;
+/** The longest the readout holds through the chart's own page scroll. A smooth
+ *  scroll into view ends well inside it. A scroll that never stops cannot keep
+ *  the hold on. */
+const HOLD_LIMIT = 1000;
+/** The keys a browser scrolls the page with when nothing takes them. */
+const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
 /**
  * The column width used before the plot has been measured: server-rendered, or
  * in a test environment with no layout. `src/styles/chart.css` carries the real
@@ -769,6 +784,8 @@ export function Chart(props: ChartProps) {
   const revealing = useRef(false);
   /** What runs when that scroll ends. */
   const afterHold = useRef<(() => void)[]>([]);
+  /** Ends a hold that is still on, with its listeners, frame and timer. */
+  const endHold = useRef<(() => void) | null>(null);
   /** The mark whose readout is open, for a hold that ends after it changed. */
   const shown = useRef<string | null>(null);
 
@@ -1027,7 +1044,7 @@ export function Chart(props: ChartProps) {
       if (event?.target === scroller.current) return;
       // The chart's own move of the page is not the reader's scroll. The
       // readout follows its mark through it.
-      if (event?.type === 'scroll' && revealing.current) { place(openId); return; }
+      if (event?.type === 'scroll' && revealing.current && movesChart(event)) { place(openId); return; }
       setOpenId(null);
     };
     const escape = (event: globalThis.KeyboardEvent) => {
@@ -1045,29 +1062,61 @@ export function Chart(props: ChartProps) {
     };
   }, [openId]);
 
+  /** True for a scroll that moves the chart: the page's, or a box that holds it. */
+  const movesChart = (event: globalThis.Event) => {
+    const target = event.target;
+    return target === frameEl.current?.ownerDocument
+      || (target instanceof Node && Boolean(frameEl.current && target.contains(frameEl.current)));
+  };
+
   /** Holds the readout open through a page scroll the chart causes: a key's
    *  move of a row into view, or the browser's move of the frame into view when
-   *  a key focuses it. The hold ends after two frames with no scroll. A smooth
-   *  scroll moves the page in each frame, so the hold lasts to its end. */
+   *  a key focuses it. The hold ends after two frames in which nothing that holds
+   *  the chart scrolls. A smooth scroll moves the page in each frame, so the hold
+   *  lasts to its end. The reader's wheel, touch move or scroll key ends the hold
+   *  at once, and so does HOLD_LIMIT: then the queued row reveal does not run, so
+   *  it cannot move the page back, and the reader's scroll closes the readout. */
   const hold = (then?: () => void) => {
     const view = frameEl.current?.ownerDocument.defaultView;
     if (!view) return;
     if (then) afterHold.current.push(then);
     if (revealing.current) return;
     revealing.current = true;
+    const doc = view.document;
     // The scroll events of a frame arrive before that frame's callbacks.
     let still = 0;
-    const moved = () => { still = 0; };
-    view.document.addEventListener('scroll', moved, true);
+    let frame = 0;
+    const moved = (event: globalThis.Event) => { if (movesChart(event)) still = 0; };
+    // A key the chart takes is the chart's own: it prevents the default scroll.
+    const input = (event: globalThis.Event) => {
+      if (event instanceof view.KeyboardEvent && (event.defaultPrevented || !SCROLL_KEYS.has(event.key))) return;
+      end(false);
+    };
+    const end = (reveal: boolean) => {
+      view.cancelAnimationFrame(frame);
+      view.clearTimeout(limit);
+      doc.removeEventListener('scroll', moved, true);
+      for (const type of ['wheel', 'touchmove', 'keydown']) doc.removeEventListener(type, input, true);
+      revealing.current = false;
+      endHold.current = null;
+      const queued = afterHold.current.splice(0);
+      if (reveal) queued.forEach((run) => run());
+    };
+    doc.addEventListener('scroll', moved, true);
+    // The key listener is on the bubble side, after the chart's own handler.
+    doc.addEventListener('wheel', input, { capture: true, passive: true });
+    doc.addEventListener('touchmove', input, { capture: true, passive: true });
+    doc.addEventListener('keydown', input);
     const tick = () => {
       still += 1;
-      if (still < 2) { view.requestAnimationFrame(tick); return; }
-      view.document.removeEventListener('scroll', moved, true);
-      revealing.current = false;
-      afterHold.current.splice(0).forEach((run) => run());
+      if (still < 2) { frame = view.requestAnimationFrame(tick); return; }
+      end(true);
     };
-    view.requestAnimationFrame(tick);
+    const limit = view.setTimeout(() => end(false), HOLD_LIMIT);
+    endHold.current = () => end(false);
+    frame = view.requestAnimationFrame(tick);
   };
+  useEffect(() => () => endHold.current?.(), []);
 
   // Matched by attribute rather than by an interpolated selector: a series id
   // is the caller's string and may carry a quote.
@@ -1571,7 +1620,7 @@ export function Chart(props: ChartProps) {
                   )}
                   <rect
                     data-anchor={mark.id} className="ui-chart__anchor"
-                    x={px(mark.x)} y={px(mark.y)} width={px(mark.w)} height="0"
+                    x={px(mark.x)} y={px(mark.y)} width={px(mark.w)} height={px(mark.h)}
                   />
                 </g>
               ))}

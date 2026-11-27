@@ -28,8 +28,11 @@
  * light and dark, with the page's smooth scroll on. It taps the first row, taps the last row,
  * tabs onto the chart, and tabs back onto it with the cursor on the last row. After the page
  * is still for 30 frames, about 500ms, the chart has the focus, the readout is open, one bar
- * draws at full strength, and its row lies inside the view. A page scroll after that closes
- * the readout.
+ * draws at full strength, and its row lies inside the view. The readout covers no part of
+ * that bar. A page scroll after that closes the readout. It also tabs onto the chart and
+ * tabs back onto its last row with a real wheel right after the key, alone and beside a
+ * box that scrolls in every frame. The wheel closes the readout, and the page does not go
+ * back from the furthest place it reached.
  *
  * Its limits: one engine and the default accent. A wider bridge and the line, area, stacked
  * and donut charts may scroll, so they are not subjects. The fixed check reads every
@@ -108,8 +111,16 @@ const READ = (index) => {
     // The strength of each active bar, and whether the chart is a rows look.
     active: [...chart.querySelectorAll('path.ui-chart__bar.is-active')].map((el) => getComputedStyle(el).opacity),
     bar: span(chart.querySelector('path.ui-chart__bar.is-active')),
+    // The boxes of the open readout and of the active bar, left, top, right and bottom.
+    tipBox: box(chart.querySelector('.ui-tip.is-open')),
+    barBox: box(chart.querySelector('path.ui-chart__bar.is-active')),
     rows: chart.matches('.ui-chart--bars-rows'),
   };
+  function box(el) {
+    if (!el) return null;
+    const b = el.getBoundingClientRect();
+    return [b.left, b.top, b.right, b.bottom];
+  }
   function span(el) {
     if (!el) return null;
     const b = el.getBoundingClientRect();
@@ -305,6 +316,14 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
       if (target.classList?.contains('is-active') && target.matches('path')) target.classList.remove('is-active');
     })).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] })),
       'the open row has no active bar', TALL);
+    // A wheel the chart does not hear, as f9e6f26f did not.
+    caught.push(['wheel ignored', (await cut('key: Tab', 'light', false, (page) => page.evaluate(() => {
+      addEventListener('wheel', (event) => event.stopImmediatePropagation(), { capture: true, passive: true });
+    }))).some((f) => f.includes('stayed open'))]);
+    // A readout placed from its bar's top, as the anchor was before this check.
+    caught.push(['readout over its bar', (await run('key: Tab', 'light', (page) => page.evaluate(() => {
+      for (const anchor of document.querySelectorAll('.ui-chart__anchor')) anchor.setAttribute('height', '0');
+    }))).some((f) => f.includes('covers'))]);
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
   } finally {
     await browser.close();
@@ -344,6 +363,14 @@ async function enter(page, label, how) {
   if (!s.open) found.push(`${at}: no readout after the entry`);
   if (s.active.length !== 1 || s.active[0] !== '1') found.push(`${at}: the active bars draw at [${s.active.join(', ')}]`);
   else if (outside(s.bar)) found.push(`${at}: the open row is out of view, ${s.bar.map(Math.round).join(' to ')} in a ${s.view}px view`);
+  // The readout never covers the bar it describes, above or below its row.
+  if (s.tipBox && s.barBox) {
+    const [tl, tt, tr, tb] = s.tipBox;
+    const [bl, bt, br, bb] = s.barBox;
+    const across = Math.min(tr, br) - Math.max(tl, bl);
+    const down = Math.min(tb, bb) - Math.max(tt, bt);
+    if (across > 0.5 && down > 0.5) found.push(`${at}: the readout covers ${Math.round(down)}px of its own bar`);
+  }
   await page.evaluate(() => scrollBy({ top: 40, behavior: 'instant' }));
   await page.evaluate(quiet);
   if (await page.evaluate(() => Boolean(document.querySelector('.ui-tip.is-open')))) found.push(`${at}: a page scroll after the entry left the readout open`);
@@ -351,6 +378,50 @@ async function enter(page, label, how) {
 }
 
 const ENTRIES = ['tap: the first row', 'tap: the last row', 'key: Tab', 'key: Tab back on the last row'];
+
+// A real wheel during a Tab entry, before the browser's move of the page ends. The wheel is the
+// reader's scroll: it closes the readout, and the chart does not move the page back after it.
+// With `ticker`, a box beside the chart scrolls in every frame from before the entry, and stops
+// after the wheel's scroll ends.
+async function interrupt(page, label, how, ticker = false) {
+  await page.evaluate((withTicker) => {
+    window.__ys = [];
+    addEventListener('scroll', () => window.__ys.push(scrollY), { passive: true });
+    if (!withTicker) return;
+    const box = document.body.appendChild(document.createElement('div'));
+    box.style.cssText = 'position: fixed; right: 0; bottom: 0; width: 40px; height: 40px; overflow: auto;';
+    box.innerHTML = '<div style="height: 4000px"></div>';
+    window.__ticker = true;
+    const tick = () => { if (!window.__ticker) return; box.scrollTop = (box.scrollTop + 7) % 3000; requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+  }, ticker);
+  const chart = page.locator('.ui-chart').first();
+  const frame = chart.locator('.ui-chart__frame');
+  await page.mouse.move(400, 200);
+  if (how === 'key: Tab back on the last row') {
+    for (let i = 0; i < 6 && !(await frame.evaluate((el) => el === document.activeElement)); i += 1) await page.keyboard.press('Tab');
+    await page.keyboard.press('End');
+    await page.keyboard.press('Shift+Tab');
+    await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
+    await page.evaluate(quiet);
+    await page.evaluate(() => { window.__ys = []; });
+    await page.keyboard.press('Tab');
+  } else {
+    for (let i = 0; i < 6 && !(await frame.evaluate((el) => el === document.activeElement)); i += 1) await page.keyboard.press('Tab');
+  }
+  await page.mouse.wheel(0, 120);
+  await page.evaluate(quiet);
+  if (ticker) { await page.evaluate(() => { window.__ticker = false; }); await page.evaluate(quiet); }
+  const { ys, y, open } = await page.evaluate(() => ({
+    ys: window.__ys, y: scrollY, open: Boolean(document.querySelector('.ui-tip.is-open')),
+  }));
+  const at = `${label} ${how}${ticker ? ' beside a scrolling box' : ''}, a wheel during the entry`;
+  const found = [];
+  const top = Math.max(y, ...ys);
+  if (y < top - 1) found.push(`${at}: the page went back from ${Math.round(top)} to ${Math.round(y)}`);
+  if (open) found.push(`${at}: the readout stayed open`);
+  return found;
+}
 
 test('a rows look keeps its readout and its active bar through the page move of a tap or a Tab entry', {
   skip: process.env.CHART_FIT !== '1' && 'set CHART_FIT=1',
@@ -378,7 +449,19 @@ test('a rows look keeps its readout and its active bar through the page move of 
     for (const theme of THEMES) {
       for (const how of ENTRIES) { findings.push(...await run(how, theme)); measured += 1; }
     }
-    assert.equal(measured, THEMES.length * ENTRIES.length, 'an entry or a theme was not measured');
+    const cut = async (how, theme, ticker, setup) => {
+      const { ctx, page } = await open(browser, server.port, vitals, landscape, TALL, theme, 'no-preference');
+      if (setup) await setup(page);
+      const found = await interrupt(page, `844×390 ${theme}`, how, ticker);
+      await ctx.close();
+      return found;
+    };
+    for (const theme of THEMES) {
+      for (const how of ['key: Tab', 'key: Tab back on the last row']) {
+        for (const ticker of [false, true]) { findings.push(...await cut(how, theme, ticker)); measured += 1; }
+      }
+    }
+    assert.equal(measured, THEMES.length * (ENTRIES.length + 4), 'an entry or a theme was not measured');
     assert.deepEqual(findings, []);
 
     // The mutations: each check must see its own failure.
@@ -396,6 +479,14 @@ test('a rows look keeps its readout and its active bar through the page move of 
     caught.push(['row out of view', (await run('key: Tab back on the last row', 'light', (page) => page.evaluate(() => {
       Element.prototype.scrollIntoView = () => {};
     }))).some((f) => f.includes('out of view'))]);
+    // A wheel the chart does not hear, as f9e6f26f did not.
+    caught.push(['wheel ignored', (await cut('key: Tab', 'light', false, (page) => page.evaluate(() => {
+      addEventListener('wheel', (event) => event.stopImmediatePropagation(), { capture: true, passive: true });
+    }))).some((f) => f.includes('stayed open'))]);
+    // A readout placed from its bar's top, as the anchor was before this check.
+    caught.push(['readout over its bar', (await run('key: Tab', 'light', (page) => page.evaluate(() => {
+      for (const anchor of document.querySelectorAll('.ui-chart__anchor')) anchor.setAttribute('height', '0');
+    }))).some((f) => f.includes('covers'))]);
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
   } finally {
     await browser.close();
