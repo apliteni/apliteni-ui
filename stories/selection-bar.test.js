@@ -23,6 +23,10 @@
  * of More. The showcase has no disabled action, so react/src/SelectionBar.test.tsx holds the
  * disabled case.
  *
+ * Before each walk it measures the bar's two ends. The count's pill and the last control stand
+ * as far from the bar's end as from its top, and the bar's corner is half its height or more,
+ * so each end shares a centre with the pill or the control in it. rev_604d2230cca9/d61
+ *
  * Its limits: one engine, the light theme and the default accent. The layout shift is
  * web-vitals' onCLS, which does not count a shift within 500ms of an input. The resize walk
  * does not compare where the bar stands, because a new window size moves it. The source half is
@@ -77,6 +81,26 @@ const focused = async (page, locator) => {
     throw new Error(`${FOCUS_LEFT}, and is on ${at}`, { cause: error });
   }
 };
+// Each end of the bar: the gap from the bar's end to the pill or the last control, the gap
+// from the bar's top to it, the bar's corner and half its height. Border box to border box.
+const ENDS = () => {
+  const bar = document.querySelector('.ui-selection-bar');
+  const box = bar.getBoundingClientRect();
+  const pill = bar.querySelector('.ui-selection-bar__count').getBoundingClientRect();
+  const last = [...bar.querySelectorAll(':scope > .ui-selection-bar__actions .ui-selection-bar__control, :scope > .ui-dropdown > .ui-selection-bar__control')].pop().getBoundingClientRect();
+  return { corner: parseFloat(getComputedStyle(bar).borderTopLeftRadius), half: box.height / 2,
+    start: [pill.left - box.left, pill.top - box.top], end: [box.right - last.right, last.top - box.top] };
+};
+async function ends(page, label) {
+  const { corner, half, start, end } = await page.evaluate(ENDS);
+  const found = [];
+  if (corner < half) found.push(`${label}: the bar's ends are not round, a ${corner}px corner on a ${half * 2}px bar`);
+  for (const [name, [inline, block]] of [['start', start], ['end', end]]) {
+    if (Math.abs(inline - block) > 0.5) found.push(`${label}: the ends share no centre, the ${name} gap is ${inline}px and the top gap ${block}px`);
+  }
+  return found;
+}
+
 // The bar has come in: it has ended its own entrance animation.
 const settled = (page) => page.waitForFunction(() => document.querySelector('.ui-selection-bar').getAnimations().every((a) => a.playState === 'finished'));
 // The first list on the bar: Status, or More when Status does not fit.
@@ -223,6 +247,8 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
     for (const [label, context] of subjects) {
       const { ctx, page } = await open(browser, server.port, vitals, context);
       const width = await page.evaluate(() => innerWidth);
+      const shape = await ends(page, label);
+      findings.push(...shape);
       const { found, ran } = await walk(page, label).catch((error) => { throw new Error(`${label}: ${error.message}`, { cause: error }); });
       findings.push(...found);
       assert.equal(ran.length, ACTIONS.length, `${label}: ${ran.length} of ${ACTIONS.length} actions ran`);
@@ -231,7 +257,7 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
       const moves = await walk(resized.page, label, { steps: RESIZES }).catch((error) => { throw new Error(`${label}: ${error.message}`, { cause: error }); });
       findings.push(...moves.found);
       assert.equal(moves.ran.length, RESIZES.length, `${label}: ${moves.ran.length} of ${RESIZES.length} resizes ran`);
-      table.push(`${label} ${width}px: ${ran.length} actions and ${moves.ran.length} resizes, ${found.length + moves.found.length ? 'fail' : 'pass'}`);
+      table.push(`${label} ${width}px: ends, ${ran.length} actions and ${moves.ran.length} resizes, ${shape.length + found.length + moves.found.length ? 'fail' : 'pass'}`);
       await resized.ctx.close();
     }
     process.stdout.write(`${table.join('\n')}\n`);
@@ -278,6 +304,14 @@ test('a pick applies at once, the keyboard stays in the bar, and Escape closes t
         if (!this.closest('.ui-selection-bar') || this.textContent === 'Archive') focus.apply(this, options);
       };
     }), null, 'focus left', RESIZES);
+    // A bar with the old 12px corner and the same padding at each end, as before #911's review.
+    for (const [says, content] of [['not round', '.ui-selection-bar { border-radius: var(--radius-md); }'], ['no centre', '.ui-selection-bar { padding: var(--space-3); }']]) {
+      const { ctx, page } = await open(browser, server.port, vitals, phone);
+      await page.addStyleTag({ content });
+      const found = await ends(page, 'mutated');
+      caught.push([says, found.some((f) => f.includes(says)), found]);
+      await ctx.close();
+    }
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says, , found]) => `${says}: ${JSON.stringify(found)}`), [], 'a mutation passed or failed for another reason: this walk cannot see it');
     const [, , lost] = caught.find(([says]) => says === 'focus left');
     assert.ok(lost.length && lost.every((f) => f.includes('focus left') && !/^TimeoutError/.test(f)), `the focus mutation failed for another reason: ${JSON.stringify(lost)}`);

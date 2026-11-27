@@ -97,6 +97,8 @@ These parts keep another corner:
 - The search line of the command palette is the top edge of the palette, so it follows the
   palette's corners.
 - A file drop area keeps its large dashed corner. The button in it is a pill.
+- The selection bar has round ends. The pill and the control at each end stand as far from the
+  bar's end as from its top, so the curves share a centre.
 
 ## Typefaces
 

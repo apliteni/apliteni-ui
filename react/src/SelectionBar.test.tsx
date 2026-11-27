@@ -218,3 +218,14 @@ it('keeps the inverse ink off the bar box, so its lists keep the page theme', ()
   expect(boxes.length).toBeGreaterThan(2);
   for (const [, , body] of boxes) expect(body).not.toMatch(/(^|;|\s)color\s*:/);
 });
+
+// The sheet, read as text: the bar's ends are round, so they share a centre with the count's
+// pill and the last control, and each stands as far from the bar's end as from its top. The
+// end takes the 1px of the pill's edge. The browser half, stories/selection-bar.test.js,
+// measures the gaps. rev_604d2230cca9/d61
+it('gives the bar round ends that share a centre with the pill and the last control', () => {
+  const css = read('./SelectionBar.css').replace(/\/\*[\s\S]*?\*\//g, '');
+  const bar = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].find(([, selector]) => selector.trim() === '.ui-selection-bar')![2];
+  expect(bar).toMatch(/border-radius:\s*var\(--radius-pill\);/);
+  expect(bar).toMatch(/padding:\s*var\(--space-3\) calc\(var\(--space-3\) \+ 1px\) var\(--space-3\) var\(--space-3\);/);
+});
