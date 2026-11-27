@@ -189,6 +189,26 @@ it('keeps the focus on the bar when an action moves into More and out again', as
   expect(screen.getByRole('button', { name: 'Archive' })).toHaveFocus();
 });
 
+// A room of 250 puts Archive and Owner into More. When More goes, a disabled action that
+// came out of it cannot take the focus, so the next enabled one does, or else Clear.
+it('gives the focus from More that goes to an enabled control, or else to Clear', () => {
+  let width = 250;
+  const fit = laidOut(() => width);
+  const archive = { id: 'archive', label: 'Archive', disabled: true };
+  const { rerender } = render(<SelectionBar count={2} actions={[STATUS, archive, actions[2]]} {...handlers()} />);
+  screen.getByRole('button', { name: 'More' }).focus();
+  width = 400;
+  fit();
+  expect(screen.getByRole('button', { name: 'Owner' })).toHaveFocus();
+  width = 250;
+  rerender(<SelectionBar count={2} actions={[STATUS, archive, { ...actions[2], disabled: true }]} {...handlers()} />);
+  fit();
+  screen.getByRole('button', { name: 'More' }).focus();
+  width = 400;
+  fit();
+  expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
+});
+
 // The sheet, read as text: the bar's inks sit on its parts, never on the bar or the room,
 // so a list opened from it keeps the page ink. A browser measures the paint itself.
 it('keeps the inverse ink off the bar box, so its lists keep the page theme', () => {

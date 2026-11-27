@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { Dropdown, type DropdownEntry, type DropdownItem, type DropdownSearch } from './Dropdown';
 import { Button } from './primitives/Button';
 import { useIsoLayoutEffect, usePresence } from './dialog';
@@ -56,45 +56,25 @@ export function fitActions(widths: number[], room: number, more: number, gap: nu
 const px = (value: string) => parseFloat(value) || 0;
 const buttonIn = (cell?: Element | null) => (cell?.matches('button') ? cell : cell?.querySelector('button')) as HTMLElement | null | undefined;
 
-export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows', label, clearLabel = 'Clear', moreLabel = 'More', place = 'centre' }: SelectionBarProps) {
-  const room = useRef<HTMLDivElement>(null);
-  const bar = useRef<HTMLElement>(null);
-  const slot = useRef<HTMLDivElement>(null);
-  const measure = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(actions.length);
+type Parts = {
+  room: RefObject<HTMLDivElement | null>;
+  bar: RefObject<HTMLElement | null>;
+  slot: RefObject<HTMLDivElement | null>;
+  measure: RefObject<HTMLDivElement | null>;
+};
+
+// The first of these controls that is not disabled.
+const firstEnabled = (cells: (Element | null | undefined)[]) =>
+  cells.map(buttonIn).find(button => button && !button.matches(':disabled'));
+
+/** How many actions stand on the bar. The fit runs again when the room or the labels
+ *  change, and a control that held the focus when actions moved gives it on. */
+function useActionFit({ room, bar, slot, measure }: Parts, count: number, key: string, total: number) {
+  const [shown, setShown] = useState(total);
   const shownNow = useRef(shown);
   shownNow.current = shown;
   // The control that held the focus when a fit moved actions: an action's index, or More.
   const moving = useRef<{ held: number | 'more'; from: number } | null>(null);
-  // More's list, then the picker of the action picked from it. A pick closes the list, and
-  // the picker opens on the next pass, so the focus goes into the picker as on any open.
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [picking, setPicking] = useState<string | null>(null);
-  const [then, setThen] = useState<string | null>(null);
-  const chosen = useRef<string | null>(null);
-  useEffect(() => {
-    if (!then) return;
-    setThen(null);
-    setPicking(then);
-    setMoreOpen(true);
-  }, [then]);
-  // A picker that More opens takes the focus, as the list it came from had it. A picker
-  // with a search field puts the focus in its field itself.
-  useIsoLayoutEffect(() => {
-    const panel = bar.current?.querySelector(':scope > .ui-dropdown > .ui-dropdown__panel');
-    if (!picking || !moreOpen || !panel || panel.contains(document.activeElement)) return;
-    panel.querySelector<HTMLElement>('[data-dd-item]:not([aria-disabled="true"])')?.focus();
-  }, [picking, moreOpen]);
-  // The bar comes in after the page has loaded and goes out with its last count, but a bar
-  // that comes with the page is there at once. why: docs/components.md#selection-bar
-  const { mounted, shown: entered } = usePresence(count > 0, room, bar, { appear: false });
-  const held = useRef(count);
-  if (count > 0) held.current = count;
-  // The announcement says when the selection goes back to none, but not before the first.
-  const seen = useRef(false);
-  if (count > 0) seen.current = true;
-  const said = count > 0 ? `${count} ${noun} selected` : seen.current ? `No ${noun} selected` : '';
-  const key = actions.map(action => action.label).join('\n');
 
   // The bar measures its own room: the widths of every action as a button, from the hidden
   // row, against the room's width less the count and the bar's own padding.
@@ -132,27 +112,90 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
   }, [count, key]);
 
   // An action that moves into More, or More that goes, takes the focus with it. The focus
-  // goes to More, or to the first action that came out of More.
+  // goes to More, or to the first enabled action that came out of More, or else to Clear.
   useIsoLayoutEffect(() => {
     const move = moving.current;
     moving.current = null;
     const frame = bar.current;
     if (!move || !frame || frame.contains(document.activeElement)) return;
     const more = frame.querySelector(':scope > .ui-dropdown');
-    const cells = slot.current?.children;
-    const cell = typeof move.held === 'number' ? (move.held < shown ? cells?.[move.held] : more) : more ?? cells?.[move.from];
-    buttonIn(cell)?.focus();
+    const cells = Array.from(slot.current?.children ?? []);
+    const clear = frame.querySelector(':scope > .ui-selection-bar__count');
+    const target = typeof move.held === 'number'
+      ? buttonIn(move.held < shown ? cells[move.held] : more)
+      : more ? buttonIn(more) : firstEnabled([...cells.slice(move.from), clear]);
+    target?.focus();
   }, [shown]);
 
-  const visible = actions.slice(0, shown);
-  const extra = actions.slice(shown);
+  return shown;
+}
+
+/** More's list, then the picker of the action picked from it. A pick closes the list, and
+ *  the picker opens on the next pass, so the focus goes into the picker as on any open. */
+function useMore(bar: Parts['bar'], extra: SelectionBarAction[], count: number, moreLabel: string, onAction: SelectionBarProps['onAction']) {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [picking, setPicking] = useState<string | null>(null);
+  const [then, setThen] = useState<string | null>(null);
+  const chosen = useRef<string | null>(null);
+  useEffect(() => {
+    if (!then) return;
+    setThen(null);
+    setPicking(then);
+    setMoreOpen(true);
+  }, [then]);
+  // A picker that More opens takes the focus, as the list it came from had it. A picker
+  // with a search field puts the focus in its field itself.
+  useIsoLayoutEffect(() => {
+    const panel = bar.current?.querySelector(':scope > .ui-dropdown > .ui-dropdown__panel');
+    if (!picking || !moreOpen || !panel || panel.contains(document.activeElement)) return;
+    panel.querySelector<HTMLElement>('[data-dd-item]:not([aria-disabled="true"])')?.focus();
+  }, [picking, moreOpen]);
+
   // A bar with nothing in More, or no rows, has no list open.
   if (moreOpen && (count === 0 || extra.length === 0)) { setMoreOpen(false); setPicking(null); }
   const picker = extra.find(action => action.id === picking && action.items);
-  const more = picker
+  const list = picker
     ? { sections: [{ label: picker.label, items: picker.items! }], search: searchOf(picker, rowsOf(picker.items)) }
     : { items: extra.map((action): DropdownItem => ({ label: action.label, value: action.id, disabled: action.disabled })),
       search: extra.length >= SEARCH_AT && { label: `Search ${moreLabel.toLowerCase()}` } };
+  return {
+    ...list,
+    open: moreOpen,
+    onOpenChange: (open: boolean) => {
+      setMoreOpen(open);
+      if (open) return;
+      setPicking(null);
+      setThen(chosen.current);
+      chosen.current = null;
+    },
+    onSelect: (value: DropdownItem['value'], item: DropdownItem) => {
+      if (picker) { onAction(picker.id, String(value ?? item.label)); return; }
+      const action = extra.find(each => each.id === value);
+      if (action?.items) chosen.current = action.id;
+      else if (action) onAction(action.id);
+    },
+  };
+}
+
+export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows', label, clearLabel = 'Clear', moreLabel = 'More', place = 'centre' }: SelectionBarProps) {
+  const room = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLElement>(null);
+  const slot = useRef<HTMLDivElement>(null);
+  const measure = useRef<HTMLDivElement>(null);
+  // The bar comes in after the page has loaded and goes out with its last count, but a bar
+  // that comes with the page is there at once. why: docs/components.md#selection-bar
+  const { mounted, shown: entered } = usePresence(count > 0, room, bar, { appear: false });
+  const held = useRef(count);
+  if (count > 0) held.current = count;
+  // The announcement says when the selection goes back to none, but not before the first.
+  const seen = useRef(false);
+  if (count > 0) seen.current = true;
+  const said = count > 0 ? `${count} ${noun} selected` : seen.current ? `No ${noun} selected` : '';
+  const key = actions.map(action => action.label).join('\n');
+  const shown = useActionFit({ room, bar, slot, measure }, count, key, actions.length);
+  const visible = actions.slice(0, shown);
+  const extra = actions.slice(shown);
+  const more = useMore(bar, extra, count, moreLabel, onAction);
 
   const onKeyDown = (event: KeyboardEvent) => {
     // An open list stops its own Escape, so this one has no list to close.
@@ -175,20 +218,7 @@ export function SelectionBar({ count, actions, onAction, onClear, noun = 'rows',
             : <Button key={action.id} variant="ghost" size="sm" className="ui-selection-bar__control" disabled={action.disabled} onClick={() => onAction(action.id)}>{action.label}</Button>)}
         </div>
         {extra.length > 0 && <Dropdown variant="menu" direction="up" align="end" chevron={false} triggerClass="ui-selection-bar__control"
-          triggerContent={moreLabel} ariaLabel={moreLabel} {...more}
-          open={moreOpen} onOpenChange={open => {
-            setMoreOpen(open);
-            if (open) return;
-            setPicking(null);
-            setThen(chosen.current);
-            chosen.current = null;
-          }}
-          onSelect={(value, item) => {
-            if (picker) { onAction(picker.id, String(value ?? item.label)); return; }
-            const action = extra.find(each => each.id === value);
-            if (action?.items) chosen.current = action.id;
-            else if (action) onAction(action.id);
-          }} />}
+          triggerContent={moreLabel} ariaLabel={moreLabel} {...more} />}
         {/* Every action as a button, and More, out of sight: the widths the fit reads. */}
         <div ref={measure} className="ui-selection-bar__measure" aria-hidden="true">
           {actions.map(action => <span key={action.id} className="ui-btn ui-btn--ghost ui-btn--sm ui-selection-bar__control">{action.label}</span>)}
