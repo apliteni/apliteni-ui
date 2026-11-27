@@ -329,7 +329,7 @@ export function lookDrawing(g: LookGeometry, open: number | null, pick: number |
   const { look } = g;
   if (look.layout === 'ring') return ringDrawing(g);
   if (look.layout === 'rows') return rowsDrawing(g, pick);
-  if (look.layout === 'named') return namedDrawing(g, pick);
+  if (look.layout === 'named') return namedDrawing(g, open, pick);
   return look.variant === 'stacked' ? columnsDrawing(g) : linesDrawing(g, open);
 }
 
@@ -416,13 +416,17 @@ function linesDrawing(g: LookGeometry, open: number | null) {
           (labels[i]?.estimated || labels[i + 1]?.estimated) && 'is-estimated')}
         d={`M${px(centre(i))} ${px(y(at(layer, i)))}${bend(k, i)}`} />
     ) : null)))
-    : !look.share && look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
+    /* Over a fill, every casing before any stroke, as a line over bars has: the
+       fills of two lines meet where the lines cross, and the casing gives each
+       line the 3:1 of the ground and not of the fills under it. why: #863 */
+    : !look.share && (['casing', 'stroke'] as const).filter((part) => part === 'stroke' || lineFill)
+      .flatMap((part) => look.layers.flatMap((layer) => layer.to.slice(1).map((_, k) => (
     finite(layer, k) && finite(layer, k + 1) ? (
-      <line key={`edge-${layer.id}-${k}`}
-        className={cx('ui-chart__line', tone(layer.tone),
+      <line key={`${part}-${layer.id}-${k}`}
+        className={part === 'casing' ? 'ui-chart__line-casing' : cx('ui-chart__line', tone(layer.tone),
           (labels[k]?.estimated || labels[k + 1]?.estimated) && 'is-estimated')}
         x1={px(centre(k))} y1={px(y(at(layer, k)))} x2={px(centre(k + 1))} y2={px(y(at(layer, k + 1)))} />
-    ) : null)));
+    ) : null))));
   const points = (look.variant === 'line' && look.look === 'points') || curves;
   const dots = look.layers.flatMap((layer) => layer.to.map((_, i) => {
     if (!finite(layer, i)) return null;
@@ -594,7 +598,7 @@ function scaleCaptions(g: LookGeometry, x: (v: number) => number,
   return ticks.filter((t) => printed.has(t));
 }
 
-function namedDrawing(g: LookGeometry, pick: number | null) {
+function namedDrawing(g: LookGeometry, open: number | null, pick: number | null) {
   const { look, scale, formatAxis } = g;
   const named = namedOf(g);
   const layer = look.layers[0];
@@ -626,7 +630,8 @@ function namedDrawing(g: LookGeometry, pick: number | null) {
             const from = end >= zero ? zero + room : zero - room;
             return (
               <path d={acrossBar(from, end, row.bar, NAMED.bar, barCorner(NAMED.bar))}
-                className={cx('ui-chart__bar', tone(layer.tone), g.labels[i].estimated && 'is-estimated')} />
+                className={cx('ui-chart__bar', tone(layer.tone), g.labels[i].estimated && 'is-estimated',
+                  open === i && 'is-active')} />
             );
           })()}
         </g>

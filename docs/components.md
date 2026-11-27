@@ -1533,7 +1533,8 @@ chart, so change `variant="months"` to `variant="bars"` or remove it.
 
 **The head.** `figure` puts the main figure over the plot, at the size of a stat band's value.
 `ranges`, `range` and `onRangeChange` add a range picker under it: the words and an arrow, with
-no pill. Open, it is the kit menu, and the picked range has the check. Give the figure and the
+no pill. Open, it is the kit menu, and the picked range has the check. On a phone, a tap reaches
+the picker 44px high, and its target stays off the figure and the plot. Give the figure and the
 plot for the range you pick. `trend` is `{ value, basis }`. The value stands at the end of the
 picker's row. The basis, such as "Compared with the 6 months before", is its tooltip, reachable
 by Tab. The trend is never drawn on the plot. With none of the three, the chart has no head.
@@ -1554,7 +1555,8 @@ A bar in `accent`, `bad` or `neutral` draws at 85% at rest, and still clears 3:1
 the page. The bar that a hover, a tap or the arrow keys make active draws at full strength, at
 once, with no transition. The other tones stay at full strength, because at 85% they fall under 3:1.
 A `line` chart fills under each line with its tone, at 20% at the line's highest value and fading
-to nothing at the plot's floor. An `area` keeps its own fill.
+to nothing at the plot's floor. A 1px band of the chart's ground runs along each side of each
+line, so the line keeps 3:1 where it crosses a fill. An `area` keeps its own fill.
 In `bridge`, the chart prints every step's `short` name under its step, and a name that does not fit
 its column wraps at a word break. A bridge column is as wide as its widest word, so a four-step
 bridge fits a 300px plot. Where one word alone is wider than the column, the bridge scrolls so that

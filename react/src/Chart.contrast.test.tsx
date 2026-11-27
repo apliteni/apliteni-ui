@@ -15,11 +15,15 @@
 // rule, the isolated point's rim and the line's casing are not series and are not measured
 // here. Nor is one series against another — two series are told apart by the side
 // of zero they stand on and by the legend, never by hue alone.
+// A line over the fills of a line look is measured against the fills at their
+// top strength, one fill or two laid over each other, which is the strongest
+// ground the ramp reaches. Three fills over one point are out.
 // The same list, kept current, is stories/guidelines/accessibility-coverage.json.
 import { describe, expect, it } from 'vitest';
+import { render } from '@testing-library/react';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import type { ChartTone } from './Chart';
+import { Chart, type ChartTone } from './Chart';
 import {
   // stories/lib/contrast.js is plain JS outside this workspace's tsconfig. It is
   // imported for its arithmetic, unit-tested in stories/lib/contrast.test.js.
@@ -176,6 +180,63 @@ describe('the chart\'s tones', () => {
     const strength = Number(REST![2]);
     expect(restRows([...TONES.keys()], strength).filter((row) => row.value < AA_LARGE).length,
       'every tone clears 3:1 at the rest strength, so this check rejects nothing').toBeGreaterThan(0);
+  });
+
+  /* A line look fills under each line, so a line crosses the fill of another
+   * line, or two fills laid over each other. Where a casing of the ground lies
+   * under every stroke, the line touches the ground and not the fills. Where it
+   * does not, the line touches the fills. The rows measure what the rendered
+   * chart puts beside the line. */
+  const TOP = Number(/\.ui-chart__fill-top\s*\{[^}]*stop-opacity:\s*([\d.]+);/.exec(CHART_CSS)?.[1]);
+  const over = (under: number[], paint: Rgba) => under.map((c, i) => paint[i] * TOP + c * (1 - TOP));
+  const fillRows = (cased: boolean) => THEMES.flatMap((theme) => ACCENTS.flatMap((accent) =>
+    (Object.keys(GROUNDS) as (keyof typeof GROUNDS)[]).flatMap((ground) => {
+      const at = (name: string) => measure(theme, accent, ground, TONES.get(name)!.strong);
+      const names = [...TONES.keys()];
+      const behind = at(names[0]).behind!.slice(0, 3);
+      const stacks = [...names.map((a) => [a]), ...names.flatMap((a) => names.map((b) => [a, b]))];
+      return names.flatMap((line) => stacks.map((stack) => {
+        const fills = stack.reduce((under, name) => over(under, at(name).tone!), behind);
+        const beside = cased ? behind : fills;
+        return {
+          where: `${line} line over the ${stack.join(' and ')} fill on the ${ground}, ${theme}, ${accent} accent`,
+          value: ratio(at(line).tone, [...beside, 1]) as number,
+        };
+      }));
+    })));
+  const lineChart = () => render(
+    <Chart variant="line" look="thin" title="Income and spend" format={(v: number) => String(v)}
+      periods={['Jan', 'Feb', 'Mar', 'Apr'].map((label) => ({ label }))}
+      series={[{ id: 'income', name: 'Income', tone: 'info', values: [40, 10, 40, 10] },
+        { id: 'spend', name: 'Spend', tone: 'accent', values: [10, 40, 10, 40] }]} />,
+  );
+  /** True when a wider casing of the ground lies under every stroke of the line look. */
+  const casedLines = () => {
+    const { container } = lineChart();
+    const drawn = [...container.querySelectorAll('line.ui-chart__line-casing, line.ui-chart__line')];
+    const at = (el: Element) => ['x1', 'y1', 'x2', 'y2'].map((n) => el.getAttribute(n)).join(' ');
+    const strokes = drawn.filter((el) => el.classList.contains('ui-chart__line'));
+    expect(strokes.length, 'the line look draws its strokes as segments').toBe(6);
+    const width = (name: string) => Number(/stroke-width:\s*([\d.]+)/
+      .exec(new RegExp(`\\.ui-chart__${name}\\s*\\{([^}]*)\\}`).exec(CHART_CSS)?.[1] ?? '')?.[1]);
+    const ground = /\.ui-chart__line-casing\s*\{[^}]*stroke:\s*var\(--ui-chart-ground\)/.test(CHART_CSS);
+    return ground && width('line-casing') > width('line') && strokes.every((stroke) => drawn
+      .slice(0, drawn.indexOf(stroke))
+      .some((el) => el.classList.contains('ui-chart__line-casing') && at(el) === at(stroke)));
+  };
+
+  it('clears 3:1 for every line against the fills it crosses, under every accent', () => {
+    expect(TOP, 'the fill\'s top strength was not found in src/styles/chart.css').toBeGreaterThan(0);
+    const rows = fillRows(casedLines());
+    const n = TONES.size;
+    expect(rows).toHaveLength(THEMES.length * ACCENTS.length * 2 * n * (n + n * n));
+    expect(rows.filter((row) => row.value < AA_LARGE)
+      .map((row) => `${row.where}: ${row.value.toFixed(2)}:1`)).toEqual([]);
+  });
+
+  it('rejects a line laid straight on the fills', () => {
+    expect(fillRows(false).filter((row) => row.value < AA_LARGE).length,
+      'every line clears 3:1 on bare fills, so this check rejects nothing').toBeGreaterThan(0);
   });
 
   it('rejects a tone whose value stops resolving instead of scoring it', () => {

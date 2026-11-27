@@ -20,7 +20,9 @@
  * on the rows look only, because a column chart leaves Down to the page. It also walks the rows
  * look of react-chart--long-category-names, which is taller than a landscape phone's view.
  * After each key, the open readout lies inside the view. After End and Home on a rows look,
- * the last or the first row lies inside the view too.
+ * the last or the first row lies inside the view too. While a readout is open, at most one bar
+ * is active, and it draws at full strength. On a rows look the open row's bar is that bar.
+ * After Escape no bar is active.
  *
  * Its limits: one engine and the default accent. A wider bridge and the line, area, stacked
  * and donut charts may scroll, so they are not subjects. The fixed check reads every
@@ -82,6 +84,9 @@ const READ = (index) => {
     first: span(chart.querySelector('.ui-chart__hit')),
     last: span([...chart.querySelectorAll('.ui-chart__hit')].at(-1)),
     view: window.innerHeight,
+    // The strength of each active bar, and whether the chart is a rows look.
+    active: [...chart.querySelectorAll('path.ui-chart__bar.is-active')].map((el) => getComputedStyle(el).opacity),
+    rows: chart.matches('.ui-chart--bars-rows'),
   };
   function span(el) {
     if (!el) return null;
@@ -136,6 +141,10 @@ async function walk(page, label, index, touch) {
     if (name.startsWith('key: ') && name !== 'key: Escape' && outside(s.tip)) {
       found.push(`${at}: the readout is out of view, ${s.tip.map(Math.round).join(' to ')} in a ${s.view}px view`);
     }
+    if (s.active.length > 1) found.push(`${at}: ${s.active.length} bars are active`);
+    if (s.active.some((o) => o !== '1')) found.push(`${at}: the active bar draws at ${s.active.join(', ')}`);
+    if (s.open && s.rows && s.active.length !== 1) found.push(`${at}: the open row has no active bar`);
+    if (!s.open && s.active.length) found.push(`${at}: a bar stays active with no readout`);
     const row = rows && (name === 'key: End' ? s.last : name === 'key: Home' ? s.first : null);
     if (outside(row)) found.push(`${at}: the row is out of view, ${row.map(Math.round).join(' to ')} in a ${s.view}px view`);
     if (s.fixed.length !== before.fixed.length
@@ -266,6 +275,13 @@ test('a months chart, its rows look and a short bridge fit their card, and hold 
     // A key that leaves its row where it is, as dad8e4f9 did: End at 844×390 steps under the view.
     await mutateWalk((page) => page.evaluate(() => { Element.prototype.scrollIntoView = () => {}; }),
       'out of view', TALL, { viewport: { width: 844, height: 390 } });
+    // A row bar that keeps its rest strength while its readout is open, as 2a4b3d22 drew it.
+    await mutateWalk((page) => page.addStyleTag({ content: '.ui-chart__bar.is-active { opacity: 0.85 !important; }' }),
+      'the active bar draws at', TALL);
+    await mutateWalk((page) => page.evaluate(() => new MutationObserver((list) => list.forEach(({ target }) => {
+      if (target.classList?.contains('is-active') && target.matches('path')) target.classList.remove('is-active');
+    })).observe(document.body, { subtree: true, attributes: true, attributeFilter: ['class'] })),
+      'the open row has no active bar', TALL);
     assert.deepEqual(caught.filter(([, seen]) => !seen).map(([says]) => says), [], 'a mutation passed: this gate cannot see it');
   } finally {
     await browser.close();

@@ -2675,6 +2675,15 @@ it('makes the hovered or tapped bar the one active bar, and none when the pointe
   expect(active(), 'none once the pointer leaves').toHaveLength(0);
   tap('spend-2');
   expect(active(), 'a tap makes its bar active too').toEqual([bar('spend-2')]);
+  cleanup();
+  // A rows look draws one bar in each row, in the order of its rows.
+  const { container } = rowsChart(300);
+  const rowBar = (i: number) => container.querySelectorAll('path.ui-chart__bar')[i];
+  hover('margin-2');
+  expect(active(), 'the hovered row bar alone').toEqual([rowBar(2)]);
+  fireEvent.mouseLeave(plot());
+  tap('margin-4');
+  expect(active(), 'a tapped row bar too').toEqual([rowBar(4)]);
 });
 
 it('keeps the active bar at full strength with no transition, and the rest at the sheet\'s one rest rule', () => {
