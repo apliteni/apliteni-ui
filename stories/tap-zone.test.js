@@ -1383,3 +1383,36 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     await browser.close();
   }
 });
+
+/* A scroll panel shows its first row and clips the next two. Under the panel, a button's
+ * tap layer reaches up over the clipped rows' layout boxes. A tap there runs the button,
+ * which is correct, because the rows are not drawn there. The mutation reads each row's
+ * layout box, as the probe did before #902, and must report the rows as losing pixels to
+ * the button. Limit: one panel that clips on the block axis. The sweep holds the rest. */
+test('a row that a scroll panel clips has no drawn pixel under the panel', { skip: !RUN && 'set TAP_ZONES=1' }, async () => {
+  const { PROBE, playwright } = await import('./lib/tap-zone.js');
+  const html = '<div style="height:40px;overflow:auto">'
+    + '<button style="display:block;width:200px;height:40px">One</button>'
+    + '<button style="display:block;width:200px;height:40px">Two</button>'
+    + '<button style="display:block;width:200px;height:40px">Three</button></div>'
+    + '<style>.t{position:relative;display:block;width:200px;height:20px;margin-top:100px}'
+    + '.t::after{content:"";position:absolute;inset:-90px 0 0}</style><button class="t">Box</button>';
+  const args = { html, size: TAP_MIN, interior: 8, families: [], within: [] };
+  const source = PROBE.toString();
+  const unclipped = source.replace('const drawnBox = (el) => {', 'const drawnBox = (el) => el.getBoundingClientRect();\n  const clipped = (el) => {');
+  assert.notEqual(unclipped, source, 'The mutation found no drawnBox in the probe.');
+  const browser = await (await playwright()).chromium.launch({ executablePath: process.env.UI_CHROME });
+  try {
+    const page = await browser.newPage({ viewport: { width: 390, height: 900 } });
+    const thieves = async (probe) => (await page.evaluate(`(${probe})(${JSON.stringify(args)})`))
+      .filter((t) => t.text !== 'Box').flatMap((t) => t.lostTo.map(([, to]) => `${t.text} ← ${to}`));
+    assert.deepEqual(await thieves(source), [], 'A row that the panel clips lost pixels it does not draw.');
+    const mutated = await thieves(unclipped);
+    assert.ok(
+      mutated.some((pair) => /^(Two|Three) ← button\.t/.test(pair)),
+      `The probe without the clip reported ${JSON.stringify(mutated)}, so this case does not prove the clip.`,
+    );
+  } finally {
+    await browser.close();
+  }
+});

@@ -15,7 +15,7 @@ export { codeLanguages, codeTokens, hlCode, hlShell } from './logic/code.js';
 export { SCORE, rankGroups, rankCommands, scoreCommand, paletteHotkey } from './logic/command-palette.js';
 export { dropdownMatch, dropdownFiltering, dropdownAvail } from './logic/dropdown.js';
 export {
-  DD_MENU_FLOOR, filterPanelRow, filterPanelFit, dropdownHeightFit, dropdownLift,
+  DD_MENU_FLOOR, filterPanelRow, filterPanelFit, dropdownHeightFit, dropdownLift, dropdownSide,
   dropdownReveal, dropdownRest, dropdownSnap, dropdownViewportFit,
 } from './logic/dropdown-placement.js';
 export { nearestSection } from './logic/feedback.js';

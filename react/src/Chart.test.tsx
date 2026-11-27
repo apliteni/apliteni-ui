@@ -58,6 +58,34 @@ const tabToFrame = async (user: ReturnType<typeof userEvent.setup>) => { await u
 const frames = async (count: number) => {
   for (let i = 0; i < count; i += 1) await new Promise((done) => requestAnimationFrame(done));
 };
+/** Keeps the window's frames, and the hold's time limit, in a queue the test runs. A busy
+ *  host can then never run the hold's two still frames before the event the test sends
+ *  next. `drain` runs frames until none is queued, which is when the hold has ended.
+ *  Limits: only the window's frames and the HOLD_LIMIT timer are held; other timers run. */
+const heldFrames = () => {
+  const queue = new Map<number, FrameRequestCallback>();
+  let next = 0;
+  const realTimeout = window.setTimeout.bind(window);
+  const spies = [
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((run) => { next += 1; queue.set(next, run); return next; }),
+    vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => { queue.delete(id); }),
+    // The limit ends the hold with no reveal, so a held limit cannot hide a reveal.
+    vi.spyOn(window, 'setTimeout').mockImplementation(((run: () => void, ms?: number, ...rest: unknown[]) =>
+      (ms === 1000 ? 0 : realTimeout(run, ms, ...rest))) as typeof window.setTimeout),
+  ];
+  return {
+    get queued() { return queue.size; },
+    drain() {
+      for (let round = 0; queue.size; round += 1) {
+        if (round === 20) throw new Error('the frames never stop');
+        const batch = [...queue.values()];
+        queue.clear();
+        act(() => batch.forEach((run) => run(performance.now())));
+      }
+    },
+    restore() { spies.forEach((spy) => spy.mockRestore()); },
+  };
+};
 const showTable = () => fireEvent.click(screen.getByRole('button', { name: 'Table' }));
 const plot = () => screen.getByRole('img');
 const markEl = (id: string) => plot().querySelector(`[data-mark="${id}"] .ui-chart__hit`) as Element;
@@ -1123,22 +1151,29 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   // A design review of f9e6f26f: a wheel during the entry is the reader's. It
   // ends the hold, the queued row reveal does not move the page back, and the
   // wheel's scroll closes the readout.
+  // The frames are held, so the wheel always comes while the hold is on.
+  const held = heldFrames();
   await user.tab({ shift: true });
   scrolled.length = 0;
   await user.tab();
+  expect(held.queued, 'the entry holds the readout').toBeGreaterThan(0);
   fireEvent.wheel(document, { deltaY: 120 });
   fireEvent.scroll(document);
   expect(screen.queryByRole('tooltip'), 'the reader\'s scroll closes the readout').toBeNull();
-  await frames(3);
+  expect(held.queued, 'the wheel cancels the hold\'s queued frame').toBe(0);
+  held.drain();
   expect(scrolled, 'the wheel cancels the queued row reveal').toEqual([]);
   // A scroll key the chart does not take is the reader's too.
   await user.tab({ shift: true });
   await user.tab();
+  expect(held.queued, 'the entry holds the readout').toBeGreaterThan(0);
   fireEvent.keyDown(document.body, { key: 'PageDown' });
   fireEvent.scroll(document);
   expect(screen.queryByRole('tooltip'), 'a scroll key ends the hold').toBeNull();
-  await frames(3);
+  expect(held.queued, 'the scroll key cancels the hold\'s queued frame').toBe(0);
+  held.drain();
   expect(scrolled, 'the scroll key cancels the queued row reveal').toEqual([]);
+  held.restore();
   delete (Element.prototype as Partial<Element>).scrollIntoView;
   vi.restoreAllMocks();
 });
@@ -1325,27 +1360,31 @@ const printedSpans = (row: Element, plotWidth: number) => {
 
 // The sweep: each pick, and no pick, at 11 plot widths. They hold the 390px,
 // 820px and 1440px widths of #882 and the 650.390625px plot of the design
-// review's pick case. 11 widths stay inside the 5s budget of a test. Where
-// main's step prints the picked name, the head must print it too: a pick never
-// hides its own name (owner, rev_e24bde907983/d14). Main's step is the widest
-// name's room over the column, counted from the last period. Limits: the
-// widths are the fallback figures, not a browser's, and the sweep is finite.
+// review's pick case. Each width renders the chart once, and each pick is a
+// rerender of it, so the 143 cases stay inside the 5s budget of a test on a
+// loaded host. Where main's step prints the picked name, the head must print
+// it too: a pick never hides its own name (owner, rev_e24bde907983/d14).
+// Main's step is the widest name's room over the column, counted from the last
+// period. Limits: the widths are the fallback figures, not a browser's, the
+// sweep is finite, and a pick is read after a change of `selected`, not on a
+// fresh mount.
 it('prints no two category names on top of each other, and keeps the picked name, at every pick', () => {
   const room = Math.max(...LONG_UNITS.map(labelWidth)) + 8;
   const count = LONG_UNITS.length;
+  const chart = (pick?: number) => <Chart variant="stacked" title="Margin by unit" selected={pick}
+    periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
+    series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
+    format={eur} />;
+  let measured = 0;
   for (const width of [390, 495, 600, 650.390625, 705, 820, 915, 1020, 1125, 1280, 1440]) {
     const mainStep = Math.max(1, Math.ceil(room / (width / count)));
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
+    const { container, rerender } = render(chart());
     for (const pick of [undefined, ...LONG_UNITS.keys()]) {
-      vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(width);
-      vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(width);
-      const { container } = render(<Chart variant="stacked" title="Margin by unit" selected={pick}
-        periods={LONG_UNITS.map((unit) => ({ label: unit, short: unit }))}
-        series={[{ id: 'margin', name: 'Margin', values: LONG_UNITS.map((_, i) => 20 + i), tone: 'accent' }]}
-        format={eur} />);
-      const row = container.querySelector('.ui-chart__periods')!;
-      const spans = printedSpans(row, width);
-      cleanup();
-      vi.restoreAllMocks();
+      rerender(chart(pick));
+      const spans = printedSpans(container.querySelector('.ui-chart__periods')!, width);
+      measured += 1;
       const at = `${width}px, pick ${pick ?? 'none'}`;
       expect(spans.length, `${at} prints some names`).toBeGreaterThan(0);
       expect(spans.slice(1).filter((s, k) => s.start < spans[k].end + LABEL_FLOOR).map((s) => s.i),
@@ -1354,7 +1393,10 @@ it('prints no two category names on top of each other, and keeps the picked name
         expect(spans.map((s) => s.i), `${at}: main prints the picked name, so the head does`).toContain(pick);
       }
     }
+    cleanup();
+    vi.restoreAllMocks();
   }
+  expect(measured, 'every width and every pick is measured').toBe(11 * (count + 1));
 });
 
 // #882: the picked label is drawn at weight 600, wider than the body weight.

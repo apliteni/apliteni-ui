@@ -1,0 +1,137 @@
+/* The selection bar: the other theme's bar over the rows a reader selected. Its room stands
+ * in the page flow after the table, so at the end of the list the bar sits under the last
+ * row and never covers it. Every ink on the bar is set on the part that shows it, never on
+ * the bar: a list opened from the bar inherits the page theme. #902
+ * why: docs/components.md#selection-bar */
+.ui-selection-room {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  justify-content: center;
+  padding-block: var(--space-4);
+  pointer-events: none;
+}
+.ui-selection-room--start { justify-content: flex-start; }
+
+.ui-selection-bar {
+  position: relative;
+  display: flex;
+  /* The parts stand at the top, so a part in a corner shares the corner's centre also when
+     large text wraps the count. Parts of one line have the same height. */
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 100%;
+  /* The corner is the pill's corner and the gap, so the curves share a centre: the inner
+     radius is the outer radius less the gap, and the gap is the same at the side and the top.
+     With a pill of one line the ends are round. A wrapped count makes the bar taller, and its
+     corners stay. The pill's corner is half the height of Clear, the height of a pill of one
+     line. The bar measures it, because it grows with the text, and the fallback is its value
+     before a layout. rev_972adb4864fb/d81 */
+  padding: var(--space-3);
+  border: 1px solid var(--inverse-frame);
+  border-radius: calc(var(--ui-selection-corner, calc(var(--btn-height-sm) / 2)) + var(--space-3) + 1px);
+  background: var(--inverse-bg); /* code-bg: none — the bar holds controls and a count, never a code chip. */
+  box-shadow: var(--elev-drop);
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(var(--space-2));
+}
+.ui-selection-bar.is-shown { opacity: 1; transform: none; }
+/* A bar that comes after the page has loaded rises in, and Clear takes it down the same
+   way. A bar that comes with the page is shown at once. */
+@media (prefers-reduced-motion: no-preference) {
+  .ui-selection-bar { transition: opacity var(--dur-med) var(--ease), transform var(--dur-med) var(--ease); }
+}
+
+/* The count and Clear share one pill, so Clear reads as part of the count. Large text can
+   make the pair wider than the bar's room, so the pair can shrink, and then Clear goes
+   under the count and a long count breaks. The pill never gets narrower than Clear. */
+.ui-selection-bar__count {
+  flex: 0 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: min-content;
+  /* The edge is drawn inside the pill and takes no room, so the pill is as tall as the
+     control at the other end, and both ends have the same gap and the same inner shape. */
+  outline: 1px solid var(--inverse-edge);
+  outline-offset: -1px;
+  border-radius: var(--ui-selection-corner, calc(var(--btn-height-sm) / 2));
+}
+/* The words keep the same space at the sides as above and below them in a pill of one line,
+   also on each line of a wrapped count, so they stay clear of the curve. */
+.ui-selection-bar__tally {
+  min-width: 0;
+  padding: max(0px, calc(var(--ui-selection-corner, calc(var(--btn-height-sm) / 2)) - 0.5lh)) var(--space-2);
+  overflow-wrap: anywhere;
+  color: var(--inverse-text);
+  font-size: var(--text-sm);
+}
+/* Clear's box fills the pill's corner, so its tap target and the pill's height stay. Its ground
+   is drawn inside a clear 4px band, so on hover and press it stands in the pill with the same
+   gap at the top, the end and the bottom. The ground's corner is the pill's corner less the
+   band, so the curves share a centre. The label keeps its 8px from the ground at both sides.
+   A press does not move Clear, or the gap is uneven. #911 */
+.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control {
+  border-width: var(--space-1);
+  background-clip: padding-box;
+  /* 3px: with the band it is the 1px edge and 6px padding of the other controls, so Clear keeps
+     their height at every text size. */
+  padding: 3px var(--space-2);
+  border-radius: var(--ui-selection-corner, calc(var(--btn-height-sm) / 2));
+}
+.ui-selection-bar .ui-selection-bar__count > .ui-selection-bar__control:active { transform: none; }
+.ui-selection-bar__actions { flex: none; display: flex; align-items: center; gap: var(--space-1); min-width: 0; }
+
+/* Every control on the bar draws as a ghost button: the name, at its natural width, with
+   no edge and no chevron. A pick never changes a list's trigger. The token sheet gives each
+   control the inverse ring. */
+.ui-selection-bar .ui-selection-bar__control {
+  flex: none;
+  min-height: var(--btn-height-sm);
+  /* 6px between --space-1 and --space-2: the small button's own block padding, so a list's
+     trigger is as tall as a small Button beside it. */
+  padding: 6px var(--space-3);
+  border-color: transparent;
+  background: transparent;
+  color: var(--inverse-text);
+}
+.ui-selection-bar .ui-selection-bar__control:enabled:hover,
+.ui-selection-bar .ui-selection-bar__control:enabled:active,
+.ui-selection-bar .ui-dropdown.open > .ui-selection-bar__control {
+  border-color: transparent;
+  /* The colour only, so Clear keeps its ground inside its band. */
+  background-color: var(--inverse-hover);
+  color: var(--inverse-strong);
+}
+.ui-selection-bar .ui-selection-bar__control:disabled { background: transparent; /* muted-ink: state — unavailable action on the bar */ color: var(--inverse-muted); }
+
+/* A box of no size that clips: its buttons keep their own widths for the fit to read, and
+   the page never scrolls to reach them. */
+.ui-selection-bar__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+}
+.ui-selection-bar__measure > * { flex: none; }
+
+/* On a phone the bar takes the row, with the count at the start and More at the end. */
+@media (max-width: 560px) {
+  .ui-selection-bar { width: 100%; justify-content: space-between; gap: var(--space-1); }
+}
+/* A finger gets the floor from transparent zones; the controls keep their size. */
+@media (max-width: 560px) and (pointer: coarse) {
+  .ui-selection-bar,
+  .ui-selection-bar__actions { gap: var(--tap-gap); --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--space-4); }
+}
+@media (forced-colors: active) {
+  .ui-selection-bar { border-color: CanvasText; }
+  .ui-selection-bar__count { outline-color: CanvasText; }
+}
