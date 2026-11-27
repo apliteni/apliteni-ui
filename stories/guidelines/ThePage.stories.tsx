@@ -48,8 +48,8 @@ const SideColumn = ({ off }: { off: boolean }) => <Stage><div className={`ui-app
   <div className="ui-app__head"><a className="ui-app__brand" href="#" aria-label="Finance">
     <i aria-hidden="true" className="ui-react-app__mark" dangerouslySetInnerHTML={{ __html: prism(`tp-mark-${off}`, 24) }} /><span>Finance</span>
   </a></div>
-  <SidebarNav aria-label={off ? 'Sections, avatar off the column' : 'Sections, one column'} active="payouts"
-    sections={[{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, { id: 'payouts', icon: 'card', label: 'Payouts' }] }]} />
+  <SidebarNav aria-label={off ? 'Sections, avatar off the column' : 'Sections, one column'} active="orders"
+    sections={[{ items: [{ id: 'home', icon: 'chart', label: 'Overview' }, { id: 'orders', icon: 'card', label: 'Orders' }] }]} />
   <AccountMenu account={DANA} items={[]} onSelect={() => {}} withTheme={false} inPlace={false} />
 </div></div></Stage>;
 

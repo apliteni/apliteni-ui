@@ -134,8 +134,8 @@ describe('the page: React screens', () => {
     doc.body.innerHTML = '<nav class="ui-nav ui-nav--side" aria-label="Sections"><ul class="ui-nav__list">'
       + '<li><a class="ui-nav__item"><span class="ui-nav__ic"></span><span class="ui-nav__label">Overview</span></a>'
       + '<ul class="ui-nav__sub"><li><a class="ui-nav__item ui-nav__item--sub">Pending</a></li></ul></li>'
-      + '<li><a class="ui-nav__item"><span class="ui-nav__label">Payouts</span></a></li></ul></nav>';
-    expect(CHECKS['sidebar-column']({ ...drawn[0], where: 'bare', doc })).toEqual(['bare gives the sidebar row "Payouts" no icon. Each section has one.']);
+      + '<li><a class="ui-nav__item"><span class="ui-nav__label">Orders</span></a></li></ul></nav>';
+    expect(CHECKS['sidebar-column']({ ...drawn[0], where: 'bare', doc })).toEqual(['bare gives the sidebar row "Orders" no icon. Each section has one.']);
   });
 
   for (const rule of GATED) {
