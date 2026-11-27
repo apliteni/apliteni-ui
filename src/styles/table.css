@@ -433,9 +433,10 @@ a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
 @media (width > 560px) and (width <= 720px) {
   /* One line wide: nothing wraps, and --ui-table-identity-max is the ceiling a consumer
-     retunes. Below the phone step nothing is pinned, so the cell keeps its whole text. The cut takes NO margin — the cell is sticky and the next column scrolls
-     under it, so whatever the cut lets out is painted over that column. A child's ring
-     needs 3px and the cell's padding is 12px, so the room comes from the padding.
+     retunes. Below the phone step nothing is pinned, so the cell keeps its whole text.
+     The cut takes NO margin — the cell is sticky and the next column scrolls under it,
+     so whatever the cut lets out is painted over that column. A child's ring needs 3px
+     and the cell's padding is 12px, so the room comes from the padding.
      why: docs/components.md#data-table, #500, #513 */
   /* A percentage can stretch an intrinsic table beyond its content. */
   .ui-card--fit .ui-table--pinned .ui-table__identity { width: 1px; }
