@@ -1385,7 +1385,7 @@
   ],
   "more-by-name": [
    {
-    "ref": "react/src/SelectionBar.tsx:154",
+    "ref": "react/src/SelectionBar.tsx:159",
     "pattern": "items: extra.map((action): DropdownItem => ({ label: action.label, value: action.id"
    }
   ]
