@@ -692,8 +692,9 @@ label and the value as its name, and the error gives it the invalid edge. In a f
 trigger has the height of a text input and keeps the pill corner. It fits its longest option up to
 the field width, so a value change does not change its width. It also makes room for each row's
 badge and check, so a row label in its panel stays on one line. A native select has the same width
-rule. In vanilla markup, put the placeholder and each option's shown words, with its state
-word, its badge and the check, in the hidden `ui-dropdown__fit` element. A long
+rule. In vanilla markup, put one line for the placeholder and one for each option in the hidden
+`ui-dropdown__fit` element. Each line holds the words, the option's badge or state badge, and the
+check. Add a line with the shown words, such as "Cedar Studio (Archived)", for a muted option. A long
 value stays on one line and ends with an ellipsis.
 
 **Corners.** A one-line field has the 16px field corner. A text area and message box have the

@@ -637,8 +637,9 @@
   visibility: hidden; min-inline-size: 0; overflow: hidden;
 }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit > * { grid-area: 1 / 1; }
-/* A hidden row also holds its panel row's badge and check, so the panel, which is as wide
-   as the trigger, keeps each label on one line. #888 why: docs/components.md#fields */
+/* A hidden row also holds its panel row's badge and check, and the placeholder the check, so
+   the panel, which is as wide as the trigger, keeps each label on one line. #888
+   why: docs/components.md#fields */
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit .ui-dropdown__tick { display: inline-flex; margin-left: 0; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__line { grid-area: 1 / 1; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { grid-area: 1 / 2; }

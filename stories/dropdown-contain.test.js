@@ -297,6 +297,10 @@ test('measured in a browser, four widths and both themes', {
         };
         strip();
         new MutationObserver(strip).observe(document.documentElement, { subtree: true, childList: true, characterData: true });
+        // The row's own line measures the word as a state badge, so it goes too.
+        const style = document.createElement('style');
+        style.textContent = '.ui-dropdown__fit .ui-dropdown__badge { display: none !important; }';
+        document.head.append(style);
       }`;
       for (const theme of THEMES) {
         const stable = await read(theme);

@@ -932,17 +932,30 @@ export function Dropdown({
           <span className="ui-dropdown__line">
             {marked && <Avatar empty />}
             <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
+            <Glyph name="check" className="ui-dropdown__tick" />
           </span>
-          {rows.map((item, index) => (
-            <span key={index} className="ui-dropdown__line">
-              {marked && (item.avatar
-                ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
-                : <Avatar empty />)}
-              <span className="ui-dropdown__value">{shownOf(item)}</span>
-              {!mutedOf(item) && item.badge && <RowBadge badge={item.badge} />}
-              <Glyph name="check" className="ui-dropdown__tick" />
-            </span>
-          ))}
+          {/* Each row once as its panel row draws it, with the badge and the check, and a muted
+              row once more as the trigger shows it, with its word. #888 */}
+          {rows.map((item, index) => {
+            const mark = marked && (item.avatar
+              ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
+              : <Avatar empty />);
+            const badge = mutedOf(item) ? { text: mutedOf(item), tone: 'state' as const } : item.badge;
+            return (
+              <Fragment key={index}>
+                <span className="ui-dropdown__line">
+                  {mark}
+                  <span className="ui-dropdown__value">{item.label}</span>
+                  {badge && <RowBadge badge={badge} />}
+                  <Glyph name="check" className="ui-dropdown__tick" />
+                </span>
+                {mutedOf(item) && <span className="ui-dropdown__line">
+                  {mark}
+                  <span className="ui-dropdown__value">{shownOf(item)}</span>
+                </span>}
+              </Fragment>
+            );
+          })}
         </span>}
       </button>
       <div
