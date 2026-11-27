@@ -36,6 +36,12 @@ a {
   text-decoration: none;
 }
 
+/* A plain link — one carrying no class — is a link in running text. Its ink differs from body
+   ink by under 3:1 (2.27:1 light, 2.41:1 dark), so the underline marks it at rest. :where keeps
+   it at (0,0,1): an anchor control has a class, and a context rule such as a table cell's wins.
+   why: docs/foundations.md#text-ink */
+a:where(:not([class])) { text-decoration: underline; }
+
 /* A link that reads as the text around it, for a name in a list that links to its
    detail page: body ink at rest, underlined only under the pointer.
    why: docs/foundations.md#text-ink */

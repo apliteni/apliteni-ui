@@ -64,7 +64,7 @@
   ],
   "ring-contrast": [
    {
-    "ref": "src/styles/base.css:164",
+    "ref": "src/styles/base.css:170",
     "pattern": "outline: var(--ring);"
    }
   ],
@@ -554,7 +554,7 @@
  "_labels-and-titles.js": {
   "text-ink": [
    {
-    "ref": "src/styles/base.css:129",
+    "ref": "src/styles/base.css:135",
     "pattern": "color: var(--text);"
    }
   ],
@@ -566,7 +566,7 @@
   ],
   "sentence-case": [
    {
-    "ref": "src/styles/base.css:123",
+    "ref": "src/styles/base.css:129",
     "pattern": "in sentence case like every"
    },
    {
@@ -600,7 +600,7 @@
   ],
   "eyebrow-names-the-kind": [
    {
-    "ref": "src/styles/base.css:126",
+    "ref": "src/styles/base.css:132",
     "pattern": "rank: label"
    }
   ],
@@ -618,7 +618,7 @@
  "_layout-and-density.js": {
   "container": [
    {
-    "ref": "src/styles/base.css:120",
+    "ref": "src/styles/base.css:126",
     "pattern": "max-width: var(--container)"
    },
    {
@@ -900,11 +900,11 @@
  "_state-set.js": {
   "focus-visible": [
    {
-    "ref": "src/styles/base.css:157",
+    "ref": "src/styles/base.css:163",
     "pattern": ".ui-focusable:focus-visible,"
    },
    {
-    "ref": "src/styles/base.css:164",
+    "ref": "src/styles/base.css:170",
     "pattern": "outline: var(--ring);"
    },
    {

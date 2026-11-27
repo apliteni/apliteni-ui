@@ -6,6 +6,12 @@
 
 export const RELEASES = [
   {
+    v: '0.222.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'A link in running text, such as a paragraph, a list item, a caption or a hint, now has an underline at all times, because its colour alone differs from the text around it by less than 3:1. The kit underlines each `a` element that has no `class` attribute. Hover and focus are as before. If your app gives a link in text a class, add `text-decoration: underline` to it. A link in a table cell and an anchor that is a control, such as a nav row, a button or a tab, do not change. Part of #869.', []],
+    ],
+  },
+  {
     v: '0.217.0', date: '2026-11-26',
     changes: [
       ['changed', 'A hover now changes a control\'s fill, ink and border at once, with no 150ms fade. This affects every product that uses the kit: table rows in every table form, buttons, menu rows, rail rows, tabs, links, fields and the date picker. A press, a lift, a turning caret and the focus edge of a field keep their motion. The focus edge fades when focus arrives and when it leaves, also while the pointer stays on the field. A selected, checked or current fill that a hover also paints now changes at once too. Part of #865.', ['Table', 'Button', 'Dropdown', 'Tabs', 'Segmented', 'DatePicker']],
