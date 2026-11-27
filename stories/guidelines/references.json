@@ -584,7 +584,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:189",
+    "ref": "src/styles/card.css:191",
     "pattern": "rank: card-title"
    }
   ],
@@ -1095,7 +1095,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:221",
+    "ref": "src/styles/card.css:223",
     "pattern": ".ui-card__row {"
    }
   ],
