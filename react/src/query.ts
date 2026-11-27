@@ -50,8 +50,8 @@ const person = (key: QueryKey, text: string) => {
 };
 
 /**
- * Reads a query into chips. Plain terms become one chip each. A query with AND, OR or a
- * parenthesis stays one chip, so removing a chip never leaves a broken operator.
+ * Reads a query into terms. Plain terms become one term each. A query with AND, OR or a
+ * parenthesis stays one term, so removing its chip never leaves a broken operator.
  * Throws a QueryError with words a person can act on.
  */
 export function parseQuery(text: string, keys: readonly QueryKey[]): QueryTerm[] {

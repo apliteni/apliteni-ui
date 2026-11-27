@@ -818,14 +818,15 @@ chips and the text in the field. Keep it in the URL, so a reload and a view chan
 
 **What the user sees.** The field offers the keys, then the values or the people. A menu row
 shows its name and hint on one left edge, and the key's badge at the right edge. A chosen
-condition becomes a chip under the field. A click on a chip's label puts it back in the field,
-and its mark removes it. A query with AND, OR or a parenthesis stays one chip. A query that does
+condition becomes a chip under the field. Only a known key with a valid value, or a known
+person, becomes a chip. Title words stay in the field and match the titles. An unknown key or
+person gives no chip. A click on a chip's label puts it back in the field, and its mark removes it. A query with AND, OR or a parenthesis stays one chip. A query that does
 not read shows its error under the field, with words that say what to change.
 `peopleStatus` shows Searching people, or People did not load with Retry. The field reads the
 last condition apart from the conditions before it, so `state:open @ma` offers people.
 
 **Keyboard and screen reader.** The field keeps the focus. Up and Down move the active row and
-wrap. Enter or Tab takes it. Enter with no active row commits the text. Escape closes the menu,
+wrap. Enter or Tab takes it. Enter with no active row makes chips of the known filters in the text. Escape closes the menu,
 and a click in the field opens it again. Backspace in an empty field removes the last chip. On a
 focused chip, Backspace or Delete removes it, and Escape goes back to the field. When people did
 not load, Tab goes from the field to Retry and the menu stays open. Enter on Retry retries and

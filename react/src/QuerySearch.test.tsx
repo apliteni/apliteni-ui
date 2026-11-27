@@ -62,7 +62,9 @@ describe('QuerySearch', () => {
     await user.type(field(), 'report @ma');
     expect(options().map((o) => o.textContent)).toEqual(['Mara Lindqvist']);
     await user.keyboard('{ArrowDown}{Enter}');
-    expect(chips()).toEqual(['report', 'Mara Lindqvist']);
+    expect(chips()).toEqual(['Mara Lindqvist']);
+    expect(field()).toHaveValue('report');
+    await user.clear(field());
     await user.type(field(), 'assignee:');
     expect(options()[0]).toHaveTextContent('Me');
   });
@@ -84,6 +86,27 @@ describe('QuerySearch', () => {
     await user.type(field(), '(state:open OR state:done) @ada');
     await user.keyboard('{Escape}{Enter}');
     expect(chips()).toEqual(['(Open or Done) and Ada Lovelace']);
+  });
+  it('makes a chip only for a known filter, and keeps free words in the field', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.type(field(), 'What if Me');
+    await user.keyboard('{Escape}{Enter}');
+    expect(chips()).toEqual([]);
+    expect(field()).toHaveValue('What if Me');
+    expect(screen.queryByRole('alert')).toBeNull();
+    await user.clear(field());
+    await user.type(field(), 'tax state:open');
+    await user.keyboard('{Escape}{Enter}');
+    expect(chips()).toEqual(['Open']);
+    expect(field()).toHaveValue('tax');
+    // An unknown person gives no chip. The field keeps the text and shows the error.
+    await user.clear(field());
+    await user.type(field(), '@zz');
+    await user.keyboard('{Escape}{Enter}');
+    expect(chips()).toEqual(['Open']);
+    expect(field()).toHaveValue('@zz');
+    expect(screen.getByRole('alert')).toHaveTextContent('No person matches this name.');
   });
   it('keeps an invalid draft, names the keys, and clears the error on the next edit', async () => {
     const user = userEvent.setup();
@@ -166,10 +189,11 @@ describe('QuerySearch', () => {
     expect(field()).toHaveValue('');
     expect(field()).toHaveFocus();
   });
-  it('parses a pasted query into chips, and keeps a pasted query that does not read', () => {
+  it('parses a pasted query into chips with its words in the field, and keeps a pasted query that does not read', () => {
     render(<Harness />);
-    fireEvent.paste(field(), { clipboardData: { getData: () => 'state:open @ada' } });
+    fireEvent.paste(field(), { clipboardData: { getData: () => 'state:open @ada report' } });
     expect(chips()).toEqual(['Open', 'Ada Lovelace']);
+    expect(field()).toHaveValue('report');
     fireEvent.paste(field(), { clipboardData: { getData: () => '(state:open OR)' } });
     expect(field()).toHaveValue('(state:open OR)');
     expect(screen.getByRole('alert')).toHaveTextContent('Complete the condition after the operator.');

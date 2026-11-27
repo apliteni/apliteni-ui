@@ -100,7 +100,7 @@ export const SEARCH_STATES = {
   'no-values': { chips: [], draft: 'state:zzz', open: true },
   'invalid-value': { chips: [], draft: 'state:zzz', checked: true },
   'free-text': { chips: [], draft: 'supplier' },
-  'pasted-query': { chips: ['state:open', 'assignee:me', 'report'], draft: '' },
+  'pasted-query': { chips: ['state:open', 'assignee:me'], draft: 'report' },
   'long-query': { chips: ['state:open', 'assignee:me'], draft: 'Check the supplier contract renewal terms before the notice period ends in December' },
   hover: { chips: [], draft: 'state:', open: true, active: 0 },
   'keyboard-focus': { chips: [], draft: 'state:', open: true, active: 0 },

@@ -1,7 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from 'react';
 import { SearchField } from './SearchField';
 import { Button } from './primitives/Button';
-import { findQueryKey, parseQuery, type QueryKey, type QueryState, type QueryValue } from './query';
+import { findQueryKey, parseQuery, type QueryKey, type QueryNode, type QueryState, type QueryValue } from './query';
 import './QuerySearch.css';
 
 export type QuerySearchProps = {
@@ -30,13 +30,15 @@ export type QuerySearchProps = {
 
 type Row = QueryValue & { insert: string };
 
+const hasField = (node: QueryNode): boolean => node.type === 'field' || (node.type !== 'text' && node.items.some(hasField));
+
 // The last condition: a key with one value word or an open quote, or `@` and a name.
 // A completed value ends at a space, so `state:open @ma` reads `@ma`.
 const KEY_SUFFIX = /(?:^|\s)([\w-]+:\s*(?:"[^"]*"?|[^\s():"]*)|@[^\s()]*)$/;
 
 /**
  * A search field that reads typed qualifiers. It suggests keys, then values or people, and
- * a chosen condition becomes a chip that a person can edit or remove. The field keeps the
+ * a known filter becomes a chip that a person can edit or remove. The field keeps the
  * focus while the arrow keys move the active suggestion.
  * why: docs/components.md#query-search
  */
@@ -79,10 +81,12 @@ export function QuerySearch({ keys, value, onChange, ariaLabel, placeholder, siz
   const errorId = `${uid}-error`;
   const option = (i: number) => `${uid}-option-${i}`;
 
+  // Only a filter that exists becomes a chip. Title words stay in the field and match the titles.
   const commit = (query: string) => {
     try {
       const terms = parseQuery(query, keys);
-      onChange({ chips: [...chips, ...terms.map(t => t.raw)], draft: '' });
+      const words = terms.filter(t => !hasField(t.node));
+      onChange({ chips: [...chips, ...terms.filter(t => hasField(t.node)).map(t => t.raw)], draft: words.map(t => t.raw).join(' ') });
       setChecked(false);
       return true;
     } catch {
