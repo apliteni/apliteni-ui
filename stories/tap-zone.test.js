@@ -1104,7 +1104,9 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       assert.ok(clearSubjects.length >= 4, `${clearSubjects.length} subjects draw a selection bar, 4 or more expected.`);
       for (const width of CHIP_WIDTHS) {
         const on = await clears(width, withCss);
-        assert.equal(on.length, clearSubjects.length, `${width}: ${on.length} Clear controls measured in ${clearSubjects.length} subjects.`);
+        // A guideline page draws more than one bar, so each subject gives one Clear or more.
+        assert.deepEqual(clearSubjects.filter((s) => !on.some((b) => b.story === s.id)).map((s) => s.id), [],
+          `${width}: a subject that draws a selection bar had no Clear measured.`);
         assert.deepEqual(on.filter((b) => b.floorMiss > 0).map((b) => `${b.story} ${name(b)} reaches ${b.reach.join('x')}`), [],
           `${width}: the selection bar's Clear misses the ${TAP_MIN}px floor.`);
         assert.deepEqual(on.filter((b) => b.lostTo.some(([, w]) => w !== 'nothing')).map((b) => `${b.story} ${name(b)} <- ${b.lostTo.map(([, w]) => w)}`), [],
