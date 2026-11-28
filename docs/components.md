@@ -26,7 +26,8 @@ import { Button } from '@apliteni/apliteni-ui/react';
 | `…/motion` | The motion helpers. |
 | `…/guidelines/*` | The guideline pages, as Markdown. |
 
-The package has no runtime dependency and no build step, so you can ship it as it is. `…/css` and
+The package has no runtime dependency and no build step, so you can ship it as it is. As a result,
+the [breakpoints are literals](foundations.md#breakpoints). `…/css` and
 the `cssText` of `…/inline` hold the same stylesheets in the same order. If you take single sheets
 from `styles`, take every sheet that a component needs, after `tokensCss` and `baseCss`.
 
@@ -55,8 +56,8 @@ Neither attribute changes the type. `--font-display` is for headings and brand m
 for all text that the user reads, and `--font-mono` for code. The package does not ship the font
 files, so your page loads them. See [Typefaces](foundations.md#typefaces).
 
-`ThemeToggle` lets the user choose the theme from a bar, and [`ThemeChoice`](#theme-choice) on a
-settings page. Put `THEME_INIT_SCRIPT` in a `<script>` in the `<head>`, so the first paint has the
+[Theme choice](#theme-choice) says which theme control goes on a bar and which on a settings page.
+Put `THEME_INIT_SCRIPT` in a `<script>` in the `<head>`, so the first paint has the
 stored theme. `AccentPicker` lets the user choose the accent and calls `onChange`. Your page sets
 `data-accent` and stores the choice. `ACCENTS` from the root entry lists the accent names.
 
@@ -73,7 +74,7 @@ stored theme. `AccentPicker` lets the user choose the accent and calls `onChange
 ## Choose a component
 
 Find the job in the left column. Each section gives the limits of the component, an example and
-what the user sees. A section does not repeat the job from this table.
+what the user sees.
 
 | The job | Component | Section |
 |---------|-----------|---------|
@@ -197,8 +198,7 @@ each line of text that the button shows, and the menu has the same name.
   end corner, with a 2px ring in the band's colour that cuts it from the glyph. The focus ring
   passes under it, so no ring line crosses the digits. A long count, such as 99+, grows over the
   glyph and stays clear of the next control. Give the trigger a name that holds the count, such as
-  "Notifications, 99+ unread". Below 560px each action is a 40px glyph with no border and keeps a
-  44 by 44px tap zone.
+  "Notifications, 99+ unread".
 
 **What the user sees.**
 
@@ -214,8 +214,8 @@ each line of text that the button shows, and the menu has the same name.
   two or more group labels, and leaves out the label of one group. The account stays at the foot of
   the drawer, as on the rail. A press on a section, Escape or a wider window closes the drawer, and
   the focus goes back to the menu button.
-- Below 560px each band control is a 40px glyph with no border. The search trigger shows only its
-  glyph and keeps the same accessible name.
+- Below 560px each band control is a 40px glyph with no border. A band action keeps a 44 by 44px tap
+  zone. The search trigger shows only its glyph and keeps the same accessible name.
 - The open sidebar and the phone menu have two columns: the symbols, then the words. A sub-item
   keeps the indent of its list. A custom `brand` keeps its own width, so the product name moves
   with it. The phone menu's head shows the logo before the product name. A folded sidebar puts each
@@ -561,27 +561,25 @@ list of actions. When all the choices fit on one row and must stay visible, use
 group labels, with space before each next group. `header` and `footer` add content above and below
 the rows. `onSelect` gets the value and the row. `open`, `defaultOpen` and `onOpenChange` control
 the panel. `disabled` turns the trigger off: no keyboard stop, no panel and the disabled paint.
-`size="sm"` gives the trigger the small control height, 32px with a mouse and 40px on a touch
-screen, for a [toolbar](#toolbar) beside a small search field.
+`size="sm"` gives the trigger the [small control height](#toolbar), for a toolbar beside a small
+search field.
 
 **Ghost trigger.** `ghost` draws the trigger with no edge and no ground at rest. It keeps the
-chevron, the focus ring and the invalid edge. The pointer and an open panel give it the fill of a
-hovered table row. Off, it draws no box and shows the off ink. In a field and as the first part of a
-table cell, its value starts on the column edge, and the pill hangs into the room before it. In a
-row it stands on the centre of the first text line, so the row keeps its height. In a field the
-panel fits its widest row, at least the trigger and at most the room in the view, so a row keeps its
-words on one line. Without `ghost` the trigger keeps its edge.
+chevron, the focus ring and the invalid edge. Off, it draws no box and shows the off ink. In a field
+and as the first part of a table cell, its value starts on the column edge, and the pill hangs into
+the room before it. In a row it stands on the centre of the first text line, so the row keeps its
+height. In a field the panel fits its widest row, at least the trigger and at most the room in the
+view, so a row keeps its words on one line. Without `ghost` the trigger keeps its edge.
 
 **What the user sees.**
 
 - The trigger shows only the chosen value or the placeholder. Put the name of the control in a
-  [`Field`](#fields) label. In a filter row, [`FilterBar`](#filter-bar) shows the name only while no
-  value is set. `label` is deprecated: it draws nothing, warns once in development and goes in the
-  next release.
-- The trigger has the accent edge under the pointer, while pressed and while its panel is open. A
-  ghost trigger, and a trigger that a product draws with no edge or no ground, such as a band
-  control or the account block, keeps its hover fill in those states. Under the focus ring the edge
-  keeps its width and goes transparent, so focus shows one line.
+  [`Field`](#fields) label. For the name in a filter row, see [Filter bar](#filter-bar). `label` is
+  deprecated: it draws nothing, warns once in development and goes in the next release.
+- The trigger has the accent edge under the pointer, while pressed and while its panel is open. In
+  those states a ghost trigger has the fill of a hovered table row. A trigger that a product draws
+  with no edge or no ground, such as a band control or the account block, keeps its hover fill.
+  Under the focus ring the edge keeps its width and goes transparent, so focus shows one line.
 - The panel opens below the trigger, and `direction="up"` opens it above. `align` chooses the edge
   of the trigger that the panel hangs from. The panel keeps that edge where it fits, and moves along
   the row where it does not.
@@ -645,9 +643,9 @@ link. It gets the row and the props that the row must spread: the class, the rol
 sends the focus to the trigger. A click outside also closes it. A select panel is a `listbox` of
 options and a menu panel is a `menu` of menu items. With `search`, the panel is a `dialog`, because
 a listbox may own only options. The focus ring of a row is drawn inside the row, so the panel edge
-never cuts it. Inside a [`Field`](#fields), the label and then the value name the trigger. Outside a
-field, give `ariaLabel`. A select trigger then has that name and its value, such as "Unit: Engine
-team". A placeholder is not a name.
+never cuts it. For the name of a trigger in a field, see [Fields](#fields). Outside a field, give
+`ariaLabel`. A select trigger then has that name and its value, such as "Unit: Engine team". A
+placeholder is not a name.
 
 ### Command palette
 
@@ -703,11 +701,12 @@ drop. `accept` only filters the system picker, so check the file before you uplo
 
 **`Field` with your own control.** The child function gets the `id`, `required`, `aria-invalid` and
 `aria-describedby`. Spread them on the control. A dropdown or date picker trigger then has the label
-and the value as its name, and the error gives it the invalid edge. In a field, a dropdown trigger
-has the height of a text input and keeps the pill corner. It fits its longest option up to the field
-width, so a value change does not change its width. A native select has the same width rule. In
-vanilla markup, put the placeholder and each option's shown words, with its state word, in the
-hidden `ui-dropdown__fit` element. A long value stays on one line and ends with an ellipsis.
+and the value as its name, such as "Due date, August 2026", and the error gives it the invalid edge.
+In a field, a dropdown trigger has the height of a text input and keeps the pill corner. It fits its
+longest option up to the field width, so a value change does not change its width. A native select
+has the same width rule. In vanilla markup, put the placeholder and each option's shown words, with
+its state word, in the hidden `ui-dropdown__fit` element. A long value stays on one line and ends
+with an ellipsis.
 
 **Corners.** A one-line field has the 16px field corner. A text area and message box have the 24px
 message corner. Cards and floating panels have the 12px surface corner. Where supported, these
@@ -779,11 +778,11 @@ pointer titles.
 ```
 
 `ariaLabel` is required, because no visible label names the field. `size="sm"` is the field above a
-dense table: with a mouse it is 32px high with `--text-sm`, and on a touch screen 40px high with
-16px text, because iOS zooms into a field with smaller text. `width` sizes the whole group, icon
-included, for a field that fits its expected input instead of growing across the toolbar row. Give
-it a CSS width such as `24ch`. The field has no clear button of its own, because the browser draws
-one. The page structure around the field does not change its height. See [Toolbar](#toolbar).
+dense table. It has the [small control height](#toolbar), with `--text-sm` with a mouse and 16px
+text on a touch screen, because iOS zooms into a field with smaller text. `width` sizes the whole
+group, icon included, for a field that fits its expected input instead of growing across the toolbar
+row. Give it a CSS width such as `24ch`. The field has no clear button of its own, because the
+browser draws one.
 
 ### Checkbox and switch
 
@@ -831,7 +830,7 @@ it. In a Modal, the panel opens over the edge of the dialog.
 **Keyboard and screen reader.** The grid has one Tab stop. The arrow keys move between cells, and
 Home and End go to the ends of the row. Each cell says what it is in its own name. Escape closes only
 the calendar, and the next Escape closes the dialog around it. In a `Field`, the label of the field
-is the title of the sheet, and the trigger reads like "Due date, August 2026".
+is the title of the sheet. [Fields](#fields) gives the name of the trigger.
 
 ### File drop
 
@@ -869,8 +868,7 @@ Upload button stays the keyboard path.
 
 ### Segmented
 
-`Segmented` narrows a list, flips a unit or sets a preference, when all the options fit on one row.
-See [Segmented or tabs?](#segmented-or-tabs).
+[Segmented or tabs?](#segmented-or-tabs) says when to use `Segmented`.
 
 ```tsx
 <Segmented label="Period" value={period} onChange={setPeriod}
@@ -879,15 +877,15 @@ See [Segmented or tabs?](#segmented-or-tabs).
 
 `appearance` is `pill`, the default, or `underline`. `size="sm"` makes the pill smaller. The
 underline keeps one 13px type size in both sizes, so `size` does not change it. `block` fills the
-row. `accent` asks for the accent fill when a product needs it. In vanilla CSS the class is
-`.ui-seg--accent`. `neutral` is a deprecated no-op kept for compatibility, and goes at the next
-major. An option's `icon` draws a glyph before its label. With `iconOnly`, the glyph is the whole
-button, and the label is its name and its hover title. The wordless choice draws a 32px pill around
-the 20px view icon, which is larger than the 16px lead of a labelled option. Below the phone step it
-keeps a 44px tap zone outside the pill, as the back link and the theme switch do.
+row. `neutral` is a deprecated no-op kept for compatibility, and goes at the next major. An option's
+`icon` draws a glyph before its label. With `iconOnly`, the glyph is the whole button, and the label
+is its name and its hover title. The wordless choice draws a 32px pill around the 20px view icon,
+which is larger than the 16px lead of a labelled option. Below the phone step it keeps a 44px tap
+zone outside the pill, as the back link and the theme switch do.
 
 **What the user sees.** By default the chosen pill has the strong ink on the surface, with no
-accent. With `accent`, it has the accent fill of a primary button. The chosen underline tab is its
+accent. When a product needs the accent, `accent` gives the chosen pill the accent fill of a
+primary button. In vanilla CSS the class is `.ui-seg--accent`. The chosen underline tab is its
 label with a 2px strong bar under it and no box. With `accent` the bar is the accent. Hover changes
 only the ink. When the options do not fit, they wrap onto more rows, so the strip never makes the
 column wider. A long label wraps inside its own option.
@@ -912,8 +910,8 @@ preferences take `Segmented`.
 small picture of a page in that theme, drawn from the theme's tokens, with its name under it. System
 is half light and half dark. The chosen card has a fill, and its name is in strong, heavier ink.
 Hover gives another card half that fill. The first and last pictures sit on the card's text edges.
-The fill extends 8 px into the card's padding, and the focus ring extends 3 px more, so put the
-group in a padded container, such as `Card`.
+The fill extends 8 px into the card's padding. The focus ring extends 3 px more. So put the group in
+a padded container, such as `Card`.
 
 **Keyboard and screen reader.** One named radio group, with one Tab stop on the chosen card. The
 arrow keys move and choose. The focus ring is the kit's band around the card, and nothing else. In
@@ -921,8 +919,8 @@ forced colours the chosen card's name takes the system highlight colour.
 
 ### Tabs
 
-`Tabs` shows a different block of content on the same page for each choice. When each choice is its
-own address, use [`NavTabs`](#route-tabs).
+[Segmented or tabs?](#segmented-or-tabs) says when to use `Tabs`. When each choice is its own
+address, use [`NavTabs`](#route-tabs).
 
 ```tsx
 <Tabs label="Invoice" value={tab} onChange={setTab}
@@ -949,9 +947,8 @@ with an empty value. A pick and Clear all call your handlers, and never change y
 and `onAdd` add a Filter control after the chips. Its menu holds one section for each filter that
 the bar does not show, with a search field from ten values. When you add the filter in the same
 update, the focus goes to the new chip. `clearLabel`, `clearVariant` and `addLabel` change the words
-and the look. `size="sm"` gives the chips, Filter and Clear all the small control height: 32px with
-a mouse and 40px on a touch screen. The bar keeps it in a toolbar, in a wrapper or on a line of its
-own. Without `size`, a chip is 40px high.
+and the look. `size="sm"` gives the chips, Filter and Clear all the
+[small control height](#toolbar). Without `size`, a chip is 40px high.
 
 **What the user sees.** A chip shows only the chosen value, or the filter name without a value. Each
 chip takes the width of its longest value, up to its cap. The cap is 128px, with the chip's edge,
@@ -1000,12 +997,12 @@ switch. Put a create action on its own row above the toolbar, at the left.
 field has the same top and bottom edge. Do not change the size of a control to make it fit. A small
 row gives each control `size="sm"`: the search field, the filter bar, a dropdown, a Segmented and a
 button. They are 32px high with a mouse and 40px on a touch screen. A wordless small button is a
-circle of that height. The size prop sets the height, not the page structure, so a wrapper around
-the field or a filter bar outside the toolbar keeps it. On a touch screen a small button or
-Segmented takes 40px as a direct child of `.ui-toolbar`. Without React, the classes are
-`.ui-input--sm`, `.ui-filter-bar--sm`, `.ui-dropdown--sm`, `.ui-seg--sm` and `.ui-btn--sm`. The small
-search field stops at 320px. `.ui-toolbar--split` puts the last control at the end of the row, also
-on a phone.
+circle of that height. The size prop sets the height, not the page structure. So a search field or a
+filter bar in a wrapper, or on a line of its own outside the toolbar, keeps it. On a touch screen a
+small button or Segmented takes 40px as a direct child of `.ui-toolbar`. Without React, the classes
+are `.ui-input--sm`, `.ui-filter-bar--sm`, `.ui-dropdown--sm`, `.ui-seg--sm` and `.ui-btn--sm`. The
+small search field stops at 320px. `.ui-toolbar--split` puts the last control at the end of the row,
+also on a phone.
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At 560px
 and below, each search field takes the full line and the other controls wrap under it. The toolbar
@@ -1102,8 +1099,8 @@ not put a card in a card, and do not use a card only to add space.
 `h3`–`h6`. `variant` is `accent` or `live`, a tinted surface without a coloured edge. `pad="sm"` gives
 less vertical space, and `pad="lg"` makes a centred landing card. `icon` adds a title chip. `href`
 makes the whole card a link. `tools` puts small controls at the end of the title row, centred on the
-title line. On a touch phone the tools stand `--tap-gap` apart. A `Chart` in a titled card puts its
-Chart and Table switch there.
+title line. On a touch phone the tools stand `--tap-gap` apart. [Chart](#chart) says which of its
+controls stands there.
 
 **A card on the light page.** A light card draws no fill, edge or shadow, and it keeps the dark
 card's spacing: a 24px side inset and no hang outside its container. Its text and its table text
@@ -1111,10 +1108,10 @@ start 24px in from the page title's edge, in both themes, so nothing moves when 
 tinted card, a landing card and a stat tile keep their box.
 
 **A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
-while it overflows the card is a named keyboard stop. `scrollLabel` names it, `Table` by default, as
-it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's scroll frame
-has none. A control in the card that takes the focus by keyboard or by script scrolls fully into
-view with its focus ring.
+while it overflows the card is a named keyboard stop. `scrollLabel` names it, as it names the
+[table's scroll region](#data-table). Below 560px the card has no scrollbar, as the table's scroll
+frame has none. A control in the card that takes the focus by keyboard or by script scrolls fully
+into view with its focus ring.
 
 **A card that ends at its content.** `.ui-card--fit` ends the card at the width of its content, such
 as one table. When the content is wider than the column, the card takes the full column width and
@@ -1141,8 +1138,8 @@ full-bleed backdrop instead of a card, use `.ui-document-ground`.
 ### Badge, pill and status dot
 
 `Badge` is the status of a record, such as Paid or Overdue. `Pill` is a `live` or `soon` marker on a
-product or a feature. `StatusDot` stands beside a word that says live or off. A second status in the
-same row is an [ink word](#data-table).
+product or a feature. `StatusDot` stands beside a word that says live or off. For a second status in
+the same row, see [Data table](#data-table).
 
 ```tsx
 <Badge variant="success">Paid</Badge> <Pill variant="live">Live</Pill> <StatusDot live /> Connected
@@ -1246,8 +1243,8 @@ that control in view, also after a notice leaves. A pile does not scroll.
 
 ### Success confirmations
 
-`SuccessPanel` confirms a task inside the page where the user stays. `Success` is a confirmation that
-is the whole screen. See [SuccessPanel or Success?](#successpanel-or-success).
+[SuccessPanel or Success?](#successpanel-or-success) says when to use `SuccessPanel` and when to use
+`Success`.
 
 ```tsx
 <Success title="Payment sent" body="Dana will get an email." actions={<Button href="/payments">Back to payments</Button>} />
@@ -1439,7 +1436,7 @@ focus and on a tap, it shows the full title in a readout below it. The dialog ke
 its name. If a focused title fits again, such as after the window widens, the focus moves to the
 panel.
 
-**What the user sees.** The panel slides in over a scrim. The body groups by heading, never by card.
+**What the user sees.** The panel slides in over a scrim. The body groups by heading.
 `DrawerSection` puts a heading on a 1px line, and groups stand 32px apart. `KeyValueList` shows label
 and value pairs, in one or two columns. A value stays beside its label. An icon button at the end of
 a value, such as a copy button, stays on the value's line. Nothing in a drawer draws a card, a row
@@ -1561,9 +1558,8 @@ the top, so other values stay level with the first line of a cell that wraps. A 
 19px high and never makes its row taller. `rowState` marks a row `target` or `dead`. A dead row is
 muted, so put the word that names its state in one of its cells.
 
-**Status words.** A badge is the status of the record. A second status in the same row is an ink
-word: `.ui-status--success`, `--danger`, `--warn`, `--info` or `--neutral`. Each is at least 4.5:1 on
-a plain or a selected row.
+**Status words.** A second status in the same row is an ink word: `.ui-status--success`, `--danger`,
+`--warn`, `--info` or `--neutral`. Each is at least 4.5:1 on a plain or a selected row.
 
 **Scrolling.** With `stickyHeader` or `pinnedIdentity`, the table stands in a named scroll region.
 `scrollLabel` names the region, `Table` by default. Use the subject of the table, such as `Invoices`,
@@ -1602,8 +1598,7 @@ that takes the focus by keyboard or by script scrolls fully into view.
 
 **In a card.** The table reaches the card's edges, and its end cells keep the card's text edge. At
 560px and narrower, a row table's end cells pad by 16px, so its first column starts 8px outside the
-card's text edge. A row table has hover and is neither zebra nor dense. `.ui-card--fit` makes the
-card end at the table's content.
+card's text edge. To end the card at the table's content, see [Card](#card).
 
 ### Pagination
 
@@ -1656,11 +1651,11 @@ arrow and the change are one target, so the tooltip opens from either on hover, 
 touch phone, the change is a 44 by 44px target in the layout, in every variant and container, and
 the figure is taller by the difference. With a mouse, the figure keeps its size.
 
-**Room on the screen.** A band folds by its own width, not the window's, so give it a width in a flex
-row or an `auto` grid track. On a page, a `StatBand` closes a section. Leave one group gap between a
-stat band and the controls for its table. Another block after the band keeps one group gap of air
-below the figures, on top of the body's own gap. A toolbar directly before an open band keeps 24px to
-the figure labels, in the page body and in a card stack, also on a touch phone.
+**Room on the screen.** A band folds by its own width, not the window's, so give it a width in a
+flex row or an `auto` grid track. On a page, a `StatBand` closes a section. After the band, the
+controls for its table stand one group gap below the figures. Another block stands one group gap
+plus the body's own gap below them. A toolbar directly before an open band keeps 24px to the figure
+labels, in the page body and in a card stack, also on a touch phone.
 
 | Layout | Four fold two by two at | An odd count stacks at | One column at | Smaller value below |
 |---|---|---|---|---|
@@ -1825,7 +1820,7 @@ for markup that you write yourself, or on a server that must give the same resul
 | Name | Use |
 |------|-----|
 | `esc(s)` | Escape a text value for HTML that you write yourself. |
-| `safeUrl(url, fallback?)` | Make an address safe. A `javascript:`, `data:` or `vbscript:` address becomes the fallback, `#` by default. |
+| `safeUrl(url, fallback?)` | Make an address safe. See [Escaping and URLs](#escaping-and-urls). |
 | `icon(name, cls)`, `illo(name)`, `iconNames`, `illoNames`, `iconCategories` | Line glyphs and illustrations as SVG strings. `sun` and `moon` are also exported. |
 | `iconOnlyAllowed`, `iconOnlyNames`, `iconMeanings` | The icon rules as data: which glyphs may stand without a word, and the words that each one may mean. |
 | `seedling`, `prism`, `brand` | The brand mark. |
@@ -1856,27 +1851,28 @@ nothing for an address that starts with `javascript:`. The other components, suc
 Check an address that comes from a user before you pass it to one of them.
 
 `safeUrl` replaces an address that starts with `javascript:`, `data:` or `vbscript:`, in any case,
-with the fallback. Before it reads the scheme, it removes tabs and line breaks everywhere, and spaces
-and control characters at the start. Other schemes, relative paths and fragments stay as they are.
+with the fallback, `#` by default. Before it reads the scheme, it removes tabs and line breaks
+everywhere, and spaces and control characters at the start. Other schemes, relative paths and
+fragments stay as they are.
 
 ## What the kit does not do
 
-- **No build step.** As a result, the [breakpoints are literals](foundations.md#breakpoints).
 - **No density system.** `.ui-table--dense`, `.ui-table--compact`, `.ui-table--comfortable` and
   `.ui-cmdk--roomy` are the only density modifiers, and each belongs to one component.
 - **No container scale.** There is one `--container`.
 - **No second bar for the glyph of a control.** 1.5 CSS px is the line for every stroked mark.
-- **No spinner.** A skeleton shows the shape of the content that comes.
+- **No spinner.** See [Loading and denied states](#loading-and-denied-states).
 - **No support for a vertical writing mode.**
 
 ## Choices
 
 ### Segmented or tabs?
 
-Ask what is behind the choice. If a choice shows a different block of content, that content is a
-panel. Use `Tabs`. It draws the panels, and a screen reader says "tab, 1 of 3". If a choice only
-narrows a list, flips a unit or sets a preference, there is no panel. Use `Segmented`. A screen
-reader says "pressed" for it. Both give one Tab stop, and both need a name in `label`.
+Ask what is behind the choice. If a choice shows a different block of content on the same page, that
+content is a panel. Use `Tabs`. It draws the panels, and a screen reader says "tab, 1 of 3". If a
+choice only narrows a list, flips a unit or sets a preference, there is no panel. When all the
+options fit on one row, use `Segmented`. A screen reader says "pressed" for it. Both give one Tab
+stop, and both need a name in `label`.
 
 ### SuccessPanel or Success?
 
