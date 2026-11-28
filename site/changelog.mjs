@@ -1,5 +1,11 @@
 export const RELEASES = [
   {
+    v: '0.232.2', date: '2026-11-28',
+    changes: [
+      ['changed', 'The component guide, `docs/components.md`, is shorter and says each fact once. No component, prop or style changes, and every component, promise and linked heading stays. It corrects one fact for `AppShell` users: the topbar layout draws a command palette also without `palette`. Part of #888.'],
+    ],
+  },
+  {
     v: '0.232.1', date: '2026-11-28',
     changes: [
       ['changed', 'React `DataTable` is now made of small internal parts. Its props, exports, markup, class names, look and behaviour do not change, so you do not need to change a call. Part of #888.', ['DataTable']],
