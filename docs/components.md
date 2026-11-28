@@ -582,8 +582,8 @@ view, so a row keeps its words on one line. Without `ghost` the trigger keeps it
 **What the user sees.**
 
 - The trigger shows only the chosen value or the placeholder. Put the name of the control in a
-  [`Field`](#fields) label. For the name in a filter row, see [Filter bar](#filter-bar). `label` is
-  deprecated: it draws nothing, warns once in development and goes in the next release.
+  [`Field`](#fields) label, or give `ariaLabel`. For the name in a filter row, see
+  [Filter bar](#filter-bar).
 - The trigger has the accent edge under the pointer, while pressed and while its panel is open. In
   those states a ghost trigger has the fill of a hovered table row. A trigger that a product draws
   with no edge or no ground, such as a band control or the account block, keeps its hover fill.
