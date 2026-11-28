@@ -390,6 +390,8 @@ and Bun. Set `SMELLS_SKILL` to the skill folder if it is not in `~/.agents/skill
 `~/.claude/skills`. Then run:
 `SMELLS=1 node --test scripts/smell-check.test.js`
 With `SMELLS=1`, a missing skill, Go or Bun is a failure. Without it, the check half is skipped.
+The check compares the caps with the `.smells.json` of `origin/main`, so run `git fetch origin main`
+first (`scripts/smell-check.test.js`, `mainLimits`).
 If code grows past a limit, split it. Do not raise its cap. Report the result in the PR. CI runs
 only the source half, which reads `.smells.json`.
 

@@ -9,8 +9,9 @@
  *   SMELLS=1 node --test scripts/smell-check.test.js
  *
  * Limits: the check half measures a scratch copy of the workspace's TypeScript files,
- * so it sees uncommitted files, and it reads the skill from SMELLS_SKILL or the user's
- * skill folders. The proof mutates DataTable only.
+ * so it sees uncommitted files. The copy's origin/main holds origin/main's limits, so the
+ * scanner compares the workspace's caps with main's. It reads the skill from SMELLS_SKILL
+ * or the user's skill folders. The proof mutates DataTable and one cap only.
  * why: AGENTS.md#check-the-code-smell-limits-locally
  */
 import { test } from 'node:test';
@@ -57,29 +58,52 @@ const skillDir = () => [env.SMELLS_SKILL, path.join(homedir(), '.agents/skills/c
 
 const run = (cmd, args, cwd) => spawnSync(cmd, args, { cwd, encoding: 'utf8' });
 
-/** A git repository with the workspace's TypeScript files, .smells.json and an origin/HEAD. */
+/** origin/main's .smells.json, or null when main has none. */
+function mainLimits() {
+  assert.equal(run('git', ['rev-parse', '--verify', '--quiet', 'origin/main^{commit}'], root).status, 0,
+    'origin/main is unknown here. Run git fetch origin main.');
+  const shown = run('git', ['show', 'origin/main:.smells.json'], root);
+  return shown.status === 0 ? shown.stdout : null;
+}
+
+/**
+ * A git repository with the workspace's TypeScript files. Its origin/main holds
+ * origin/main's limits, and its own commit adds the workspace's .smells.json on top,
+ * so the scanner compares the workspace's caps with main's.
+ */
 function scratchCopy(dir) {
-  const listed = run('git', ['ls-files', '-co', '--exclude-standard', 'react', '.smells.json'], root);
+  const listed = run('git', ['ls-files', '-co', '--exclude-standard', 'react'], root);
   assert.equal(listed.status, 0, listed.stderr);
-  const files = listed.stdout.split('\n').filter((f) => /\.tsx?$/.test(f) || f === '.smells.json');
+  const files = listed.stdout.split('\n').filter((f) => /\.tsx?$/.test(f));
   assert.ok(files.length > 200, `${files.length} files copied. A copy this small measures almost nothing.`);
   const work = path.join(dir, 'work');
   for (const f of files) {
     mkdirSync(path.dirname(path.join(work, f)), { recursive: true });
     writeFileSync(path.join(work, f), readFileSync(path.join(root, f)));
   }
-  const id = ['-c', 'user.name=smells', '-c', 'user.email=smells'];
-  for (const [cwd, args] of [[work, ['init', '-q', '-b', 'main']], [work, ['add', '-A']],
-    [work, [...id, 'commit', '-q', '-m', 'copy']], [dir, ['clone', '-q', '--bare', 'work', 'origin.git']],
-    [work, ['remote', 'add', 'origin', '../origin.git']], [work, ['fetch', '-q', 'origin']],
-    [work, ['remote', 'set-head', 'origin', 'main']]]) {
-    const r = run('git', args, cwd);
-    assert.equal(r.status, 0, `git ${args.join(' ')}: ${r.stderr}`);
-  }
+  const limits = path.join(work, '.smells.json');
+  const onMain = mainLimits();
+  if (onMain !== null) writeFileSync(limits, onMain);
+  git(work, ['init', '-q', '-b', 'main'], ['add', '-A'], ['commit', '-q', '-m', 'main']);
+  git(dir, ['clone', '-q', '--bare', 'work', 'origin.git']);
+  git(work, ['remote', 'add', 'origin', '../origin.git'], ['fetch', '-q', 'origin'], ['remote', 'set-head', 'origin', 'main']);
+  writeFileSync(limits, readFileSync(path.join(root, '.smells.json')));
+  git(work, ['add', '-A'], ['commit', '-q', '--allow-empty', '-m', 'limits']);
   return work;
 }
 
-// Each mutation grows DataTable past one limit, and the line names the limit that rejects it.
+/** Runs each git command in cwd, and fails on the first that fails. */
+function git(cwd, ...commands) {
+  for (const args of commands) {
+    const r = run('git', ['-c', 'user.name=smells', '-c', 'user.email=smells', ...args], cwd);
+    assert.equal(r.status, 0, `git ${args.join(' ')}: ${r.stderr}`);
+  }
+}
+
+// Each mutation grows DataTable past one limit or raises a cap, and the line names the
+// limit that rejects it.
+const [raised] = Object.keys(baseline.caps.production.complexity);
+const escape = (text) => text.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&');
 const pad = (n, line) => Array.from({ length: n }, (_, i) => line(i)).join('\n');
 const MUTATIONS = [
   ['function lines', /production function_lines: react\/src\/DataTable\.tsx:DataTable is \d+, over the limit of 80/,
@@ -98,9 +122,16 @@ const MUTATIONS = [
       const file = path.join(work, 'react/src/data-table/columns.ts');
       writeFileSync(file, `import { DataTable } from '../DataTable';\nexport const grown = DataTable;\n${readFileSync(file, 'utf8')}`);
     }],
+  ['raised cap', new RegExp(`caps/production/complexity/${escape(raised)} is looser than on origin/main`),
+    null, (work) => {
+      const file = path.join(work, '.smells.json');
+      const limits = JSON.parse(readFileSync(file, 'utf8'));
+      limits.caps.production.complexity[raised] += 1;
+      writeFileSync(file, `${JSON.stringify(limits, null, 2)}\n`);
+    }],
 ];
 
-test('each limit rejects a DataTable that grows past it', { skip: !RUN && 'set SMELLS=1' }, () => {
+test('each limit rejects a DataTable that grows past it, and main rejects a raised cap', { skip: !RUN && 'set SMELLS=1' }, () => {
   const skill = skillDir();
   assert.ok(skill, 'SMELLS=1 was set and no code-smells skill was found. Set SMELLS_SKILL to its folder.');
   for (const tool of ['go', 'bun']) {
@@ -111,7 +142,10 @@ test('each limit rejects a DataTable that grows past it', { skip: !RUN && 'set S
     const work = scratchCopy(dir);
     const smells = () => run(path.join(skill, 'bin/smells'), ['check'], work);
     const clean = smells();
-    assert.equal(clean.status, 0, `The unchanged workspace fails its own limits:\n${clean.stdout}${clean.stderr}`);
+    assert.equal(clean.status, 0, `The unchanged workspace fails its limits or is looser than main:\n${clean.stdout}${clean.stderr}`);
+
+    // The workspace's limits merge into main, so a later raise of one of its caps is looser than main.
+    git(work, ['push', '-q', 'origin', 'HEAD:main'], ['fetch', '-q', 'origin']);
 
     const file = path.join(work, 'react/src/DataTable.tsx');
     const source = readFileSync(file, 'utf8');
