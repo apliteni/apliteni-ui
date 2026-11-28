@@ -749,7 +749,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         + 'that the shared viewport is needed. Find a story whose capped region cuts a row.',
       );
       const one = shared.get(tasks[0].id);
-      const hidden = withCss + '.ui-table__title a { display: none; }';
+      const hidden = withCss + '.ui-table__title a { display: none !important; }';
       assert.ok(
         flatten((await at(390, true, hidden, tasks, one)).rows).length
           < flatten((await at(390, true, withCss, tasks, one)).rows).length,
