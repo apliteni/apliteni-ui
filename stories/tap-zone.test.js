@@ -712,6 +712,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     const A = flatten(before.rows);
     const B = flatten(after.rows);
     assert.equal(A.length, B.length, 'The two runs found different numbers of targets.');
+    t.diagnostic(`${A.length} targets without the sheet, ${B.length} with it`);
     assert.ok(
       B.length >= 1000,
       `${B.length} targets measured at 390. The count is the coverage; a collapse here is a `
