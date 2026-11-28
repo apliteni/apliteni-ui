@@ -82,7 +82,7 @@ test('a board scrolls its columns sideways and takes the inward scroll band', ()
 test('a pinned linked title is one line, cut at a ceiling, so the pin never covers the other columns', () => {
   const TABLE = read('table.css');
   const body = rule(TABLE, '.ui-table--pinned .ui-table__title.ui-table__linked > a:not([class]):only-child');
-  for (const decl of ['display: block', 'max-width: clamp(min(var(--panel-sm), 40vw), calc(100vw - var(--container)), var(--panel-lg))', 'overflow: hidden', 'text-overflow: ellipsis']) has(body, decl);
+  for (const decl of ['display: block', 'max-width: clamp(min(var(--panel-sm), 40vw), calc(100vw - var(--container)), var(--panel-lg))', 'white-space: nowrap', 'overflow: hidden', 'text-overflow: ellipsis']) has(body, decl);
   // At 560px and below nothing is pinned (#902), so the cut is only above it, and before the
   // block up to 720px, whose own cap cuts first there.
   const at = TABLE.indexOf('.ui-table--pinned .ui-table__title.ui-table__linked > a');

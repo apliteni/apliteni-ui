@@ -26,10 +26,17 @@ const SHEETS = [
   'src/styles/base.css',
   'src/styles/table.css',
 ];
-const FLOOR = /\.ui-table td\.ui-table__title \{ min-width: min\(20ch, var\(--ui-table-identity-max, 20ch\)\); \}/;
+const FLOOR = /\.ui-table :is\(td, th\)\.ui-table__title \{ min-width: min\(20ch, var\(--ui-table-identity-max, 20ch\)\); \}/;
+// A row header title is a th, which `.ui-table :is(tbody, tfoot) th` holds to one line (#866).
+const WRAP = /\.ui-table :is\(td, th\)\.ui-table__title \{([^}]*)white-space: normal;/;
+const TD_ONLY = '.ui-table td.ui-table__title {$1white-space: normal;';
 
 test('the title cell is declared with a 20 character floor under the pinned ceiling', () => {
   assert.match(TABLE_CSS, FLOOR, 'no rule holds the title cell to its floor');
+});
+
+test('a title cell wraps, a row header title too', () => {
+  assert.match(TABLE_CSS, WRAP, 'no rule lets a th title wrap');
 });
 
 test('removing the floor is rejected by the sweep', () => {
@@ -58,13 +65,19 @@ const sized = (rows, cellWidth) => `<table class="ui-table" data-rows="${rows}">
     : '<tr><td colspan="3">Loading campaigns</td></tr>')
   + '</tbody></table>';
 
+/** A phone frame whose title is a row header, as DataTable draws a rowHeader column. */
+const rowHeader = () => '<div style="width:358px;overflow:auto"><table class="ui-table" data-row-header><thead><tr>'
+  + '<th scope="col">Task</th><th scope="col">State</th></tr></thead><tbody><tr>'
+  + '<th scope="row" class="ui-table__title"><a href="#">Check the supplier contract renewal terms before the notice date</a></th>'
+  + '<td>Open</td></tr></tbody></table></div>';
+
 async function measure(css, { cellWidth = true } = {}) {
   const pw = await import(process.env.UI_PLAYWRIGHT || 'playwright');
   const { chromium } = pw.chromium ? pw : pw.default;
   const browser = await chromium.launch({ executablePath: process.env.UI_CHROME || undefined });
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
-    const body = [squeezed(), squeezed('12ch'), sized(false, cellWidth), sized(true, cellWidth)].join('<hr>');
+    const body = [squeezed(), squeezed('12ch'), sized(false, cellWidth), sized(true, cellWidth), rowHeader()].join('<hr>');
     await page.setContent(`<!doctype html><html lang="en"><head><style>${css}</style></head><body>${body}</body></html>`, { waitUntil: 'load' });
     return await page.evaluate(() => {
       // A probe in the title cell's own font turns a ch length into pixels.
@@ -92,7 +105,11 @@ async function measure(css, { cellWidth = true } = {}) {
         rows: t.dataset.rows,
         heads: [...t.querySelectorAll('thead th')].map((th) => th.getBoundingClientRect().left),
       }));
-      return { floors, edges };
+      const head = document.querySelector('[data-row-header] tbody th');
+      const frame = head.closest('div').getBoundingClientRect();
+      const wrapped = { lines: Math.round(head.querySelector('a').getBoundingClientRect().height / parseFloat(getComputedStyle(head).lineHeight)),
+        over: Math.round(head.closest('table').getBoundingClientRect().right - frame.right) };
+      return { floors, edges, wrapped };
     });
   } finally {
     await browser.close();
@@ -103,7 +120,7 @@ test('measured in Chromium: the floor, the pinned ceiling and the set widths', {
   skip: !process.env.TITLE_WIDTH && 'set TITLE_WIDTH=1 and UI_PLAYWRIGHT to run the Chrome layout gate',
 }, async (t) => {
   const css = SHEETS.map(read).join('\n');
-  const { floors, edges } = await measure(css);
+  const { floors, edges, wrapped } = await measure(css);
   assert.equal(floors.length, 2, 'a squeezed table was not measured, so its floor proves nothing');
   assert.equal(edges.length, 2, 'a sized table was not measured, so its edges prove nothing');
 
@@ -120,6 +137,15 @@ test('measured in Chromium: the floor, the pinned ceiling and the set widths', {
   loading.heads.forEach((left, i) => assert.ok(Math.abs(left - loaded.heads[i]) <= 1,
     `column ${i + 1} starts at ${left}px while reloading and at ${loaded.heads[i]}px with rows`));
   t.diagnostic(`column edges ${loaded.heads.map((x) => x.toFixed(1)).join(', ')}`);
+
+  assert.ok(wrapped.lines > 1 && wrapped.over <= 0, `a row header title kept ${wrapped.lines} line and ran ${wrapped.over}px past its 358px frame`);
+
+  await t.test('when only a td title wraps, a row header title runs past the phone frame', async () => {
+    const broken = css.replace(WRAP, TD_ONLY);
+    assert.notEqual(broken, css, 'the mutation did not apply, so it proves nothing');
+    const { wrapped: bare } = await measure(broken);
+    assert.ok(bare.lines === 1 && bare.over > 0, 'the th title wrapped without the rule, so the check above would pass over the defect');
+  });
 
   await t.test('without the floor a squeezed title cell drops under 20 characters', async () => {
     const broken = css.replace(FLOOR, '');
