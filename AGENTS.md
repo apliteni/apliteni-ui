@@ -137,6 +137,14 @@ select in a real browser:
 Report the result in the PR. The source half runs in CI. Keep this check out of routine CI to save Actions
 minutes.
 
+## Check the fit card and the field dropdown locally
+
+Before opening a PR that changes the `.ui-card--fit` rules in `src/styles/card.css`, or the
+`.ui-field > .ui-dropdown` rules in `src/styles/dropdown.css`, measure them in a real browser:
+`CARD_FIT=1 UI_PLAYWRIGHT=… node --test src/styles/card-fit.test.js`
+`FIELD_TRIGGER=1 UI_PLAYWRIGHT=… node --test src/styles/field-trigger.test.js`
+Report the result in the PR. The source halves run in CI.
+
 ## Check the motion helpers' missing-element guard locally
 
 Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the browser half:

@@ -1401,7 +1401,7 @@
     "pattern": "/* muted-ink: chrome \u2014 names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:896",
+    "ref": "react/src/Dropdown.tsx:901",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

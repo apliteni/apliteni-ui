@@ -742,6 +742,14 @@
 @media (max-width: 560px) {
   .ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: var(--space-3); }
 }
+/* A search panel keeps its 280px floor in a form too, so its field holds the search text.
+   The floor stops at the panel's ceiling, so the panel stays inside the view. A panel
+   lifted out of a Modal or Drawer body is fixed, so its 100% is the view: the wiring
+   writes the trigger's width as --ui-dropdown-anchor. #924
+   why: docs/components.md#dropdown */
+.ui-field > .ui-dropdown > .ui-dropdown__panel.ui-dropdown__panel--search {
+  min-inline-size: min(max(var(--ui-dropdown-anchor, 100%), 280px), var(--ui-dropdown-ceiling, calc(100vw - 2 * var(--ui-dropdown-edge))));
+}
 .ui-table td > .ui-dropdown:first-child:has(> .ui-dropdown__trigger--ghost) {
   vertical-align: top;
   margin-inline-start: calc(var(--ui-dropdown-hang) * -1);

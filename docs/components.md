@@ -616,8 +616,8 @@ its words on one line. Without `ghost` the trigger keeps its edge.
   the body does not scroll.
 - A closed panel adds no scroll room at the end of a page or a body. Closing a panel does not move
   the field while the user is still scrolled into the room that the panel needed.
-- The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll
-  or a transition.
+- The panel follows its trigger when the page moves the trigger: a new layout, a sideways scroll,
+  a transition or a font that loads late.
 - A row names its item in the body weight, as a native list does. A group label is 13px, bold
   and in muted ink, at 5.60:1 on the panel in dark and 6.11:1 in light under every accent. The
   options under it are not indented.
@@ -641,7 +641,10 @@ every accent. The arrow keys skip it.
 in the field. The match is anywhere in the label, without case or accents. Descriptions are not
 searched, so put the words that a user types in the label. `search={{ count, noun }}` names the
 size of the set, for example "Search 214 people". Each open starts with the whole list. A query
-with no matches says so.
+with no matches says so. A panel with a search field is at least 280px wide, also inside a
+[`Field`](#fields), so the field shows its search text. Inside a `Field` the panel is never wider
+than the view less 8px at each side. In a `Modal` or a `Drawer` it is as wide as its trigger, or
+280px when the trigger is narrower.
 
 **Submenus.** The account menu of `AppShell` has a Theme row that opens a submenu. Right and Enter
 open it, Left and Escape close it, and the focus goes back to the row. On a phone the submenu
@@ -1142,6 +1145,10 @@ while it overflows the card is a named keyboard stop. `scrollLabel` names it, `T
 as it names the table's scroll frame. Below 560px the card has no scrollbar, as the table's
 scroll frame does. A control in the card that takes the focus by keyboard or by script scrolls
 fully into view with its focus ring.
+
+**A card that ends at its content.** `.ui-card--fit` ends the card at the width of its content,
+such as one table. When the content is wider than the column, the card takes the full column width
+and the content scrolls inside it. The card is as wide as the column in both themes.
 
 **Setting rows.** A setting row keeps its choice on one line. On a phone, the control stands under
 its label and hint. Use `ui-card__row--tight-choice` for a three-option row that must stay on one
