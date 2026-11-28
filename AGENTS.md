@@ -381,6 +381,18 @@ Transactions showcase, measure them in a real browser. Run `npm run build-storyb
 Report the result in the PR. CI runs only the source halves, in `src/styles/stat.test.js` and
 `react/src/transactions.test.tsx`.
 
+## Check the code smell limits locally
+
+`.smells.json` records the limits of the React workspace's TypeScript: function lines, complexity,
+file lines, local imports, repeats and import cycles. Before opening a PR that changes
+`react/**/*.ts` or `react/**/*.tsx`, run the `code-smells` skill's check. It needs the skill, Go
+and Bun. Set `SMELLS_SKILL` to the skill folder if it is not in `~/.agents/skills` or
+`~/.claude/skills`. Then run:
+`SMELLS=1 node --test scripts/smell-check.test.js`
+With `SMELLS=1`, a missing skill, Go or Bun is a failure. Without it, the check half is skipped.
+If code grows past a limit, split it. Do not raise its cap. Report the result in the PR. CI runs
+only the source half, which reads `.smells.json`.
+
 ## Changes
 
 No new factories, no parity tests for new React work. See #429.

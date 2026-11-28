@@ -1,5 +1,11 @@
 export const RELEASES = [
   {
+    v: '0.232.1', date: '2026-11-28',
+    changes: [
+      ['changed', 'React `DataTable` is now made of small internal parts. Its props, exports, markup, class names, look and behaviour do not change, so you do not need to change a call. Part of #888.', ['DataTable']],
+    ],
+  },
+  {
     v: '0.232.0', date: '2026-11-28',
     changes: [
       ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. In a `Modal` or a `Drawer` it is as wide as its trigger, or 280px when the trigger is narrower. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
