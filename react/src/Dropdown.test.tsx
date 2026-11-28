@@ -780,7 +780,7 @@ async function typed(opts: DropdownProps, query: string) {
 }
 
 const SEARCHABLE: DropdownProps = {
-  label: 'currency:', ariaLabel: 'Currency', items: CURRENCIES, search: true,
+  ariaLabel: 'Currency', items: CURRENCIES, search: true,
 };
 
 const QUERIES: [string, string, DropdownProps][] = [
