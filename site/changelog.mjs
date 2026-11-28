@@ -1,5 +1,14 @@
 export const RELEASES = [
   {
+    v: '0.233.0', date: '2026-11-28',
+    changes: [
+      ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
+      ['changed', 'In a dropdown panel, a hovered row now takes one quiet grey ground, the new token `--float-row-fill`. The chosen row takes a soft accent tint, `--float-row-selected`, and one step more under the pointer, `--float-row-selected-hover`. The check is the text ink, not the accent. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
+      ['fixed', 'A dropdown in a `Field` now makes room in its trigger for each row\'s badge and check. Before, its panel, which is as wide as the trigger, broke the label of a row with a badge, or of the chosen longest row, over two or more lines. The trigger is 24px wider for the check, and wider again where a row with a badge is the widest. Part of #888.', ['Dropdown']],
+      ['fixed', 'On a touch phone, the Clear control of `SelectionBar` now has a 44px tap target. Before, its target was 40px high. It looks the same. Part of #888.', ['SelectionBar']],
+    ],
+  },
+  {
     v: '0.232.2', date: '2026-11-28',
     changes: [
       ['changed', 'The component guide, `docs/components.md`, is shorter and says each fact once. No component, prop or style changes, and every component, promise and linked heading stays. It corrects one fact for `AppShell` users: the topbar layout draws a command palette also without `palette`. Part of #888.'],

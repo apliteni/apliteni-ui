@@ -80,11 +80,11 @@
     "pattern": ".ui-btn[aria-disabled=\"true\"]"
    },
    {
-    "ref": "src/tokens/tokens.css:222",
+    "ref": "src/tokens/tokens.css:234",
     "pattern": "--disabled-ink: var(--muted);"
    },
    {
-    "ref": "src/tokens/tokens.css:228",
+    "ref": "src/tokens/tokens.css:240",
     "pattern": "--disabled-border: var(--surface-3);"
    },
    {
@@ -134,7 +134,7 @@
   ],
   "accent-strong": [
    {
-    "ref": "src/tokens/tokens.css:243",
+    "ref": "src/tokens/tokens.css:255",
     "pattern": "--accent-strong: #7c3aed;"
    },
    {
@@ -326,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:534",
+    "ref": "src/styles/dropdown.css:564",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:597",
+    "ref": "src/styles/dropdown.css:627",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -342,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:487",
+    "ref": "src/styles/dropdown.css:517",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -612,11 +612,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:492",
+    "ref": "src/styles/dropdown.css:522",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:493",
+    "ref": "src/styles/dropdown.css:523",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -928,7 +928,7 @@
     "pattern": "outline: var(--ring);"
    },
    {
-    "ref": "src/tokens/tokens.css:332",
+    "ref": "src/tokens/tokens.css:344",
     "pattern": "--ring: var(--ring-width) solid var(--ring-color);"
    }
   ],
@@ -1181,7 +1181,7 @@
     "pattern": ".ui-textarea { border-radius: var(--radius-2xl); }"
    },
    {
-    "ref": "src/styles/control-shape.test.js:161",
+    "ref": "src/styles/control-shape.test.js:171",
     "pattern": "every control is a pill, every field and surface has its corner, and every squircle is guarded"
    }
   ]
@@ -1229,7 +1229,7 @@
  "_notifications.js": {
   "bell-toast-callout": [
    {
-    "ref": "react/src/Dropdown.tsx:151",
+    "ref": "react/src/Dropdown.tsx:127",
     "pattern": "ariaLabel?: string;"
    },
    {
@@ -1393,15 +1393,15 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:495",
+    "ref": "src/styles/dropdown.css:525",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:497",
-    "pattern": "/* muted-ink: chrome — names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
+    "ref": "src/styles/dropdown.css:527",
+    "pattern": "/* muted-ink: chrome \u2014 names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
-    "ref": "react/src/Dropdown.tsx:901",
+    "ref": "react/src/Dropdown.tsx:862",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
    }
   ]

@@ -130,6 +130,9 @@
 @media (max-width: 560px) and (pointer: coarse) {
   .ui-selection-bar,
   .ui-selection-bar__actions { gap: var(--tap-gap); --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--space-4); }
+  /* Clear's layer starts inside its 4px band, so it takes 20 of the 32px between its padding
+     box and the bar's edge, and reaches 44. */
+  .ui-selection-bar__count { --tap-clear-y: var(--tap-gap); }
 }
 @media (forced-colors: active) {
   .ui-selection-bar { border-color: CanvasText; }

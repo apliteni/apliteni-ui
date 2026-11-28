@@ -1092,6 +1092,37 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       t.diagnostic(`a shut chip clearance leaves ${short.length} trigger(s) under the floor, at ${short[0].reach.join('x')}`);
     });
 
+    // The selection bar's Clear draws a 4px band as its border, so its layer starts inside the
+    // band and needs the count's own clearance to reach 44. Limit: only Clear, at the three
+    // phone widths, and the bar's clearance lives in the React sheet, which both passes load.
+    const clearSubjects = subjects.filter((s) => s.html.includes('ui-selection-bar__count'));
+    const clears = async (width, sheet) => flatten((await pass(browser, {
+      subjects: clearSubjects, css: sheet, width, coarse: true, size: TAP_MIN,
+      families: [...carriers, ...exempt], within: ['.ui-selection-bar__count'],
+    })).rows).filter((b) => b.within.length && b.cls.split(/\s+/).includes('ui-selection-bar__control'));
+    await t.test('the selection bar\'s Clear reaches 44 at 360, 390 and 466', async () => {
+      assert.ok(clearSubjects.length >= 4, `${clearSubjects.length} subjects draw a selection bar, 4 or more expected.`);
+      for (const width of CHIP_WIDTHS) {
+        const on = await clears(width, withCss);
+        // A guideline page draws more than one bar, so each subject gives one Clear or more.
+        assert.deepEqual(clearSubjects.filter((s) => !on.some((b) => b.story === s.id)).map((s) => s.id), [],
+          `${width}: a subject that draws a selection bar had no Clear measured.`);
+        assert.deepEqual(on.filter((b) => b.floorMiss > 0).map((b) => `${b.story} ${name(b)} reaches ${b.reach.join('x')}`), [],
+          `${width}: the selection bar's Clear misses the ${TAP_MIN}px floor.`);
+        assert.deepEqual(on.filter((b) => b.lostTo.some(([, w]) => w !== 'nothing')).map((b) => `${b.story} ${name(b)} <- ${b.lostTo.map(([, w]) => w)}`), [],
+          `${width}: the selection bar's Clear lost a drawn pixel to another control.`);
+        t.diagnostic(`${width}: ${on.length} Clear controls, smallest reach ${Math.min(...on.map((b) => Math.min(...b.reach)))}`);
+      }
+    });
+
+    await t.test('a Clear on the bar\'s own clearance is rejected', async () => {
+      const shut = withCss.replace(/\.ui-selection-bar__count \{\s*--tap-clear-y: var\(--tap-gap\);\s*\}/, '');
+      assert.notEqual(shut, withCss, 'The mutation did not apply, so it proves nothing.');
+      const short = (await clears(390, shut)).filter((b) => b.floorMiss > 0);
+      assert.ok(short.length > 0, 'Clear on the bar\'s 16px clearance still reached 44, so the check above holds nothing.');
+      t.diagnostic(`the bar's clearance leaves ${short.length} Clear control(s) under the floor, at ${short[0].reach.join('x')}`);
+    });
+
     await t.test('no target reaches less than it did without the sheet', async () => {
       // The floor only ever goes up. The gate used to assert that the COUNT of
       // targets at 44 rises, which is a different claim: at 992c2a2 every

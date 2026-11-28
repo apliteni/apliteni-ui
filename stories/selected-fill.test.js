@@ -70,7 +70,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { JSDOM } from 'jsdom';
-import { AA_TEXT, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
+import { AA_TEXT, colourOf, parseColour, ratio, substitute, tokensFor } from './lib/contrast.js';
 import { icon } from '../src/assets/icons.js';
 import { reactKit } from './lib/react-markup.js';
 
@@ -207,6 +207,16 @@ const SUBJECTS = [
     paintedBy: '.ui-dropdown__panel, which dropdown.css paints --bg-elevated',
   },
   {
+    name: 'the chosen row of a dropdown panel',
+    rule: '.ui-dropdown__item.is-selected', ground: '--bg-elevated',
+    paintedBy: '.ui-dropdown__panel, which dropdown.css paints --bg-elevated',
+  },
+  {
+    name: 'the chosen row of the version switch',
+    rule: '.vopt[aria-selected="true"]', ground: '--bg-elevated',
+    paintedBy: '.vsw__menu, which topbar.css paints --bg-elevated',
+  },
+  {
     name: 'the row the command palette would run',
     rule: '.ui-cmdk__item.is-active', ground: '--bg-elevated',
     paintedBy: '.ui-cmdk__panel, through --cmdk-surface',
@@ -232,7 +242,7 @@ const EXCLUSIONS = [];
 /** What a declared value paints in one theme. */
 const paint = (value, theme) => {
   const vars = tokensFor(theme, 'default');
-  const colour = parseColour(substitute(value, vars));
+  const colour = colourOf(value, vars);
   assert.ok(colour, `${value} is not a colour this gate can read in ${theme}`);
   return colour;
 };

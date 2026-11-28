@@ -593,7 +593,7 @@ view, so a row keeps its words on one line. Without `ghost` the trigger keeps it
   edge. At 720px and below, the gap is the 16px page margin, or the safe area of the phone when that
   is wider.
 - The panel is at least 240px wide where the view allows. Inside a Field, the panel takes the
-  field's width instead, so a form control stays one column with its label. A long unbroken word,
+  trigger's width instead, so a form control stays one column with its label. A long unbroken word,
   such as a file name or a URL, breaks in the middle, so one row cannot make the panel wider than
   the screen.
 - An open panel is never taller than the room between the trigger and the edge of the view. It
@@ -611,8 +611,14 @@ view, so a row keeps its words on one line. Without `ghost` the trigger keeps it
 - A row names its item in the body weight, as a native list does. A group label is 13px, bold and
   in muted ink, at 5.60:1 on the panel in dark and 6.11:1 in light under every accent. The options
   under it are not indented.
-- Each row answers the pointer with a fill and draws no edge. A destructive row turns `--pink` on
-  hover and focus. In forced colours a separator stays a visible line.
+- The panel has an 18px corner, and each row has a 12px corner 6px inside its edge. A hovered
+  row takes a quiet grey ground and draws no edge. The chosen row takes a soft accent tint, one
+  step deeper under the pointer, and a neutral check marks it. A focused row has the focus ring
+  and no ground of its own. A destructive row turns `--pink` on hover and focus. In forced colours
+  a separator stays a visible line, and the chosen row keeps the system highlight colours at rest,
+  under the pointer and as the search cursor.
+- A panel that scrolls shows a thin, rounded, neutral scroll bar. Browsers that cannot style the
+  bar parts get their own thin bar.
 
 **Muted or disabled.** `muted` marks a row that the user can still pick but that is no longer
 current, such as an archived unit for a late invoice. Give it the state word: `muted: 'Archived'`.
@@ -708,14 +714,17 @@ drop. `accept` only filters the system picker, so check the file before you uplo
 and the value as its name. An example is "Due date, August 2026". In a `Field` with an error, the
 trigger has the invalid edge.
 In a field, a dropdown trigger has the height of a text input and keeps the pill corner. It fits its
-longest option up to the field width, so a value change does not change its width. A native select
-has the same width rule. In vanilla markup, put the placeholder and each option's shown words, with
-its state word, in the hidden `ui-dropdown__fit` element. A long value stays on one line and ends
-with an ellipsis.
+longest option up to the field width, so a value change does not change its width. It also makes
+room for each row's badge and check, so a row label in its panel stays on one line. A native select
+has the same width rule. In vanilla markup, put one line for the placeholder and one for each option
+in the hidden `ui-dropdown__fit` element. Each line holds the words and the option's badge or state
+badge. Add a line with the shown words, such as "Cedar Studio (Archived)", for a muted option. A
+long value stays on one line and ends with an ellipsis.
 
 **Corners.** A one-line field has the 16px field corner. A text area and message box have the 24px
-message corner. Cards and floating panels have the 12px surface corner. Where supported, these
-corners use the squircle shape. Other browsers use round corners.
+message corner. Cards and floating panels have the 12px surface corner. A dropdown panel has the
+18px popover corner. Where supported, the field, message and surface corners use the squircle
+shape. Other browsers use round corners. The popover corner is round in every browser.
 
 **A list of options in `SelectField`.** The browser draws the open list, so the kit does not style
 an `<option>`. For an option that the user can still pick but that is no longer current, write the
@@ -972,7 +981,7 @@ A `maxWidth` that is not a positive number keeps the default. To change the cap 
 
 **The menu and Clear all.** The open menu is at least 240px wide, or the width of the row when the
 row is narrower. It stays inside the row and never makes the page wider. The menu marks the chip's
-value with a soft accent wash and a check. Clear all clears every filter, and shows only when there
+value as every dropdown does, with the soft accent tint and a neutral check. Clear all clears every filter, and shows only when there
 is a value to clear. It keeps its room while it does not show, so the content under the bar does
 not move. A disabled or busy bar answers nothing. A menu of your own in the bar that needs more than
 240px, such as a catalogue with a search field, declares `--ui-filter-panel-ask` in your stylesheet.

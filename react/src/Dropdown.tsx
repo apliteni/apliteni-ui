@@ -10,6 +10,7 @@ import {
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
 import { FieldContext } from './fieldContext';
+import { FitRows, RowBadge, mutedOf, shownOf, type DropdownItem } from './dropdown-rows';
 
 // A few frames past the stylesheet's own end, so the backstop timer never cuts the last
 // frame the fade paints. The number a dialog's exit waits by. why: react/src/dialog.ts
@@ -40,32 +41,7 @@ const inPanel = (node: Node | null) => {
 // why: docs/components.md#dropdown
 // why: docs/components.md#dropdown
 
-export type DropdownBadge = string | { text: string; tone?: string };
-
-export type DropdownAvatar = { key?: string | number; name?: string | null; src?: string; empty?: boolean };
-
-export type DropdownItem = {
-  label: string;
-  /** The pick, as `onSelect` reports it and as `data-value` carries it. */
-  value?: string | number;
-  description?: string;
-  /** A kit glyph name, drawn in the row's leading slot. */
-  icon?: string;
-  /** A person's mark in the leading slot, in place of `icon`. `key` picks the hue, `name` the
-   *  letters, `src` a photo. `{ empty: true }` is the dashed ring of a "No one" row. */
-  avatar?: DropdownAvatar;
-  badge?: DropdownBadge;
-  /** A row that stays selectable but is no longer current, named by its state word, e.g.
-   *  'Archived'. The word takes the badge slot in state ink, and the trigger shows it after
-   *  the label. Use `disabled` for a row that cannot be picked. */
-  muted?: string;
-  selected?: boolean;
-  disabled?: boolean;
-  danger?: boolean;
-  /** A row that goes somewhere. A `select` row never becomes a link, as the factory decides it. */
-  href?: string;
-  target?: string;
-};
+export type { DropdownAvatar, DropdownBadge, DropdownItem } from './dropdown-rows';
 
 /** A rule between rows. `'---'` is the factory's shorthand for the same thing. */
 export type DropdownSeparator = '---' | { separator: true };
@@ -192,21 +168,6 @@ const Glyph = ({ name, className, hidden }: { name: string; className: string; h
     dangerouslySetInnerHTML={{ __html: icon(name) }}
   />
 );
-
-// A trailing status badge. A string reading "live" in any case takes the live tone.
-function RowBadge({ badge }: { badge: DropdownBadge }) {
-  const text = typeof badge === 'string' ? badge : badge.text;
-  const given = typeof badge === 'string' ? '' : (badge.tone || '');
-  let tone = given || (/^live$/i.test(String(text)) ? 'live' : 'neutral');
-  if (!given && tone === 'neutral' && /^(?:off|unset|disabled|archive|archived)$/i.test(text)) tone = 'state';
-  return <span className={`ui-dropdown__badge is-${tone}`}>{text}</span>;
-}
-
-/** A muted row's state word, or nothing for a blank one. */
-const mutedOf = (it: DropdownItem | undefined) => it?.muted?.trim() || '';
-
-/** The trigger's words for a chosen row: a muted row keeps its state word there too. */
-const shownOf = (it: DropdownItem | undefined) => (mutedOf(it) ? `${it?.label} (${mutedOf(it)})` : it?.label);
 
 /** What names a row across a re-render: its value, or its label when it has none. */
 const keyOf = (it: DropdownItem) => (it.value != null ? `v:${it.value}` : `l:${it.label}`);
@@ -949,20 +910,7 @@ export function Dropdown({
           </span>
         )}
         {chevron && <span className="ui-dropdown__chevron" aria-hidden="true" />}
-        {inForm && isSelect && <span className="ui-dropdown__fit" aria-hidden="true">
-          <span className="ui-dropdown__line">
-            {marked && <Avatar empty />}
-            <span className={cx('ui-dropdown__value', marked && 'is-placeholder')}>{placeholder}</span>
-          </span>
-          {rows.map((item, index) => (
-            <span key={index} className="ui-dropdown__line">
-              {marked && (item.avatar
-                ? <Avatar personKey={item.avatar.key} name={item.avatar.name} src={item.avatar.src} empty={item.avatar.empty} />
-                : <Avatar empty />)}
-              <span className="ui-dropdown__value">{shownOf(item)}</span>
-            </span>
-          ))}
-        </span>}
+        {inForm && isSelect && <FitRows rows={rows} marked={marked} placeholder={placeholder} />}
       </button>
       <div
         className={cx('ui-dropdown__panel', align === 'end' && 'is-end', up && 'is-up',

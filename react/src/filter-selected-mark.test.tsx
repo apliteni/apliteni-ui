@@ -3,13 +3,14 @@
 // kit's sheets, over the same measurements.
 /* Rule: the chosen value in a filter menu is never marked by colour alone.
  *
- * The wash is a ~1.2:1 step, so on its own it is what WCAG 2.2 SC 1.4.1 forbids;
- * the kit's 16px check is the non-colour cue, and SC 1.4.11 asks 3:1 of it. This
- * measures the pair, and what hover and focus may not take away — each sets an
- * opaque `--surface`, and focus has to be the kit's band in the accent, which
- * since #578 is an `outline`, rather than a native one (#457). Hover is measured,
- * not declared: its step off the wash is read as a ratio. Subjects are swept from
- * the stories, not listed, and a sweep that finds none fails.
+ * Since #888 the chosen row takes the soft accent tint, `--float-row-selected`, a
+ * step of about 1.1:1 on the panel, so on its own it is what WCAG 2.2
+ * SC 1.4.1 forbids; the kit's 16px check, in neutral ink, is the non-colour cue, and
+ * SC 1.4.11 asks 3:1 of it. This measures the pair, and what hover and focus may not
+ * take away. Hover takes the tint one step up, `--float-row-selected-hover`
+ * (rev_550b6502339f/d86), and draws no outline, and focus keeps the tint under the kit's band in the accent, an `outline` since #578,
+ * rather than a native one (#457). Subjects are swept from the stories, not listed,
+ * and a sweep that finds none fails.
  * why: docs/components.md#filter-bar,
  *      guidelines/accessibility-floor.md#status-labels
  */
@@ -28,8 +29,8 @@
  *   - The React half. The rule is one kit declaration both faces load;
  *     react/src/Dropdown.test.tsx matches it against React's rendered tree, and
  *     the browser gate measures both halves.
- *   - The default accent only. The other five accents redefine --glow-purple.
- *     No walk renders them since the vanilla stories went with #724.
+ *   - The default accent only. The ground and the check carry no accent since
+ *     #888, so only the focus band's ink changes with one.
  *   - `:focus-visible` as a browser decides it: the state is driven by the
  *     attribute `desugar()` rewrites it to.
  *   - A shut menu. The gate opens every chip's menu, because a shut panel hides
@@ -42,7 +43,7 @@ import type { ReactElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { act } from 'react';
 // @ts-expect-error -- shared, independently tested JS module.
-import { AA_LARGE, AA_TEXT, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, rgbOf, substitute } from '../../stories/lib/contrast.js';
+import { AA_LARGE, AA_TEXT, colourOf, composite, desugar, effectiveBackground, kitCssFor, parseColour, ratio, rgbOf, substitute } from '../../stories/lib/contrast.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Any = any;
@@ -148,11 +149,11 @@ function readRow({ row, win, vars }) {
   return {
     ground,
     under,
-    wash: ground === 'IMAGE' || under === 'IMAGE' ? null : ratio(ground, under),
+    step: ground === 'IMAGE' || under === 'IMAGE' ? null : ratio(ground, under),
     tickShown: tickStyle.display !== 'none' && tickStyle.visibility !== 'hidden',
     tickInk: parseColour(tickStyle.color),
     labelInk: win.getComputedStyle(label).color,
-    strong: rgbOf(substitute(vars.get('--strong'), vars)),
+    text: rgbOf(substitute(vars.get('--text'), vars)),
     labelRatio: ground === 'IMAGE' ? null : ratio(parseColour(win.getComputedStyle(label).color), ground),
   };
 }
@@ -161,14 +162,15 @@ function readRow({ row, win, vars }) {
 function measureMark(subject) {
   const r = readRow(subject);
   assert.notEqual(r.ground, 'IMAGE', `${subject.id}: a chosen row's ground must be measurable`);
-  assert.ok(r.wash > 1.02, `${subject.id}: the wash is not painted (${r.wash?.toFixed(3)}:1)`);
-  assert.ok(r.wash < AA_LARGE, `${subject.id}: the wash is a hard fill, not a wash (${r.wash.toFixed(3)}:1)`);
-  assert.ok(r.tickShown, `${subject.id}: the wash is under 3:1, so the check may not be hidden`);
+  assert.ok(r.step > 1.02, `${subject.id}: the ground is not painted (${r.step?.toFixed(3)}:1)`);
+  assert.ok(r.step < AA_LARGE, `${subject.id}: the ground is a hard fill, not a quiet ground (${r.step.toFixed(3)}:1)`);
+  assert.ok(r.tickShown, `${subject.id}: the ground is under 3:1, so the check may not be hidden`);
   const tickRatio = ratio(r.tickInk, r.ground);
-  assert.ok(tickRatio >= AA_LARGE, `${subject.id}: the check is ${tickRatio.toFixed(2)}:1 over the wash, under 1.4.11's 3:1`);
-  assert.equal(r.labelInk, r.strong, `${subject.id}: the chosen label holds --strong under the wash`);
-  assert.ok(r.labelRatio >= AA_TEXT, `${subject.id}: the chosen label is ${r.labelRatio.toFixed(2)}:1 on the wash`);
-  return { wash: r.wash, tick: tickRatio, label: r.labelRatio };
+  assert.ok(tickRatio >= AA_LARGE, `${subject.id}: the check is ${tickRatio.toFixed(2)}:1 over the ground, under 1.4.11's 3:1`);
+  assert.deepEqual(r.tickInk.slice(0, 3), parseColour(r.text).slice(0, 3), `${subject.id}: the check is not the neutral --text ink`);
+  assert.equal(r.labelInk, r.text, `${subject.id}: the chosen label is not --text`);
+  assert.ok(r.labelRatio >= AA_TEXT, `${subject.id}: the chosen label is ${r.labelRatio.toFixed(2)}:1 on the ground`);
+  return { step: r.step, tick: tickRatio, label: r.labelRatio };
 }
 
 /** The outline, read from its longhands. jsdom 31 reports them faithfully:
@@ -182,27 +184,20 @@ function outlineOf(cs) {
   };
 }
 
-/** The wash the sheet promises this row, composited onto the panel under it.
+/** Two grounds are one colour when no channel differs by half a level: the token
+ *  mix and the cascade's mix round apart in the fifth decimal. */
+const sameGround = (a, b) => a !== 'IMAGE' && b !== 'IMAGE' && [0, 1, 2, 3].every((i) => Math.abs(a[i] - b[i]) < 0.5);
+
+/** The ground the sheet promises this row, composited onto the panel under it.
  *
  *  Read from the tokens rather than from the row as it stands, so a mutation that
  *  repaints the row cannot also move the expectation it is measured against. */
-function washGround(subject) {
+function rowGround(subject, token = '--float-row-selected') {
   const panel = subject.row.closest('.ui-dropdown__panel');
-  const wash = parseColour(substitute(subject.vars.get('--glow-purple'), subject.vars));
-  assert.ok(wash, `${subject.id}: --glow-purple does not resolve to a colour`);
-  return composite(wash, effectiveBackground(panel, subject.win));
+  const fill = colourOf(`var(${token})`, subject.vars);
+  assert.ok(fill, `${subject.id}: ${token} does not resolve to a colour`);
+  return composite(fill, effectiveBackground(panel, subject.win));
 }
-
-/** The step hover owes the chosen row, as a contrast ratio over the wash it is
- *  drawn on.
- *
- *  Not the kit's own step, because the kit's hover fill is `--surface` and in light
- *  the chosen row's wash is the thing it must step off, which was the whole of
- *  #550's round-two defect. Since #595 hover draws no outline, so the step is the
- *  only signal and the floor has to hold alone. The deepened wash clears it in
- *  both themes and all six accents — 1.135:1 is the quietest of them, measured in
- *  the vanilla accent walk before #724 removed it. */
-const HOVER_STEP = 1.1;
 
 /** What hover and focus may not take away, and what hover owes.
  *
@@ -217,10 +212,9 @@ const HOVER_STEP = 1.1;
  *  is what it draws. A browser probe of a wired chip is in #590's evidence. */
 function measureStates(subject) {
   const { row, win } = subject;
-  const rest = washGround(subject);
-  const panel = effectiveBackground(row.closest('.ui-dropdown__panel'), win);
+  const rest = rowGround(subject);
   const accent = substitute(subject.vars.get('--accent'), subject.vars).trim();
-  assert.deepEqual(effectiveBackground(row, win), rest, `${subject.id}: at rest the chosen row is not the wash on the panel`);
+  assert.ok(sameGround(effectiveBackground(row, win), rest), `${subject.id}: at rest the chosen row is not the soft tint on the panel`);
   const out = {};
   try {
     for (const state of ['hover', 'focus-visible']) {
@@ -228,9 +222,9 @@ function measureStates(subject) {
       const cs = win.getComputedStyle(row);
       const edge = outlineOf(cs);
       if (state === 'hover') {
-        out.hoverStep = measureHover(subject, { rest, panel, edge, cs });
+        measureHover(subject, { rest, edge, cs });
       } else {
-        assert.deepEqual(effectiveBackground(row, win), rest, `${subject.id}: ${state} takes the wash off the chosen row`);
+        assert.ok(sameGround(effectiveBackground(row, win), rest), `${subject.id}: ${state} takes the ground off the chosen row`);
         // Since #578 the band is a real `outline` in the accent, carried out by
         // --ring-offset, so the outline is where the band is read rather than the
         // shadow. A solid edge in any other ink is the browser's own. #457, #578
@@ -248,37 +242,25 @@ function measureStates(subject) {
   return out;
 }
 
-/** Hover's signal, measured rather than declared.
+/** Hover on the chosen row, measured rather than declared.
  *
- *  Selection is a background highlight and an outline belongs to focus, so hover
- *  deepens the highlight: the ground it paints has to step HOVER_STEP off the
- *  resting wash, stay on the same side of the panel so the row goes on reading as
- *  chosen, and stay under 3:1 of it so it is still a tint and not a fill. The two
- *  cues measured at rest are re-measured on that deeper ground, because deepening
- *  it is what could put the check under 1.4.11's 3:1.
- *
- *  Hover draws no outline since #595: an outline belongs to focus, and the step is
- *  what makes hover readable. The outline is read as its parsed parts, because
+ *  The hovered row and the chosen row share one ground (rev_92b7f8a56703/d79), so
+ *  hovering the chosen row changes nothing: the ground stays, and the check and the
+ *  label keep their contrast on it. Hover draws no outline since #595, because an
+ *  outline belongs to focus. The outline is read as its parsed parts, because
  *  `cs.outline` is the truthy string `none` when nothing draws one. */
-function measureHover(subject, { rest, panel, edge, cs }) {
+function measureHover(subject, { rest, edge, cs }) {
   const { row, win } = subject;
   const ground = effectiveBackground(row, win);
   assert.notEqual(ground, 'IMAGE', `${subject.id}: hover's ground must be measurable`);
-  const step = ratio(ground, rest);
-  assert.ok(step >= HOVER_STEP,
-    `${subject.id}: hover steps ${step.toFixed(3)}:1 off the wash, under ${HOVER_STEP}:1`
-    + ' — hover draws no outline, so the step is all the pointer has');
-  const deeper = ratio(ground, panel);
-  assert.ok(deeper > ratio(rest, panel),
-    `${subject.id}: hover steps ${step.toFixed(3)}:1 the wrong way — ${deeper.toFixed(3)}:1 over the panel, under the resting wash's ${ratio(rest, panel).toFixed(3)}:1`);
-  assert.ok(deeper < AA_LARGE, `${subject.id}: hover deepens the wash into a hard fill (${deeper.toFixed(3)}:1 over the panel)`);
+  assert.ok(sameGround(ground, rowGround(subject, '--float-row-selected-hover')), `${subject.id}: hover does not take the chosen row one tint step up`);
+  assert.ok(!sameGround(ground, rest), `${subject.id}: hover leaves the chosen row's ground as it is`);
   const tick = ratio(parseColour(win.getComputedStyle(row.querySelector('.ui-dropdown__tick')).color), ground);
-  assert.ok(tick >= AA_LARGE, `${subject.id}: hovered, the check is ${tick.toFixed(2)}:1 over the deeper wash, under 1.4.11's 3:1`);
+  assert.ok(tick >= AA_LARGE, `${subject.id}: hovered, the check is ${tick.toFixed(2)}:1, under 1.4.11's 3:1`);
   const label = ratio(parseColour(win.getComputedStyle(row.querySelector('.ui-dropdown__label')).color), ground);
-  assert.ok(label >= AA_TEXT, `${subject.id}: hovered, the chosen label is ${label.toFixed(2)}:1 over the deeper wash`);
+  assert.ok(label >= AA_TEXT, `${subject.id}: hovered, the chosen label is ${label.toFixed(2)}:1`);
   assert.ok(!(edge.width > 0 && edge.style !== 'none' && edge.ink && edge.ink[3] > 0),
     `${subject.id}: hover draws an outline (${cs.outline})`);
-  return { step, overPanel: deeper, tick, label };
 }
 
 /* The three geometries a chip's panel has, and what each one may do to the mark.
@@ -375,7 +357,7 @@ for (const theme of THEMES) {
 }
 
 for (const theme of THEMES) {
-  test(`a chosen filter-menu row carries a wash and a check in ${theme}`, async () => {
+  test(`a chosen filter-menu row carries the soft tint and a neutral check in ${theme}`, async () => {
     const { found } = await subjects(theme);
     assert.ok(found.length >= ROW_FLOOR,
       `swept ${found.length} chosen filter-menu rows, floor ${ROW_FLOOR}: a story stopped drawing one`);
@@ -394,7 +376,7 @@ for (const theme of THEMES) {
 /* Each mutation re-breaks exactly one guarantee, and the gate has to reject it.
  * A mutation is an inline style or a class on the measured row, so the kit's own
  * sheet is what the rest of the measurement still reads. */
-/* An opaque fill a long way from the wash, in the direction the theme leaves room
+/* An opaque fill a long way from the ground, in the direction the theme leaves room
  * for: a hard fill is the mutation, so it has to clear 3:1 over the panel. */
 const HARD_FILL = { light: 'rgb(28, 16, 54)', dark: 'rgb(226, 212, 255)' };
 
@@ -403,30 +385,27 @@ const HARD_FILL = { light: 'rgb(28, 16, 54)', dark: 'rgb(226, 212, 255)' };
 const asOpaque = (ground) => `rgb(${ground.slice(0, 3).map(Math.round).join(', ')})`;
 
 const MUTATIONS = [
-  ['the wash removed', (row) => { row.style.background = 'transparent'; }, /wash is not painted/],
-  ['the wash made a hard fill', (row, ctx) => { row.style.background = HARD_FILL[ctx.theme]; }, /hard fill, not a wash/],
+  ['the ground removed', (row) => { row.style.background = 'transparent'; }, /ground is not painted/],
+  ['the ground made a hard fill', (row, ctx) => { row.style.background = HARD_FILL[ctx.theme]; }, /hard fill, not a quiet ground/],
   ['the check hidden', (row) => { row.querySelector('.ui-dropdown__tick').style.display = 'none'; }, /check may not be hidden/],
-  ['the check painted the wash it sits on', (row, ctx) => { row.querySelector('.ui-dropdown__tick').style.color = asOpaque(ctx.ground); }, /under 1\.4\.11's 3:1/],
-  ['the chosen label let back down to --text', (row) => { row.querySelector('.ui-dropdown__label').style.color = 'rgb(90, 90, 90)'; }, /holds --strong/],
+  ['the check painted the ground it sits on', (row, ctx) => { row.querySelector('.ui-dropdown__tick').style.color = asOpaque(ctx.ground); }, /under 1\.4\.11's 3:1/],
+  ['the check painted in the accent', (row, ctx) => { row.querySelector('.ui-dropdown__tick').style.color = ctx.accent; }, /not the neutral --text ink/],
+  ['the chosen label painted the ground it sits on', (row, ctx) => { row.querySelector('.ui-dropdown__label').style.color = asOpaque(ctx.ground); }, /is not --text/],
 ];
 
 const STATE_MUTATIONS = [
-  ['the chosen row repainted off the wash', (row) => { row.setAttribute('style', 'background: rgb(255, 255, 255)'); }, /the chosen row is not the wash/],
+  ['the chosen row repainted off the ground', (row, ctx) => { row.setAttribute('style', `background: ${HARD_FILL[ctx.theme]}`); }, /the chosen row is not the soft tint/],
 ];
 
 /* Hover is driven by the attribute `desugar()` rewrites `:hover` to, so an inline
  * style cannot reach it alone — it would repaint every state at once. Each of
  * these appends one rule for the hovered chosen row, in the same weight the kit's
- * own rule carries and after it, and is taken off again.
- *
- * The first is the defect this gate was written blind to: hover restated as the
- * resting wash, which leaves the pointer nothing. The last puts an outline back on
- * hover, which #595 removed; it is read as parsed parts because `cs.outline` as a
- * string is truthy even when it resolves to `none`. #550, #595 */
+ * own rule carries and after it, and is taken off again. The last puts an outline
+ * back on hover, which #595 removed; it is read as parsed parts because
+ * `cs.outline` as a string is truthy even when it resolves to `none`. #595, #888 */
 const HOVER_MUTATIONS = [
-  ['the wash restated for hover', (ctx) => `background: ${asOpaque(ctx.ground)}`, /hover steps 1\.00\d:1 off the wash, under 1\.1:1 — hover draws no outline/],
-  ['hover painting the panel instead of deepening the wash', (ctx) => `background: ${asOpaque(ctx.panel)}`, /hover steps [\d.]+:1 the wrong way/],
-  ['hover deepened into a hard fill', (ctx) => `background: ${HARD_FILL[ctx.theme]}`, /hover deepens the wash into a hard fill/],
+  ['hover painting the panel', (ctx) => `background: ${asOpaque(ctx.panel)}`, /hover does not take the chosen row one tint step up/],
+  ['hover deepened into a hard fill', (ctx) => `background: ${HARD_FILL[ctx.theme]}`, /hover does not take the chosen row one tint step up/],
   ['an outline put back on the hovered row', () => 'outline: 1px solid rgb(120, 120, 120)', /hover draws an outline/],
 ];
 
@@ -453,7 +432,7 @@ for (const theme of THEMES) {
     const panel = effectiveBackground(subject.row.closest('.ui-dropdown__panel'), subject.win);
     for (const [match, mutations] of [['[data-ui-state~="hover"]', HOVER_MUTATIONS], ['[data-ui-state~="focus-visible"]', FOCUS_MUTATIONS]]) {
       for (const [what, declare, rejects] of mutations) {
-        const off = overrideState(subject, match, declare({ theme, ground: washGround(subject), panel }));
+        const off = overrideState(subject, match, declare({ theme, ground: rowGround(subject), panel }));
         try {
           assert.throws(() => measureStates(subject), rejects, `${what} must be rejected`);
         } finally {
@@ -474,14 +453,14 @@ for (const theme of THEMES) {
       const before = subject.row.getAttribute('style');
       const tick = subject.row.querySelector('.ui-dropdown__tick').getAttribute('style');
       const label = subject.row.querySelector('.ui-dropdown__label').getAttribute('style');
-      mutate(subject.row, { theme, ground: washGround(subject) });
+      mutate(subject.row, { theme, ground: rowGround(subject), accent: substitute(subject.vars.get('--accent'), subject.vars).trim() });
       assert.throws(() => measureMark(subject), rejects, `${what} must be rejected`);
       restore(subject.row, before, tick, label);
       measureMark(subject);
     }
     for (const [what, mutate, rejects] of STATE_MUTATIONS) {
       const before = subject.row.getAttribute('style');
-      mutate(subject.row, { theme, ground: washGround(subject) });
+      mutate(subject.row, { theme, ground: rowGround(subject) });
       assert.throws(() => measureStates(subject), rejects, `${what} must be rejected`);
       restore(subject.row, before, null, null);
       measureStates(subject);

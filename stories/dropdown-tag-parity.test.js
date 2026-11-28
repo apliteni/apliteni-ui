@@ -77,10 +77,12 @@ const GUTS = '<span class="ui-dropdown__main">'
   + '</span>'
   + '<span class="ui-dropdown__tick" aria-hidden="true"><svg viewBox="0 0 24 24"></svg></span>';
 
+/* A resting row: the reset is what a row owes at rest, and a chosen row paints the
+   quiet row ground on purpose. */
 const TAGS = {
-  div: `<div class="ui-dropdown__item is-selected" id="row" role="option">${GUTS}</div>`,
-  a: `<a class="ui-dropdown__item is-selected" id="row" href="#v" role="option">${GUTS}</a>`,
-  button: `<button class="ui-dropdown__item is-selected" id="row" type="button" role="option">${GUTS}</button>`,
+  div: `<div class="ui-dropdown__item" id="row" role="option">${GUTS}</div>`,
+  a: `<a class="ui-dropdown__item" id="row" href="#v" role="option">${GUTS}</a>`,
+  button: `<button class="ui-dropdown__item" id="row" type="button" role="option">${GUTS}</button>`,
 };
 
 /** Mount one row under the kit's real stylesheets and hand back a resolver. */
