@@ -1,5 +1,11 @@
 export const RELEASES = [
   {
+    v: '0.232.2', date: '2026-11-28',
+    changes: [
+      ['changed', 'The component guide, `docs/components.md`, is shorter. It keeps every component, every promise and every heading that you link to. It says each fact once. No component, prop or style changes. Part of #888.'],
+    ],
+  },
+  {
     v: '0.232.1', date: '2026-11-28',
     changes: [
       ['changed', 'React `DataTable` is now made of small internal parts. Its props, exports, markup, class names, look and behaviour do not change, so you do not need to change a call. Part of #888.', ['DataTable']],
