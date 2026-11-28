@@ -1419,5 +1419,19 @@
     "pattern": "items: extra.map((action): DropdownItem => ({ label: action.label, value: action.id"
    }
   ]
+ },
+ "_toast.js": {
+  "above-bottom-bar": [
+   {
+    "ref": "react/src/Toast.tsx:224",
+    "pattern": "const inset = typeof bottomOffset === 'number' ? `${bottomOffset}px` : bottomOffset;"
+   }
+  ],
+  "ring-time-left": [
+   {
+    "ref": "react/src/Toast.tsx:110",
+    "pattern": "<circle className=\"ui-toast__ring-arc is-running\" cx=\"8\" cy=\"8\" r=\"7\" pathLength=\"100\""
+   }
+  ]
  }
 }
