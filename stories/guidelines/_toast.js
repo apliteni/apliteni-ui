@@ -9,9 +9,12 @@ export const RULES = content.rules;
 // its top padding is the gap between the notice and the bar. The don't puts the notice and the
 // room in one cell, and takes the room's layer off, so the notice stands on the bar as a stack
 // with no inset does. The notice stands low enough that the bar shows under it.
+// The don't is a still picture: its notice takes the bar's controls, which is the mistake, so a
+// live control there would break the tap floor that the gate measures on every story.
 export const SPEC_CSS = `
   <style>
     .gt-stage .ui-selection-room { position: static; }
+    .gt-stage--over, .gt-stage--over .ui-selection-bar { pointer-events: none; }
     .gt-stage--over { display: grid; }
     .gt-stage--over > * { grid-area: 1 / 1; }
     .gt-stage--over > .ui-selection-room { z-index: auto; }

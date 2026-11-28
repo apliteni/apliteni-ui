@@ -1,5 +1,11 @@
 export const RELEASES = [
   {
+    v: '0.235.1', date: '2026-11-28',
+    changes: [
+      ['fixed', 'On the Toast guideline page, the picture of a notice over the selection bar is now a still picture. Its covered buttons no longer take a tap, so every live control on the page keeps the 44px tap floor on a phone. Part of #907.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.235.0', date: '2026-11-28',
     changes: [
       ['added', '`QuerySearch` is a list search that reads typed filters, such as `state:open`, and `@name` for a person. It suggests keys, values and people, and each known filter becomes a chip that you can edit or remove. Title words stay in the field and match the titles. `parseQuery`, `readQuery` and `matchQuery` read the same query for your list. Apps with a plain `SearchField` see no change. Part of #866.', ['QuerySearch']],
