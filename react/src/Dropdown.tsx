@@ -89,9 +89,6 @@ export type DropdownRowProps = {
 };
 
 export type DropdownProps = {
-  /** @deprecated Not drawn since 0.206.0: a trigger shows only its value. Name the control
-   *  with a `Field` label or `ariaLabel`. The prop goes in the next release. #899 */
-  label?: string;
   /** What the trigger shows. Given one, the trigger is yours to update. */
   value?: string;
   /** When given, the caller owns the selected row, including after a pick. */
@@ -143,13 +140,6 @@ export type DropdownProps = {
   row?: (item: DropdownItem, props: DropdownRowProps) => ReactNode;
 };
 
-// A bundler writes the mode in for `process.env.NODE_ENV`. Without one there is no
-// `process`, and the warning stays off.
-declare const process: { env: { NODE_ENV?: string } };
-const development = () => { try { return process.env.NODE_ENV !== 'production'; } catch { return false; } };
-// Once for the page, not once for each trigger.
-let labelWarned = false;
-
 // A name and the text the trigger shows, without the name twice when the text is the name.
 const named = (name: string, text: string) => (text === name ? name : `${name}: ${text}`);
 
@@ -200,18 +190,13 @@ const SEARCH_DEFAULTS = {
 };
 
 export function Dropdown({
-  label, value, selectedValue, placeholder = 'Select…', variant, items, sections,
+  value, selectedValue, placeholder = 'Select…', variant, items, sections,
   header, footer, triggerContent, triggerClass = '', ghost = false, disabled = false, chevron = true,
   size, align = 'start', direction = 'down', scroll = false, search = false,
   ariaLabel, title, id, panelClass = '',
   'aria-describedby': describedBy, 'aria-invalid': invalid,
   open: openProp, defaultOpen = false, onOpenChange, onSelect, row,
 }: DropdownProps) {
-  useEffect(() => {
-    if (label == null || labelWarned || !development()) return;
-    labelWarned = true;
-    console.warn('Dropdown: `label` is deprecated and draws nothing. A trigger shows only its value. Name it with a Field label or `ariaLabel`.');
-  }, [label]);
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
   // A panel opens on the other side when its own side cannot hold it and the other has
@@ -405,7 +390,7 @@ export function Dropdown({
   // With a field in it the panel is a dialog — a listbox may own only options and
   // groups — and every row inside becomes an option, a row carrying an href included.
   const asOption = isSelect || Boolean(sx);
-  const name = ariaLabel || (label ? String(label).replace(/:\s*$/, '') : '') || 'Options';
+  const name = ariaLabel || 'Options';
   // The caller's own selection, and the pick measured against it: once the caller moves
   // its selection the pick was made against, the caller has taken the pick back and this
   // component's stops applying. Derived, so a re-render cannot drop a pick the reader
@@ -893,7 +878,7 @@ export function Dropdown({
         // The trigger shows only the value, so outside a Field its name is its own name and
         // then that value, for a select and a menu alike. #899 why: docs/components.md#dropdown
         aria-label={triggerContent != null ? ariaLabel || undefined
-          : !fieldName && (ariaLabel || label) ? named(name, shown != null ? shown : placeholder) : undefined}
+          : !fieldName && ariaLabel ? named(name, shown != null ? shown : placeholder) : undefined}
         title={title}
         aria-labelledby={fieldName?.labelledBy}
         aria-describedby={describedBy}

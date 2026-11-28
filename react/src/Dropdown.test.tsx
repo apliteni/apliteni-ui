@@ -70,7 +70,6 @@ function shape(dd: Element) {
       haspopup: trigger.getAttribute('aria-haspopup'),
       expanded: trigger.getAttribute('aria-expanded'),
       label: trigger.getAttribute('aria-label'),
-      pre: trigger.querySelector('.ui-dropdown__pre')?.textContent ?? null,
       value: trigger.querySelector('.ui-dropdown__value')?.textContent ?? null,
       chevron: trigger.querySelectorAll('.ui-dropdown__chevron').length,
       // The native attribute, which is what takes the stop out of the tab order
@@ -209,7 +208,7 @@ const CASES: [string, DropdownProps][] = [
   ['a select, inferred from a selected item', { items: SELECT }],
   ['a select, named as one', { variant: 'select', items: [{ label: 'One' }, { label: 'Two' }] }],
   ['a menu, named as one over items that carry values', { variant: 'menu', items: SELECT }],
-  ['a select with a label and a value', { label: 'version:', value: '1.2.0', items: SELECT }],
+  ['a select with a name and a value', { ariaLabel: 'Version', value: '1.2.0', items: SELECT }],
   ['a select with a placeholder and nothing picked', { variant: 'select', items: [{ label: 'One' }, { label: 'Two' }], placeholder: 'Pick one…' }],
   ['a link row inside a select is a plain option', { variant: 'select', items: [{ label: 'Docs', href: '/docs' }] }],
   ['a disabled row carrying an href is not a link', { items: [{ label: 'Docs', href: '/docs', disabled: true }] }],
@@ -233,7 +232,7 @@ const CASES: [string, DropdownProps][] = [
   ['a description under a label', { items: [{ label: 'Rename', description: 'Give it another name' }] }],
   ['a numeric value', { variant: 'select', items: [{ label: '25 rows', value: 25 }] }],
   // ---- search: the static render, before anything is wired or typed ----------
-  ['a search field', { items: CURRENCIES, search: true, label: 'currency:', ariaLabel: 'Currency' }],
+  ['a search field', { items: CURRENCIES, search: true, ariaLabel: 'Currency' }],
   ['a search field on a menu, whose rows become options', { items: MENU, search: true, ariaLabel: 'Actions' }],
   ['a search field with every line reworded', {
     items: CURRENCIES,
@@ -245,7 +244,7 @@ const CASES: [string, DropdownProps][] = [
   ['a preset query of spaces, which narrows nothing', { items: CURRENCIES, ariaLabel: 'Currency', search: { query: '   ' } }],
   ['a search field over sections', { sections: SECTIONS, ariaLabel: 'Go to', search: { query: 'bill' } }],
   ['a capped, scrolling search panel', { items: CURRENCIES, ariaLabel: 'Currency', search: true, scroll: 240 }],
-  ['a search field on a select', { variant: 'select', items: SELECT, search: true, label: 'version:' }],
+  ['a search field on a select', { variant: 'select', items: SELECT, search: true, ariaLabel: 'Version' }],
 ];
 
 for (const [name, opts] of CASES) {
@@ -491,50 +490,23 @@ it('Enter and Space pick the row focus is on', async () => {
 // trigger's text and into its accessible name. DOM text and names only.
 it('the trigger shows only its value, and its name and value name it', () => {
   render(<>
-    <Dropdown label="version:" ariaLabel="Version" variant="select" items={SELECT} />
+    <Dropdown ariaLabel="Version" variant="select" items={SELECT} />
     <Dropdown ariaLabel="Owner" variant="select" items={[{ label: 'One' }, { label: 'Two' }]} placeholder="Choose an owner" />
-    <Dropdown label="unit:" variant="select" items={SELECT} />
   </>);
-  expect(document.querySelector('.ui-dropdown__pre')).toBeNull();
   const shown = (name: string) => screen.getByRole('button', { name }).querySelector(':scope > .ui-dropdown__line')!.textContent;
   expect(shown('Version: v1.2.0')).toBe('v1.2.0');
   expect(shown('Owner: Choose an owner')).toBe('Choose an owner');
-  // The deprecated prop still names the trigger, so an app that passes it keeps a name.
-  expect(shown('unit: v1.2.0')).toBe('v1.2.0');
 });
 
-// The review of #905: a menu trigger kept only "Select…" as its name. Both ways to name a
-// menu reach its accessible name, and a value that is the name is not said twice.
-it('a menu trigger keeps the name it is given, from ariaLabel or the deprecated label', () => {
+// The review of #905: a menu trigger kept only "Select…" as its name. ariaLabel reaches a
+// menu's accessible name, and a value that is the name is not said twice.
+it('a menu trigger keeps the name it is given in ariaLabel', () => {
   render(<>
-    <Dropdown variant="menu" label="Actions:" items={MENU} />
     <Dropdown variant="menu" ariaLabel="Row actions" items={MENU} />
     <Dropdown variant="menu" ariaLabel="Invoice actions" value="Invoice actions" items={MENU} />
   </>);
   const names = screen.getAllByRole('button').map((b) => b.getAttribute('aria-label'));
-  expect(names).toEqual(['Actions: Select…', 'Row actions: Select…', 'Invoice actions']);
-});
-
-// The deprecated `label` warns once for the page, in development only. A fresh module,
-// because the flag is the module's own and an earlier test in this file sets it.
-it('the deprecated label warns once in development and not in production', async () => {
-  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-  try {
-    vi.resetModules();
-    const { Dropdown: Fresh } = await import('./Dropdown');
-    render(<><Fresh label="version:" items={SELECT} /><Fresh label="unit:" items={SELECT} /></>);
-    expect(warn.mock.calls.filter(([text]) => /`label` is deprecated/.test(String(text)))).toHaveLength(1);
-    cleanup();
-    warn.mockClear();
-    vi.resetModules();
-    vi.stubEnv('NODE_ENV', 'production');
-    const { Dropdown: Shipped } = await import('./Dropdown');
-    render(<Shipped label="version:" items={SELECT} />);
-    expect(warn).not.toHaveBeenCalled();
-  } finally {
-    vi.unstubAllEnvs();
-    warn.mockRestore();
-  }
+  expect(names).toEqual(['Row actions: Select…', 'Invoice actions']);
 });
 
 it('a pick writes itself into the trigger and moves the tick, the way selectOption() does', async () => {
@@ -808,7 +780,7 @@ async function typed(opts: DropdownProps, query: string) {
 }
 
 const SEARCHABLE: DropdownProps = {
-  label: 'currency:', ariaLabel: 'Currency', items: CURRENCIES, search: true,
+  ariaLabel: 'Currency', items: CURRENCIES, search: true,
 };
 
 const QUERIES: [string, string, DropdownProps][] = [
