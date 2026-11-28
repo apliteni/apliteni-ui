@@ -36,4 +36,5 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Wizard](wizard.md) | Ordered steps, their states, the open step and the final action. | Read it before you build ordered steps. |
 | [Dropdown](dropdown.md) | Group labels in a dropdown panel, and what a trigger shows. | Read it before you group the options of a dropdown or name its trigger. |
 | [Selection bar](selection-bar.md) | The bar for selected rows: its theme, a pick that applies at once, and More. | Read it before you act on selected rows. |
+| [Toast](toast.md) | The toast stack above a bar at the bottom, and the ring on a timed Undo. | Read it before you show a notice over a bottom bar or give an Undo a timer. |
 | [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |

@@ -1,5 +1,11 @@
 export const RELEASES = [
   {
+    v: '0.233.1', date: '2026-11-28',
+    changes: [
+      ['added', 'A new Toast guideline page says to give the toast stack the inset of a bar at the bottom of the page, and to let the ring on a timed Undo show the time left. Part of #907.', ['Guidelines']],
+    ],
+  },
+  {
     v: '0.233.0', date: '2026-11-28',
     changes: [
       ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
