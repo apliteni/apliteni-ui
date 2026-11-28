@@ -22,8 +22,9 @@
  * to turn on again.
  *
  * The second test opens react-filterbar--long-options at 1440×900 in both themes, with the 32px
- * group gap of the product in #915. The search, the bar and the 192px control share one line,
- * with the filters' own caps and with the 128px default on every chip. A long pick ends with an
+ * group gap of the product in #915. The 320px search, the bar with five long filters and the
+ * room of its Clear all, and the 192px control share one line, with the filters' own caps and
+ * with the 128px default on every chip. A long pick ends with an
  * ellipsis, keeps its full name and title, and does not move the next chip. A chip takes the
  * accent edge under the pointer, pressed and open, and not under the keyboard's focus ring.
  *
