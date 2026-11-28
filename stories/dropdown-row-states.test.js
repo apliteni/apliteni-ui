@@ -34,8 +34,9 @@ const ROWS = [['.ui-dropdown__item', css], ['.vopt', sheet('src/styles/topbar.cs
 const rules = (text) => [...text.matchAll(/([^{}]+)\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g)];
 
 /** The background `row` takes on hover in `theme`, as a token name. */
+const HOVER = (row) => new RegExp(`${row.replace('.', '\\.')}:hover(?::not\\(:focus-visible\\))?$`);
 const hoverFill = (text, theme, row = '.ui-dropdown__item') => {
-  const hover = new RegExp(`${row.replace('.', '\\.')}:hover$`);
+  const hover = HOVER(row);
   let fill = null;
   for (const [, head, body] of rules(text)) {
     const heads = splitSelectorList(head).map((h) => h.trim());
@@ -49,28 +50,29 @@ const hoverFill = (text, theme, row = '.ui-dropdown__item') => {
   return fill;
 };
 
-const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-const distance = (a, b) => Math.max(...rgb(a).map((v, i) => Math.abs(v - rgb(b)[i])));
+/** The largest channel difference between two colours, in levels of 255. */
+const distance = (a, b) => Math.max(...[0, 1, 2].map((i) => Math.abs(a[i] - b[i])));
+const HOVER_STEP = 8;
 
 for (const [row, text] of ROWS) for (const theme of ['light', 'dark']) {
   test(`a hovered ${row} row differs from the panel in ${theme}`, () => {
     const tokens = tokensFor(theme);
     const fill = hoverFill(text, theme, row);
     assert.ok(fill, `${theme}: no hover fill found`);
-    const panel = tokens.get('--bg-elevated');
-    assert.notEqual(tokens.get(fill).toLowerCase(), panel.toLowerCase(),
-      `${theme}: the hover fill ${fill} equals the panel ground, so hover changes nothing`);
-    assert.ok(distance(tokens.get(fill), panel) >= 8,
-      `${theme}: the hover fill ${fill} is within 8 levels of the panel ground`);
+    const panel = colourOf('var(--bg-elevated)', tokens);
+    const step = distance(colourOf(`var(${fill})`, tokens), panel);
+    assert.ok(step > 0, `${theme}: the hover fill ${fill} equals the panel ground, so hover changes nothing`);
+    assert.ok(step >= HOVER_STEP, `${theme}: the hover fill ${fill} is ${step.toFixed(1)} levels off the panel ground, under ${HOVER_STEP}`);
   });
 }
 
-test('the hover gate fails when the light fill goes back to --surface', () => {
+test('the hover gate fails when the fill goes back to --surface', () => {
   for (const [row, text] of ROWS) {
-    const weakened = text.replace(new RegExp(`(data-theme="light"\\]\\) \\${row}:hover \\{ background: )var\\(--surface-3\\)`), '$1var(--surface)');
+    const weakened = text.replace(new RegExp(`(\\${row}:hover:not\\(:focus-visible\\) \\{ background: )var\\(--float-row-fill\\)`), '$1var(--surface)');
     assert.notEqual(weakened, text, `${row}: the mutation found nothing to change`);
     const tokens = tokensFor('light');
-    assert.equal(tokens.get(hoverFill(weakened, 'light', row)).toLowerCase(), tokens.get('--bg-elevated').toLowerCase());
+    const fill = colourOf(`var(${hoverFill(weakened, 'light', row)})`, tokens);
+    assert.equal(distance(fill, colourOf('var(--bg-elevated)', tokens)), 0);
   }
 });
 
@@ -93,16 +95,16 @@ test('the inward-ring gate fails when the row goes back to the outset ring', () 
 
 test('a hovered dropdown row draws no outline, because an outline means focus', () => {
   const edged = rules(css).filter(([, head]) =>
-    splitSelectorList(head).some((h) => /\.ui-dropdown__item:hover$/.test(h.trim())))
+    splitSelectorList(head).some((h) => HOVER('.ui-dropdown__item').test(h.trim())))
     .some(([, , body]) => /outline/.test(body));
   assert.equal(edged, false, 'a hover rule paints an outline');
 });
 
 test('the hover-outline gate fails when a hover rule paints an outline', () => {
-  const weakened = css.replace(/(\.ui-dropdown__item:hover \{ )background/, '$1outline: 1px solid var(--control-edge); background');
+  const weakened = css.replace(/(\.ui-dropdown__item:hover:not\(:focus-visible\) \{ )background/, '$1outline: 1px solid var(--control-edge); background');
   assert.notEqual(weakened, css, 'the mutation found nothing to change');
   const edged = rules(weakened).filter(([, head]) =>
-    splitSelectorList(head).some((h) => /\.ui-dropdown__item:hover$/.test(h.trim())))
+    splitSelectorList(head).some((h) => HOVER('.ui-dropdown__item').test(h.trim())))
     .some(([, , body]) => /outline/.test(body));
   assert.equal(edged, true);
 });
@@ -191,7 +193,7 @@ test('a menu head that bleeds to the panel edge keeps a gap above the first row 
 
 test('the head-gap gate fails when the account head sits flush on the first row', () => {
   const topbar = sheet('src/styles/topbar.css');
-  const weakened = topbar.replace(/margin: -6px -6px 5px;/, 'margin: -6px -6px 0;');
+  const weakened = topbar.replace(/margin: -5px -5px 5px;/, 'margin: -5px -5px 0;');
   assert.notEqual(weakened, topbar, 'the mutation found nothing to change');
   assert.deepEqual(flushHeads([['src/styles/topbar.css', weakened]]), ['src/styles/topbar.css: .amenu .ahead']);
 });

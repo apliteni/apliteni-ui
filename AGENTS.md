@@ -137,6 +137,14 @@ select in a real browser:
 Report the result in the PR. The source half runs in CI. Keep this check out of routine CI to save Actions
 minutes.
 
+## Check the fit card and the field dropdown locally
+
+Before opening a PR that changes the `.ui-card--fit` rules in `src/styles/card.css`, or the
+`.ui-field > .ui-dropdown` rules in `src/styles/dropdown.css`, measure them in a real browser:
+`CARD_FIT=1 UI_PLAYWRIGHT=… node --test src/styles/card-fit.test.js`
+`FIELD_TRIGGER=1 UI_PLAYWRIGHT=… node --test src/styles/field-trigger.test.js`
+Report the result in the PR. The source halves run in CI.
+
 ## Check the motion helpers' missing-element guard locally
 
 Before opening a PR that changes `src/motion.js` or `src/motion.d.ts`, run the browser half:
@@ -372,6 +380,20 @@ Transactions showcase, measure them in a real browser. Run `npm run build-storyb
 `UI_PLAYWRIGHT=… UI_CHROME=… UI_WEB_VITALS=…/web-vitals.iife.js STAT_FIT=1 node --test stories/stat-band-fit.test.js`
 Report the result in the PR. CI runs only the source halves, in `src/styles/stat.test.js` and
 `react/src/transactions.test.tsx`.
+
+## Check the code smell limits locally
+
+`.smells.json` records the limits of the React workspace's TypeScript: function lines, complexity,
+file lines, local imports, repeats and import cycles. Before opening a PR that changes
+`react/**/*.ts` or `react/**/*.tsx`, run the `code-smells` skill's check. It needs the skill, Go
+and Bun. Set `SMELLS_SKILL` to the skill folder if it is not in `~/.agents/skills` or
+`~/.claude/skills`. Then run:
+`SMELLS=1 node --test scripts/smell-check.test.js`
+With `SMELLS=1`, a missing skill, Go or Bun is a failure. Without it, the check half is skipped.
+The check compares the caps with the `.smells.json` of `origin/main`, so run `git fetch origin main`
+first (`scripts/smell-check.test.js`, `mainLimits`).
+If code grows past a limit, split it. Do not raise its cap. Report the result in the PR. CI runs
+only the source half, which reads `.smells.json`.
 
 ## Changes
 

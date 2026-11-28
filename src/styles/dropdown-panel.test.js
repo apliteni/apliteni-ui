@@ -9,11 +9,12 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import { splitSelectorList } from '../../scripts/lib/selector-list.js';
-import { substitute, tokensFor } from '../../stories/lib/contrast.js';
+import { AA_TEXT, colourOf, composite, ratio, substitute, tokensFor } from '../../stories/lib/contrast.js';
 import { sizingRules } from '../../stories/lib/field-zoom.js';
 import { markup } from '../../stories/lib/react-markup.js';
 
 const CSS = readFileSync(new URL('./dropdown.css', import.meta.url), 'utf8');
+const ACCENTS_CSS = readFileSync(new URL('../tokens/accents.css', import.meta.url), 'utf8');
 const PLACEMENT = readFileSync(new URL('../logic/dropdown-placement.js', import.meta.url), 'utf8');
 
 /** The sheet as CSSOM rules, so a media query and its rules can be read apart. */
@@ -303,4 +304,112 @@ test('the placement falls back to the number the sheet declares', () => {
   const css = parseFloat(decl(panel, '--ui-dropdown-gap'));
   const js = parseFloat(/const DD_GAP = ([\d.]+)/.exec(PLACEMENT)?.[1]);
   assert.equal(js, css, 'DD_GAP in src/logic/dropdown-placement.js is the fallback for a document without the sheet');
+});
+
+// ---- The rounded popover (#888, rev_32e9894c9f71/d76) ----------------------
+// Read as declarations: the sheet states the corner, the inset, the row ground, the check
+// ink and the scroll bar, and a browser draws what it states. The row ground's contrast is
+// stories/selected-fill.test.js and stories/dropdown-row-states.test.js. Not reached here:
+// how an engine draws the -webkit- scroll bar parts, which only a browser shows.
+
+const rulesOf = (selector) => RULES.filter((r) => splitSelectorList(r.selector).includes(selector));
+const px = (value, theme = 'light') => parseFloat(substitute(value, tokensFor(theme)));
+
+test('the panel has the --radius-xl corner and a --radius-xs inset, and a row corner follows it', () => {
+  const panel = rulesOf('.ui-dropdown__panel').find((r) => decl(r, 'border-radius'));
+  assert.equal(decl(panel, 'border-radius'), 'var(--radius-xl)', 'the panel corner is the popover corner');
+  const pad = rulesOf('.ui-dropdown__panel').find((r) => decl(r, '--ui-dropdown-pad'));
+  const border = parseFloat(decl(panel, 'border'));
+  for (const theme of ['light', 'dark']) {
+    assert.equal(px(decl(pad, '--ui-dropdown-pad'), theme) + border, px('var(--radius-xs)', theme),
+      `${theme}: the padding and the border make the --radius-xs inset`);
+  }
+  const item = rulesOf('.ui-dropdown__item').find((r) => decl(r, 'border-radius'));
+  assert.equal(decl(item, 'border-radius'), 'calc(var(--radius-xl) - var(--radius-xs))', 'a row corner is the panel corner less the inset');
+  assert.equal(px('var(--radius-xl)') - px('var(--radius-xs)'), 12, 'a row has a 12px corner');
+  const squircle = RULES.filter((r) => /corner-shape/.test(r.body)).flatMap((r) => splitSelectorList(r.selector));
+  assert.ok(!squircle.some((s) => /^\.ui-dropdown__panel(\s*>|$)/.test(s)), 'the popover has round corners, not the squircle');
+});
+
+test('a hovered row takes --float-row-fill, a chosen row the soft tint, and a focused row paints no ground', () => {
+  // rev_550b6502339f/d86: the chosen row takes the soft accent tint and one tint step more
+  // under the pointer. A plain hover keeps the neutral grey.
+  const background = (selector) => {
+    const rule = rulesOf(selector).find((r) => decl(r, 'background'));
+    return rule && decl(rule, 'background');
+  };
+  assert.equal(background('.ui-dropdown__item:hover:not(:focus-visible)'), 'var(--float-row-fill)', 'a hovered row takes the quiet row ground');
+  assert.equal(background('.ui-dropdown__item.is-selected'), 'var(--float-row-selected)', 'a chosen row takes the soft tint');
+  assert.equal(background('.ui-dropdown__item.is-selected:hover:not(:focus-visible)'), 'var(--float-row-selected-hover)',
+    'a chosen row under the pointer takes one tint step more');
+  const focus = rulesOf('.ui-dropdown__item:focus-visible');
+  assert.ok(focus.length, 'the sheet has a focus rule for a row');
+  assert.ok(focus.every((r) => !decl(r, 'background')), 'a focused row paints no ground of its own');
+  assert.ok(focus.some((r) => decl(r, 'outline') === 'var(--ring-scroll)' && decl(r, 'outline-offset') === 'var(--ring-scroll-offset)'),
+    'a focused row keeps the inward ring');
+});
+
+// The soft tint in all eight theme and accent cells: the chosen row differs from the panel by
+// the 1.1:1 floor of a selected fill and from a hovered row, the pointer adds a visible step,
+// and the label, the check and each badge, its ink on its chip over the tint, keep 4.5:1.
+// LIMITS: token values only, sRGB mixing as colourOf reads it. The rendered rows are
+// DROPDOWN_EDGES=1's and the contrast walk's.
+test('the chosen row\'s soft tint clears the floors in every theme and accent', () => {
+  const accents = ['default', ...new Set([...ACCENTS_CSS.matchAll(/\[data-accent="([\w-]+)"\]/g)].map((m) => m[1]))];
+  assert.equal(accents.length, 4, `measured ${accents.length} accents, not 4`);
+  // Each badge tone as the sheet paints it on a chosen row.
+  const paint = (selector, prop) => decl(rulesOf(selector).find((r) => decl(r, prop)) ?? { body: '' }, prop);
+  const badges = [
+    ['neutral', paint('.ui-dropdown__badge', 'color'), paint('.ui-dropdown__badge', 'background')],
+    ['live', paint('.ui-dropdown__badge.is-live', 'color'), paint('.ui-dropdown__badge.is-live', 'background')],
+    ['state', paint('.ui-dropdown__item.is-selected > .ui-dropdown__badge.is-state', 'color'), paint('.ui-dropdown__badge', 'background')],
+  ];
+  for (const [name, ink, fill] of badges) assert.ok(ink && fill, `the sheet does not paint the ${name} badge`);
+  let cells = 0;
+  for (const theme of ['light', 'dark']) for (const accent of accents) {
+    const vars = tokensFor(theme, accent);
+    const at = `${theme} ${accent}`;
+    const [panel, hover, chosen, chosenHover, text] = ['--bg-elevated', '--float-row-fill', '--float-row-selected',
+      '--float-row-selected-hover', '--text'].map((name) => colourOf(`var(${name})`, vars));
+    for (const [name, c] of Object.entries({ panel, hover, chosen, chosenHover, text })) assert.ok(c, `${at}: ${name} does not resolve`);
+    assert.ok(ratio(chosen, panel) >= 1.1, `${at}: the chosen row is ${ratio(chosen, panel).toFixed(3)}:1 on the panel`);
+    assert.notDeepEqual(chosen, hover, `${at}: the chosen row is the hovered row's grey`);
+    assert.ok(ratio(chosenHover, chosen) > 1.02, `${at}: the pointer adds no visible step, ${ratio(chosenHover, chosen).toFixed(3)}:1`);
+    for (const ground of [chosen, chosenHover]) {
+      assert.ok(ratio(text, ground) >= AA_TEXT, `${at}: the label and the check are ${ratio(text, ground).toFixed(2)}:1`);
+      for (const [name, ink, fill] of badges) {
+        const [i, f] = [colourOf(ink, vars), colourOf(fill, vars)];
+        assert.ok(i && f, `${at}: the ${name} badge does not resolve`);
+        const r = ratio(composite(i, composite(f, ground)), composite(f, ground));
+        assert.ok(r >= AA_TEXT, `${at}: the ${name} badge on the chosen row is ${r.toFixed(2)}:1`);
+      }
+    }
+    cells++;
+  }
+  assert.equal(cells, 8, `measured ${cells} cells, not 8`);
+});
+
+test('the check is neutral ink, never the accent', () => {
+  const tick = rulesOf('.ui-dropdown__tick').filter((r) => decl(r, 'color'));
+  assert.ok(tick.length, 'the sheet colours the check');
+  for (const rule of tick) assert.equal(decl(rule, 'color'), 'var(--text)', `${rule.selector} paints the check in --text`);
+  assert.ok(!RULES.some((r) => /__tick/.test(r.selector) && /--accent/.test(r.body)), 'no rule paints the check in the accent');
+});
+
+test('the panel and the search list have a thin, rounded, neutral scroll bar, with a fallback', () => {
+  const css = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  for (const box of ['.ui-dropdown__panel', '.ui-dropdown__list']) {
+    const std = rulesOf(box).find((r) => decl(r, 'scrollbar-width'));
+    assert.equal(std && decl(std, 'scrollbar-width'), 'auto', `${box} leaves Chromium on the -webkit- parts`);
+    assert.equal(decl(rulesOf(`${box}::-webkit-scrollbar`)[0] ?? { body: '' }, 'width'), 'var(--space-2)', `${box}: the bar is --space-2 wide`);
+    const thumb = rulesOf(`${box}::-webkit-scrollbar-thumb`)[0] ?? { body: '' };
+    assert.equal(decl(thumb, 'background'), 'var(--muted)', `${box}: the thumb is neutral --muted`);
+    assert.equal(decl(thumb, 'border-radius'), 'var(--radius-pill)', `${box}: the thumb is rounded`);
+    const track = rulesOf(`${box}::-webkit-scrollbar-track`)[0] ?? { body: '' };
+    assert.equal(decl(track, 'background'), 'transparent', `${box}: the track paints nothing`);
+  }
+  const fallback = /@supports\s+not\s+selector\(::-webkit-scrollbar\)\s*\{([^]*?\})\s*\}/.exec(css)?.[1] ?? '';
+  for (const box of ['.ui-dropdown__panel', '.ui-dropdown__list']) assert.ok(fallback.includes(box), `the fallback reaches ${box}`);
+  assert.match(fallback, /scrollbar-width:\s*thin/, 'an engine without the parts takes the thin bar');
+  assert.match(fallback, /scrollbar-color:\s*var\(--muted\)\s+transparent/, 'and the neutral thumb on no track');
 });

@@ -84,15 +84,20 @@ field of a pager. A text area and message box use `--radius-2xl`. In a form, a d
 has the height of the text field beside it, but it keeps the pill and fits its longest option up to
 the field width. Give a field of your own the same corner.
 
-**Cards and floating panels use `--radius-md`.** This includes dialogs, dropdown panels, menus,
-callouts, toasts, success surfaces, code blocks and hover readouts. The round corner is the
-fallback. Where the browser supports it, these surfaces and typed fields use a squircle corner.
+**Cards and floating panels use `--radius-md`.** This includes dialogs, callouts, toasts, success
+surfaces, code blocks and hover readouts. The round corner is the fallback. Where the browser
+supports it, these surfaces and typed fields use a squircle corner.
+
+**A dropdown panel is a rounded popover with the 18px `--radius-xl` corner.** This covers a
+select, an action menu, a filter chip's menu, the date picker, the account menu and the version
+switch. Its corner is round in every browser, never the squircle. A row stands 6px inside the
+edge, the `--radius-xs` inset, and has a 12px corner, so its curve follows the panel's.
 
 These parts keep another corner:
 
 - A segmented strip keeps its own rounded track.
-- A menu row, a palette row and a date picker's day cell keep their small corner. They are rows
-  and cells in a panel, not controls on the page.
+- A palette row and a date picker's day cell keep their small corner. They are rows and cells in
+  a panel, not controls on the page.
 - The account row in the side rail keeps the corner of the rail rows.
 - The search line of the command palette is the top edge of the palette, so it follows the
   palette's corners.
@@ -377,6 +382,9 @@ The ladder, from bottom to top:
 | `--surface` | a card | `#211e2d` | `#ffffff` |
 | `--bg-elevated` | floating — a menu, a panel, the drawer, a modal, a toast | `#2a2639` | `#ffffff` |
 | `--surface-3` | non-text quiet fills | `#2d293c` | `#eef0f5` |
+| `--float-row-fill` | a hovered row in a dropdown panel | `#221f2e` | `#f4f4f4` |
+| `--float-row-selected` | the chosen row in a dropdown panel, default accent | `#3b3051` | `#f3eefb` |
+| `--float-row-selected-hover` | the chosen row under the pointer, default accent | `#3f3257` | `#efe8f9` |
 
 `--ui-document-ground` names the bare backdrop behind a document sheet, and aliases
 `--surface-2` in both themes. Use the class `.ui-document-ground` to paint it, so a page reads
@@ -419,7 +427,15 @@ box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--ele
 **The focus ring does not touch that list.** The band is an `outline`, so a focused panel keeps
 the edge and the drop it rests on without restating them.
 
-Inside a floating panel, rows keep a reading surface. A hovered row takes its own background fill, distinct from a selected row's fill, and no outline. Fields use the same field tokens as
+Inside a floating panel, rows keep a reading surface. In a dropdown panel, a hovered row takes one
+quiet ground, `--float-row-fill`, and draws no outline. In light it is a neutral grey. In dark it
+is one step darker than the panel, so a muted badge and an accent link on the row keep 4.5:1. It
+is 1.10:1 on the panel in both themes. The chosen row takes a soft accent tint,
+`--float-row-selected`, one step over the selected row of a table. It is 1.13:1 to 1.23:1 on the
+panel in every theme and accent, so it clears the 1.1:1 floor of a selected fill. Under the
+pointer it takes one more step, `--float-row-selected-hover`. A check in the text ink marks the
+chosen row, never the accent, so the choice is never colour alone. The text and every badge keep
+4.5:1 on both tints. A focused row takes no ground of its own, and the focus ring marks it. Fields use the same field tokens as
 elsewhere. A chip uses `--chip-neutral-fill` rather than the card surface. The floating panel is
 itself lighter than a card in dark, so the card surface is the darker step there.
 
@@ -586,6 +602,8 @@ layer. `input`, `select` and `textarea` generate no pseudo-element and use their
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
 A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 2 past the chip
 on each side to make 44.
+The selection bar's Clear draws 32 high with a 4px clear band inside its edge. Its layer
+reaches 6 above and 6 below it to make 44.
 A wordless button that is a direct child of a toolbar draws 36 or 40 wide. Its layer reaches
 into half of the toolbar's 10px gap on each side to make 44, and the gap does not open
 (src/styles/tap-zone.css:197 `--tap-clear-x: 10px`). To give a lone small, default or

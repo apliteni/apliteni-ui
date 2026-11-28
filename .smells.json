@@ -1,0 +1,195 @@
+{
+  "tools": {
+    "definitions": "cac72f2a9070eb83",
+    "dupl": "v1.0.0",
+    "gocognit": "v1.2.0",
+    "typescript": "5.9.3"
+  },
+  "languages": [
+    "typescript"
+  ],
+  "files": {
+    "include": [
+      "react/*.ts",
+      "react/*.tsx"
+    ],
+    "exclude": [],
+    "tests": [
+      "\\.test\\.tsx?$",
+      "^react/src/test/"
+    ]
+  },
+  "budgets": {
+    "production": {
+      "complexity": 15,
+      "cycles": 0,
+      "duplicate_groups": 0,
+      "duplicate_lines": 0,
+      "fan_out": 8,
+      "file_lines": 500,
+      "function_lines": 80
+    },
+    "tests": {
+      "complexity": 15,
+      "duplicate_groups": 0,
+      "duplicate_lines": 0,
+      "file_lines": 500,
+      "function_lines": 80
+    }
+  },
+  "caps": {
+    "production": {
+      "complexity": {
+        "react/src/AppShell.tsx:AppShell": 42,
+        "react/src/Chart.tsx:Chart": 135,
+        "react/src/DatePicker.tsx:DatePicker": 53,
+        "react/src/DiffPreview.stories.tsx:Preview": 21,
+        "react/src/DocumentReview.stories.tsx:DocumentReview": 19,
+        "react/src/Dropdown.tsx:Dropdown": 93,
+        "react/src/Dropdown.tsx:Dropdown/onKeyDown": 39,
+        "react/src/Dropdown.tsx:Dropdown/renderRow": 27,
+        "react/src/Feedback.tsx:Feedback/clearMark": 16,
+        "react/src/FileDrop.tsx:FileDrop": 30,
+        "react/src/Finance.stories.tsx:play": 17,
+        "react/src/Pagination.tsx:Pagination": 29,
+        "react/src/SidebarNav.tsx:Row": 34,
+        "react/src/SplitLayout.tsx:SplitLayout": 23,
+        "react/src/ThreeColumnPage.tsx:ThreeColumnPage": 16,
+        "react/src/Toast.tsx:Notice": 25,
+        "react/src/Toast.tsx:Toast": 17,
+        "react/src/chart-looks.tsx:linesDrawing": 16,
+        "react/src/contrast-walk.tsx:measure": 27,
+        "react/src/primitives/Button.tsx:Button": 46,
+        "react/src/primitives/Card.tsx:Card": 18,
+        "react/src/showcases/Notifications.tsx:Screen": 28,
+        "react/src/tip.ts:placeTip": 17
+      },
+      "cycles": {
+        "react/src/AccountMenu.tsx + react/src/AppShell.tsx": 1,
+        "react/src/Chart.tsx + react/src/chart-looks.tsx": 1
+      },
+      "duplicate_groups": {
+        "react/src/DataTable.stories.tsx + react/src/DataTable.test.tsx @bf5b28833adb": 2,
+        "react/src/DatePicker.tsx + react/src/Dropdown.tsx @67d6fbf14453": 2,
+        "react/src/SearchField.stories.tsx @34ab2f22dd55": 3,
+        "react/src/a11y.test.tsx + react/src/contrast-walk.tsx + react/src/field-zoom.test.tsx @0333899b0449": 3,
+        "react/src/contrast-walk.tsx + react/src/focus-ring.test.tsx @47107e9ea58c": 2
+      },
+      "duplicate_lines": {
+        "react/src/DataTable.stories.tsx": 4,
+        "react/src/DatePicker.tsx": 10,
+        "react/src/Dropdown.tsx": 17,
+        "react/src/SearchField.stories.tsx": 41,
+        "react/src/contrast-walk.tsx": 25
+      },
+      "fan_out": {
+        "react/src/AppShell.stories.tsx": 11,
+        "react/src/AppShell.tsx": 12,
+        "react/src/DocumentReview.stories.tsx": 9,
+        "react/src/KeyValueList.stories.tsx": 9,
+        "react/src/PeriodPicker.stories.tsx": 10,
+        "react/src/SearchField.stories.tsx": 9,
+        "react/src/showcases/MonthClose.tsx": 9,
+        "react/src/showcases/Notifications.tsx": 9
+      },
+      "file_lines": {
+        "react/src/Chart.stories.tsx": 540,
+        "react/src/Chart.tsx": 1728,
+        "react/src/DatePicker.tsx": 859,
+        "react/src/Dropdown.tsx": 1031,
+        "react/src/chart-looks.tsx": 712
+      },
+      "function_lines": {
+        "react/src/AccountMenu.tsx:AccountMenu": 100,
+        "react/src/AppShell.tsx:AppShell": 160,
+        "react/src/Chart.tsx:Chart": 754,
+        "react/src/CommandPalette.tsx:CommandPalette": 149,
+        "react/src/DatePicker.tsx:DatePicker": 477,
+        "react/src/DiffPreview.stories.tsx:Preview": 105,
+        "react/src/DocumentReview.stories.tsx:DocumentReview": 191,
+        "react/src/Dropdown.tsx:Dropdown": 553,
+        "react/src/Feedback.tsx:Feedback": 185,
+        "react/src/FileDrop.tsx:FileDrop": 91,
+        "react/src/FilterBar.tsx:FilterBar": 81,
+        "react/src/Pagination.tsx:Pagination": 141,
+        "react/src/PeriodPicker.stories.tsx:Example": 99,
+        "react/src/SplitLayout.tsx:SplitLayout": 117,
+        "react/src/ThreeColumnPage.tsx:ThreeColumnPage": 87,
+        "react/src/Tooltip.tsx:Tooltip": 149,
+        "react/src/chart-looks.tsx:linesDrawing": 139,
+        "react/src/contrast-walk.tsx:runWalkSlice": 149,
+        "react/src/primitives/Button.tsx:Button": 213,
+        "react/src/primitives/Button.tsx:Button/useEffect": 105,
+        "react/src/showcases/Notifications.tsx:Screen": 86
+      }
+    },
+    "tests": {
+      "complexity": {
+        "react/src/reading-surface.test.tsx:walk": 24
+      },
+      "duplicate_groups": {
+        "react/src/Chart.contrast.test.tsx @13206fb68ec3": 2,
+        "react/src/Chart.test.tsx + react/src/flat-bar.test.tsx @4937d0f44f31": 2,
+        "react/src/Chart.test.tsx @8d6bc5b451ad": 2,
+        "react/src/Chart.test.tsx @97f280d1d22b": 2,
+        "react/src/Chart.test.tsx @e44dcfe5c79e": 5,
+        "react/src/Dropdown.test.tsx @7384761674c3": 2,
+        "react/src/Dropdown.test.tsx @9e9ac10939f8": 2,
+        "react/src/Feedback.test.tsx @1b4f720ce799": 2,
+        "react/src/accessibility-floor.test.tsx + react/src/command-palette-guideline.test.tsx + react/src/drawer-rules.test.tsx + react/src/filter-selected-mark.test.tsx + react/src/glyph-stroke.test.tsx + react/src/inline-link-ring.test.tsx + react/src/react-bundle-cascade.test.tsx + react/src/stat-basis.test.tsx @dd545c2cbd94": 8
+      },
+      "duplicate_lines": {
+        "react/src/Chart.contrast.test.tsx": 13,
+        "react/src/Chart.test.tsx": 121,
+        "react/src/DataTable.test.tsx": 5,
+        "react/src/Dropdown.test.tsx": 71,
+        "react/src/Feedback.test.tsx": 20,
+        "react/src/a11y.test.tsx": 9,
+        "react/src/accessibility-floor.test.tsx": 10,
+        "react/src/command-palette-guideline.test.tsx": 12,
+        "react/src/drawer-rules.test.tsx": 12,
+        "react/src/field-zoom.test.tsx": 13,
+        "react/src/filter-selected-mark.test.tsx": 12,
+        "react/src/flat-bar.test.tsx": 8,
+        "react/src/focus-ring.test.tsx": 12,
+        "react/src/glyph-stroke.test.tsx": 12,
+        "react/src/inline-link-ring.test.tsx": 12,
+        "react/src/react-bundle-cascade.test.tsx": 10,
+        "react/src/stat-basis.test.tsx": 9
+      },
+      "file_lines": {
+        "react/src/AppShell.test.tsx": 702,
+        "react/src/Chart.test.tsx": 2906,
+        "react/src/DataTable.test.tsx": 1175,
+        "react/src/DatePicker.test.tsx": 1680,
+        "react/src/Drawer.test.tsx": 583,
+        "react/src/Dropdown.test.tsx": 2134,
+        "react/src/FileDrop.test.tsx": 505,
+        "react/src/ThreeColumnPage.test.tsx": 671,
+        "react/src/Toast.test.tsx": 553,
+        "react/src/dashboard-report-refs.test.tsx": 677,
+        "react/src/field-ground.test.tsx": 525,
+        "react/src/guidelines.test.tsx": 555,
+        "react/src/story-css.test.ts": 552
+      },
+      "function_lines": {
+        "react/src/AppShell.test.tsx:describe(\"account menu Theme submenu\")": 89,
+        "react/src/Chart.contrast.test.tsx:describe(\"the chart's tones\")": 167,
+        "react/src/CommandPalette.test.tsx:describe(\"the keyboard and the focus\")": 185,
+        "react/src/DatePicker.test.tsx:describe(\"day-range mode\")": 116,
+        "react/src/DatePicker.test.tsx:describe(\"range mode\")": 102,
+        "react/src/DatePicker.test.tsx:describe(\"the sheet\")": 182,
+        "react/src/DocumentReview.test.tsx:describe(\"document review flow\")": 127,
+        "react/src/Drawer.test.tsx:describe(\"the status after the title\")": 102,
+        "react/src/FileDrop.test.tsx:describe(\"FileDrop as the empty page's area\")": 97,
+        "react/src/FileDrop.test.tsx:describe(\"FileDrop once a file is in hand\")": 124,
+        "react/src/field-ground.test.tsx:describe(\"field ground: React coverage\")": 82,
+        "react/src/primitives/Button.test.tsx:describe(\"hold to confirm\")": 169,
+        "react/src/showcases/Notifications.test.tsx:describe(\"notifications showcase\")": 118,
+        "react/src/stat-basis.test.tsx:describe(\"stat basis: fixtures\")": 126,
+        "react/src/story-css.test.ts:describe(\"story CSS\")": 271
+      }
+    }
+  },
+  "exceptions": []
+}

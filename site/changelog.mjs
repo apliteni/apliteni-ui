@@ -1,6 +1,6 @@
 export const RELEASES = [
   {
-    v: '0.232.0', date: '2026-11-27',
+    v: '0.234.0', date: '2026-11-28',
     changes: [
       ['added', '`QuerySearch` is a list search that reads typed filters, such as `state:open`, and `@name` for a person. It suggests keys, values and people, and each known filter becomes a chip that you can edit or remove. Title words stay in the field and match the titles. `parseQuery`, `readQuery` and `matchQuery` read the same query for your list. Apps with a plain `SearchField` see no change. Part of #866.', ['QuerySearch']],
       ['added', '`MovableCard` is a card that a person moves to another column, such as a task on a board. It keeps its box in both themes and is one named Tab stop. `CardSlot` marks where a card lands, `held` leaves an empty slot, and `ui-card--lifted` keeps the moving copy fixed above the page. `ui-card-board` is the sideways scroll region for the columns, with the scroll band on keyboard focus and no scrollbar at 560px and below. Part of #866.', ['Card']],
@@ -9,6 +9,34 @@ export const RELEASES = [
       ['changed', '`QuerySearch` takes `size="sm"` for a small field, and its chips are then a small filter bar. A toolbar that starts with a `QuerySearch` keeps the search, Group by and the view switch on one line above 560px. A dropdown trigger with `ui-btn--ghost` now has no fill and no edge at rest. On a touch screen a wordless view option on that toolbar is 32px wide, and on a touch phone it reaches 44px. On a touch phone a query chip opens 11px between its label and its remove mark, so each reaches 44px. Apps that adopt `QuerySearch` are affected. Part of #866.', ['Toolbar', 'Dropdown']],
       ['added', 'Two guideline pages: Task list, with the rules Move cards on a board and Put New task beside the title, and Notification email, with the rule Link the task and the settings. The Toolbar docs now allow the create action at the end of a compact title row. Part of #866.', ['Guidelines']],
       ['added', 'Two showcases: Tasks, with a Table and a Board of the same tasks and one shared search, and Task mail, with a new task mail and a daily digest in plain text and HTML. Part of #866.', ['Showcases']],
+    ],
+  },
+  {
+    v: '0.233.0', date: '2026-11-28',
+    changes: [
+      ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
+      ['changed', 'In a dropdown panel, a hovered row now takes one quiet grey ground, the new token `--float-row-fill`. The chosen row takes a soft accent tint, `--float-row-selected`, and one step more under the pointer, `--float-row-selected-hover`. The check is the text ink, not the accent. A focused row shows the focus ring with no ground of its own. Part of #888.', ['Dropdown', 'FilterBar']],
+      ['fixed', 'A dropdown in a `Field` now makes room in its trigger for each row\'s badge and check. Before, its panel, which is as wide as the trigger, broke the label of a row with a badge, or of the chosen longest row, over two or more lines. The trigger is 24px wider for the check, and wider again where a row with a badge is the widest. Part of #888.', ['Dropdown']],
+      ['fixed', 'On a touch phone, the Clear control of `SelectionBar` now has a 44px tap target. Before, its target was 40px high. It looks the same. Part of #888.', ['SelectionBar']],
+    ],
+  },
+  {
+    v: '0.232.2', date: '2026-11-28',
+    changes: [
+      ['changed', 'The component guide, `docs/components.md`, is shorter and says each fact once. No component, prop or style changes, and every component, promise and linked heading stays. It corrects one fact for `AppShell` users: the topbar layout draws a command palette also without `palette`. Part of #888.'],
+    ],
+  },
+  {
+    v: '0.232.1', date: '2026-11-28',
+    changes: [
+      ['changed', 'React `DataTable` is now made of small internal parts. Its props, exports, markup, class names, look and behaviour do not change, so you do not need to change a call. Part of #888.', ['DataTable']],
+    ],
+  },
+  {
+    v: '0.232.0', date: '2026-11-28',
+    changes: [
+      ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. In a `Modal` or a `Drawer` it is as wide as its trigger, or 280px when the trigger is narrower. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
+      ['fixed', 'An open `Dropdown` panel in a `Modal` or a `Drawer` now follows its trigger when a font loads late. Before, the panel could cover the lower part of the trigger. Part of #924.', ['Dropdown']],
     ],
   },
   {

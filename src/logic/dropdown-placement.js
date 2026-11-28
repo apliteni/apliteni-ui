@@ -229,6 +229,7 @@ export function dropdownLift(dd, panel) {
       panel.removeAttribute('data-dd-lifted');
       for (const side of ['top', 'bottom', 'left', 'right']) panel.style.removeProperty(side);
       panel.style.removeProperty('inline-size');
+      panel.style.removeProperty('--ui-dropdown-anchor');
     }
     return false;
   }
@@ -289,7 +290,12 @@ function ddPlaceLifted(dd, panel) {
     s.transition = held;
   }
   ddWriteCeiling(panel);
-  if (dd.parentElement?.classList.contains('ui-field')) s.inlineSize = `${t.width}px`;
+  /* A fixed panel's 100% is the view, so a form's panel gets its trigger's width as a
+   * number, for its size and for the floor that the sheet sets. #924 */
+  if (dd.parentElement?.classList.contains('ui-field')) {
+    s.inlineSize = `${t.width}px`;
+    s.setProperty('--ui-dropdown-anchor', `${t.width}px`);
+  }
   const width = panel.getBoundingClientRect().width;
   const end = panel.classList.contains('is-end');
   const shift = dropdownViewportFit(panel, { left: end ? t.right - width : t.left, width })?.shift || 0;

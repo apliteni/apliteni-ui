@@ -325,6 +325,13 @@ const PERMITTED_FORCED = {
     why: 'forced colours remove the quiet hover fill. A Highlight border restores pointer feedback, while reduced padding keeps the row and text in place.',
     props: ['border', 'padding'],
   },
+  '.ui-dropdown__item.is-selected, .ui-dropdown__item.is-selected:hover:not(:focus-visible), .ui-dropdown__item.is-selected.is-active': {
+    why: 'forced colours remove the chosen row\'s tint, so the row takes Highlight and its tick '
+      + 'HighlightText, also under the pointer and as the search cursor. `:focus-visible` is '
+      + 'there only inside :not(), to outrank the normal hover rule. It draws no outline or '
+      + 'shadow, and the focused row keeps its ring. #888',
+    props: ['background', 'color'],
+  },
   '.vopt:hover': {
     why: 'forced colours remove the quiet hover fill. A Highlight border restores pointer feedback, while reduced padding keeps the row and text in place.',
     props: ['border', 'padding'],

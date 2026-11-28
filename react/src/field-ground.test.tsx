@@ -105,10 +105,11 @@ const THEMES = ['dark', 'light'] as const;
 // Then the files search field in the Toast Bottom Bar story (#907).
 // Then the search field of the Transactions showcase (#865).
 // Then the description search field of the FilterBar Long options story (#915).
+// Then the search field of the Card FitTable story (#924).
 // Then the query search field in the twenty Tasks stories that show the toolbar. Empty
 // shows no toolbar (#866).
 // Move this count with the specimens.
-const FIELD_COUNT = 232;
+const FIELD_COUNT = 233;
 
 // Measured in this workspace by the test at the foot of this file, not borrowed
 // from the vanilla gate's table. The two agree, which is what says both halves read
@@ -326,7 +327,7 @@ describe('field ground: React coverage', () => {
   // matching, or a story that stopped rendering its field, would otherwise leave
   // the gate green over nothing. Move the number with the specimens that moved.
   //
-  // Fields 43, Switch & Checkbox 16, Pagination 5, SearchField 5, Modal 3,
+  // Fields 43, Switch & Checkbox 16, Pagination 5, SearchField 6, Modal 3,
   // Drawer 2, DataTable 1, File drop 1.
   it('found the fields the catalogue renders, in both themes', () => {
     for (const theme of THEMES) {

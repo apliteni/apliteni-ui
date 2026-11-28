@@ -1,31 +1,15 @@
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ElementType, type ReactNode } from 'react';
-import { DEFAULT_PAGE_SIZE } from '@apliteni/apliteni-ui';
-import { Pagination, sizeOf } from './Pagination';
+import { Fragment, useRef, type ElementType, type ReactNode } from 'react';
+import type { Column, PinnedIdentity, TableSort } from './data-table/columns';
+import { useCardRegion, useFocusReveal, useFrameOverflow, usePagerStrip } from './data-table/frame';
+import { ColumnWidths, TableHead } from './data-table/Head';
+import { TableBody } from './data-table/Body';
+import { SelectPageCell, SelectRowCell } from './data-table/Selection';
+import { useTablePaging } from './data-table/paging';
+import { TablePager } from './data-table/Pager';
 import './DataTable.css';
 
-export type Column<T> = {
-  key: keyof T & string; label: ReactNode; num?: boolean; sortable?: boolean; render?: (row: T) => ReactNode;
-  /**
-   * `true` marks this column's body cells as holding one link and nothing else, so the
-   * link fills its cell and its focus ring outlines the cell rather than the words. It is
-   * the consumer's to declare because CSS counts elements and not words: a cell reading
-   * "Invoice 1162" with the number linked looks the same to a selector, and filling that
-   * one would put the number on a line of its own. The header cell is never marked — it
-   * holds a label, or a sort button that keeps its own ring.
-   * why: docs/components.md#data-table
-   */
-  linked?: boolean;
-  /** Renders this column's body cells as row headers (`th scope="row"`), as the kit's compact table does. */
-  rowHeader?: boolean;
-  /** `title` gives the column the remaining width, `code` sets a handle or id in the table's small text, `long` is running text that wraps in a column wide enough to read, `strong` bolds a figure, `act` right-aligns a row action. */
-  cell?: 'title' | 'code' | 'long' | 'strong' | 'act';
-  /**
-   * The column's set width, such as `'12ch'` or `'160px'`. The column keeps it while the rows
-   * change, so a reload does not move the columns. Longer content still widens it. #832
-   */
-  width?: string;
-};
-export type TableSort<T> = { key: (keyof T & string) | undefined; dir: 1 | -1 };
+export type { Column, TableSort } from './data-table/columns';
+export { sortTableRows } from './data-table/paging';
 type SelectionProps =
   | { selectable: false; selected?: Set<string>; onToggle?: (name: string) => void; onTogglePage?: (names: string[]) => void }
   | { selectable?: true; selected: Set<string>; onToggle: (name: string) => void; onTogglePage: (names: string[]) => void };
@@ -57,7 +41,7 @@ export type DataTableProps<T> = {
   caption?: string;
   dense?: boolean; density?: 'default' | 'dense' | 'compact' | 'comfortable'; stickyHeader?: boolean;
   /** `true` pins column 0. A column key pins that column, so a date can stand before the pinned identity. At 560px and below no column is pinned, and the whole table scrolls. */
-  pinnedIdentity?: boolean | (keyof T & string); scrollLabel?: string; empty?: ReactNode;
+  pinnedIdentity?: PinnedIdentity<T>; scrollLabel?: string; empty?: ReactNode;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */
   pager?: boolean;
@@ -74,23 +58,11 @@ export type DataTableProps<T> = {
   | { sort: TableSort<T>; onSortChange: (sort: TableSort<T>) => void }
 );
 
-const CELL_CLASS = { title: 'ui-table__title', code: 'ui-table__code', long: 'ui-table__long', strong: 'ui-table__num--strong', act: 'ui-table__act' } as const;
+type Density = DataTableProps<unknown>['density'];
 
-// `true` pins column 0, as it always has. A key pins the column that carries it,
-// so a date can stand before the pinned identity. why: docs/components.md#data-table
-const pinnedColumn = <T,>(pinnedIdentity: boolean | (keyof T & string) | undefined, key: keyof T & string, index: number) =>
-  pinnedIdentity === true ? index === 0 : pinnedIdentity === key;
-
-// The absence of a sort, as a value: the order is whatever the rows arrived in.
-const NO_SORT = { key: undefined, dir: -1 } as const;
-
-// why: docs/components.md#data-table
-// Every path returns a copy. Values must be comparable with JavaScript < and >.
-export function sortTableRows<T>(rows: T[], sort: TableSort<T>): T[] {
-  if (sort.key === undefined) return [...rows];
-  const key = sort.key;
-  return [...rows].sort((a, b) => (a[key] > b[key] ? 1 : a[key] < b[key] ? -1 : 0) * sort.dir);
-}
+const tableClass = ({ hover, zebra, dense, density, stickyHeader, pinnedIdentity }: {
+  hover: boolean; zebra: boolean; dense: boolean; density: Density; stickyHeader: boolean; pinnedIdentity: unknown;
+}) => ['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ');
 
 export function DataTable<T extends { name: string }>({
   columns, rows, zebra = false, hover = true, rowState, footer, caption, dense = false, density, stickyHeader = false, pinnedIdentity = false, scrollLabel = 'Table', empty = 'No rows', pageSize, pageSizes = null, onPageSizeChange, pager = true,
@@ -106,174 +78,15 @@ export function DataTable<T extends { name: string }>({
   const scrollable = stickyHeader || pinnedIdentity;
   const sized = columns.some((c) => c.width);
   const table = useRef<HTMLTableElement>(null);
-  // The box the strip sits in, held as state and not as a ref: the strip is conditional,
-  // and an effect reading a ref cannot see one arrive. A surface that supplies its own pager
-  // and later asks for this one left the arriving strip uncapped, because the dependencies
-  // below — the columns and the rows — are exactly what such a caller keeps still (#504).
-  const [pagerHost, setPagerHost] = useState<HTMLElement | null>(null);
-  const holdPagerBox = useCallback(
-    (box: HTMLDivElement | null) => setPagerHost(box?.parentElement ?? null), []);
-  const [strip, setStrip] = useState<{ width: number; inset: number }>();
-  // The strip starts where the table starts and ends where it ends, read against the box
-  // the strip itself sits in rather than against the table's own parent: a scroll region
-  // insets the table 4px inside itself, and a dense table in a card is bled 16px out of it,
-  // so neither edge can be copied from the table's width alone. A table bled past its
-  // container keeps the strip inside — only the table hangs into a card's padding.
-  // A width of zero is no measurement: jsdom and a page that has not laid out yet both
-  // report one, and a cap of zero would collapse the strip rather than leave it alone.
-  useEffect(() => {
-    const el = table.current;
-    const host = pagerHost;
-    // No strip, no cap to keep: a width measured for the last one would reach the next.
-    if (!el || !host || typeof ResizeObserver === 'undefined') {
-      setStrip(undefined);
-      return;
-    }
-    const measure = () => {
-      const rect = el.getBoundingClientRect();
-      const box = host.getBoundingClientRect();
-      const left = box.left + host.clientLeft
-        + (Number.parseFloat(getComputedStyle(host).paddingLeft) || 0);
-      const inset = Math.max(0, rect.left - left);
-      const width = rect.right - left - inset;
-      setStrip(width > 0 ? { width, inset } : undefined);
-    };
-    const observer = new ResizeObserver(measure);
-    observer.observe(el);
-    measure();
-    return () => observer.disconnect();
-  }, [pagerHost, columns, rows]);
-  // The frame is a tab stop only while its content overflows: a stop that scrolls nothing
-  // leads nowhere. It is read again on each resize of the frame or the table. Without a
-  // ResizeObserver the frame stays a stop, so the far columns stay reachable.
-  const frame = useRef<HTMLDivElement>(null);
-  const [overflows, setOverflows] = useState(true);
-  useEffect(() => {
-    const box = frame.current;
-    const el = table.current;
-    if (!box || !el || typeof ResizeObserver === 'undefined') return;
-    const read = () => setOverflows(
-      box.scrollWidth > box.clientWidth || box.scrollHeight > box.clientHeight);
-    const observer = new ResizeObserver(read);
-    observer.observe(box);
-    observer.observe(el);
-    read();
-    return () => observer.disconnect();
-  }, [scrollable]);
-  // An engine scrolls a focused control into the frame's view only when the control is
-  // fully hidden, so a Tab to a control that shows in part leaves it cut. A focus that
-  // the keyboard or a script moves brings the whole control in. A pointer's focus is left
-  // alone, so a click does not move its target. The frame and a card that scrolls the
-  // table both do this.
-  const pressed = useRef(false);
-  const reveal = (e: { target: EventTarget | null }) => {
-    if (!pressed.current) (e.target as Element).scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
-  };
-  const press = (down: boolean) => () => { pressed.current = down; };
-  // A table that is not sticky or pinned sits directly in a card, and the card scrolls it
-  // sideways (card.css `.ui-card:has(> .ui-table)`). The card is then the scroll region, so it
-  // takes the name and keyboard access the `.ui-table-scroll` frame takes. The attributes are
-  // written on the card and removed when the table leaves, because the card's own render does
-  // not know the table. why: docs/components.md#data-table
-  useEffect(() => {
-    if (scrollable) return;
-    const el = table.current;
-    const card = el?.parentElement;
-    if (!el || !card || !card.classList.contains('ui-card')) return;
-    const handlers = [['focusin', reveal], ['pointerdown', press(true)], ['pointerup', press(false)],
-      ['pointercancel', press(false)]] as const;
-    for (const [type, fn] of handlers) card.addEventListener(type, fn);
-    const unwire = () => { for (const [type, fn] of handlers) card.removeEventListener(type, fn); };
-    // A card that is itself a link or a button, or that already declares a role, name or
-    // stop of its own, keeps them: the table inside scrolls without a named region rather
-    // than stealing the card's role and name. Only a plain, unnamed card takes the frame's.
-    if (card.tagName === 'A' || card.tagName === 'BUTTON') return unwire;
-    for (const attr of ['role', 'aria-label', 'aria-labelledby', 'tabindex']) {
-      if (card.hasAttribute(attr)) return unwire;
-    }
-    card.setAttribute('role', 'region');
-    card.setAttribute('aria-label', scrollLabel);
-    const clear = () => {
-      unwire();
-      card.removeAttribute('role');
-      card.removeAttribute('aria-label');
-      card.removeAttribute('tabindex');
-    };
-    if (typeof ResizeObserver === 'undefined') {
-      // No size to read: the card stays a stop, as the frame does without an observer.
-      card.tabIndex = 0;
-      return clear;
-    }
-    const read = () => {
-      if (card.scrollWidth > card.clientWidth) card.tabIndex = 0;
-      else card.removeAttribute('tabindex');
-    };
-    const observer = new ResizeObserver(read);
-    observer.observe(card);
-    observer.observe(el);
-    read();
-    return () => { observer.disconnect(); clear(); };
-  }, [scrollable, scrollLabel]);
-  const [localSort, setLocalSort] = useState<TableSort<T>>(
-    { key: columns.find((c) => c.sortable)?.key, dir: -1 });
-  const owned = controlledPage === undefined;
-  // A controlled page arrives in an order this table did not choose and cannot
-  // see. Left to its own sort it would seed to the first sortable column and
-  // reorder the page the server had just ordered, so in that mode it has none —
-  // and, having none, it lets no header claim one either.
-  const sort: TableSort<T> = controlledSort ?? (owned ? localSort : NO_SORT);
-  const sortIsKnown = owned || controlledSort !== undefined;
-  const [localPage, setLocalPage] = useState(1);
-  const [localSize, setLocalSize] = useState(DEFAULT_PAGE_SIZE);
-  // Read by the pager's own rule, because the pager below the table reads it and
-  // the two may not disagree: `?size=` reaches here as NaN, whose slice bounds
-  // are NaN and whose page is empty under a strip announcing a full one, and
-  // `2.5` is two rows to the pager and three to a slice that rounds late.
-  // Controlled and given no size, the size of the page IS the page in hand — the
-  // kit's default would describe a hundred rows nobody was handed. (An empty
-  // page in hand says nothing about a size, so that one falls back to the scale.)
-  const size = sizeOf(pageSize, owned ? localSize : (rows.length || DEFAULT_PAGE_SIZE));
-  // Compare values so fresh inline sort objects do not reset pagination.
-  const [pagedSort, setPagedSort] = useState(sort);
-  if (pagedSort.key !== sort.key || pagedSort.dir !== sort.dir) {
-    setPagedSort(sort);
-    setLocalPage(1);
-  }
-
-  // Controlled: these rows ARE the page. They are neither reordered nor divided
-  // again, and the count is the caller's, because the rows in front of us are
-  // not the whole result.
-  const ordered = useMemo(
-    () => (owned ? sortTableRows(rows, sort) : rows), [owned, rows, sort.key, sort.dir]);
-  const pages = Math.max(1, Math.ceil(ordered.length / size));
-  const page = owned ? Math.min(Math.max(1, localPage), pages) : controlledPage;
-  const slice = owned ? ordered.slice((page - 1) * size, page * size) : ordered;
-  const goTo = (n: number) => (owned ? setLocalPage(n) : onPageChange?.(n));
-  // A page the reader is no longer on has to be left, and in the controlled mode
-  // only its owner can do that — so it is asked, exactly as a sort change is.
-  const toFirstPage = () => { if (owned) setLocalPage(1); else if (page !== 1) onPageChange?.(1); };
-  const onSort = (key: keyof T & string) => {
-    const next: TableSort<T> = sort.key === key
-      ? { key, dir: sort.dir === 1 ? -1 : 1 }
-      : { key, dir: -1 };
-    if (controlledSort === undefined) setLocalSort(next);
-    onSortChange?.(next);
-    toFirstPage();
-  };
-  const caret = (k: string) => (
-    <svg className="rx-caret" data-up={sort.key === k && sort.dir === 1 || undefined}
-      viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-      {sort.key === k ? <path d="m8 10 4 4 4-4" /> : <>
-        <path d="m8 9 4-4 4 4" />
-        <path d="m8 15 4 4 4-4" />
-      </>}
-    </svg>
-  );
+  const strip = usePagerStrip(table, columns, rows);
+  const { frame, overflows } = useFrameOverflow(table, scrollable);
+  const focusReveal = useFocusReveal();
+  const { reveal, press } = focusReveal;
+  useCardRegion(table, scrollable, scrollLabel, focusReveal);
+  const paging = useTablePaging({ columns, rows, controlledSort, onSortChange, controlledPage, onPageChange, pageSize, onPageSizeChange });
+  const { slice } = paging;
   // A table that does not scroll is the card's own child, so the card's bleed reaches it.
   const Wrap: ElementType = scrollable ? 'div' : Fragment;
-  const pageAllOn = selectable && slice.length > 0 && slice.every((r) => selected.has(r.name));
-  const pageSomeOn = selectable && !pageAllOn && slice.some((r) => selected.has(r.name));
 
   return (
     <>
@@ -281,96 +94,25 @@ export function DataTable<T extends { name: string }>({
           says so. A reader who cannot see it otherwise meets a table that is
           silently either current or stale, with no way to tell which. */}
       <Wrap {...(scrollable ? { ref: frame, className: 'ui-table-scroll', role: 'region', 'aria-label': scrollLabel, tabIndex: overflows ? 0 : undefined, onFocus: reveal, onPointerDown: press(true), onPointerUp: press(false), onPointerCancel: press(false) } : {})}>
-      <table ref={table} className={['ui-table', hover && 'ui-table--hover', zebra && 'ui-table--zebra', (density === 'dense' || (!density && dense)) && 'ui-table--dense', density === 'compact' && 'ui-table--compact', density === 'comfortable' && 'ui-table--comfortable', stickyHeader && 'ui-table--sticky', pinnedIdentity && 'ui-table--pinned'].filter(Boolean).join(' ')}
+      <table ref={table} className={tableClass({ hover, zebra, dense, density, stickyHeader, pinnedIdentity })}
         aria-busy={loading || undefined}>
         {caption ? <caption className="ui-sr">{caption}</caption> : null}
-        {sized ? <colgroup>
-          {selectable ? <col /> : null}
-          {columns.map((c) => <col key={c.key} style={c.width ? { width: c.width } : undefined} />)}
-        </colgroup> : null}
-        <thead>
-          <tr>
-            {selectable ? <th scope="col" className="ui-table__selection">
-              {/* No visible text: aria-label is this checkbox's whole name. */}
-              <input type="checkbox" checked={pageAllOn} aria-label="Select all rows on this page"
-                ref={(input) => { if (input) input.indeterminate = pageSomeOn; }}
-                onChange={() => onTogglePage(slice.map((r) => r.name))} />
-            </th> : null}
-            {columns.map((c, columnIndex) => (
-              // The sort control is a real <button> inside the header cell. It used to be
-              // role="button" ON the <th>, which threw away the columnheader role and put
-              // aria-sort on a role that forbids it.
-              <th key={c.key} scope="col"
-                className={[pinnedColumn(pinnedIdentity, c.key, columnIndex) && 'ui-table__identity', c.num && 'ui-table__num', c.sortable && 'rx-sortable'].filter(Boolean).join(' ')}
-                // External sorting can select a column without an interactive header.
-                // A table whose page is controlled and whose sort is not knows
-                // no order to report: "none" would be a claim of its own, and
-                // the column it is wrong about is the one the server sorted by.
-                aria-sort={sort.key === c.key
-                  ? (sort.dir === 1 ? 'ascending' : 'descending')
-                  : (c.sortable && sortIsKnown ? 'none' : undefined)}>
-                {c.sortable
-                  ? (
-                    // The label is its own box so it can truncate: in a pinned
-                    // identity column on a phone the header is capped, and a bare
-                    // text node would push the caret out of the cell instead.
-                    <button type="button" className="rx-sort" onClick={() => onSort(c.key)}>
-                      <span className="rx-sort__label">{c.label}</span>{caret(c.key)}
-                    </button>
-                  )
-                  : c.label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {!slice.length && <tr><td colSpan={columns.length + (selectable ? 1 : 0)}>{loading ? 'Loading rows…' : empty}</td></tr>}
-          {slice.map((r) => (
-            <tr key={r.name}
-              className={rowState?.(r) ? `is-${rowState(r)}` : undefined}>
-              {selectable ? <td className="ui-table__selection"><input type="checkbox" checked={selected.has(r.name)} aria-label={`Select ${r.name}`}
-                onChange={() => onToggle(r.name)} /></td> : null}
-              {columns.map((c, columnIndex) => {
-                const Cell = c.rowHeader ? 'th' : 'td';
-                return (
-                  // A set width lives on the col alone. In a table with a set width, a title
-                  // cell gives up its claim on the rest of the row, so the edges hold when the
-                  // rows arrive: the free room goes to the unsized columns in both states. #832
-                  <Cell key={c.key} scope={c.rowHeader ? 'row' : undefined} style={c.width || (sized && c.cell === 'title') ? { width: 'auto' } : undefined}
-                    className={[c.num && 'ui-table__num', c.cell && CELL_CLASS[c.cell], pinnedColumn(pinnedIdentity, c.key, columnIndex) && 'ui-table__identity', c.linked && 'ui-table__linked'].filter(Boolean).join(' ') || undefined}>
-                    {c.render ? c.render(r) : String(r[c.key])}
-                  </Cell>
-                );
-              })}
-            </tr>
-          ))}
-        </tbody>
+        {sized ? <ColumnWidths columns={columns} selectable={selectable} /> : null}
+        <TableHead columns={columns} sort={paging.sort} sortIsKnown={paging.sortIsKnown} onSort={paging.onSort}
+          pinnedIdentity={pinnedIdentity} selection={selectable
+            ? <SelectPageCell names={slice.map((r) => r.name)} selected={selected} onTogglePage={onTogglePage} />
+            : null} />
+        <TableBody columns={columns} rows={slice} sized={sized} pinnedIdentity={pinnedIdentity}
+          rowState={rowState} empty={empty} loading={loading}
+          selection={selectable ? (r) => <SelectRowCell name={r.name} selected={selected} onToggle={onToggle} /> : undefined} />
         {footer ? <tfoot>{footer}</tfoot> : null}
       </table>
       </Wrap>
       {/* One page and no size to choose renders nothing at all — the pager's own
           rule, not a second copy of it here. */}
       {pager ? (
-      // The strip that pages a table may not be wider than the rows it pages (#504).
-      // The two are siblings, and no selector sizes one to the other, so the width is
-      // measured: a cap rather than a width, so a pager wider than the table wraps
-      // inside it and a table wider than the room still leaves the strip in the room.
-      <div className="rx-table-pager" ref={holdPagerBox}
-        style={strip ? { maxWidth: strip.width, marginInlineStart: strip.inset || undefined } : undefined}>
-        <Pagination page={page} pageSize={size} total={owned ? ordered.length : total ?? null}
-          hasMore={hasMore} pageSizes={pageSizes} loading={loading}
-          {...(pagerLabel === undefined ? {} : { label: pagerLabel })}
-          onPageChange={goTo}
-          onPageSizeChange={(s) => {
-            if (pageSize === undefined) setLocalSize(s);
-            onPageSizeChange?.(s);
-            // A size change already means page 1, so a controlled table reports
-            // the size and stops: the onPageChange(1) that used to follow it
-            // carried the old size, and an owner refetching on either call
-            // landed back on the size the reader had just replaced.
-            if (owned) setLocalPage(1);
-          }} />
-      </div>
+        <TablePager paging={paging} strip={strip} total={total} hasMore={hasMore} pageSizes={pageSizes}
+          loading={loading} pagerLabel={pagerLabel} />
       ) : null}
     </>
   );

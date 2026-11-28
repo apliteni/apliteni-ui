@@ -199,9 +199,10 @@
      why: docs/components.md#dropdown */
   --ui-dropdown-max: 300px;
   /* Named for the same reason the offset is: a block pinned to an edge has to
-     bleed back through it, and #306 is a page copying the number by hand.
+     bleed back through it, and #306 is a page copying the number by hand. The
+     --radius-xs inset, less the 1px border, so a row stands 6px inside the edge.
      why: docs/components.md#dropdown */
-  --ui-dropdown-pad: 6px;
+  --ui-dropdown-pad: 5px;
   /* The panel states its own role rather than inheriting one, because `portal:
      true` moves it onto <body> and an inherited face is then decided by where
      the panel was MOUNTED rather than by what it is. Measured: the same dropdown
@@ -241,7 +242,9 @@
      why: docs/foundations.md#elevation */
   border: 1px solid var(--float-edge);
   box-shadow: inset 0 0 0 1px var(--elev-edge, var(--float-edge-inner)), var(--elev-drop);
-  border-radius: var(--radius-md);
+  /* The rounded popover, with round corners and not the squircle. rev_32e9894c9f71/d76
+     why: docs/foundations.md#control-corners */
+  border-radius: var(--radius-xl);
   padding: var(--ui-dropdown-pad);
   /* The cap, and the whole of #489: a panel took its content's height until that
      height ran off the screen, and then it took what was left. Two numbers decide
@@ -375,6 +378,25 @@
 }
 .ui-dropdown__panel--portal.is-open { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0); }
 
+/* A thin, rounded, neutral scroll bar inside the panel and the search list. `auto` keeps
+   Chromium on the -webkit- parts, which it ignores once either standard property is set.
+   The track stops short of the corners. An engine without the parts takes the thin bar.
+   rev_32e9894c9f71/d76 why: docs/components.md#dropdown */
+.ui-dropdown__panel,
+.ui-dropdown__list { scrollbar-width: auto; scrollbar-color: auto; }
+.ui-dropdown__panel::-webkit-scrollbar,
+.ui-dropdown__list::-webkit-scrollbar { width: var(--space-2); }
+.ui-dropdown__panel::-webkit-scrollbar-button,
+.ui-dropdown__list::-webkit-scrollbar-button { display: none; }
+.ui-dropdown__panel::-webkit-scrollbar-track,
+.ui-dropdown__list::-webkit-scrollbar-track { background: transparent; margin-block: var(--radius-xl); }
+.ui-dropdown__panel::-webkit-scrollbar-thumb,
+.ui-dropdown__list::-webkit-scrollbar-thumb { background: var(--muted); border: 2px solid var(--bg-elevated); border-radius: var(--radius-pill); }
+@supports not selector(::-webkit-scrollbar) {
+  .ui-dropdown__panel,
+  .ui-dropdown__list { scrollbar-width: thin; scrollbar-color: var(--muted) transparent; }
+}
+
 /* Item row — [icon] [main: label + desc] [badge] [tick]. A row is a <div>, an
    <a href> or a <button>: `is-selected` and __tick below mean a row gets
    chosen, and choosing is a button's job. So the tag's own styling is reset
@@ -387,7 +409,8 @@
   width: 100%;
   padding: 9px 12px;
   border: 0;
-  border-radius: var(--radius-sm);
+  /* The panel corner less the 6px inset, so the row's curve follows the panel's. */
+  border-radius: calc(var(--radius-xl) - var(--radius-xs));
   background: none;
   cursor: pointer;
   text-align: left;
@@ -398,24 +421,28 @@
   font: inherit;
   color: var(--text);
 }
-/* Hover is a fill and an outline means focus, so a hovered row draws no edge. A row that is
-   hovered AND focused draws the ring over the fill.
-   why: docs/foundations.md#elevation */
+/* A hovered row takes the quiet neutral ground. Hover is a fill and an outline means focus,
+   so a hovered row draws no edge. rev_32e9894c9f71/d76 why: docs/foundations.md#elevation */
 .ui-dropdown__item[aria-expanded="true"],
-.ui-dropdown__item:hover { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
-/* Light only: the panel is --bg-elevated, which --surface matches exactly there, so the
-   hover fill above changed nothing. --surface-3 is the quiet fill the drawer's close mark
-   takes on hover, one step under the --surface-2 that .is-active takes below.
-   why: docs/foundations.md#elevation */
-:where(:root[data-theme="light"]) .ui-dropdown__item[aria-expanded="true"],
-:where(:root[data-theme="light"]) .ui-dropdown__item:hover { background: var(--surface-3); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-dropdown__item:hover:not(:focus-visible) { background: var(--float-row-fill); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+/* The chosen row takes the soft accent tint and the neutral check, and one tint step more
+   under the pointer. rev_550b6502339f/d86 why: docs/foundations.md#elevation */
+.ui-dropdown__item.is-selected { background: var(--float-row-selected); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
+.ui-dropdown__item.is-selected:hover:not(:focus-visible) { background: var(--float-row-selected-hover); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ }
 @media (forced-colors: active) {
   .ui-dropdown__item:hover { border: 1px solid Highlight; padding: 8px 11px; }
+  /* The tint is gone in forced colours, so the chosen row takes the system highlight. It
+     keeps it under the pointer and as the search cursor, or its HighlightText tick is lost. */
+  .ui-dropdown__item.is-selected,
+  .ui-dropdown__item.is-selected:hover:not(:focus-visible),
+  .ui-dropdown__item.is-selected.is-active { background: Highlight; color: HighlightText; }
+  .ui-dropdown__item.is-selected :is(.ui-dropdown__label, .ui-dropdown__tick) { color: HighlightText; }
 }
 /* The row draws its ring inward, so a row scrolled flush with the list's edge cannot have it
-   clipped and the list scrolls as it did.
+   clipped and the list scrolls as it did. A focused row takes no ground of its own, so the
+   ring tells it from a hovered row, and a chosen row keeps its ground under the ring.
    why: docs/foundations.md#the-focus-ring */
-.ui-dropdown__item:focus-visible { background: var(--surface); /* code-bg: inherit — control paint; the containing surface is the ground, for a chip and for a band alike. */ outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
+.ui-dropdown__item:focus-visible { outline: var(--ring-scroll); outline-offset: var(--ring-scroll-offset); }
 .ui-dropdown__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ui-dropdown__label { font-family: var(--font-sans); font-size: var(--text-sm); color: var(--strong); font-weight: var(--weight-normal); letter-spacing: 0.01em; }
 .ui-dropdown__desc { font-size: var(--text-xs); color: var(--text); line-height: 1.35; }
@@ -423,7 +450,7 @@
 .ui-dropdown__ic svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2.1; }
 
 /* Trailing selected tick (listbox variant) */
-.ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--accent); }
+.ui-dropdown__tick { margin-left: auto; flex: none; display: none; color: var(--text); } /* The check is neutral ink, never the accent. rev_32e9894c9f71/d76 */
 .ui-dropdown__tick svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.4; }
 .ui-dropdown__item.is-selected .ui-dropdown__tick { display: inline-flex; } /* motion: still — a mark inside a row whose highlight changes at once; picking it closes the panel, which fades out over --dur-med */
 .ui-dropdown__item.is-selected .ui-dropdown__label { color: var(--text); }
@@ -484,6 +511,9 @@
 }
 .ui-dropdown__item.is-disabled .ui-dropdown__label,
 .ui-dropdown__item.is-disabled .ui-dropdown__desc { color: inherit; }
+/* The chosen row's tint takes the option ink to 3.36:1, so a chosen option that became
+   unavailable takes the plain disabled ink: 4.55:1 or more on the tint. #888 */
+.ui-dropdown__item.is-selected.is-disabled { /* muted-ink: state — unavailable option on the chosen row's tint */ color: var(--disabled-ink); }
 /* Body ink at rest, --pink on the way to being pressed. Both states, not hover alone:
    the ring says where the reader is, not that this row ends something.
    why: docs/components.md#dropdown */
@@ -518,12 +548,12 @@
 .ui-dropdown__panel > .ui-dropdown__head {
   margin: calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1) 5px;
   border-bottom: 1px solid var(--border);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 .ui-dropdown__panel > .ui-dropdown__foot {
   margin: 5px calc(var(--ui-dropdown-pad) * -1) calc(var(--ui-dropdown-pad) * -1);
   border-top: 1px solid var(--border);
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
 }
 
 /* Search — `search: true` pins a field above the rows and filters them as the
@@ -608,8 +638,10 @@
   color: var(--muted);
 }
 /* On the row Enter would pick, the chip sits on --surface-2, where --muted reads 4.37:1 in
-   light. --dim keeps the state ink and clears 4.5:1 (#852). */
-.ui-dropdown__item.is-active > .ui-dropdown__badge.is-state { /* muted-ink: state — archived badge on the search pick */ color: var(--dim); }
+   light. --dim keeps the state ink and clears 4.5:1 (#852). The chosen row's soft tint drops
+   --muted under 4.5:1 in dark, so the chip takes --dim there too. #888 */
+.ui-dropdown__item.is-active > .ui-dropdown__badge.is-state,
+.ui-dropdown__item.is-selected > .ui-dropdown__badge.is-state { /* muted-ink: state — archived badge on the search pick or the chosen row */ color: var(--dim); }
 
 /* A picker of people. A mark leads the trigger and each row; with no value the trigger
    shows the dashed ring beside the placeholder in the placeholder ink. The mark's own
@@ -641,14 +673,15 @@
   visibility: hidden; min-inline-size: 0; overflow: hidden;
 }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__fit > * { grid-area: 1 / 1; }
+/* The panel is as wide as the trigger, so a hidden row holds its panel row's badge, and every
+   line keeps room for the row's check: the 16px mark and its 8px gap. Then each label in the
+   panel stays on one line. #888 why: docs/components.md#fields */
+.ui-field > .ui-dropdown > .ui-dropdown__trigger .ui-dropdown__line { padding-inline-end: calc(var(--space-4) + var(--space-2)); }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__line { grid-area: 1 / 1; }
 .ui-field > .ui-dropdown > .ui-dropdown__trigger > .ui-dropdown__chevron { grid-area: 1 / 2; }
 .ui-field > .ui-dropdown > .ui-dropdown__panel { inline-size: 100%; min-width: 0; }
 
 @supports (corner-shape: squircle) {
-  .ui-dropdown__panel,
-  .ui-dropdown__panel > .ui-dropdown__head,
-  .ui-dropdown__panel > .ui-dropdown__foot,
   .ui-dropdown__search-input { corner-shape: squircle; }
 }
 /* In a form the trigger takes the text input's block padding and type, so the two
@@ -712,6 +745,14 @@
 }
 @media (max-width: 560px) {
   .ui-field > .ui-dropdown:has(> .ui-dropdown__trigger--ghost) { --ui-dropdown-hang: var(--space-3); }
+}
+/* A search panel keeps its 280px floor in a form too, so its field holds the search text.
+   The floor stops at the panel's ceiling, so the panel stays inside the view. A panel
+   lifted out of a Modal or Drawer body is fixed, so its 100% is the view: the wiring
+   writes the trigger's width as --ui-dropdown-anchor. #924
+   why: docs/components.md#dropdown */
+.ui-field > .ui-dropdown > .ui-dropdown__panel.ui-dropdown__panel--search {
+  min-inline-size: min(max(var(--ui-dropdown-anchor, 100%), 280px), var(--ui-dropdown-ceiling, calc(100vw - 2 * var(--ui-dropdown-edge))));
 }
 .ui-table td > .ui-dropdown:first-child:has(> .ui-dropdown__trigger--ghost) {
   vertical-align: top;

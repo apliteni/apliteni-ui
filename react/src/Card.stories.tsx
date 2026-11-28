@@ -6,6 +6,8 @@ import { Badge } from './primitives/Badge';
 import { Pill } from './primitives/Pill';
 import { Segmented } from './Segmented';
 import { Switch } from './Switch';
+import { DataTable, type Column } from './DataTable';
+import { SearchField } from './SearchField';
 
 const meta: Meta = {
   title: 'React/Card',
@@ -72,6 +74,39 @@ export const Interactive: StoryObj = {
       <Card href="#" icon="plug" title="Agents" sub="Connect an agent over MCP." />
     </div>
   </div>,
+};
+
+// `ui-card--fit` ends a card at its table. A table wider than the column takes the full column
+// and scrolls inside the card, in both themes. The amounts are fabricated. #924
+type UnitRow = { name: string; [month: string]: string };
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = Array.from({ length: 30 }, (_, i) => MONTH_NAMES[i % 12] + ' ' + (2024 + Math.floor(i / 12)));
+const UNIT_ROWS: UnitRow[] = ['Birch Studio', 'Cedar Studio', 'Harbour Consulting'].map((name, u) => ({
+  name, ...Object.fromEntries(MONTHS.map((m, i) => [m, '€' + (1200 + u * 340 + i * 85).toLocaleString('en-GB') + '.00'])),
+}));
+const unitColumns = (months: string[]): Column<UnitRow>[] => [
+  { key: 'name', label: 'Unit' },
+  ...months.map((m) => ({ key: m, label: m, num: true })),
+];
+
+export const FitTable: StoryObj = {
+  render: function Render() {
+    const [query, setQuery] = useState('');
+    const rows = UNIT_ROWS.filter((r) => r.name.toLowerCase().includes(query.trim().toLowerCase()));
+    return <div style={page}><div className="ui-app__body">
+      <div className="ui-toolbar">
+        <SearchField ariaLabel="Search units" placeholder="Unit" value={query} onChange={(e) => setQuery(e.currentTarget.value)} />
+      </div>
+      <div className="ui-card-stack">
+        <Card className="ui-card--fit" title="Cost this quarter">
+          <DataTable columns={unitColumns(MONTHS.slice(-2))} rows={rows} selectable={false} pager={false} empty="No units match" scrollLabel="Cost this quarter" />
+        </Card>
+        <Card className="ui-card--fit" title="Cost per month">
+          <DataTable columns={unitColumns(MONTHS)} rows={rows} selectable={false} pager={false} empty="No units match" scrollLabel="Cost per month" />
+        </Card>
+      </div>
+    </div></div>;
+  },
 };
 
 export const SettingRows: StoryObj = {

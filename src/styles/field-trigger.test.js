@@ -13,6 +13,11 @@
  * the input's 16px. One field holds a long value, which must keep one line.
  * It draws in the browser's fallback font, not IBM Plex Sans, so it proves equal heights,
  * not the 45px the served Storybook measures.
+ *
+ * The same cells hold a second rule: a dropdown with a search field keeps its 280px floor in a
+ * field, so the field shows its search text, and stays inside the view. The Month field has short
+ * values, so its trigger is far under 280px. The panel is shut and unwired, so this proves the
+ * sheet's floor and its fallback ceiling, not the wiring's shift. #924
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -43,6 +48,10 @@ const HEAVY = ['the field value rule removed', 'src/styles/dropdown.css',
   /\.ui-field > \.ui-dropdown > \.ui-dropdown__trigger \.ui-dropdown__value \{[^}]*\}\n/, ''];
 // A long value let wrap again.
 const WRAP = ['a long value let wrap', 'src/styles/dropdown.css', /(overflow: hidden;)\n  white-space: nowrap;(\n  text-overflow: ellipsis;\n  text-align: start;)/, '$1$2'];
+// The search floor in a field removed, as it was before #924.
+const SEARCH_FLOOR_OFF = ['the search floor in a field removed', 'src/styles/dropdown.css',
+  /\.ui-field > \.ui-dropdown > \.ui-dropdown__panel\.ui-dropdown__panel--search \{[^}]*\}\n/, ''];
+const SEARCH_FLOOR = 280;
 
 const mutate = (p, css, mutation) => {
   if (!mutation || mutation[1] !== p) return css;
@@ -122,11 +131,13 @@ const SHEETS = [...read('src/index.css').matchAll(/@import "\.\/([^"]+)"/g)].map
 const sheet = (mutation) => SHEETS.map((p) => mutate(p, read(p), mutation)).join('\n');
 const ITEMS = [{ label: 'Avery Example', value: 'a' }, { label: 'Jordan Okafor', value: 'j' },
   { label: 'Northwind Studio, the design and print office on the third floor', value: 'n' }];
+const MONTHS = Array.from({ length: 12 }, (_, i) => ({ label: `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][i]} 2026`, value: `m${i + 1}` }));
 const form = () => markup(({ h, kit }) => h('div', { style: { width: '360px' } },
   h(kit.TextField, { label: 'Title', defaultValue: 'Pay the studio invoice' }),
   h(kit.Field, { label: 'Owner' }, (control) => h(kit.Dropdown, { ...control, variant: 'select', items: ITEMS, value: 'a' })),
   h(kit.Field, { label: 'Due' }, ({ id }) => h(kit.DatePicker, { id, mode: 'day', value: '2026-11-20' })),
   h(kit.Field, { label: 'Office' }, (control) => h(kit.Dropdown, { ...control, variant: 'select', items: ITEMS, value: ITEMS[2].label, selectedValue: 'n' })),
+  h(kit.Field, { label: 'Month' }, (control) => h(kit.Dropdown, { ...control, variant: 'select', items: MONTHS, value: 'May 2026', selectedValue: 'm5', search: { count: 12, noun: 'months' } })),
   h(kit.Dropdown, { ariaLabel: 'Status', variant: 'select', items: ITEMS, value: 'a' })));
 
 const WIDTHS = [{ name: 'desktop', width: 1440, touch: false }, { name: 'touch phone', width: 390, touch: true },
@@ -154,6 +165,10 @@ async function measure(css) {
             input: one(document.querySelector('.ui-field .ui-input')),
             field: [...document.querySelectorAll('.ui-field .ui-dropdown__trigger')].map(one),
             pill: one(document.querySelector('body > div > .ui-dropdown > .ui-dropdown__trigger')),
+            search: (() => {
+              const r = document.querySelector('.ui-field .ui-dropdown__panel--search').getBoundingClientRect();
+              return { left: r.left, right: r.right, width: r.width, view: document.documentElement.clientWidth };
+            })(),
           };
         });
         out.push({ cell: `${name} ${theme}`, touch, ...box });
@@ -172,7 +187,7 @@ function faults(cells) {
   if (cells.length !== WIDTHS.length * 2) out.push(`${cells.length} of ${WIDTHS.length * 2} cells measured`);
   for (const c of cells) {
     if (c.coarse !== c.touch) out.push(`${c.cell}: (pointer: coarse) is ${c.coarse}, so the cell proves nothing`);
-    if (c.field.length !== 3) out.push(`${c.cell}: ${c.field.length} of 3 field triggers found`);
+    if (c.field.length !== 4) out.push(`${c.cell}: ${c.field.length} of 4 field triggers found`);
     c.field.forEach((t, i) => {
       if (Math.abs(t.height - c.input.height) > 0.5) out.push(`${c.cell}: field trigger ${i + 1} is ${t.height}px, the input ${c.input.height}px`);
       if (t.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: field trigger ${i + 1} radius ${t.radius}, not the pill`);
@@ -182,6 +197,8 @@ function faults(cells) {
       }
     });
     if (c.pill.radius !== resolve('var(--radius-pill)')) out.push(`${c.cell}: the trigger outside a field has radius ${c.pill.radius}`);
+    if (c.search.width < SEARCH_FLOOR - 0.5) out.push(`${c.cell}: the search panel in a field is ${c.search.width}px, under the ${SEARCH_FLOOR}px floor`);
+    if (c.search.left < 0 || c.search.right > c.search.view + 0.5) out.push(`${c.cell}: the search panel runs ${c.search.left} to ${c.search.right}px, outside the ${c.search.view}px view`);
   }
   return out;
 }
@@ -190,9 +207,9 @@ test('measured in Chromium: a field trigger is as high as the input, both widths
   skip: !env.FIELD_TRIGGER && 'set FIELD_TRIGGER=1 and UI_PLAYWRIGHT to run the Chrome layout gate',
 }, async (t) => {
   const cells = await measure(sheet());
-  for (const c of cells) t.diagnostic(`${c.cell}: input ${c.input.height}px, triggers ${c.field.map((f) => f.height).join(' and ')}px, pill radius ${c.pill.radius}`);
+  for (const c of cells) t.diagnostic(`${c.cell}: input ${c.input.height}px, triggers ${c.field.map((f) => f.height).join(' and ')}px, pill radius ${c.pill.radius}, search panel ${c.search.width}px`);
   assert.deepEqual(faults(cells), []);
-  for (const mutation of [MUTATION, SCALED, WRAP, HEAVY]) {
+  for (const mutation of [MUTATION, SCALED, WRAP, HEAVY, SEARCH_FLOOR_OFF]) {
     await t.test(`the gate rejects ${mutation[0]}`, async () => {
       const found = faults(await measure(sheet(mutation)));
       assert.ok(found.length > 0, `the gate passed a sheet with ${mutation[0]}`);

@@ -178,6 +178,18 @@
   --rail-edge: var(--border);          /* the shell's rail */
   --float-edge: var(--border-strong);  /* a floating surface, outer line */
   --float-edge-inner: var(--border);   /* a floating surface, inner line */
+  /* A row in a floating panel: the hovered row and the chosen row share this quiet ground,
+     and a neutral check marks the chosen one. Dark sits one step under the panel, because a
+     lighter ground drops the muted badge to 3.95:1 and the accent link to 4.34:1. Light is
+     the neutral grey of rev_92b7f8a56703/d79.
+     why: docs/foundations.md#elevation */
+  --float-row-fill: color-mix(in srgb, var(--surface) 88%, var(--bg-elevated));
+  /* The chosen row takes the soft tint of rev_550b6502339f/d86: the table's selected tint one
+     step up, which clears the 1.1:1 floor of a selected fill, and one step more under the
+     pointer. The check stays in the text ink. why: docs/foundations.md#elevation */
+  --float-row-selected: color-mix(in srgb, var(--accent) var(--card-tint-hover), var(--bg-elevated));
+  /* One tint step, 3 points, above the chosen row: 12% + 3%. */
+  --float-row-selected-hover: color-mix(in srgb, var(--accent) 15%, var(--bg-elevated));
   --modal-edge: transparent;           /* the modal: the deep scrim is its edge */
 
   /* Fields use the card surface and an edge in both themes. why: docs/foundations.md#elevation */
@@ -451,6 +463,12 @@
   --rail-edge: var(--level-line);
   --float-edge: var(--level-line);
   --float-edge-inner: transparent;
+  /* The neutral grey of rev_92b7f8a56703/d79. */
+  --float-row-fill: color-mix(in srgb, var(--text) 5%, var(--bg-elevated));
+  /* The soft tint of rev_550b6502339f/d86, on the light tint steps. */
+  --float-row-selected: color-mix(in srgb, var(--accent) var(--card-tint-hover), var(--bg-elevated));
+  /* One tint step, 3 points, above the chosen row: 8% + 3%. */
+  --float-row-selected-hover: color-mix(in srgb, var(--accent) 11%, var(--bg-elevated));
   --modal-edge: var(--float-edge);
 
   /* Light draws a field with its EDGE, because since #448 it has no well left to draw it
