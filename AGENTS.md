@@ -381,6 +381,15 @@ Transactions showcase, measure them in a real browser. Run `npm run build-storyb
 Report the result in the PR. CI runs only the source halves, in `src/styles/stat.test.js` and
 `react/src/transactions.test.tsx`.
 
+## Check the date picker keyboard story locally
+
+Before opening a PR that changes the layout of the DatePicker Keyboard story or the width of
+React `<DatePicker>`, measure the story in a real browser. Run `npm run build-storybook` first, then:
+`UI_PLAYWRIGHT=… DATEPICKER_KEYBOARD=1 node --test stories/datepicker-keyboard-fit.test.js`
+It measures 10 sizes and 6 devices. If the Playwright package has no browser of its own version,
+set `UI_CHROME` to a Chrome headless shell. Report the result in the PR. CI runs only the source
+half, in `react/src/DatePicker.keyboard-story.test.tsx`.
+
 ## Check the code smell limits locally
 
 `.smells.json` records the limits of the React workspace's TypeScript: function lines, complexity,
