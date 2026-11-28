@@ -87,6 +87,9 @@ describe('QuerySearch', () => {
     await user.keyboard('{Escape}{Enter}');
     expect(chips()).toEqual(['(Open or Done) and Ada Lovelace']);
   });
+});
+
+describe('QuerySearch chips from the query', () => {
   it('makes a chip only for a known filter, and keeps free words in the field', async () => {
     const user = userEvent.setup();
     render(<Harness />);
@@ -158,6 +161,9 @@ describe('QuerySearch', () => {
     expect(field()).toHaveValue('report state:open');
     expect(chips()).toEqual([]);
   });
+});
+
+describe('QuerySearch keys and focus', () => {
   it('keeps an invalid draft, names the keys, and clears the error on the next edit', async () => {
     const user = userEvent.setup();
     render(<Harness />);
@@ -212,6 +218,9 @@ describe('QuerySearch', () => {
     rerender(<QuerySearch keys={KEYS} value={{ chips: ['state:open'], draft: '' }} onChange={() => {}} ariaLabel="Search tasks" />);
     expect(screen.getByRole('group', { name: 'Active filters' })).not.toHaveClass('ui-filter-bar--sm');
   });
+});
+
+describe('QuerySearch chip controls, paste and people', () => {
   it('edits a chip by its label, and removes a focused chip with Delete or by its mark', async () => {
     const user = userEvent.setup();
     render(<Harness start={{ chips: ['state:open', 'assignee:p2', 'report'], draft: '' }} />);

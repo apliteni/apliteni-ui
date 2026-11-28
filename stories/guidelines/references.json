@@ -450,7 +450,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:197",
+    "ref": "react/src/AppShell.tsx:92",
     "pattern": "back && <BackLink"
    }
   ],
@@ -1417,7 +1417,7 @@
     "pattern": "return <div ref={ref} draggable tabIndex={0} role=\"group\" aria-label={label} {...props}"
    },
    {
-    "ref": "react/src/showcases/Tasks.tsx:74",
+    "ref": "react/src/showcases/Tasks.tsx:61",
     "pattern": "{ label: 'Move to', items: moves }"
    },
    {
@@ -1427,7 +1427,7 @@
   ],
   "task-head": [
    {
-    "ref": "react/src/AppShell.tsx:195",
+    "ref": "react/src/AppShell.tsx:90",
     "pattern": "const rowTools = compact && actions ? <>{tools}{actions}</> : tools;"
    },
    {
@@ -1435,7 +1435,7 @@
     "pattern": ".ui-toolbar:has(> .ui-query) { flex-wrap: nowrap; align-items: flex-start; }"
    },
    {
-    "ref": "react/src/showcases/Tasks.tsx:327",
+    "ref": "react/src/showcases/Tasks.tsx:402",
     "pattern": "useEffect(() => writeHash(view, group, query), [view, group, query]);"
    }
   ]

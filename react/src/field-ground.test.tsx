@@ -105,9 +105,7 @@ const THEMES = ['dark', 'light'] as const;
 // Then the files search field in the Toast Bottom Bar story (#907).
 // Then the search field of the Transactions showcase (#865).
 // Then the description search field of the FilterBar Long options story (#915).
-// Then the search field of the Card FitTable story (#924).
-// Then the query search field in the twenty Tasks stories that show the toolbar. Empty
-// shows no toolbar (#866).
+// Then the search field of the Card FitTable story (#924), and the query search of the twenty Tasks stories with a toolbar (#866).
 // Move this count with the specimens.
 const FIELD_COUNT = 233;
 

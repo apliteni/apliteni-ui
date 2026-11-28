@@ -19,80 +19,11 @@
 // rather than sent to the allow-list. A `style={name}` and a `...spread` of one are read
 // the way React reads them; anything this file cannot settle reports as unreadable.
 import { describe, it, expect } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import path from 'node:path';
 
 // @ts-expect-error -- untyped JS module, deliberately shared across the two gates.
 import { kitTokenNames, measureStory, problemsIn, show } from '../../scripts/lib/story-css.js';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(here, '../..');
-const read = (rel: string) => readFileSync(path.join(root, rel), 'utf8');
-
-/* ---- the subjects ------------------------------------------------------- */
-
-/** Every file under a directory, repo-relative, however deep it sits. */
-function filesUnder(rel: string, acc: string[] = []): string[] {
-  for (const entry of readdirSync(path.join(root, rel), { withFileTypes: true })) {
-    const next = `${rel}/${entry.name}`;
-    if (entry.isDirectory()) filesUnder(next, acc);
-    else acc.push(next);
-  }
-  return acc;
-}
-
-// What .storybook/main.js serves from this workspace: `../src/**/*.stories.@(tsx|ts)`.
-// Recursive, and two extensions — so this sweep is too. A sweep narrower than the glob gates
-// less than Storybook ships, and the gap is silent: the aggregate counts below stay green
-// while a story in a new folder paints whatever it likes. The same config also serves
-// `../../stories/**`, the foundation and guideline pages moved over in #429 PR 4. Those
-// pages are deliberately not subjects, for the reason stories/story-css.test.js gives:
-// their own gates measure them.
-const SERVED = /\.stories\.tsx?$/;
-
-const files = filesUnder('react/src');
-
-/** A module that could own a stylesheet: not a story, not a test. */
-const isModule = (file: string) => /\.tsx?$/.test(file)
-  && !SERVED.test(file) && !/\.test\.tsx?$/.test(file);
-
-/** Does `file` import `sheet`? Resolved, so an import from a subfolder counts. */
-const importsSheet = (file: string, sheet: string) => {
-  const from = path.dirname(path.join(root, file));
-  for (const m of read(file).matchAll(/['"]([^'"]+\.css)['"]/g)) {
-    if (path.resolve(from, m[1]) === path.join(root, sheet)) return true;
-  }
-  return false;
-};
-
-/** A sheet nothing but a story (or a test) imports is story CSS. */
-const storyOnlySheet = (sheet: string) => !files.filter(isModule).some((f) => importsSheet(f, sheet));
-
-/** The subjects among a list of paths, so a mutation can hand this one it invented. */
-export const subjectsAmong = (paths: string[]) => paths.filter((p) => SERVED.test(p)).sort();
-
-/** A stylesheet in the showcases folder: read for any importer, a module included. */
-export const isShowcaseSheet = (file: string) => /^react\/src\/showcases\/(?:.+\/)?[^/]+\.css$/.test(file);
-
-/** A module in the showcases folder: read for its inline styles, as its sheet is. #866 */
-export const isShowcaseModule = (file: string) => /^react\/src\/showcases\/(?:.+\/)?[^/]+\.tsx$/.test(file) && isModule(file);
-
-// The showcases under stories/apps/ and the `_name.tsx` modules they build with, which
-// the root Storybook serves beside this workspace's stories (#429 moved them from the
-// vanilla collection, whose gate read them until then). Foundations and guideline pages
-// stay out, for the reason given above.
-// The two page frames at the root of stories/ draw those pages, so they stay out with them.
-const ROOT_SHOWCASES = filesUnder('stories')
-  .filter((f) => !/^stories\/(?:foundations|guidelines)\//.test(f) && !/^stories\/_(?:guideline|page)\.tsx$/.test(f))
-  .filter((f) => SERVED.test(f) || /(?:^|\/)_[\w-]+\.tsx$/.test(f));
-
-const subjects: string[] = [...new Set([
-  ...subjectsAmong(files),
-  ...ROOT_SHOWCASES,
-  ...files.filter(isShowcaseModule),
-  ...files.filter((f) => f.endsWith('.css')).filter((f) => isShowcaseSheet(f) || storyOnlySheet(f)),
-])].sort();
+import { files, importsSheet, isModule, isShowcaseSheet, read, SERVED, storyOnlySheet, subjects, subjectsAmong } from './test/story-css-subjects';
 
 // Measured, not guessed: the story and stylesheet floors, as this gate last
 // audited them. Every figure is a lower bound, so the gate fails when the reading stops
@@ -195,10 +126,9 @@ describe('story CSS', () => {
   it('finds every story and every story-only stylesheet', () => {
     expect(subjects.length).toBeGreaterThanOrEqual(FOUND.subjects);
     expect(subjects.filter((f) => f.endsWith('.css'))).toEqual([
-      'react/src/FeedbackShowcase.css',
-      'react/src/FinanceComposition.css', 'react/src/showcases/Auth.css',
-      'react/src/showcases/Notifications.css', 'react/src/showcases/SplitLayout.css',
-      'react/src/showcases/TaskMail.css', 'react/src/showcases/Tasks.css',
+      'react/src/FeedbackShowcase.css', 'react/src/FinanceComposition.css',
+      'react/src/showcases/Auth.css', 'react/src/showcases/Notifications.css',
+      'react/src/showcases/SplitLayout.css', 'react/src/showcases/TaskMail.css', 'react/src/showcases/Tasks.css',
     ]);
     expect(subjects.filter((f) => f.endsWith('.css')).length).toBe(FOUND.sheets);
     // A component's own sheet is not a subject: it is this workspace's kit source.
@@ -213,9 +143,6 @@ describe('story CSS', () => {
     expect(storyOnlySheet(sheet), 'the sheet should be imported by its module').toBe(false);
     expect(subjects).toContain(sheet);
     expect(isShowcaseSheet('react/src/showcases/New.css')).toBe(true);
-    // A showcase module is read for its inline styles, so its placements need a reason too. #866
-    expect(subjects).toContain('react/src/showcases/TaskMail.tsx');
-    expect(subjects).not.toContain('react/src/showcases/tasks-data.ts');
     expect(isShowcaseSheet('react/src/DataTable.css')).toBe(false);
   });
 
@@ -560,4 +487,10 @@ describe('story CSS', () => {
     expect(storyOnlySheet('react/src/FeedbackShowcase.css')).toBe(true);
     expect(files.filter(isModule).some((f) => f.startsWith('react/src/primitives/'))).toBe(true);
   });
+});
+
+// A showcase module is read for its inline styles, so its placements need a reason too. #866
+it('reads a showcase module, and not its data', () => {
+  expect(subjects).toContain('react/src/showcases/TaskMail.tsx');
+  expect(subjects).not.toContain('react/src/showcases/tasks-data.ts');
 });

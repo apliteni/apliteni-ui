@@ -56,6 +56,9 @@ describe('the Tasks page', () => {
     expect(screen.queryByRole('button', { name: 'Open: edit state:open' })).toBeNull();
     expect(window.location.hash).toBe('#view=table&group=status');
   });
+});
+
+describe('the Tasks board', () => {
   it('groups the board by Status, Assignee and Due date, with a count in each column', async () => {
     const user = userEvent.setup();
     render(<Tasks view="board" />);
@@ -110,6 +113,9 @@ describe('the Tasks page', () => {
     await moveByKeys();
     expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
   });
+});
+
+describe('the Tasks table menu and states', () => {
   it('gives a table row the menu Open, Reassign and Copy link', async () => {
     const user = userEvent.setup();
     render(<Tasks view="table" />);

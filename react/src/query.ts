@@ -60,6 +60,20 @@ export function parseQuery(text: string, keys: readonly QueryKey[]): QueryTerm[]
   const people = keys.find(k => k.kind === 'person');
   const keyList = () => list(keys.map(k => `${k.key}:`));
   let at = 0;
+  // One key and its value, such as state:open,done or @maria.
+  const filter = (key: QueryKey, value: string): QueryTerm => {
+    if (!value) throw new QueryError(`Add a value after ${key.key}:.`);
+    if (key.kind === 'person') {
+      const found = person(key, value);
+      if (!found) throw new QueryError('No person matches this name. Type @ to choose a person.');
+      return { raw: `${key.key}:${found.value}`, label: found.label, node: { type: 'field', key: key.key, values: [found.value] } };
+    }
+    const values = lower(value).split(',').map(v => key.values.find(k => lower(k.value) === v));
+    if (values.some(v => !v)) throw new QueryError(`Use ${list(key.values.map(v => v.value))} after ${key.key}:.`);
+    const found = values as QueryValue[];
+    return { raw: `${key.key}:${found.map(v => v.value).join(',')}`, label: found.map(v => v.label).join(' or '),
+      node: { type: 'field', key: key.key, values: found.map(v => v.value) } };
+  };
   const atom = (): QueryTerm => {
     const raw = tokens[at++];
     if (!raw || raw === ')' || OPERATOR.test(raw)) throw new QueryError('Complete the condition after the operator.');
@@ -72,18 +86,7 @@ export function parseQuery(text: string, keys: readonly QueryKey[]): QueryTerm[]
     if (match || (raw.startsWith('@') && people)) {
       const key = match ? findQueryKey(keys, match[1]) : people;
       if (!key) throw new QueryError(`Unknown filter “${match![1]}”. Use ${keyList()}.`);
-      const value = (match?.[2] ?? raw).replace(/^"|"$/g, '');
-      if (!value) throw new QueryError(`Add a value after ${key.key}:.`);
-      if (key.kind === 'person') {
-        const found = person(key, value);
-        if (!found) throw new QueryError('No person matches this name. Type @ to choose a person.');
-        return { raw: `${key.key}:${found.value}`, label: found.label, node: { type: 'field', key: key.key, values: [found.value] } };
-      }
-      const values = lower(value).split(',').map(v => key.values.find(k => lower(k.value) === v));
-      if (values.some(v => !v)) throw new QueryError(`Use ${list(key.values.map(v => v.value))} after ${key.key}:.`);
-      const found = values as QueryValue[];
-      return { raw: `${key.key}:${found.map(v => v.value).join(',')}`, label: found.map(v => v.label).join(' or '),
-        node: { type: 'field', key: key.key, values: found.map(v => v.value) } };
+      return filter(key, (match?.[2] ?? raw).replace(/^"|"$/g, ''));
     }
     if (raw.includes(':')) throw new QueryError(`Use ${keyList()} before a value.`);
     const words = raw.replace(/^"|"$/g, '');

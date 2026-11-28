@@ -1,27 +1,14 @@
 // The Tasks showcase (#866): one list of tasks in a Table view and a Board view, with one
 // shared query search, grouping on the Board, the row and card menu, and the empty,
 // no-match, loading and error states. Kit parts only. All data is fabricated.
-import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
-import { AppShell } from '../AppShell';
-import { Avatar } from '../primitives/Avatar';
-import { Badge } from '../primitives/Badge';
-import { Button } from '../primitives/Button';
-import { Callout } from '../primitives/Callout';
-import { Card } from '../primitives/Card';
-import { Icon } from '../primitives/Icon';
-import { BusyRegion, Skeleton, SkeletonTable } from '../Loading';
-import { DataTable, type Column, type TableSort } from '../DataTable';
-import { Dropdown, type DropdownEntry } from '../Dropdown';
-import { KeyValueList } from '../KeyValueList';
-import { EmptyState } from '../EmptyState';
-import { Field } from '../Field';
-import { Modal } from '../Modal';
-import { Segmented } from '../Segmented';
-import { Toast, useToast } from '../Toast';
-import { QuerySearch } from '../QuerySearch';
-import { CardSlot, MovableCard } from '../MovableCard';
-import { matchQuery, readQuery, type QueryState } from '../query';
+// One import of the kit, as an app imports the package.
+import {
+  AppShell, Avatar, Badge, BusyRegion, Button, Callout, Card, CardSlot, DataTable, Dropdown, EmptyState, Field, Icon,
+  KeyValueList, Modal, MovableCard, QuerySearch, Segmented, Skeleton, SkeletonTable, Toast, matchQuery, readQuery, useToast,
+  type Column, type DropdownEntry, type QueryState, type TableSort,
+} from '../index';
 import {
   PEOPLE, SEARCH_STATES, STATUSES, TASKS, TASK_KEYS, TASK_URL, due, person, shortDate, status, taskField, taskText,
   type SearchState, type Status, type Task,
@@ -91,20 +78,10 @@ function TaskTable({ rows, menu, onOpen }: { rows: Task[]; menu: (task: Task) =>
 }
 
 type Drag = { id: string; x: number; y: number; over: string | null; touch: boolean };
+type Board = { rows: Task[]; group: TaskGroup; onMove: (task: Task, to: string, group: TaskGroup) => void };
 
-/**
- * The board: one column for each group, side by side in one sideways scroll region. A card
- * moves by mouse drag, by a long press and drag on touch, and by its menu with the keyboard.
- * The exact card follows the pointer, its own place shows the source slot, and the target
- * slot marks where it lands in due date order. A live region says the target.
- */
-function TaskBoard({ rows, group, menu, onMove, onOpen }: {
-  rows: Task[]; group: TaskGroup; menu: (task: Task) => ReactNode;
-  onMove: (task: Task, to: string, group: TaskGroup) => void; onOpen: (task: Task) => void;
-}) {
-  const frame = useRef<HTMLDivElement>(null);
-  const current = useRef({ rows, group, onMove });
-  current.current = { rows, group, onMove };
+// The lifted copy of a card and the drag state. A drag reads the latest rows from `current`.
+function useBoardDrag(frame: RefObject<HTMLDivElement | null>, current: RefObject<Board>) {
   const active = useRef<Drag | null>(null);
   const preview = useRef<HTMLElement | null>(null);
   const offset = useRef({ x: 0, y: 0 });
@@ -112,9 +89,6 @@ function TaskBoard({ rows, group, menu, onMove, onOpen }: {
   const [held, setHeld] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const [cardHeight, setCardHeight] = useState(0);
-  const groups = group === 'status' ? STATUSES.map((s) => ({ id: s.id as string, label: s.label }))
-    : group === 'assignee' ? PEOPLE.map((p) => ({ id: p.id, label: p.name }))
-      : [...new Set(rows.map((t) => t.due))].sort().map((date) => ({ id: date, label: shortDate(date) }));
 
   const place = (x: number, y: number) => {
     if (!preview.current) return;
@@ -160,7 +134,12 @@ function TaskBoard({ rows, group, menu, onMove, onOpen }: {
     setHeld(null);
     setOver(null);
   };
+  return { active, preview, suppress, held, over, setOver, cardHeight, place, locate, begin, finish };
+}
 
+// A long press and drag on touch, the scroll near the region's sides, and Escape.
+function useTouchDrag(frame: RefObject<HTMLDivElement | null>, drag: ReturnType<typeof useBoardDrag>) {
+  const { active, preview, setOver, place, locate, begin, finish } = drag;
   useEffect(() => {
     const box = frame.current!;
     const css = getComputedStyle(box);
@@ -226,6 +205,66 @@ function TaskBoard({ rows, group, menu, onMove, onOpen }: {
       document.removeEventListener('keydown', key);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+}
+
+type BoardGroup = { id: string; label: string };
+
+function BoardColumn({ g, rows, group, target, moving, drag, menu, onOpen }: {
+  g: BoardGroup; rows: Task[]; group: TaskGroup; target?: BoardGroup; moving?: Task;
+  drag: ReturnType<typeof useBoardDrag>; menu: (task: Task) => ReactNode; onOpen: (task: Task) => void;
+}) {
+  const { held, cardHeight, begin, finish } = drag;
+  const tasks = rows.filter((t) => t[group] === g.id).sort(byDue);
+  const landing = target?.id === g.id && moving;
+  const candidate = landing ? { ...moving, due: group === 'due' ? g.id : moving.due } : null;
+  const before = candidate ? tasks.find((t) => byDue(candidate, t) <= 0)?.name : undefined;
+  const slot = <CardSlot height={cardHeight} />;
+  return <section className="tasks-column" data-group={g.id} aria-label={`${g.label}, ${tasks.length} tasks`}>
+    <div className="ui-card__head tasks-column__head"><h2 className="ui-card__title">{g.label}</h2><span>{tasks.length}</span></div>
+    <div className="tasks-column__stack">
+      {tasks.map((t) => <Fragment key={t.name}>
+        {landing && before === t.name && slot}
+        <MovableCard data-task={t.name} label={t.title} held={held === t.name}
+          title={<a draggable={false} className="ui-link--quiet" href={`#${t.name}`} onClick={(e) => { e.preventDefault(); onOpen(t); }}>{t.title}</a>}
+          action={menu(t)}
+          onKeyDown={(e) => { if (e.target === e.currentTarget && e.key === 'Enter') onOpen(t); }}
+          onDragStart={(e) => {
+            e.dataTransfer.setData('text/plain', t.name);
+            e.dataTransfer.effectAllowed = 'move';
+            // The browser's own drag picture is replaced by the card itself.
+            const blank = document.createElement('canvas');
+            blank.width = 1; blank.height = 1;
+            e.dataTransfer.setDragImage(blank, 0, 0);
+            const card = e.currentTarget;
+            flushSync(() => begin(card, e.clientX, e.clientY, false));
+          }}
+          onDragEnd={() => finish(false)}>
+          <div className="tasks-facts"><Who id={t.assignee} /><Due task={t} /></div>
+          {group !== 'status' && <Badge variant={status(t.status).badge}>{status(t.status).label}</Badge>}
+        </MovableCard>
+      </Fragment>)}
+      {landing && !before && slot}
+      {!tasks.length && !landing && <p>No tasks</p>}
+    </div>
+  </section>;
+}
+
+/**
+ * The board: one column for each group, side by side in one sideways scroll region. A card
+ * moves by mouse drag, by a long press and drag on touch, and by its menu with the keyboard.
+ * The exact card follows the pointer, its own place shows the source slot, and the target
+ * slot marks where it lands in due date order. A live region says the target.
+ */
+function TaskBoard({ rows, group, menu, onMove, onOpen }: Board & { menu: (task: Task) => ReactNode; onOpen: (task: Task) => void }) {
+  const frame = useRef<HTMLDivElement>(null);
+  const current = useRef({ rows, group, onMove });
+  current.current = { rows, group, onMove };
+  const drag = useBoardDrag(frame, current);
+  useTouchDrag(frame, drag);
+  const { active, suppress, held, over, place, locate, finish } = drag;
+  const groups = group === 'status' ? STATUSES.map((s) => ({ id: s.id as string, label: s.label }))
+    : group === 'assignee' ? PEOPLE.map((p) => ({ id: p.id, label: p.name }))
+      : [...new Set(rows.map((t) => t.due))].sort().map((date) => ({ id: date, label: shortDate(date) }));
 
   const moving = rows.find((t) => t.name === held);
   const target = moving && over && moving[group] !== over ? groups.find((g) => g.id === over) : undefined;
@@ -245,41 +284,7 @@ function TaskBoard({ rows, group, menu, onMove, onOpen }: {
       }}
       onDrop={(e) => { e.preventDefault(); if (active.current) active.current.over = locate(e.clientX, e.clientY); finish(true); }}>
       <div className="tasks-board__track">
-        {groups.map((g) => {
-          const tasks = rows.filter((t) => t[group] === g.id).sort(byDue);
-          const landing = target?.id === g.id && moving;
-          const candidate = landing ? { ...moving, due: group === 'due' ? g.id : moving.due } : null;
-          const before = candidate ? tasks.find((t) => byDue(candidate, t) <= 0)?.name : undefined;
-          const slot = <CardSlot height={cardHeight} />;
-          return <section key={g.id} className="tasks-column" data-group={g.id} aria-label={`${g.label}, ${tasks.length} tasks`}>
-            <div className="ui-card__head tasks-column__head"><h2 className="ui-card__title">{g.label}</h2><span>{tasks.length}</span></div>
-            <div className="tasks-column__stack">
-              {tasks.map((t) => <Fragment key={t.name}>
-                {landing && before === t.name && slot}
-                <MovableCard data-task={t.name} label={t.title} held={held === t.name}
-                  title={<a draggable={false} className="ui-link--quiet" href={`#${t.name}`} onClick={(e) => { e.preventDefault(); onOpen(t); }}>{t.title}</a>}
-                  action={menu(t)}
-                  onKeyDown={(e) => { if (e.target === e.currentTarget && e.key === 'Enter') onOpen(t); }}
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', t.name);
-                    e.dataTransfer.effectAllowed = 'move';
-                    // The browser's own drag picture is replaced by the card itself.
-                    const blank = document.createElement('canvas');
-                    blank.width = 1; blank.height = 1;
-                    e.dataTransfer.setDragImage(blank, 0, 0);
-                    const card = e.currentTarget;
-                    flushSync(() => begin(card, e.clientX, e.clientY, false));
-                  }}
-                  onDragEnd={() => finish(false)}>
-                  <div className="tasks-facts"><Who id={t.assignee} /><Due task={t} /></div>
-                  {group !== 'status' && <Badge variant={status(t.status).badge}>{status(t.status).label}</Badge>}
-                </MovableCard>
-              </Fragment>)}
-              {landing && !before && slot}
-              {!tasks.length && !landing && <p>No tasks</p>}
-            </div>
-          </section>;
-        })}
+        {groups.map((g) => <BoardColumn key={g.id} g={g} rows={rows} group={group} target={target} moving={moving} drag={drag} menu={menu} onOpen={onOpen} />)}
       </div>
     </div>
     <span className="ui-sr" role="status">{moving && target ? `${moving.title} will move to ${target.label}, in due date order.` : ''}</span>
@@ -315,22 +320,90 @@ const writeHash = (view: TaskView, group: TaskGroup, { chips, draft }: QueryStat
   window.history.replaceState(window.history.state, '', `#${p}`);
 };
 
-function TasksBody({ view: initialView = 'table', group: initialGroup = 'status', load = 'ready', search = 'idle', menuOpen = false, reassign: reassignOpen = false }: TasksProps) {
+type Fixture = { open?: boolean; active?: number; checked?: boolean; request?: string } & QueryState;
+
+// A story names its state. With none named, the URL hash gives the page its place.
+function startState({ view = 'table', group = 'status', load = 'ready', search = 'idle' }: TasksProps) {
+  const fixture: Fixture = SEARCH_STATES[search];
+  const url = search === 'idle' ? readHash() : null;
+  return {
+    view: url?.view === 'board' || url?.view === 'table' ? url.view : view,
+    group: url?.group && GROUPS.some((g) => g.value === url.group) ? url.group : group,
+    query: url && (url.chips.length || url.draft) ? { chips: url.chips, draft: url.draft } : { chips: fixture.chips, draft: fixture.draft },
+    request: load === 'loading' || load === 'error' ? load : fixture.request ?? 'ready',
+  };
+}
+
+function TaskToolbar({ toolbarRef, fixture, query, onQuery, request, onRetry, view, setView, group, setGroup }: {
+  toolbarRef: RefObject<HTMLDivElement | null>; fixture: Fixture; query: QueryState; onQuery: (next: QueryState) => void;
+  request: string; onRetry: () => void; view: TaskView; setView: (view: TaskView) => void; group: TaskGroup; setGroup: (group: TaskGroup) => void;
+}) {
+  return <div className="ui-toolbar" ref={toolbarRef}>
+    <QuerySearch keys={TASK_KEYS} value={query} onChange={onQuery}
+      ariaLabel="Search tasks" size="sm" placeholder="Search tasks, state: or @name" chipsLabel="Active task filters"
+      peopleStatus={request === 'people-loading' ? 'loading' : request === 'people-error' ? 'error' : undefined}
+      onRetryPeople={onRetry}
+      defaultOpen={fixture.open} defaultActive={fixture.active} defaultChecked={fixture.checked} />
+    {view === 'board' && <Dropdown ariaLabel="Group by" variant="select" size="sm" value={GROUPS.find((g) => g.value === group)!.label} selectedValue={group}
+      items={GROUPS} onSelect={(value) => setGroup(value as TaskGroup)} />}
+    <Segmented label="View" size="sm" value={view} onChange={(next) => setView(next as TaskView)} options={[
+      { label: 'Table', value: 'table', icon: 'table', iconOnly: true },
+      { label: 'Board', value: 'board', icon: 'grid', iconOnly: true },
+    ]} />
+  </div>;
+}
+
+function TaskList({ request, onRetry, shown, view, group, menu, move, onOpen, clear }: {
+  request: string; onRetry: () => void; shown: Task[]; view: TaskView; group: TaskGroup; menu: (task: Task) => ReactNode;
+  move: (task: Task, to: string, by: TaskGroup) => void; onOpen: (task: Task) => void; clear: () => void;
+}) {
+  if (request === 'error') return <Callout variant="danger" actions={<Button size="sm" onClick={onRetry}>Retry</Button>}>The tasks did not load.</Callout>;
+  return <BusyRegion busy={request === 'loading'} label="Loading tasks…" message={`${shown.length} tasks`}
+    placeholder={view === 'table' ? <Card><SkeletonTable rows={6} cols={4} /></Card> : <BoardSkeleton />}>
+    {shown.length === 0
+      ? <EmptyState className="ui-empty--edge" variant="no-matches" level={2} icon="" title="No matching tasks" sub="Change the search or clear the filters."
+        actions={<Button onClick={clear}>Clear</Button>} />
+      : view === 'table'
+        ? <TaskTable rows={shown} menu={menu} onOpen={onOpen} />
+        : <TaskBoard key={group} rows={shown} group={group} menu={menu} onMove={move} onOpen={onOpen} />}
+  </BusyRegion>;
+}
+
+function OpenTask({ task, onClose }: { task: Task; onClose: () => void }) {
+  const closeRef = useRef<HTMLButtonElement>(null);
+  return <Modal open size="sm" initialFocusRef={closeRef} title={task.title} onClose={onClose}
+    footer={<Button ref={closeRef} onClick={onClose}>Close</Button>}>
+    <KeyValueList rows={[
+      { label: 'Assignee', value: <Who id={task.assignee} /> },
+      { label: 'Status', value: status(task.status).label },
+      { label: 'Due', value: shortDate(task.due) },
+    ]} />
+  </Modal>;
+}
+
+function DueDate({ task, onClose, onSave }: { task: Task; onClose: () => void; onSave: (task: Task, date: string) => void }) {
+  const [newDate, setNewDate] = useState(task.due);
+  return <Modal open size="sm" title="Due date" onClose={onClose}
+    footer={<><Button variant="ghost" onClick={onClose}>Cancel</Button>
+      <Button variant="primary" disabled={!newDate || newDate === task.due} onClick={() => { onSave(task, newDate); onClose(); }}>Save</Button></>}>
+    <Field label="Due date">{(control) => <input {...control} className="ui-input" type="date" value={newDate} onChange={(e) => setNewDate(e.currentTarget.value)} />}</Field>
+  </Modal>;
+}
+
+function TasksBody(props: TasksProps) {
+  const { load = 'ready', search = 'idle', menuOpen = false, reassign: reassignOpen = false } = props;
   const push = useToast();
-  const fixture: { open?: boolean; active?: number; checked?: boolean; request?: string } & QueryState = SEARCH_STATES[search];
-  // A story names its state. With none named, the URL hash gives the page its place.
-  const [url] = useState(() => search === 'idle' ? readHash() : null);
-  const [view, setView] = useState(url?.view === 'board' || url?.view === 'table' ? url.view : initialView);
-  const [group, setGroup] = useState(url?.group && GROUPS.some((g) => g.value === url.group) ? url.group : initialGroup);
+  const fixture: Fixture = SEARCH_STATES[search];
+  const [start] = useState(() => startState(props));
+  const [view, setView] = useState<TaskView>(start.view);
+  const [group, setGroup] = useState<TaskGroup>(start.group);
   const [tasks, setTasks] = useState<Task[]>(load === 'empty' ? [] : TASKS);
-  const [query, setQuery] = useState<QueryState>(url && (url.chips.length || url.draft) ? { chips: url.chips, draft: url.draft } : { chips: fixture.chips, draft: fixture.draft });
+  const [query, setQuery] = useState<QueryState>(start.query);
   useEffect(() => writeHash(view, group, query), [view, group, query]);
-  const [request, setRequest] = useState(load === 'loading' || load === 'error' ? load : fixture.request ?? 'ready');
+  const [request, setRequest] = useState<string>(start.request);
   const [opened, setOpened] = useState<Task | null>(null);
   const [reassign, setReassign] = useState<Task | null>(reassignOpen ? TASKS[0] : null);
   const [dateTask, setDateTask] = useState<Task | null>(null);
-  const [newDate, setNewDate] = useState('');
-  const closeRef = useRef<HTMLButtonElement>(null);
   // A move from a card's menu unmounts the card in its old column. Its new menu button takes the focus.
   // When the search hides the moved card, the board region takes the focus. With no card left,
   // Clear of the empty state takes it. Neither opens a panel, and the toast says where the card went.
@@ -360,7 +433,7 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
   const pick = async (what: string, task: Task) => {
     if (what === 'open') setOpened(task);
     if (what === 'reassign') setReassign(task);
-    if (what === 'due') { setDateTask(task); setNewDate(task.due); }
+    if (what === 'due') setDateTask(task);
     if (what.startsWith('move:')) { move(task, what.slice(5), 'status'); setRefocus(task.name); }
     if (what === 'copy') {
       try {
@@ -374,48 +447,17 @@ function TasksBody({ view: initialView = 'table', group: initialGroup = 'status'
   // The table's first row is the task due first; a board's first card is the first in To do.
   const menu = (task: Task) => <TaskMenu task={task} card={view === 'board'} onPick={pick} open={menuOpen && task.name === first} />;
   const clear = () => { setQuery({ chips: [], draft: '' }); setRequest('ready'); };
+  const onQuery = (next: QueryState) => { setQuery(next); if (request === 'people-loading' || request === 'people-error') return; setRequest('ready'); };
 
   if (load === 'empty') return <EmptyState art="inbox" level={2} title="No tasks yet" sub="A task that you create or that is assigned to you shows here."
     actions={<Button variant="primary" icon="plus">New task</Button>} />;
 
   return <>
-    <div className="ui-toolbar" ref={toolbarRef}>
-      <QuerySearch keys={TASK_KEYS} value={query} onChange={(next) => { setQuery(next); if (request === 'people-loading' || request === 'people-error') return; setRequest('ready'); }}
-        ariaLabel="Search tasks" size="sm" placeholder="Search tasks, state: or @name" chipsLabel="Active task filters"
-        peopleStatus={request === 'people-loading' ? 'loading' : request === 'people-error' ? 'error' : undefined}
-        onRetryPeople={() => setRequest('ready')}
-        defaultOpen={fixture.open} defaultActive={fixture.active} defaultChecked={fixture.checked} />
-      {view === 'board' && <Dropdown ariaLabel="Group by" variant="select" size="sm" value={GROUPS.find((g) => g.value === group)!.label} selectedValue={group}
-        items={GROUPS} onSelect={(value) => setGroup(value as TaskGroup)} />}
-      <Segmented label="View" size="sm" value={view} onChange={(next) => setView(next as TaskView)} options={[
-        { label: 'Table', value: 'table', icon: 'table', iconOnly: true },
-        { label: 'Board', value: 'board', icon: 'grid', iconOnly: true },
-      ]} />
-    </div>
-    {request === 'error'
-      ? <Callout variant="danger" actions={<Button size="sm" onClick={() => setRequest('ready')}>Retry</Button>}>The tasks did not load.</Callout>
-      : <BusyRegion busy={request === 'loading'} label="Loading tasks…" message={`${shown.length} tasks`}
-        placeholder={view === 'table' ? <Card><SkeletonTable rows={6} cols={4} /></Card> : <BoardSkeleton />}>
-        {shown.length === 0
-          ? <EmptyState className="ui-empty--edge" variant="no-matches" level={2} icon="" title="No matching tasks" sub="Change the search or clear the filters."
-            actions={<Button onClick={clear}>Clear</Button>} />
-          : view === 'table'
-            ? <TaskTable rows={shown} menu={menu} onOpen={setOpened} />
-            : <TaskBoard key={group} rows={shown} group={group} menu={menu} onMove={move} onOpen={setOpened} />}
-      </BusyRegion>}
-    {opened && <Modal open size="sm" initialFocusRef={closeRef} title={opened.title} onClose={() => setOpened(null)}
-      footer={<Button ref={closeRef} onClick={() => setOpened(null)}>Close</Button>}>
-      <KeyValueList rows={[
-        { label: 'Assignee', value: <Who id={opened.assignee} /> },
-        { label: 'Status', value: status(opened.status).label },
-        { label: 'Due', value: shortDate(opened.due) },
-      ]} />
-    </Modal>}
-    {dateTask && <Modal open size="sm" title="Due date" onClose={() => setDateTask(null)}
-      footer={<><Button variant="ghost" onClick={() => setDateTask(null)}>Cancel</Button>
-        <Button variant="primary" disabled={!newDate || newDate === dateTask.due} onClick={() => { move(dateTask, newDate, 'due'); setDateTask(null); }}>Save</Button></>}>
-      <Field label="Due date">{(control) => <input {...control} className="ui-input" type="date" value={newDate} onChange={(e) => setNewDate(e.currentTarget.value)} />}</Field>
-    </Modal>}
+    <TaskToolbar toolbarRef={toolbarRef} fixture={fixture} query={query} onQuery={onQuery} request={request} onRetry={() => setRequest('ready')}
+      view={view} setView={setView} group={group} setGroup={setGroup} />
+    <TaskList request={request} onRetry={() => setRequest('ready')} shown={shown} view={view} group={group} menu={menu} move={move} onOpen={setOpened} clear={clear} />
+    {opened && <OpenTask task={opened} onClose={() => setOpened(null)} />}
+    {dateTask && <DueDate task={dateTask} onClose={() => setDateTask(null)} onSave={(task, date) => move(task, date, 'due')} />}
     {reassign && <Reassign task={reassign} onClose={() => setReassign(null)}
       onSave={(task, to) => { setReassign(null); move(task, to, 'assignee'); }} />}
   </>;

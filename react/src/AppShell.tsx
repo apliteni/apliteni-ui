@@ -81,6 +81,23 @@ export type AppShellProps = AppShellNav & {
 
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
+/** The head of the page column: the back link, the title row, the lede and the actions row.
+ *  With `band`, the title stands in the band and not here. */
+function PageHead({ back, title, lede, actions, tools, head, band }: Pick<AppShellProps, 'back' | 'title' | 'lede' | 'actions' | 'tools' | 'head'> & { band: boolean }) {
+  // A compact head carries the page's actions in its title row (#866). A full-width page
+  // draws its title in the band, so its actions keep their own row.
+  const compact = head === 'compact' && !band;
+  const rowTools = compact && actions ? <>{tools}{actions}</> : tools;
+  return <>
+    {back && <BackLink {...back} />}
+    {title != null && !band && (rowTools
+      ? <div className={`ui-app__title-row${compact ? ' ui-app__title-row--compact' : ''}`}><h1>{title}</h1><div className="ui-app__tools">{rowTools}</div></div>
+      : <h1>{title}</h1>)}
+    {lede && <p className="ui-app__sub">{lede}</p>}
+    {actions && !compact && <div className="ui-react-app__actions">{actions}</div>}
+  </>;
+}
+
 export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
   brandHref = '/', width = 'centered', back, lede, actions, tools, head, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
@@ -189,17 +206,8 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <span className="ui-nav__ic"><svg className="ui-icon" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path className="ui-app__fold-seam" d="M9 3v18" /><path className="ui-app__fold-arrow" d="m16 15-3-3 3-3" /></svg></span>
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
-  // A compact head carries the page's actions in its title row (#866). A full-width page
-  // draws its title in the band, so its actions keep their own row.
-  const compact = head === 'compact' && !bandTitle;
-  const rowTools = compact && actions ? <>{tools}{actions}</> : tools;
   const page = <main className={`ui-app__main${width === 'centered' ? '' : ` ui-app__main--${width}`}`}>
-    {back && <BackLink {...back} />}
-    {title != null && !bandTitle && (rowTools
-      ? <div className={`ui-app__title-row${compact ? ' ui-app__title-row--compact' : ''}`}><h1>{title}</h1><div className="ui-app__tools">{rowTools}</div></div>
-      : <h1>{title}</h1>)}
-    {lede && <p className="ui-app__sub">{lede}</p>}
-    {actions && !compact && <div className="ui-react-app__actions">{actions}</div>}
+    <PageHead back={back} title={title} lede={lede} actions={actions} tools={tools} head={head} band={bandTitle} />
     <div className="ui-app__body">{children}</div>
   </main>;
 
