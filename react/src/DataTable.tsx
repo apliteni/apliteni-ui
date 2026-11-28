@@ -56,7 +56,7 @@ export type DataTableProps<T> = {
   /** A caption read by assistive technology only. */
   caption?: string;
   dense?: boolean; density?: 'default' | 'dense' | 'compact' | 'comfortable'; stickyHeader?: boolean;
-  /** `true` pins column 0. A column key pins that column, so a date can stand before the pinned identity. */
+  /** `true` pins column 0. A column key pins that column, so a date can stand before the pinned identity. At 560px and below no column is pinned, and the whole table scrolls. */
   pinnedIdentity?: boolean | (keyof T & string); scrollLabel?: string; empty?: ReactNode;
   pageSize?: number; pageSizes?: readonly number[] | null; onPageSizeChange?: (size: number) => void;
   /** `false` renders no pager at all — for a surface that supplies its own. */

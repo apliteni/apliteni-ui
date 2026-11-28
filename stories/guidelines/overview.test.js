@@ -118,7 +118,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 182: The page gained sidebar-column (#869).
   // 183: Dashboards and reports gained trend-in-head (#863).
   // 184: Dense tables added filter-chip-width (#915).
-  assert.equal(rules, 184);
+  // 188: Selection bar added three rules and Component choice selection-bar (#902).
+  assert.equal(rules, 188);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

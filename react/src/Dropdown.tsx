@@ -5,7 +5,7 @@ import {
 } from 'react';
 import {
   icon, dropdownMatch, dropdownFiltering, filterPanelFit, transitionMs, dropdownViewportFit,
-  dropdownHeightFit, dropdownLift, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
+  dropdownHeightFit, dropdownLift, dropdownSide, dropdownReveal, dropdownRest, dropdownSnap, filterPanelRow,
 } from '@apliteni/apliteni-ui';
 import { useIsoLayoutEffect } from './dialog';
 import { Avatar } from './primitives/Avatar';
@@ -253,6 +253,11 @@ export function Dropdown({
   }, [label]);
   const [selfOpen, setSelfOpen] = useState(defaultOpen);
   const open = openProp ?? selfOpen;
+  // A panel opens on the other side when its own side cannot hold it and the other has
+  // more room, as a lifted panel does. Kept after the close, so the panel fades out where
+  // it stood. why: docs/components.md#dropdown
+  const [flipped, setFlipped] = useState(false);
+  const up = (direction === 'up') !== flipped;
   // The row picked in this component, and the caller's own selection it was picked
   // against. Held as keys and not as items, because a caller that rebuilds its items on
   // every render — the ordinary `items.map(…)` — hands back equal rows that are not the
@@ -551,8 +556,19 @@ export function Dropdown({
       el.classList.toggle('is-unbounded', !Number.isFinite(avail));
       dropdownSnap(dd, el);
     };
-    // A Modal or Drawer body lifts the panel over it, before anything is sized, and does not scroll.
-    dropdownLift(dd, el);
+    // A Modal or Drawer body lifts the panel over it, before anything is sized, and does not
+    // scroll. A lifted panel picks its own side from the configured one. A new side goes on
+    // the class at once, so the focus below lands in a panel that already stands there.
+    const side = () => {
+      const configured = direction === 'up';
+      const lifted = dropdownLift(dd, el);
+      const next = !lifted && dropdownSide(dd, el, configured) !== configured;
+      if (next === flipped) return;
+      el.classList.toggle('is-up', configured !== next);
+      if (lifted) dropdownLift(dd, el);
+      setFlipped(next);
+    };
+    side();
     size();
     dropdownReveal(dd, el);
     /* Decided at the open and kept while the page or the body scrolls, so the panel does
@@ -560,7 +576,7 @@ export function Dropdown({
      * height, and a resize decides again. why: ddSizeHeight(), src/components/dropdown.js */
     const follow = () => { if (el.hasAttribute('data-dd-lifted')) dropdownLift(dd, el); };
     // A resize places the panel again, as on the open.
-    const resize = () => { dropdownLift(dd, el); size(); dropdownReveal(dd, el); };
+    const resize = () => { side(); size(); dropdownReveal(dd, el); };
     const view = el.ownerDocument?.defaultView ?? window;
     view.addEventListener('scroll', follow, true);
     view.addEventListener('resize', resize);
@@ -573,7 +589,7 @@ export function Dropdown({
       view.removeEventListener('resize', resize);
       fonts?.removeEventListener?.('loadingdone', follow);
     };
-  }, [open, direction]);
+  }, [open, direction, flipped]);
 
   useIsoLayoutEffect(() => {
     const want = landOn.current;
@@ -949,7 +965,7 @@ export function Dropdown({
         </span>}
       </button>
       <div
-        className={cx('ui-dropdown__panel', align === 'end' && 'is-end', direction === 'up' && 'is-up',
+        className={cx('ui-dropdown__panel', align === 'end' && 'is-end', up && 'is-up',
           Boolean(scroll) && !sx && 'is-scroll', Boolean(sx) && 'ui-dropdown__panel--search', panelClass)}
         data-dropdown-panel=""
         role={sx ? 'dialog' : listRole}

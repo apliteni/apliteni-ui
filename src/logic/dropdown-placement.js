@@ -248,19 +248,37 @@ function ddCeilingOf(panel) {
   return Number.isFinite(max) ? max : Infinity;
 }
 
+/**
+ * The side an open panel opens on: the configured side, unless it cannot hold the floor
+ * and the other side has more room. A lifted panel and a panel in the page flow both
+ * take it. A trigger outside the view keeps the configured side, because nobody opens
+ * a list there, and a list opened at load further down a page must not turn. Returns
+ * true for above the trigger.
+ * why: docs/components.md#dropdown
+ */
+export function dropdownSide(dd, panel, configured) {
+  const trigger = dd?.querySelector?.('[data-dropdown-trigger]');
+  // A panel with no height, as in a document that lays nothing out, has no side to judge.
+  const content = panel ? ddContentHeight(panel) : 0;
+  if (!trigger || !(content > 0)) return configured;
+  const t = trigger.getBoundingClientRect();
+  const height = ddViewOf(panel).innerHeight;
+  if (t.bottom <= 0 || t.top >= height) return configured;
+  const gap = ddGap(panel);
+  const below = height - t.bottom - gap;
+  const above = t.top - gap;
+  const mine = configured ? above : below;
+  const other = configured ? below : above;
+  return mine < Math.min(ddMin(panel), content) && other > mine ? !configured : configured;
+}
+
 function ddPlaceLifted(dd, panel) {
   const trigger = dd.querySelector('[data-dropdown-trigger]');
   if (!trigger) return;
   const view = ddViewOf(panel);
   const t = trigger.getBoundingClientRect();
   const gap = ddGap(panel);
-  const below = view.innerHeight - t.bottom - gap;
-  const above = t.top - gap;
-  // The configured side, unless it cannot hold the floor and the other side has more.
-  const configured = panel.classList.contains('is-up');
-  const mine = configured ? above : below;
-  const other = configured ? below : above;
-  const up = mine < Math.min(ddMin(panel), ddContentHeight(panel)) && other > mine ? !configured : configured;
+  const up = dropdownSide(dd, panel, panel.classList.contains('is-up'));
   const s = panel.style;
   s.marginLeft = '';
   s.marginRight = '';

@@ -1,9 +1,26 @@
 export const RELEASES = [
   {
-    v: '0.230.0', date: '2026-11-27',
+    v: '0.232.0', date: '2026-11-28',
     changes: [
       ['fixed', 'A `Dropdown` with `search` inside a `Field` is now at least 280px wide, so its field shows the search text. In a `Modal` or a `Drawer` it is as wide as its trigger, or 280px when the trigger is narrower. It stays inside the view. Before, the panel was only as wide as the trigger. Part of #924.', ['Dropdown', 'Field']],
       ['fixed', 'An open `Dropdown` panel in a `Modal` or a `Drawer` now follows its trigger when a font loads late. Before, the panel could cover the lower part of the trigger. Part of #924.', ['Dropdown']],
+    ],
+  },
+  {
+    v: '0.231.0', date: '2026-11-27',
+    changes: [
+      ['changed', 'At 560px and below, the phone breakpoint, a table pins no column. A `pinnedIdentity` column and the selection column now scroll sideways with the other columns, draw no divider, and keep their whole text and logo. Above 560px the pin is as before. You do not need to change a call. Part of #902.', ['Table', 'DataTable']],
+      ['changed', 'The Dense tables guideline rule Scroll instead of squeezing now says that a phone table has no pinned column. Part of #902.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.230.0', date: '2026-11-27',
+    changes: [
+      ['added', 'A new `SelectionBar` shows the count of selected table rows, Clear, and one button for each action on those rows. A pick applies at once and the rows stay selected. Actions that do not fit go into More. Part of #902.', ['SelectionBar']],
+      ['added', 'New `--inverse-*` tokens give one bar the other theme: dark on a light page and light on a dark page, in the page\'s accent family. Part of #902.', ['Tokens']],
+      ['fixed', 'A `Dropdown` panel in the page now opens on the other side of its trigger when its own side has no room and the other side has more. A panel in a Modal or a Drawer already did this. A menu that opens upward near the top of the view no longer opens above the view. Part of #902.', ['Dropdown']],
+      ['fixed', 'In a pinned `DataTable` with a selection column, the boxes now start on the table\'s text edge, as in an unpinned table, and the next column\'s words keep half a cell gap from the boxes\' divider. Before, the boxes stood 6px in from the table\'s start and the words touched the divider. Part of #902.', ['DataTable']],
+      ['added', 'A new Selection bar guideline page sets the bar\'s theme, a pick that applies at once with a notice, and the rest of the actions in More. Component choice sends the actions for selected rows to the bar. Part of #902.', ['Guidelines']],
     ],
   },
   {

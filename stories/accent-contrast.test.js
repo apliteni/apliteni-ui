@@ -81,6 +81,14 @@ const EXEMPT_GROUNDS = [
       + 'excused because the kit does not paint it, and it must stop being excused the moment the '
       + 'kit does. No measurement can notice that happening; a person reading this has to.',
   },
+  {
+    ground: '--inverse-bg',
+    why: 'The selection bar\'s ground, which is the OTHER theme\'s page (#902). The page\'s --accent is '
+      + 'never painted on it: every ink on the bar is an --inverse-* token, and its focus band takes '
+      + '--inverse-accent, the accent family\'s value in the other theme. Measured anyway the page '
+      + 'accent would fail, since dark Nebula #b479ff on a white bar is 2.9:1. The pairs the bar does '
+      + 'paint are measured below, in all eight cells, by the inverse surface tests.',
+  },
 ];
 
 const NOT_MEASURED = new Set(EXEMPT_GROUNDS.map((e) => e.ground));
@@ -179,6 +187,56 @@ for (const cell of CELLS) {
   });
 }
 
+// ---- the inverse surface: the other theme's ground and inks, for one bar (#902) ----
+
+/* The inverse tokens are the other theme's own values, so the bar is that theme's page and
+ * not a third palette. Each pair the bar paints is then measured in all eight cells: text at
+ * AA, and an edge or the focus band at 3:1. The limit: a token contract, so a bar rule that
+ * paints some other token is caught only by the React contrast walk, which uses the default
+ * accent. why: docs/foundations.md#the-inverse-surface */
+const INVERSE_MIRROR = {
+  '--inverse-bg': '--bg', '--inverse-text': '--text', '--inverse-strong': '--strong',
+  '--inverse-muted': '--muted', '--inverse-edge': '--muted', '--inverse-hover': '--surface-3',
+  '--inverse-accent': '--accent',
+};
+const INVERSE_TEXT = ['--inverse-text', '--inverse-strong', '--inverse-muted'];
+const INVERSE_MARKS = ['--inverse-edge', '--inverse-accent'];
+const NON_TEXT = 3;
+const other = (theme) => (theme === 'dark' ? 'light' : 'dark');
+
+for (const cell of CELLS) {
+  test(`the inverse surface is the other theme, and its pairs clear their floors — ${cell.theme} ${cell.accent}`, () => {
+    const here = tokensFor(cell.theme, cell.accent);
+    const there = tokensFor(other(cell.theme), cell.accent);
+    const colour = (vars, name) => parseColour(substitute(`var(${name})`, vars));
+    const drift = Object.entries(INVERSE_MIRROR)
+      .filter(([inverse, source]) => String(colour(here, inverse)) !== String(colour(there, source)))
+      .map(([inverse, source]) => `${inverse} is not ${other(cell.theme)} ${source}`);
+    assert.deepEqual(drift, [], 'an inverse token drifted from the other theme\'s value');
+    const short = [];
+    for (const ground of ['--inverse-bg', '--inverse-hover']) {
+      for (const ink of INVERSE_TEXT) {
+        const r = ratio(colour(here, ink), colour(here, ground));
+        if (!(r >= AA_TEXT)) short.push(`${ink} on ${ground} ${r.toFixed(2)}:1`);
+      }
+    }
+    for (const mark of INVERSE_MARKS) {
+      const r = ratio(colour(here, mark), colour(here, '--inverse-bg'));
+      if (!(r >= NON_TEXT)) short.push(`${mark} on --inverse-bg ${r.toFixed(2)}:1`);
+    }
+    assert.deepEqual(short, [], 'a pair on the inverse surface is under its floor');
+  });
+}
+
+test('the inverse tests measure every inverse token the files declare', () => {
+  const declared = [...new Set([...declaredIn(TOKENS_CSS), ...declaredIn(ACCENTS_CSS)])]
+    .filter((name) => name.startsWith('--inverse-'));
+  // The frame is the edge token or nothing, so it is no pair of its own.
+  const covered = new Set([...Object.keys(INVERSE_MIRROR), '--inverse-frame']);
+  assert.deepEqual(declared.filter((name) => !covered.has(name)), [], 'an inverse token is not measured');
+  assert.equal(declared.length, 8, 'the inverse family changed size; decide how each new token is measured');
+});
+
 // ---- anti-vacuity: a derivation that matches nothing passes everything ----
 
 test('every exemption still names something real, and says why in a sentence', () => {
@@ -256,10 +314,12 @@ test('the accent gate actually measures something', () => {
   // measured for the same reason rather than excused. The accent is read on a chip: a
   // `code` run inside a link takes --accent, and the focus ring's gap is the chip's own
   // paint.
+  // 12 since #902 added --inverse-bg, the selection bar's ground. It is excused above, because
+  // the page accent is never read on it, and its own pairs are measured by the inverse tests.
   assert.equal(
-    CANDIDATE_GROUNDS.length, 11,
+    CANDIDATE_GROUNDS.length, 12,
     `the token-file sweep found ${CANDIDATE_GROUNDS.length} candidate ground(s) `
-    + `(${CANDIDATE_GROUNDS.join(', ')}), not 11. If a surface was added, decide whether the accent `
+    + `(${CANDIDATE_GROUNDS.join(', ')}), not 12. If a surface was added, decide whether the accent `
     + 'is ever read on it: leave it measured, or write it into EXEMPT_GROUNDS with a reason. Then '
     + 'move this number. If a surface left, move it too. If it went to zero, SURFACE_NAME or the '
     + ':root sweep is broken and this gate was about to measure nothing.',

@@ -64,7 +64,6 @@ export const RECORDED = {
   'accessibility-floor.md': 788,
   'account-and-settings.md': 351,
   'command-palette.md': 429,
-  'component-choice.md': 471,
   'density-and-accents.md': 394,
   'empty-states.md': 91,
   'file-drop.md': 525,
