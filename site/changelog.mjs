@@ -1,8 +1,14 @@
 export const RELEASES = [
   {
-    v: '0.233.1', date: '2026-11-28',
+    v: '0.234.1', date: '2026-11-28',
     changes: [
       ['added', 'A new Toast guideline page says to give the toast stack the inset of a bar at the bottom of the page, and to let the ring on a timed Undo show the time left. Part of #907.', ['Guidelines']],
+    ],
+  },
+  {
+    v: '0.234.0', date: '2026-11-28',
+    changes: [
+      ['removed', 'The `label` prop of React `Dropdown` is removed. It drew nothing since 0.206.0, and a call that still passes it no longer compiles in TypeScript. Delete the prop, and name the control with a `Field` label or with `ariaLabel`. Part of #899.', ['Dropdown']],
     ],
   },
   {
