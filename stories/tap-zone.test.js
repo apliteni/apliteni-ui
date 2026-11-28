@@ -608,12 +608,26 @@ test('a filter chip does not shut the clearance its trigger reads', () => {
   assert.equal(chipClearance(shut).length, 1, 'The check passed a chip that shuts its clearance again.');
 });
 
+/* The two passes the browser half compares read each story at one shared viewport, so a
+ * 70vh region cuts its rows the same way in both. This reads the source, so it sees the
+ * passes' arguments and not the heights they settle to. */
+const sharedPasses = (src) => [['before', 'without'], ['after', 'withCss']].every(([pass, sheet]) =>
+  new RegExp(`const ${pass} = await at\\(390, true, ${sheet}, subjects, shared\\);`).test(src));
+
+test('the two sheets are measured at one shared viewport', () => {
+  const src = read('stories/tap-zone.test.js');
+  assert.ok(sharedPasses(src), 'A pass settles its own viewport, so a 70vh region can cut a row in one pass only.');
+  const own = src.replace(/const before = await at\(390, true, without, subjects, shared\);/, 'const before = await at(390, true, without);');
+  assert.notEqual(own, src, 'The mutation did not apply, so it proves nothing.');
+  assert.equal(sharedPasses(own), false, 'The check passed a pass that settles its own viewport.');
+});
+
 /* -- The browser half ------------------------------------------------------- */
 
 const RUN = process.env.TAP_ZONES === '1';
 
 test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' }, async (t) => {
-  const { storySubjects, rowFixtures, kitStylesheet, pass, playwright, flatten, name, shrinks, STAT_VARIANTS, STAT_PLACES, STAT_CARDS } =
+  const { storySubjects, rowFixtures, kitStylesheet, pass, settle, playwright, flatten, name, shrinks, STAT_VARIANTS, STAT_PLACES, STAT_CARDS } =
     await import('./lib/tap-zone.js');
 
   const pw = await playwright();
@@ -664,7 +678,7 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     // the ledger; the per-family report below still walks `carriers` alone.
     const exempt = TAP_EXEMPT.map((e) => e.selector);
     const specimens = storyContainers.map((c) => c.selector);
-    const at = (width, coarse, sheet, which = subjects) =>
+    const at = (width, coarse, sheet, which = subjects, viewportHeight) =>
       pass(browser, {
         subjects: which,
         css: sheet,
@@ -673,10 +687,21 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
         size: TAP_MIN,
         families: [...carriers, ...exempt],
         within: [...opened, ...specimens],
+        viewportHeight,
       });
 
-    const before = await at(390, true, without);
-    const after = await at(390, true, withCss);
+    // Both sheets measure each story at ONE viewport, the taller of its two settles. A
+    // 70vh scroll region never settles, so two passes that each settled stopped at
+    // different heights, and the region's lower edge cut a row in one pass and showed 3px
+    // of it in the other: the Tasks table's last title link was a target only with the
+    // sheet. Limit: the shared viewport is where the settle stopped, so a row at a capped
+    // region's lower edge is cut the same way in both passes, not measured at a settled
+    // height.
+    const settled = [await settle(browser, { subjects, css: without, width: 390, coarse: true }),
+      await settle(browser, { subjects, css: withCss, width: 390, coarse: true })];
+    const shared = new Map(subjects.map((s) => [s.id, Math.max(...settled.map((h) => h.get(s.id)))]));
+    const before = await at(390, true, without, subjects, shared);
+    const after = await at(390, true, withCss, subjects, shared);
 
     assert.deepEqual(
       after.media, { coarse: true, hover: false, width: 390 },
@@ -699,34 +724,36 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
       'A story is taller than the rig lays out. Raise VIEW_CAP in stories/lib/tap-zone.js.',
     );
 
-    await t.test('no control is drawn at a different size', async () => {
+    await t.test('no control is drawn at a different size', () => {
       const moved = B.filter((b, i) => b.drawn[0] !== A[i].drawn[0] || b.drawn[1] !== A[i].drawn[1]);
-      // A scroll region capped at 70vh reads its cap from the viewport, so a story
-      // whose height the sheet changed settles its two passes to different
-      // viewports and the region's drawn height follows the cap, not a rule the
-      // sheet wrote for it. Re-measure each differing story at one shared viewport
-      // — the taller of the two settles — so the cap is the same for both sheets.
-      const real = [];
-      for (const id of [...new Set(moved.map((b) => b.story))]) {
-        const subj = subjects.filter((s) => s.id === id);
-        const fixed = Math.max(
-          ...before.rows.filter((r) => r.story === id).map((r) => r.height),
-          ...after.rows.filter((r) => r.story === id).map((r) => r.height),
-        );
-        const shot = (sheet) => pass(browser, {
-          subjects: subj, css: sheet, width: 390, coarse: true, size: TAP_MIN,
-          families: [...carriers, ...exempt], within: [...opened, ...specimens], viewportHeight: fixed,
-        });
-        const A1 = flatten((await shot(without)).rows);
-        const B1 = flatten((await shot(withCss)).rows);
-        real.push(...B1.filter((b, i) => b.drawn[0] !== A1[i].drawn[0] || b.drawn[1] !== A1[i].drawn[1])
-          .map((b) => `${b.story} ${name(b)}`));
-      }
       assert.deepEqual(
-        real, [],
+        moved.map((b) => `${b.story} ${name(b)}`), [],
         'A control changed size with the sheet loaded. The whole premise of #488’s answer is '
         + 'that the drawn control does not move; a layer that changes layout is a visible change '
         + 'the issue rejected.',
+      );
+    });
+
+    await t.test('a target count that differs is still rejected at a shared viewport', async () => {
+      // Two mutations of the Tasks table, the story whose last link the region's edge cut
+      // in one pass. Settled once for each sheet, the two passes count different targets,
+      // so the shared viewport is what makes them agree. At the shared viewport, a sheet
+      // that hides the title links still counts fewer, so the count check still sees a
+      // target that a sheet really removes.
+      const tasks = subjects.filter((s) => s.id === 'showcases-tasks--table');
+      assert.equal(tasks.length, 1, 'The Tasks table story is not in the sweep.');
+      const own = (sheet) => at(390, true, sheet, tasks);
+      assert.notEqual(
+        flatten((await own(without)).rows).length, flatten((await own(withCss)).rows).length,
+        'Each sheet settled on its own counted the same targets, so this check no longer shows '
+        + 'that the shared viewport is needed. Find a story whose capped region cuts a row.',
+      );
+      const one = shared.get(tasks[0].id);
+      const hidden = withCss + '.ui-table__title a { display: none; }';
+      assert.ok(
+        flatten((await at(390, true, hidden, tasks, one)).rows).length
+          < flatten((await at(390, true, withCss, tasks, one)).rows).length,
+        'A sheet that hides the title links counted the same targets at the shared viewport.',
       );
     });
 

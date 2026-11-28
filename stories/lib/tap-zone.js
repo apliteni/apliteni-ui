@@ -544,6 +544,58 @@ export const PROBE = ({ html, size, interior, families, within }) => {
 };
 
 /**
+ * The viewport one story settles to: grow the box to the page until the two agree,
+ * at most `rounds` times. `full` is the viewport, capped at VIEW_CAP. `content` is the
+ * last page height read, so a story taller than the cap is `cut` by its content.
+ * Limit: a `max-height: 70vh` region grows with the box, so its page never agrees with
+ * it and the loop stops at `rounds` with the region's lower edge where the last round
+ * left it.
+ */
+async function settleStory(page, s, width, rounds) {
+  const theme = s.theme || 'dark';
+  let full = 900;
+  let content = 900;
+  for (let round = 0; round < rounds; round++) {
+    const measured = await page.evaluate(({ html, theme }) => {
+      document.documentElement.dataset.theme = theme;
+      document.body.innerHTML = html;
+      return document.documentElement.scrollHeight;
+    }, { html: s.html, theme });
+    content = measured;
+    const next = Math.min(Math.max(measured, 900), VIEW_CAP);
+    if (next === full) break;
+    full = next;
+    await page.setViewportSize({ width, height: full });
+  }
+  return { full, content };
+}
+
+/**
+ * The settled viewport of each subject under one sheet, as a Map from story id to
+ * height. Two of these, merged to the taller per story, give `pass` one shared
+ * viewport for both sheets.
+ */
+export async function settle(browser, { subjects, css, width, coarse, rounds = 6 }) {
+  const ctx = await browser.newContext({ viewport: { width, height: 900 }, deviceScaleFactor: 1, hasTouch: coarse, reducedMotion: 'reduce' });
+  try {
+    const page = await ctx.newPage();
+    await page.setContent(
+      '<!doctype html><html lang="en" data-theme="dark"><head><style>'
+      + 'html,body{margin:0;padding:0}' + css
+      + '</style></head><body></body></html>',
+    );
+    const heights = new Map();
+    for (const s of subjects) {
+      await page.setViewportSize({ width, height: 900 });
+      heights.set(s.id, (await settleStory(page, s, width, rounds)).full);
+    }
+    return heights;
+  } finally {
+    await ctx.close();
+  }
+}
+
+/**
  * One pass: one browser context at one viewport and one pointer kind, every
  * subject measured in it.
  *
@@ -599,12 +651,13 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
       // content, not by the capped viewport it was read through.
       // A subject may name its theme. The rest are measured in the dark theme.
       const theme = s.theme || 'dark';
-      const fixed = viewportHeight != null;
-      let full = fixed ? viewportHeight : 900;
-      let content = 900;
-      if (fixed) {
-        // A caller measured this story already and asks for one shared viewport,
+      const shared = viewportHeight instanceof Map ? viewportHeight.get(s.id) : viewportHeight;
+      let full;
+      let content;
+      if (shared != null) {
+        // A caller settled this story already and asks for one shared viewport,
         // so a 70vh-capped scroll region reads the same cap in both passes.
+        full = shared;
         await page.setViewportSize({ width, height: full });
         content = await page.evaluate(({ html, theme }) => {
           document.documentElement.dataset.theme = theme;
@@ -612,18 +665,7 @@ export async function pass(browser, { subjects, css, width, coarse, size, interi
           return document.documentElement.scrollHeight;
         }, { html: s.html, theme });
       } else {
-        for (let round = 0; round < rounds; round++) {
-          const measured = await page.evaluate(({ html, theme }) => {
-            document.documentElement.dataset.theme = theme;
-            document.body.innerHTML = html;
-            return document.documentElement.scrollHeight;
-          }, { html: s.html, theme });
-          content = measured;
-          const next = Math.min(Math.max(measured, 900), VIEW_CAP);
-          if (next === full) break;
-          full = next;
-          await page.setViewportSize({ width, height: full });
-        }
+        ({ full, content } = await settleStory(page, s, width, rounds));
       }
       const height = full;
       const targets = await page.evaluate(PROBE, { html: s.html, size, interior, families, within });
