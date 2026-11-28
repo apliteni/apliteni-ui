@@ -184,10 +184,10 @@ each line of text that the button shows, and the menu has the same name.
 - `searchLabel` gives the words and the accessible name of the search trigger, at every width. Its
   default is "Search or run a command…". `searchShortLabel` is deprecated, and the shell does not
   draw it.
-- `palette` gives the command palette its groups. Without it, the palette lists the sections under
-  their group labels, or each sub-item with the name of its parent. `onNavigate` sends a same-tab
-  pick in the palette to your router, so the page changes without a reload. A `palette` with its
-  own `onNavigate` wins.
+- `palette` gives the command palette its groups. Without it, the shell still draws the palette,
+  and the palette lists the sections under their group labels, or each sub-item with the name of
+  its parent. `onNavigate` routes a pick in the palette as [Command palette](#command-palette)
+  says. A `palette` with its own `onNavigate` wins.
 - `bandControl` stands under the sidebar head. `headControl` is one glyph control in the sidebar
   head, before the fold button.
 - `bandActions` puts one or two glyph controls, such as a notification bell, at the right end of
@@ -653,8 +653,8 @@ placeholder is not a name.
 ### Command palette
 
 `CommandPalette` lets the user find a page, a record or an action and run it with the keyboard.
-In the topbar layout, [`AppShell`](#page-shell) draws one, also without `palette`. It must not be the
-only way to reach a page.
+In the topbar layout, [`AppShell`](#page-shell) draws one. It must not be the only way to reach a
+page.
 
 ```tsx
 <CommandPalette open={open} onClose={close} groups={groups}
@@ -665,8 +665,8 @@ only way to reach a page.
 `keywords`, `shortcut`, `badge` and `href`. Your product names the groups and the kinds of result.
 A group heading has the look and the contrast of a [dropdown](#dropdown) group label. Every pick
 calls `onSelect` with the item first. Then the palette closes, and a row with `href` goes to the
-address: `onNavigate` sends a same-tab pick to your router, and a Cmd- or Ctrl-held pick opens a new
-tab. `density` is `compact` or `roomy`.
+address: `onNavigate` sends a same-tab pick to your router, so the page changes without a reload,
+and a Cmd- or Ctrl-held pick opens a new tab. `density` is `compact` or `roomy`.
 
 **Destructive rows.** After `onSelect`, an item with `danger` calls its `onConfirm`, and the palette
 stays open, so open your [`Confirm`](#confirm) there. A `danger` item without `onConfirm` is
