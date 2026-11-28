@@ -63,7 +63,9 @@
        gate reads the kit's own sheets and cannot see that one, and a carrier
        whose containing block it cannot find is a layer that measures against
        whatever ancestor happens to be positioned. */
-    .ui-datepicker__opt
+    .ui-datepicker__opt,
+    /* Already relative in react/src/QuerySearch.css, restated for the same reason. */
+    .ui-query__remove
   ) { position: relative; }
 
   /* The layer: centred, transparent, sized to the floor, clamped to half the
@@ -81,6 +83,7 @@
     .ui-datepicker__opt,
     .ui-app__search,
     .ui-back,
+    .ui-query__remove,
     .toggle
   )::after {
     content: "";
@@ -166,6 +169,13 @@
      one control and reads this clearance: 30 drawn, 44 reached, 2px past the
      chip's edge. #885 */
   .ui-filter-bar { gap: var(--tap-gap) !important; --tap-clear-x: var(--tap-gap); --tap-clear-y: var(--tap-gap); }
+  /* A query chip keeps its remove mark. The label does not grow across, and the chip opens
+     the room the mark's layer takes on its left: 44 less the 24px mark, halved, plus 1px, so
+     the layer stops short of a fractional label edge. On its
+     right the mark takes the chip's padding and half the bar's gap. Up and down, both read
+     the bar's clearance, as a filter chip's trigger does. #866 */
+  .ui-query__chip { --tap-clear-x: 0px; column-gap: calc((var(--tap-min) - var(--tap-aa)) / 2 + 1px) !important; }
+  .ui-query__chip > .ui-query__remove { --tap-clear-x: var(--tap-gap); }
   /* In a split toolbar the rail row beside the report sits on the same line as
      Clear all. One step plus 1px keeps the button's layer off that row. */
   .ui-toolbar--split .ui-filter-bar { column-gap: calc(var(--tap-gap) + var(--space-1) + 1px) !important; }
@@ -175,6 +185,11 @@
      In .ui-stack the bar's margin collapses with the block's 8px one. An open band keeps its 24px. */
   :is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }
   .ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important; --tap-clear-y: var(--tap-gap); }
+
+  /* The view switch at the end of a query toolbar has free room on both sides: the toolbar's
+     gap to Group by, whose trigger does not grow across, and the page edge. So each outer
+     option reaches 44. rev_f2d9bddb40b6/d9, #866 */
+  .ui-toolbar:has(> .ui-query) > .ui-seg { --tap-clear-x: var(--tap-gap); }
 
   /* A wordless button on a toolbar is 36px or 40px wide, so it also opens across, into the
      toolbar's own 10px gap: it takes half, and a neighbour keeps the other half. The

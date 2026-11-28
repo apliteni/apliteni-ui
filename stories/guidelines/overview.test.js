@@ -120,7 +120,8 @@ test('the packaged Overview links every Markdown page and Storybook reads that i
   // 184: Dense tables added filter-chip-width (#915).
   // 188: Selection bar added three rules and Component choice selection-bar (#902).
   // 190: Toast added two rules (#907).
-  assert.equal(rules, 190);
+  // 193: Task list added task-board and task-head, and Notification email added task-mail (#866).
+  assert.equal(rules, 193);
   // Each is named. The kit has no unread row weight and no dropdown error part
   // (#798). This list empties as each lands.
   const gaps = PAGES.flatMap(page => page.gaps);

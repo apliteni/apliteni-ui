@@ -546,7 +546,7 @@ const hidesBar = (sheets, width, box) => {
 };
 const checkPhoneScrollbar = (sheets) => {
   const boxes = scrollBoxes(sheets);
-  assert.deepEqual(boxes.toSorted(), ['.ui-card:has(> .ui-table)', '.ui-table-scroll'],
+  assert.deepEqual(boxes.toSorted(), ['.ui-card-board', '.ui-card:has(> .ui-table)', '.ui-table-scroll'],
     'every sideways scroll box of the card and table sheets is measured');
   for (const box of boxes) {
     assert.deepEqual(hidesBar(sheets, 560, box), [true, true], `${box} shows a scrollbar at 560px`);

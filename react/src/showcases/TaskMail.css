@@ -1,0 +1,14 @@
+/* A task mail page: the envelope, then the plain text and the HTML in two columns.
+   Below 720px the two forms stand one above the other. */
+.task-mail { max-width: var(--container); margin: 0 auto; padding: var(--space-8) var(--space-6); }
+.task-mail > h1 { margin: 0 0 var(--space-6); }
+.task-mail__facts { margin: 0 0 var(--space-8); }
+.task-mail__forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); align-items: start; }
+.task-mail__forms h2 { margin: 0 0 var(--space-3); }
+/* The text keeps the mail's own line breaks, and a long link breaks anywhere. */
+.task-mail__text { margin: 0; padding: var(--space-5); white-space: pre-wrap; overflow-wrap: anywhere; }
+.task-mail__frame { display: block; width: 100%; }
+@media (max-width: 720px) {
+  .task-mail { padding: var(--space-6) var(--space-4); }
+  .task-mail__forms { grid-template-columns: minmax(0, 1fr); }
+}

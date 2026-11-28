@@ -50,7 +50,7 @@
   ],
   "tap-zone": [
    {
-    "ref": "src/styles/tap-zone.css:91",
+    "ref": "src/styles/tap-zone.css:94",
     "pattern": "width: min(max(100%, var(--tap-min)), calc(100% + var(--tap-clear-x)));"
    },
    {
@@ -64,7 +64,7 @@
     "pattern": "--tap-gap: var(--space-5, 20px);"
    },
    {
-    "ref": "src/styles/tap-zone.css:248",
+    "ref": "src/styles/tap-zone.css:263",
     "pattern": ".ui-confirm__acts,"
    }
   ],
@@ -326,11 +326,11 @@
     "pattern": "export const dropdownMatch"
    },
    {
-    "ref": "src/styles/dropdown.css:564",
+    "ref": "src/styles/dropdown.css:568",
     "pattern": ".ui-dropdown__panel--search { min-width: 280px; display: flex; flex-direction: column; }"
    },
    {
-    "ref": "src/styles/dropdown.css:627",
+    "ref": "src/styles/dropdown.css:631",
     "pattern": ".ui-dropdown__none {"
    }
   ]
@@ -342,7 +342,7 @@
     "pattern": ".ui-btn--danger:hover"
    },
    {
-    "ref": "src/styles/dropdown.css:517",
+    "ref": "src/styles/dropdown.css:521",
     "pattern": ".ui-dropdown__item.is-danger:hover"
    },
    {
@@ -450,7 +450,7 @@
   ],
   "one-or-the-other": [
    {
-    "ref": "react/src/AppShell.tsx:190",
+    "ref": "react/src/AppShell.tsx:92",
     "pattern": "back && <BackLink"
    }
   ],
@@ -590,7 +590,7 @@
     "pattern": "rank: page-title"
    },
    {
-    "ref": "src/styles/card.css:170",
+    "ref": "src/styles/card.css:236",
     "pattern": "rank: card-title"
    }
   ],
@@ -612,11 +612,11 @@
   ],
   "category-compact": [
    {
-    "ref": "src/styles/dropdown.css:522",
+    "ref": "src/styles/dropdown.css:526",
     "pattern": ".ui-dropdown__section:not([hidden]) ~ .ui-dropdown__section:not([hidden])"
    },
    {
-    "ref": "src/styles/dropdown.css:523",
+    "ref": "src/styles/dropdown.css:527",
     "pattern": ".ui-dropdown__group {"
    }
   ]
@@ -710,19 +710,19 @@
     "pattern": "--tap-gap: var(--space-5"
    },
    {
-    "ref": "src/styles/tap-zone.css:168",
+    "ref": "src/styles/tap-zone.css:171",
     "pattern": ".ui-filter-bar { gap: var(--tap-gap)"
    },
    {
-    "ref": "src/styles/tap-zone.css:176",
+    "ref": "src/styles/tap-zone.css:186",
     "pattern": ":is(.ui-app__body, .ui-card-stack) > .ui-toolbar:not(:last-child, :has(+ .ui-stats--open)) { margin-bottom: calc(var(--tap-gap) - var(--ui-block-gap, 0px)) !important; }"
    },
    {
-    "ref": "src/styles/tap-zone.css:177",
+    "ref": "src/styles/tap-zone.css:187",
     "pattern": ".ui-stack > .ui-toolbar:not(:last-child) { margin-bottom: var(--tap-gap) !important;"
    },
    {
-    "ref": "src/styles/tap-zone.css:150",
+    "ref": "src/styles/tap-zone.css:153",
     "pattern": ".ui-seg--underline { row-gap: var(--space-1"
    }
   ],
@@ -1091,7 +1091,7 @@
  "_account-and-settings.js": {
   "modal": [
    {
-    "ref": "react/src/AppShell.tsx:67",
+    "ref": "react/src/AppShell.tsx:70",
     "pattern": "accountItems?: readonly AppShellAccountItem[];"
    },
    {
@@ -1125,7 +1125,7 @@
     "pattern": "export const Switch = forwardRef"
    },
    {
-    "ref": "src/styles/card.css:202",
+    "ref": "src/styles/card.css:268",
     "pattern": ".ui-card__row {"
    }
   ],
@@ -1393,16 +1393,62 @@
  "_dropdown.js": {
   "group-labels": [
    {
-    "ref": "src/styles/dropdown.css:525",
+    "ref": "src/styles/dropdown.css:529",
     "pattern": "font-weight: var(--weight-bold);"
    },
    {
-    "ref": "src/styles/dropdown.css:527",
+    "ref": "src/styles/dropdown.css:531",
     "pattern": "/* muted-ink: chrome \u2014 names the rows under it; the group's aria-label keeps the name (#886) */ color: var(--muted);"
    },
    {
     "ref": "react/src/Dropdown.tsx:847",
     "pattern": "{section.label && <div className=\"ui-dropdown__group\" role=\"presentation\">{section.label}</div>}"
+   }
+  ]
+ },
+ "_task-list.js": {
+  "task-board": [
+   {
+    "ref": "src/styles/card.css:142",
+    "pattern": ".ui-card-slot {"
+   },
+   {
+    "ref": "react/src/MovableCard.tsx:26",
+    "pattern": "return <div ref={ref} draggable tabIndex={0} role=\"group\" aria-label={label} {...props}"
+   },
+   {
+    "ref": "react/src/showcases/Tasks.tsx:61",
+    "pattern": "{ label: 'Move to', items: moves }"
+   },
+   {
+    "ref": "src/styles/card.css:154",
+    "pattern": ".ui-card-board { overflow-x: auto;"
+   }
+  ],
+  "task-head": [
+   {
+    "ref": "react/src/AppShell.tsx:90",
+    "pattern": "const rowTools = compact && actions ? <>{tools}{actions}</> : tools;"
+   },
+   {
+    "ref": "src/styles/layout.css:925",
+    "pattern": ".ui-toolbar:has(> .ui-query) { flex-wrap: nowrap; align-items: flex-start; }"
+   },
+   {
+    "ref": "react/src/showcases/Tasks.tsx:402",
+    "pattern": "useEffect(() => writeHash(view, group, query), [view, group, query]);"
+   }
+  ]
+ },
+ "_notification-email.js": {
+  "task-mail": [
+   {
+    "ref": "react/src/showcases/task-mail.ts:39",
+    "pattern": "const textFoot = (why: string) => `-- \\n${why}\\nEmail settings: ${SETTINGS_URL}\\n`;"
+   },
+   {
+    "ref": "react/src/showcases/task-mail.ts:46",
+    "pattern": "<a href=\"${esc(SETTINGS_URL)}\" style=\"color:${T.accent};text-decoration:underline;\">Email settings</a>"
    }
   ]
  },

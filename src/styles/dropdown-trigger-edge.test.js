@@ -374,8 +374,9 @@ test('an unavailable trigger keeps its off edge or borderless box in every scope
   // Filter, and the small bar's chip replaces the small row's. Twelve since #863: the
   // text trigger of a chart's range. Fifteen since #888: the ghost trigger, open and in a
   // form field. Fourteen since #915: an open menu is a state of its trigger, not a scope.
-  assert.equal(BY_SCOPE.size, 14, 'review coverage when a trigger scope changes');
-  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 448);
+  // Fifteen since #866: the ghost trigger of a movable card's menu.
+  assert.equal(BY_SCOPE.size, 15, 'review coverage when a trigger scope changes');
+  assert.equal(BY_SCOPE.size * DISABLED_TARGETS.length, 480);
   const findings = disabledEdgeFindings(BY_SCOPE);
   assert.deepEqual(findings, [],
     'a disabled trigger state does not draw the kit\'s off edge');

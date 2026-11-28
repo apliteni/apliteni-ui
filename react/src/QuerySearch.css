@@ -1,0 +1,30 @@
+/* A query search: the field, its suggestion panel and its chips under the field.
+   The panel is placed on the whole search, so it opens under the chips and never covers
+   their edit or remove controls. The panel is as wide as the field.
+   why: docs/components.md#query-search */
+.ui-query { position: relative; min-width: 0; }
+.ui-dropdown.ui-query__anchor { position: static; display: flex; width: 100%; }
+.ui-query__anchor > .ui-input-group { width: 100%; min-width: 0; }
+.ui-dropdown__panel.ui-query__panel { width: 100%; min-width: 0; }
+/* The chips stand one inner gap under the field, and a long chip wraps its words. */
+.ui-filter-bar.ui-query__chips { margin-top: var(--space-2); }
+/* A query chip holds a whole condition, so it is not cut at the filter chip's 224px cap. */
+.ui-filter-bar__chip.ui-query__chip { max-inline-size: 100%; }
+.ui-query__chip > .ui-query__label { min-width: 0; white-space: normal; overflow-wrap: anywhere; text-align: start; }
+/* A query chip keeps its remove mark. A filter chip lost its own in 0.209.0, so the mark
+   keeps that paint here. It is positioned, so it keeps the pixel it shares with the label
+   when the phone tap sheet positions the label. */
+.ui-query__remove { position: relative; flex: none; border: 0; background: transparent; /* muted-ink: glyph — query chip remove mark */ color: var(--muted); font: inherit; text-align: center; font-size: var(--text-lg); padding: 0; min-width: 24px; min-height: 24px; border-radius: var(--radius-pill); cursor: pointer; }
+.ui-query__remove:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); }
+.ui-query__remove:disabled { /* muted-ink: state — unavailable remove mark on the page */ color: var(--disabled-ink-bare); }
+/* In a small bar the mark takes a tight line, so it fits the small chip. */
+.ui-filter-bar--sm .ui-query__remove { line-height: var(--leading-tight); }
+/* On a touch screen a chip's label is at least the 44px floor wide, because its layer may not
+   grow across into the remove mark. */
+@media (pointer: coarse) {
+  .ui-filter-bar__chip.ui-query__chip > .ui-query__label { min-inline-size: var(--tap-min, 44px); }
+}
+/* On a touch phone the chips keep the tap gap from the field, as they keep it between them. */
+@media (pointer: coarse) and (max-width: 560px) {
+  .ui-filter-bar.ui-query__chips { margin-top: var(--tap-gap); }
+}

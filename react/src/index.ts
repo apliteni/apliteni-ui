@@ -100,6 +100,12 @@ export type { FileDropProps, FileDropFile, FileDropStatus } from './FileDrop';
 export type { FieldProps, FieldControlProps, TextFieldProps, TextAreaProps, SelectFieldProps, FileFieldProps } from './Field';
 export { SearchField } from './SearchField';
 export type { SearchFieldProps } from './SearchField';
+export { QuerySearch } from './QuerySearch';
+export type { QuerySearchProps } from './QuerySearch';
+export { parseQuery, readQuery, matchQuery, findQueryKey, QueryError } from './query';
+export type { QueryKey, QueryValue, QueryNode, QueryTerm, QueryState } from './query';
+export { MovableCard, CardSlot } from './MovableCard';
+export type { MovableCardProps } from './MovableCard';
 export { Toast, useToast } from './Toast';
 export type { ToastNotice, ToastProps } from './Toast';
 

@@ -109,7 +109,10 @@ test('every control that takes the ring takes the offset that places it', () => 
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis, a Tab stop with a readout.
   // 48 -> 49: #903 adds the split layout's preview title, the focus target after Try again.
   // 49 -> 50: #903 adds the resize line of a three-column page and a split layout.
-  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
+  // 50 -> 51: #866 adds a movable card, one Tab stop that the keyboard moves by its menu.
+  // 51 -> 52: #866 adds the query chip's remove mark, which kept its ring when #885 took
+  // the filter chip's mark away.
+  assert.equal(consumers.length, 52, 'ring consumer discovery changed');
   assert.ok(consumers.filter((r) => r.file.startsWith('react/')).length >= 3,
     'the walk stopped reading react/src: the sort header, the row-selection checkbox, '
     + 'the file drop and the picker cell all take the ring there');
@@ -154,7 +157,8 @@ test('every scroll region that takes the inward band takes its offset too', () =
   // 18 -> 19: #871 rings the three-column page's columns inward, because each scrolls alone.
   // 19 -> 20: #907 rings a toast stack inward while it is taller than the view and scrolls.
   // 20 -> 21: #903 rings the split layout's two panes inward, because each scrolls alone.
-  assert.equal(scrollRules.length, 21,
+  // 21 -> 22: #866 rings the card board inward, because its columns scroll sideways in it.
+  assert.equal(scrollRules.length, 22,
     'scroll-ring consumer discovery changed; name the scroll region that was added or removed');
   assert.equal(scrollRules.filter((r) => r.file.startsWith('react/')).length, 6,
     'React\'s modal body, the picker\'s shortcut row, the account rail, the three-column page\'s columns, '
@@ -285,11 +289,14 @@ test('a focus rule draws the band and no second accent edge', () => {
   // 47 -> 48: #868 adds a drawer title cut by its ellipsis.
   // 48 -> 49: #903 adds the split layout's preview title.
   // 49 -> 50: #903 adds the resize line.
-  assert.equal(consumers.length, 50, 'ring consumer discovery changed');
+  // 50 -> 51: #866 adds a movable card.
+  // 51 -> 52: #866 adds the query chip's remove mark.
+  assert.equal(consumers.length, 52, 'ring consumer discovery changed');
   // 18 -> 19: #871 adds the three-column page's columns.
   // 19 -> 20: #907 adds the scrolling toast stack.
   // 20 -> 21: #903 adds the split layout's panes.
-  assert.equal(scrollRules.length, 21, 'scroll-ring consumer discovery changed');
+  // 21 -> 22: #866 adds the card board.
+  assert.equal(scrollRules.length, 22, 'scroll-ring consumer discovery changed');
   assert.deepEqual(secondBands([...consumers, ...scrollRules]), []);
 });
 

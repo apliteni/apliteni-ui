@@ -1,5 +1,17 @@
 export const RELEASES = [
   {
+    v: '0.235.0', date: '2026-11-28',
+    changes: [
+      ['added', '`QuerySearch` is a list search that reads typed filters, such as `state:open`, and `@name` for a person. It suggests keys, values and people, and each known filter becomes a chip that you can edit or remove. Title words stay in the field and match the titles. `parseQuery`, `readQuery` and `matchQuery` read the same query for your list. Apps with a plain `SearchField` see no change. Part of #866.', ['QuerySearch']],
+      ['added', '`MovableCard` is a card that a person moves to another column, such as a task on a board. It keeps its box in both themes and is one named Tab stop. `CardSlot` marks where a card lands, `held` leaves an empty slot, and `ui-card--lifted` keeps the moving copy fixed above the page. `ui-card-board` is the sideways scroll region for the columns, with the scroll band on keyboard focus and no scrollbar at 560px and below. Part of #866.', ['Card']],
+      ['fixed', 'A pinned `DataTable` title that is a link keeps one line above 720px too, as from 561px to 720px. It is cut between `--panel-sm` and `--panel-lg`, so a long title no longer covers the other columns. Tables with a pinned, linked title are affected. Part of #866.', ['DataTable']],
+      ['added', '`AppShell` takes `head="compact"`, which puts `actions` at the end of the title row and stands the next block 8px under it. Pages without it keep the actions row. Part of #866.', ['AppShell']],
+      ['changed', '`QuerySearch` takes `size="sm"` for a small field, and its chips are then a small filter bar. A toolbar that starts with a `QuerySearch` keeps the search, Group by and the view switch on one line above 560px. A dropdown trigger with `ui-btn--ghost` now has no fill and no edge at rest. On a touch screen a wordless view option on that toolbar is 32px wide, and on a touch phone it reaches 44px. On a touch phone a query chip opens 11px between its label and its remove mark, so each reaches 44px. Apps that adopt `QuerySearch` are affected. Part of #866.', ['Toolbar', 'Dropdown']],
+      ['added', 'Two guideline pages: Task list, with the rules Move cards on a board and Put New task beside the title, and Notification email, with the rule Link the task and the settings. The Toolbar docs now allow the create action at the end of a compact title row. Part of #866.', ['Guidelines']],
+      ['added', 'Two showcases: Tasks, with a Table and a Board of the same tasks and one shared search, and Task mail, with a new task mail and a daily digest in plain text and HTML. Part of #866.', ['Showcases']],
+    ],
+  },
+  {
     v: '0.234.1', date: '2026-11-28',
     changes: [
       ['added', 'A new Toast guideline page says to give the toast stack the inset of a bar at the bottom of the page, and to let the ring on a timed Undo show the time left. Part of #907.', ['Guidelines']],

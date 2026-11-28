@@ -1064,8 +1064,8 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
     const chipTriggers = async (width, sheet) => flatten((await pass(browser, {
       subjects: chipSubjects, css: sheet, width, coarse: true, size: TAP_MIN,
       families: [...carriers, ...exempt], within: ['.ui-filter-bar__chip'],
-    })).rows).filter((b) => b.within.length && b.cls.split(/\s+/).includes('ui-dropdown__trigger'));
-    await t.test('a filter chip trigger reaches 44 at 360, 390 and 466', async () => {
+    })).rows).filter((b) => b.within.length && b.cls.split(/\s+/).some((c) => c === 'ui-dropdown__trigger' || c === 'ui-query__remove'));
+    await t.test('a filter chip trigger and a query chip remove mark reach 44 at 360, 390 and 466', async () => {
       assert.ok(chipSubjects.length >= 10, `${chipSubjects.length} subjects draw a filter chip, 10 or more expected.`);
       for (const width of CHIP_WIDTHS) {
         const off = await chipTriggers(width, without);
@@ -1078,8 +1078,36 @@ test('measured at 390 on a coarse pointer', { skip: !RUN && 'set TAP_ZONES=1' },
           `${width}: a chip trigger misses the ${TAP_MIN}px floor.`);
         assert.deepEqual(on.filter((b, i) => b.lostTo.length > off[i].lostTo.length).map((b) => `${b.story} ${name(b)} <- ${b.lostTo.map(([, w]) => w)}`), [],
           `${width}: a chip trigger lost a drawn pixel to another control.`);
+        // #866: a query chip's remove mark is measured too, so a sweep that stopped reading it fails.
+        assert.ok(on.filter((b) => b.cls.split(/\s+/).includes('ui-query__remove')).length >= 3, `${width}: fewer than 3 query chip remove marks measured.`);
         t.diagnostic(`${width}: ${on.length} chip triggers, drawn height ${[...new Set(on.map((b) => b.drawn[1]))].join('/')}, `
           + `smallest reach ${Math.min(...on.map((b) => Math.min(...b.reach)))}`);
+      }
+    });
+
+    // #866: the wordless view switch at the end of a query toolbar. Each option reaches 44.
+    // A story with an open menu, panel or dialog covers the switch with that part, so it is not a
+    // subject. The sidebar's fold button is always expanded and opens nothing over the page.
+    const viewSubjects = subjects.filter((s) => s.html.includes('ui-query') && s.html.includes('ui-seg--icon')
+      && !/aria-modal="true"|<(?![^>]*ui-app__fold)[^>]*aria-expanded="true"/.test(s.html));
+    await t.test('a view option on a query toolbar reaches 44 at 360, 390 and 466', async () => {
+      assert.ok(viewSubjects.length >= 2, `${viewSubjects.length} subjects draw a query toolbar view switch, 2 or more expected.`);
+      // The options open outward, past the pill's edge, as the wordless switch above does.
+      // So the check reads the reach and the side into the shared middle, not a centred square.
+      for (const width of CHIP_WIDTHS) {
+        const on = flatten((await pass(browser, {
+          subjects: viewSubjects, css: withCss, width, coarse: true, size: TAP_MIN,
+          families: [...carriers, ...exempt], within: ['.ui-toolbar:has(> .ui-query) > .ui-seg'],
+        })).rows).filter((b) => b.within.length && b.cls.split(/\s+/).includes('ui-seg--icon'));
+        assert.ok(on.length >= 4, `${width}: ${on.length} view options measured, 4 or more expected.`);
+        assert.deepEqual(on.filter((b) => b.reach[0] < TAP_MIN - 0.5 || b.reach[1] < TAP_MIN - 0.5)
+          .map((b) => `${b.story} ${name(b)} reaches ${b.reach.join('x')}`), [],
+        `${width}: a view option misses the ${TAP_MIN}px floor.`);
+        assert.deepEqual(on.filter((b) => Math.min(b.sides[0], b.sides[1]) > 4)
+          .map((b) => `${b.story} ${name(b)} opens ${b.sides.slice(0, 2).join(' and ')}`), [],
+        `${width}: a view option crosses the shared middle.`);
+        assert.deepEqual(on.filter((b) => b.lost.length).map((b) => `${b.story} ${name(b)}`), [],
+          `${width}: a view option has a drawn pixel that another control owns.`);
       }
     });
 

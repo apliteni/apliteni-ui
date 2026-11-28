@@ -21,6 +21,8 @@ const AXE_OPTS: axe.RunOptions = {
   runOnly: { type: 'tag', values: WCAG },
   resultTypes: ['violations'],
   rules: { 'color-contrast': { enabled: false } },
+  // JSDOM gives a frame no window that axe can reach. The browser axe run reads the frame.
+  iframes: false,
 };
 const THEMES = ['dark', 'light'];
 

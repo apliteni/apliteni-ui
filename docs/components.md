@@ -171,6 +171,9 @@ with `tools` after it.
 small tools for the whole page at the end of the title row, such as a version badge, a period
 picker or a `size="sm"` button. Tools that do not fit go under the title. `actions` puts the page's
 buttons in their own row under the title. `back` puts a [back link](#back-link) above the title.
+`head="compact"` puts `actions` at the end of the title row, after `tools`, and stands the next
+block 8px under the row. Use it for a list page with one create action, such as New task above a
+[toolbar](#toolbar). A band title ignores it.
 
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top of
 every account menu. A row takes `href` to go to a page, or `onSelect` to open something in place. A
@@ -798,6 +801,46 @@ group, icon included, for a field that fits its expected input instead of growin
 row. Give it a CSS width such as `24ch`. The field has no clear button of its own, because the
 browser draws one.
 
+### Query search
+
+Use `QuerySearch` for a list search that reads typed filters, such as `state:open` and `@name`
+for a person. Use [`SearchField`](#search-field) when a search reads only words.
+
+```tsx
+<QuerySearch keys={TASK_KEYS} value={query} onChange={setQuery} ariaLabel="Search tasks" size="sm"
+  placeholder="Search tasks, state: or @name" />
+```
+
+`keys` gives each key, its other names, its values and a hint. A key with `kind: 'person'` also
+reads `@name`, and its `self` value, such as Me, comes first after `assignee:`. `value` holds the
+chips and the text in the field. Keep it in the URL, so a reload and a view change keep the query.
+`parseQuery`, `readQuery` and `matchQuery` read the same query for the list.
+
+**What the user sees.** The field offers the keys, then the values or the people. A menu row
+shows its name and hint on one left edge, and the key's badge at the right edge. A chosen
+condition becomes a chip under the field. Only a known key with a valid value, or a known
+person, becomes a chip. Title words stay in the field and match the titles. An unknown key or
+person gives no chip. A click on a chip's label puts it back in the field after the title words,
+and its mark removes it. A side that holds OR goes in parentheses there, so the matches stay the
+same. A query with AND, OR or a parenthesis stays one chip when each of its conditions is a
+filter. A group with title words stays in the field. A query that does not read shows its
+error under the field, with words that say what to change.
+`peopleStatus` shows Searching people, or People did not load with Retry. The field reads the
+last condition apart from the conditions before it, so `state:open @ma` offers people.
+
+**Keyboard and screen reader.** The field keeps the focus. Up and Down move the active row and
+wrap. Enter or Tab takes it. Enter with no active row makes chips of the known filters in the
+text. Escape closes the menu, and a click in the field opens it again. Backspace in an empty field removes the last chip. On a
+focused chip, Backspace or Delete removes it, and Escape goes back to the field. When people did
+not load, Tab goes from the field to Retry and the menu stays open. Enter on Retry retries and
+puts the focus back in the field. The field is a combobox with a listbox, and the chips are a
+group with a hidden legend.
+
+**Room on the screen.** The panel opens under the chips, as wide as the field, and stops above
+the bottom of the visible viewport. Its rows scroll. On a touch phone a chip's label and its
+remove mark each reach 44px. The chip opens 11px between them, and the mark's layer takes that
+room (`src/styles/tap-zone.css`, `.ui-query__chip`).
+
 ### Checkbox and switch
 
 `Checkbox` is an option that the user turns on or off and then submits. `type="radio"` is one choice
@@ -997,7 +1040,9 @@ its own. Keep its search field live, because a disabled field is too faint on th
 ### Toolbar
 
 `.ui-toolbar` is the row of controls above a list: a search field, then the filters, then the view
-switch. Put a create action on its own row above the toolbar, at the left.
+switch. Put a create action on its own row above the toolbar, at the left. On a page with a
+compact head (`head="compact"` on the [page shell](#page-shell)), put the create action at the end
+of the title row instead, as on the task page.
 
 ```tsx
 <div className="ui-toolbar">
@@ -1019,6 +1064,13 @@ small button or Segmented takes 40px as a direct child of `.ui-toolbar`. Without
 are `.ui-input--sm`, `.ui-filter-bar--sm`, `.ui-dropdown--sm`, `.ui-seg--sm` and `.ui-btn--sm`. The
 small search field stops at 320px. `.ui-toolbar--split` puts the last control at the end of the row,
 also on a phone.
+
+A small [query search](#query-search) takes `size="sm"`, and its chips are then a small filter bar.
+In a toolbar the query search takes the free width up to 560px, and its chips grow it downwards. So Group by and the
+view switch stay level with its field, and the view switch stands at the end of the row. Each
+wordless view option is as wide as the row's control height less the track's padding: 24px with a
+mouse and 32px on a touch screen (`src/styles/layout.css`). On a touch phone each option reaches
+44px into the free room beside the switch.
 
 **Room on the screen.** The row wraps only when the text field would be narrower than 6rem. At 560px
 and below, each search field takes the full line and the other controls wrap under it. The toolbar
@@ -1149,6 +1201,36 @@ under it. The line is `--border` in light and none in dark.
 give the document `.ui-card__page`. The toolbar is a slim row between two lines. The page is a white
 sheet with dark text in both themes, with A4 proportions at the least. For a document on a bare
 full-bleed backdrop instead of a card, use `.ui-document-ground`.
+
+### Movable card
+
+Use `MovableCard` for one record that a person moves to another column, such as a task on a
+board. Use a [table](#data-table) for records that a person compares.
+
+```tsx
+<MovableCard title={<a href="/tasks/T-118">Match the October bank statement</a>}
+  label="Match the October bank statement" action={<TaskMenu … />} held={held === id}>
+  <TaskFacts … />
+</MovableCard>
+```
+
+**What the user sees.** The card keeps its fill, edge and shadow in both themes, also on the light
+page. The edge darkens under the pointer and turns accent while pressed. `action` stands on the
+centre of the first title line. Draw its menu as a ghost button, with `ui-btn--ghost` on the
+trigger. While a person moves the card, `held` leaves its place as an empty sunken slot.
+`CardSlot` is a dashed accent slot that marks where the card lands. Give the copy that follows the
+pointer `ui-card--lifted`, so it stays fixed above the page and takes no pointer.
+
+**Keyboard and screen reader.** The card is one Tab stop, named by `label`, and the browser can
+drag it. The page owns the move: mouse drag, a long press and drag on touch, and the same moves
+in the card's menu for the keyboard. Say the target in a live region, because the slot has no
+text. A move from the menu unmounts the card in its old column, so focus the menu button of the
+moved card after it renders (`react/src/showcases/Tasks.tsx`, `refocus`).
+
+**Room on the screen.** Put the columns side by side in one sideways scroll region. A column
+never wraps under another. The region is `.ui-card-board`, with `role="region"`, a name and
+`tabIndex={0}`. It takes the inward scroll band on keyboard focus. At 560px and below it shows
+no scrollbar, as a table's card does.
 
 ### Badge, pill and status dot
 
@@ -1585,7 +1667,9 @@ divider only when the region can scroll. When the region is scrolled, the next c
 one cell padding short of the divider. With a selection column, the boxes of a pinned table start on
 the same edge as the words of an unpinned one, and the next column's words keep half a cell gap from
 the boxes' divider. From 561px to 720px a pinned cell keeps one line and is cut at
-`--ui-table-identity-max`. Lower that cap for a table with a selection column. At 560px and below,
+`--ui-table-identity-max`. Lower that cap for a table with a selection column. Above 720px a
+pinned title whose cell holds only its link keeps one line too. It is cut between `--panel-sm`
+and `--panel-lg`, so the pin does not cover the other columns. At 560px and below,
 the phone breakpoint, no column is pinned and the frame has no scrollbar. The pinned column and the
 selection column scroll with the other columns, and a pinned cell keeps its whole text. You do not
 need to remove `pinnedIdentity` for a phone.

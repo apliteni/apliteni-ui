@@ -89,6 +89,10 @@
    one line, also on an invalid trigger. Later than the invalid edge, earlier than the off
    rules. why: docs/foundations.md#the-focus-ring */
 .ui-dropdown__trigger:focus-visible { --ui-dropdown-field-veil: 100%; border-color: color-mix(in srgb, transparent var(--ui-dropdown-field-veil), var(--ui-dropdown-field-edge)); outline: var(--ring); outline-offset: var(--ring-offset); }
+/* A trigger drawn as a ghost button, such as the menu on a movable card, keeps the ghost
+   button's open look at rest: no fill and no edge. The pointer still gets the edge above.
+   #866, rev_c072f0f9bb83/d6. why: docs/components.md#movable-card */
+.ui-dropdown__trigger.ui-btn--ghost { background: transparent; border-color: transparent; }
 /* Off. The off hover-not-focus and pressed selectors are (0,4,0), tied with live hover and the
    invalid press, and later. A press stays on when the pointer leaves the trigger, so the pressed
    one holds the off edge there. #915

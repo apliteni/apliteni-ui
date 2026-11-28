@@ -273,3 +273,14 @@ test('the census counts each hover selector, so a lost subject fails coverage', 
   assert.deepStrictEqual(lostSubjects([sheet], subjects.filter((x) => !x.part.startsWith('.b'))),
     ['fixture.css:1 has 2 hover selectors, the gate read fewer'], 'one selector lost from a list that still gave a subject was not found');
 });
+
+test('the movable card hover is read, and a fade of its edge is rejected (#866)', () => {
+  const kit = allSheets();
+  const sheet = kit.find((s) => s.where === 'src/styles/card.css');
+  const { subjects, fades } = hoverFades([sheet], kit);
+  assert.ok(subjects.some((x) => x.part.includes('.ui-card--movable') && x.part.includes(':hover')), 'the gate did not read the movable card hover');
+  assert.deepStrictEqual(fades, []);
+  const faded = { ...sheet, text: `${sheet.text}\n.ui-card--movable { transition: border-color var(--dur-fast) var(--ease); }` };
+  const mutated = hoverFades([faded], kit.map((s) => (s === sheet ? faded : s))).fades;
+  assert.ok(mutated.some((f) => /ui-card--movable.*\{ border-color \} fades/.test(f)), `a movable card edge fade was not reported:\n${mutated.join('\n')}`);
+});

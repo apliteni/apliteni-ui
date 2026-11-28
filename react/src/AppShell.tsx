@@ -50,6 +50,9 @@ export type AppShellProps = AppShellNav & {
   /** Small tools for the whole page, at the end of the title row: a version badge, a
    *  small button. The lede stands under the whole row (#736). */
   tools?: ReactNode;
+  /** `compact` puts `actions` at the end of the title row, after `tools`, and stands the
+   *  body 8px under the row: the head of a task page, with one create action (#866). */
+  head?: 'compact';
   bandControl?: ReactNode;
   /** One glyph control in the sidebar head, before the fold button, drawn as the fold is.
    *  On a phone it stands in the menu panel's head. Topbar layout only (#732). */
@@ -78,8 +81,25 @@ export type AppShellProps = AppShellNav & {
 
 const path = (value: string) => value.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
 
+/** The head of the page column: the back link, the title row, the lede and the actions row.
+ *  With `band`, the title stands in the band and not here. */
+function PageHead({ back, title, lede, actions, tools, head, band }: Pick<AppShellProps, 'back' | 'title' | 'lede' | 'actions' | 'tools' | 'head'> & { band: boolean }) {
+  // A compact head carries the page's actions in its title row (#866). A full-width page
+  // draws its title in the band, so its actions keep their own row.
+  const compact = head === 'compact' && !band;
+  const rowTools = compact && actions ? <>{tools}{actions}</> : tools;
+  return <>
+    {back && <BackLink {...back} />}
+    {title != null && !band && (rowTools
+      ? <div className={`ui-app__title-row${compact ? ' ui-app__title-row--compact' : ''}`}><h1>{title}</h1><div className="ui-app__tools">{rowTools}</div></div>
+      : <h1>{title}</h1>)}
+    {lede && <p className="ui-app__sub">{lede}</p>}
+    {actions && !compact && <div className="ui-react-app__actions">{actions}</div>}
+  </>;
+}
+
 export function AppShell({ sections, groups, pathname, title, children, word = 'apliteni-ui', brand, layout = 'topbar', drawerSide,
-  brandHref = '/', width = 'centered', back, lede, actions, tools, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
+  brandHref = '/', width = 'centered', back, lede, actions, tools, head, bandControl, headControl, bandActions, account, accountItems = [], onSignOut,
   searchLabel = 'Search or run a command…',
   defaultCollapsed = false, palette, onNavigate, renderLink }: AppShellProps) {
   const uid = useId();
@@ -187,12 +207,7 @@ export function AppShell({ sections, groups, pathname, title, children, word = '
     <span className="ui-nav__label">{foldLabel}</span>
   </button></div>;
   const page = <main className={`ui-app__main${width === 'centered' ? '' : ` ui-app__main--${width}`}`}>
-    {back && <BackLink {...back} />}
-    {title != null && !bandTitle && (tools
-      ? <div className="ui-app__title-row"><h1>{title}</h1><div className="ui-app__tools">{tools}</div></div>
-      : <h1>{title}</h1>)}
-    {lede && <p className="ui-app__sub">{lede}</p>}
-    {actions && <div className="ui-react-app__actions">{actions}</div>}
+    <PageHead back={back} title={title} lede={lede} actions={actions} tools={tools} head={head} band={bandTitle} />
     <div className="ui-app__body">{children}</div>
   </main>;
 

@@ -31,6 +31,8 @@ import * as sessionExpiredContent from './_session-expired.js';
 import * as threeColumnContent from './_three-column-page.js';
 import * as wizardContent from './_wizard.js';
 import * as dropdownContent from './_dropdown.js';
+import * as taskListContent from './_task-list.js';
+import * as notificationEmailContent from './_notification-email.js';
 import * as selectionBarContent from './_selection-bar.js';
 import * as toastContent from './_toast.js';
 import * as kindContent from './_dashboards-and-reports.js';
@@ -77,6 +79,8 @@ const ENTRIES = [
   [threeColumnContent, 'Guidelines/Three-column page', 'ThreeColumnPage', 'Pages', 'Parents, their children and the open child in three columns'],
   [wizardContent, 'Guidelines/Wizard', 'WizardPage', 'Controls and states', 'Step states, the open step and the final action'],
   [dropdownContent, 'Guidelines/Dropdown', 'DropdownPage', 'Controls and states', 'Group labels that stand apart, and a trigger that shows only its value'],
+  [taskListContent, 'Guidelines/Task list', 'TaskListPage', 'Pages', 'The title row, one toolbar and a board with keyboard moves'],
+  [notificationEmailContent, 'Guidelines/Notification email', 'NotificationEmailPage', 'Words', 'The task event, task links, plain text and the settings link'],
   [selectionBarContent, 'Guidelines/Selection bar', 'SelectionBarPage', 'Controls and states', 'The bar for selected rows, its theme, its picks and More'],
   [toastContent, 'Guidelines/Toast', 'ToastPage', 'Controls and states', 'The stack above a bottom bar, and the ring on a timed Undo'],
 ];

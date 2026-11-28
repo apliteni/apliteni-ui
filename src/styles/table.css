@@ -49,11 +49,11 @@
  * figure rather than against the first column it spans. */
 .ui-table tfoot tr:first-child > :is(th, td) { border-top: 2px solid var(--border-strong); }
 .ui-table tfoot th { text-align: right; }
-.ui-table td.ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
+.ui-table :is(td, th).ui-table__title { color: var(--strong); font-weight: var(--weight-medium); width: 99%; white-space: normal; }
 /* A floor, not a spacing step: a two-word name stays on one line when the table is
    wider than its frame, so the frame scrolls instead of the title breaking at each word,
    as a pinned subject column did in #832. A pinned column's own ceiling still wins. */
-.ui-table td.ui-table__title { min-width: min(20ch, var(--ui-table-identity-max, 20ch)); }
+.ui-table :is(td, th).ui-table__title { min-width: min(20ch, var(--ui-table-identity-max, 20ch)); }
 .ui-table th:last-child { padding-right: 0; }
 /* The last body cell ends where its header and the table end. A right-aligned amount in the
    last column stood 16px in from both, because only the header and the action cell dropped
@@ -431,6 +431,20 @@
 .ui-identity__logo img[hidden] { display: none; /* motion: still — a failed resource is replaced without animating the error. */ }
 a.ui-identity:hover { text-decoration: underline; }
 .ui-identity:focus-visible { outline: var(--ring); outline-offset: var(--ring-offset); border-radius: var(--radius-xs); }
+/* A pinned title is one line, cut at a ceiling between a small and a large panel, so the pin
+   never covers the columns that scroll past it. The link carries the cut, so its own ring is
+   not clipped. Up to 720px the cell's own cap is smaller and cuts first. At 560px and below
+   nothing is pinned, so the title keeps its whole text. #866
+   why: docs/components.md#data-table */
+@media (width > 560px) {
+  .ui-table--pinned .ui-table__title.ui-table__linked > a:not([class]):only-child {
+    display: block;
+    max-width: clamp(min(var(--panel-sm), 40vw), calc(100vw - var(--container)), var(--panel-lg));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 @media (width > 560px) and (width <= 720px) {
   /* One line wide: nothing wraps, and --ui-table-identity-max is the ceiling a consumer
      retunes. Below the phone step nothing is pinned, so the cell keeps its whole text.
