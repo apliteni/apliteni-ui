@@ -1,5 +1,11 @@
 export const RELEASES = [
   {
+    v: '0.234.0', date: '2026-11-28',
+    changes: [
+      ['removed', 'The `label` prop of React `Dropdown` is removed. It drew nothing since 0.206.0, and a call that still passes it no longer compiles in TypeScript. Delete the prop, and name the control with a `Field` label or with `ariaLabel`. Part of #899.', ['Dropdown']],
+    ],
+  },
+  {
     v: '0.233.0', date: '2026-11-28',
     changes: [
       ['changed', 'Every dropdown panel is now a rounded popover: an 18px corner, rows 6px inside its edge with a 12px corner, and a thin, rounded, neutral scroll bar. This affects every select, action menu, filter chip menu, date picker, account menu and version switch. Part of #888.', ['Dropdown', 'FilterBar', 'DatePicker', 'AccountMenu', 'TopBar']],
