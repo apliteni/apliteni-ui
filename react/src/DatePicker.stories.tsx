@@ -237,10 +237,15 @@ export const Disabled: StoryObj<typeof DatePicker> = {
 export const Keyboard: StoryObj<typeof DatePicker> = {
   render: args => (
     // Two columns, because the open panel floats over whatever is under it and
-    // the keys have to stay readable beside the grid they describe.
-    <div style={{ display: 'grid', gap: 'var(--space-6)', gridTemplateColumns: '300px minmax(0, 1fr)', alignItems: 'start' }}>
-      <DatePicker {...args} defaultValue="2026-08" defaultOpen />
-      <ul style={{ margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)', display: 'grid', gap: 'var(--space-2)' }}>
+    // the keys have to stay readable beside the grid they describe. The row wraps,
+    // so where two 300px columns and their gap do not fit, the keys go below and a
+    // phone does not scroll sideways. A wrapping row and not an auto-fit grid: the
+    // centred canvas sizes the story to its content, and auto-fit then makes one track.
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-6)', alignItems: 'flex-start' }}>
+      <div style={{ width: 300, maxWidth: '100%' }}>
+        <DatePicker {...args} defaultValue="2026-08" defaultOpen />
+      </div>
+      <ul style={{ flex: '1 1 300px', margin: 0, paddingInlineStart: 'var(--space-5)', fontSize: 'var(--text-sm)', display: 'grid', gap: 'var(--space-2)' }}>
         <li>Left and Right move one month; Up and Down move one row.</li>
         <li>Home and End go to the ends of the row.</li>
         <li>Page Up and Page Down change the year.</li>
