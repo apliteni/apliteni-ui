@@ -591,8 +591,9 @@ test('measured in a browser, four widths and both themes', {
  * pointer, the focus stays in the dropdown while it is open, Escape closes it and gives the
  * focus back to the trigger, no fixed element moves by more than 1px, no box scrolls, the
  * cumulative layout shift stays under 0.1 and the page does not scroll sideways. In the open
- * panel, the hovered row and the chosen row paint the quiet row ground, and a focused row that
- * is not chosen paints none (#888, rev_32e9894c9f71/d76, rev_92b7f8a56703/d79).
+ * panel, the hovered row and the chosen row paint the quiet row ground, the search cursor row
+ * paints --surface-2 unless the pointer is on it, and a focused row that is not chosen paints
+ * none (#888, rev_32e9894c9f71/d76, rev_92b7f8a56703/d79).
  *
  * Off unless DROPDOWN_EDGES=1, as the sweep above is, and it needs web-vitals too:
  *
@@ -653,16 +654,17 @@ const FLOAT_READ = () => {
   function rowPaint(box) {
     if (!dd.classList.contains('open')) return [];
     const probe = box.appendChild(document.createElement('i'));
-    const [fill, chosenFill, chosenHover] = ['--float-row-fill', '--float-row-selected', '--float-row-selected-hover']
+    const [fill, chosenFill, chosenHover, cursor] = ['--float-row-fill', '--float-row-selected', '--float-row-selected-hover', '--surface-2']
       .map((token) => { probe.style.background = `var(${token})`; return getComputedStyle(probe).backgroundColor; });
     probe.remove();
     return [...box.querySelectorAll('.ui-dropdown__item')].flatMap((row) => {
       const chosen = row.classList.contains('is-selected');
       const focus = row.matches(':focus-visible');
       const hovered = row.matches(':hover') && !focus;
-      const want = chosen ? (hovered ? chosenHover : chosenFill) : hovered ? fill : 'rgba(0, 0, 0, 0)';
+      const active = row.classList.contains('is-active');
+      const want = hovered ? (chosen ? chosenHover : fill) : active ? cursor : chosen ? chosenFill : 'rgba(0, 0, 0, 0)';
       const got = getComputedStyle(row).backgroundColor;
-      const state = [chosen && 'chosen', focus && 'focused', row.matches(':hover') && 'hovered'].filter(Boolean).join(' ') || 'resting';
+      const state = [chosen && 'chosen', active && 'search cursor', focus && 'focused', row.matches(':hover') && 'hovered'].filter(Boolean).join(' ') || 'resting';
       return got === want ? [] : [`a ${state} row "${row.textContent.trim()}" paints ${got}, not ${want}`];
     });
   }
