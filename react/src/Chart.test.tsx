@@ -1107,9 +1107,7 @@ it('draws a rows look as signed bars across the full plot, each full name above 
 
 it('steps a rows look with every arrow, and reads each row\'s full name and value', async () => {
   const user = userEvent.setup();
-  // Every hold in this test runs on held frames. A hold on the window's own
-  // frames could still be on when a later entry starts, and its late frame
-  // then ran that entry's row reveal after the reader's wheel (#888).
+  // Held frames, so no late window frame runs a row reveal after a wheel (#888).
   const held = heldFrames();
   rowsChart(300, { table: false });
   expect(frame()).toHaveAccessibleName('Margin by unit. Arrow keys step through the 6 rows.');
@@ -1153,10 +1151,8 @@ it('steps a rows look with every arrow, and reads each row\'s full name and valu
   held.drain();
   expect(scrolled, 'the open row comes into view after the entry')
     .toEqual([plot().querySelector('[data-mark="margin-4"] .ui-chart__hit')]);
-  // A design review of f9e6f26f: a wheel during the entry is the reader's. It
-  // ends the hold, the queued row reveal does not move the page back, and the
-  // wheel's scroll closes the readout.
-  // The frames are held, so the wheel always comes while the hold is on.
+  // A design review of f9e6f26f: a wheel during the hold is the reader's. It ends
+  // the hold, the queued row reveal does not move the page, and its scroll closes the readout.
   await user.tab({ shift: true });
   scrolled.length = 0;
   await user.tab();
