@@ -2,7 +2,7 @@ export const RELEASES = [
   {
     v: '0.232.2', date: '2026-11-28',
     changes: [
-      ['changed', 'The component guide, `docs/components.md`, is shorter. It keeps every component, every promise and every heading that you link to. It says each fact once. No component, prop or style changes. Part of #888.'],
+      ['changed', 'The component guide, `docs/components.md`, is shorter. It keeps every component, every promise and every heading that you link to. It says each fact once. It corrects one fact: in the topbar layout, `AppShell` draws a command palette also without `palette`. No component, prop or style changes. Part of #888.'],
     ],
   },
   {

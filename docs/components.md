@@ -49,8 +49,9 @@ Every colour is a CSS custom property. Two attributes on `<html>` select the val
 
 - **`data-theme`** is `dark` or `light`. It sets the surfaces, the text, the borders and the
   signal colours.
-- **`data-accent`** is `phoenix`, `ocean` or `emerald`. Without it, the accent is **Nebula**, the
-  purple default. The accent changes only the accent colours, so every accent works in both themes.
+- **`data-accent`** is `phoenix`, `ocean` or `emerald`. For the default, see
+  [An absent attribute means dark](#an-absent-attribute-means-dark). The accent changes only the
+  accent colours, so every accent works in both themes.
 
 Neither attribute changes the type. `--font-display` is for headings and brand marks, `--font-sans`
 for all text that the user reads, and `--font-mono` for code. The package does not ship the font
@@ -63,7 +64,8 @@ stored theme. `AccentPicker` lets the user choose the accent and calls `onChange
 
 ### An absent attribute means dark
 
-`data-theme` and `data-accent` are optional. Without them, the kit shows dark Nebula.
+`data-theme` and `data-accent` are optional. Without them, the kit shows dark **Nebula**, the purple
+default accent.
 
 ```html
 <html>                              <!-- dark, Nebula -->
@@ -131,7 +133,8 @@ what the user sees.
 ### Page shell
 
 `AppShell` draws the navigation, the page title and the account around your page content. A
-sign-in page takes [`AuthShell`](#auth-shell). Do not put a second shell or a second top band in it.
+sign-in page takes [`AuthShell`](#auth-shell). Do not put a second shell or a second top band in it,
+because a page has one band.
 
 ```tsx
 <AppShell sections={sections} pathname={location.pathname} title="Invoices"
@@ -142,15 +145,13 @@ sign-in page takes [`AuthShell`](#auth-shell). Do not put a second shell or a se
 ```
 
 `sections` lists the destinations, each with `href`, `label`, `icon` and an optional `count`. A
-section can hold one level of sub-items in `items`, each with `href`, `label` and an optional
-`count`. That section then opens its sub-items and is not a link itself. To sort the sections under
-group labels, give `groups` in place of `sections`: each group has a `label` and its `sections`,
-with no sub-items. A sidebar takes group labels or sub-items, never both, and the types refuse the
-mix.
+section can hold sub-items in `items`, each with `href`, `label` and an optional `count`. That
+section then opens its sub-items and is not a link itself. To sort the sections under group labels,
+give `groups` in place of `sections`: each group has a `label` and its `sections`.
+[Sidebar navigation](#sidebar-navigation) gives the limits of both and how the current row shows.
 
-The longest `href` that matches `pathname` is the current section or sub-item. The current sub-item
-stays shown, and its parent row shows as current. When `pathname` is the row's own path, such as
-`/invoices`, the row is the page (`aria-current="page"`). When `pathname` is below it, such as
+The longest `href` that matches `pathname` is the current section or sub-item. When `pathname` is
+the row's own path, such as `/invoices`, the row is the page (`aria-current="page"`). When `pathname` is below it, such as
 `/invoices/1042`, or the page has a `back` link, the row is the parent section
 (`aria-current="true"`). The match is by path segment, so `/invoices-archive` is not below
 `/invoices`. `word` names the product. Its default is `apliteni-ui`, so set it. `brand` replaces
@@ -174,7 +175,8 @@ buttons in their own row under the title. `back` puts a [back link](#back-link) 
 **The account menu.** `accountItems` adds rows, such as Account settings and Support, at the top of
 every account menu. A row takes `href` to go to a page, or `onSelect` to open something in place. A
 separator stands before Sign out. In the topbar layout, a Theme row opens a submenu with Auto,
-Light and Dark. The account button's name is "Signed in as", the name and the address. It holds
+Light and Dark. Right and Enter open it, Left and Escape close it, and the focus goes back to the
+row. On a phone the submenu replaces the rows, under a back row. The account button's name is "Signed in as", the name and the address. It holds
 each line of text that the button shows, and the menu has the same name.
 
 **Topbar layout only.**
@@ -203,9 +205,9 @@ each line of text that the button shows, and the menu has the same name.
 **What the user sees.**
 
 - Above 720px a button folds and unfolds the sidebar or the rail. The shell stores the choice in
-  the `apliteni-ui-rail` cookie, and `defaultCollapsed` sets the first state. A folded row keeps its
-  name and its count for keyboard and pointer users. A folded rail takes clicks only on the glyph
-  column, so a click beside it reaches the page.
+  the `apliteni-ui-rail` cookie, and `defaultCollapsed` sets the first state. For a folded row, see
+  [Sidebar navigation](#sidebar-navigation). A folded rail takes clicks only on the glyph column, so
+  a click beside it reaches the page.
 - At 720px and below, the sidebar goes away and a 52px band shows. In the topbar layout, the band
   holds the brand mark, the page title on one line, the search trigger, the band actions and a menu
   button. In the rail layout, it holds only the menu button and the mark. The menu button opens the
@@ -245,9 +247,10 @@ is not a history step. When a page takes one: [Going back](../guidelines/going-b
 ```
 
 **What the user sees.** A link with an arrow and the name of the parent page, as the sidebar writes
-it, above the title in the place of a trail. A long name is cut, not wrapped. The section of the
-parent page stays marked with `aria-current="true"`. Without an `href`, or with a `javascript:`
-address, it draws nothing. `as` lets a router link draw it.
+it, above the title in the place of a trail. A long name is cut, not wrapped. For how the sidebar
+marks the section of the parent page, see [Page shell](#page-shell). Without an `href`, it draws
+nothing. For a `javascript:` address, see [Escaping and URLs](#escaping-and-urls). `as` lets a
+router link draw it.
 
 **Keyboard and screen reader.** It is an `<a href>`. The arrow is hidden from screen readers.
 
@@ -289,16 +292,17 @@ for a product page.
 ```
 
 It takes flat `items` or captioned `sections`, rows with sub-items, badges and `renderLink`. Nesting
-stops at one level. A sidebar takes captions or sub-items, never both: the type refuses the mix, and
-in development the component warns. When the current page comes into a group, the group opens, and
-its row shows as current. A collapsed row keeps its name and its count. A caption looks like a
+stops at one level. A sidebar takes captions (group labels) or sub-items, never both. The types
+refuse the mix, and in development `SidebarNav` warns. These rules also hold for the sidebar of
+`AppShell`. When the current page comes into a group, the group opens, and its row shows as current.
+A folded row keeps its name and its count for keyboard and pointer users. A caption looks like a
 [dropdown](#dropdown) group label. It keeps 6.24:1 on the sidebar in dark and 6.11:1 in light, and
 5.60:1 in the phone drawer in dark, under every accent.
 
 ### Top bar
 
-`TopBar` is the product band of a site or documentation page that has no `AppShell`. Do not put it
-in an `AppShell` page, because a page has one band.
+`TopBar` is the product band of a site or documentation page that has no `AppShell`, because
+[a page has one band](#page-shell).
 
 ```tsx
 <TopBar word="Strategy" view={<ViewSwitch items={views} active="deck" />}
@@ -419,7 +423,7 @@ pane.
 ```
 
 `primary` holds the title, the values and the totals. `primaryLabel` names that pane, `Details` by
-default. Give the pane's own name the `ui-split__name` class, so it takes the accent. `actions` holds
+default. `actions` holds
 the buttons at the foot of the first pane, the committing one first. `preview` takes the pane's
 `title`, the sheet's `children`, a `state` of `ready`, `loading` or `unavailable`, and `onRetry` for
 the Try again button of the unavailable state. `zoom` is `fit`, `50`, `100`, `150` or `200`. Pass
@@ -438,7 +442,8 @@ data and no rules of its own.
   click puts it back to 60%. When the line goes with the focus on it, the focus goes to the
   preview's title.
 - The first pane holds the values that will be saved. A value in its key-value list or table is
-  heavier than its label, and the pane's name is in the accent. The preview takes none of these.
+  heavier than its label. Give the pane's own name the `ui-split__name` class, so it takes the
+  accent. The preview takes neither the heavier value nor the accent name.
 - The preview pane is the document ground, `--ui-document-ground`, from edge to edge. Its title and
   zoom tools stand on the page ground at its top, and the sheet is a kit page, 420px wide.
 - Above 860px each pane scrolls on its own, and the sidebar and the band stay outside both. The
@@ -626,9 +631,7 @@ matches says so. A panel with a search field is at least 280px wide, also inside
 than the view less 8px at each side. In a `Modal` or a `Drawer` it is as wide as its trigger, or
 280px when the trigger is narrower.
 
-**Submenus.** The account menu of `AppShell` has a Theme row that opens a submenu. Right and Enter
-open it, Left and Escape close it, and the focus goes back to the row. On a phone the submenu
-replaces the rows, under a back row.
+**Submenus.** For the Theme submenu of the `AppShell` account menu, see [Page shell](#page-shell).
 
 **Text trigger.** `triggerClass="ui-dropdown__trigger--text"` draws the trigger as its words and the
 arrow, in body ink and weight, with no fill and no edge at rest. Its words start on the text edge of
@@ -650,7 +653,8 @@ placeholder is not a name.
 ### Command palette
 
 `CommandPalette` lets the user find a page, a record or an action and run it with the keyboard.
-`AppShell` draws one when you pass `palette`. It must not be the only way to reach a page.
+In the topbar layout, [`AppShell`](#page-shell) draws one, also without `palette`. It must not be the
+only way to reach a page.
 
 ```tsx
 <CommandPalette open={open} onClose={close} groups={groups}
@@ -701,7 +705,8 @@ drop. `accept` only filters the system picker, so check the file before you uplo
 
 **`Field` with your own control.** The child function gets the `id`, `required`, `aria-invalid` and
 `aria-describedby`. Spread them on the control. A dropdown or date picker trigger then has the label
-and the value as its name, such as "Due date, August 2026", and the error gives it the invalid edge.
+and the value as its name. An example is "Due date, August 2026". In a `Field` with an error, the
+trigger has the invalid edge.
 In a field, a dropdown trigger has the height of a text input and keeps the pill corner. It fits its
 longest option up to the field width, so a value change does not change its width. A native select
 has the same width rule. In vanilla markup, put the placeholder and each option's shown words, with
@@ -818,8 +823,9 @@ range uses `range` and `onRangeChange`. Values are ISO strings in the grain of t
 `2026-08-14`. A value in the other grain still counts: a month in day grain is the whole month.
 `min`, `max` and `disabledPeriods` block periods. `presets`, `locale`, `weekStartsOn` and `today` are
 optional. `placeholder` is the trigger text while nothing is chosen, "Select a date" by default.
-`ariaLabel` names the trigger and the title of the phone sheet, and wins over the label of a
-`Field`. Outside a `Field` and without `ariaLabel`, the placeholder is the sheet title.
+`ariaLabel` names the trigger and the title of the phone sheet. In a `Field`, the label of the
+field is the sheet title, but `ariaLabel` wins over it. Outside a `Field` and without `ariaLabel`,
+the placeholder is the sheet title.
 
 **What the user sees.** The panel opens like a dropdown and holds a grid. A blocked cell has a struck
 label and refuses a press, but the keyboard can still reach it. A range covers everything between
@@ -829,8 +835,8 @@ it. In a Modal, the panel opens over the edge of the dialog.
 
 **Keyboard and screen reader.** The grid has one Tab stop. The arrow keys move between cells, and
 Home and End go to the ends of the row. Each cell says what it is in its own name. Escape closes only
-the calendar, and the next Escape closes the dialog around it. In a `Field`, the label of the field
-is the title of the sheet. [Fields](#fields) gives the name of the trigger.
+the calendar, and the next Escape closes the dialog around it. [Fields](#fields) gives the name of
+the trigger.
 
 ### File drop
 
@@ -928,7 +934,8 @@ address, use [`NavTabs`](#route-tabs).
 ```
 
 It draws a tablist and the panel of the chosen tab. Content of the other panels is not mounted. The
-arrow keys, Home and End move between tabs and choose them.
+tablist has one Tab stop, and a screen reader says "tab, 1 of 3". The arrow keys, Home and End move
+between tabs and choose them.
 
 ### Filter bar
 
@@ -1105,12 +1112,11 @@ controls stands there.
 **A card on the light page.** A light card draws no fill, edge or shadow, and it keeps the dark
 card's spacing: a 24px side inset and no hang outside its container. Its text and its table text
 start 24px in from the page title's edge, in both themes, so nothing moves when the theme changes. A
-tinted card, a landing card and a stat tile keep their box.
+tinted card and a landing card keep their box. For a stat tile, see [Stat bands](#stat-bands).
 
 **A table directly in a card.** A table wider than the card scrolls sideways inside the card, and
 while it overflows the card is a named keyboard stop. `scrollLabel` names it, as it names the
-[table's scroll region](#data-table). Below 560px the card has no scrollbar, as the table's scroll
-frame has none. A control in the card that takes the focus by keyboard or by script scrolls fully
+[table's scroll region](#data-table). Below 560px the card has no scrollbar. A control in the card that takes the focus by keyboard or by script scrolls fully
 into view with its focus ring.
 
 **A card that ends at its content.** `.ui-card--fit` ends the card at the width of its content, such
@@ -1145,8 +1151,7 @@ the same row, see [Data table](#data-table).
 <Badge variant="success">Paid</Badge> <Pill variant="live">Live</Pill> <StatusDot live /> Connected
 ```
 
-None of them has an interactive role or a live region. Put the status words beside the dot. The
-colour never carries the status alone.
+None of them has an interactive role or a live region. The colour never carries the status alone.
 
 ### Avatar
 
@@ -1409,8 +1414,8 @@ itself, use [hold to confirm](#hold-to-confirm).
 ```
 
 It is an `alertdialog`. The safe action gets the focus and stands before the committing action.
-`onConfirm` only reports the press. You save, show errors and close. The answers are the modal's
-footer buttons, so on a phone each one has a 44px tap zone.
+`onConfirm` only reports the press. You save, show errors and close. The answers are the footer
+buttons of a [`Modal`](#modal), with its phone tap zone.
 
 ### Drawer
 
@@ -1869,18 +1874,16 @@ fragments stay as they are.
 ### Segmented or tabs?
 
 Ask what is behind the choice. If a choice shows a different block of content on the same page, that
-content is a panel. Use `Tabs`. It draws the panels, and a screen reader says "tab, 1 of 3". If a
-choice only narrows a list, flips a unit or sets a preference, there is no panel. When all the
-options fit on one row, use `Segmented`. A screen reader says "pressed" for it. Both give one Tab
-stop, and both need a name in `label`.
+content is a panel. Use [`Tabs`](#tabs). If a choice only narrows a list, flips a unit or sets a
+preference, there is no panel. When all the options fit on one row, use [`Segmented`](#segmented).
+Both need a name in `label`.
 
 ### SuccessPanel or Success?
 
 Ask how much of the screen the confirmation owns. After a form submit, or in a card on a page where
 the user stays, use `SuccessPanel` with `title` and `sub`. When the confirmation is the whole screen
-and the user needs somewhere to go next, use `Success`. It chooses a layout, holds the next-step
-buttons and can count down to a redirect. The two use different classes, so a style change to one
-does not change the other.
+and the user needs somewhere to go next, use [`Success`](#success-confirmations). The two use
+different classes, so a style change to one does not change the other.
 
 ---
 
