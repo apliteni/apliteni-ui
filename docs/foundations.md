@@ -602,6 +602,8 @@ layer. `input`, `select` and `textarea` generate no pseudo-element and use their
 A back link draws 32 high, and its layer reaches 6 above and 6 below it to make 44.
 A filter chip draws 40 high and has no remove mark. Its trigger's layer reaches 2 past the chip
 on each side to make 44.
+The selection bar's Clear draws 32 high with a 4px clear band inside its edge. Its layer
+reaches 6 above and 6 below it to make 44.
 A wordless button that is a direct child of a toolbar draws 36 or 40 wide. Its layer reaches
 into half of the toolbar's 10px gap on each side to make 44, and the gap does not open
 (src/styles/tap-zone.css:182 `--tap-clear-x: 10px`). To give a lone small, default or
