@@ -624,7 +624,8 @@ its words on one line. Without `ghost` the trigger keeps its edge.
 - The panel has an 18px corner, and each row has a 12px corner 6px inside its edge. A hovered
   row takes a quiet grey ground and draws no edge. The chosen row takes a soft accent tint, one
   step deeper under the pointer, and a neutral check marks it. A focused row has the focus ring and no ground of its own. A destructive row turns `--pink`
-  on hover and focus. In forced colours a separator stays a visible line.
+  on hover and focus. In forced colours a separator stays a visible line, and the chosen row
+  keeps the system highlight colours at rest, under the pointer and as the search cursor.
 - A panel that scrolls shows a thin, rounded, neutral scroll bar. Browsers that cannot style the
   bar parts get their own thin bar.
 
