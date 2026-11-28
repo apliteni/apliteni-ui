@@ -198,7 +198,8 @@ function floors(sheets) {
   for (const [file, css] of sheets) {
     for (const rule of rules(css)) {
       for (const one of selectors(rule.selector)) {
-        if (!one.includes(PANEL)) continue;
+        // A pseudo-element, such as the panel's scroll bar, is not the panel's box.
+        if (!one.includes(PANEL) || one.includes('::')) continue;
         for (const prop of ['min-width', 'width']) {
           const value = declared(rule.body, prop);
           if (!value) continue;

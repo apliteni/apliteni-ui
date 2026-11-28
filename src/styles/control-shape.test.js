@@ -1,17 +1,19 @@
 /* Rule: every button, dropdown trigger, filter chip and select is a pill, and a wordless
  * button a circle. Every one-line typed field has the field corner and a text area or a
- * message box the larger corner. A card and a floating panel have the round corner. Where
- * the browser supports it, a card, a panel and a typed field use a squircle corner. Only
- * the controls in KEEPS draw another corner.
- * why: docs/foundations.md#control-corners, #823, #836, #874
+ * message box the larger corner. A card and a floating panel have the round corner. A
+ * dropdown panel has the rounded popover corner and keeps the round shape. Where the browser
+ * supports it, a card, another panel and a typed field use a squircle corner. Only the
+ * controls in KEEPS draw another corner.
+ * why: docs/foundations.md#control-corners, #823, #836, #874, rev_32e9894c9f71/d76
  *
  * The subjects are discovered: every `border-radius` the shipped style sheets declare
  * (src/styles/*.css and react/src/*.css) on a selector whose subject, its last compound,
  * carries a listed class. Each must be `var(--radius-pill)` for a control, `var(--radius-lg)`
- * for a one-line field, `var(--radius-2xl)` for a text area, or `var(--radius-md)` for a
- * card or panel. Every `corner-shape: squircle` declaration must sit inside
- * `@supports (corner-shape: squircle)`, and every listed card, panel and typed field keeps
- * one. A later rule that gives a listed class another corner fails here, whatever its
+ * for a one-line field, `var(--radius-2xl)` for a text area, `var(--radius-xl)` for a
+ * dropdown panel, or `var(--radius-md)` for a card or another panel. A pseudo-element, such
+ * as a scroll bar's thumb, is not the box and is not read. Every `corner-shape: squircle`
+ * declaration must sit inside `@supports (corner-shape: squircle)`, every listed card,
+ * panel and typed field keeps one, and a dropdown panel has none. A later rule that gives a listed class another corner fails here, whatever its
  * specificity.
  *
  * Limits: the gate reads declarations, not layout. It does not prove that the padding
@@ -41,9 +43,11 @@ const CONTROLS = ['ui-btn', 'ui-fbbtn', 'toggle', 'ui-dropdown__trigger', 'ui-fi
 const FIELDS = ['ui-input', 'ui-textarea', 'ui-dropdown__search-input', 'ui-pager__jump-input'];
 // Cards and floating panels: dialogs, dropdown panels, menus, callouts, toasts, success
 // surfaces, code blocks and hover readouts. They take the round corner. #874
-const SURFACES = ['ui-card', 'ui-auth__card', 'rx-modal', 'ui-dropdown__panel', 'ui-cmdk__panel',
-  'ui-confirm__panel', 'vsw__menu', 'amenu', 'ui-callout', 'ui-toast', 'ui-success', 'ui-sx',
+const SURFACES = ['ui-card', 'ui-auth__card', 'rx-modal', 'ui-cmdk__panel',
+  'ui-confirm__panel', 'ui-callout', 'ui-toast', 'ui-success', 'ui-sx',
   'ui-snippet', 'ui-tip', 'ui-fbcomposer'];
+// The dropdown panels: the rounded popover, with round corners. rev_32e9894c9f71/d76
+const POPOVERS = ['ui-dropdown__panel', 'vsw__menu', 'amenu'];
 // The controls that keep another corner, each with its reason.
 const KEEPS = {
   'ui-app__user-trigger': 'In the side rail it is a rail row and keeps the rail rows’ corner. In the band it is a circle, held below.',
@@ -52,19 +56,22 @@ const PILL = 'var(--radius-pill)';
 const FIELD = 'var(--radius-lg)';
 const MESSAGE = 'var(--radius-2xl)';
 const SURFACE = 'var(--radius-md)';
+const POPOVER = 'var(--radius-xl)';
 const cornerOf = (cls) => (cls === 'ui-textarea' ? MESSAGE
   : FIELDS.includes(cls) ? FIELD
-    : SURFACES.includes(cls) ? SURFACE : PILL);
+    : SURFACES.includes(cls) ? SURFACE
+      : POPOVERS.includes(cls) ? POPOVER : PILL);
 
 const decomment = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '');
 const classesOf = (selector) => {
   const last = selector.trim().split(/\s*[\s>+~]\s*/).pop();
+  if (last.includes('::')) return [];
   return [...last.matchAll(/\.([\w-]+)/g)].map((m) => m[1]);
 };
 const listedClass = (classes) => {
   const base = classes.map((c) => c.replace(/--[\w-]+$/, ''));
   return base.find((c) => c in KEEPS)
-    ?? base.find((c) => CONTROLS.includes(c) || FIELDS.includes(c) || SURFACES.includes(c));
+    ?? base.find((c) => [...CONTROLS, ...FIELDS, ...SURFACES, ...POPOVERS].includes(c));
 };
 
 /** Every corner declared on a control, field or surface: { sheet, selector, cls, value }. */
@@ -134,7 +141,7 @@ export function squircleCorners(sheets) {
 export function faults(allCorners, squircles) {
   const out = allCorners.filter((c) => !(c.cls in KEEPS) && c.value !== cornerOf(c.cls))
     .map((c) => `${c.sheet}: ${c.selector} has corner ${c.value}, not ${cornerOf(c.cls)}`);
-  for (const cls of [...CONTROLS, ...FIELDS, ...SURFACES]) {
+  for (const cls of [...CONTROLS, ...FIELDS, ...SURFACES, ...POPOVERS]) {
     if (!allCorners.some((c) => c.cls === cls && c.value === cornerOf(cls))) out.push(`.${cls}: no ${cornerOf(cls)} corner found, so it was not measured`);
   }
   // A wordless button in the band: the account trigger is a circle there. #834
@@ -145,6 +152,9 @@ export function faults(allCorners, squircles) {
   }
   for (const cls of [...SURFACES, ...FIELDS]) {
     if (!squircles.some((s) => s.cls === cls)) out.push(`.${cls}: no squircle corner found, so it was not measured`);
+  }
+  for (const s of squircles.filter((q) => POPOVERS.includes(q.cls))) {
+    out.push(`${s.sheet}: ${s.selector} has corner-shape: squircle, and a dropdown panel keeps round corners`);
   }
   return out;
 }
@@ -171,8 +181,11 @@ test('every control is a pill, every field and surface has its corner, and every
   assert.equal(allCorners.filter((c) => c.value === PILL).length, 19, 'pill corners read');
   assert.equal(allCorners.filter((c) => c.value === FIELD).length, 4, 'one-line field corners read');
   assert.equal(allCorners.filter((c) => c.value === MESSAGE).length, 1, 'message box corners read');
-  assert.equal(allCorners.filter((c) => c.value === SURFACE).length, 15, 'card and panel corners read');
-  assert.equal(squircles.filter((s) => s.guarded).length, 27, 'guarded squircle corners read');
+  // 12, 3 and 21 since rev_32e9894c9f71/d76: the three dropdown panels left the card corner,
+  // and they, the two pinned blocks and the account head left the squircle.
+  assert.equal(allCorners.filter((c) => c.value === SURFACE).length, 12, 'card and panel corners read');
+  assert.equal(allCorners.filter((c) => c.value === POPOVER).length, 3, 'dropdown panel corners read');
+  assert.equal(squircles.filter((s) => s.guarded).length, 21, 'guarded squircle corners read');
   assert.equal(squircles.filter((s) => !s.guarded).length, 0, 'no unguarded squircle corner');
   assert.ok(SHEETS.length >= 45, `${SHEETS.length} style sheets read`);
 });
@@ -193,7 +206,9 @@ const MUTATIONS = [
   ['the notice dismiss focus back on --radius-xs', 'src/styles/callout.css', /(\.ui-toast__close:focus-visible \{[^}]*border-radius: )var\(--radius-pill\)/, '$1var(--radius-xs)'],
   ['the back link on --radius-sm', 'src/styles/back.css', /(\n  border-radius: )var\(--radius-pill\)/, '$1var(--radius-sm)'],
   ['the card back on the field corner', 'src/styles/card.css', /(\.ui-card \{\n[\s\S]*?  border-radius: )var\(--radius-md\)/, '$1var(--radius-lg)'],
-  ['the dropdown panel back on the field corner', 'src/styles/dropdown.css', /(\.ui-dropdown__panel \{\n[\s\S]*?  border-radius: )var\(--radius-md\)/, '$1var(--radius-lg)'],
+  ['the dropdown panel back on the card corner', 'src/styles/dropdown.css', /(\.ui-dropdown__panel \{\n[\s\S]*?  border-radius: )var\(--radius-xl\)/, '$1var(--radius-md)'],
+  ['the account menu back on the card corner', 'src/styles/topbar.css', /(\.amenu \{\n[\s\S]*?  border-radius: )var\(--radius-xl\)/, '$1var(--radius-md)'],
+  ['the dropdown panel back on the squircle', 'src/styles/dropdown.css', /(@supports \(corner-shape: squircle\) \{\n)(  \.ui-dropdown__search-input)/, '$1  .ui-dropdown__panel,\n$2'],
   ['the card squircle dropped', 'src/styles/card.css', /\n@supports \(corner-shape: squircle\) \{\n  \.ui-card, \.ui-card__viewer > \.ui-table-scroll \{ corner-shape: squircle; \}\n\}/, ''],
 ];
 for (const mutation of MUTATIONS) {
