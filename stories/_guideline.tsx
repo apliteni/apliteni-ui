@@ -36,15 +36,22 @@ export const Raw = ({ html, block = false }: { html: string; block?: boolean }) 
  * don't can show a notice the kit would not draw. */
 // The glyph each tone draws, as Toast.tsx draws it; react/src/guidelines.test.tsx holds the two in step.
 export const TONE_GLYPH = { success: 'circleCheck', danger: 'circleX', warn: 'circleAlert', info: 'info', neutral: 'bolt' };
-export const NoticePicture = ({ tone = 'neutral', glyph, title, text, action, close = true }: {
-  tone?: keyof typeof TONE_GLYPH; glyph?: string; title: string; text?: string; action?: string; close?: boolean;
+// `left` draws the timed action's ring, still, with that part of the time left, as Toast.tsx draws it.
+export const NoticePicture = ({ tone = 'neutral', glyph, title, text, action, left, close = true }: {
+  tone?: keyof typeof TONE_GLYPH; glyph?: string; title: string; text?: string; action?: string; left?: number; close?: boolean;
 }) => <div className={`ui-toast ui-toast--${tone} ui-toast--soft`} role="status" aria-live="polite">
   <span className="ui-toast__icon"><Raw html={icon(glyph ?? TONE_GLYPH[tone])} /></span>
   <div className="ui-toast__body">
     <div className="ui-toast__title">{title}</div>
     {text && <div className="ui-toast__text">{text}</div>}
   </div>
-  {action && <button type="button" className="ui-toast__action">{action}</button>}
+  {action && <button type="button" className={`ui-toast__action${left === undefined ? '' : ' ui-toast__action--timed'}`}>
+    {left !== undefined && <svg className="ui-toast__ring" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <circle className="ui-toast__ring-track" cx="8" cy="8" r="7" />
+      <circle className="ui-toast__ring-arc" cx="8" cy="8" r="7" pathLength="100" style={{ strokeDashoffset: (left - 1) * 100 }} />
+    </svg>}
+    {action}
+  </button>}
   {close && <button type="button" className="ui-toast__close" aria-label="Dismiss"><Raw html={icon('x')} /></button>}
 </div>;
 

@@ -38,4 +38,5 @@ Each row names one guideline page, the screen parts it covers, and when to read 
 | [Task list](task-list.md) | A task page: its title row, its toolbar, and a board with columns, drag and keyboard moves. | Read it before you build a page of tasks with a table and a board. |
 | [Notification email](notification-email.md) | A notification mail: its subject, its task links, its plain text and its settings link. | Read it before you write a mail that tells a person about a task. |
 | [Selection bar](selection-bar.md) | The bar for selected rows: its theme, a pick that applies at once, and More. | Read it before you act on selected rows. |
+| [Toast](toast.md) | The toast stack above a bar at the bottom, and the ring on a timed Undo. | Read it before you show a notice over a bottom bar or give an Undo a timer. |
 | [Guidelines](overview.md) | No screen parts. The file holds only the collection heading. | Read it only for the heading. The six-card overview is in Storybook, not in the package. |
